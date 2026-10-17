@@ -30,6 +30,10 @@ The **gravity** checkbox saves immediately in a separate `gravity` key as `"true
 - *Full* fumen import/export sets your board state history as the fumen pages and vice versa.
 - Drawing garbage on the board
 
+## Regression tests
+
+With the Node version in `.nvmrc`, run `npm ci && npm test`. The suite exercises the real pages and gameplay without launching a browser. See [TESTING.md](./TESTING.md) for setup, behavioral coverage, retained results, and browser-only limits.
+
 ## TODO
 
 - fix DAS stuff more?
