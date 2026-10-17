@@ -1,0 +1,62 @@
+// Node owns test execution/reporting; this wrapper only binds durable results to a revision.
+const { run } = require('node:test');
+const { tap } = require('node:test/reporters');
+const { execFileSync } = require('node:child_process');
+const { createHash } = require('node:crypto');
+const fs = require('node:fs');
+const path = require('node:path');
+const { inspect } = require('node:util');
+const { SEED } = require('../test/support/pages.cjs');
+
+const root = path.resolve(__dirname, '..');
+process.chdir(root);
+const id = `${new Date().toISOString().replaceAll(':', '-')}-${process.pid}`;
+const directory = path.join(process.env.ZZTETRIS_TEST_RESULTS_DIR || path.join(root, 'test-results'), id);
+fs.mkdirSync(directory, { recursive: true });
+const transcript = path.join(directory, 'results.tap');
+fs.writeFileSync(transcript, '');
+const result = { schemaVersion: 1, id, command: 'npm test', startedAt: new Date().toISOString(),
+  node: process.version, platform: process.platform, seeds: [SEED], cases: [], exitCode: 1 };
+
+async function main() {
+  const controller = new AbortController();
+  let deadline;
+  try {
+    const git = (...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
+    result.commit = git('rev-parse', 'HEAD');
+    result.dirty = git('status', '--porcelain').length > 0;
+    result.lockSha256 = createHash('sha256').update(fs.readFileSync('package-lock.json')).digest('hex');
+    result.testFiles = fs.readdirSync('test').filter(file => file.endsWith('.test.cjs')).sort().map(file => `test/${file}`);
+    if (process.version !== 'v24.20.0') throw new Error('Use the pinned Node version from .nvmrc (24.20.0)');
+    if (!result.testFiles.length) throw new Error('No test files found');
+    // Parent watchdog also bounds a child stuck in synchronous product code.
+    deadline = setTimeout(() => controller.abort(new Error('Suite exceeded 60 seconds')), 60000);
+    const stream = run({ files: result.testFiles, concurrency: 1, timeout: 15000, signal: controller.signal });
+    for (const outcome of ['pass', 'fail']) stream.on(`test:${outcome}`, data => {
+      result.cases.push({ id: data.name, file: path.relative(root, data.file || ''), seed: SEED,
+        outcome: data.skip ? 'skip' : data.todo ? 'todo' : outcome,
+        durationMs: data.details.duration_ms,
+        ...(data.details.error ? { failure: inspect(data.details.error, { depth: 6 }) } : {}),
+      });
+    });
+    stream.on('test:summary', summary => { if (!summary.file) result.summary = summary; });
+    for await (const chunk of stream.compose(tap)) {
+      fs.appendFileSync(transcript, chunk);
+      process.stdout.write(chunk);
+    }
+    const counts = result.summary?.counts;
+    result.exitCode = result.summary?.success && counts.tests > 0 &&
+      counts.skipped === 0 && counts.todo === 0 && counts.cancelled === 0 ? 0 : 1;
+  } catch (error) {
+    result.error = inspect(error, { depth: 6 });
+    fs.appendFileSync(transcript, `\n# Runner error: ${result.error}\n`);
+    console.error(error);
+  } finally {
+    clearTimeout(deadline);
+    result.finishedAt = new Date().toISOString();
+    fs.writeFileSync(path.join(directory, 'manifest.json'), JSON.stringify(result, null, 2) + '\n');
+    console.log(`\nResults: ${directory}`);
+    process.exitCode = result.exitCode;
+  }
+}
+main().catch(error => { console.error(error); process.exitCode = 1; });

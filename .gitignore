@@ -3,3 +3,7 @@ tetris-fumen
 .vscode
 
 .DS_Store
+
+node_modules/
+.npm-cache/
+test-results/
