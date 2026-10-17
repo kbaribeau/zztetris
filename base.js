@@ -16,19 +16,6 @@ function ctrlsPopup() { // opens a popup window with keybinds
 
 }
 
-function aboutPopup() {
-	window.alert(`START BY ADJUSTING KEYBINDS AND SETTINGS
-zztetris
-a tetris client with a name that starts with zz so you can type zz and have it autocomplete
-forked from aznguy's schoolteto, a number of features added
-inspired by fio's four-tris
----
-Import/Export works through your clipboard. Doesn't work on Firefox.
-Undo/redo is a thing. It keeps track of your board state history.
-*Full* fumen import/export sets your board state history as the fumen pages and vice versa.
-Drawing on the board is a thing.`);
-}
-
 // Array.prototype.getRand = function () {
 // 	return this[Math.floor(Math.random() * this.length)];
 // };
@@ -188,7 +175,6 @@ if (LS.config && LS.version == '2023-05-02a') {
 	let codes = Object.keys(ctrl); // Deafult keys
 	codes.push('160', '30', '15', '20','100'); // Handling settings
 	LS.config = JSON.stringify(codes);
-	aboutPopup();
 
 }
 

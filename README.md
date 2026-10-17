@@ -16,6 +16,8 @@ Forked from [aznguy's schoolteto](https://github.com/aznguymp4/schoolTeto) with 
 
 Inspired by fio's four-tris
 
+The practice, cheese, 4w, grav, and pc modes open directly without a startup popup. Use **Game Settings** to adjust keybinds and handling settings before playing.
+
 ## Features (probably buggy lol)
 
 - Fumen import/export
