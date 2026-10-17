@@ -18,6 +18,10 @@ Inspired by fio's four-tris
 
 The practice, cheese, 4w, grav, and pc modes open directly without a startup popup. Use **Game Settings** to adjust keybinds and handling settings before playing.
 
+Settings are saved in your browser's `localStorage` for this site. **Game Settings** stores keybinds, handling, cell size, and audio level in `config`, with a separate `version` key for compatibility. These preferences stay in that browser profile; they do not sync between browsers or devices.
+
+The **gravity** checkbox saves immediately in a separate `gravity` key as `"true"` or `"false"`. Its saved value is restored when you reload or open another game mode on the same site. Gravity starts enabled when no preference is saved. **Reset to Defaults** in Game Settings resets its configuration but leaves gravity unchanged; use the checkbox to change it. Clearing the site's local storage removes the saved settings, including gravity.
+
 ## Features (probably buggy lol)
 
 - Fumen import/export
