@@ -178,6 +178,13 @@ if (LS.config && LS.version == '2023-05-02a') {
 
 }
 
+// Keep gravity preference separate from versioned keybindings config so legacy config is untouched.
+const gravityPreference = localStorage.getItem('gravity');
+if (gravityPreference !== null) $('#grav').prop('checked', gravityPreference === 'true');
+$('#grav').on('change', function () {
+	localStorage.setItem('gravity', String(this.checked));
+});
+
 const notf = $('#notif');
 
 const names = 'ZLOSIJT'.split(''); // piece names
