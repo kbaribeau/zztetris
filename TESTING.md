@@ -15,7 +15,7 @@ Installation needs access to the npm registry (or a populated npm cache). **Test
 - `test-results/<run-id>/results.tap`: named checks, failures and diagnostics;
 - `test-results/<run-id>/manifest.json`: full Git SHA, dirty flag, lockfile SHA-256, Node version, seed, test identifiers, durations, counts, failures and exit code.
 
-The command exits nonzero for failed assertions, setup/unhandled errors, timeouts, missing tests, skipped/TODO cases, or the wrong Node version. Each test file has a 15-second execution limit; a parent watchdog aborts the whole suite after 60 seconds, including synchronous hangs in a child. Virtual time is separate from these real-time safety limits.
+The command exits nonzero for failed assertions, setup/unhandled errors, timeouts, missing tests, skipped/TODO cases, or the wrong Node version. Node's 15-second test timeout handles cooperative/asynchronous stalls; it cannot interrupt a child stuck in synchronous JavaScript. A parent watchdog aborts the whole suite after 60 seconds, including those synchronous hangs. Virtual time is separate from these real-time safety limits.
 
 A dirty run is diagnostic evidence, not proof of a clean commit. For delivery, run again after committing and retain the manifest **and** transcript for that SHA. `test-results/` is ignored, not durable versioned storage; copy the bundle somewhere with the retention you need, or set an output parent directory:
 
