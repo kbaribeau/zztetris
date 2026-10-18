@@ -106,3 +106,43 @@ test('navigation/controls: modified and middle clicks retain native behavior in 
       }
     } finally { g.window.close = originalClose; }
   }));
+
+test('navigation/pc: preset keys leave focused-menu board, queue and history unchanged', () =>
+  withPage('pc.html', { storage: settings({ gravity: 'false' }) }, g => {
+    g.tap('Space');
+    const state = () => JSON.parse(JSON.stringify({ game: g.snapshot(), board: g.window.board, history: g.window.hist }));
+    const before = state();
+    assert.ok(before.game.heap.some(row => row !== '..........'));
+    assert.ok(before.game.history > 0);
+    const presetKey = target => {
+      for (const type of ['keydown', 'keyup']) target.dispatchEvent(new g.window.KeyboardEvent(type, {
+        code: 'Digit1', key: '1', keyCode: 49, which: 49, bubbles: true,
+      }));
+    };
+    for (const entry of g.element('nav[aria-label="Main navigation"]').querySelectorAll('a, button')) {
+      entry.focus();
+      assert.equal(g.window.document.activeElement, entry);
+      presetKey(entry);
+      assert.deepEqual(state(), before, entry.textContent);
+    }
+    g.window.document.activeElement.blur();
+    presetKey(g.window.document);
+    const after = g.snapshot();
+    assert.deepEqual(after.heap, Array(40).fill('..........'));
+    assert.equal(after.queue.indexOf('|'), 6);
+    assert.deepEqual([after.piece, ...after.queue.slice(0, 6)].sort(), ['I', 'J', 'L', 'O', 'S', 'T', 'Z']);
+    assert.notDeepEqual(after, before.game);
+  }));
+
+test('navigation/pc: releasing held movement on the menu stops repeating', () =>
+  withPage('pc.html', { storage: settings({ gravity: 'false' }) }, g => {
+    const start = g.snapshot().x;
+    g.key('keydown', 'ArrowRight');
+    g.advance(6);
+    assert.equal(g.snapshot().x, start + 1);
+    const entry = g.element('nav button');
+    entry.focus();
+    entry.dispatchEvent(new g.window.KeyboardEvent('keyup', { code: 'ArrowRight', bubbles: true }));
+    g.advance(200);
+    assert.equal(g.snapshot().x, start + 1);
+  }));
