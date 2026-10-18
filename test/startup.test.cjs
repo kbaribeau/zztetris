@@ -8,7 +8,7 @@ for (const { page, engine, mode } of PAGES) {
     const w = g.window;
     assert.equal(w.jQuery.fn.jquery, '3.6.0');
     assert.deepEqual(g.requests.filter(url => url.endsWith('.js')).map(url => url === JQUERY ? 'jquery' : new URL(url).pathname.slice(1)),
-      ['jquery', 'rotationSystem.js', 'io.js', 'utils.js', 'tetris-fumen.js', engine, 'tetrio.js', mode]);
+      ['jquery', 'rotationSystem.js', 'io.js', 'training-settings.js', 'utils.js', 'tetris-fumen.js', engine, 'tetrio.js', mode]);
     assert.equal(w.board.length, 40);
     assert.ok(w.board.every(row => row.length === 10));
     assert.match(w.piece, /^[ZLOSIJT]$/);

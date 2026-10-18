@@ -7,7 +7,7 @@
   const advisor=STCore.create(pieces,kicksets['SRS+']);
   const $id=id=>document.getElementById(id);
   const historyStates=new WeakMap();
-  let strategy=null, observedEntry=null, observedSignature='', enabled=true;
+  let strategy=null, observedEntry=null, observedSignature='';
   let cacheKey='', result=null;
   const lockedHeap=()=>board.map(row=>row.map(cell=>cell.t===1?'#':'.').join(''));
   const signature=entry=>entry ? JSON.stringify([entry.board,entry.queue,entry.hold,entry.piece]) : '';
@@ -43,10 +43,11 @@
     if(key!==cacheKey) {result=advisor.advise(input);cacheKey=key;}
     return result;
   }
-  function toggle() {enabled=!enabled;clear();render();}
+  function toggle() {TrainingSettings.setGuideVisible(!TrainingSettings.guideVisible);}
   function render() {
     if(!window.zzBot) return;
     syncHistory();
+    const enabled=TrainingSettings.guideVisible;
     const code=STBinding.resolve(localStorage,Object.keys(ctrl));
     const toggleLabel=`Advice ${enabled?'ON':'OFF'} · ${code || 'key conflicts; rebind in Game Settings'}`;
     if($id('st-toggle').textContent!==toggleLabel) $id('st-toggle').textContent=toggleLabel;
@@ -106,7 +107,7 @@
     holdP=setup.hold;held=false;lastAction='';combo=-1;b2b=-1;oldcombo=-1;oldb2b=-1;
     newPiece();
     hist=[{board:JSON.stringify(board),queue:JSON.stringify(queue),hold:holdP,piece}];histPos=0;
-    strategy=clone(setup.strategy);enabled=true;saveHistory(hist[0]);render();
+    strategy=clone(setup.strategy);saveHistory(hist[0]);render();
     $id('st-start').blur();
   }
   for(const ex of STCore.exercises) {

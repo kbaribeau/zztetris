@@ -12,7 +12,7 @@ const ANIMATE = 'https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animat
 const files = [...new Set([
   'rotationSystem.js', 'io.js', 'utils.js', 'tetris-fumen.js', 'tetrio.js',
   ...ALL_PAGES.flatMap(({ engine, mode }) => [engine, mode]),
-  'st-core.js', 'st-binding.js', 'st-lab.js', 'styles/st-lab.css',
+  'st-core.js', 'st-binding.js', 'st-lab.js', 'training-settings.js', 'styles/st-lab.css',
   'styles/zztetris.css', 'styles/paint_bucket.css',
   'styles/import_export.css', 'styles/board_settings.css',
 ])];

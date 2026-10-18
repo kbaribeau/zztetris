@@ -21,8 +21,12 @@ replenishment, strategic Reset, arbitrary recovery or indefinite ST stacking.
    drop. Simply dropping a T shape from above is not enough. On completion,
    choose another exercise or return to practice; nothing restarts automatically.
 
-Advice is **on for every explicit exercise entry**. **A** (`KeyA`) toggles only
-its display in the lab; the on-screen button also works. Rebind it in **Game
+Advice defaults **on** when no choice is saved. **Game Settings → Training →
+Show amber ST guide (lab only)**, **A** (`KeyA`) and the on-screen advice button
+all change the same saved display preference. Entry and explicit exercise starts
+honor that choice; hiding advice never changes legal moves or eligibility.
+The Training section also contains the independent **Show bag boundaries in NEXT**
+option (default off). Rebind the advice key in **Game
 Settings → ST lab advice** using the same click-and-press-key convention as the
 other controls. Escape cancels capture. Repeats and shortcuts using Ctrl, Alt or
 Meta do not activate the toggle, and typing/selecting does not trigger game actions in the
@@ -33,7 +37,10 @@ The extra binding lives in `localStorage.stAdviceKey`, **not** in the legacy
 custom gameplay binding already uses it, the advice key is disabled with an
 explanation; the button still works. Rebinding refuses conflicts and never
 changes an existing gameplay binding. Reset to Defaults clears the extra key
-alongside controls, but still preserves gravity. Display-off is not persisted.
+alongside controls and both training preferences, but still preserves gravity.
+Guide visibility is persisted separately as `localStorage.stGuideVisible`; bag
+markers use `localStorage.bagBoundaries`. Changes redraw open pages immediately;
+closing a display-only settings popup does not reload the game.
 Other game pages do not load the advisor or intercept this key.
 
 The lab opens with the practice engine, **SRS+ and gravity off**. These are temporary

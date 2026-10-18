@@ -34,19 +34,19 @@ for(const gravity of [undefined,'true','false']) {
   }));
 }
 
-test('st-lab/toggle: display only, no repeat, no persisted off state; normal practice unaffected',async()=>{
+test('st-lab/toggle: display only, no repeat, persisted off state; normal practice unaffected',async()=>{
   let storage;
   await withPage('st-lab.html',{storage:settings({gravity:'true'})},g=>{
     start(g);const before=g.snapshot(),saved=g.storage();
     g.tap('KeyA');assert.equal(target(g).children.length,0);assert.equal(reason(g),'off');
-    assert.deepEqual(g.snapshot(),before);assert.deepEqual(g.storage(),saved);
+    assert.deepEqual(g.snapshot(),before);assert.deepEqual(g.storage(),{...saved,stGuideVisible:'false'});
     g.key('keydown','KeyA',true);g.key('keyup','KeyA');
     assert.equal(g.element('#st-toggle').getAttribute('aria-pressed'),'false');
     g.click('#st-toggle');assert.equal(target(g).children.length,8);assert.deepEqual(g.snapshot(),before);
-    g.tap('KeyA');start(g);assert.equal(target(g).children.length,8,'each explicit entry is on');
-    g.tap('KeyA');storage=g.storage();
+    g.tap('KeyA');start(g);assert.equal(target(g).children.length,0,'entry honors saved off');
+    storage=g.storage();
   });
-  await withPage('st-lab.html',{storage},g=>{start(g);assert.equal(target(g).children.length,8);});
+  await withPage('st-lab.html',{storage},g=>{start(g);assert.equal(target(g).children.length,0);});
   await withPage('index.html',{storage},g=>{
     assert.equal(g.element('#grav').checked,true);const before=g.snapshot();
     g.tap('KeyA');assert.deepEqual(g.snapshot(),before);assert.equal(g.window.stLab,undefined);
