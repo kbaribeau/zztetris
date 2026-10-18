@@ -43,6 +43,7 @@ async function importTetrio() {
 	clearActive();
 	updateGhost();
 	setShape();
+	updateQueue();
 	updateHistory();
 }
 

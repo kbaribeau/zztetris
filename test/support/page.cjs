@@ -26,6 +26,7 @@ const audioFiles = ['Move', 'Rotate', 'Hold', 'HardDrop', 'ClearTetra', 'Perfect
 async function boot(page, { storage = {}, seed = SEED } = {}) {
   assert.ok(page === 'controls.html' || PAGES.some(p => p.page === page), `Unknown page: ${page}`);
   const errors = [], requests = [], trace = [], images = [], sounds = [];
+  const previewDraws = { n: [], h: [] }; // actual canvas calls, not pixel emulation
   let dom, clock, window, loadTimer, navigationExpected = false, navigationCount = 0, disposed = false;
   let randomState = seed >>> 0, randomCalls = 0;
   const fail = message => { const error = new Error(message); errors.push(error); throw error; };
@@ -107,11 +108,21 @@ async function boot(page, { storage = {}, seed = SEED } = {}) {
         };
         w.HTMLCanvasElement.prototype.getContext = function (type) {
           if (type !== '2d') fail(`Unsupported canvas context: ${type}`);
+          const draws = previewDraws[this.id];
+          let path = [];
           return new Proxy({
             fillStyle: '', strokeStyle: '', lineWidth: 1,
-            fillRect() {}, strokeRect() {}, clearRect() {}, beginPath() {},
-            moveTo() {}, lineTo() {}, stroke() {}, createPattern() { return 'test-pattern'; },
-            drawImage(image) { if (!(image instanceof w.Image) || !image.complete) fail('Drawing an unloaded image'); },
+            fillRect() {}, strokeRect() {},
+            clearRect() { if (draws) draws.length = 0; },
+            beginPath() { path = []; },
+            moveTo(x, y) { path.push([x, y]); },
+            lineTo(x, y) { path.push([x, y]); },
+            stroke() { if (draws) draws.push({ path: [...path], width: this.lineWidth, color: this.strokeStyle }); },
+            createPattern() { return 'test-pattern'; },
+            drawImage(image, x, y) {
+              if (!(image instanceof w.Image) || !image.complete) fail('Drawing an unloaded image');
+              if (draws) draws.push({ piece: new URL(image.src).pathname.match(/\/([a-z])\.png$/)?.[1]?.toUpperCase(), x, y });
+            },
           }, {
             get(target, name) { if (!(name in target)) fail(`Unsupported canvas method: ${String(name)}`); return target[name]; },
             set(target, name, value) { if (!(name in target)) fail(`Unsupported canvas property: ${String(name)}`); target[name] = value; return true; },
@@ -136,6 +147,7 @@ async function boot(page, { storage = {}, seed = SEED } = {}) {
     const driver = {
       page, window, clock, requests, sounds, trace,
       element,
+      preview() { return JSON.parse(JSON.stringify(previewDraws)); },
       healthy,
       storage() { return Object.fromEntries(Object.keys(window.localStorage).sort().map(k => [k, window.localStorage.getItem(k)])); },
       advance(ms) {

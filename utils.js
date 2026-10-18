@@ -1,3 +1,36 @@
+// A separator belongs to the preceding queue segment. Project pieces independently
+// of raw token indexes so even short/custom segments keep all six preview slots.
+function drawQueuePreview(queue, holdP, imgs, ctxN, ctxH) {
+	ctxN.clearRect(0, 0, 90, 360);
+	ctxH.clearRect(0, 0, 90, 60);
+	let slots = 0;
+	const ends = new Set();
+	for (const token of queue) {
+		if (token === '|') {
+			if (slots <= 6) ends.add(slots);
+		} else {
+			if (slots === 6) break;
+			// Unknown imported tokens retain their slot; they are not guessed or drawn.
+			if (imgs[token]) ctxN.drawImage(imgs[token], 0, slots * 60);
+			slots++;
+		}
+	}
+	// The outgoing piece can already be active (leading separator). In that
+	// case only its top-edge cue remains in the preview. All strokes stay inside
+	// the canvas, including a marker on the sixth piece at the bottom edge.
+	ctxN.strokeStyle = '#fff';
+	ctxN.lineWidth = 2;
+	for (const end of ends) {
+		const y = end === 0 ? 2 : end * 60 - 2;
+		ctxN.beginPath();
+		ctxN.moveTo(70, y);
+		ctxN.lineTo(88, y);
+		ctxN.lineTo(88, end === 0 ? 18 : y - 16);
+		ctxN.stroke();
+	}
+	if (holdP && imgs[holdP]) ctxH.drawImage(imgs[holdP], 0, 0);
+}
+
 function mirror() {
 	for (row = 0; row < board.length; row++) {
 		board[row].reverse();
