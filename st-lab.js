@@ -101,7 +101,7 @@
     keysDown=0;lastKeys=0;dasID++;
     board=setup.heap.map(row=>[...row].map(c=>({t:c==='#'?1:0,c:c==='#'?'X':''})));
     // A disclosed authored queue, not a bag prediction. Supply a finite tail to
-    // render the initial preview; later engine bag refill is never planner input.
+    // render the initial preview; the planner sees only currently visible pieces.
     queue=[setup.active,...setup.next,...'IOTJLSZ|IOTJLSZ|'];
     holdP=setup.hold;held=false;lastAction='';combo=-1;b2b=-1;oldcombo=-1;oldb2b=-1;
     newPiece();

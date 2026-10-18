@@ -100,7 +100,7 @@ is always an explicit, disclosed replacement. Unsupported state is not repaired.
 `st-core.js` is a pure module. `STCore.create(pieces, srsPlusKicks)` captures
 immutable copies of the actual game's rule tables. Its small interface is:
 
-- `exercise(id)`: fresh authored heap/queue/hold and starting
+- `exercise(id)`: fresh authored `heap`, `active`, `hold`, `next` and starting
   certificate; `STCore.exercises` is read-only descriptive metadata.
 - `advise(input)`: `target`, `abstain` or `exercise-complete`.
 - `advance(inputBeforeLock, actualLockResult)`: a new certificate **only** when
@@ -117,7 +117,8 @@ unique within the snapshot; hypothetical holds/locks preserve their identities.
 Repeated letters are not interchangeable instances.
 
 A target includes piece identity, `from`, a 0/1/2-hold `prelude`, exact `cells`,
-landing `pose`, executable `path` ending in HD, rule/reason, diagnostics and
+landing `pose`, executable `path` ending in HD, `rule`, `explanation`,
+`continuationVerified`, diagnostics and
 `afterMatchingLock`. That last field is conditional, **not** permission to
 advance state when displaying or holding. The adapter commits only via
 `advance` after an actual engine lock. Advice-off still observes actual progress.
