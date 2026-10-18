@@ -49,7 +49,7 @@ Unexpected host methods, resource errors, console errors and unhandled window er
 
 ### Fixtures and maintenance
 
-`test/support/pages.cjs` explicitly lists all ten game pages and their engines/modes/cadences. Add a page deliberately, with a startup and settings case; do not treat practice as a proxy for the other engines.
+`test/support/pages.cjs` explicitly lists the ten normal game pages and the separate ST lab page with their engines/modes/cadences. The lab has dedicated startup/settings tests because it uses temporary gravity-off rules rather than normal persisted gravity. Add a page deliberately, with a startup and settings case; do not treat practice as a proxy for the other engines.
 
 Shared gameplay cases arrange an independent empty 40×10 board and a fixed queue, using the existing `newPiece()` setup function. They then drive the real keyboard handlers. The collision fixture adds one heap cell at column 6, row 18; the spawning O cannot move right into it. The hard-drop oracle is two literal `....OO....` bottom rows, not the production landing algorithm recomputed in test code. Mode-specific initial boards are checked separately.
 
@@ -81,6 +81,20 @@ The initial baseline has **58 named tests**, not a measured statement/branch cov
 Future work, **not covered by this baseline**: kick tables/rotation edge cases, line-clear/combo/B2B/T-spin/perfect-clear fixtures, full opposite-key and zero-rate input matrix, touch handlers, history branching/cap/counters, mode row-refill and garbage-replenishment transitions, higher cancellation thresholds, PC digit presets, shuffle properties, text/image import/export, mirror/drawing and host failure paths.
 
 Statement coverage means lines executed; branch coverage means alternatives executed. Neither measures assertion quality, every board state, or browser fidelity. No percentage gate is configured.
+
+## ST lab behavioral coverage
+
+The suite now has **82 named tests**: the original 58 plus 24 ST cases. This is a case count, not a coverage percentage. `st-core.test.cjs` and `st-lab.test.cjs` execute the pure interface, real lab page, game actions and controls. Expected source cells/heaps in `test/support/st-fixtures.cjs` are independent literal transcriptions, not a second collision/scoring engine.
+
+- Five named fixture families × active/held/empty arrangements: execute every returned path through `zzBot`'s actual engine functions; assert exact target cells/grounded pose, post-clear heap, non-mini TSD or quad, and finite completion. Includes the elevated-notch and direct pocket→well descendants.
+- A real two-line clear without the final rotation does **not** complete a TSD exercise.
+- Immutable repeated inputs/fresh advisors, duplicate-kind identity/tie behavior, no advance on display/hold, full/empty/repeated hold, and a trapped I that requires **two holds to respawn**. No preview skipping.
+- Ordered lookahead changes with legal future access, hidden-suffix invariance (including the clipped seventh raw entry), all single-separator positions, ambiguous separators, unsupported profiles/full-heap edits and deterministic count-budget exhaustion.
+- Explicit entry, absent/on/off normal gravity preferences preserved, temporary rule changes, pending-hold labels and SVG coordinates at non-default cell size, default-on entry, no persisted off state, toggle-only traces and unchanged normal practice.
+- Real Game Settings rebinding and Reset, conflicting custom keys preserved, repeat/modifier/text-entry guards and focused-button keyboard activation. A repeated unchanged render does not mutate DOM/live regions (regression found during browser verification).
+- Actual lock→undo→redo, off-display progress, divergent branches, history truncation, absent imported metadata, real board painting, garbage, mirror/full-mirror, shuffle, hold/queue editing, Fumen/full-Fumen/TETRIO imports and reset invalidation. No-fit never resets or changes normal controls.
+
+These are bounded ST examples, not all rotations/boards/strategies. The existing baseline exclusions still apply outside these cases (for example, image decoding and complete mode-specific scoring). jsdom checks SVG attributes/labels, not pixels. No live LLM, network request, browser process or new test dependency is involved. The source `.lavish` study, screenshots and local review tooling are not part of the product/tests.
 
 ## Short, change-triggered browser smoke
 

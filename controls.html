@@ -1,4 +1,6 @@
+<meta charset="UTF-8">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="st-binding.js"></script>
 <style>
 	@font-face {
 		font-family: Mikado;
@@ -43,7 +45,7 @@
 </style>
 
 <body style="background-color: #333; color: #eee">
-	<div style="font-size: 30px; top: 50%; left: 50%; position: fixed; transform: translate(-50%, -50%)">
+	<div style="font-size: 30px; width: max-content; max-width: 100%; margin: 24px auto">
 		<table style="font-size: 24px">
 			<th>Controls</th>
 			<th>Key</th>
@@ -105,6 +107,11 @@
 			</tr>
 
 			<tr>
+				<td>ST lab advice (lab only)</td>
+				<td class="input"><kbd id="st-advice-key" role="button" tabindex="0">KeyA</kbd></td>
+			</tr>
+			<tr><td colspan="2" id="st-key-status" style="font:14px sans-serif" role="status"></td></tr>
+			<tr>
 				<td>[DAS] Delayed Auto Shift</td>
 				<td class="numinput"><input type="number" id="das" max="750" value="160" /></td>
 			</tr>
@@ -138,7 +145,7 @@
 
 		<br />
 		<a onclick="window.close()">Save & Close</a>
-		<a onclick="delete LS.version; delete LS.config; location.reload()">Reset to Defaults</a>
+		<a onclick="delete LS.version; delete LS.config; delete LS.stAdviceKey; location.reload()">Reset to Defaults</a>
 	</div>
 </body>
 
@@ -183,7 +190,42 @@
 	function saveCtrls() {
 		LS.config = JSON.stringify(ctrlDat);
 		LS.version = '2023-05-02a';
+		refreshAdviceKey();
 	}
+
+	function refreshAdviceKey() {
+		const code = LS.getItem('stAdviceKey') || STBinding.defaultCode;
+		document.getElementById('st-advice-key').textContent = code;
+		document.getElementById('st-key-status').textContent = STBinding.resolve(LS, ctrlDat.slice(0,11))
+			? 'Advice starts on each time you enter a lab exercise. Click its key to rebind.'
+			: 'Advice key conflicts with gameplay or is invalid. Use the lab button or choose an unused key.';
+	}
+	let capturingAdviceKey = false;
+	function captureAdviceKey() {
+		if (capturingAdviceKey) return;
+		capturingAdviceKey = true;
+		document.getElementById('st-advice-key').textContent = 'Press a key...';
+		document.addEventListener('keydown', respond, true);
+		function respond(e) {
+			e.preventDefault(); e.stopImmediatePropagation();
+			if (e.repeat) return;
+			if (e.code !== 'Escape') {
+				if (e.ctrlKey || e.altKey || e.metaKey || !STBinding.valid(e.code) || ctrlDat.slice(0,11).includes(e.code)) {
+					document.getElementById('st-key-status').textContent = 'Choose an unused, unmodified key. Escape cancels. Existing bindings are never overwritten.';
+					return;
+				}
+				LS.setItem('stAdviceKey', e.code);
+			}
+			capturingAdviceKey = false;
+			document.removeEventListener('keydown', respond, true);
+			refreshAdviceKey();
+		}
+	}
+	document.getElementById('st-advice-key').onclick = captureAdviceKey;
+	document.getElementById('st-advice-key').onkeydown = e => {
+		if (e.code === 'Enter' || e.code === 'Space') { e.preventDefault(); captureAdviceKey(); }
+	};
+	refreshAdviceKey();
 
 	for (let i = 1; i <= 11; i++) {
 		document.getElementById(i).onclick = function () {

@@ -1,4 +1,5 @@
 function restart() {
+	window.stLab?.reset();
 	if (board[board.length - 1].filter((c) => c.t != 1).length == boardSize[0]) {
 		// lazy check, will have false positives, but whatever
 		if (queue[6] == '|' && holdP == '') {
