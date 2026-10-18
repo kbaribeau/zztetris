@@ -49,7 +49,7 @@ Unexpected host methods, resource errors, console errors and unhandled window er
 
 ### Fixtures and maintenance
 
-`test/support/pages.cjs` explicitly lists all ten game pages and their engines/modes/cadences. Add a page deliberately, with a startup and settings case; do not treat practice as a proxy for the other engines.
+`test/support/pages.cjs` explicitly lists the ten normal game pages and the separate ST lab page with their engines/modes/cadences. The lab has dedicated startup/settings tests because it uses temporary gravity-off rules rather than normal persisted gravity. Add a page deliberately, with a startup and settings case; do not treat practice as a proxy for the other engines.
 
 Shared gameplay cases arrange an independent empty 40×10 board and a fixed queue, using the existing `newPiece()` setup function. They then drive the real keyboard handlers. The collision fixture adds one heap cell at column 6, row 18; the spawning O cannot move right into it. The hard-drop oracle is two literal `....OO....` bottom rows, not the production landing algorithm recomputed in test code. Mode-specific initial boards are checked separately.
 
@@ -84,6 +84,20 @@ Future work, **not covered by this baseline**: kick tables/rotation edge cases, 
 
 Statement coverage means lines executed; branch coverage means alternatives executed. Neither measures assertion quality, every board state, or browser fidelity. No percentage gate is configured.
 
+## ST lab behavioral coverage
+
+`st-core.test.cjs` and `st-lab.test.cjs` extend the baseline by executing the pure interface, real lab page, game actions and controls. The result manifest records the current case count; it is not a coverage percentage. Expected source cells/heaps in `test/support/st-fixtures.cjs` are independent literal transcriptions, not a second collision/scoring engine.
+
+- Five named fixture families, each with one authored start: assert the starting active/held pieces and visible queue, then execute every returned path through `zzBot`'s actual engine functions; assert exact target cells/grounded pose, post-clear heap, non-mini TSD or quad, and finite completion. Exercise active and empty-hold access through ordinary hold and piece editing, including the elevated-notch and direct pocket→well descendants. O/J no-fit coverage also uses the normal piece editors rather than a dedicated setup mode.
+- A real two-line clear without the final rotation does **not** complete a TSD exercise.
+- Immutable repeated inputs/fresh advisors, duplicate-kind identity/tie behavior, no advance on display/hold, full/empty/repeated hold, and a trapped I that requires **two holds to respawn**. No preview skipping.
+- Ordered lookahead changes with legal future access, hidden-suffix invariance (including the clipped seventh raw entry), all single-separator positions, ambiguous separators, unsupported profiles/full-heap edits and deterministic count-budget exhaustion.
+- Explicit entry, absent/on/off normal gravity preferences preserved, temporary rule changes, pending-hold labels and SVG coordinates at non-default cell size, default-on entry, no persisted off state, toggle-only traces and unchanged normal practice.
+- Real Game Settings rebinding and Reset, conflicting custom keys preserved, repeat/modifier/text-entry guards and focused-button keyboard activation. A repeated unchanged render does not mutate DOM/live regions (regression found during browser verification).
+- Actual lock→undo→redo, off-display progress, divergent branches, history truncation, absent imported metadata, real board painting, garbage, mirror/full-mirror, shuffle, hold/queue editing, Fumen/full-Fumen/TETRIO imports and reset invalidation. No-fit never resets or changes normal controls.
+
+These are bounded ST examples, not all rotations/boards/strategies. The existing baseline exclusions still apply outside these cases (for example, image decoding and complete mode-specific scoring). jsdom checks SVG attributes/labels, not pixels. No live LLM, network request, browser process or new test dependency is involved. The source `.lavish` study, screenshots and local review tooling are not part of the product/tests.
+
 ## Short, change-triggered browser smoke
 
 Do not manually replay all rules/persistence permutations after a local suite pass. Browser evidence remains for host behavior that emulation cannot establish:
@@ -96,7 +110,7 @@ Do not manually replay all rules/persistence permutations after a local suite pa
 | Audio, clipboard, drawing/image import | Check audible output/autoplay, permission behavior, pixel-to-cell geometry or image decoding only for the affected path. |
 | Script URLs/load strategy | Verify actual CDN/asset loading and startup. Ordered fake image completion does not prove network races. |
 
-Local tests are sufficient for this project's regression gate; this checklist is supplemental risk-based evidence, not a request for GitHub CI. No browser check was used to certify this change.
+Local tests are sufficient for this project's regression gate; this checklist is supplemental risk-based evidence, not a request for GitHub CI.
 
 ## Future no-mistakes use
 

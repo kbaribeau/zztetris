@@ -11,6 +11,9 @@ const PAGES = [
   { page: '4w5res.html', engine: 'base.js', mode: '4w5res.js', cadence: 700 },
   { page: '4w6res.html', engine: 'base.js', mode: '4w6res.js', cadence: 700 },
 ];
+// The lab has temporary rules and its own dedicated startup/settings cases.
+const LAB_PAGE = { page:'st-lab.html', engine:'base.js', mode:'zztetris.js', cadence:700 };
+const ALL_PAGES = [...PAGES, LAB_PAGE];
 const ENGINES = ['index.html', '3w.html', 'cancellingsickness.html'];
 const SEED = 123;
 const DEFAULT_CONFIG = ['ArrowLeft', 'ArrowRight', 'ArrowDown', 'Space', 'ShiftLeft',
@@ -18,4 +21,4 @@ const DEFAULT_CONFIG = ['ArrowLeft', 'ArrowRight', 'ArrowDown', 'Space', 'ShiftL
 function settings(overrides = {}) {
   return { config: JSON.stringify(DEFAULT_CONFIG), version: '2023-05-02a', ...overrides };
 }
-module.exports = { PAGES, ENGINES, SEED, DEFAULT_CONFIG, settings };
+module.exports = { PAGES, ALL_PAGES, LAB_PAGE, ENGINES, SEED, DEFAULT_CONFIG, settings };
