@@ -3,7 +3,8 @@ const assert = require('node:assert/strict');
 const { PAGES, ENGINES, settings } = require('./support/pages.cjs');
 const { withPage } = require('./support/page.cjs');
 
-const noGravity = { storage: settings({ gravity: 'false' }) };
+// Explicitly enable markers: default-off must not weaken their geometry/semantics coverage.
+const noGravity = { storage: settings({ gravity: 'false', bagBoundaries: 'true' }) };
 const strokes = g => g.preview().n.filter(call => call.path);
 const sprites = g => g.preview().n.filter(call => call.piece).map(({ piece, x, y }) => [piece, x, y]);
 const marker = y => ({ path: [[70, y], [88, y], [88, y === 2 ? 18 : y - 16]], width: 2, color: '#fff' });

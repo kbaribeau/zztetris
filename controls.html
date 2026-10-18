@@ -1,6 +1,8 @@
 <meta charset="UTF-8">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="st-binding.js"></script>
+<script src="training-settings.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 	@font-face {
 		font-family: Mikado;
@@ -35,6 +37,13 @@
 	a:hover {
 		background-color: rgb(37, 83, 153);
 		cursor: pointer;
+	}
+	table {
+		max-width: 680px;
+	}
+	input[type="number"] {
+		box-sizing: border-box;
+		max-width: min(150px, 25vw);
 	}
 	.input {
 		text-align: center;
@@ -140,12 +149,22 @@
 				<td class="numinput"><input type="number" id="audiolevel" min="0" max="100" value="100" /></td>
 			</tr>
 
-			<tr></tr>
+			<tr><th colspan="2" id="training-heading">Training</th></tr>
+			<tr>
+				<td><label for="bag-boundaries">Show bag boundaries in NEXT</label></td>
+				<td class="input"><input type="checkbox" id="bag-boundaries" aria-describedby="bag-boundaries-help" /></td>
+			</tr>
+			<tr><td colspan="2" id="bag-boundaries-help" style="font:14px sans-serif">Corner markers at queue segment ends. Off by default.</td></tr>
+			<tr>
+				<td><label for="st-guide-visible">Show amber ST guide (lab only)</label></td>
+				<td class="input"><input type="checkbox" id="st-guide-visible" checked aria-describedby="st-guide-help" /></td>
+			</tr>
+			<tr><td colspan="2" id="st-guide-help" style="font:14px sans-serif">On by default in supported ST lab exercises only, never normal play. The lab advice key and button toggle this same saved choice. Normal gray ghost is unchanged.</td></tr>
 		</table>
 
 		<br />
 		<a onclick="window.close()">Save & Close</a>
-		<a onclick="delete LS.version; delete LS.config; delete LS.stAdviceKey; location.reload()">Reset to Defaults</a>
+		<a onclick="delete LS.version; delete LS.config; delete LS.stAdviceKey; delete LS.bagBoundaries; delete LS.stGuideVisible; location.reload()">Reset to Defaults</a>
 	</div>
 </body>
 
@@ -197,7 +216,7 @@
 		const code = LS.getItem('stAdviceKey') || STBinding.defaultCode;
 		document.getElementById('st-advice-key').textContent = code;
 		document.getElementById('st-key-status').textContent = STBinding.resolve(LS, ctrlDat.slice(0,11))
-			? 'Advice starts on each time you enter a lab exercise. Click its key to rebind.'
+			? 'Toggle the saved amber guide display in the ST lab only. Click its key to rebind.'
 			: 'Advice key conflicts with gameplay or is invalid. Use the lab button or choose an unused key.';
 	}
 	let capturingAdviceKey = false;

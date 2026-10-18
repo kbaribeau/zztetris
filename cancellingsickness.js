@@ -5,12 +5,15 @@ function ctrlsPopup() { // opens a popup window with keybinds
 
 	const p = window.open('controls.html', 'popup', 'width=1200,height=800');
 	var reloading = false;
+	const originalConfig = LS.config, originalVersion = LS.version;
 
-	setInterval(() => {
+	const poll = setInterval(() => {
 		// event onbeforeunload wont work and idk why so i gotta use this
 		if (p.closed && !reloading) {
-			location.reload();
+			// Display preferences update live; only legacy controls need a reload.
+			if (LS.config !== originalConfig || LS.version !== originalVersion) location.reload();
 			reloading = true;
+			clearInterval(poll);
 		}
 	}, 100);
 

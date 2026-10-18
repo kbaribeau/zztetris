@@ -92,11 +92,17 @@ Statement coverage means lines executed; branch coverage means alternatives exec
 - A real two-line clear without the final rotation does **not** complete a TSD exercise.
 - Immutable repeated inputs/fresh advisors, duplicate-kind identity/tie behavior, no advance on display/hold, full/empty/repeated hold, and a trapped I that requires **two holds to respawn**. No preview skipping.
 - Ordered lookahead changes with legal future access, hidden-suffix invariance (including the clipped seventh raw entry), all single-separator positions, ambiguous separators, unsupported profiles/full-heap edits and deterministic count-budget exhaustion.
-- Explicit entry, absent/on/off normal gravity preferences preserved, temporary rule changes, pending-hold labels and SVG coordinates at non-default cell size, default-on entry, no persisted off state, toggle-only traces and unchanged normal practice.
+- Explicit entry, absent/on/off normal gravity preferences preserved, temporary rule changes, pending-hold labels and SVG coordinates at non-default cell size, default-on when missing and saved on/off choices, toggle-only traces and unchanged normal practice.
 - Real Game Settings rebinding and Reset, conflicting custom keys preserved, repeat/modifier/text-entry guards and focused-button keyboard activation. A repeated unchanged render does not mutate DOM/live regions (regression found during browser verification).
 - Actual lock→undo→redo, off-display progress, divergent branches, history truncation, absent imported metadata, real board painting, garbage, mirror/full-mirror, shuffle, hold/queue editing, Fumen/full-Fumen/TETRIO imports and reset invalidation. No-fit never resets or changes normal controls.
 
 These are bounded ST examples, not all rotations/boards/strategies. The existing baseline exclusions still apply outside these cases (for example, image decoding and complete mode-specific scoring). jsdom checks SVG attributes/labels, not pixels. No live LLM, network request, browser process or new test dependency is involved. The source `.lavish` study, screenshots and local review tooling are not part of the product/tests.
+
+## Training display settings coverage
+
+`test/training-settings.test.cjs` exercises all eleven actual game pages (ten normal modes plus the lab), the three engine copies and the real controls page. It covers missing/on/off preferences, grouped labels and descriptions, immediate marker redraw including the outgoing top cue and short custom segments, unchanged sprites/board/queue/hold/ghost/history, modeled reload, settings preservation, popup close without restart, enabled/disabled gameplay parity, guide setting/hotkey/button synchronization, explicit exercise entry honoring the saved choice, normal-mode isolation and explicit Reset. The existing `preview/*` cases explicitly enable markers so default-off cannot weaken their geometry, import or special-segment assertions.
+
+The harness manually delivers cross-window StorageEvents after copying values because jsdom realms do not share a browser storage area. This is behavioral script coverage, not proof of real popup event propagation, layout or painted canvas pixels. For settings changes, supplement it with a real browser popup, narrow Training layout, keyboard activation, on/off marker pixels and amber/gray separation. The known pre-existing last-enumerated-image startup race is outside this settings change; in-order fake image completion does not test it.
 
 ## Short, change-triggered browser smoke
 

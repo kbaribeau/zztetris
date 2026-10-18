@@ -20,7 +20,7 @@ function drawQueuePreview(queue, holdP, imgs, ctxN, ctxH) {
 	// the canvas, including a marker on the sixth piece at the bottom edge.
 	ctxN.strokeStyle = '#fff';
 	ctxN.lineWidth = 2;
-	for (const end of ends) {
+	for (const end of TrainingSettings.bagBoundaries ? ends : []) {
 		const y = end === 0 ? 2 : end * 60 - 2;
 		ctxN.beginPath();
 		ctxN.moveTo(70, y);
