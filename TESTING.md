@@ -41,7 +41,7 @@ Before product initialization, the host installs:
 - A fake timeout/interval/animation-frame clock. The real `render()` still runs because it also performs horizontal input processing. Replacing it with a no-op would hide game behavior.
 - A seeded, bounded random stream. Normal gameplay does not use `tetrio.js`'s separate seeded queue generator. A constant random stub can hang cheese's different-hole loop.
 - Per-realm jsdom Storage. A modeled reload/navigation copies keys into a **fresh** same-origin realm; it is not real disk persistence, a browser reload, or a cross-tab storage event.
-- Explicit non-rendering canvas, sprite and audio adapters. Sprite/audio paths must be allowlisted and exist locally. Sprites complete in order; their real onload handler schedules the 250 ms game startup. Canvas requests are not pixel assertions.
+- Explicit non-rendering canvas, sprite and audio adapters. Sprite/audio paths must be allowlisted and exist locally. Sprites complete in order by default; `autoLoadImages: false` lets startup tests deliver the actual onload handlers in a controlled order (see [Sprite readiness regression](#sprite-readiness-regression)). Canvas requests are not pixel assertions.
 
 Every resource request is resolved against an explicit local allowlist. The known animate.css CDN stylesheet is deliberately replaced with empty CSS because animation styling is outside these tests. Unknown URLs receive a denial and fail the case; they never fall through to the network. Explicit fetch/XHR/WebSocket/beacon calls are forbidden too (including synchronous XHR, which otherwise bypasses jsdom's request interceptors). Stylesheets are parsed, not laid out; fonts/icons are not rendered.
 
@@ -102,7 +102,13 @@ These are bounded ST examples, not all rotations/boards/strategies. The existing
 
 `test/training-settings.test.cjs` exercises all eleven actual game pages (ten normal modes plus the lab), the three engine copies and the real controls page. It covers missing/on/off preferences, grouped labels and descriptions, immediate marker redraw including the outgoing top cue and short custom segments, unchanged sprites/board/queue/hold/ghost/history, modeled reload, settings preservation, popup close without restart, enabled/disabled gameplay parity, guide setting/hotkey/button synchronization, explicit exercise entry honoring the saved choice, normal-mode isolation and explicit Reset. The existing `preview/*` cases explicitly enable markers so default-off cannot weaken their geometry, import or special-segment assertions.
 
-The harness manually delivers cross-window StorageEvents after copying values because jsdom realms do not share a browser storage area. This is behavioral script coverage, not proof of real popup event propagation, layout or painted canvas pixels. For settings changes, supplement it with a real browser popup, narrow Training layout, keyboard activation, on/off marker pixels and amber/gray separation. The known pre-existing last-enumerated-image startup race is outside this settings change; in-order fake image completion does not test it.
+The harness manually delivers cross-window StorageEvents after copying values because jsdom realms do not share a browser storage area. This is behavioral script coverage, not proof of real popup event propagation, layout or painted canvas pixels. For settings changes, supplement it with a real browser popup, narrow Training layout, keyboard activation, on/off marker pixels and amber/gray separation. The separate image-startup cases below test out-of-order readiness; the settings cases retain ordinary in-order image completion.
+
+## Sprite readiness regression
+
+`test/image-startup.test.cjs` adds six cases: normal and last-listed-first completion on the actual practice, 3w and cancelling pages, covering all three loader copies. A literal initial queue keeps Z in NEXT. With Z still pending, completing the last-listed image and advancing 1,000 ms must not enter the game, initialize history, draw NEXT or schedule a board frame. Completing Z then allows exactly one real startup after the existing 250 ms delay, with initialized history, six valid sprite draw arguments and a running board-frame loop. Observers forward to the real game entry and frame scheduler; they do not substitute game behavior.
+
+The new out-of-order cases reproduce the prior defect: on the unmodified base, all three throw `Drawing an unloaded image` through the preview/startup path. An in-order pass alone would not detect this race. For browser validation, serve byte-intact base/repaired snapshots while delaying the same needed sprite response beyond the last-listed sprite's completion; compare actual board/NEXT pixels and console errors with matched Training preferences. Injected delays are not normal-use failure-frequency evidence. See [README.md](./README.md) for user-facing startup behavior and failed-image limits.
 
 ## Short, change-triggered browser smoke
 
@@ -114,12 +120,12 @@ Do not manually replay all rules/persistence permutations after a local suite pa
 | Keyboard/touch/timer adapters | Real key hold/release and opposite-key interaction; focus/scroll behavior; touch start/end on a real touch device if touched by the change. Browser timer clamping/throttling is not virtual-clock behavior. |
 | Settings or popup wiring | Edit a binding/timing, close the popup, reload and switch a mode in an actual browser profile. |
 | Audio, clipboard, drawing/image import | Check audible output/autoplay, permission behavior, pixel-to-cell geometry or image decoding only for the affected path. |
-| Script URLs/load strategy | Verify actual CDN/asset loading and startup. Ordered fake image completion does not prove network races. |
+| Script URLs/load strategy | Verify actual CDN/asset loading and startup, including the delayed-image comparison above when readiness changes. Controlled fake image completion does not prove browser painting or actual network behavior. |
 
-Local tests are sufficient for this project's regression gate; this checklist is supplemental risk-based evidence, not a request for GitHub CI.
+Sprite-readiness changes require the delayed-image browser comparison above in addition to local tests. The remaining checklist is supplemental risk-based evidence, not a request for GitHub CI.
 
 ## Future no-mistakes use
 
 The suite is independently runnable; this change does not invoke or configure no-mistakes. The installed version inspected during setup was **v1.76.0**. Its CLI help did not expose a supported repository schema/effective-config query, and the online configuration reference describes a newer release, so compatibility of optional repository command wiring was not established here. No speculative YAML, global configuration changes or daemon updates were added.
 
-When configuration support is verified for the installed version, use this exact committed command and retain its result bundle as the local baseline rather than having an agent invent a fresh sequence. Keep any supplemental browser investigation limited to the change-triggered checklist above. Preserve the project's accepted local-only/no-CI policy using that version's supported configuration; an empty forge check list is not itself evidence of passing tests.
+When configuration support is verified for the installed version, use this exact committed command and retain its result bundle as the local baseline rather than having an agent invent a fresh sequence. Follow the [change-triggered browser checklist](#short-change-triggered-browser-smoke) above. Preserve the project's accepted local-only/no-CI policy using that version's supported configuration; an empty forge check list is not itself evidence of passing tests.
