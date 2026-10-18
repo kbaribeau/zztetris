@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { JSDOM, VirtualConsole, requestInterceptor } = require('jsdom');
 const FakeTimers = require('@sinonjs/fake-timers');
-const { PAGES, SEED } = require('./pages.cjs');
+const { ALL_PAGES, SEED } = require('./pages.cjs');
 
 const ROOT = path.resolve(__dirname, '../..');
 const ORIGIN = 'https://zztetris.test/';
@@ -11,7 +11,8 @@ const JQUERY = 'https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js
 const ANIMATE = 'https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css';
 const files = [...new Set([
   'rotationSystem.js', 'io.js', 'utils.js', 'tetris-fumen.js', 'tetrio.js',
-  ...PAGES.flatMap(({ engine, mode }) => [engine, mode]),
+  ...ALL_PAGES.flatMap(({ engine, mode }) => [engine, mode]),
+  'st-core.js', 'st-binding.js', 'st-lab.js', 'styles/st-lab.css',
   'styles/zztetris.css', 'styles/paint_bucket.css',
   'styles/import_export.css', 'styles/board_settings.css',
 ])];
@@ -24,7 +25,7 @@ const audioFiles = ['Move', 'Rotate', 'Hold', 'HardDrop', 'ClearTetra', 'Perfect
 
 // Only host effects are substituted. In particular render/checkShift/game stay real.
 async function boot(page, { storage = {}, seed = SEED } = {}) {
-  assert.ok(page === 'controls.html' || PAGES.some(p => p.page === page), `Unknown page: ${page}`);
+  assert.ok(page === 'controls.html' || ALL_PAGES.some(p => p.page === page), `Unknown page: ${page}`);
   const errors = [], requests = [], trace = [], images = [], sounds = [];
   const previewDraws = { n: [], h: [] }; // actual canvas calls, not pixel emulation
   let dom, clock, window, loadTimer, navigationExpected = false, navigationCount = 0, disposed = false;
