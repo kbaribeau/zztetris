@@ -22,13 +22,13 @@ Settings are saved in your browser's `localStorage` for this site. **Game Settin
 
 In normal game modes, the **gravity** checkbox saves immediately in a separate `gravity` key as `"true"` or `"false"`. Its saved value is restored when you reload or open another normal game mode on the same site. Gravity starts enabled when no preference is saved. **Reset to Defaults** in Game Settings resets its configuration but leaves gravity unchanged; use the checkbox to change it. Clearing the site's local storage removes the saved settings, including gravity. The ST lab uses temporary rules described in [ST-LAB.md](./ST-LAB.md#play).
 
-**Game Settings → Training** groups two display-only options: **Show bag boundaries in NEXT** (default off) and **Show amber ST guide (lab only)** (default on). They save immediately as `bagBoundaries` and `stGuideVisible`, redraw open games without restarting, and persist across reloads/modes. The guide option never adds advice to ordinary play. The lab advice hotkey/button change the same saved guide choice. Reset to Defaults resets both training options but still leaves gravity unchanged.
+**Game Settings → Training** groups two display-only options: **Show bag boundaries in NEXT** (default off) and **Show amber ST guide (lab only)** (default on). They save immediately as `bagBoundaries` and `stGuideVisible`, redraw open games without restarting, and persist across reloads/modes. Closing the settings popup after display-only changes does not reload the game. The guide option never adds advice to ordinary play. Reset to Defaults restores both training defaults. See [lab controls](./ST-LAB.md#play) for the advice hotkey and button.
 
 ## ST core-loop lab
 
 Open **ST lab** from practice for finite, source-derived right-Z/T exercises: Z cap, T-spin double, pocket I and well quad. Choose a named authored board/queue and explicitly press **Start**. This is not an ongoing-game or empty-board ST solver.
 
-Amber inset dashes show the strategy destination, including **HOLD FIRST** previews before a required swap. The normal gray drop ghost is unchanged. Advice defaults **on** in the lab and honors your saved display choice; **A** toggles its display (rebind under **Game Settings → ST lab advice**). See [lab controls and preferences](./ST-LAB.md#play) for binding conflicts, persistence and Reset to Defaults behavior.
+Amber inset dashes show the strategy destination, including **HOLD FIRST** previews before a required swap. The normal gray drop ghost is unchanged. See [lab controls](./ST-LAB.md#play) for toggling advice and rebinding its key.
 
 Lab SRS+/gravity-off rules are temporary and do not overwrite normal-play preferences. Unsupported/no-fit states remove advice and explain why; there is no automatic reset, dedicated retry or recovery advice. See [ST-LAB.md](./ST-LAB.md) for controls, exact scope, sources and limitations.
 
