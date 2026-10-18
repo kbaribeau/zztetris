@@ -24,7 +24,7 @@ const audioFiles = ['Move', 'Rotate', 'Hold', 'HardDrop', 'ClearTetra', 'Perfect
   .map(name => `assets/sfx/${name}.wav`);
 
 // Only host effects are substituted. In particular render/checkShift/game stay real.
-async function boot(page, { storage = {}, seed = SEED } = {}) {
+async function boot(page, { storage = {}, seed = SEED, autoLoadImages = true } = {}) {
   assert.ok(page === 'controls.html' || ALL_PAGES.some(p => p.page === page), `Unknown page: ${page}`);
   const errors = [], requests = [], trace = [], images = [], sounds = [];
   const previewDraws = { n: [], h: [] }; // actual canvas calls, not pixel emulation
@@ -137,16 +137,18 @@ async function boot(page, { storage = {}, seed = SEED } = {}) {
     });
     clearTimeout(loadTimer);
     healthy();
-    for (const image of images) { image.complete = true; image.onload?.(); }
-    clock.tick(250); // actual last-sprite onload -> timeout -> game() -> callback()
-    healthy();
+    if (autoLoadImages) {
+      for (const image of images) { image.complete = true; image.onload?.(); }
+      clock.tick(250); // actual sprite onload -> timeout -> game() -> callback()
+      healthy();
+    }
     const element = selector => {
       const result = window.document.querySelector(selector);
       assert.ok(result, `Missing element ${selector} in ${page}`);
       return result;
     };
     const driver = {
-      page, window, clock, requests, sounds, trace,
+      page, window, clock, requests, sounds, trace, images,
       element,
       preview() { return JSON.parse(JSON.stringify(previewDraws)); },
       healthy,

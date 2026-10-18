@@ -251,14 +251,16 @@ document.getElementById('b').height = (boardSize[1] - hiddenRows + 2) * cellSize
 document.getElementById('b').width = boardSize[0] * cellSize;
 
 var keys = Object.keys(imgs);
-keys.map((k, idx) => {
+let imagesRemaining = keys.length;
+keys.map((k) => {
 	var i = new Image();
 	i.onload = () => {
 		imgs[k] = i;
-		if (idx + 1 == keys.length)
+		// Completion order is independent of enumeration order.
+		if (--imagesRemaining === 0)
 			setTimeout(() => {
 				game();
-			}, 250); // Load images first, then load game after
+			}, 250); // Preserve the startup delay, after every sprite is ready
 	};
 	i.src = imgs[k];
 });
