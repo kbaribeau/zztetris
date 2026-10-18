@@ -1,6 +1,6 @@
 # ST core-loop lab
 
-Open **ST lab** from [practice](index.html), or [open the lab](st-lab.html).
+Open **ST lab** using the [shared top menu](README.md), or [open the lab](st-lab.html).
 This is a finite **right-side Z/T scoring lab**, not an advisor for arbitrary
 ongoing games. It teaches cap → T-spin double → residual pocket → I cleanup.
 The stack is supplied. It does not teach openers, filler/side stacking,
