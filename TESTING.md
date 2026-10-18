@@ -86,7 +86,7 @@ Statement coverage means lines executed; branch coverage means alternatives exec
 
 ## ST lab behavioral coverage
 
-The suite now has **82 named tests**: the original 58 plus 24 ST cases. This is a case count, not a coverage percentage. `st-core.test.cjs` and `st-lab.test.cjs` execute the pure interface, real lab page, game actions and controls. Expected source cells/heaps in `test/support/st-fixtures.cjs` are independent literal transcriptions, not a second collision/scoring engine.
+`st-core.test.cjs` and `st-lab.test.cjs` extend the baseline by executing the pure interface, real lab page, game actions and controls. The result manifest records the current case count; it is not a coverage percentage. Expected source cells/heaps in `test/support/st-fixtures.cjs` are independent literal transcriptions, not a second collision/scoring engine.
 
 - Five named fixture families, each with one authored start: assert the starting active/held pieces and visible queue, then execute every returned path through `zzBot`'s actual engine functions; assert exact target cells/grounded pose, post-clear heap, non-mini TSD or quad, and finite completion. Exercise active and empty-hold access through ordinary hold and piece editing, including the elevated-notch and direct pocket→well descendants. O/J no-fit coverage also uses the normal piece editors rather than a dedicated setup mode.
 - A real two-line clear without the final rotation does **not** complete a TSD exercise.
@@ -110,7 +110,7 @@ Do not manually replay all rules/persistence permutations after a local suite pa
 | Audio, clipboard, drawing/image import | Check audible output/autoplay, permission behavior, pixel-to-cell geometry or image decoding only for the affected path. |
 | Script URLs/load strategy | Verify actual CDN/asset loading and startup. Ordered fake image completion does not prove network races. |
 
-Local tests are sufficient for this project's regression gate; this checklist is supplemental risk-based evidence, not a request for GitHub CI. No browser check was used to certify this change.
+Local tests are sufficient for this project's regression gate; this checklist is supplemental risk-based evidence, not a request for GitHub CI.
 
 ## Future no-mistakes use
 
