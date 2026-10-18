@@ -42,13 +42,3 @@ body { margin: 0; }
   width: max-content;
   margin: max(24px, calc((100vh - 640px) / 2)) auto 24px;
 }
-@media (max-width: 860px) {
-  .game-workspace { width: 100%; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 24px auto; }
-  .game-workspace > .queue { width: 60px; font-size: 20px; }
-  .game-workspace > .queue canvas { width: 60px; height: auto; }
-  .game-workspace > .import-export, .game-workspace > .board-settings {
-    order: 1;
-    margin: 12px;
-    flex: 0 0 165px;
-  }
-}

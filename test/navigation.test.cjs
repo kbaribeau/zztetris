@@ -59,35 +59,50 @@ for (const page of pages) test(`navigation/${page}: actual runtime menu, destina
     assert.deepEqual(g.snapshot(), before, 'navigation focus/settings leaves gameplay unchanged');
   }));
 
-test('navigation/controls: popup mode link returns to opener, saving settings and closing once', () =>
-  withPage('controls.html', { storage: settings() }, g => {
-    const destinations = [];
-    g.window.opener = { closed: false, location: { assign: href => destinations.push(href) } };
+test('navigation/controls: popup mode links retain native navigation, saved settings and Save & Close', async () => {
+  let saved;
+  await withPage('controls.html', { storage: settings() }, g => {
+    g.window.opener = { closed: false, location: { assign: () => assert.fail('must not redirect opener') } };
     const originalClose = g.window.close;
     let closed = 0; g.window.close = () => closed++;
-    g.input('#das', '185'); g.click('#bag-boundaries');
-    const link = g.element('nav a[href="st-lab.html"]');
-    const event = new g.window.MouseEvent('click', { bubbles: true, cancelable: true });
-    link.dispatchEvent(event);
-    assert.equal(event.defaultPrevented, true);
-    assert.deepEqual(destinations, ['https://zztetris.test/st-lab.html']);
-    assert.equal(closed, 1);
-    assert.equal(JSON.parse(g.storage().config)[11], '185');
-    assert.equal(g.storage().bagBoundaries, 'true');
-    const save = [...g.window.document.querySelectorAll('a, button')].find(el => el.textContent === 'Save & Close');
-    assert.ok(save); save.click(); assert.equal(closed, 2, 'existing Save & Close still works');
-    g.window.close = originalClose;
-  }));
+    try {
+      g.input('#das', '185'); g.click('#bag-boundaries');
+      for (const link of g.element('nav').querySelectorAll('a[href$=".html"]')) {
+        let activation;
+        g.window.addEventListener('click', event => {
+          activation = { href: link.href, prevented: event.defaultPrevented };
+          event.preventDefault();
+        }, { once: true });
+        link.click();
+        assert.deepEqual(activation, { href: new URL(link.getAttribute('href'), g.window.location.href).href, prevented: false });
+        assert.equal(closed, 0);
+      }
+      saved = g.storage();
+      assert.equal(JSON.parse(saved.config)[11], '185');
+      assert.equal(saved.bagBoundaries, 'true');
+      const save = [...g.window.document.querySelectorAll('button')].find(el => el.textContent === 'Save & Close');
+      assert.ok(save); save.click(); assert.equal(closed, 1);
+    } finally { g.window.close = originalClose; }
+  });
+  await withPage('st-lab.html', { storage: saved }, g => {
+    assert.equal(g.window.DAS, 185);
+    assert.equal(g.window.TrainingSettings.bagBoundaries, true);
+  });
+});
 
-test('navigation/controls: modified link keeps native new-tab behavior even in popup', () =>
+test('navigation/controls: modified and middle clicks retain native behavior in popup', () =>
   withPage('controls.html', { storage: settings() }, g => {
     g.window.opener = { closed: false, location: { assign: () => assert.fail('must not redirect opener') } };
     const originalClose = g.window.close;
     let closed = 0; g.window.close = () => closed++;
-    let prevented;
-    g.window.addEventListener('click', e => { prevented = e.defaultPrevented; e.preventDefault(); }, { once: true });
-    g.element('nav a[href="cheese.html"]').dispatchEvent(new g.window.MouseEvent('click', { bubbles: true, cancelable: true, ctrlKey: true }));
-    assert.equal(prevented, false);
-    assert.equal(closed, 0);
-    g.window.close = originalClose;
+    try {
+      for (const init of [{ ctrlKey: true }, { metaKey: true }, { shiftKey: true }, { altKey: true }, { button: 1 }]) {
+        const type = init.button === 1 ? 'auxclick' : 'click';
+        let prevented;
+        g.window.addEventListener(type, event => { prevented = event.defaultPrevented; event.preventDefault(); }, { once: true });
+        g.element('nav a[href="cheese.html"]').dispatchEvent(new g.window.MouseEvent(type, { bubbles: true, cancelable: true, ...init }));
+        assert.equal(prevented, false);
+        assert.equal(closed, 0);
+      }
+    } finally { g.window.close = originalClose; }
   }));

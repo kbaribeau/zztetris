@@ -22,19 +22,7 @@
       if (href.startsWith('https:')) {
         entry.target = '_blank';
         entry.rel = 'noopener';
-      } else {
-        if (href === page) entry.setAttribute('aria-current', 'page');
-        // A settings popup returns to its game window, just like Save & Close.
-        // Standalone settings and modified/new-tab clicks remain ordinary links.
-        if (inSettings) entry.addEventListener('click', event => {
-          if (event.button || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
-          if (!window.opener || window.opener.closed) return;
-          try { window.opener.location.assign(entry.href); }
-          catch (_) { return; } // inaccessible opener: retain native navigation
-          event.preventDefault();
-          window.close();
-        });
-      }
+      } else if (href === page) entry.setAttribute('aria-current', 'page');
     } else {
       entry.type = 'button';
       if (inSettings) entry.setAttribute('aria-current', 'page');
