@@ -16,7 +16,9 @@ Forked from [aznguy's schoolteto](https://github.com/aznguymp4/schoolTeto) with 
 
 Inspired by fio's four-tris
 
-The practice, cheese, 4w, grav, and pc modes open directly without a startup popup. Use **Game Settings** to adjust keybinds and handling settings before playing.
+Every app screen, including the ST lab and Game Settings, shares the same top menu: **About**, **Game Settings**, **practice**, **cheese**, **4w**, **grav**, **pc**, **ST lab**. It wraps on narrow screens; game editing controls stay separate below it. The fixed-size gameplay workspace scrolls horizontally when needed; the shared menu does not resize or rearrange gameplay controls.
+
+The practice, cheese, 4w, grav, and pc modes open directly without a startup popup. Use **Game Settings** to adjust keybinds and handling settings before playing. Settings save immediately; in the settings popup, **Save & Close** closes the popup, and the game reloads only when legacy controls/handling changed. Mode links use ordinary browser navigation in both popup and standalone settings, including native modified-click behavior. They navigate the settings window without redirecting the opener or closing settings.
 
 Gameplay waits for every required sprite to load successfully. A missing or failed sprite still prevents startup; there is no loading-error or retry interface.
 
@@ -28,7 +30,7 @@ In normal game modes, the **gravity** checkbox saves immediately in a separate `
 
 ## ST core-loop lab
 
-Open **ST lab** from practice for finite, source-derived right-Z/T exercises: Z cap, T-spin double, pocket I and well quad. Choose a named authored board/queue and explicitly press **Start**. This is not an ongoing-game or empty-board ST solver.
+Open **ST lab** from the top menu for finite, source-derived right-Z/T exercises: Z cap, T-spin double, pocket I and well quad. Choose a named authored board/queue and explicitly press **Start**. This is not an ongoing-game or empty-board ST solver.
 
 Amber inset dashes show the strategy destination, including **HOLD FIRST** previews before a required swap. The normal gray drop ghost is unchanged. See [lab controls](./ST-LAB.md#play) for toggling advice and rebinding its key.
 

@@ -17,6 +17,9 @@
 	<link rel="stylesheet" type="text/css" href="styles/board_settings.css" />
 	<head>
 		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="stylesheet" href="styles/navigation.css" />
+		<script defer src="navigation.js"></script>
 		<meta property="og:type" content="website" />
 		<meta property="og:url" content="https://swng.github.io/zztetris/" />
 		<meta property="og:title" content="ZZTetris" />
@@ -31,7 +34,9 @@
 		<title>ZZTetris</title>
 	</head>
 	<body style="background-color: #222; color: #fff">
-		<div style="top: 50%; left: 50%; position: fixed; transform: translate(-50%, -50%); display: flex">
+		<nav class="app-nav" aria-label="Main navigation"></nav>
+		<div class="game-scroll">
+		<div class="game-workspace">
 			<div class="import-export">
 				<div class="exports">
 					<h3>Export To</h3>
@@ -148,14 +153,7 @@
 			</div>
 		</div>
 
-		<a class="button" target="_blank" href="https://github.com/swng/zztetris#readme">About</a>
-		<button class="button" target="popup" onclick="ctrlsPopup()">Game Settings</button>
-        <a class="button">button that does nothing</a>
-        <a class="button" href="index.html">practice</a>
-        <a class="button" href="cheese.html">cheese</a>
-        <a class="button" href="4w.html">4w</a>
-        <a class="button" href="grav.html">grav</a>
-        <a class="button" href="pc.html">pc</a>
+		</div>
 
         <div id = "tcc" style class = "tc">
             <div>

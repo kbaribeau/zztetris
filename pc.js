@@ -15,6 +15,7 @@ function PC(PC_num) {
 }
 
 function doc_keyUp(e) {
+    if (e.target.closest?.('nav[aria-label="Main navigation"]')) return;
     // you can grab keycode values off a tool such as https://keycode.info/
     switch (e.keyCode) {
         case 49:
