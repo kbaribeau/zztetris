@@ -1,4 +1,6 @@
 <meta charset="UTF-8">
+<link rel="stylesheet" href="styles/navigation.css">
+<script defer src="navigation.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="st-binding.js"></script>
 <script src="training-settings.js"></script>
@@ -25,7 +27,11 @@
 		white-space: nowrap;
 		cursor: pointer;
 	}
-	a {
+	.settings-action {
+		font: inherit;
+		color: inherit;
+		border: 0;
+		margin: 4px;
 		transition: background-color 0.3s;
 		background-color: #222;
 		border-radius: 10px;
@@ -34,7 +40,7 @@
 		padding-top: 10px;
 		padding-bottom: 10px;
 	}
-	a:hover {
+	.settings-action:hover {
 		background-color: rgb(37, 83, 153);
 		cursor: pointer;
 	}
@@ -54,6 +60,7 @@
 </style>
 
 <body style="background-color: #333; color: #eee">
+	<nav class="app-nav" aria-label="Main navigation"></nav>
 	<div style="font-size: 30px; width: max-content; max-width: 100%; margin: 24px auto">
 		<table style="font-size: 24px">
 			<th>Controls</th>
@@ -163,8 +170,8 @@
 		</table>
 
 		<br />
-		<a onclick="window.close()">Save & Close</a>
-		<a onclick="delete LS.version; delete LS.config; delete LS.stAdviceKey; delete LS.bagBoundaries; delete LS.stGuideVisible; location.reload()">Reset to Defaults</a>
+		<button class="settings-action" type="button" onclick="window.close()">Save & Close</button>
+		<button class="settings-action" type="button" onclick="delete LS.version; delete LS.config; delete LS.stAdviceKey; delete LS.bagBoundaries; delete LS.stGuideVisible; location.reload()">Reset to Defaults</button>
 	</div>
 </body>
 

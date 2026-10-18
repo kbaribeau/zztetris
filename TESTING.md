@@ -110,6 +110,14 @@ The harness manually delivers cross-window StorageEvents after copying values be
 
 The new out-of-order cases reproduce the prior defect: on the unmodified base, all three throw `Drawing an unloaded image` through the preview/startup path. An in-order pass alone would not detect this race. For browser validation, serve byte-intact base/repaired snapshots while delaying the same needed sprite response beyond the last-listed sprite's completion; compare actual board/NEXT pixels and console errors with matched Training preferences. Injected delays are not normal-use failure-frequency evidence. See [README.md](./README.md) for user-facing startup behavior and failed-image limits.
 
+## Shared navigation coverage
+
+`navigation.js` and `styles/navigation.css` supply the same menu to all twelve shipped HTML screens, including standalone/popup settings. `test/navigation.test.cjs` boots those actual pages and checks the complete ordered menu, labels, resolved destinations, current-page marker, focusability, settings activation, focused-navigation input isolation and unchanged game state. A directory inventory assertion catches newly shipped HTML screens that are missing from the behavioral matrix. The existing automatic test-file discovery includes this suite exactly once.
+
+Normal link clicks are observed at jsdom's navigation boundary; each destination boots separately in the same matrix. Popup opener navigation/close effects are recorded through host adapters. Tests also exercise actual controls edits, immediate persistence, Save & Close and modified-link behavior. These are runtime DOM/handler tests, not source-regex tests, simulated browser traversal or rendered-layout proof.
+
+For browser acceptance, check Cheese, 4W, ST lab and settings at desktop and a verified narrow viewport: menu wrapping/focus, actual Tab/Enter/Space, all six mode destinations, About's new tab, and no overlap with mode controls. Exercise display-only popup edits (no restart), legacy handling edits (reload after close), reopened settings, mode selection from the popup (navigate opener then close), and standalone settings navigation. Chrome's minimum window width can exceed a requested resize; record `innerWidth` and use explicit viewport emulation before diagnosing app overflow. Three-wide/cancelling first-run welcome alerts are separate from navigation readiness and must be accepted before probing those pages. Use the [results retention](#results-and-failures) guidance for before-fix failures and clean-commit results.
+
 ## Short, change-triggered browser smoke
 
 Do not manually replay all rules/persistence permutations after a local suite pass. Browser evidence remains for host behavior that emulation cannot establish:

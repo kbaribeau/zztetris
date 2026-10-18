@@ -13,6 +13,7 @@ const files = [...new Set([
   'rotationSystem.js', 'io.js', 'utils.js', 'tetris-fumen.js', 'tetrio.js',
   ...ALL_PAGES.flatMap(({ engine, mode }) => [engine, mode]),
   'st-core.js', 'st-binding.js', 'st-lab.js', 'training-settings.js', 'styles/st-lab.css',
+  'navigation.js', 'styles/navigation.css',
   'styles/zztetris.css', 'styles/paint_bucket.css',
   'styles/import_export.css', 'styles/board_settings.css',
 ])];
@@ -169,7 +170,7 @@ async function boot(page, { storage = {}, seed = SEED, autoLoadImages = true } =
         el.dispatchEvent(new window.Event('input', { bubbles: true })); healthy();
       },
       resetControls() {
-        const reset = [...window.document.querySelectorAll('a')].find(a => a.textContent === 'Reset to Defaults');
+        const reset = [...window.document.querySelectorAll('a, button')].find(a => a.textContent === 'Reset to Defaults');
         assert.ok(reset); const before = navigationCount;
         navigationExpected = true;
         try { reset.click(); healthy(); assert.equal(navigationCount, before + 1); }
