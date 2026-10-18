@@ -3,7 +3,15 @@ const json=value=>JSON.parse(JSON.stringify(value));
 const heap=g=>g.snapshot().heap.map(row=>row.replace(/[^.]/g,'#'));
 const core=g=>g.window.eval('STCore.create(pieces,kicksets["SRS+"])');
 const input=g=>json(g.window.stLab.beforeLock());
-function start(g,id='cap',variant='held') {g.element('#st-exercise').value=id;g.element('#st-variant').value=variant;g.click('#st-start');}
+function start(g,id='cap') {g.element('#st-exercise').value=id;g.click('#st-start');}
+function editPieces(g,{active,hold,next}) {
+  const w=g.window,prompt=w.prompt;
+  try {
+    w.prompt=()=>hold;g.click('#h');
+    w.clearActive();w.prompt=()=>[active,...next,...'IOTJLSZIOTJLSZ'].join('');g.click('#n');
+    g.advance(16);
+  } finally {w.prompt=prompt;}
+}
 function replay(g,result) {
   assert.equal(result.kind,'target');
   const w=g.window;
@@ -21,4 +29,4 @@ function replay(g,result) {
   }
   g.advance(16);
 }
-module.exports={json,heap,core,input,start,replay};
+module.exports={json,heap,core,input,start,editPieces,replay};

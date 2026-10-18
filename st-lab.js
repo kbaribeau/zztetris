@@ -89,11 +89,11 @@
   }
   function describe() {
     const ex=STCore.exercises.find(ex=>$id('st-exercise').value===ex.id);
-    const setup=advisor.exercise(ex.id,$id('st-variant').value);
-    $id('st-description').textContent=`${ex.description} Authored start: active ${setup.active}, hold ${setup.hold || 'empty'}, NEXT ${setup.next.join(' ')}. Start replaces this lab board, queue and history. Practice/SRS+, gravity off; no setup, filler, Reset/recovery or sustained-stacking coaching.`;
+    const setup=advisor.exercise(ex.id);
+    $id('st-description').textContent=`${ex.description} Authored start: active ${setup.active}, hold ${setup.hold}, NEXT ${setup.next.join(' ')}. Start replaces this lab board, queue and history. Practice/SRS+, gravity off; no setup, filler, Reset/recovery or sustained-stacking coaching.`;
   }
   function start() {
-    const setup=advisor.exercise($id('st-exercise').value,$id('st-variant').value);
+    const setup=advisor.exercise($id('st-exercise').value);
     if(!setup || !window.zzBot)return;
     // This explicit button is the only operation that installs a drill. These
     // are temporary lab rules, never changes to normal-play saved preferences.
@@ -112,7 +112,7 @@
   for(const ex of STCore.exercises) {
     const option=document.createElement('option');option.value=ex.id;option.textContent=ex.title;$id('st-exercise').append(option);
   }
-  $id('st-exercise').addEventListener('change',describe);$id('st-variant').addEventListener('change',describe);
+  $id('st-exercise').addEventListener('change',describe);
   $id('st-start').addEventListener('click',start);
   $id('st-toggle').addEventListener('click',()=>{toggle();$id('st-toggle').blur();});
   // Capture text-entry keys before the legacy game listeners. Ordinary pages do
