@@ -96,7 +96,7 @@ Do not manually replay all rules/persistence permutations after a local suite pa
 | Audio, clipboard, drawing/image import | Check audible output/autoplay, permission behavior, pixel-to-cell geometry or image decoding only for the affected path. |
 | Script URLs/load strategy | Verify actual CDN/asset loading and startup. Ordered fake image completion does not prove network races. |
 
-Local tests are sufficient for this project's regression gate; this checklist is supplemental risk-based evidence, not a request for GitHub CI. No browser check was used to certify this test-tooling-only change.
+Local tests are sufficient for this project's regression gate; this checklist is supplemental risk-based evidence, not a request for GitHub CI. No browser check was used to certify this change.
 
 ## Future no-mistakes use
 
