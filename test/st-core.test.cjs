@@ -2,22 +2,27 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const {withPage}=require('./support/page.cjs');
 const {fixtures}=require('./support/st-fixtures.cjs');
-const {json,heap,core,input,start,replay}=require('./support/st-driver.cjs');
+const {json,heap,core,input,start,editPieces,replay}=require('./support/st-driver.cjs');
 const freeze=value=>{if(value && typeof value==='object'){Object.values(value).forEach(freeze);Object.freeze(value);}return value;};
 
 for(const id of ['cap','cap-high','pocket','well','spin']) {
   test(`st-core/source replay/${id}: real SRS+ paths, exact cells, clears and finite completion`,()=>withPage('st-lab.html',{},g=>{
     const planner=core(g),fixture=fixtures[id] || fixtures.cap;
-    for(const variant of ['active','held','empty']) {
-      start(g,id,variant);
+    assert.equal(g.window.document.querySelectorAll('.lab-setup select').length,1);
+    for(const availability of ['held','active','empty']) {
+      start(g,id);
+      const authored=g.snapshot();
+      assert.equal(authored.piece,{cap:'T','cap-high':'T',pocket:'I',well:'O',spin:'O'}[id]);
+      assert.equal(authored.hold,{cap:'Z','cap-high':'Z',pocket:'I',well:'I',spin:'T'}[id]);
+      assert.deepEqual(authored.queue.slice(0,6),['O','I','J','L','S','T']);
+      if(availability==='active')g.tap('ShiftLeft');
+      if(availability==='empty')editPieces(g,{active:authored.piece,hold:'',next:[authored.hold,'O','I','J','L','S']});
       assert.deepEqual(heap(g),id==='spin'?fixtures.cap.afterCap:fixture.before);
       let a=planner.advise(input(g));
       const firstCells=id==='pocket'?fixture.pocketCells:id==='well'?fixture.wellCells:id==='spin'?fixture.spinCells:fixture.capCells;
       assert.deepEqual(json(a.cells),firstCells);
-      if(variant==='empty' && id!=='pocket') {assert.equal(a.from,'next-0');assert.deepEqual(json(a.prelude),['hold']);}
-      // Pocket needs two Is: in its empty-hold variant an I is already active.
-      // The advisor must prefer that legal current piece, not blindly hold.
-      if(variant==='empty' && id==='pocket') {assert.equal(a.from,'active');assert.deepEqual(json(a.prelude),[]);}
+      if(availability==='empty' && id!=='pocket') {assert.equal(a.from,'next-0');assert.deepEqual(json(a.prelude),['hold']);}
+      if(availability==='empty' && id==='pocket') {assert.equal(a.from,'active');assert.deepEqual(json(a.prelude),[]);}
       replay(g,a);
       if(id==='cap')assert.deepEqual(heap(g),fixture.afterCap);
       if(id==='pocket')assert.deepEqual(heap(g),fixture.afterPocket);
@@ -38,7 +43,7 @@ for(const id of ['cap','cap-high','pocket','well','spin']) {
 }
 
 test('st-core/real scoring: two cleared rows without a final rotation do not complete the TSD exercise',()=>withPage('st-lab.html',{},g=>{
-  start(g,'spin','active');const w=g.window;
+  start(g,'spin');g.tap('ShiftLeft');const w=g.window;
   // Arrange the target shape but deliberately omit its required last rotation.
   w.clearActive();w.xPOS=6;w.yPOS=35;w.rot=2;w.lastAction='SD';w.updateGhost();w.setShape();
   w.zzBot.hardDrop();g.advance(16);
@@ -62,7 +67,7 @@ test('st-core/determinism: immutable input, fresh advisors, stable duplicate-pie
 
 test('st-core/hold: only active/held/next-0; empty hold and repeated swaps preserve order',()=>withPage('st-lab.html',{},g=>{
   const planner=core(g);
-  start(g,'cap','held');const before=g.snapshot();const initial=input(g);
+  start(g,'cap');const before=g.snapshot();const initial=input(g);
   assert.equal(planner.advise(initial).piece.id,'hold');
   g.tap('ShiftLeft');g.advance(16);
   assert.equal(g.window.piece,'Z');assert.equal(g.window.holdP,'T');
@@ -70,18 +75,18 @@ test('st-core/hold: only active/held/next-0; empty hold and repeated swaps prese
   assert.deepEqual(json(planner.advise(input(g)).prelude),[]);
   g.tap('ShiftLeft');g.advance(16);
   assert.equal(g.window.piece,'T');assert.deepEqual(g.snapshot().queue,before.queue);
-  start(g,'cap','empty');const queue=g.snapshot().queue;
+  start(g,'cap');editPieces(g,{active:'T',hold:'',next:['Z','O','I','J','L','S']});const queue=g.snapshot().queue;
   assert.equal(planner.advise(input(g)).from,'next-0');
   g.tap('ShiftLeft');assert.deepEqual(g.snapshot().queue,queue.slice(1));
   g.tap('ShiftLeft');assert.deepEqual(g.snapshot().queue,queue.slice(1));
   assert.equal(g.window.piece,'T');assert.equal(g.window.holdP,'Z');
-  start(g,'cap','no-fit');
+  start(g,'cap');editPieces(g,{active:'O',hold:'J',next:['Z','T','I','S','L','O']});
   assert.equal(planner.advise(input(g)).reason,'no-core-fit-found');
   const bottom=heap(g);g.tap('Space');assert.notDeepEqual(heap(g),bottom,'ordinary O placement remains legal');
 }));
 
 test('st-core/respawn: two holds recover an I trapped in the well without skipping preview',()=>withPage('st-lab.html',{},g=>{
-  start(g,'pocket','active');const w=g.window;
+  start(g,'pocket');const w=g.window;
   w.clearActive();w.holdP='O';w.xPOS=5;w.yPOS=36;w.rot=1;w.lastAction='SD';w.updateGhost();w.setShape();
   const before=g.snapshot().queue,answer=core(g).advise(input(g));
   assert.equal(answer.kind,'target');assert.equal(answer.piece.id,'active');
@@ -109,7 +114,7 @@ test('st-core/visible horizon: hidden suffix cannot affect advice; actual clippi
 }));
 
 test('st-core/ordered lookahead: verifies a legal held continuation, never invents a future draw',()=>withPage('st-lab.html',{},g=>{
-  start(g,'cap','active');const planner=core(g),s=input(g);
+  start(g,'cap');g.tap('ShiftLeft');const planner=core(g),s=input(g);
   assert.equal(planner.advise(s).continuationVerified,true);
   s.hold={id:'hold',kind:'J'};s.visibleNext=[{id:'next-0',kind:'O'},{id:'next-1',kind:'T'}];
   assert.equal(planner.advise(s).continuationVerified,false,'T is visible but O/J must play first');

@@ -78,15 +78,11 @@ const STCore = (() => {
       if (!Array.isArray(input.heap) || !sameHeap(input.heap,family.stages[state.stage])) return null;
       return family;
     }
-    function exercise(id,variant='held') {
+    function exercise(id) {
       const family=families.get(id);
-      if (!family || !['active','held','empty','no-fit'].includes(variant)) return null;
+      if (!family) return null;
       const first=family.rules[0].kind, second=family.rules[1]?.kind || 'O';
-      let active=first, hold=second, next=['O','I','J','L','S','T'];
-      if (variant==='held') { active=second; hold=first; }
-      if (variant==='empty') { active=second; hold=''; next=[first,'O','I','J','L','S']; }
-      if (variant==='no-fit') { active='O'; hold='J'; next=[first,'T','I','S','L','O']; }
-      return { heap:copy(family.stages[0]), active, hold, next,
+      return { heap:copy(family.stages[0]), active:second, hold:first, next:['O','I','J','L','S','T'],
         strategy:{version:VERSION,orientation:'right-ZT',exerciseId:id,stage:0} };
     }
     function supported(input) {

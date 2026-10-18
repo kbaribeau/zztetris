@@ -2,7 +2,7 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const {withPage}=require('./support/page.cjs');
 const {settings,DEFAULT_CONFIG}=require('./support/pages.cjs');
-const {start,input,core,replay,json,heap}=require('./support/st-driver.cjs');
+const {start,editPieces,input,core,replay,json,heap}=require('./support/st-driver.cjs');
 const {fixtures}=require('./support/st-fixtures.cjs');
 const target=g=>g.element('#st-target');
 const reason=g=>g.element('#st-status').dataset.result;
@@ -172,7 +172,7 @@ test('st-lab/unchanged frame: no DOM churn or repeated live-region announcements
 }));
 
 test('st-lab/abstention only: unsupported/no-fit do not reset or modify the queue, heap or settings',()=>withPage('st-lab.html',{storage:settings({gravity:'false'})},g=>{
-  start(g,'cap','no-fit');const before=g.snapshot(),saved=g.storage();refresh(g);
+  start(g,'cap');editPieces(g,{active:'O',hold:'J',next:['Z','T','I','S','L','O']});const before=g.snapshot(),saved=g.storage();refresh(g);
   assert.equal(reason(g),'no-core-fit-found');assert.equal(target(g).children.length,0);
   assert.deepEqual(g.snapshot(),before);assert.deepEqual(g.storage(),saved);
   assert.ok(![...g.window.document.querySelectorAll('button')].some(b=>/retry|recover/i.test(b.textContent)));

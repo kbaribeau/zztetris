@@ -8,10 +8,10 @@ replenishment, strategic Reset, arbitrary recovery or indefinite ST stacking.
 
 ## Play
 
-1. Choose a named exercise and an authored piece arrangement. Read the starting
+1. Choose a named exercise with its fixed authored start. Read the starting
    active/held pieces, six-piece preview, finite goal and replacement notice.
 2. **Start selected exercise** replaces the *lab's* board, queue and history.
-   Merely opening the page or changing a selector does not load a drill.
+   Merely opening the page or choosing an exercise does not load a drill.
 3. Follow the **amber inset dashed destination**. The ordinary **gray outer
    hard-drop ghost** still belongs to the current active piece; colored fill
    remains the active piece. `HOLD FIRST · T → Z` means the amber destination is
@@ -47,15 +47,15 @@ practice restores its usual saved gravity behavior.
 
 Coordinates are zero-based (`x=0..9`, `y=0..39`, top-down). The scoring pocket is
 human column 10; the well is column 8. The five named exercises cover four core
-rules, with active, held, empty-hold and O/J no-fit arrangements:
+rules, each with one authored starting arrangement:
 
-| Exercise | Supplied board / finite goal |
-| --- | --- |
-| Cap → T-spin double | Nine notch rows; Z at `(9,37),(8,38),(9,38),(8,39)`, then T at `(6,37),(7,37),(8,37),(7,38)`; finish after a non-mini double. |
-| Capped notch → T-spin double | The cap is supplied; the same T double is the whole goal. |
-| Three residual rows → one more double | The notch raised over three residual rows. Cap/T targets are three rows higher. One double leaves four residual rows; stop there. |
-| Pocket I → well I | Four residual rows under six notch rows. I fills `(9,36..39)` without a clear, then I at `(7,36..39)` clears four. |
-| Filled pocket → well quad | The source's filled pocket/upper stack; I at `(7,36..39)` clears four. |
+| Exercise | Active / hold | Supplied board / finite goal |
+| --- | --- | --- |
+| Cap → T-spin double | T / Z | Nine notch rows; Z at `(9,37),(8,38),(9,38),(8,39)`, then T at `(6,37),(7,37),(8,37),(7,38)`; finish after a non-mini double. |
+| Capped notch → T-spin double | O / T | The cap is supplied; the same T double is the whole goal. |
+| Three residual rows → one more double | T / Z | The notch raised over three residual rows. Cap/T targets are three rows higher. One double leaves four residual rows; stop there. |
+| Pocket I → well I | I / I | Four residual rows under six notch rows. I fills `(9,36..39)` without a clear, then I at `(7,36..39)` clears four. |
+| Filled pocket → well quad | O / I | The source's filled pocket/upper stack; I at `(7,36..39)` clears four. |
 
 Literal board occupancy is transcribed from [Hard Drop ST Stacking, revision
 37604](https://harddrop.com/w/index.php?title=ST_Stacking&oldid=37604), diagrams
@@ -69,11 +69,11 @@ independently transcribed in `test/support/st-fixtures.cjs`.
 
 Starting boards are **prebuilt illustrations**, not claimed solutions from an
 empty board. Queues are **authored**, not random 7-bag predictions. The setup
-shows the six visible upcoming pieces; a finite tail `IOTJLSZ|IOTJLSZ|` supplies
+shows the six visible upcoming pieces, `O I J L S T`; a finite tail `IOTJLSZ|IOTJLSZ|` supplies
 later previews. The normal engine may append random bags after that. Advice
 never reads unseen pieces or simulates a random refill. The pocket drill needs
-two Is, so an arrangement can legitimately have the required kind both active
-and held/next; advice prefers a valid current piece over an unnecessary hold.
+two Is and starts with I both active and held; advice prefers a valid current
+piece over an unnecessary hold.
 
 ### No-fit means abstention, not game over
 
@@ -100,7 +100,7 @@ is always an explicit, disclosed replacement. Unsupported state is not repaired.
 `st-core.js` is a pure module. `STCore.create(pieces, srsPlusKicks)` captures
 immutable copies of the actual game's rule tables. Its small interface is:
 
-- `exercise(id, arrangement)`: fresh authored heap/queue/hold and starting
+- `exercise(id)`: fresh authored heap/queue/hold and starting
   certificate; `STCore.exercises` is read-only descriptive metadata.
 - `advise(input)`: `target`, `abstain` or `exercise-complete`.
 - `advance(inputBeforeLock, actualLockResult)`: a new certificate **only** when
