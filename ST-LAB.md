@@ -24,8 +24,8 @@ replenishment, strategic Reset, arbitrary recovery or indefinite ST stacking.
 Advice is **on for every explicit exercise entry**. **A** (`KeyA`) toggles only
 its display in the lab; the on-screen button also works. Rebind it in **Game
 Settings → ST lab advice** using the same click-and-press-key convention as the
-other controls. Escape cancels capture. Repeats and modified shortcuts do not
-activate the toggle, and typing/selecting does not trigger game actions in the
+other controls. Escape cancels capture. Repeats and shortcuts using Ctrl, Alt or
+Meta do not activate the toggle, and typing/selecting does not trigger game actions in the
 lab. Unmodified gameplay keys move pieces without scrolling the lab page. Keyboard activation of a focused button does not hard-drop a piece first.
 
 The extra binding lives in `localStorage.stAdviceKey`, **not** in the legacy
@@ -36,11 +36,11 @@ changes an existing gameplay binding. Reset to Defaults clears the extra key
 alongside controls, but still preserves gravity. Display-off is not persisted.
 Other game pages do not load the advisor or intercept this key.
 
-Lab rules are the practice engine, **SRS+ and gravity off**. These are temporary
+The lab opens with the practice engine, **SRS+ and gravity off**. These are temporary
 page settings, not writes to saved normal-play preferences. The editing panel
 still allows normal operations; gravity-on or another kickset makes advice
 unsupported, rather than silently changing your rules back. Only explicitly
-starting an exercise selects its disclosed lab rules. Returning to ordinary
+starting an exercise reapplies its disclosed lab rules. Returning to ordinary
 practice restores its usual saved gravity behavior.
 
 ### Exercises and provenance
@@ -170,12 +170,8 @@ export formats, normal history semantics and gameplay scoring are unchanged.
 
 ## Verification and limits
 
-Run `npm ci && npm test` with the pinned Node version; see [TESTING.md](TESTING.md).
-Tests replay every named source family and the elevated variant through actual
-engine actions, checking independently specified cells, post-clear heaps and
-non-mini/quad scoring. They also exercise deterministic ties, two-hold respawn,
-visible-knowledge bounds, no-fit/budgets, history and edits, default-on display,
-rebinding/conflicts/input guards, and normal-play preservation.
+See [TESTING.md](TESTING.md) for test setup and commands, and its
+[ST lab coverage](TESTING.md#st-lab-behavioral-coverage) for the executable checks.
 
 Real-browser checks are still needed for pixels, font/CDN loading, physical
 keyboard focus, popup behavior and narrow layouts. Mobile viewport emulation is
