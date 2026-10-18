@@ -78,7 +78,9 @@ The initial baseline has **58 named tests**, not a measured statement/branch cov
 | `mode/cancelling` (1) | CancelStreak 19 vs 20 produces the base seven-piece bag vs one extra O. |
 | `host/*` (3) | Fresh realm/prototype/storage/clock/seed isolation; unknown resources denied; explicit network and unhandled event errors surfaced. |
 
-Future work, **not covered by this baseline**: kick tables/rotation edge cases, line-clear/combo/B2B/T-spin/perfect-clear fixtures, full opposite-key and zero-rate input matrix, touch handlers, history branching/cap/counters, mode row-refill and garbage-replenishment transitions, higher cancellation thresholds, PC digit presets, shuffle properties, text/image import/export, mirror/drawing and host failure paths.
+The bag-boundary extension adds **20 `preview/*` cases** to that initial 58-case baseline. They inspect the actual preview canvas draw requests from all ten game pages: six sprite slots, 2px white outgoing-piece corner positions (including top/bottom edges and multiple custom segments), no invented separator, unknown piece slots, hold/spawn/reset/reshuffle/mirror/undo/redo transitions, queue editing, TETRIO import redraw, PC partial/special presets, and cancellation's augmented batch length. These draw-call assertions are not proof of painted pixels. A short real-browser check should inspect contrast, clipping, alignment and the preview at a narrow viewport whenever the preview renderer or sprites change.
+
+Future work, **not covered by this baseline**: kick tables/rotation edge cases, line-clear/combo/B2B/T-spin/perfect-clear fixtures, full opposite-key and zero-rate input matrix, touch handlers, history branching/cap/counters, mode row-refill and garbage-replenishment transitions, higher cancellation thresholds, remaining PC digit presets, shuffle properties, broader text/image import/export, drawing and host failure paths.
 
 Statement coverage means lines executed; branch coverage means alternatives executed. Neither measures assertion quality, every board state, or browser fidelity. No percentage gate is configured.
 
@@ -94,7 +96,7 @@ Do not manually replay all rules/persistence permutations after a local suite pa
 | Audio, clipboard, drawing/image import | Check audible output/autoplay, permission behavior, pixel-to-cell geometry or image decoding only for the affected path. |
 | Script URLs/load strategy | Verify actual CDN/asset loading and startup. Ordered fake image completion does not prove network races. |
 
-Local tests are sufficient for this project's regression gate; this checklist is supplemental risk-based evidence, not a request for GitHub CI. No browser check was used to certify this test-tooling-only change.
+Local tests are sufficient for this project's regression gate; this checklist is supplemental risk-based evidence, not a request for GitHub CI. No browser check was used to certify this change.
 
 ## Future no-mistakes use
 

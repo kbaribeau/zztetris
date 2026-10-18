@@ -49,23 +49,7 @@ function restart() {
 }
 
 function updateQueue() {
-	temp = false;
-	ctxN.clearRect(0, 0, 90, 360);
-	ctxH.clearRect(0, 0, 90, 60);
-	for (let i = 0; i < 7; i++) {
-		if (queue[i] == '|') {
-			ctxN.beginPath();
-			ctxN.moveTo(0, i * 60);
-			ctxN.lineTo(90, i * 60);
-			ctxN.stroke();
-			temp = true;
-		} else {
-			j = i;
-			if (temp) j--;
-			ctxN.drawImage(imgs[queue[i]], 0, j * 60);
-		}
-	}
-	if (holdP) ctxH.drawImage(imgs[holdP], 0, 0);
+	drawQueuePreview(queue, holdP, imgs, ctxN, ctxH);
 }
 
 function shuffleQueue() {
