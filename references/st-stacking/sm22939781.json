@@ -1,0 +1,7093 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "url": "https://www.nicovideo.jp/watch/sm22939781",
+    "format": "Puyo Puyo Tetris Marathon replay",
+    "sourceDurationSeconds": 425.4,
+    "frameRate": 30,
+    "frameIndexing": "zero-based",
+    "games": 1,
+    "nonGameplay": "Opening/countdown and closing victory/replay-menu footage are excluded from placement pages."
+  },
+  "export": {
+    "format": "Fumen v115",
+    "file": "sm22939781.fumen",
+    "sha256": "6be7c5f662b4790812c674293a7dc96da799a9d31ae7c9d338a7a3916065ea7f",
+    "pages": 401,
+    "placements": 400,
+    "finalSnapshotPage": 401,
+    "clearedLines": 152,
+    "clearEvents": 65,
+    "clearEventsByLines": {
+      "1": 1,
+      "2": 52,
+      "3": 1,
+      "4": 11
+    },
+    "finalOccupiedCells": 80
+  },
+  "validation": {
+    "encoder": "knewjade/tetris-fumen 1.1.3",
+    "exactEncodeDecodeRoundTrip": true,
+    "allFitSupportAndClearTransitionsChecked": true,
+    "allPlacementBoardsComparedWithVideo": true,
+    "allClearsComparedWithPreAndPostVideoEvidence": true,
+    "editor": "https://fumen.sixwi.de/",
+    "editorPagesLoaded": 401,
+    "noUnresolvedPlacements": true,
+    "method": "Assisted frame-to-board reconstruction with temporal inspection; active/ghost/later-piece and scene-overlay exclusions are not locked cells.",
+    "limitations": [
+      "Evidence timestamps are observation times, not exact lock/input times.",
+      "Hold/queue identities, movement inputs, kick paths and scoring classification are not encoded.",
+      "Canonical Fumen rotations may differ from equivalent symmetric input orientations.",
+      "Video rules and orientation differ from the current ST lab; this is reference data, not an STCore advice oracle.",
+      "The final victory banner is above the visible settled board; source video/media license rights are not asserted."
+    ]
+  },
+  "pages": [
+    {
+      "game": 1,
+      "page": 1,
+      "placement": 1,
+      "operation": {
+        "type": "L",
+        "rotation": "spawn",
+        "x": 2,
+        "y": 0
+      },
+      "observationFrame": 305,
+      "observationSeconds": 10.166666666666666,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 0
+    },
+    {
+      "game": 1,
+      "page": 2,
+      "placement": 2,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 0
+      },
+      "observationFrame": 319,
+      "observationSeconds": 10.633333333333333,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 0
+    },
+    {
+      "game": 1,
+      "page": 3,
+      "placement": 3,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 2
+      },
+      "observationFrame": 330,
+      "observationSeconds": 11,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 0
+    },
+    {
+      "game": 1,
+      "page": 4,
+      "placement": 4,
+      "operation": {
+        "type": "I",
+        "rotation": "spawn",
+        "x": 7,
+        "y": 0
+      },
+      "observationFrame": 341,
+      "observationSeconds": 11.366666666666667,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 0
+    },
+    {
+      "game": 1,
+      "page": 5,
+      "placement": 5,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 8,
+        "y": 2
+      },
+      "observationFrame": 358,
+      "observationSeconds": 11.933333333333334,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 0
+    },
+    {
+      "game": 1,
+      "page": 6,
+      "placement": 6,
+      "operation": {
+        "type": "J",
+        "rotation": "spawn",
+        "x": 7,
+        "y": 1
+      },
+      "observationFrame": 380,
+      "observationSeconds": 12.666666666666666,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 0
+    },
+    {
+      "game": 1,
+      "page": 7,
+      "placement": 7,
+      "operation": {
+        "type": "T",
+        "rotation": "right",
+        "x": 0,
+        "y": 1
+      },
+      "observationFrame": 400,
+      "observationSeconds": 13.333333333333334,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [
+        0
+      ],
+      "linesAfter": 1
+    },
+    {
+      "game": 1,
+      "page": 8,
+      "placement": 8,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 3
+      },
+      "observationFrame": 450,
+      "observationSeconds": 15,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 1
+    },
+    {
+      "game": 1,
+      "page": 9,
+      "placement": 9,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 4
+      },
+      "observationFrame": 461,
+      "observationSeconds": 15.366666666666667,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 1
+    },
+    {
+      "game": 1,
+      "page": 10,
+      "placement": 10,
+      "operation": {
+        "type": "L",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 6
+      },
+      "observationFrame": 481,
+      "observationSeconds": 16.033333333333335,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 1
+    },
+    {
+      "game": 1,
+      "page": 11,
+      "placement": 11,
+      "operation": {
+        "type": "T",
+        "rotation": "left",
+        "x": 7,
+        "y": 2
+      },
+      "observationFrame": 548,
+      "observationSeconds": 18.266666666666666,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 1
+    },
+    {
+      "game": 1,
+      "page": 12,
+      "placement": 12,
+      "operation": {
+        "type": "Z",
+        "rotation": "right",
+        "x": 6,
+        "y": 4
+      },
+      "observationFrame": 564,
+      "observationSeconds": 18.8,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 1
+    },
+    {
+      "game": 1,
+      "page": 13,
+      "placement": 13,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 8,
+        "y": 3
+      },
+      "observationFrame": 588,
+      "observationSeconds": 19.6,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 1
+    },
+    {
+      "game": 1,
+      "page": 14,
+      "placement": 14,
+      "operation": {
+        "type": "T",
+        "rotation": "left",
+        "x": 9,
+        "y": 5
+      },
+      "observationFrame": 622,
+      "observationSeconds": 20.733333333333334,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 1
+    },
+    {
+      "game": 1,
+      "page": 15,
+      "placement": 15,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 6,
+        "y": 7
+      },
+      "observationFrame": 648,
+      "observationSeconds": 21.6,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 1
+    },
+    {
+      "game": 1,
+      "page": 16,
+      "placement": 16,
+      "operation": {
+        "type": "L",
+        "rotation": "right",
+        "x": 7,
+        "y": 7
+      },
+      "observationFrame": 682,
+      "observationSeconds": 22.733333333333334,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 1
+    },
+    {
+      "game": 1,
+      "page": 17,
+      "placement": 17,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 7
+      },
+      "observationFrame": 691,
+      "observationSeconds": 23.033333333333335,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 1
+    },
+    {
+      "game": 1,
+      "page": 18,
+      "placement": 18,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 8,
+        "y": 7
+      },
+      "observationFrame": 710,
+      "observationSeconds": 23.666666666666668,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 1
+    },
+    {
+      "game": 1,
+      "page": 19,
+      "placement": 19,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 9
+      },
+      "observationFrame": 724,
+      "observationSeconds": 24.133333333333333,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 1
+    },
+    {
+      "game": 1,
+      "page": 20,
+      "placement": 20,
+      "operation": {
+        "type": "I",
+        "rotation": "spawn",
+        "x": 7,
+        "y": 9
+      },
+      "observationFrame": 743,
+      "observationSeconds": 24.766666666666666,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 1
+    },
+    {
+      "game": 1,
+      "page": 21,
+      "placement": 21,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 1
+      },
+      "observationFrame": 763,
+      "observationSeconds": 25.433333333333334,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [
+        0,
+        1
+      ],
+      "linesAfter": 3
+    },
+    {
+      "game": 1,
+      "page": 22,
+      "placement": 22,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 1
+      },
+      "observationFrame": 817,
+      "observationSeconds": 27.233333333333334,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 3
+    },
+    {
+      "game": 1,
+      "page": 23,
+      "placement": 23,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 8
+      },
+      "observationFrame": 826,
+      "observationSeconds": 27.533333333333335,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 3
+    },
+    {
+      "game": 1,
+      "page": 24,
+      "placement": 24,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 10
+      },
+      "observationFrame": 847,
+      "observationSeconds": 28.233333333333334,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 3
+    },
+    {
+      "game": 1,
+      "page": 25,
+      "placement": 25,
+      "operation": {
+        "type": "I",
+        "rotation": "spawn",
+        "x": 7,
+        "y": 8
+      },
+      "observationFrame": 868,
+      "observationSeconds": 28.933333333333334,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 3
+    },
+    {
+      "game": 1,
+      "page": 26,
+      "placement": 26,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 8,
+        "y": 9
+      },
+      "observationFrame": 921,
+      "observationSeconds": 30.7,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 3
+    },
+    {
+      "game": 1,
+      "page": 27,
+      "placement": 27,
+      "operation": {
+        "type": "L",
+        "rotation": "right",
+        "x": 6,
+        "y": 10
+      },
+      "observationFrame": 935,
+      "observationSeconds": 31.166666666666668,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 3
+    },
+    {
+      "game": 1,
+      "page": 28,
+      "placement": 28,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 11
+      },
+      "observationFrame": 946,
+      "observationSeconds": 31.533333333333335,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 3
+    },
+    {
+      "game": 1,
+      "page": 29,
+      "placement": 29,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 13
+      },
+      "observationFrame": 970,
+      "observationSeconds": 32.333333333333336,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 3
+    },
+    {
+      "game": 1,
+      "page": 30,
+      "placement": 30,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 8,
+        "y": 11
+      },
+      "observationFrame": 988,
+      "observationSeconds": 32.93333333333333,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 3
+    },
+    {
+      "game": 1,
+      "page": 31,
+      "placement": 31,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 7,
+        "y": 12
+      },
+      "observationFrame": 1043,
+      "observationSeconds": 34.766666666666666,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 3
+    },
+    {
+      "game": 1,
+      "page": 32,
+      "placement": 32,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 2
+      },
+      "observationFrame": 1062,
+      "observationSeconds": 35.4,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [
+        1,
+        2
+      ],
+      "linesAfter": 5
+    },
+    {
+      "game": 1,
+      "page": 33,
+      "placement": 33,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 2
+      },
+      "observationFrame": 1114,
+      "observationSeconds": 37.13333333333333,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 5
+    },
+    {
+      "game": 1,
+      "page": 34,
+      "placement": 34,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 3,
+        "y": 13
+      },
+      "observationFrame": 1135,
+      "observationSeconds": 37.833333333333336,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 5
+    },
+    {
+      "game": 1,
+      "page": 35,
+      "placement": 35,
+      "operation": {
+        "type": "L",
+        "rotation": "left",
+        "x": 5,
+        "y": 13
+      },
+      "observationFrame": 1159,
+      "observationSeconds": 38.63333333333333,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 5
+    },
+    {
+      "game": 1,
+      "page": 36,
+      "placement": 36,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 6,
+        "y": 12
+      },
+      "observationFrame": 1174,
+      "observationSeconds": 39.13333333333333,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 5
+    },
+    {
+      "game": 1,
+      "page": 37,
+      "placement": 37,
+      "operation": {
+        "type": "L",
+        "rotation": "left",
+        "x": 7,
+        "y": 13
+      },
+      "observationFrame": 1203,
+      "observationSeconds": 40.1,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 5
+    },
+    {
+      "game": 1,
+      "page": 38,
+      "placement": 38,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 3
+      },
+      "observationFrame": 1239,
+      "observationSeconds": 41.3,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [
+        2,
+        3
+      ],
+      "linesAfter": 7
+    },
+    {
+      "game": 1,
+      "page": 39,
+      "placement": 39,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 8,
+        "y": 9
+      },
+      "observationFrame": 1277,
+      "observationSeconds": 42.56666666666667,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 7
+    },
+    {
+      "game": 1,
+      "page": 40,
+      "placement": 40,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 3
+      },
+      "observationFrame": 1318,
+      "observationSeconds": 43.93333333333333,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 7
+    },
+    {
+      "game": 1,
+      "page": 41,
+      "placement": 41,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 13
+      },
+      "observationFrame": 1327,
+      "observationSeconds": 44.233333333333334,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 7
+    },
+    {
+      "game": 1,
+      "page": 42,
+      "placement": 42,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 15
+      },
+      "observationFrame": 1348,
+      "observationSeconds": 44.93333333333333,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 7
+    },
+    {
+      "game": 1,
+      "page": 43,
+      "placement": 43,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 4
+      },
+      "observationFrame": 1383,
+      "observationSeconds": 46.1,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [
+        3,
+        4
+      ],
+      "linesAfter": 9
+    },
+    {
+      "game": 1,
+      "page": 44,
+      "placement": 44,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 0,
+        "y": 2
+      },
+      "observationFrame": 1427,
+      "observationSeconds": 47.56666666666667,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 9
+    },
+    {
+      "game": 1,
+      "page": 45,
+      "placement": 45,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 8,
+        "y": 9
+      },
+      "observationFrame": 1454,
+      "observationSeconds": 48.46666666666667,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 9
+    },
+    {
+      "game": 1,
+      "page": 46,
+      "placement": 46,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 4
+      },
+      "observationFrame": 1487,
+      "observationSeconds": 49.56666666666667,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 9
+    },
+    {
+      "game": 1,
+      "page": 47,
+      "placement": 47,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 14
+      },
+      "observationFrame": 1497,
+      "observationSeconds": 49.9,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 9
+    },
+    {
+      "game": 1,
+      "page": 48,
+      "placement": 48,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 16
+      },
+      "observationFrame": 1518,
+      "observationSeconds": 50.6,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 9
+    },
+    {
+      "game": 1,
+      "page": 49,
+      "placement": 49,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 8,
+        "y": 11
+      },
+      "observationFrame": 1536,
+      "observationSeconds": 51.2,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 9
+    },
+    {
+      "game": 1,
+      "page": 50,
+      "placement": 50,
+      "operation": {
+        "type": "L",
+        "rotation": "right",
+        "x": 6,
+        "y": 12
+      },
+      "observationFrame": 1566,
+      "observationSeconds": 52.2,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 9
+    },
+    {
+      "game": 1,
+      "page": 51,
+      "placement": 51,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 2,
+        "y": 2
+      },
+      "observationFrame": 1591,
+      "observationSeconds": 53.03333333333333,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "linesAfter": 13
+    },
+    {
+      "game": 1,
+      "page": 52,
+      "placement": 52,
+      "operation": {
+        "type": "L",
+        "rotation": "reverse",
+        "x": 8,
+        "y": 9
+      },
+      "observationFrame": 1643,
+      "observationSeconds": 54.766666666666666,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 13
+    },
+    {
+      "game": 1,
+      "page": 53,
+      "placement": 53,
+      "operation": {
+        "type": "J",
+        "rotation": "spawn",
+        "x": 7,
+        "y": 10
+      },
+      "observationFrame": 1700,
+      "observationSeconds": 56.666666666666664,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 13
+    },
+    {
+      "game": 1,
+      "page": 54,
+      "placement": 54,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 1
+      },
+      "observationFrame": 1730,
+      "observationSeconds": 57.666666666666664,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [
+        0,
+        1
+      ],
+      "linesAfter": 15
+    },
+    {
+      "game": 1,
+      "page": 55,
+      "placement": 55,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 1
+      },
+      "observationFrame": 1790,
+      "observationSeconds": 59.666666666666664,
+      "confirmationFrame": null,
+      "confirmationSeconds": null,
+      "clearedRows": [],
+      "linesAfter": 15
+    },
+    {
+      "game": 1,
+      "page": 56,
+      "placement": 56,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 7,
+        "y": 9
+      },
+      "observationFrame": 1819,
+      "observationSeconds": 60.63333333333333,
+      "confirmationFrame": 1840,
+      "confirmationSeconds": 61.333333333333336,
+      "clearedRows": [],
+      "linesAfter": 15
+    },
+    {
+      "game": 1,
+      "page": 57,
+      "placement": 57,
+      "operation": {
+        "type": "L",
+        "rotation": "left",
+        "x": 9,
+        "y": 9
+      },
+      "observationFrame": 1856,
+      "observationSeconds": 61.86666666666667,
+      "confirmationFrame": 1866,
+      "confirmationSeconds": 62.2,
+      "clearedRows": [],
+      "linesAfter": 15
+    },
+    {
+      "game": 1,
+      "page": 58,
+      "placement": 58,
+      "operation": {
+        "type": "I",
+        "rotation": "spawn",
+        "x": 7,
+        "y": 11
+      },
+      "observationFrame": 1872,
+      "observationSeconds": 62.4,
+      "confirmationFrame": 1883,
+      "confirmationSeconds": 62.766666666666666,
+      "clearedRows": [],
+      "linesAfter": 15
+    },
+    {
+      "game": 1,
+      "page": 59,
+      "placement": 59,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 11
+      },
+      "observationFrame": 1883,
+      "observationSeconds": 62.766666666666666,
+      "confirmationFrame": 1887,
+      "confirmationSeconds": 62.9,
+      "clearedRows": [],
+      "linesAfter": 15
+    },
+    {
+      "game": 1,
+      "page": 60,
+      "placement": 60,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 2
+      },
+      "observationFrame": 1904,
+      "observationSeconds": 63.46666666666667,
+      "confirmationFrame": 1931,
+      "confirmationSeconds": 64.36666666666666,
+      "clearedRows": [
+        1,
+        2
+      ],
+      "linesAfter": 17
+    },
+    {
+      "game": 1,
+      "page": 61,
+      "placement": 61,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 11
+      },
+      "observationFrame": 1944,
+      "observationSeconds": 64.8,
+      "confirmationFrame": 1955,
+      "confirmationSeconds": 65.16666666666667,
+      "clearedRows": [],
+      "linesAfter": 17
+    },
+    {
+      "game": 1,
+      "page": 62,
+      "placement": 62,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 2
+      },
+      "observationFrame": 1966,
+      "observationSeconds": 65.53333333333333,
+      "confirmationFrame": 1983,
+      "confirmationSeconds": 66.1,
+      "clearedRows": [],
+      "linesAfter": 17
+    },
+    {
+      "game": 1,
+      "page": 63,
+      "placement": 63,
+      "operation": {
+        "type": "I",
+        "rotation": "spawn",
+        "x": 7,
+        "y": 10
+      },
+      "observationFrame": 1992,
+      "observationSeconds": 66.4,
+      "confirmationFrame": 2000,
+      "confirmationSeconds": 66.66666666666667,
+      "clearedRows": [],
+      "linesAfter": 17
+    },
+    {
+      "game": 1,
+      "page": 64,
+      "placement": 64,
+      "operation": {
+        "type": "J",
+        "rotation": "left",
+        "x": 5,
+        "y": 13
+      },
+      "observationFrame": 2009,
+      "observationSeconds": 66.96666666666667,
+      "confirmationFrame": 2019,
+      "confirmationSeconds": 67.3,
+      "clearedRows": [],
+      "linesAfter": 17
+    },
+    {
+      "game": 1,
+      "page": 65,
+      "placement": 65,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 3,
+        "y": 13
+      },
+      "observationFrame": 2025,
+      "observationSeconds": 67.5,
+      "confirmationFrame": 2045,
+      "confirmationSeconds": 68.16666666666667,
+      "clearedRows": [],
+      "linesAfter": 17
+    },
+    {
+      "game": 1,
+      "page": 66,
+      "placement": 66,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 15
+      },
+      "observationFrame": 2053,
+      "observationSeconds": 68.43333333333334,
+      "confirmationFrame": 2064,
+      "confirmationSeconds": 68.8,
+      "clearedRows": [],
+      "linesAfter": 17
+    },
+    {
+      "game": 1,
+      "page": 67,
+      "placement": 67,
+      "operation": {
+        "type": "L",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 17
+      },
+      "observationFrame": 2076,
+      "observationSeconds": 69.2,
+      "confirmationFrame": 2097,
+      "confirmationSeconds": 69.9,
+      "clearedRows": [],
+      "linesAfter": 17
+    },
+    {
+      "game": 1,
+      "page": 68,
+      "placement": 68,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 3
+      },
+      "observationFrame": 2115,
+      "observationSeconds": 70.5,
+      "confirmationFrame": 2142,
+      "confirmationSeconds": 71.4,
+      "clearedRows": [
+        2,
+        3
+      ],
+      "linesAfter": 19
+    },
+    {
+      "game": 1,
+      "page": 69,
+      "placement": 69,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 3
+      },
+      "observationFrame": 2159,
+      "observationSeconds": 71.96666666666667,
+      "confirmationFrame": 2187,
+      "confirmationSeconds": 72.9,
+      "clearedRows": [],
+      "linesAfter": 19
+    },
+    {
+      "game": 1,
+      "page": 70,
+      "placement": 70,
+      "operation": {
+        "type": "I",
+        "rotation": "spawn",
+        "x": 7,
+        "y": 9
+      },
+      "observationFrame": 2194,
+      "observationSeconds": 73.13333333333334,
+      "confirmationFrame": 2203,
+      "confirmationSeconds": 73.43333333333334,
+      "clearedRows": [],
+      "linesAfter": 19
+    },
+    {
+      "game": 1,
+      "page": 71,
+      "placement": 71,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 16
+      },
+      "observationFrame": 2205,
+      "observationSeconds": 73.5,
+      "confirmationFrame": 2216,
+      "confirmationSeconds": 73.86666666666666,
+      "clearedRows": [],
+      "linesAfter": 19
+    },
+    {
+      "game": 1,
+      "page": 72,
+      "placement": 72,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 18
+      },
+      "observationFrame": 2232,
+      "observationSeconds": 74.4,
+      "confirmationFrame": 2252,
+      "confirmationSeconds": 75.06666666666666,
+      "clearedRows": [],
+      "linesAfter": 19
+    },
+    {
+      "game": 1,
+      "page": 73,
+      "placement": 73,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 8,
+        "y": 10
+      },
+      "observationFrame": 2263,
+      "observationSeconds": 75.43333333333334,
+      "confirmationFrame": 2273,
+      "confirmationSeconds": 75.76666666666667,
+      "clearedRows": [],
+      "linesAfter": 19
+    },
+    {
+      "game": 1,
+      "page": 74,
+      "placement": 74,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 4
+      },
+      "observationFrame": 2290,
+      "observationSeconds": 76.33333333333333,
+      "confirmationFrame": 2316,
+      "confirmationSeconds": 77.2,
+      "clearedRows": [
+        3,
+        4
+      ],
+      "linesAfter": 21
+    },
+    {
+      "game": 1,
+      "page": 75,
+      "placement": 75,
+      "operation": {
+        "type": "L",
+        "rotation": "right",
+        "x": 6,
+        "y": 9
+      },
+      "observationFrame": 2324,
+      "observationSeconds": 77.46666666666667,
+      "confirmationFrame": 2345,
+      "confirmationSeconds": 78.16666666666667,
+      "clearedRows": [],
+      "linesAfter": 21
+    },
+    {
+      "game": 1,
+      "page": 76,
+      "placement": 76,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 4
+      },
+      "observationFrame": 2358,
+      "observationSeconds": 78.6,
+      "confirmationFrame": 2379,
+      "confirmationSeconds": 79.3,
+      "clearedRows": [],
+      "linesAfter": 21
+    },
+    {
+      "game": 1,
+      "page": 77,
+      "placement": 77,
+      "operation": {
+        "type": "Z",
+        "rotation": "right",
+        "x": 7,
+        "y": 10
+      },
+      "observationFrame": 2390,
+      "observationSeconds": 79.66666666666667,
+      "confirmationFrame": 2404,
+      "confirmationSeconds": 80.13333333333334,
+      "clearedRows": [],
+      "linesAfter": 21
+    },
+    {
+      "game": 1,
+      "page": 78,
+      "placement": 78,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 2,
+        "y": 2
+      },
+      "observationFrame": 2417,
+      "observationSeconds": 80.56666666666666,
+      "confirmationFrame": 2425,
+      "confirmationSeconds": 80.83333333333333,
+      "clearedRows": [],
+      "linesAfter": 21
+    },
+    {
+      "game": 1,
+      "page": 79,
+      "placement": 79,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 5
+      },
+      "observationFrame": 2446,
+      "observationSeconds": 81.53333333333333,
+      "confirmationFrame": 2471,
+      "confirmationSeconds": 82.36666666666666,
+      "clearedRows": [
+        4,
+        5
+      ],
+      "linesAfter": 23
+    },
+    {
+      "game": 1,
+      "page": 80,
+      "placement": 80,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 5
+      },
+      "observationFrame": 2477,
+      "observationSeconds": 82.56666666666666,
+      "confirmationFrame": 2497,
+      "confirmationSeconds": 83.23333333333333,
+      "clearedRows": [],
+      "linesAfter": 23
+    },
+    {
+      "game": 1,
+      "page": 81,
+      "placement": 81,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 6,
+        "y": 9
+      },
+      "observationFrame": 2504,
+      "observationSeconds": 83.46666666666667,
+      "confirmationFrame": 2513,
+      "confirmationSeconds": 83.76666666666667,
+      "clearedRows": [],
+      "linesAfter": 23
+    },
+    {
+      "game": 1,
+      "page": 82,
+      "placement": 82,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 15
+      },
+      "observationFrame": 2515,
+      "observationSeconds": 83.83333333333333,
+      "confirmationFrame": 2519,
+      "confirmationSeconds": 83.96666666666667,
+      "clearedRows": [],
+      "linesAfter": 23
+    },
+    {
+      "game": 1,
+      "page": 83,
+      "placement": 83,
+      "operation": {
+        "type": "L",
+        "rotation": "left",
+        "x": 9,
+        "y": 9
+      },
+      "observationFrame": 2527,
+      "observationSeconds": 84.23333333333333,
+      "confirmationFrame": 2538,
+      "confirmationSeconds": 84.6,
+      "clearedRows": [],
+      "linesAfter": 23
+    },
+    {
+      "game": 1,
+      "page": 84,
+      "placement": 84,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 17
+      },
+      "observationFrame": 2553,
+      "observationSeconds": 85.1,
+      "confirmationFrame": 2562,
+      "confirmationSeconds": 85.4,
+      "clearedRows": [],
+      "linesAfter": 23
+    },
+    {
+      "game": 1,
+      "page": 85,
+      "placement": 85,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 6
+      },
+      "observationFrame": 2579,
+      "observationSeconds": 85.96666666666667,
+      "confirmationFrame": 2606,
+      "confirmationSeconds": 86.86666666666666,
+      "clearedRows": [
+        5,
+        6
+      ],
+      "linesAfter": 25
+    },
+    {
+      "game": 1,
+      "page": 86,
+      "placement": 86,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 16
+      },
+      "observationFrame": 2608,
+      "observationSeconds": 86.93333333333334,
+      "confirmationFrame": 2614,
+      "confirmationSeconds": 87.13333333333334,
+      "clearedRows": [],
+      "linesAfter": 25
+    },
+    {
+      "game": 1,
+      "page": 87,
+      "placement": 87,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 0,
+        "y": 2
+      },
+      "observationFrame": 2626,
+      "observationSeconds": 87.53333333333333,
+      "confirmationFrame": 2673,
+      "confirmationSeconds": 89.1,
+      "clearedRows": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "linesAfter": 29
+    },
+    {
+      "game": 1,
+      "page": 88,
+      "placement": 88,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 2
+      },
+      "observationFrame": 2677,
+      "observationSeconds": 89.23333333333333,
+      "confirmationFrame": 2687,
+      "confirmationSeconds": 89.56666666666666,
+      "clearedRows": [],
+      "linesAfter": 29
+    },
+    {
+      "game": 1,
+      "page": 89,
+      "placement": 89,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 8,
+        "y": 5
+      },
+      "observationFrame": 2697,
+      "observationSeconds": 89.9,
+      "confirmationFrame": 2705,
+      "confirmationSeconds": 90.16666666666667,
+      "clearedRows": [],
+      "linesAfter": 29
+    },
+    {
+      "game": 1,
+      "page": 90,
+      "placement": 90,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 14
+      },
+      "observationFrame": 2719,
+      "observationSeconds": 90.63333333333334,
+      "confirmationFrame": 2727,
+      "confirmationSeconds": 90.9,
+      "clearedRows": [],
+      "linesAfter": 29
+    },
+    {
+      "game": 1,
+      "page": 91,
+      "placement": 91,
+      "operation": {
+        "type": "L",
+        "rotation": "right",
+        "x": 6,
+        "y": 6
+      },
+      "observationFrame": 2750,
+      "observationSeconds": 91.66666666666667,
+      "confirmationFrame": 2757,
+      "confirmationSeconds": 91.9,
+      "clearedRows": [],
+      "linesAfter": 29
+    },
+    {
+      "game": 1,
+      "page": 92,
+      "placement": 92,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 3
+      },
+      "observationFrame": 2773,
+      "observationSeconds": 92.43333333333334,
+      "confirmationFrame": 2799,
+      "confirmationSeconds": 93.3,
+      "clearedRows": [
+        2,
+        3
+      ],
+      "linesAfter": 31
+    },
+    {
+      "game": 1,
+      "page": 93,
+      "placement": 93,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 9,
+        "y": 7
+      },
+      "observationFrame": 2809,
+      "observationSeconds": 93.63333333333334,
+      "confirmationFrame": 2820,
+      "confirmationSeconds": 94,
+      "clearedRows": [],
+      "linesAfter": 31
+    },
+    {
+      "game": 1,
+      "page": 94,
+      "placement": 94,
+      "operation": {
+        "type": "L",
+        "rotation": "left",
+        "x": 7,
+        "y": 5
+      },
+      "observationFrame": 2829,
+      "observationSeconds": 94.3,
+      "confirmationFrame": 2850,
+      "confirmationSeconds": 95,
+      "clearedRows": [],
+      "linesAfter": 31
+    },
+    {
+      "game": 1,
+      "page": 95,
+      "placement": 95,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 3
+      },
+      "observationFrame": 2866,
+      "observationSeconds": 95.53333333333333,
+      "confirmationFrame": 2888,
+      "confirmationSeconds": 96.26666666666667,
+      "clearedRows": [],
+      "linesAfter": 31
+    },
+    {
+      "game": 1,
+      "page": 96,
+      "placement": 96,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 13
+      },
+      "observationFrame": 2890,
+      "observationSeconds": 96.33333333333333,
+      "confirmationFrame": 2898,
+      "confirmationSeconds": 96.6,
+      "clearedRows": [],
+      "linesAfter": 31
+    },
+    {
+      "game": 1,
+      "page": 97,
+      "placement": 97,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 15
+      },
+      "observationFrame": 2913,
+      "observationSeconds": 97.1,
+      "confirmationFrame": 2933,
+      "confirmationSeconds": 97.76666666666667,
+      "clearedRows": [],
+      "linesAfter": 31
+    },
+    {
+      "game": 1,
+      "page": 98,
+      "placement": 98,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 16
+      },
+      "observationFrame": 2963,
+      "observationSeconds": 98.76666666666667,
+      "confirmationFrame": 2982,
+      "confirmationSeconds": 99.4,
+      "clearedRows": [],
+      "linesAfter": 31
+    },
+    {
+      "game": 1,
+      "page": 99,
+      "placement": 99,
+      "operation": {
+        "type": "Z",
+        "rotation": "right",
+        "x": 3,
+        "y": 18
+      },
+      "observationFrame": 2987,
+      "observationSeconds": 99.56666666666666,
+      "confirmationFrame": 3012,
+      "confirmationSeconds": 100.4,
+      "clearedRows": [],
+      "linesAfter": 31
+    },
+    {
+      "game": 1,
+      "page": 100,
+      "placement": 100,
+      "operation": {
+        "type": "L",
+        "rotation": "left",
+        "x": 8,
+        "y": 6
+      },
+      "observationFrame": 3019,
+      "observationSeconds": 100.63333333333334,
+      "confirmationFrame": 3045,
+      "confirmationSeconds": 101.5,
+      "clearedRows": [],
+      "linesAfter": 31
+    },
+    {
+      "game": 1,
+      "page": 101,
+      "placement": 101,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 6,
+        "y": 9
+      },
+      "observationFrame": 3071,
+      "observationSeconds": 102.36666666666666,
+      "confirmationFrame": 3098,
+      "confirmationSeconds": 103.26666666666667,
+      "clearedRows": [],
+      "linesAfter": 31
+    },
+    {
+      "game": 1,
+      "page": 102,
+      "placement": 102,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 4
+      },
+      "observationFrame": 3107,
+      "observationSeconds": 103.56666666666666,
+      "confirmationFrame": 3133,
+      "confirmationSeconds": 104.43333333333334,
+      "clearedRows": [
+        3,
+        4
+      ],
+      "linesAfter": 33
+    },
+    {
+      "game": 1,
+      "page": 103,
+      "placement": 103,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 4
+      },
+      "observationFrame": 3147,
+      "observationSeconds": 104.9,
+      "confirmationFrame": 3175,
+      "confirmationSeconds": 105.83333333333333,
+      "clearedRows": [],
+      "linesAfter": 33
+    },
+    {
+      "game": 1,
+      "page": 104,
+      "placement": 104,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 7,
+        "y": 6
+      },
+      "observationFrame": 3184,
+      "observationSeconds": 106.13333333333334,
+      "confirmationFrame": 3203,
+      "confirmationSeconds": 106.76666666666667,
+      "clearedRows": [],
+      "linesAfter": 33
+    },
+    {
+      "game": 1,
+      "page": 105,
+      "placement": 105,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 7,
+        "y": 8
+      },
+      "observationFrame": 3217,
+      "observationSeconds": 107.23333333333333,
+      "confirmationFrame": 3237,
+      "confirmationSeconds": 107.9,
+      "clearedRows": [],
+      "linesAfter": 33
+    },
+    {
+      "game": 1,
+      "page": 106,
+      "placement": 106,
+      "operation": {
+        "type": "J",
+        "rotation": "left",
+        "x": 7,
+        "y": 11
+      },
+      "observationFrame": 3271,
+      "observationSeconds": 109.03333333333333,
+      "confirmationFrame": 3277,
+      "confirmationSeconds": 109.23333333333333,
+      "clearedRows": [],
+      "linesAfter": 33
+    },
+    {
+      "game": 1,
+      "page": 107,
+      "placement": 107,
+      "operation": {
+        "type": "J",
+        "rotation": "right",
+        "x": 6,
+        "y": 12
+      },
+      "observationFrame": 3298,
+      "observationSeconds": 109.93333333333334,
+      "confirmationFrame": 3304,
+      "confirmationSeconds": 110.13333333333334,
+      "clearedRows": [],
+      "linesAfter": 33
+    },
+    {
+      "game": 1,
+      "page": 108,
+      "placement": 108,
+      "operation": {
+        "type": "L",
+        "rotation": "left",
+        "x": 9,
+        "y": 8
+      },
+      "observationFrame": 3315,
+      "observationSeconds": 110.5,
+      "confirmationFrame": 3320,
+      "confirmationSeconds": 110.66666666666667,
+      "clearedRows": [],
+      "linesAfter": 33
+    },
+    {
+      "game": 1,
+      "page": 109,
+      "placement": 109,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 8,
+        "y": 10
+      },
+      "observationFrame": 3334,
+      "observationSeconds": 111.13333333333334,
+      "confirmationFrame": 3336,
+      "confirmationSeconds": 111.2,
+      "clearedRows": [],
+      "linesAfter": 33
+    },
+    {
+      "game": 1,
+      "page": 110,
+      "placement": 110,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 2,
+        "y": 2
+      },
+      "observationFrame": 3358,
+      "observationSeconds": 111.93333333333334,
+      "confirmationFrame": 3360,
+      "confirmationSeconds": 112,
+      "clearedRows": [],
+      "linesAfter": 33
+    },
+    {
+      "game": 1,
+      "page": 111,
+      "placement": 111,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 5
+      },
+      "observationFrame": 3384,
+      "observationSeconds": 112.8,
+      "confirmationFrame": 3407,
+      "confirmationSeconds": 113.56666666666666,
+      "clearedRows": [
+        4,
+        5
+      ],
+      "linesAfter": 35
+    },
+    {
+      "game": 1,
+      "page": 112,
+      "placement": 112,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 5
+      },
+      "observationFrame": 3439,
+      "observationSeconds": 114.63333333333334,
+      "confirmationFrame": 3443,
+      "confirmationSeconds": 114.76666666666667,
+      "clearedRows": [],
+      "linesAfter": 35
+    },
+    {
+      "game": 1,
+      "page": 113,
+      "placement": 113,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 6
+      },
+      "observationFrame": 3470,
+      "observationSeconds": 115.66666666666667,
+      "confirmationFrame": 3493,
+      "confirmationSeconds": 116.43333333333334,
+      "clearedRows": [
+        5,
+        6
+      ],
+      "linesAfter": 37
+    },
+    {
+      "game": 1,
+      "page": 114,
+      "placement": 114,
+      "operation": {
+        "type": "L",
+        "rotation": "left",
+        "x": 6,
+        "y": 11
+      },
+      "observationFrame": 3521,
+      "observationSeconds": 117.36666666666666,
+      "confirmationFrame": 3527,
+      "confirmationSeconds": 117.56666666666666,
+      "clearedRows": [],
+      "linesAfter": 37
+    },
+    {
+      "game": 1,
+      "page": 115,
+      "placement": 115,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 14
+      },
+      "observationFrame": 3553,
+      "observationSeconds": 118.43333333333334,
+      "confirmationFrame": 3558,
+      "confirmationSeconds": 118.6,
+      "clearedRows": [],
+      "linesAfter": 37
+    },
+    {
+      "game": 1,
+      "page": 116,
+      "placement": 116,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 0,
+        "y": 2
+      },
+      "observationFrame": 3570,
+      "observationSeconds": 119,
+      "confirmationFrame": 3613,
+      "confirmationSeconds": 120.43333333333334,
+      "clearedRows": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "linesAfter": 41
+    },
+    {
+      "game": 1,
+      "page": 117,
+      "placement": 117,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 2
+      },
+      "observationFrame": 3624,
+      "observationSeconds": 120.8,
+      "confirmationFrame": 3629,
+      "confirmationSeconds": 120.96666666666667,
+      "clearedRows": [],
+      "linesAfter": 41
+    },
+    {
+      "game": 1,
+      "page": 118,
+      "placement": 118,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 8,
+        "y": 4
+      },
+      "observationFrame": 3648,
+      "observationSeconds": 121.6,
+      "confirmationFrame": 3650,
+      "confirmationSeconds": 121.66666666666667,
+      "clearedRows": [],
+      "linesAfter": 41
+    },
+    {
+      "game": 1,
+      "page": 119,
+      "placement": 119,
+      "operation": {
+        "type": "L",
+        "rotation": "spawn",
+        "x": 8,
+        "y": 6
+      },
+      "observationFrame": 3668,
+      "observationSeconds": 122.26666666666667,
+      "confirmationFrame": 3670,
+      "confirmationSeconds": 122.33333333333333,
+      "clearedRows": [],
+      "linesAfter": 41
+    },
+    {
+      "game": 1,
+      "page": 120,
+      "placement": 120,
+      "operation": {
+        "type": "Z",
+        "rotation": "right",
+        "x": 8,
+        "y": 8
+      },
+      "observationFrame": 3698,
+      "observationSeconds": 123.26666666666667,
+      "confirmationFrame": 3702,
+      "confirmationSeconds": 123.4,
+      "clearedRows": [],
+      "linesAfter": 41
+    },
+    {
+      "game": 1,
+      "page": 121,
+      "placement": 121,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 7,
+        "y": 9
+      },
+      "observationFrame": 3729,
+      "observationSeconds": 124.3,
+      "confirmationFrame": 3733,
+      "confirmationSeconds": 124.43333333333334,
+      "clearedRows": [],
+      "linesAfter": 41
+    },
+    {
+      "game": 1,
+      "page": 122,
+      "placement": 122,
+      "operation": {
+        "type": "Z",
+        "rotation": "right",
+        "x": 8,
+        "y": 10
+      },
+      "observationFrame": 3755,
+      "observationSeconds": 125.16666666666667,
+      "confirmationFrame": 3759,
+      "confirmationSeconds": 125.3,
+      "clearedRows": [],
+      "linesAfter": 41
+    },
+    {
+      "game": 1,
+      "page": 123,
+      "placement": 123,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 3
+      },
+      "observationFrame": 3777,
+      "observationSeconds": 125.9,
+      "confirmationFrame": 3800,
+      "confirmationSeconds": 126.66666666666667,
+      "clearedRows": [
+        2,
+        3
+      ],
+      "linesAfter": 43
+    },
+    {
+      "game": 1,
+      "page": 124,
+      "placement": 124,
+      "operation": {
+        "type": "J",
+        "rotation": "left",
+        "x": 4,
+        "y": 10
+      },
+      "observationFrame": 3826,
+      "observationSeconds": 127.53333333333333,
+      "confirmationFrame": 3831,
+      "confirmationSeconds": 127.7,
+      "clearedRows": [],
+      "linesAfter": 43
+    },
+    {
+      "game": 1,
+      "page": 125,
+      "placement": 125,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 3
+      },
+      "observationFrame": 3867,
+      "observationSeconds": 128.9,
+      "confirmationFrame": 3872,
+      "confirmationSeconds": 129.06666666666666,
+      "clearedRows": [],
+      "linesAfter": 43
+    },
+    {
+      "game": 1,
+      "page": 126,
+      "placement": 126,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 6,
+        "y": 9
+      },
+      "observationFrame": 3891,
+      "observationSeconds": 129.7,
+      "confirmationFrame": 3894,
+      "confirmationSeconds": 129.8,
+      "clearedRows": [],
+      "linesAfter": 43
+    },
+    {
+      "game": 1,
+      "page": 127,
+      "placement": 127,
+      "operation": {
+        "type": "Z",
+        "rotation": "right",
+        "x": 3,
+        "y": 12
+      },
+      "observationFrame": 3916,
+      "observationSeconds": 130.53333333333333,
+      "confirmationFrame": 3917,
+      "confirmationSeconds": 130.56666666666666,
+      "clearedRows": [],
+      "linesAfter": 43
+    },
+    {
+      "game": 1,
+      "page": 128,
+      "placement": 128,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 3,
+        "y": 14
+      },
+      "observationFrame": 3934,
+      "observationSeconds": 131.13333333333333,
+      "confirmationFrame": 3937,
+      "confirmationSeconds": 131.23333333333332,
+      "clearedRows": [],
+      "linesAfter": 43
+    },
+    {
+      "game": 1,
+      "page": 129,
+      "placement": 129,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 4
+      },
+      "observationFrame": 3960,
+      "observationSeconds": 132,
+      "confirmationFrame": 3984,
+      "confirmationSeconds": 132.8,
+      "clearedRows": [
+        3,
+        4
+      ],
+      "linesAfter": 45
+    },
+    {
+      "game": 1,
+      "page": 130,
+      "placement": 130,
+      "operation": {
+        "type": "J",
+        "rotation": "right",
+        "x": 5,
+        "y": 8
+      },
+      "observationFrame": 4001,
+      "observationSeconds": 133.36666666666667,
+      "confirmationFrame": 4006,
+      "confirmationSeconds": 133.53333333333333,
+      "clearedRows": [],
+      "linesAfter": 45
+    },
+    {
+      "game": 1,
+      "page": 131,
+      "placement": 131,
+      "operation": {
+        "type": "L",
+        "rotation": "right",
+        "x": 7,
+        "y": 8
+      },
+      "observationFrame": 4025,
+      "observationSeconds": 134.16666666666666,
+      "confirmationFrame": 4031,
+      "confirmationSeconds": 134.36666666666667,
+      "clearedRows": [],
+      "linesAfter": 45
+    },
+    {
+      "game": 1,
+      "page": 132,
+      "placement": 132,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 8,
+        "y": 8
+      },
+      "observationFrame": 4045,
+      "observationSeconds": 134.83333333333334,
+      "confirmationFrame": 4047,
+      "confirmationSeconds": 134.9,
+      "clearedRows": [],
+      "linesAfter": 45
+    },
+    {
+      "game": 1,
+      "page": 133,
+      "placement": 133,
+      "operation": {
+        "type": "L",
+        "rotation": "right",
+        "x": 6,
+        "y": 11
+      },
+      "observationFrame": 4075,
+      "observationSeconds": 135.83333333333334,
+      "confirmationFrame": 4082,
+      "confirmationSeconds": 136.06666666666666,
+      "clearedRows": [],
+      "linesAfter": 45
+    },
+    {
+      "game": 1,
+      "page": 134,
+      "placement": 134,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 5,
+        "y": 12
+      },
+      "observationFrame": 4101,
+      "observationSeconds": 136.7,
+      "confirmationFrame": 4102,
+      "confirmationSeconds": 136.73333333333332,
+      "clearedRows": [],
+      "linesAfter": 45
+    },
+    {
+      "game": 1,
+      "page": 135,
+      "placement": 135,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 4
+      },
+      "observationFrame": 4129,
+      "observationSeconds": 137.63333333333333,
+      "confirmationFrame": 4133,
+      "confirmationSeconds": 137.76666666666668,
+      "clearedRows": [],
+      "linesAfter": 45
+    },
+    {
+      "game": 1,
+      "page": 136,
+      "placement": 136,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 5
+      },
+      "observationFrame": 4159,
+      "observationSeconds": 138.63333333333333,
+      "confirmationFrame": 4183,
+      "confirmationSeconds": 139.43333333333334,
+      "clearedRows": [
+        4,
+        5
+      ],
+      "linesAfter": 47
+    },
+    {
+      "game": 1,
+      "page": 137,
+      "placement": 137,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 12
+      },
+      "observationFrame": 4195,
+      "observationSeconds": 139.83333333333334,
+      "confirmationFrame": 4197,
+      "confirmationSeconds": 139.9,
+      "clearedRows": [],
+      "linesAfter": 47
+    },
+    {
+      "game": 1,
+      "page": 138,
+      "placement": 138,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 5
+      },
+      "observationFrame": 4222,
+      "observationSeconds": 140.73333333333332,
+      "confirmationFrame": 4227,
+      "confirmationSeconds": 140.9,
+      "clearedRows": [],
+      "linesAfter": 47
+    },
+    {
+      "game": 1,
+      "page": 139,
+      "placement": 139,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 14
+      },
+      "observationFrame": 4246,
+      "observationSeconds": 141.53333333333333,
+      "confirmationFrame": 4248,
+      "confirmationSeconds": 141.6,
+      "clearedRows": [],
+      "linesAfter": 47
+    },
+    {
+      "game": 1,
+      "page": 140,
+      "placement": 140,
+      "operation": {
+        "type": "J",
+        "rotation": "left",
+        "x": 9,
+        "y": 9
+      },
+      "observationFrame": 4261,
+      "observationSeconds": 142.03333333333333,
+      "confirmationFrame": 4266,
+      "confirmationSeconds": 142.2,
+      "clearedRows": [],
+      "linesAfter": 47
+    },
+    {
+      "game": 1,
+      "page": 141,
+      "placement": 141,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 7,
+        "y": 9
+      },
+      "observationFrame": 4296,
+      "observationSeconds": 143.2,
+      "confirmationFrame": 4298,
+      "confirmationSeconds": 143.26666666666668,
+      "clearedRows": [],
+      "linesAfter": 47
+    },
+    {
+      "game": 1,
+      "page": 142,
+      "placement": 142,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 8,
+        "y": 11
+      },
+      "observationFrame": 4316,
+      "observationSeconds": 143.86666666666667,
+      "confirmationFrame": 4318,
+      "confirmationSeconds": 143.93333333333334,
+      "clearedRows": [],
+      "linesAfter": 47
+    },
+    {
+      "game": 1,
+      "page": 143,
+      "placement": 143,
+      "operation": {
+        "type": "L",
+        "rotation": "right",
+        "x": 6,
+        "y": 12
+      },
+      "observationFrame": 4337,
+      "observationSeconds": 144.56666666666666,
+      "confirmationFrame": 4342,
+      "confirmationSeconds": 144.73333333333332,
+      "clearedRows": [],
+      "linesAfter": 47
+    },
+    {
+      "game": 1,
+      "page": 144,
+      "placement": 144,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 2,
+        "y": 2
+      },
+      "observationFrame": 4362,
+      "observationSeconds": 145.4,
+      "confirmationFrame": 4364,
+      "confirmationSeconds": 145.46666666666667,
+      "clearedRows": [],
+      "linesAfter": 47
+    },
+    {
+      "game": 1,
+      "page": 145,
+      "placement": 145,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 6
+      },
+      "observationFrame": 4384,
+      "observationSeconds": 146.13333333333333,
+      "confirmationFrame": 4407,
+      "confirmationSeconds": 146.9,
+      "clearedRows": [
+        5,
+        6
+      ],
+      "linesAfter": 49
+    },
+    {
+      "game": 1,
+      "page": 146,
+      "placement": 146,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 6
+      },
+      "observationFrame": 4440,
+      "observationSeconds": 148,
+      "confirmationFrame": 4444,
+      "confirmationSeconds": 148.13333333333333,
+      "clearedRows": [],
+      "linesAfter": 49
+    },
+    {
+      "game": 1,
+      "page": 147,
+      "placement": 147,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 7
+      },
+      "observationFrame": 4463,
+      "observationSeconds": 148.76666666666668,
+      "confirmationFrame": 4487,
+      "confirmationSeconds": 149.56666666666666,
+      "clearedRows": [
+        6,
+        7
+      ],
+      "linesAfter": 51
+    },
+    {
+      "game": 1,
+      "page": 148,
+      "placement": 148,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 11
+      },
+      "observationFrame": 4498,
+      "observationSeconds": 149.93333333333334,
+      "confirmationFrame": 4500,
+      "confirmationSeconds": 150,
+      "clearedRows": [],
+      "linesAfter": 51
+    },
+    {
+      "game": 1,
+      "page": 149,
+      "placement": 149,
+      "operation": {
+        "type": "Z",
+        "rotation": "right",
+        "x": 7,
+        "y": 9
+      },
+      "observationFrame": 4520,
+      "observationSeconds": 150.66666666666666,
+      "confirmationFrame": 4525,
+      "confirmationSeconds": 150.83333333333334,
+      "clearedRows": [],
+      "linesAfter": 51
+    },
+    {
+      "game": 1,
+      "page": 150,
+      "placement": 150,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 13
+      },
+      "observationFrame": 4544,
+      "observationSeconds": 151.46666666666667,
+      "confirmationFrame": 4546,
+      "confirmationSeconds": 151.53333333333333,
+      "clearedRows": [],
+      "linesAfter": 51
+    },
+    {
+      "game": 1,
+      "page": 151,
+      "placement": 151,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 6,
+        "y": 10
+      },
+      "observationFrame": 4560,
+      "observationSeconds": 152,
+      "confirmationFrame": 4562,
+      "confirmationSeconds": 152.06666666666666,
+      "clearedRows": [],
+      "linesAfter": 51
+    },
+    {
+      "game": 1,
+      "page": 152,
+      "placement": 152,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 0,
+        "y": 2
+      },
+      "observationFrame": 4575,
+      "observationSeconds": 152.5,
+      "confirmationFrame": 4658,
+      "confirmationSeconds": 155.26666666666668,
+      "clearedRows": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "linesAfter": 55
+    },
+    {
+      "game": 1,
+      "page": 153,
+      "placement": 153,
+      "operation": {
+        "type": "L",
+        "rotation": "left",
+        "x": 9,
+        "y": 6
+      },
+      "observationFrame": 4622,
+      "observationSeconds": 154.06666666666666,
+      "confirmationFrame": 4622,
+      "confirmationSeconds": 154.06666666666666,
+      "clearedRows": [],
+      "linesAfter": 55
+    },
+    {
+      "game": 1,
+      "page": 154,
+      "placement": 154,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 3
+      },
+      "observationFrame": 4656,
+      "observationSeconds": 155.2,
+      "confirmationFrame": 4661,
+      "confirmationSeconds": 155.36666666666667,
+      "clearedRows": [],
+      "linesAfter": 55
+    },
+    {
+      "game": 1,
+      "page": 155,
+      "placement": 155,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 10
+      },
+      "observationFrame": 4665,
+      "observationSeconds": 155.5,
+      "confirmationFrame": 4667,
+      "confirmationSeconds": 155.56666666666666,
+      "clearedRows": [],
+      "linesAfter": 55
+    },
+    {
+      "game": 1,
+      "page": 156,
+      "placement": 156,
+      "operation": {
+        "type": "L",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 12
+      },
+      "observationFrame": 4689,
+      "observationSeconds": 156.3,
+      "confirmationFrame": 4691,
+      "confirmationSeconds": 156.36666666666667,
+      "clearedRows": [],
+      "linesAfter": 55
+    },
+    {
+      "game": 1,
+      "page": 157,
+      "placement": 157,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 4
+      },
+      "observationFrame": 4712,
+      "observationSeconds": 157.06666666666666,
+      "confirmationFrame": 4735,
+      "confirmationSeconds": 157.83333333333334,
+      "clearedRows": [
+        3,
+        4
+      ],
+      "linesAfter": 57
+    },
+    {
+      "game": 1,
+      "page": 158,
+      "placement": 158,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 4
+      },
+      "observationFrame": 4770,
+      "observationSeconds": 159,
+      "confirmationFrame": 4775,
+      "confirmationSeconds": 159.16666666666666,
+      "clearedRows": [],
+      "linesAfter": 57
+    },
+    {
+      "game": 1,
+      "page": 159,
+      "placement": 159,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 11
+      },
+      "observationFrame": 4778,
+      "observationSeconds": 159.26666666666668,
+      "confirmationFrame": 4780,
+      "confirmationSeconds": 159.33333333333334,
+      "clearedRows": [],
+      "linesAfter": 57
+    },
+    {
+      "game": 1,
+      "page": 160,
+      "placement": 160,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 13
+      },
+      "observationFrame": 4803,
+      "observationSeconds": 160.1,
+      "confirmationFrame": 4805,
+      "confirmationSeconds": 160.16666666666666,
+      "clearedRows": [],
+      "linesAfter": 57
+    },
+    {
+      "game": 1,
+      "page": 161,
+      "placement": 161,
+      "operation": {
+        "type": "I",
+        "rotation": "spawn",
+        "x": 7,
+        "y": 6
+      },
+      "observationFrame": 4833,
+      "observationSeconds": 161.1,
+      "confirmationFrame": 4835,
+      "confirmationSeconds": 161.16666666666666,
+      "clearedRows": [],
+      "linesAfter": 57
+    },
+    {
+      "game": 1,
+      "page": 162,
+      "placement": 162,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 2,
+        "y": 2
+      },
+      "observationFrame": 4857,
+      "observationSeconds": 161.9,
+      "confirmationFrame": 4859,
+      "confirmationSeconds": 161.96666666666667,
+      "clearedRows": [],
+      "linesAfter": 57
+    },
+    {
+      "game": 1,
+      "page": 163,
+      "placement": 163,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 14
+      },
+      "observationFrame": 4870,
+      "observationSeconds": 162.33333333333334,
+      "confirmationFrame": 4872,
+      "confirmationSeconds": 162.4,
+      "clearedRows": [],
+      "linesAfter": 57
+    },
+    {
+      "game": 1,
+      "page": 164,
+      "placement": 164,
+      "operation": {
+        "type": "L",
+        "rotation": "right",
+        "x": 6,
+        "y": 8
+      },
+      "observationFrame": 4892,
+      "observationSeconds": 163.06666666666666,
+      "confirmationFrame": 4896,
+      "confirmationSeconds": 163.2,
+      "clearedRows": [],
+      "linesAfter": 57
+    },
+    {
+      "game": 1,
+      "page": 165,
+      "placement": 165,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 8,
+        "y": 7
+      },
+      "observationFrame": 4913,
+      "observationSeconds": 163.76666666666668,
+      "confirmationFrame": 4915,
+      "confirmationSeconds": 163.83333333333334,
+      "clearedRows": [],
+      "linesAfter": 57
+    },
+    {
+      "game": 1,
+      "page": 166,
+      "placement": 166,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 5
+      },
+      "observationFrame": 4939,
+      "observationSeconds": 164.63333333333333,
+      "confirmationFrame": 4963,
+      "confirmationSeconds": 165.43333333333334,
+      "clearedRows": [
+        4,
+        5
+      ],
+      "linesAfter": 59
+    },
+    {
+      "game": 1,
+      "page": 167,
+      "placement": 167,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 14
+      },
+      "observationFrame": 4989,
+      "observationSeconds": 166.3,
+      "confirmationFrame": 4994,
+      "confirmationSeconds": 166.46666666666667,
+      "clearedRows": [],
+      "linesAfter": 59
+    },
+    {
+      "game": 1,
+      "page": 168,
+      "placement": 168,
+      "operation": {
+        "type": "L",
+        "rotation": "reverse",
+        "x": 8,
+        "y": 7
+      },
+      "observationFrame": 5027,
+      "observationSeconds": 167.56666666666666,
+      "confirmationFrame": 5033,
+      "confirmationSeconds": 167.76666666666668,
+      "clearedRows": [],
+      "linesAfter": 59
+    },
+    {
+      "game": 1,
+      "page": 169,
+      "placement": 169,
+      "operation": {
+        "type": "J",
+        "rotation": "spawn",
+        "x": 7,
+        "y": 8
+      },
+      "observationFrame": 5057,
+      "observationSeconds": 168.56666666666666,
+      "confirmationFrame": 5059,
+      "confirmationSeconds": 168.63333333333333,
+      "clearedRows": [],
+      "linesAfter": 59
+    },
+    {
+      "game": 1,
+      "page": 170,
+      "placement": 170,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 0,
+        "y": 2
+      },
+      "observationFrame": 5074,
+      "observationSeconds": 169.13333333333333,
+      "confirmationFrame": 5118,
+      "confirmationSeconds": 170.6,
+      "clearedRows": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "linesAfter": 63
+    },
+    {
+      "game": 1,
+      "page": 171,
+      "placement": 171,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 1
+      },
+      "observationFrame": 5128,
+      "observationSeconds": 170.93333333333334,
+      "confirmationFrame": 5133,
+      "confirmationSeconds": 171.1,
+      "clearedRows": [],
+      "linesAfter": 63
+    },
+    {
+      "game": 1,
+      "page": 172,
+      "placement": 172,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 2
+      },
+      "observationFrame": 5153,
+      "observationSeconds": 171.76666666666668,
+      "confirmationFrame": 5176,
+      "confirmationSeconds": 172.53333333333333,
+      "clearedRows": [
+        1,
+        2
+      ],
+      "linesAfter": 65
+    },
+    {
+      "game": 1,
+      "page": 173,
+      "placement": 173,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 7,
+        "y": 3
+      },
+      "observationFrame": 5212,
+      "observationSeconds": 173.73333333333332,
+      "confirmationFrame": 5217,
+      "confirmationSeconds": 173.9,
+      "clearedRows": [],
+      "linesAfter": 65
+    },
+    {
+      "game": 1,
+      "page": 174,
+      "placement": 174,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 9
+      },
+      "observationFrame": 5231,
+      "observationSeconds": 174.36666666666667,
+      "confirmationFrame": 5233,
+      "confirmationSeconds": 174.43333333333334,
+      "clearedRows": [],
+      "linesAfter": 65
+    },
+    {
+      "game": 1,
+      "page": 175,
+      "placement": 175,
+      "operation": {
+        "type": "Z",
+        "rotation": "right",
+        "x": 3,
+        "y": 11
+      },
+      "observationFrame": 5243,
+      "observationSeconds": 174.76666666666668,
+      "confirmationFrame": 5248,
+      "confirmationSeconds": 174.93333333333334,
+      "clearedRows": [],
+      "linesAfter": 65
+    },
+    {
+      "game": 1,
+      "page": 176,
+      "placement": 176,
+      "operation": {
+        "type": "L",
+        "rotation": "left",
+        "x": 9,
+        "y": 3
+      },
+      "observationFrame": 5267,
+      "observationSeconds": 175.56666666666666,
+      "confirmationFrame": 5273,
+      "confirmationSeconds": 175.76666666666668,
+      "clearedRows": [],
+      "linesAfter": 65
+    },
+    {
+      "game": 1,
+      "page": 177,
+      "placement": 177,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 3,
+        "y": 13
+      },
+      "observationFrame": 5286,
+      "observationSeconds": 176.2,
+      "confirmationFrame": 5288,
+      "confirmationSeconds": 176.26666666666668,
+      "clearedRows": [],
+      "linesAfter": 65
+    },
+    {
+      "game": 1,
+      "page": 178,
+      "placement": 178,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 2
+      },
+      "observationFrame": 5321,
+      "observationSeconds": 177.36666666666667,
+      "confirmationFrame": 5327,
+      "confirmationSeconds": 177.56666666666666,
+      "clearedRows": [],
+      "linesAfter": 65
+    },
+    {
+      "game": 1,
+      "page": 179,
+      "placement": 179,
+      "operation": {
+        "type": "J",
+        "rotation": "spawn",
+        "x": 7,
+        "y": 5
+      },
+      "observationFrame": 5356,
+      "observationSeconds": 178.53333333333333,
+      "confirmationFrame": 5361,
+      "confirmationSeconds": 178.7,
+      "clearedRows": [],
+      "linesAfter": 65
+    },
+    {
+      "game": 1,
+      "page": 180,
+      "placement": 180,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 9,
+        "y": 7
+      },
+      "observationFrame": 5387,
+      "observationSeconds": 179.56666666666666,
+      "confirmationFrame": 5390,
+      "confirmationSeconds": 179.66666666666666,
+      "clearedRows": [],
+      "linesAfter": 65
+    },
+    {
+      "game": 1,
+      "page": 181,
+      "placement": 181,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 3
+      },
+      "observationFrame": 5433,
+      "observationSeconds": 181.1,
+      "confirmationFrame": 5457,
+      "confirmationSeconds": 181.9,
+      "clearedRows": [
+        2,
+        3
+      ],
+      "linesAfter": 67
+    },
+    {
+      "game": 1,
+      "page": 182,
+      "placement": 182,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 3
+      },
+      "observationFrame": 5488,
+      "observationSeconds": 182.93333333333334,
+      "confirmationFrame": 5493,
+      "confirmationSeconds": 183.1,
+      "clearedRows": [],
+      "linesAfter": 67
+    },
+    {
+      "game": 1,
+      "page": 183,
+      "placement": 183,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 7,
+        "y": 4
+      },
+      "observationFrame": 5528,
+      "observationSeconds": 184.26666666666668,
+      "confirmationFrame": 5529,
+      "confirmationSeconds": 184.3,
+      "clearedRows": [],
+      "linesAfter": 67
+    },
+    {
+      "game": 1,
+      "page": 184,
+      "placement": 184,
+      "operation": {
+        "type": "L",
+        "rotation": "right",
+        "x": 6,
+        "y": 7
+      },
+      "observationFrame": 5553,
+      "observationSeconds": 185.1,
+      "confirmationFrame": 5559,
+      "confirmationSeconds": 185.3,
+      "clearedRows": [],
+      "linesAfter": 67
+    },
+    {
+      "game": 1,
+      "page": 185,
+      "placement": 185,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 4
+      },
+      "observationFrame": 5581,
+      "observationSeconds": 186.03333333333333,
+      "confirmationFrame": 5605,
+      "confirmationSeconds": 186.83333333333334,
+      "clearedRows": [
+        3,
+        4
+      ],
+      "linesAfter": 69
+    },
+    {
+      "game": 1,
+      "page": 186,
+      "placement": 186,
+      "operation": {
+        "type": "J",
+        "rotation": "right",
+        "x": 8,
+        "y": 4
+      },
+      "observationFrame": 5628,
+      "observationSeconds": 187.6,
+      "confirmationFrame": 5633,
+      "confirmationSeconds": 187.76666666666668,
+      "clearedRows": [],
+      "linesAfter": 69
+    },
+    {
+      "game": 1,
+      "page": 187,
+      "placement": 187,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 8,
+        "y": 6
+      },
+      "observationFrame": 5659,
+      "observationSeconds": 188.63333333333333,
+      "confirmationFrame": 5662,
+      "confirmationSeconds": 188.73333333333332,
+      "clearedRows": [],
+      "linesAfter": 69
+    },
+    {
+      "game": 1,
+      "page": 188,
+      "placement": 188,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 5,
+        "y": 9
+      },
+      "observationFrame": 5681,
+      "observationSeconds": 189.36666666666667,
+      "confirmationFrame": 5685,
+      "confirmationSeconds": 189.5,
+      "clearedRows": [],
+      "linesAfter": 69
+    },
+    {
+      "game": 1,
+      "page": 189,
+      "placement": 189,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 0,
+        "y": 2
+      },
+      "observationFrame": 5713,
+      "observationSeconds": 190.43333333333334,
+      "confirmationFrame": 5717,
+      "confirmationSeconds": 190.56666666666666,
+      "clearedRows": [],
+      "linesAfter": 69
+    },
+    {
+      "game": 1,
+      "page": 190,
+      "placement": 190,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 8,
+        "y": 8
+      },
+      "observationFrame": 5737,
+      "observationSeconds": 191.23333333333332,
+      "confirmationFrame": 5741,
+      "confirmationSeconds": 191.36666666666667,
+      "clearedRows": [],
+      "linesAfter": 69
+    },
+    {
+      "game": 1,
+      "page": 191,
+      "placement": 191,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 4
+      },
+      "observationFrame": 5786,
+      "observationSeconds": 192.86666666666667,
+      "confirmationFrame": 5792,
+      "confirmationSeconds": 193.06666666666666,
+      "clearedRows": [],
+      "linesAfter": 69
+    },
+    {
+      "game": 1,
+      "page": 192,
+      "placement": 192,
+      "operation": {
+        "type": "L",
+        "rotation": "left",
+        "x": 7,
+        "y": 6
+      },
+      "observationFrame": 5828,
+      "observationSeconds": 194.26666666666668,
+      "confirmationFrame": 5834,
+      "confirmationSeconds": 194.46666666666667,
+      "clearedRows": [],
+      "linesAfter": 69
+    },
+    {
+      "game": 1,
+      "page": 193,
+      "placement": 193,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 11
+      },
+      "observationFrame": 5846,
+      "observationSeconds": 194.86666666666667,
+      "confirmationFrame": 5848,
+      "confirmationSeconds": 194.93333333333334,
+      "clearedRows": [],
+      "linesAfter": 69
+    },
+    {
+      "game": 1,
+      "page": 194,
+      "placement": 194,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 13
+      },
+      "observationFrame": 5877,
+      "observationSeconds": 195.9,
+      "confirmationFrame": 5882,
+      "confirmationSeconds": 196.06666666666666,
+      "clearedRows": [],
+      "linesAfter": 69
+    },
+    {
+      "game": 1,
+      "page": 195,
+      "placement": 195,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 5
+      },
+      "observationFrame": 5900,
+      "observationSeconds": 196.66666666666666,
+      "confirmationFrame": 5924,
+      "confirmationSeconds": 197.46666666666667,
+      "clearedRows": [
+        4,
+        5
+      ],
+      "linesAfter": 71
+    },
+    {
+      "game": 1,
+      "page": 196,
+      "placement": 196,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 5
+      },
+      "observationFrame": 5944,
+      "observationSeconds": 198.13333333333333,
+      "confirmationFrame": 5948,
+      "confirmationSeconds": 198.26666666666668,
+      "clearedRows": [],
+      "linesAfter": 71
+    },
+    {
+      "game": 1,
+      "page": 197,
+      "placement": 197,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 6,
+        "y": 6
+      },
+      "observationFrame": 5971,
+      "observationSeconds": 199.03333333333333,
+      "confirmationFrame": 5975,
+      "confirmationSeconds": 199.16666666666666,
+      "clearedRows": [],
+      "linesAfter": 71
+    },
+    {
+      "game": 1,
+      "page": 198,
+      "placement": 198,
+      "operation": {
+        "type": "J",
+        "rotation": "spawn",
+        "x": 7,
+        "y": 8
+      },
+      "observationFrame": 6013,
+      "observationSeconds": 200.43333333333334,
+      "confirmationFrame": 6018,
+      "confirmationSeconds": 200.6,
+      "clearedRows": [],
+      "linesAfter": 71
+    },
+    {
+      "game": 1,
+      "page": 199,
+      "placement": 199,
+      "operation": {
+        "type": "L",
+        "rotation": "left",
+        "x": 9,
+        "y": 9
+      },
+      "observationFrame": 6028,
+      "observationSeconds": 200.93333333333334,
+      "confirmationFrame": 6033,
+      "confirmationSeconds": 201.1,
+      "clearedRows": [],
+      "linesAfter": 71
+    },
+    {
+      "game": 1,
+      "page": 200,
+      "placement": 200,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 7,
+        "y": 9
+      },
+      "observationFrame": 6056,
+      "observationSeconds": 201.86666666666667,
+      "confirmationFrame": 6058,
+      "confirmationSeconds": 201.93333333333334,
+      "clearedRows": [],
+      "linesAfter": 71
+    },
+    {
+      "game": 1,
+      "page": 201,
+      "placement": 201,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 2,
+        "y": 2
+      },
+      "observationFrame": 6073,
+      "observationSeconds": 202.43333333333334,
+      "confirmationFrame": 6118,
+      "confirmationSeconds": 203.93333333333334,
+      "clearedRows": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "linesAfter": 75
+    },
+    {
+      "game": 1,
+      "page": 202,
+      "placement": 202,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 2
+      },
+      "observationFrame": 6118,
+      "observationSeconds": 203.93333333333334,
+      "confirmationFrame": 6142,
+      "confirmationSeconds": 204.73333333333332,
+      "clearedRows": [
+        1,
+        2
+      ],
+      "linesAfter": 77
+    },
+    {
+      "game": 1,
+      "page": 203,
+      "placement": 203,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 2
+      },
+      "observationFrame": 6182,
+      "observationSeconds": 206.06666666666666,
+      "confirmationFrame": 6189,
+      "confirmationSeconds": 206.3,
+      "clearedRows": [],
+      "linesAfter": 77
+    },
+    {
+      "game": 1,
+      "page": 204,
+      "placement": 204,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 6
+      },
+      "observationFrame": 6209,
+      "observationSeconds": 206.96666666666667,
+      "confirmationFrame": 6213,
+      "confirmationSeconds": 207.1,
+      "clearedRows": [],
+      "linesAfter": 77
+    },
+    {
+      "game": 1,
+      "page": 205,
+      "placement": 205,
+      "operation": {
+        "type": "I",
+        "rotation": "spawn",
+        "x": 7,
+        "y": 5
+      },
+      "observationFrame": 6227,
+      "observationSeconds": 207.56666666666666,
+      "confirmationFrame": 6229,
+      "confirmationSeconds": 207.63333333333333,
+      "clearedRows": [],
+      "linesAfter": 77
+    },
+    {
+      "game": 1,
+      "page": 206,
+      "placement": 206,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 8
+      },
+      "observationFrame": 6251,
+      "observationSeconds": 208.36666666666667,
+      "confirmationFrame": 6256,
+      "confirmationSeconds": 208.53333333333333,
+      "clearedRows": [],
+      "linesAfter": 77
+    },
+    {
+      "game": 1,
+      "page": 207,
+      "placement": 207,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 9
+      },
+      "observationFrame": 6277,
+      "observationSeconds": 209.23333333333332,
+      "confirmationFrame": 6279,
+      "confirmationSeconds": 209.3,
+      "clearedRows": [],
+      "linesAfter": 77
+    },
+    {
+      "game": 1,
+      "page": 208,
+      "placement": 208,
+      "operation": {
+        "type": "L",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 11
+      },
+      "observationFrame": 6308,
+      "observationSeconds": 210.26666666666668,
+      "confirmationFrame": 6314,
+      "confirmationSeconds": 210.46666666666667,
+      "clearedRows": [],
+      "linesAfter": 77
+    },
+    {
+      "game": 1,
+      "page": 209,
+      "placement": 209,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 3
+      },
+      "observationFrame": 6344,
+      "observationSeconds": 211.46666666666667,
+      "confirmationFrame": 6366,
+      "confirmationSeconds": 212.2,
+      "clearedRows": [
+        2,
+        3
+      ],
+      "linesAfter": 79
+    },
+    {
+      "game": 1,
+      "page": 210,
+      "placement": 210,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 3
+      },
+      "observationFrame": 6405,
+      "observationSeconds": 213.5,
+      "confirmationFrame": 6410,
+      "confirmationSeconds": 213.66666666666666,
+      "clearedRows": [],
+      "linesAfter": 79
+    },
+    {
+      "game": 1,
+      "page": 211,
+      "placement": 211,
+      "operation": {
+        "type": "J",
+        "rotation": "spawn",
+        "x": 7,
+        "y": 4
+      },
+      "observationFrame": 6437,
+      "observationSeconds": 214.56666666666666,
+      "confirmationFrame": 6439,
+      "confirmationSeconds": 214.63333333333333,
+      "clearedRows": [],
+      "linesAfter": 79
+    },
+    {
+      "game": 1,
+      "page": 212,
+      "placement": 212,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 7,
+        "y": 5
+      },
+      "observationFrame": 6460,
+      "observationSeconds": 215.33333333333334,
+      "confirmationFrame": 6462,
+      "confirmationSeconds": 215.4,
+      "clearedRows": [],
+      "linesAfter": 79
+    },
+    {
+      "game": 1,
+      "page": 213,
+      "placement": 213,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 6,
+        "y": 7
+      },
+      "observationFrame": 6475,
+      "observationSeconds": 215.83333333333334,
+      "confirmationFrame": 6477,
+      "confirmationSeconds": 215.9,
+      "clearedRows": [],
+      "linesAfter": 79
+    },
+    {
+      "game": 1,
+      "page": 214,
+      "placement": 214,
+      "operation": {
+        "type": "L",
+        "rotation": "left",
+        "x": 9,
+        "y": 5
+      },
+      "observationFrame": 6493,
+      "observationSeconds": 216.43333333333334,
+      "confirmationFrame": 6498,
+      "confirmationSeconds": 216.6,
+      "clearedRows": [],
+      "linesAfter": 79
+    },
+    {
+      "game": 1,
+      "page": 215,
+      "placement": 215,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 4
+      },
+      "observationFrame": 6519,
+      "observationSeconds": 217.3,
+      "confirmationFrame": 6542,
+      "confirmationSeconds": 218.06666666666666,
+      "clearedRows": [
+        3,
+        4
+      ],
+      "linesAfter": 81
+    },
+    {
+      "game": 1,
+      "page": 216,
+      "placement": 216,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 0,
+        "y": 2
+      },
+      "observationFrame": 6566,
+      "observationSeconds": 218.86666666666667,
+      "confirmationFrame": 6568,
+      "confirmationSeconds": 218.93333333333334,
+      "clearedRows": [],
+      "linesAfter": 81
+    },
+    {
+      "game": 1,
+      "page": 217,
+      "placement": 217,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 4
+      },
+      "observationFrame": 6611,
+      "observationSeconds": 220.36666666666667,
+      "confirmationFrame": 6613,
+      "confirmationSeconds": 220.43333333333334,
+      "clearedRows": [],
+      "linesAfter": 81
+    },
+    {
+      "game": 1,
+      "page": 218,
+      "placement": 218,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 2,
+        "y": 2
+      },
+      "observationFrame": 6632,
+      "observationSeconds": 221.06666666666666,
+      "confirmationFrame": 6675,
+      "confirmationSeconds": 222.5,
+      "clearedRows": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "linesAfter": 85
+    },
+    {
+      "game": 1,
+      "page": 219,
+      "placement": 219,
+      "operation": {
+        "type": "J",
+        "rotation": "left",
+        "x": 5,
+        "y": 5
+      },
+      "observationFrame": 6685,
+      "observationSeconds": 222.83333333333334,
+      "confirmationFrame": 6691,
+      "confirmationSeconds": 223.03333333333333,
+      "clearedRows": [],
+      "linesAfter": 85
+    },
+    {
+      "game": 1,
+      "page": 220,
+      "placement": 220,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 3,
+        "y": 5
+      },
+      "observationFrame": 6710,
+      "observationSeconds": 223.66666666666666,
+      "confirmationFrame": 6713,
+      "confirmationSeconds": 223.76666666666668,
+      "clearedRows": [],
+      "linesAfter": 85
+    },
+    {
+      "game": 1,
+      "page": 221,
+      "placement": 221,
+      "operation": {
+        "type": "L",
+        "rotation": "left",
+        "x": 8,
+        "y": 2
+      },
+      "observationFrame": 6737,
+      "observationSeconds": 224.56666666666666,
+      "confirmationFrame": 6743,
+      "confirmationSeconds": 224.76666666666668,
+      "clearedRows": [],
+      "linesAfter": 85
+    },
+    {
+      "game": 1,
+      "page": 222,
+      "placement": 222,
+      "operation": {
+        "type": "Z",
+        "rotation": "right",
+        "x": 6,
+        "y": 4
+      },
+      "observationFrame": 6762,
+      "observationSeconds": 225.4,
+      "confirmationFrame": 6767,
+      "confirmationSeconds": 225.56666666666666,
+      "clearedRows": [],
+      "linesAfter": 85
+    },
+    {
+      "game": 1,
+      "page": 223,
+      "placement": 223,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 3,
+        "y": 8
+      },
+      "observationFrame": 6792,
+      "observationSeconds": 226.4,
+      "confirmationFrame": 6798,
+      "confirmationSeconds": 226.6,
+      "clearedRows": [],
+      "linesAfter": 85
+    },
+    {
+      "game": 1,
+      "page": 224,
+      "placement": 224,
+      "operation": {
+        "type": "L",
+        "rotation": "left",
+        "x": 5,
+        "y": 8
+      },
+      "observationFrame": 6816,
+      "observationSeconds": 227.2,
+      "confirmationFrame": 6821,
+      "confirmationSeconds": 227.36666666666667,
+      "clearedRows": [],
+      "linesAfter": 85
+    },
+    {
+      "game": 1,
+      "page": 225,
+      "placement": 225,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 9,
+        "y": 3
+      },
+      "observationFrame": 6846,
+      "observationSeconds": 228.2,
+      "confirmationFrame": 6849,
+      "confirmationSeconds": 228.3,
+      "clearedRows": [],
+      "linesAfter": 85
+    },
+    {
+      "game": 1,
+      "page": 226,
+      "placement": 226,
+      "operation": {
+        "type": "T",
+        "rotation": "right",
+        "x": 6,
+        "y": 6
+      },
+      "observationFrame": 6872,
+      "observationSeconds": 229.06666666666666,
+      "confirmationFrame": 6878,
+      "confirmationSeconds": 229.26666666666668,
+      "clearedRows": [],
+      "linesAfter": 85
+    },
+    {
+      "game": 1,
+      "page": 227,
+      "placement": 227,
+      "operation": {
+        "type": "T",
+        "rotation": "right",
+        "x": 8,
+        "y": 5
+      },
+      "observationFrame": 6905,
+      "observationSeconds": 230.16666666666666,
+      "confirmationFrame": 6911,
+      "confirmationSeconds": 230.36666666666667,
+      "clearedRows": [],
+      "linesAfter": 85
+    },
+    {
+      "game": 1,
+      "page": 228,
+      "placement": 228,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 10
+      },
+      "observationFrame": 6915,
+      "observationSeconds": 230.5,
+      "confirmationFrame": 6917,
+      "confirmationSeconds": 230.56666666666666,
+      "clearedRows": [],
+      "linesAfter": 85
+    },
+    {
+      "game": 1,
+      "page": 229,
+      "placement": 229,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 12
+      },
+      "observationFrame": 6942,
+      "observationSeconds": 231.4,
+      "confirmationFrame": 6947,
+      "confirmationSeconds": 231.56666666666666,
+      "clearedRows": [],
+      "linesAfter": 85
+    },
+    {
+      "game": 1,
+      "page": 230,
+      "placement": 230,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 13
+      },
+      "observationFrame": 7010,
+      "observationSeconds": 233.66666666666666,
+      "confirmationFrame": 7014,
+      "confirmationSeconds": 233.8,
+      "clearedRows": [],
+      "linesAfter": 85
+    },
+    {
+      "game": 1,
+      "page": 231,
+      "placement": 231,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 1
+      },
+      "observationFrame": 7034,
+      "observationSeconds": 234.46666666666667,
+      "confirmationFrame": 7056,
+      "confirmationSeconds": 235.2,
+      "clearedRows": [
+        0,
+        1
+      ],
+      "linesAfter": 87
+    },
+    {
+      "game": 1,
+      "page": 232,
+      "placement": 232,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 1
+      },
+      "observationFrame": 7093,
+      "observationSeconds": 236.43333333333334,
+      "confirmationFrame": 7098,
+      "confirmationSeconds": 236.6,
+      "clearedRows": [],
+      "linesAfter": 87
+    },
+    {
+      "game": 1,
+      "page": 233,
+      "placement": 233,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 9,
+        "y": 6
+      },
+      "observationFrame": 7124,
+      "observationSeconds": 237.46666666666667,
+      "confirmationFrame": 7127,
+      "confirmationSeconds": 237.56666666666666,
+      "clearedRows": [],
+      "linesAfter": 87
+    },
+    {
+      "game": 1,
+      "page": 234,
+      "placement": 234,
+      "operation": {
+        "type": "J",
+        "rotation": "left",
+        "x": 8,
+        "y": 6
+      },
+      "observationFrame": 7153,
+      "observationSeconds": 238.43333333333334,
+      "confirmationFrame": 7154,
+      "confirmationSeconds": 238.46666666666667,
+      "clearedRows": [],
+      "linesAfter": 87
+    },
+    {
+      "game": 1,
+      "page": 235,
+      "placement": 235,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 6,
+        "y": 6
+      },
+      "observationFrame": 7178,
+      "observationSeconds": 239.26666666666668,
+      "confirmationFrame": 7182,
+      "confirmationSeconds": 239.4,
+      "clearedRows": [],
+      "linesAfter": 87
+    },
+    {
+      "game": 1,
+      "page": 236,
+      "placement": 236,
+      "operation": {
+        "type": "Z",
+        "rotation": "right",
+        "x": 3,
+        "y": 13
+      },
+      "observationFrame": 7200,
+      "observationSeconds": 240,
+      "confirmationFrame": 7205,
+      "confirmationSeconds": 240.16666666666666,
+      "clearedRows": [],
+      "linesAfter": 87
+    },
+    {
+      "game": 1,
+      "page": 237,
+      "placement": 237,
+      "operation": {
+        "type": "L",
+        "rotation": "right",
+        "x": 6,
+        "y": 9
+      },
+      "observationFrame": 7230,
+      "observationSeconds": 241,
+      "confirmationFrame": 7235,
+      "confirmationSeconds": 241.16666666666666,
+      "clearedRows": [],
+      "linesAfter": 87
+    },
+    {
+      "game": 1,
+      "page": 238,
+      "placement": 238,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 2
+      },
+      "observationFrame": 7255,
+      "observationSeconds": 241.83333333333334,
+      "confirmationFrame": 7278,
+      "confirmationSeconds": 242.6,
+      "clearedRows": [
+        1,
+        2
+      ],
+      "linesAfter": 89
+    },
+    {
+      "game": 1,
+      "page": 239,
+      "placement": 239,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 2
+      },
+      "observationFrame": 7313,
+      "observationSeconds": 243.76666666666668,
+      "confirmationFrame": 7318,
+      "confirmationSeconds": 243.93333333333334,
+      "clearedRows": [],
+      "linesAfter": 89
+    },
+    {
+      "game": 1,
+      "page": 240,
+      "placement": 240,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 7,
+        "y": 7
+      },
+      "observationFrame": 7371,
+      "observationSeconds": 245.7,
+      "confirmationFrame": 7372,
+      "confirmationSeconds": 245.73333333333332,
+      "clearedRows": [],
+      "linesAfter": 89
+    },
+    {
+      "game": 1,
+      "page": 241,
+      "placement": 241,
+      "operation": {
+        "type": "L",
+        "rotation": "left",
+        "x": 9,
+        "y": 7
+      },
+      "observationFrame": 7405,
+      "observationSeconds": 246.83333333333334,
+      "confirmationFrame": 7407,
+      "confirmationSeconds": 246.9,
+      "clearedRows": [],
+      "linesAfter": 89
+    },
+    {
+      "game": 1,
+      "page": 242,
+      "placement": 242,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 3,
+        "y": 13
+      },
+      "observationFrame": 7424,
+      "observationSeconds": 247.46666666666667,
+      "confirmationFrame": 7427,
+      "confirmationSeconds": 247.56666666666666,
+      "clearedRows": [],
+      "linesAfter": 89
+    },
+    {
+      "game": 1,
+      "page": 243,
+      "placement": 243,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 5,
+        "y": 13
+      },
+      "observationFrame": 7449,
+      "observationSeconds": 248.3,
+      "confirmationFrame": 7452,
+      "confirmationSeconds": 248.4,
+      "clearedRows": [],
+      "linesAfter": 89
+    },
+    {
+      "game": 1,
+      "page": 244,
+      "placement": 244,
+      "operation": {
+        "type": "J",
+        "rotation": "spawn",
+        "x": 7,
+        "y": 9
+      },
+      "observationFrame": 7481,
+      "observationSeconds": 249.36666666666667,
+      "confirmationFrame": 7483,
+      "confirmationSeconds": 249.43333333333334,
+      "clearedRows": [],
+      "linesAfter": 89
+    },
+    {
+      "game": 1,
+      "page": 245,
+      "placement": 245,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 7,
+        "y": 10
+      },
+      "observationFrame": 7505,
+      "observationSeconds": 250.16666666666666,
+      "confirmationFrame": 7507,
+      "confirmationSeconds": 250.23333333333332,
+      "clearedRows": [],
+      "linesAfter": 89
+    },
+    {
+      "game": 1,
+      "page": 246,
+      "placement": 246,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 15
+      },
+      "observationFrame": 7519,
+      "observationSeconds": 250.63333333333333,
+      "confirmationFrame": 7522,
+      "confirmationSeconds": 250.73333333333332,
+      "clearedRows": [],
+      "linesAfter": 89
+    },
+    {
+      "game": 1,
+      "page": 247,
+      "placement": 247,
+      "operation": {
+        "type": "L",
+        "rotation": "left",
+        "x": 9,
+        "y": 10
+      },
+      "observationFrame": 7535,
+      "observationSeconds": 251.16666666666666,
+      "confirmationFrame": 7540,
+      "confirmationSeconds": 251.33333333333334,
+      "clearedRows": [],
+      "linesAfter": 89
+    },
+    {
+      "game": 1,
+      "page": 248,
+      "placement": 248,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 17
+      },
+      "observationFrame": 7561,
+      "observationSeconds": 252.03333333333333,
+      "confirmationFrame": 7563,
+      "confirmationSeconds": 252.1,
+      "clearedRows": [],
+      "linesAfter": 89
+    },
+    {
+      "game": 1,
+      "page": 249,
+      "placement": 249,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 3
+      },
+      "observationFrame": 7585,
+      "observationSeconds": 252.83333333333334,
+      "confirmationFrame": 7607,
+      "confirmationSeconds": 253.56666666666666,
+      "clearedRows": [
+        2,
+        3
+      ],
+      "linesAfter": 91
+    },
+    {
+      "game": 1,
+      "page": 250,
+      "placement": 250,
+      "operation": {
+        "type": "I",
+        "rotation": "spawn",
+        "x": 7,
+        "y": 10
+      },
+      "observationFrame": 7623,
+      "observationSeconds": 254.1,
+      "confirmationFrame": 7625,
+      "confirmationSeconds": 254.16666666666666,
+      "clearedRows": [],
+      "linesAfter": 91
+    },
+    {
+      "game": 1,
+      "page": 251,
+      "placement": 251,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 6,
+        "y": 11
+      },
+      "observationFrame": 7638,
+      "observationSeconds": 254.6,
+      "confirmationFrame": 7640,
+      "confirmationSeconds": 254.66666666666666,
+      "clearedRows": [],
+      "linesAfter": 91
+    },
+    {
+      "game": 1,
+      "page": 252,
+      "placement": 252,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 8,
+        "y": 11
+      },
+      "observationFrame": 7653,
+      "observationSeconds": 255.1,
+      "confirmationFrame": 7655,
+      "confirmationSeconds": 255.16666666666666,
+      "clearedRows": [],
+      "linesAfter": 91
+    },
+    {
+      "game": 1,
+      "page": 253,
+      "placement": 253,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 3
+      },
+      "observationFrame": 7683,
+      "observationSeconds": 256.1,
+      "confirmationFrame": 7689,
+      "confirmationSeconds": 256.3,
+      "clearedRows": [],
+      "linesAfter": 91
+    },
+    {
+      "game": 1,
+      "page": 254,
+      "placement": 254,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 16
+      },
+      "observationFrame": 7690,
+      "observationSeconds": 256.3333333333333,
+      "confirmationFrame": 7692,
+      "confirmationSeconds": 256.4,
+      "clearedRows": [],
+      "linesAfter": 91
+    },
+    {
+      "game": 1,
+      "page": 255,
+      "placement": 255,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 18
+      },
+      "observationFrame": 7720,
+      "observationSeconds": 257.3333333333333,
+      "confirmationFrame": 7727,
+      "confirmationSeconds": 257.56666666666666,
+      "clearedRows": [],
+      "linesAfter": 91
+    },
+    {
+      "game": 1,
+      "page": 256,
+      "placement": 256,
+      "operation": {
+        "type": "I",
+        "rotation": "spawn",
+        "x": 7,
+        "y": 13
+      },
+      "observationFrame": 7749,
+      "observationSeconds": 258.3,
+      "confirmationFrame": 7752,
+      "confirmationSeconds": 258.4,
+      "clearedRows": [],
+      "linesAfter": 91
+    },
+    {
+      "game": 1,
+      "page": 257,
+      "placement": 257,
+      "operation": {
+        "type": "L",
+        "rotation": "right",
+        "x": 6,
+        "y": 15
+      },
+      "observationFrame": 7776,
+      "observationSeconds": 259.2,
+      "confirmationFrame": 7781,
+      "confirmationSeconds": 259.3666666666667,
+      "clearedRows": [],
+      "linesAfter": 91
+    },
+    {
+      "game": 1,
+      "page": 258,
+      "placement": 258,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 4
+      },
+      "observationFrame": 7799,
+      "observationSeconds": 259.96666666666664,
+      "confirmationFrame": 7821,
+      "confirmationSeconds": 260.7,
+      "clearedRows": [
+        3,
+        4
+      ],
+      "linesAfter": 93
+    },
+    {
+      "game": 1,
+      "page": 259,
+      "placement": 259,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 4
+      },
+      "observationFrame": 7851,
+      "observationSeconds": 261.7,
+      "confirmationFrame": 7857,
+      "confirmationSeconds": 261.9,
+      "clearedRows": [],
+      "linesAfter": 93
+    },
+    {
+      "game": 1,
+      "page": 260,
+      "placement": 260,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 8,
+        "y": 12
+      },
+      "observationFrame": 7898,
+      "observationSeconds": 263.26666666666665,
+      "confirmationFrame": 7901,
+      "confirmationSeconds": 263.3666666666667,
+      "clearedRows": [],
+      "linesAfter": 93
+    },
+    {
+      "game": 1,
+      "page": 261,
+      "placement": 261,
+      "operation": {
+        "type": "J",
+        "rotation": "left",
+        "x": 9,
+        "y": 15
+      },
+      "observationFrame": 7912,
+      "observationSeconds": 263.73333333333335,
+      "confirmationFrame": 7917,
+      "confirmationSeconds": 263.9,
+      "clearedRows": [],
+      "linesAfter": 93
+    },
+    {
+      "game": 1,
+      "page": 262,
+      "placement": 262,
+      "operation": {
+        "type": "L",
+        "rotation": "left",
+        "x": 7,
+        "y": 14
+      },
+      "observationFrame": 7938,
+      "observationSeconds": 264.6,
+      "confirmationFrame": 7943,
+      "confirmationSeconds": 264.76666666666665,
+      "clearedRows": [],
+      "linesAfter": 93
+    },
+    {
+      "game": 1,
+      "page": 263,
+      "placement": 263,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 17
+      },
+      "observationFrame": 7948,
+      "observationSeconds": 264.93333333333334,
+      "confirmationFrame": 7950,
+      "confirmationSeconds": 265,
+      "clearedRows": [],
+      "linesAfter": 93
+    },
+    {
+      "game": 1,
+      "page": 264,
+      "placement": 264,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 5
+      },
+      "observationFrame": 7969,
+      "observationSeconds": 265.6333333333333,
+      "confirmationFrame": 7991,
+      "confirmationSeconds": 266.3666666666667,
+      "clearedRows": [
+        4,
+        5
+      ],
+      "linesAfter": 95
+    },
+    {
+      "game": 1,
+      "page": 265,
+      "placement": 265,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 0,
+        "y": 2
+      },
+      "observationFrame": 8008,
+      "observationSeconds": 266.93333333333334,
+      "confirmationFrame": 8010,
+      "confirmationSeconds": 267,
+      "clearedRows": [],
+      "linesAfter": 95
+    },
+    {
+      "game": 1,
+      "page": 266,
+      "placement": 266,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 5
+      },
+      "observationFrame": 8037,
+      "observationSeconds": 267.9,
+      "confirmationFrame": 8042,
+      "confirmationSeconds": 268.06666666666666,
+      "clearedRows": [],
+      "linesAfter": 95
+    },
+    {
+      "game": 1,
+      "page": 267,
+      "placement": 267,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 17
+      },
+      "observationFrame": 8061,
+      "observationSeconds": 268.7,
+      "confirmationFrame": 8063,
+      "confirmationSeconds": 268.76666666666665,
+      "clearedRows": [],
+      "linesAfter": 95
+    },
+    {
+      "game": 1,
+      "page": 268,
+      "placement": 268,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 6
+      },
+      "observationFrame": 8082,
+      "observationSeconds": 269.4,
+      "confirmationFrame": 8104,
+      "confirmationSeconds": 270.1333333333333,
+      "clearedRows": [
+        5,
+        6
+      ],
+      "linesAfter": 97
+    },
+    {
+      "game": 1,
+      "page": 269,
+      "placement": 269,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 16
+      },
+      "observationFrame": 8122,
+      "observationSeconds": 270.73333333333335,
+      "confirmationFrame": 8124,
+      "confirmationSeconds": 270.8,
+      "clearedRows": [],
+      "linesAfter": 97
+    },
+    {
+      "game": 1,
+      "page": 270,
+      "placement": 270,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 6
+      },
+      "observationFrame": 8148,
+      "observationSeconds": 271.6,
+      "confirmationFrame": 8152,
+      "confirmationSeconds": 271.73333333333335,
+      "clearedRows": [],
+      "linesAfter": 97
+    },
+    {
+      "game": 1,
+      "page": 271,
+      "placement": 271,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 6,
+        "y": 12
+      },
+      "observationFrame": 8164,
+      "observationSeconds": 272.1333333333333,
+      "confirmationFrame": 8166,
+      "confirmationSeconds": 272.2,
+      "clearedRows": [],
+      "linesAfter": 97
+    },
+    {
+      "game": 1,
+      "page": 272,
+      "placement": 272,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 2,
+        "y": 2
+      },
+      "observationFrame": 8187,
+      "observationSeconds": 272.9,
+      "confirmationFrame": 8236,
+      "confirmationSeconds": 274.53333333333336,
+      "clearedRows": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "linesAfter": 101
+    },
+    {
+      "game": 1,
+      "page": 273,
+      "placement": 273,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 14
+      },
+      "observationFrame": 8236,
+      "observationSeconds": 274.53333333333336,
+      "confirmationFrame": 8238,
+      "confirmationSeconds": 274.6,
+      "clearedRows": [],
+      "linesAfter": 101
+    },
+    {
+      "game": 1,
+      "page": 274,
+      "placement": 274,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 8,
+        "y": 9
+      },
+      "observationFrame": 8264,
+      "observationSeconds": 275.46666666666664,
+      "confirmationFrame": 8268,
+      "confirmationSeconds": 275.6,
+      "clearedRows": [],
+      "linesAfter": 101
+    },
+    {
+      "game": 1,
+      "page": 275,
+      "placement": 275,
+      "operation": {
+        "type": "L",
+        "rotation": "left",
+        "x": 9,
+        "y": 10
+      },
+      "observationFrame": 8298,
+      "observationSeconds": 276.6,
+      "confirmationFrame": 8304,
+      "confirmationSeconds": 276.8,
+      "clearedRows": [],
+      "linesAfter": 101
+    },
+    {
+      "game": 1,
+      "page": 276,
+      "placement": 276,
+      "operation": {
+        "type": "L",
+        "rotation": "right",
+        "x": 6,
+        "y": 11
+      },
+      "observationFrame": 8323,
+      "observationSeconds": 277.43333333333334,
+      "confirmationFrame": 8328,
+      "confirmationSeconds": 277.6,
+      "clearedRows": [],
+      "linesAfter": 101
+    },
+    {
+      "game": 1,
+      "page": 277,
+      "placement": 277,
+      "operation": {
+        "type": "Z",
+        "rotation": "right",
+        "x": 7,
+        "y": 12
+      },
+      "observationFrame": 8348,
+      "observationSeconds": 278.26666666666665,
+      "confirmationFrame": 8352,
+      "confirmationSeconds": 278.4,
+      "clearedRows": [],
+      "linesAfter": 101
+    },
+    {
+      "game": 1,
+      "page": 278,
+      "placement": 278,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 6,
+        "y": 13
+      },
+      "observationFrame": 8366,
+      "observationSeconds": 278.8666666666667,
+      "confirmationFrame": 8368,
+      "confirmationSeconds": 278.93333333333334,
+      "clearedRows": [],
+      "linesAfter": 101
+    },
+    {
+      "game": 1,
+      "page": 279,
+      "placement": 279,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 3
+      },
+      "observationFrame": 8391,
+      "observationSeconds": 279.7,
+      "confirmationFrame": 8414,
+      "confirmationSeconds": 280.46666666666664,
+      "clearedRows": [
+        2,
+        3
+      ],
+      "linesAfter": 103
+    },
+    {
+      "game": 1,
+      "page": 280,
+      "placement": 280,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 13
+      },
+      "observationFrame": 8420,
+      "observationSeconds": 280.6666666666667,
+      "confirmationFrame": 8424,
+      "confirmationSeconds": 280.8,
+      "clearedRows": [],
+      "linesAfter": 103
+    },
+    {
+      "game": 1,
+      "page": 281,
+      "placement": 281,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 3
+      },
+      "observationFrame": 8452,
+      "observationSeconds": 281.73333333333335,
+      "confirmationFrame": 8457,
+      "confirmationSeconds": 281.9,
+      "clearedRows": [],
+      "linesAfter": 103
+    },
+    {
+      "game": 1,
+      "page": 282,
+      "placement": 282,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 15
+      },
+      "observationFrame": 8478,
+      "observationSeconds": 282.6,
+      "confirmationFrame": 8480,
+      "confirmationSeconds": 282.6666666666667,
+      "clearedRows": [],
+      "linesAfter": 103
+    },
+    {
+      "game": 1,
+      "page": 283,
+      "placement": 283,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 4
+      },
+      "observationFrame": 8502,
+      "observationSeconds": 283.4,
+      "confirmationFrame": 8524,
+      "confirmationSeconds": 284.1333333333333,
+      "clearedRows": [
+        3,
+        4
+      ],
+      "linesAfter": 105
+    },
+    {
+      "game": 1,
+      "page": 284,
+      "placement": 284,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 4
+      },
+      "observationFrame": 8554,
+      "observationSeconds": 285.1333333333333,
+      "confirmationFrame": 8559,
+      "confirmationSeconds": 285.3,
+      "clearedRows": [],
+      "linesAfter": 105
+    },
+    {
+      "game": 1,
+      "page": 285,
+      "placement": 285,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 6,
+        "y": 11
+      },
+      "observationFrame": 8579,
+      "observationSeconds": 285.96666666666664,
+      "confirmationFrame": 8581,
+      "confirmationSeconds": 286.03333333333336,
+      "clearedRows": [],
+      "linesAfter": 105
+    },
+    {
+      "game": 1,
+      "page": 286,
+      "placement": 286,
+      "operation": {
+        "type": "L",
+        "rotation": "left",
+        "x": 9,
+        "y": 9
+      },
+      "observationFrame": 8595,
+      "observationSeconds": 286.5,
+      "confirmationFrame": 8600,
+      "confirmationSeconds": 286.6666666666667,
+      "clearedRows": [],
+      "linesAfter": 105
+    },
+    {
+      "game": 1,
+      "page": 287,
+      "placement": 287,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 5
+      },
+      "observationFrame": 8619,
+      "observationSeconds": 287.3,
+      "confirmationFrame": 8641,
+      "confirmationSeconds": 288.03333333333336,
+      "clearedRows": [
+        4,
+        5
+      ],
+      "linesAfter": 107
+    },
+    {
+      "game": 1,
+      "page": 288,
+      "placement": 288,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 0,
+        "y": 2
+      },
+      "observationFrame": 8664,
+      "observationSeconds": 288.8,
+      "confirmationFrame": 8666,
+      "confirmationSeconds": 288.8666666666667,
+      "clearedRows": [],
+      "linesAfter": 107
+    },
+    {
+      "game": 1,
+      "page": 289,
+      "placement": 289,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 12
+      },
+      "observationFrame": 8679,
+      "observationSeconds": 289.3,
+      "confirmationFrame": 8681,
+      "confirmationSeconds": 289.3666666666667,
+      "clearedRows": [],
+      "linesAfter": 107
+    },
+    {
+      "game": 1,
+      "page": 290,
+      "placement": 290,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 5
+      },
+      "observationFrame": 8706,
+      "observationSeconds": 290.2,
+      "confirmationFrame": 8711,
+      "confirmationSeconds": 290.3666666666667,
+      "clearedRows": [],
+      "linesAfter": 107
+    },
+    {
+      "game": 1,
+      "page": 291,
+      "placement": 291,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 2,
+        "y": 2
+      },
+      "observationFrame": 8731,
+      "observationSeconds": 291.03333333333336,
+      "confirmationFrame": 8798,
+      "confirmationSeconds": 293.26666666666665,
+      "clearedRows": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "linesAfter": 111
+    },
+    {
+      "game": 1,
+      "page": 292,
+      "placement": 292,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 8,
+        "y": 5
+      },
+      "observationFrame": 8775,
+      "observationSeconds": 292.5,
+      "confirmationFrame": 8775,
+      "confirmationSeconds": 292.5,
+      "clearedRows": [],
+      "linesAfter": 111
+    },
+    {
+      "game": 1,
+      "page": 293,
+      "placement": 293,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 10
+      },
+      "observationFrame": 8797,
+      "observationSeconds": 293.23333333333335,
+      "confirmationFrame": 8801,
+      "confirmationSeconds": 293.3666666666667,
+      "clearedRows": [],
+      "linesAfter": 111
+    },
+    {
+      "game": 1,
+      "page": 294,
+      "placement": 294,
+      "operation": {
+        "type": "L",
+        "rotation": "right",
+        "x": 6,
+        "y": 8
+      },
+      "observationFrame": 8842,
+      "observationSeconds": 294.73333333333335,
+      "confirmationFrame": 8848,
+      "confirmationSeconds": 294.93333333333334,
+      "clearedRows": [],
+      "linesAfter": 111
+    },
+    {
+      "game": 1,
+      "page": 295,
+      "placement": 295,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 9,
+        "y": 9
+      },
+      "observationFrame": 8892,
+      "observationSeconds": 296.4,
+      "confirmationFrame": 8895,
+      "confirmationSeconds": 296.5,
+      "clearedRows": [],
+      "linesAfter": 111
+    },
+    {
+      "game": 1,
+      "page": 296,
+      "placement": 296,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 11
+      },
+      "observationFrame": 8901,
+      "observationSeconds": 296.7,
+      "confirmationFrame": 8903,
+      "confirmationSeconds": 296.76666666666665,
+      "clearedRows": [],
+      "linesAfter": 111
+    },
+    {
+      "game": 1,
+      "page": 297,
+      "placement": 297,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 13
+      },
+      "observationFrame": 8927,
+      "observationSeconds": 297.56666666666666,
+      "confirmationFrame": 8932,
+      "confirmationSeconds": 297.73333333333335,
+      "clearedRows": [],
+      "linesAfter": 111
+    },
+    {
+      "game": 1,
+      "page": 298,
+      "placement": 298,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 2
+      },
+      "observationFrame": 8950,
+      "observationSeconds": 298.3333333333333,
+      "confirmationFrame": 8972,
+      "confirmationSeconds": 299.06666666666666,
+      "clearedRows": [
+        1,
+        2
+      ],
+      "linesAfter": 113
+    },
+    {
+      "game": 1,
+      "page": 299,
+      "placement": 299,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 2
+      },
+      "observationFrame": 9016,
+      "observationSeconds": 300.53333333333336,
+      "confirmationFrame": 9021,
+      "confirmationSeconds": 300.7,
+      "clearedRows": [],
+      "linesAfter": 113
+    },
+    {
+      "game": 1,
+      "page": 300,
+      "placement": 300,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 12
+      },
+      "observationFrame": 9028,
+      "observationSeconds": 300.93333333333334,
+      "confirmationFrame": 9030,
+      "confirmationSeconds": 301,
+      "clearedRows": [],
+      "linesAfter": 113
+    },
+    {
+      "game": 1,
+      "page": 301,
+      "placement": 301,
+      "operation": {
+        "type": "L",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 14
+      },
+      "observationFrame": 9059,
+      "observationSeconds": 301.96666666666664,
+      "confirmationFrame": 9065,
+      "confirmationSeconds": 302.1666666666667,
+      "clearedRows": [],
+      "linesAfter": 113
+    },
+    {
+      "game": 1,
+      "page": 302,
+      "placement": 302,
+      "operation": {
+        "type": "J",
+        "rotation": "left",
+        "x": 5,
+        "y": 16
+      },
+      "observationFrame": 9084,
+      "observationSeconds": 302.8,
+      "confirmationFrame": 9088,
+      "confirmationSeconds": 302.93333333333334,
+      "clearedRows": [],
+      "linesAfter": 113
+    },
+    {
+      "game": 1,
+      "page": 303,
+      "placement": 303,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 3,
+        "y": 16
+      },
+      "observationFrame": 9109,
+      "observationSeconds": 303.6333333333333,
+      "confirmationFrame": 9112,
+      "confirmationSeconds": 303.73333333333335,
+      "clearedRows": [],
+      "linesAfter": 113
+    },
+    {
+      "game": 1,
+      "page": 304,
+      "placement": 304,
+      "operation": {
+        "type": "L",
+        "rotation": "left",
+        "x": 7,
+        "y": 7
+      },
+      "observationFrame": 9144,
+      "observationSeconds": 304.8,
+      "confirmationFrame": 9151,
+      "confirmationSeconds": 305.03333333333336,
+      "clearedRows": [],
+      "linesAfter": 113
+    },
+    {
+      "game": 1,
+      "page": 305,
+      "placement": 305,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 8,
+        "y": 7
+      },
+      "observationFrame": 9176,
+      "observationSeconds": 305.8666666666667,
+      "confirmationFrame": 9180,
+      "confirmationSeconds": 306,
+      "clearedRows": [],
+      "linesAfter": 113
+    },
+    {
+      "game": 1,
+      "page": 306,
+      "placement": 306,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 18
+      },
+      "observationFrame": 9205,
+      "observationSeconds": 306.8333333333333,
+      "confirmationFrame": 9207,
+      "confirmationSeconds": 306.9,
+      "clearedRows": [],
+      "linesAfter": 113
+    },
+    {
+      "game": 1,
+      "page": 307,
+      "placement": 307,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 3
+      },
+      "observationFrame": 9218,
+      "observationSeconds": 307.26666666666665,
+      "confirmationFrame": 9240,
+      "confirmationSeconds": 308,
+      "clearedRows": [
+        2,
+        3
+      ],
+      "linesAfter": 115
+    },
+    {
+      "game": 1,
+      "page": 308,
+      "placement": 308,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 3
+      },
+      "observationFrame": 9279,
+      "observationSeconds": 309.3,
+      "confirmationFrame": 9285,
+      "confirmationSeconds": 309.5,
+      "clearedRows": [],
+      "linesAfter": 115
+    },
+    {
+      "game": 1,
+      "page": 309,
+      "placement": 309,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 4
+      },
+      "observationFrame": 9312,
+      "observationSeconds": 310.4,
+      "confirmationFrame": 9335,
+      "confirmationSeconds": 311.1666666666667,
+      "clearedRows": [
+        3,
+        4
+      ],
+      "linesAfter": 117
+    },
+    {
+      "game": 1,
+      "page": 310,
+      "placement": 310,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 8,
+        "y": 5
+      },
+      "observationFrame": 9366,
+      "observationSeconds": 312.2,
+      "confirmationFrame": 9369,
+      "confirmationSeconds": 312.3,
+      "clearedRows": [],
+      "linesAfter": 117
+    },
+    {
+      "game": 1,
+      "page": 311,
+      "placement": 311,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 16
+      },
+      "observationFrame": 9396,
+      "observationSeconds": 313.2,
+      "confirmationFrame": 9401,
+      "confirmationSeconds": 313.3666666666667,
+      "clearedRows": [],
+      "linesAfter": 117
+    },
+    {
+      "game": 1,
+      "page": 312,
+      "placement": 312,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 4
+      },
+      "observationFrame": 9430,
+      "observationSeconds": 314.3333333333333,
+      "confirmationFrame": 9436,
+      "confirmationSeconds": 314.53333333333336,
+      "clearedRows": [],
+      "linesAfter": 117
+    },
+    {
+      "game": 1,
+      "page": 313,
+      "placement": 313,
+      "operation": {
+        "type": "L",
+        "rotation": "right",
+        "x": 6,
+        "y": 6
+      },
+      "observationFrame": 9460,
+      "observationSeconds": 315.3333333333333,
+      "confirmationFrame": 9466,
+      "confirmationSeconds": 315.53333333333336,
+      "clearedRows": [],
+      "linesAfter": 117
+    },
+    {
+      "game": 1,
+      "page": 314,
+      "placement": 314,
+      "operation": {
+        "type": "Z",
+        "rotation": "right",
+        "x": 7,
+        "y": 7
+      },
+      "observationFrame": 9495,
+      "observationSeconds": 316.5,
+      "confirmationFrame": 9499,
+      "confirmationSeconds": 316.6333333333333,
+      "clearedRows": [],
+      "linesAfter": 117
+    },
+    {
+      "game": 1,
+      "page": 315,
+      "placement": 315,
+      "operation": {
+        "type": "L",
+        "rotation": "left",
+        "x": 9,
+        "y": 8
+      },
+      "observationFrame": 9522,
+      "observationSeconds": 317.4,
+      "confirmationFrame": 9528,
+      "confirmationSeconds": 317.6,
+      "clearedRows": [],
+      "linesAfter": 117
+    },
+    {
+      "game": 1,
+      "page": 316,
+      "placement": 316,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 5
+      },
+      "observationFrame": 9550,
+      "observationSeconds": 318.3333333333333,
+      "confirmationFrame": 9573,
+      "confirmationSeconds": 319.1,
+      "clearedRows": [
+        4,
+        5
+      ],
+      "linesAfter": 119
+    },
+    {
+      "game": 1,
+      "page": 317,
+      "placement": 317,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 0,
+        "y": 2
+      },
+      "observationFrame": 9595,
+      "observationSeconds": 319.8333333333333,
+      "confirmationFrame": 9597,
+      "confirmationSeconds": 319.9,
+      "clearedRows": [],
+      "linesAfter": 119
+    },
+    {
+      "game": 1,
+      "page": 318,
+      "placement": 318,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 6,
+        "y": 6
+      },
+      "observationFrame": 9615,
+      "observationSeconds": 320.5,
+      "confirmationFrame": 9617,
+      "confirmationSeconds": 320.56666666666666,
+      "clearedRows": [],
+      "linesAfter": 119
+    },
+    {
+      "game": 1,
+      "page": 319,
+      "placement": 319,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 2,
+        "y": 2
+      },
+      "observationFrame": 9633,
+      "observationSeconds": 321.1,
+      "confirmationFrame": 9679,
+      "confirmationSeconds": 322.6333333333333,
+      "clearedRows": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "linesAfter": 123
+    },
+    {
+      "game": 1,
+      "page": 320,
+      "placement": 320,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 1
+      },
+      "observationFrame": 9679,
+      "observationSeconds": 322.6333333333333,
+      "confirmationFrame": 9681,
+      "confirmationSeconds": 322.7,
+      "clearedRows": [],
+      "linesAfter": 123
+    },
+    {
+      "game": 1,
+      "page": 321,
+      "placement": 321,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 11
+      },
+      "observationFrame": 9689,
+      "observationSeconds": 322.96666666666664,
+      "confirmationFrame": 9691,
+      "confirmationSeconds": 323.03333333333336,
+      "clearedRows": [],
+      "linesAfter": 123
+    },
+    {
+      "game": 1,
+      "page": 322,
+      "placement": 322,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 13
+      },
+      "observationFrame": 9718,
+      "observationSeconds": 323.93333333333334,
+      "confirmationFrame": 9720,
+      "confirmationSeconds": 324,
+      "clearedRows": [],
+      "linesAfter": 123
+    },
+    {
+      "game": 1,
+      "page": 323,
+      "placement": 323,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 14
+      },
+      "observationFrame": 9734,
+      "observationSeconds": 324.46666666666664,
+      "confirmationFrame": 9736,
+      "confirmationSeconds": 324.53333333333336,
+      "clearedRows": [],
+      "linesAfter": 123
+    },
+    {
+      "game": 1,
+      "page": 324,
+      "placement": 324,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 16
+      },
+      "observationFrame": 9760,
+      "observationSeconds": 325.3333333333333,
+      "confirmationFrame": 9765,
+      "confirmationSeconds": 325.5,
+      "clearedRows": [],
+      "linesAfter": 123
+    },
+    {
+      "game": 1,
+      "page": 325,
+      "placement": 325,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 2
+      },
+      "observationFrame": 9789,
+      "observationSeconds": 326.3,
+      "confirmationFrame": 9812,
+      "confirmationSeconds": 327.06666666666666,
+      "clearedRows": [
+        1,
+        2
+      ],
+      "linesAfter": 125
+    },
+    {
+      "game": 1,
+      "page": 326,
+      "placement": 326,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 2
+      },
+      "observationFrame": 9849,
+      "observationSeconds": 328.3,
+      "confirmationFrame": 9854,
+      "confirmationSeconds": 328.46666666666664,
+      "clearedRows": [],
+      "linesAfter": 125
+    },
+    {
+      "game": 1,
+      "page": 327,
+      "placement": 327,
+      "operation": {
+        "type": "I",
+        "rotation": "spawn",
+        "x": 7,
+        "y": 2
+      },
+      "observationFrame": 9866,
+      "observationSeconds": 328.8666666666667,
+      "confirmationFrame": 9868,
+      "confirmationSeconds": 328.93333333333334,
+      "clearedRows": [],
+      "linesAfter": 125
+    },
+    {
+      "game": 1,
+      "page": 328,
+      "placement": 328,
+      "operation": {
+        "type": "L",
+        "rotation": "right",
+        "x": 6,
+        "y": 4
+      },
+      "observationFrame": 9885,
+      "observationSeconds": 329.5,
+      "confirmationFrame": 9890,
+      "confirmationSeconds": 329.6666666666667,
+      "clearedRows": [],
+      "linesAfter": 125
+    },
+    {
+      "game": 1,
+      "page": 329,
+      "placement": 329,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 8,
+        "y": 3
+      },
+      "observationFrame": 9907,
+      "observationSeconds": 330.23333333333335,
+      "confirmationFrame": 9909,
+      "confirmationSeconds": 330.3,
+      "clearedRows": [],
+      "linesAfter": 125
+    },
+    {
+      "game": 1,
+      "page": 330,
+      "placement": 330,
+      "operation": {
+        "type": "Z",
+        "rotation": "right",
+        "x": 7,
+        "y": 5
+      },
+      "observationFrame": 9929,
+      "observationSeconds": 330.96666666666664,
+      "confirmationFrame": 9933,
+      "confirmationSeconds": 331.1,
+      "clearedRows": [],
+      "linesAfter": 125
+    },
+    {
+      "game": 1,
+      "page": 331,
+      "placement": 331,
+      "operation": {
+        "type": "L",
+        "rotation": "left",
+        "x": 9,
+        "y": 6
+      },
+      "observationFrame": 9967,
+      "observationSeconds": 332.23333333333335,
+      "confirmationFrame": 9969,
+      "confirmationSeconds": 332.3,
+      "clearedRows": [],
+      "linesAfter": 125
+    },
+    {
+      "game": 1,
+      "page": 332,
+      "placement": 332,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 6,
+        "y": 8
+      },
+      "observationFrame": 9984,
+      "observationSeconds": 332.8,
+      "confirmationFrame": 9986,
+      "confirmationSeconds": 332.8666666666667,
+      "clearedRows": [],
+      "linesAfter": 125
+    },
+    {
+      "game": 1,
+      "page": 333,
+      "placement": 333,
+      "operation": {
+        "type": "J",
+        "rotation": "right",
+        "x": 7,
+        "y": 7
+      },
+      "observationFrame": 10004,
+      "observationSeconds": 333.46666666666664,
+      "confirmationFrame": 10010,
+      "confirmationSeconds": 333.6666666666667,
+      "clearedRows": [],
+      "linesAfter": 125
+    },
+    {
+      "game": 1,
+      "page": 334,
+      "placement": 334,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 3
+      },
+      "observationFrame": 10026,
+      "observationSeconds": 334.2,
+      "confirmationFrame": 10050,
+      "confirmationSeconds": 335,
+      "clearedRows": [
+        2,
+        3
+      ],
+      "linesAfter": 127
+    },
+    {
+      "game": 1,
+      "page": 335,
+      "placement": 335,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 3
+      },
+      "observationFrame": 10087,
+      "observationSeconds": 336.23333333333335,
+      "confirmationFrame": 10093,
+      "confirmationSeconds": 336.43333333333334,
+      "clearedRows": [],
+      "linesAfter": 127
+    },
+    {
+      "game": 1,
+      "page": 336,
+      "placement": 336,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 13
+      },
+      "observationFrame": 10096,
+      "observationSeconds": 336.53333333333336,
+      "confirmationFrame": 10098,
+      "confirmationSeconds": 336.6,
+      "clearedRows": [],
+      "linesAfter": 127
+    },
+    {
+      "game": 1,
+      "page": 337,
+      "placement": 337,
+      "operation": {
+        "type": "L",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 15
+      },
+      "observationFrame": 10125,
+      "observationSeconds": 337.5,
+      "confirmationFrame": 10131,
+      "confirmationSeconds": 337.7,
+      "clearedRows": [],
+      "linesAfter": 127
+    },
+    {
+      "game": 1,
+      "page": 338,
+      "placement": 338,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 6,
+        "y": 8
+      },
+      "observationFrame": 10170,
+      "observationSeconds": 339,
+      "confirmationFrame": 10173,
+      "confirmationSeconds": 339.1,
+      "clearedRows": [],
+      "linesAfter": 127
+    },
+    {
+      "game": 1,
+      "page": 339,
+      "placement": 339,
+      "operation": {
+        "type": "J",
+        "rotation": "left",
+        "x": 8,
+        "y": 8
+      },
+      "observationFrame": 10204,
+      "observationSeconds": 340.1333333333333,
+      "confirmationFrame": 10209,
+      "confirmationSeconds": 340.3,
+      "clearedRows": [],
+      "linesAfter": 127
+    },
+    {
+      "game": 1,
+      "page": 340,
+      "placement": 340,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 16
+      },
+      "observationFrame": 10214,
+      "observationSeconds": 340.46666666666664,
+      "confirmationFrame": 10216,
+      "confirmationSeconds": 340.53333333333336,
+      "clearedRows": [],
+      "linesAfter": 127
+    },
+    {
+      "game": 1,
+      "page": 341,
+      "placement": 341,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 9,
+        "y": 8
+      },
+      "observationFrame": 10233,
+      "observationSeconds": 341.1,
+      "confirmationFrame": 10235,
+      "confirmationSeconds": 341.1666666666667,
+      "clearedRows": [],
+      "linesAfter": 127
+    },
+    {
+      "game": 1,
+      "page": 342,
+      "placement": 342,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 4
+      },
+      "observationFrame": 10255,
+      "observationSeconds": 341.8333333333333,
+      "confirmationFrame": 10277,
+      "confirmationSeconds": 342.56666666666666,
+      "clearedRows": [
+        3,
+        4
+      ],
+      "linesAfter": 129
+    },
+    {
+      "game": 1,
+      "page": 343,
+      "placement": 343,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 16
+      },
+      "observationFrame": 10307,
+      "observationSeconds": 343.56666666666666,
+      "confirmationFrame": 10311,
+      "confirmationSeconds": 343.7,
+      "clearedRows": [],
+      "linesAfter": 129
+    },
+    {
+      "game": 1,
+      "page": 344,
+      "placement": 344,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 0,
+        "y": 2
+      },
+      "observationFrame": 10329,
+      "observationSeconds": 344.3,
+      "confirmationFrame": 10330,
+      "confirmationSeconds": 344.3333333333333,
+      "clearedRows": [],
+      "linesAfter": 129
+    },
+    {
+      "game": 1,
+      "page": 345,
+      "placement": 345,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 4
+      },
+      "observationFrame": 10363,
+      "observationSeconds": 345.43333333333334,
+      "confirmationFrame": 10371,
+      "confirmationSeconds": 345.7,
+      "clearedRows": [],
+      "linesAfter": 129
+    },
+    {
+      "game": 1,
+      "page": 346,
+      "placement": 346,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 5
+      },
+      "observationFrame": 10388,
+      "observationSeconds": 346.26666666666665,
+      "confirmationFrame": 10410,
+      "confirmationSeconds": 347,
+      "clearedRows": [
+        4,
+        5
+      ],
+      "linesAfter": 131
+    },
+    {
+      "game": 1,
+      "page": 347,
+      "placement": 347,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 5
+      },
+      "observationFrame": 10431,
+      "observationSeconds": 347.7,
+      "confirmationFrame": 10436,
+      "confirmationSeconds": 347.8666666666667,
+      "clearedRows": [],
+      "linesAfter": 131
+    },
+    {
+      "game": 1,
+      "page": 348,
+      "placement": 348,
+      "operation": {
+        "type": "L",
+        "rotation": "right",
+        "x": 6,
+        "y": 7
+      },
+      "observationFrame": 10457,
+      "observationSeconds": 348.56666666666666,
+      "confirmationFrame": 10462,
+      "confirmationSeconds": 348.73333333333335,
+      "clearedRows": [],
+      "linesAfter": 131
+    },
+    {
+      "game": 1,
+      "page": 349,
+      "placement": 349,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 8,
+        "y": 6
+      },
+      "observationFrame": 10485,
+      "observationSeconds": 349.5,
+      "confirmationFrame": 10487,
+      "confirmationSeconds": 349.56666666666666,
+      "clearedRows": [],
+      "linesAfter": 131
+    },
+    {
+      "game": 1,
+      "page": 350,
+      "placement": 350,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 15
+      },
+      "observationFrame": 10514,
+      "observationSeconds": 350.46666666666664,
+      "confirmationFrame": 10518,
+      "confirmationSeconds": 350.6,
+      "clearedRows": [],
+      "linesAfter": 131
+    },
+    {
+      "game": 1,
+      "page": 351,
+      "placement": 351,
+      "operation": {
+        "type": "L",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 17
+      },
+      "observationFrame": 10545,
+      "observationSeconds": 351.5,
+      "confirmationFrame": 10551,
+      "confirmationSeconds": 351.7,
+      "clearedRows": [],
+      "linesAfter": 131
+    },
+    {
+      "game": 1,
+      "page": 352,
+      "placement": 352,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 8,
+        "y": 8
+      },
+      "observationFrame": 10569,
+      "observationSeconds": 352.3,
+      "confirmationFrame": 10571,
+      "confirmationSeconds": 352.3666666666667,
+      "clearedRows": [],
+      "linesAfter": 131
+    },
+    {
+      "game": 1,
+      "page": 353,
+      "placement": 353,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 2,
+        "y": 2
+      },
+      "observationFrame": 10590,
+      "observationSeconds": 353,
+      "confirmationFrame": 10633,
+      "confirmationSeconds": 354.43333333333334,
+      "clearedRows": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "linesAfter": 135
+    },
+    {
+      "game": 1,
+      "page": 354,
+      "placement": 354,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 8,
+        "y": 5
+      },
+      "observationFrame": 10635,
+      "observationSeconds": 354.5,
+      "confirmationFrame": 10635,
+      "confirmationSeconds": 354.5,
+      "clearedRows": [],
+      "linesAfter": 135
+    },
+    {
+      "game": 1,
+      "page": 355,
+      "placement": 355,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 2
+      },
+      "observationFrame": 10653,
+      "observationSeconds": 355.1,
+      "confirmationFrame": 10676,
+      "confirmationSeconds": 355.8666666666667,
+      "clearedRows": [
+        1,
+        2
+      ],
+      "linesAfter": 137
+    },
+    {
+      "game": 1,
+      "page": 356,
+      "placement": 356,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 2
+      },
+      "observationFrame": 10703,
+      "observationSeconds": 356.76666666666665,
+      "confirmationFrame": 10707,
+      "confirmationSeconds": 356.9,
+      "clearedRows": [],
+      "linesAfter": 137
+    },
+    {
+      "game": 1,
+      "page": 357,
+      "placement": 357,
+      "operation": {
+        "type": "L",
+        "rotation": "right",
+        "x": 6,
+        "y": 4
+      },
+      "observationFrame": 10730,
+      "observationSeconds": 357.6666666666667,
+      "confirmationFrame": 10735,
+      "confirmationSeconds": 357.8333333333333,
+      "clearedRows": [],
+      "linesAfter": 137
+    },
+    {
+      "game": 1,
+      "page": 358,
+      "placement": 358,
+      "operation": {
+        "type": "Z",
+        "rotation": "right",
+        "x": 7,
+        "y": 5
+      },
+      "observationFrame": 10766,
+      "observationSeconds": 358.8666666666667,
+      "confirmationFrame": 10770,
+      "confirmationSeconds": 359,
+      "clearedRows": [],
+      "linesAfter": 137
+    },
+    {
+      "game": 1,
+      "page": 359,
+      "placement": 359,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 3
+      },
+      "observationFrame": 10803,
+      "observationSeconds": 360.1,
+      "confirmationFrame": 10825,
+      "confirmationSeconds": 360.8333333333333,
+      "clearedRows": [
+        2,
+        3
+      ],
+      "linesAfter": 139
+    },
+    {
+      "game": 1,
+      "page": 360,
+      "placement": 360,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 10
+      },
+      "observationFrame": 10835,
+      "observationSeconds": 361.1666666666667,
+      "confirmationFrame": 10837,
+      "confirmationSeconds": 361.23333333333335,
+      "clearedRows": [],
+      "linesAfter": 139
+    },
+    {
+      "game": 1,
+      "page": 361,
+      "placement": 361,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 6,
+        "y": 4
+      },
+      "observationFrame": 10865,
+      "observationSeconds": 362.1666666666667,
+      "confirmationFrame": 10869,
+      "confirmationSeconds": 362.3,
+      "clearedRows": [],
+      "linesAfter": 139
+    },
+    {
+      "game": 1,
+      "page": 362,
+      "placement": 362,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 3
+      },
+      "observationFrame": 10894,
+      "observationSeconds": 363.1333333333333,
+      "confirmationFrame": 10898,
+      "confirmationSeconds": 363.26666666666665,
+      "clearedRows": [],
+      "linesAfter": 139
+    },
+    {
+      "game": 1,
+      "page": 363,
+      "placement": 363,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 12
+      },
+      "observationFrame": 10925,
+      "observationSeconds": 364.1666666666667,
+      "confirmationFrame": 10930,
+      "confirmationSeconds": 364.3333333333333,
+      "clearedRows": [],
+      "linesAfter": 139
+    },
+    {
+      "game": 1,
+      "page": 364,
+      "placement": 364,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 6,
+        "y": 6
+      },
+      "observationFrame": 10948,
+      "observationSeconds": 364.93333333333334,
+      "confirmationFrame": 10950,
+      "confirmationSeconds": 365,
+      "clearedRows": [],
+      "linesAfter": 139
+    },
+    {
+      "game": 1,
+      "page": 365,
+      "placement": 365,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 9,
+        "y": 5
+      },
+      "observationFrame": 10969,
+      "observationSeconds": 365.6333333333333,
+      "confirmationFrame": 10971,
+      "confirmationSeconds": 365.7,
+      "clearedRows": [],
+      "linesAfter": 139
+    },
+    {
+      "game": 1,
+      "page": 366,
+      "placement": 366,
+      "operation": {
+        "type": "J",
+        "rotation": "right",
+        "x": 8,
+        "y": 6
+      },
+      "observationFrame": 10986,
+      "observationSeconds": 366.2,
+      "confirmationFrame": 10991,
+      "confirmationSeconds": 366.3666666666667,
+      "clearedRows": [],
+      "linesAfter": 139
+    },
+    {
+      "game": 1,
+      "page": 367,
+      "placement": 367,
+      "operation": {
+        "type": "L",
+        "rotation": "right",
+        "x": 6,
+        "y": 9
+      },
+      "observationFrame": 11014,
+      "observationSeconds": 367.1333333333333,
+      "confirmationFrame": 11019,
+      "confirmationSeconds": 367.3,
+      "clearedRows": [],
+      "linesAfter": 139
+    },
+    {
+      "game": 1,
+      "page": 368,
+      "placement": 368,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 9,
+        "y": 10
+      },
+      "observationFrame": 11049,
+      "observationSeconds": 368.3,
+      "confirmationFrame": 11053,
+      "confirmationSeconds": 368.43333333333334,
+      "clearedRows": [],
+      "linesAfter": 139
+    },
+    {
+      "game": 1,
+      "page": 369,
+      "placement": 369,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 4
+      },
+      "observationFrame": 11087,
+      "observationSeconds": 369.56666666666666,
+      "confirmationFrame": 11111,
+      "confirmationSeconds": 370.3666666666667,
+      "clearedRows": [
+        3,
+        4
+      ],
+      "linesAfter": 141
+    },
+    {
+      "game": 1,
+      "page": 370,
+      "placement": 370,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 4
+      },
+      "observationFrame": 11142,
+      "observationSeconds": 371.4,
+      "confirmationFrame": 11146,
+      "confirmationSeconds": 371.53333333333336,
+      "clearedRows": [],
+      "linesAfter": 141
+    },
+    {
+      "game": 1,
+      "page": 371,
+      "placement": 371,
+      "operation": {
+        "type": "L",
+        "rotation": "left",
+        "x": 7,
+        "y": 8
+      },
+      "observationFrame": 11166,
+      "observationSeconds": 372.2,
+      "confirmationFrame": 11172,
+      "confirmationSeconds": 372.4,
+      "clearedRows": [],
+      "linesAfter": 141
+    },
+    {
+      "game": 1,
+      "page": 372,
+      "placement": 372,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 11
+      },
+      "observationFrame": 11182,
+      "observationSeconds": 372.73333333333335,
+      "confirmationFrame": 11184,
+      "confirmationSeconds": 372.8,
+      "clearedRows": [],
+      "linesAfter": 141
+    },
+    {
+      "game": 1,
+      "page": 373,
+      "placement": 373,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 13
+      },
+      "observationFrame": 11203,
+      "observationSeconds": 373.43333333333334,
+      "confirmationFrame": 11205,
+      "confirmationSeconds": 373.5,
+      "clearedRows": [],
+      "linesAfter": 141
+    },
+    {
+      "game": 1,
+      "page": 374,
+      "placement": 374,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 8,
+        "y": 8
+      },
+      "observationFrame": 11227,
+      "observationSeconds": 374.23333333333335,
+      "confirmationFrame": 11229,
+      "confirmationSeconds": 374.3,
+      "clearedRows": [],
+      "linesAfter": 141
+    },
+    {
+      "game": 1,
+      "page": 375,
+      "placement": 375,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 14
+      },
+      "observationFrame": 11232,
+      "observationSeconds": 374.4,
+      "confirmationFrame": 11234,
+      "confirmationSeconds": 374.46666666666664,
+      "clearedRows": [],
+      "linesAfter": 141
+    },
+    {
+      "game": 1,
+      "page": 376,
+      "placement": 376,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 5
+      },
+      "observationFrame": 11260,
+      "observationSeconds": 375.3333333333333,
+      "confirmationFrame": 11283,
+      "confirmationSeconds": 376.1,
+      "clearedRows": [
+        4,
+        5
+      ],
+      "linesAfter": 143
+    },
+    {
+      "game": 1,
+      "page": 377,
+      "placement": 377,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 8,
+        "y": 8
+      },
+      "observationFrame": 11299,
+      "observationSeconds": 376.6333333333333,
+      "confirmationFrame": 11301,
+      "confirmationSeconds": 376.7,
+      "clearedRows": [],
+      "linesAfter": 143
+    },
+    {
+      "game": 1,
+      "page": 378,
+      "placement": 378,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 0,
+        "y": 2
+      },
+      "observationFrame": 11320,
+      "observationSeconds": 377.3333333333333,
+      "confirmationFrame": 11322,
+      "confirmationSeconds": 377.4,
+      "clearedRows": [],
+      "linesAfter": 143
+    },
+    {
+      "game": 1,
+      "page": 379,
+      "placement": 379,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 5
+      },
+      "observationFrame": 11359,
+      "observationSeconds": 378.6333333333333,
+      "confirmationFrame": 11365,
+      "confirmationSeconds": 378.8333333333333,
+      "clearedRows": [],
+      "linesAfter": 143
+    },
+    {
+      "game": 1,
+      "page": 380,
+      "placement": 380,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 6,
+        "y": 8
+      },
+      "observationFrame": 11379,
+      "observationSeconds": 379.3,
+      "confirmationFrame": 11381,
+      "confirmationSeconds": 379.3666666666667,
+      "clearedRows": [],
+      "linesAfter": 143
+    },
+    {
+      "game": 1,
+      "page": 381,
+      "placement": 381,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 4,
+        "y": 14
+      },
+      "observationFrame": 11400,
+      "observationSeconds": 380,
+      "confirmationFrame": 11402,
+      "confirmationSeconds": 380.06666666666666,
+      "clearedRows": [],
+      "linesAfter": 143
+    },
+    {
+      "game": 1,
+      "page": 382,
+      "placement": 382,
+      "operation": {
+        "type": "L",
+        "rotation": "right",
+        "x": 6,
+        "y": 11
+      },
+      "observationFrame": 11425,
+      "observationSeconds": 380.8333333333333,
+      "confirmationFrame": 11429,
+      "confirmationSeconds": 380.96666666666664,
+      "clearedRows": [],
+      "linesAfter": 143
+    },
+    {
+      "game": 1,
+      "page": 383,
+      "placement": 383,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 8,
+        "y": 10
+      },
+      "observationFrame": 11444,
+      "observationSeconds": 381.46666666666664,
+      "confirmationFrame": 11446,
+      "confirmationSeconds": 381.53333333333336,
+      "clearedRows": [],
+      "linesAfter": 143
+    },
+    {
+      "game": 1,
+      "page": 384,
+      "placement": 384,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 6
+      },
+      "observationFrame": 11469,
+      "observationSeconds": 382.3,
+      "confirmationFrame": 11491,
+      "confirmationSeconds": 383.03333333333336,
+      "clearedRows": [
+        5,
+        6
+      ],
+      "linesAfter": 145
+    },
+    {
+      "game": 1,
+      "page": 385,
+      "placement": 385,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 6
+      },
+      "observationFrame": 11533,
+      "observationSeconds": 384.43333333333334,
+      "confirmationFrame": 11538,
+      "confirmationSeconds": 384.6,
+      "clearedRows": [],
+      "linesAfter": 145
+    },
+    {
+      "game": 1,
+      "page": 386,
+      "placement": 386,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 7,
+        "y": 10
+      },
+      "observationFrame": 11602,
+      "observationSeconds": 386.73333333333335,
+      "confirmationFrame": 11606,
+      "confirmationSeconds": 386.8666666666667,
+      "clearedRows": [],
+      "linesAfter": 145
+    },
+    {
+      "game": 1,
+      "page": 387,
+      "placement": 387,
+      "operation": {
+        "type": "L",
+        "rotation": "left",
+        "x": 9,
+        "y": 10
+      },
+      "observationFrame": 11636,
+      "observationSeconds": 387.8666666666667,
+      "confirmationFrame": 11642,
+      "confirmationSeconds": 388.06666666666666,
+      "clearedRows": [],
+      "linesAfter": 145
+    },
+    {
+      "game": 1,
+      "page": 388,
+      "placement": 388,
+      "operation": {
+        "type": "I",
+        "rotation": "spawn",
+        "x": 7,
+        "y": 12
+      },
+      "observationFrame": 11669,
+      "observationSeconds": 388.96666666666664,
+      "confirmationFrame": 11672,
+      "confirmationSeconds": 389.06666666666666,
+      "clearedRows": [],
+      "linesAfter": 145
+    },
+    {
+      "game": 1,
+      "page": 389,
+      "placement": 389,
+      "operation": {
+        "type": "J",
+        "rotation": "left",
+        "x": 9,
+        "y": 14
+      },
+      "observationFrame": 11752,
+      "observationSeconds": 391.73333333333335,
+      "confirmationFrame": 11757,
+      "confirmationSeconds": 391.9,
+      "clearedRows": [],
+      "linesAfter": 145
+    },
+    {
+      "game": 1,
+      "page": 390,
+      "placement": 390,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 7
+      },
+      "observationFrame": 11804,
+      "observationSeconds": 393.46666666666664,
+      "confirmationFrame": 11825,
+      "confirmationSeconds": 394.1666666666667,
+      "clearedRows": [
+        6,
+        7
+      ],
+      "linesAfter": 147
+    },
+    {
+      "game": 1,
+      "page": 391,
+      "placement": 391,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 0,
+        "y": 6
+      },
+      "observationFrame": 11863,
+      "observationSeconds": 395.43333333333334,
+      "confirmationFrame": 11867,
+      "confirmationSeconds": 395.56666666666666,
+      "clearedRows": [],
+      "linesAfter": 147
+    },
+    {
+      "game": 1,
+      "page": 392,
+      "placement": 392,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 2,
+        "y": 12
+      },
+      "observationFrame": 11904,
+      "observationSeconds": 396.8,
+      "confirmationFrame": 11910,
+      "confirmationSeconds": 397,
+      "clearedRows": [],
+      "linesAfter": 147
+    },
+    {
+      "game": 1,
+      "page": 393,
+      "placement": 393,
+      "operation": {
+        "type": "I",
+        "rotation": "spawn",
+        "x": 5,
+        "y": 11
+      },
+      "observationFrame": 11929,
+      "observationSeconds": 397.6333333333333,
+      "confirmationFrame": 11932,
+      "confirmationSeconds": 397.73333333333335,
+      "clearedRows": [],
+      "linesAfter": 147
+    },
+    {
+      "game": 1,
+      "page": 394,
+      "placement": 394,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 4,
+        "y": 12
+      },
+      "observationFrame": 11952,
+      "observationSeconds": 398.4,
+      "confirmationFrame": 11956,
+      "confirmationSeconds": 398.53333333333336,
+      "clearedRows": [],
+      "linesAfter": 147
+    },
+    {
+      "game": 1,
+      "page": 395,
+      "placement": 395,
+      "operation": {
+        "type": "J",
+        "rotation": "right",
+        "x": 0,
+        "y": 9
+      },
+      "observationFrame": 11979,
+      "observationSeconds": 399.3,
+      "confirmationFrame": 11984,
+      "confirmationSeconds": 399.46666666666664,
+      "clearedRows": [],
+      "linesAfter": 147
+    },
+    {
+      "game": 1,
+      "page": 396,
+      "placement": 396,
+      "operation": {
+        "type": "L",
+        "rotation": "spawn",
+        "x": 7,
+        "y": 12
+      },
+      "observationFrame": 12011,
+      "observationSeconds": 400.3666666666667,
+      "confirmationFrame": 12017,
+      "confirmationSeconds": 400.56666666666666,
+      "clearedRows": [],
+      "linesAfter": 147
+    },
+    {
+      "game": 1,
+      "page": 397,
+      "placement": 397,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 6,
+        "y": 13
+      },
+      "observationFrame": 12037,
+      "observationSeconds": 401.23333333333335,
+      "confirmationFrame": 12041,
+      "confirmationSeconds": 401.3666666666667,
+      "clearedRows": [],
+      "linesAfter": 147
+    },
+    {
+      "game": 1,
+      "page": 398,
+      "placement": 398,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 2,
+        "y": 8
+      },
+      "observationFrame": 12078,
+      "observationSeconds": 402.6,
+      "confirmationFrame": 12101,
+      "confirmationSeconds": 403.3666666666667,
+      "clearedRows": [
+        7,
+        8
+      ],
+      "linesAfter": 149
+    },
+    {
+      "game": 1,
+      "page": 399,
+      "placement": 399,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 4,
+        "y": 12
+      },
+      "observationFrame": 12124,
+      "observationSeconds": 404.1333333333333,
+      "confirmationFrame": 12131,
+      "confirmationSeconds": 404.3666666666667,
+      "clearedRows": [],
+      "linesAfter": 149
+    },
+    {
+      "game": 1,
+      "page": 400,
+      "placement": 400,
+      "operation": {
+        "type": "T",
+        "rotation": "left",
+        "x": 2,
+        "y": 7
+      },
+      "observationFrame": 12159,
+      "observationSeconds": 405.3,
+      "confirmationFrame": 12182,
+      "confirmationSeconds": 406.06666666666666,
+      "clearedRows": [
+        6,
+        7,
+        8
+      ],
+      "linesAfter": 152
+    }
+  ],
+  "finalBoard": {
+    "page": 401,
+    "observationFrame": 12182,
+    "observationSeconds": 406.06666666666666,
+    "rowsBottomToTop": [
+      "IS_ZZJOOJI",
+      "IS_ZZJLZZJ",
+      "IS_LOOLZOO",
+      "IS_ZZJOOJI",
+      "_S_LOOLLII",
+      "_S_ZZJLLII",
+      "___SIIIIJJ",
+      "__SSZZLLLJ",
+      "__SZZSOOLJ",
+      "____SSOO__",
+      "____S_____",
+      "__________",
+      "__________",
+      "__________",
+      "__________",
+      "__________",
+      "__________",
+      "__________",
+      "__________",
+      "__________"
+    ]
+  }
+}

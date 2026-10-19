@@ -94,6 +94,12 @@ literal occupancy/cell transcriptions remain in `test/support/st-fixtures.cjs`
 **only as tests**. Actual-engine generalized checks, not an assumption that all
 mirrored kicks work identically, establish the tested examples.
 
+A [full-run video reference](references/st-stacking/README.md) provides raw Fumen
+placement data and source-frame mappings from a separate Marathon replay. It is
+an inspectable reference for future ST lab work, not a runtime lesson, authored
+start or advisor correctness oracle; its provenance and validation limits are
+documented alongside the data.
+
 ## Contributor interface
 
 `STCore.create(pieces, srsPlusKicks)` captures immutable copies of the real rule
