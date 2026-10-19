@@ -1,5 +1,7 @@
 # ST free-play lab
 
+> **Future direction:** [Read the agreed ST lab vision](docs/st-lab-vision.md). It is direction, not shipped capability or implementation authority.
+
 Open **ST lab** from the [shared top menu](README.md), or [open the lab](st-lab.html).
 Play begins on an empty board with the normal shuffled seven-piece bags. Build
 and maintain your own stack. Occasional **amber inset dashed targets** identify

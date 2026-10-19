@@ -4,7 +4,7 @@ This file is the project's committed home for project-intrinsic agent knowledge:
 
 - Static GitHub Pages app: no build step. Test setup, coverage and renderer/host limits live in [TESTING.md](./TESTING.md); run `npm test` using `.nvmrc`.
 - Shared top navigation is defined in `navigation.js` and `styles/navigation.css`; actual-page coverage and the shipped-screen inventory guard live in `test/navigation.test.cjs`. Add new screens to the manifest in `test/support/pages.cjs`.
-- ST-lab free-play scope, geometry/continuation contract and engine-replay evidence are documented in [ST-LAB.md](./ST-LAB.md); independent fixture boards are test-only, not authored gameplay starts.
+- ST-lab free-play scope, geometry/continuation contract and engine-replay evidence are documented in [ST-LAB.md](./ST-LAB.md); independent fixture boards are test-only, not authored gameplay starts. Before planning or changing ST lab behavior, read [ST-LAB.md](./ST-LAB.md) for current capabilities and [docs/st-lab-vision.md](./docs/st-lab-vision.md) for agreed direction. The vision does not authorize implementing every described capability.
 
 ## Maintaining this file
 
