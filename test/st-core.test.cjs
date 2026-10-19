@@ -134,6 +134,67 @@ test('st-core/respawn: two holds recover trapped I without skipping preview',()=
   assert.deepEqual(heap(g),fixtures.pocket.afterPocket);
 }));
 
+test('st-core/respawn: held and next O must fit before a trapped I can respawn',()=>withPage('st-lab.html',{},g=>{
+  for(const hold of ['O','']) for(const blocked of [true,false]) {
+    fixture(g,'pocket');const w=g.window,x=blocked?4:0;
+    w.clearActive();w.holdP=hold;w.queue[0]='O';
+    w.board[19][x]={t:1,c:'X'};
+    w.xPOS=5;w.yPOS=36;w.rot=1;w.lastAction='SD';w.updateGhost();w.setShape();
+    g.element('#notif').textContent='';
+    const before=g.snapshot(),answer=core(g).advise(input(g));
+    assert.deepEqual(g.snapshot(),before);
+    if(blocked) {
+      assert.equal(answer.reason,'no-core-fit-found');
+      w.zzBot.hold();
+      assert.equal(g.element('#notif').textContent,'TOP OUT');
+      assert.equal(w.board[19][4].t,2);
+      w.zzBot.hold();
+      assert.equal(w.board[19][4].t,0);
+      assert.deepEqual(heap(g),fixtures.pocket.before);
+    } else {
+      assert.equal(answer.kind,'target');assert.deepEqual(json(answer.prelude),['hold','hold']);
+      replay(g,answer);
+      const expected=fixtures.pocket.afterPocket.slice();expected[19]='#.........';
+      assert.deepEqual(heap(g),expected);
+      assert.notEqual(g.element('#notif').textContent,'TOP OUT');
+      assert.equal(w.cleared,0);
+      assert.deepEqual(g.snapshot().queue.slice(0,5),before.queue.slice(1+Number(!hold),6+Number(!hold)));
+    }
+  }
+}));
+
+test('st-core/continuation: next spawn must fit before held or empty-hold T access',()=>withPage('st-lab.html',{},g=>{
+  for(const hold of ['T','']) for(const blocked of [true,false]) {
+    const rows=fixtures.cap.before.slice(),x=blocked?6:0;
+    rows[18]=blocked?'......#...':'#.........';
+    arrange(g,rows,{active:'Z',hold,next:['I','T','O','J','L','S']});
+    g.element('#notif').textContent='';
+    const before=g.snapshot(),answer=core(g).advise(input(g));
+    assert.deepEqual(g.snapshot(),before);
+    assert.equal(answer.rule,'uncapped-pocket-cap');assert.deepEqual(json(answer.prelude),[]);
+    assert.equal(answer.continuationVerified,!blocked);
+    if(blocked) assert.equal(answer.continuation,null);
+    else assert.equal(answer.continuation.piece.kind,'T');
+    replay(g,answer);
+    assert.equal(g.window.piece,'I');assert.equal(g.window.cleared,0);
+    if(blocked) {
+      assert.equal(g.element('#notif').textContent,'TOP OUT');
+      assert.equal(g.window.board[18][x].t,2);
+      g.window.zzBot.hold();
+      assert.equal(g.window.piece,'T');assert.equal(g.window.board[18][x].t,0);
+      assert.deepEqual(heap(g),fixtures.cap.afterCap);
+    } else {
+      const next=core(g).advise(input(g));
+      assert.equal(next.rule,'capped-pocket-tsd');assert.deepEqual(json(next.prelude),['hold']);
+      replay(g,next);
+      const expected=fixtures.cap.after.slice();expected[20]='#.........';
+      assert.deepEqual(heap(g),expected);
+      assert.equal(g.window.cleared,2);assert.equal(g.window.tspin,true);assert.equal(g.window.mini,false);
+      assert.notEqual(g.element('#notif').textContent,'TOP OUT');
+    }
+  }
+}));
+
 test('st-core/visible horizon: hidden suffix invariance, renderer clipping and separators',()=>withPage('st-lab.html',{},g=>{
   fixture(g);const w=g.window,planner=core(g),api=w.eval('STCore');
   const original=json(planner.advise(input(g)));

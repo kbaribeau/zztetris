@@ -45,12 +45,14 @@ const STCore = (() => {
       return [p.x,p.y,p.rotation].every(Number.isInteger) && p.rotation>=0 && p.rotation<4 && typeof p.lastAction==='string';
     }
     function options(input) {
+      if (!free(input.heap,input.active.kind,input.active)) return [];
       const list=[{active:input.active,hold:input.hold,next:input.visibleNext,prelude:[],from:'active'}];
       const held=input.hold || input.visibleNext[0];
-      if (held) {
+      if (held && free(input.heap,held.kind,spawn(held))) {
         const next=input.hold ? input.visibleNext : input.visibleNext.slice(1);
         list.push({active:spawn(held),hold:input.active,next,prelude:['hold'],from:input.hold?'hold':'next-0'});
-        list.push({active:spawn(input.active),hold:held,next,prelude:['hold','hold'],from:'active'});
+        if (free(input.heap,input.active.kind,spawn(input.active)))
+          list.push({active:spawn(input.active),hold:held,next,prelude:['hold','hold'],from:'active'});
       }
       return list;
     }
@@ -151,7 +153,7 @@ const STCore = (() => {
           if(!path)continue;
           let continuation=null;
           if(rule.follow && limits.depth===2 && choice.next.length) {
-            const future={active:spawn(choice.next[0]),hold:choice.hold,visibleNext:choice.next.slice(1)};
+            const future={heap:rule.after,active:spawn(choice.next[0]),hold:choice.hold,visibleNext:choice.next.slice(1)};
             for(const access of options(future)) {
               if(pathTo(rule.after,access.active,rule.follow,budget)) {continuation={piece:copy(access.active),rule:rule.follow.rule};break;}
               if(budget.exhausted)break;

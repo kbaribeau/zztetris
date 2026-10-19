@@ -114,7 +114,9 @@ Candidates are generated from present geometry and simulated clear results.
 Reachability uses actual ordered SRS+ kicks (including 180s) over
 `(x,y,rotation,last-action-is-rotation)`, with stable BFS action order
 `L,R,SD,CW,CCW,R180`. Current piece, one hold, then two-hold respawn are considered;
-empty hold consumes only next-0. A setup also needs a reachable hypothetical
+empty hold consumes only next-0. Every spawn must fit the heap, including the
+intervening held piece in a two-hold respawn and the next piece spawned before
+continuation access. A setup also needs a reachable hypothetical
 scoring placement, separately from legal piece access for a continuation.
 
 Default hard ceilings: **30,000 expanded poses, 128 verified lock endpoints,
