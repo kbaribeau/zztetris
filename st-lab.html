@@ -30,12 +30,6 @@
     <p>Build your own stack with normal pieces. Occasional right-side Z/T/I hints, not a move-by-move coach.</p>
   </header>
   <main>
-    <section class="lab-advice" aria-label="Strategy advice">
-      <button class="button" id="st-toggle" aria-pressed="true">Advice ON · KeyA</button>
-      <p id="st-status" role="status" aria-live="polite">Empty-board free play · build and maintain the stack yourself.</p>
-      <p class="lab-note">Temporary SRS+ / gravity off; saved normal-play preferences are unchanged. Advice honors your Training display choice. No opener, filler or recovery guidance. Restart clears the board with normal pieces, not a supplied setup.</p>
-      <p class="lab-note">Amber inset dashes = ST destination · gray outline = current hard-drop ghost · filled color = active piece. HOLD FIRST targets belong to the named held/next piece, not the active piece. Advice never moves pieces for you.</p>
-    </section>
     <div class="lab-field-scroll">
       <div class="lab-field">
         <div class="queue">HOLD<hr><canvas id="h" width="90" height="60"></canvas><div id="notif"></div></div>
@@ -43,6 +37,12 @@
         <div class="queue">NEXT<hr><canvas id="n" width="90" height="360"></canvas></div>
       </div>
     </div>
+    <section class="lab-advice" aria-label="Strategy advice">
+      <button class="button" id="st-toggle" aria-pressed="true">Advice ON · KeyA</button>
+      <p id="st-status" role="status" aria-live="polite">Empty-board free play · build and maintain the stack yourself.</p>
+      <p class="lab-note">Temporary SRS+ / gravity off; saved normal-play preferences are unchanged. Advice honors your Training display choice. No opener, filler or recovery guidance. Restart clears the board with normal pieces, not a supplied setup.</p>
+      <p class="lab-note">Amber inset dashes = ST destination · gray outline = current hard-drop ghost · filled color = active piece. HOLD FIRST targets belong to the named held/next piece, not the active piece. Advice never moves pieces for you.</p>
+    </section>
     <details class="lab-options"><summary>Normal editing / practice controls</summary>
       <p>Advice rechecks the current board after edits, imports, undo/redo and locks. The lab never repairs your queue or board. Gravity on or another kickset disables advice.</p>
       <button class="button" onclick="this.blur(); shuffleQueue()">Shuffle Queue</button>

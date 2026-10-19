@@ -169,6 +169,27 @@ test('st-lab/edits: drawing, garbage, mirror, shuffle, editors, imports and rese
   assert.ok(heap(g).every(row=>row==='..........'));
 }));
 
+test('st-lab/advice order: live advice follows the playing field across display states',()=>withPage('st-lab.html',{},g=>{
+  const w=g.window,field=g.element('.lab-field-scroll'),status=g.element('#st-status');
+  const messages=new Set();
+  const check=expected=>{
+    refresh(g);assert.equal(reason(g),expected);messages.add(status.textContent);
+    assert.equal(field.contains(status),false,'advice must not enter the gameplay row');
+    for(const canvas of ['#b','#h','#n']) {
+      assert.ok(g.element(canvas).compareDocumentPosition(status)&w.Node.DOCUMENT_POSITION_FOLLOWING,
+        'live advice must follow the board, HOLD and NEXT in document/reading order');
+    }
+  };
+  check('no-core-fit-found');
+  fixture(g);check('target');
+  fixture(g,'well');check('target');
+  g.click('#grav');check('unsupported');
+  g.click('#st-toggle');check('off');
+  g.click('#st-toggle');g.click('#grav');g.tap('KeyR');check('no-core-fit-found');
+  assert.equal(messages.size,5,'exercise distinct real renderer messages, not replacement text');
+  // jsdom proves reading order only; real-browser geometry covers CSS flow/wrapping.
+}));
+
 test('st-lab/unchanged frame: no DOM churn or repeated live-region announcements',()=>withPage('st-lab.html',{},g=>{
   fixture(g);
   const observer=new g.window.MutationObserver(()=>{});

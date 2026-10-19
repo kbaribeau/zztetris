@@ -14,6 +14,11 @@ There is no guarantee of frequent hints or of encountering every action family.
 
 ## Play
 
+Advice and its display toggle sit below the playing field, so changing or wrapped
+messages do not move the board, HOLD or NEXT. The field keeps its normal size;
+scroll the page to read longer advice, or the field horizontally on very narrow
+screens.
+
 - Ordinary movement, hold, hard drop, undo/redo, drawing, imports and restart
   remain available. Restart uses the normal engine's empty-board/queue behavior;
   it never supplies an ST setup or replays a lesson.
