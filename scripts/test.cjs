@@ -7,6 +7,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { inspect } = require('node:util');
 const { SEED } = require('../test/support/pages.cjs');
+const { seed: naturalReplaySeed } = require('../test/support/st-natural.cjs');
+const seedsByFile = { 'test/st-natural.test.cjs': naturalReplaySeed };
 
 const root = path.resolve(__dirname, '..');
 process.chdir(root);
@@ -16,7 +18,7 @@ fs.mkdirSync(directory, { recursive: true });
 const transcript = path.join(directory, 'results.tap');
 fs.writeFileSync(transcript, '');
 const result = { schemaVersion: 1, id, command: 'npm test', startedAt: new Date().toISOString(),
-  node: process.version, platform: process.platform, seeds: [SEED], cases: [], exitCode: 1 };
+  node: process.version, platform: process.platform, seeds: [...new Set([SEED, ...Object.values(seedsByFile)])], cases: [], exitCode: 1 };
 
 async function main() {
   const controller = new AbortController();
@@ -33,7 +35,8 @@ async function main() {
     deadline = setTimeout(() => controller.abort(new Error('Suite exceeded 60 seconds')), 60000);
     const stream = run({ files: result.testFiles, concurrency: 1, timeout: 15000, signal: controller.signal });
     for (const outcome of ['pass', 'fail']) stream.on(`test:${outcome}`, data => {
-      result.cases.push({ id: data.name, file: path.relative(root, data.file || ''), seed: SEED,
+      const file = path.relative(root, data.file || '');
+      result.cases.push({ id: data.name, file, seed: seedsByFile[file] ?? SEED,
         outcome: data.skip ? 'skip' : data.todo ? 'todo' : outcome,
         durationMs: data.details.duration_ms,
         ...(data.details.error ? { failure: inspect(data.details.error, { depth: 6 }) } : {}),
