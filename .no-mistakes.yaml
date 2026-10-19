@@ -6,3 +6,5 @@ test:
     Record the tested commit, page URL, viewport, and scenario.
     Retain screenshots as test evidence alongside behavioral checks.
     Report any missing visual verification explicitly.
+  evidence:
+    attach_media: true
