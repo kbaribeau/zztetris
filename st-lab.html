@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>ZZTetris · ST core-loop lab</title>
+  <title>ZZTetris · ST free-play lab</title>
   <link rel="icon" href="assets/pieceSprite/z.png">
   <link rel="stylesheet" href="styles/zztetris.css">
   <link rel="stylesheet" href="styles/paint_bucket.css">
@@ -26,21 +26,14 @@
 <body data-st-lab>
   <nav class="app-nav" aria-label="Main navigation"></nav>
   <header>
-    <h1>ST core-loop lab</h1>
-    <p>Right-side Z/T · finite scoring exercises, not an ongoing ST coach.</p>
+    <h1>ST free-play lab</h1>
+    <p>Build your own stack with normal pieces. Occasional right-side Z/T/I hints, not a move-by-move coach.</p>
   </header>
   <main>
-    <section class="lab-setup" aria-label="Explicit exercise entry">
-      <div class="lab-fields">
-        <label>Exercise<select id="st-exercise"></select></label>
-      </div>
-      <p id="st-description"></p>
-      <button class="button" id="st-start">Start selected exercise · replace lab board</button>
-      <p class="lab-note">No drill is loaded until you press Start. Starting uses temporary SRS+ / gravity-off rules, without changing saved normal-play preferences. Advice defaults on and honors your saved Training display choice. No automatic restart or dedicated retry/recovery feature.</p>
-    </section>
     <section class="lab-advice" aria-label="Strategy advice">
       <button class="button" id="st-toggle" aria-pressed="true">Advice ON · KeyA</button>
-      <p id="st-status" role="status" aria-live="polite">Choose and start an exercise.</p>
+      <p id="st-status" role="status" aria-live="polite">Empty-board free play · build and maintain the stack yourself.</p>
+      <p class="lab-note">Temporary SRS+ / gravity off; saved normal-play preferences are unchanged. Advice honors your Training display choice. No opener, filler or recovery guidance. Restart clears the board with normal pieces, not a supplied setup.</p>
       <p class="lab-note">Amber inset dashes = ST destination · gray outline = current hard-drop ghost · filled color = active piece. HOLD FIRST targets belong to the named held/next piece, not the active piece. Advice never moves pieces for you.</p>
     </section>
     <div class="lab-field-scroll">
@@ -51,7 +44,7 @@
       </div>
     </div>
     <details class="lab-options"><summary>Normal editing / practice controls</summary>
-      <p>Edits, imports and unsupported rules can remove advice. The lab never repairs your queue or board. Undo/redo restore advice only with matching exercise history.</p>
+      <p>Advice rechecks the current board after edits, imports, undo/redo and locks. The lab never repairs your queue or board. Gravity on or another kickset disables advice.</p>
       <button class="button" onclick="this.blur(); shuffleQueue()">Shuffle Queue</button>
       <button class="button" onclick="this.blur(); shuffleQueuePlusHold()">Shuffle Queue + Hold</button>
       <button class="button" onclick="this.blur(); mirror()">Mirror</button>
@@ -100,7 +93,7 @@
   </main>
   <footer>
     <p><a href="ST-LAB.md">Lab rules, sources and limitations</a> · <a href="https://github.com/swng/zztetris#readme">ZZTetris by swng and contributors</a> · <a href="LICENSE">MIT license</a></p>
-    <p>Source diagrams: <a href="https://harddrop.com/w/index.php?title=ST_Stacking&amp;oldid=37604">Hard Drop ST Stacking</a>; right-Z/T terminology: <a href="https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit">Shocky's ST Stacking Guide</a>. No empty-board or indefinite-ST guarantee.</p>
+    <p>Source diagrams: <a href="https://harddrop.com/w/index.php?title=ST_Stacking&amp;oldid=37604">Hard Drop ST Stacking</a>; right-Z/T terminology: <a href="https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit">Shocky's ST Stacking Guide</a>. No continuous guidance or indefinite-ST guarantee.</p>
   </footer>
 </body>
 </html>

@@ -2,8 +2,21 @@ const assert=require('node:assert/strict');
 const json=value=>JSON.parse(JSON.stringify(value));
 const heap=g=>g.snapshot().heap.map(row=>row.replace(/[^.]/g,'#'));
 const core=g=>g.window.eval('STCore.create(pieces,kicksets["SRS+"])');
-const input=g=>json(g.window.stLab.beforeLock());
-function start(g,id='cap') {g.element('#st-exercise').value=id;g.click('#st-start');}
+const input=g=>json(g.window.stLab.snapshot());
+// Independent test-only examples, never a product entry mode or natural replay.
+function fixture(g,id='cap') {
+  const {fixtures}=require('./st-fixtures.cjs');
+  const rows=id==='spin'?fixtures.cap.afterCap:fixtures[id].before;
+  arrange(g,rows,{active:{cap:'T','cap-high':'T',pocket:'I',well:'O',spin:'O'}[id],
+    hold:{cap:'Z','cap-high':'Z',pocket:'I',well:'I',spin:'T'}[id]});
+}
+function arrange(g,rows,{active='T',hold='Z',next=['O','I','J','L','S','T']}={}) {
+  const w=g.window;
+  w.board=rows.map(row=>[...row].map(c=>({t:c==='#'?1:0,c:c==='#'?'X':''})));
+  w.queue=w.JSON.parse(JSON.stringify([active,...next,...'IOTJLSZ|IOTJLSZ|']));w.holdP=hold;w.held=false;w.lastAction='';
+  w.newPiece();w.hist=[{board:JSON.stringify(w.board),queue:JSON.stringify(w.queue),hold:w.holdP,piece:w.piece}];w.histPos=0;
+  g.advance(16);
+}
 function editPieces(g,{active,hold,next}) {
   const w=g.window,prompt=w.prompt;
   try {
@@ -29,4 +42,4 @@ function replay(g,result) {
   }
   g.advance(16);
 }
-module.exports={json,heap,core,input,start,editPieces,replay};
+module.exports={json,heap,core,input,fixture,arrange,editPieces,replay};

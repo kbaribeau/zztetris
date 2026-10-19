@@ -1,4 +1,4 @@
-/* Practice adapter for the finite lab. Only st-lab.html loads this file.
+/* Free-play adapter for the ST lab. Only st-lab.html loads this file.
  * The engine owns play; STCore owns immutable rules/search. No hypothetical
  * actions are ever executed against the live board or zzBot.
  */
@@ -6,37 +6,18 @@
 (() => {
   const advisor=STCore.create(pieces,kicksets['SRS+']);
   const $id=id=>document.getElementById(id);
-  const historyStates=new WeakMap();
-  let strategy=null, observedEntry=null, observedSignature='';
   let cacheKey='', result=null;
   const lockedHeap=()=>board.map(row=>row.map(cell=>cell.t===1?'#':'.').join(''));
-  const signature=entry=>entry ? JSON.stringify([entry.board,entry.queue,entry.hold,entry.piece]) : '';
-  const clone=value=>value && JSON.parse(JSON.stringify(value));
   function clear() {cacheKey='';result=null;$id('st-target').replaceChildren();delete $id('st-target').dataset.drawing;}
-  function observe() {observedEntry=hist[histPos];observedSignature=signature(observedEntry);}
-  function syncHistory() {
-    if(hist[histPos]!==observedEntry || signature(hist[histPos])!==observedSignature) {
-      // Imports/full-mirror replace or mutate history outside undo/redo hooks.
-      strategy=null;observe();clear();
-    }
-  }
+  // No phase/certificate sidecar: undo, imports, edits and ordinary locks all
+  // receive the same fresh geometric analysis. Only visible preview enters it.
   function snapshot() {
-    syncHistory();
     const next=STCore.visiblePreview(queue);
     return {heap:lockedHeap(),active:{id:'active',kind:piece,x:xPOS,y:yPOS,rotation:rot,lastAction},
       hold:holdP?{id:'hold',kind:holdP}:null,
-      visibleNext:next?.map((kind,i)=>({id:'next-'+i,kind})),holdRule:'unlimited-swap',strategy:clone(strategy),
-      rules:{version:STCore.version,mode:'practice',kickset:kicks===kicksets['SRS+']?'SRS+':'unsupported',gravity:$id('grav').checked},
+      visibleNext:next?.map((kind,i)=>({id:'next-'+i,kind})),holdRule:'unlimited-swap',
+      rules:{version:STCore.version,mode:'st-lab',kickset:kicks===kicksets['SRS+']?'SRS+':'unsupported',gravity:$id('grav').checked},
       limits:{maxPoseStates:30000,maxLockStates:128,depth:2}};
-  }
-  function saveHistory(entry) {
-    historyStates.set(entry,{signature:signature(entry),strategy:clone(strategy)});
-    observe();clear();
-  }
-  function restoreHistory(entry) {
-    const record=historyStates.get(entry);
-    strategy=record && record.signature===signature(entry) ? clone(record.strategy) : null;
-    observe();clear();
   }
   function advice() {
     const input=snapshot(), key=JSON.stringify(input);
@@ -46,7 +27,6 @@
   function toggle() {TrainingSettings.setGuideVisible(!TrainingSettings.guideVisible);}
   function render() {
     if(!window.zzBot) return;
-    syncHistory();
     const enabled=TrainingSettings.guideVisible;
     const code=STBinding.resolve(localStorage,Object.keys(ctrl));
     const toggleLabel=`Advice ${enabled?'ON':'OFF'} · ${code || 'key conflicts; rebind in Game Settings'}`;
@@ -55,11 +35,10 @@
     const answer=enabled?advice():null;
     let message;
     if(!enabled) message='Advice display off. Normal ghost and gameplay remain available.';
-    else if(!strategy) message='Unsupported exercise state. Choose and explicitly start a named exercise; no board is loaded automatically.';
     else if(answer.kind==='target') {
       const prelude=answer.prelude.length===2 ? `HOLD TWICE · respawn ${answer.piece.kind}` : answer.prelude.length ? `HOLD FIRST · ${piece} → ${answer.piece.kind}` : `ACTIVE ${answer.piece.kind}`;
       message=`${prelude} · amber ST target for ${answer.piece.kind}. ${answer.explanation}`;
-      if(!answer.continuationVerified) message+=' No further core step verified within the visible horizon.';
+      message+=answer.continuationVerified ? ` A following ${answer.continuation.piece.kind} scoring action is also verified with legal access in the visible preview/hold.` : ' Immediate action only; no following scoring action verified.';
     } else message=answer.explanation;
     if($id('st-status').textContent!==message) $id('st-status').textContent=message;
     const resultLabel=answer?.kind==='abstain'?answer.reason:answer?.kind || 'off';
@@ -88,33 +67,6 @@
       }
     }
   }
-  function describe() {
-    const ex=STCore.exercises.find(ex=>$id('st-exercise').value===ex.id);
-    const setup=advisor.exercise(ex.id);
-    $id('st-description').textContent=`${ex.description} Authored start: active ${setup.active}, hold ${setup.hold}, NEXT ${setup.next.join(' ')}. Start replaces this lab board, queue and history. Practice/SRS+, gravity off; no setup, filler, Reset/recovery or sustained-stacking coaching.`;
-  }
-  function start() {
-    const setup=advisor.exercise($id('st-exercise').value);
-    if(!setup || !window.zzBot)return;
-    // This explicit button is the only operation that installs a drill. These
-    // are temporary lab rules, never changes to normal-play saved preferences.
-    $id('grav').checked=false;$id('kickset').value='SRS+';kicks=kicksets['SRS+'];
-    keysDown=0;lastKeys=0;dasID++;
-    board=setup.heap.map(row=>[...row].map(c=>({t:c==='#'?1:0,c:c==='#'?'X':''})));
-    // A disclosed authored queue, not a bag prediction. Supply a finite tail to
-    // render the initial preview; the planner sees only currently visible pieces.
-    queue=[setup.active,...setup.next,...'IOTJLSZ|IOTJLSZ|'];
-    holdP=setup.hold;held=false;lastAction='';combo=-1;b2b=-1;oldcombo=-1;oldb2b=-1;
-    newPiece();
-    hist=[{board:JSON.stringify(board),queue:JSON.stringify(queue),hold:holdP,piece}];histPos=0;
-    strategy=clone(setup.strategy);saveHistory(hist[0]);render();
-    $id('st-start').blur();
-  }
-  for(const ex of STCore.exercises) {
-    const option=document.createElement('option');option.value=ex.id;option.textContent=ex.title;$id('st-exercise').append(option);
-  }
-  $id('st-exercise').addEventListener('change',describe);
-  $id('st-start').addEventListener('click',start);
   $id('st-toggle').addEventListener('click',()=>{toggle();$id('st-toggle').blur();});
   // Capture text-entry keys before the legacy game listeners. Ordinary pages do
   // not load this adapter and retain their existing input behavior.
@@ -128,11 +80,5 @@
     }
   },true);
   $id('grav').addEventListener('change',()=>{clear();render();});
-  window.stLab=Object.freeze({
-    render,saveHistory,restoreHistory,
-    beforeLock:snapshot,
-    afterLock(input,lock) {strategy=advisor.advance(input,{...lock,heap:lockedHeap()});clear();},
-    reset() {strategy=null;observe();clear();},
-  });
-  describe();
+  window.stLab=Object.freeze({render,snapshot});
 })();

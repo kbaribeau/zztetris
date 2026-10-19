@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { ALL_PAGES, PAGES, ENGINES, settings, DEFAULT_CONFIG } = require('./support/pages.cjs');
 const { boot, withPage } = require('./support/page.cjs');
-const { start } = require('./support/st-driver.cjs');
+const { fixture } = require('./support/st-driver.cjs');
 const paths = g => g.preview().n.filter(call => call.path);
 const sprites = g => g.preview().n.filter(call => call.piece);
 const state = g => JSON.stringify([g.snapshot(), g.window.board, g.window.hist, g.window.lastAction, g.window.held]);
@@ -96,7 +96,7 @@ for (const bag of [undefined, 'true', 'false']) for (const guide of [undefined, 
       }
       assert.equal(g.element('#bag-boundaries').checked, bag === 'true');
       assert.equal(g.element('#st-guide-visible').checked, guide !== 'false');
-      assert.match(g.element('#st-guide-help').textContent, /lab.*never normal play/);
+      assert.match(g.element('#st-guide-help').textContent, /ST lab free play only, never other modes/);
       g.click('#bag-boundaries'); g.click('#st-guide-visible');
       saved = g.storage();
       assert.equal(saved.bagBoundaries, String(bag !== 'true'));
@@ -120,7 +120,7 @@ for (const preference of [undefined, 'true', 'false']) {
     let saved;
     try {
       await withPage('st-lab.html', { storage }, g => {
-        start(g);
+        fixture(g);
         const check = enabled => {
           assert.equal(g.element('#st-toggle').getAttribute('aria-pressed'), String(enabled));
           assert.equal(g.element('#st-target').children.length, enabled ? 8 : 0);
@@ -137,11 +137,11 @@ for (const preference of [undefined, 'true', 'false']) {
         g.key('keydown', 'KeyB', true); g.key('keyup', 'KeyB'); check(preference !== 'false');
         g.click('#st-toggle'); check(preference === 'false');
         assert.equal(state(g), before);
-        start(g); check(preference === 'false'); // no forced reset on explicit exercise entry
+        g.tap('KeyR'); fixture(g); check(preference === 'false'); // restart and fresh recognition preserve display choice
         saved = g.storage();
       });
       await withPage('st-lab.html', { storage: saved }, g => {
-        start(g); assert.equal(g.element('#st-toggle').getAttribute('aria-pressed'), saved.stGuideVisible);
+        fixture(g); assert.equal(g.element('#st-toggle').getAttribute('aria-pressed'), saved.stGuideVisible);
       });
     } finally { controls.dispose(); }
   });

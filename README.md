@@ -28,9 +28,9 @@ In normal game modes, the **gravity** checkbox saves immediately in a separate `
 
 **Game Settings → Training** groups two display-only options: **Show bag boundaries in NEXT** (default off) and **Show amber ST guide (lab only)** (default on). They save immediately as `bagBoundaries` and `stGuideVisible`, redraw open games without restarting, and persist across reloads/modes. Closing the settings popup after display-only changes does not reload the game. The guide option never adds advice to ordinary play. Reset to Defaults restores both training defaults. See [lab controls](./ST-LAB.md#play) for the advice hotkey and button.
 
-## ST core-loop lab
+## ST free-play lab
 
-Open **ST lab** from the top menu for finite, source-derived right-Z/T exercises: Z cap, T-spin double, pocket I and well quad. Choose a named authored board/queue and explicitly press **Start**. This is not an ongoing-game or empty-board ST solver.
+Open **ST lab** from the top menu for empty-board play with normal pieces. Build and maintain your own stack; occasional verified right-side hints cover Z caps, T-spin doubles, pocket I and well quads. Named drills and authored starts are removed. This is not an opener, filler, recovery or indefinite-ST coach.
 
 Amber inset dashes show the strategy destination, including **HOLD FIRST** previews before a required swap. The normal gray drop ghost is unchanged. See [lab controls](./ST-LAB.md#play) for toggling advice and rebinding its key.
 
