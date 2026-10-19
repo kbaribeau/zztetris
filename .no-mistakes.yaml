@@ -1,0 +1,8 @@
+test:
+  instructions: |
+    For UI changes, exercise the affected screens in a real browser.
+    Use an isolated browser session, not the user's existing profile.
+    Capture and inspect desktop and narrow-viewport screenshots.
+    Record the tested commit, page URL, viewport, and scenario.
+    Retain screenshots as test evidence alongside behavioral checks.
+    Report any missing visual verification explicitly.
