@@ -111,7 +111,7 @@ shown. Nothing repairs the stack, advances a phase or automatically restarts.
 
 ### Sources
 
-The four local mechanisms derive from [Hard Drop ST Stacking, revision
+The right-side Z/T/I mechanisms derive from [Hard Drop ST Stacking, revision
 37604](https://harddrop.com/w/index.php?title=ST_Stacking&oldid=37604), zero-indexed
 diagrams 0/1/4 (cap/T/residue), 9/10 (pocket I), and 13/14/cleared result (well I),
 mirrored into the right-Z/T convention of [Shocky's ST Stacking
@@ -197,11 +197,6 @@ do not rewrite target DOM/live regions. Nothing enters the collision board.
 ## Verification
 
 See [TESTING.md](TESTING.md#st-lab-behavioral-coverage) and `npm test` using `.nvmrc`.
-`test/st-center.test.cjs` covers all three completion families, unavailable and
-ordered access, trapped actual poses/two holds, blocked intermediate spawns,
-platform/obstruction/notch failures, exact double versus single, visible-S LO
-reserve, translated/unequal-height boards, stable-target revalidation and live
-toggle/history/settings changes. Pair starts and opposite orientations abstain.
 
 Tests retain independent sourced positive/negative boards, legal hold/path and
 actual scoring checks, generalized filler/height variants and the missing-left-
