@@ -443,7 +443,6 @@ function updateHistory() {
 		// remove future history if it exists
 		hist.pop();
 	}
-	window.stLab?.saveHistory(hist[histPos]);
 }
 
 function updateGhost() {
@@ -574,7 +573,6 @@ function undo() {
 		updateGhost();
 		setShape();
 		updateQueue();
-		window.stLab?.restoreHistory(hist[histPos]);
 	}
 }
 
@@ -593,7 +591,6 @@ function redo() {
 		updateGhost();
 		setShape();
 		updateQueue();
-		window.stLab?.restoreHistory(hist[histPos]);
 	}
 }
 
@@ -943,7 +940,6 @@ function callback(gravity=700, special_restart=false, cheese=false) {
 	}
 
 	function hardDrop() {
-		const labLock = window.stLab?.beforeLock();
 		if (yPOS != yGHO) lastAction = 'HD';
 		yPOS = yGHO;
 		held = false;
@@ -952,7 +948,6 @@ function callback(gravity=700, special_restart=false, cheese=false) {
 		clearActive();
 		
 		cleared = checkLines();
-		window.stLab?.afterLock(labLock, { kind:piece, x:xPOS, y:yPOS, rotation:rot, lastAction, cleared, tspin, mini });
 		newPiece();
 
         if (cheese) {

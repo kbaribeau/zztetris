@@ -1,3 +1,6 @@
+/* This stylesheet is lab-only. Advice may create/remove the vertical scrollbar;
+   reserve its space so the centered field cannot shift horizontally either. */
+html { scrollbar-gutter:stable; }
 body { margin:0; background:#222; color:#fff; }
 header, main, footer { box-sizing:border-box; max-width:960px; margin:auto; padding:16px; }
 header h1 { margin-bottom:8px; }
@@ -5,12 +8,9 @@ p, label, select, summary, .lab-note { font-family:system-ui,sans-serif; line-he
 p, label, .lab-note { user-select:text; -webkit-user-select:text; }
 a { color:#80d5ff; }
 button:focus-visible, a:focus-visible, select:focus-visible, summary:focus-visible { outline:3px solid #ffc85b; outline-offset:3px; }
-.lab-setup, .lab-advice { border:1px solid #666; padding:16px; margin-bottom:16px; }
+.lab-advice { border:1px solid #666; padding:16px; margin-top:16px; }
 .lab-advice { border-left:4px solid #ffc85b; }
-.lab-fields { display:flex; gap:16px; flex-wrap:wrap; }
-.lab-fields label { flex:1 1 240px; min-width:0; }
 select { box-sizing:border-box; color:#fff; background:#292929; border:1px solid #888; padding:8px; max-width:100%; }
-.lab-fields select { display:block; width:100%; }
 .lab-note { color:#ccc; font-size:13px; }
 #st-status { font-size:18px; margin:12px 0; }
 #st-status[data-result="target"] { color:#ffc85b; }
@@ -33,6 +33,5 @@ body[data-st-lab] .tc span svg { width:28px; height:28px; }
   .queue { width:60px; font-size:22px; }
   .queue canvas { width:60px; height:auto; }
   #notif { width:60px; font-size:12px; }
-  .lab-setup, .lab-advice { padding:12px; }
-  .lab-fields { gap:8px; }
+  .lab-advice { padding:12px; }
 }
