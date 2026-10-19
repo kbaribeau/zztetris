@@ -21,7 +21,10 @@
   }
   function advice() {
     const input=snapshot(), key=JSON.stringify(input);
-    if(key!==cacheKey) {result=advisor.advise(input);cacheKey=key;}
+    if(key!==cacheKey) {
+      const preferredTarget=result?.kind==='target'?{kind:result.piece.kind,cells:result.cells}:null;
+      result=advisor.advise({...input,preferredTarget});cacheKey=key;
+    }
     return result;
   }
   function toggle() {TrainingSettings.setGuideVisible(!TrainingSettings.guideVisible);}

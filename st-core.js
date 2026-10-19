@@ -1,4 +1,4 @@
-/* Bounded right-sided ST scoring recognition. No DOM, RNG, clock or play history.
+/* Bounded right-sided ST scoring and Center pair-completion recognition. No DOM, RNG, clock or play history.
  * Geometry/provenance and deliberately unadvised gaps: ST-LAB.md.
  */
 'use strict';
@@ -131,6 +131,31 @@ const STCore = (() => {
       }
       return rules;
     }
+    // Shocky §3.2: SL, OJ and conditional LO, reflected into our right-Z
+    // orientation. Only the second member is advised: completion + exact TSD
+    // fits two locks. Initiation would need a third lock, so is not inferred.
+    function centerCompletions(heap) {
+      const rules=[];
+      for(let y=36;y>=18;y--) {
+        const at=points=>points.map(([x,dy])=>[x,y+dy]);
+        const envelope=at([[4,0],[5,0],[6,0],[4,1],[5,1],[6,1],[4,2],[5,2],[6,2]]);
+        if(![4,5,6].every(x=>heap[y+3][x]==='#'))continue;
+        for(const [pair,kind,starter,cells] of [
+          ['SL','L',at([[5,1],[6,1],[4,2],[5,2]]),at([[4,0],[5,0],[6,0],[4,1]])],
+          ['OJ','J',at([[4,1],[5,1],[4,2],[5,2]]),at([[4,0],[5,0],[6,0],[6,1]])],
+          ['LO','O',at([[4,0],[4,1],[4,2],[5,2]]),at([[5,0],[6,0],[5,1],[6,1]])],
+        ]) {
+          const occupied=new Set(starter.map(([x,r])=>r*10+x));
+          if(!envelope.every(([x,r])=>heap[r][x]===(occupied.has(r*10+x)?'#':'.')))continue;
+          const after=placed(heap,cells);
+          if(after.cleared!==0 || after.heap[y+2][6]!=='.')continue;
+          rules.push({kind,cells,after:after.heap,rule:`center-${pair.toLowerCase()}-completion`,cleared:0,pair,
+            explanation:`${kind} completes the ${pair} overhang, leaving its right-edge notch open; a visible T can reach a non-mini double.`+
+              (pair==='LO'?' No S is visible; a later S still needs a checked home.':'')});
+        }
+      }
+      return rules;
+    }
     function advise(input) {
       const abstain=(reason,explanation,diagnostics)=>({kind:'abstain',reason,explanation,...(diagnostics?{diagnostics}:{})});
       if (!supported(input)) return abstain('unsupported','Advice requires ST lab, SRS+, gravity off and a valid ordinary-piece board/preview. Normal play remains available.');
@@ -162,10 +187,46 @@ const STCore = (() => {
           found.push({...choice,...path,rule,continuation});
         }
       }
+      // Preserve supported scoring choices. Filler earns a target only if no
+      // old hint was verified and a legally ordered, exact non-mini TSD follows.
+      if(!found.length && !budget.exhausted && limits.depth===2) {
+        const visibleS=[input.active,input.hold,...input.visibleNext].some(p=>p?.kind==='S');
+        for(const rule of centerCompletions(input.heap)) {
+          if(budget.exhausted)break;
+          // Observable-state reserve: no speculative bag debt and no invented
+          // S disposal. Even an already-started LO is unadvised with visible S.
+          if(rule.pair==='LO' && visibleS)continue;
+          const doubles=geometry(rule.after).filter(r=>r.tspin);
+          if(!doubles.length)continue;
+          for(const choice of options(input).filter(c=>c.active.kind===rule.kind)) {
+            if(budget.exhausted)break;
+            const path=pathTo(input.heap,choice.active,rule,budget);
+            if(!path || !choice.next.length)continue;
+            const future={heap:rule.after,active:spawn(choice.next[0]),hold:choice.hold,visibleNext:choice.next.slice(1)};
+            let continuation=null;
+            for(const access of options(future)) {
+              for(const double of doubles) {
+                const follow=pathTo(rule.after,access.active,double,budget);
+                if(follow) {continuation={piece:copy(access.active),rule:double.rule};break;}
+                if(budget.exhausted)break;
+              }
+              if(continuation || budget.exhausted)break;
+            }
+            if(continuation)found.push({...choice,...path,rule,continuation});
+          }
+        }
+      }
       const diagnostics={poseStates:budget.poses,lockStates:budget.locks,depth:limits.depth};
       if(budget.exhausted) return abstain('budget-exhausted','Search limit reached; no verified decision. This does not prove impossibility.',diagnostics);
-      if(!found.length) return abstain('no-core-fit-found','No verified scoring hint for the current board and accessible pieces. Build and maintain your stack; opener, filler and recovery moves are unadvised.',diagnostics);
-      found.sort((a,b)=>Number(!!b.continuation)-Number(!!a.continuation) || a.prelude.length-b.prelude.length || a.path.length-b.path.length || a.pose.rotation-b.pose.rotation || a.pose.x-b.pose.x || a.pose.y-b.pose.y);
+      if(!found.length) return abstain('no-core-fit-found','No supported ST continuation verified for the current board and accessible pieces. Opening, pair starts, Left filler and recovery are unadvised.',diagnostics);
+      // A preference is just a tie-break among freshly verified candidates,
+      // never a certificate. Ignore stale/malformed preferences harmlessly.
+      const preferred=c=>input.preferredTarget?.kind===c.active.kind && Array.isArray(input.preferredTarget.cells) &&
+        input.preferredTarget.cells.length===4 && c.rule.cells.every(([x,y],i)=> {
+          const cell=input.preferredTarget.cells[i];
+          return Array.isArray(cell) && cell.length===2 && cell[0]===x && cell[1]===y;
+        });
+      found.sort((a,b)=>Number(!!b.continuation)-Number(!!a.continuation) || Number(preferred(b))-Number(preferred(a)) || a.prelude.length-b.prelude.length || a.path.length-b.path.length || a.pose.rotation-b.pose.rotation || a.pose.x-b.pose.x || a.pose.y-b.pose.y);
       const best=found[0];
       return {kind:'target',piece:{id:best.active.id,kind:best.active.kind},from:best.from,prelude:best.prelude,path:best.path,pose:best.pose,cells:copy(best.rule.cells),rule:best.rule.rule,
         expected:{cleared:best.rule.cleared,tspin:!!best.rule.tspin,mini:false},explanation:best.rule.explanation,

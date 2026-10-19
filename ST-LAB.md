@@ -3,11 +3,11 @@
 Open **ST lab** from the [shared top menu](README.md), or [open the lab](st-lab.html).
 Play begins on an empty board with the normal shuffled seven-piece bags. Build
 and maintain your own stack. Occasional **amber inset dashed targets** identify
-verified right-sided Z caps, non-mini T-spin doubles, pocket I fills and well
-quads. Unsupported positions have **no target**, not a guessed best move.
+verified right-sided Z caps, non-mini T-spin doubles, pocket I fills, well
+quads and narrow Center SL/OJ/conditional LO pair completions. Unsupported positions have **no target**, not a guessed best move.
 The former named exercises, authored starts and completion flows are removed.
 
-This is not an opener, filler or recovery coach. It does not infer parity,
+This is not an opener, general filler or recovery coach. It does not infer parity,
 Extra-Z history, strategic Reset, sustainable stacking or indefinite correctness.
 A corner silhouette alone is not enough to establish a double or useful strategy.
 There is no guarantee of frequent hints or of encountering every action family.
@@ -66,6 +66,33 @@ vertically in the visible field, not horizontally or to the opposite orientation
 | T-spin double | T at `(6,y),(7,y),(8,y),(7,y+1)` under the cap; a legal grounded final rotation, non-mini spin and exactly two actual completed rows. |
 | Pocket I | Four rightmost pocket cells filled without a clear, beside four rows with an open column-8 well. Leaves a reachable well quad; another I is not assumed. |
 | Well I | Vertical I in column 8 completes exactly four rows. |
+| Center SL completion | Existing S at `(5,y+1),(6,y+1),(4,y+2),(5,y+2)`; L fills `(4,y),(5,y),(6,y),(4,y+1)`. |
+| Center OJ completion | Existing O at `(4,y+1),(5,y+1),(4,y+2),(5,y+2)`; J fills `(4,y),(5,y),(6,y),(6,y+1)`. |
+| Center LO completion (conditional) | Existing L at `(4,y),(4,y+1),(4,y+2),(5,y+2)`; O fills `(5,y),(6,y),(5,y+1),(6,y+1)`. |
+
+Center completions require a solid three-cell platform `(4..6,y+3)`, with
+`y=18..36`. The three-row Center envelope must be empty except for the listed
+existing member; the new right-edge notch `(6,y+2)` remains empty. No line is
+cleared by completion. Only the next **single placement** is shown, never both
+members. Actual current/hold/empty-hold/two-hold paths, every intervening spawn,
+and a legally available **exact non-mini TSD after completion** must be checked
+against the whole board. A shape alone, an inaccessible later T, or a double
+that becomes a single is insufficient. Left and Center need not be equal height.
+
+**LO reserve rule:** abstain from LO completion if **any S is observable** in
+the active piece, hold or any of the six visible preview slots. No S home is
+currently verified. No visible S is not proof of no future obligation: the
+explanation explicitly warns that a later S still needs a checked home. Hidden
+queue/bag history is never inspected or inferred. This conservative rule also
+rejects positions where a human could safely accommodate that S elsewhere.
+
+**Completion only:** SL starts with S, OJ with O, LO with L. No pair initiation
+is recommended, even with the partner visible: partner plus scoring would need
+three actual locks, beyond this increment's unchanged two-lock horizon. O-first
+is not a substitute for the existing L in LO. There is no Left filler coaching
+or S-disposal search. Existing supported Z/T/I choices retain priority; Center
+completion is considered only when none is verified. This is finite continuation
+evidence, not proof of sustainable general ST or optimal piece allocation.
 
 Unrelated upper filler and stack-height variation are allowed. Required affected
 rows, supports, collisions and reachable paths are checked against the **whole
@@ -78,7 +105,7 @@ pieces are unsupported rather than counted as unrelated scoring credit.
 A supported scoring action is not a judgment about allocation or strategic
 usefulness. Arbitrary garbage play, other notch/pocket geometries and scoring
 orientations are not covered. Empty boards and ordinary filler turns commonly
-receive **No verified scoring hint**. Keep playing manually. **Search limit
+receive **No supported ST continuation verified**. Keep playing manually. **Search limit
 reached** means incomplete analysis, not impossibility; no partial target is
 shown. Nothing repairs the stack, advances a phase or automatically restarts.
 
@@ -93,6 +120,20 @@ chapters 1–4. Source diagrams are not empty-board opening solutions. Independe
 literal occupancy/cell transcriptions remain in `test/support/st-fixtures.cjs`
 **only as tests**. Actual-engine generalized checks, not an assumption that all
 mirrored kicks work identically, establish the tested examples.
+
+Center pair geometry follows Shocky's §3.2 “Three SL pairs”, “An OJ pair” and
+“An LO pair”; §§6–7 motivate the caution about the hanging S. Independent
+reflected Marathon examples are pages **23–24** (frames 826/847), **155–157**
+(4665/4689/4712) and **64–65** (2009/2025), retained in
+`test/support/st-center-fixtures.cjs`. OJ's subsequent double is observed in the
+replay; immediate doubles in the SL/LO tests are hypothetical visible queues,
+not recovered player intent. Source lock order is not draw/hold order.
+
+Reflecting every cell `x → 9−x` and swapping S↔Z, J↔L gives ZJ/OL/JO on the
+opposite scoring orientation (Center columns 4–6, not 5–7). The retained filler
+study independently replayed those paths under SRS+; rotations must be searched
+fresh, not reflected numerically. This increment does **not** add those runtime
+orientations. Mirrored inputs are tested to avoid mislabelling them.
 
 A [full-run video reference](references/st-stacking/README.md) provides raw Fumen
 placement data and source-frame mappings from a separate Marathon replay. It is
@@ -118,8 +159,12 @@ visible pieces, and never examines the hidden suffix.
 Targets provide identity, `from`, 0/1/2-hold `prelude`, `cells`, landing `pose`,
 executable `path` ending in zero-distance HD, `rule`, `expected` scoring,
 `explanation`, `continuationVerified`, optional `continuation`, and diagnostics.
-A continuation is one legally accessible scoring follow-up to a setup, not
-completion, an arbitrary future-piece menu or a claim about later replenishment.
+A continuation is one legally accessible scoring follow-up to a setup or Center
+completion, not an arbitrary future-piece menu or claim about replenishment.
+`preferredTarget:{kind,cells}` is an optional tie-break among freshly verified
+candidates of equal continuation status. It cannot bypass geometry, access,
+scoring, LO reserve or work-limit checks. The adapter carries only this preference
+to keep a sound target stable after movement/hold/edits; it is not history evidence.
 
 Candidates are generated from present geometry and simulated clear results.
 Reachability uses actual ordered SRS+ kicks (including 180s) over
@@ -135,7 +180,8 @@ two actual locks including the immediate action**. Smaller nonnegative budgets
 and depth 1 are supported; invalid/larger limits reject. Hypothetical setup
 checks count toward those work budgets even at depth 1. Within a call, identical
 heap/pose/goal searches share paths. Any exhausted budget discards all candidates.
-Prefer verified continuation, fewer holds, shorter path, then rotation/x/y;
+Prefer verified continuation, a revalidated preferred target, fewer holds,
+shorter path, then rotation/x/y;
 geometry, hold and BFS order break remaining ties deterministically. There is no
 random search, clock tie-break, strategy framework, background service or solver.
 These work limits are not a latency or completeness guarantee.
@@ -151,6 +197,12 @@ do not rewrite target DOM/live regions. Nothing enters the collision board.
 ## Verification
 
 See [TESTING.md](TESTING.md#st-lab-behavioral-coverage) and `npm test` using `.nvmrc`.
+`test/st-center.test.cjs` covers all three completion families, unavailable and
+ordered access, trapped actual poses/two holds, blocked intermediate spawns,
+platform/obstruction/notch failures, exact double versus single, visible-S LO
+reserve, translated/unequal-height boards, stable-target revalidation and live
+toggle/history/settings changes. Pair starts and opposite orientations abstain.
+
 Tests retain independent sourced positive/negative boards, legal hold/path and
 actual scoring checks, generalized filler/height variants and the missing-left-
 cell single counterexample. `test/st-natural.test.cjs` begins empty using the
