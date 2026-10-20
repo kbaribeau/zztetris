@@ -24,17 +24,17 @@ Gameplay waits for every required sprite to load successfully. A missing or fail
 
 Settings are saved in your browser's `localStorage` for this site. **Game Settings** stores gameplay keybinds, handling, cell size, and audio level in `config`, with a separate `version` key for compatibility. These preferences stay in that browser profile; they do not sync between browsers or devices.
 
-In normal game modes, the **gravity** checkbox saves immediately in a separate `gravity` key as `"true"` or `"false"`. Its saved value is restored when you reload or open another normal game mode on the same site. Gravity starts enabled when no preference is saved. **Reset to Defaults** in Game Settings resets its configuration but leaves gravity unchanged; use the checkbox to change it. Clearing the site's local storage removes the saved settings, including gravity. The ST lab uses temporary rules described in [ST-LAB.md](./ST-LAB.md#play).
+In normal game modes, the **gravity** checkbox saves immediately in a separate `gravity` key as `"true"` or `"false"`. Its saved value is restored when you reload or open another normal game mode on the same site. Gravity starts enabled when no preference is saved. **Reset to Defaults** in Game Settings resets its configuration but leaves gravity unchanged; use the checkbox to change it. Clearing the site's local storage removes the saved settings, including gravity. The ST lab uses temporary rules described in [ST-LAB.md](./ST-LAB.md#play-and-controls).
 
-**Game Settings → Training** groups two display-only options: **Show bag boundaries in NEXT** (default off) and **Show amber ST guide (lab only)** (default on). They save immediately as `bagBoundaries` and `stGuideVisible`, redraw open games without restarting, and persist across reloads/modes. Closing the settings popup after display-only changes does not reload the game. The guide option never adds advice to ordinary play. Reset to Defaults restores both training defaults. See [lab controls](./ST-LAB.md#play) for the advice hotkey and button.
+**Game Settings → Training** groups two display-only options: **Show bag boundaries in NEXT** (default off) and **Show amber ST guide (lab only)** (default on). They save immediately as `bagBoundaries` and `stGuideVisible`, redraw open games without restarting, and persist across reloads/modes. Closing the settings popup after display-only changes does not reload the game. The guide option never adds advice to ordinary play. Reset to Defaults restores both training defaults. See [lab controls](./ST-LAB.md#play-and-controls) for the advice hotkey and button.
 
 ## ST free-play lab
 
 This branch replaces the **ST lab** matcher with an experimental three-lock continuation engine for playtesting, not a deployed replacement decision. It checks scoring-cycle, Center construction and repairable freestyle routes using actual pose, hold and ordered visible pieces. Empty-board play still uses normal pieces; opening coverage is not implemented, and abstentions are common. See [ST-LAB.md](ST-LAB.md) for the finite endpoint contract and [playtest instructions](docs/st-playtest.md) for established-stack examples. The captain decides whether to replace the current advisor; no indefinite-ST guarantee.
 
-Amber inset dashes show the strategy destination, including **HOLD FIRST** previews before a required swap. The normal gray drop ghost is unchanged. See [lab controls](./ST-LAB.md#play) for toggling advice and rebinding its key.
+Amber inset dashes show the strategy destination, including **HOLD FIRST** previews before a required swap. The normal gray drop ghost is unchanged. See [lab controls](./ST-LAB.md#play-and-controls) for toggling advice and rebinding its key.
 
-Lab SRS+/gravity-off rules are temporary and do not overwrite normal-play preferences. Unsupported/no-fit states remove advice and explain why; there is no automatic reset, dedicated retry or recovery advice. See [ST-LAB.md](./ST-LAB.md) for controls, exact scope, sources and limitations.
+See [ST-LAB.md](./ST-LAB.md) for temporary lab rules, supported continuations, sources and limitations.
 
 ## Features (probably buggy lol)
 
