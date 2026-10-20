@@ -122,6 +122,7 @@ for (const preference of [undefined, 'true', 'false']) {
       await withPage('st-lab.html', { storage }, g => {
         fixture(g);
         const check = enabled => {
+          require('./support/st-driver.cjs').settle(g);
           assert.equal(g.element('#st-toggle').getAttribute('aria-pressed'), String(enabled));
           assert.equal(g.element('#st-target').children.length, enabled ? 8 : 0);
         };

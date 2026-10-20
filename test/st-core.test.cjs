@@ -1,244 +1,109 @@
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const {withPage}=require('./support/page.cjs');
-const {fixtures,pad}=require('./support/st-fixtures.cjs');
-const {json,heap,core,input,fixture,arrange,editPieces,replay}=require('./support/st-driver.cjs');
-const freeze=value=>{if(value && typeof value==='object'){Object.values(value).forEach(freeze);Object.freeze(value);}return value;};
+const {fixtures}=require('./support/st-fixtures.cjs');
+const {json,heap,core,input,fixture,arrange,replay}=require('./support/st-driver.cjs');
+const hidden={storage:{stGuideVisible:'false'}};
+const freeze=x=>{if(x&&typeof x==='object'){Object.values(x).forEach(freeze);Object.freeze(x);}return x;};
 
-for(const id of ['cap','cap-high','pocket','well','spin']) {
-  test(`st-core/source replay/${id}: independent cells, real SRS+ paths and scoring`,()=>withPage('st-lab.html',{},g=>{
-    const planner=core(g),expected=fixtures[id] || fixtures.cap;
-    for(const availability of ['held','active','empty']) {
-      fixture(g,id);
-      const setup=g.snapshot();
-      if(availability==='active')g.tap('ShiftLeft');
-      if(availability==='empty')editPieces(g,{active:setup.piece,hold:'',next:[setup.hold,'O','I','J','L','S']});
-      assert.deepEqual(heap(g),id==='spin'?fixtures.cap.afterCap:expected.before);
-      let a=planner.advise(input(g));
-      const firstCells=id==='pocket'?expected.pocketCells:id==='well'?expected.wellCells:id==='spin'?expected.spinCells:expected.capCells;
-      assert.deepEqual(json(a.cells),firstCells);
-      if(availability==='empty' && id!=='pocket') {assert.equal(a.from,'next-0');assert.deepEqual(json(a.prelude),['hold']);}
-      if(availability==='empty' && id==='pocket') {assert.equal(a.from,'active');assert.deepEqual(json(a.prelude),[]);}
-      replay(g,a);
-      if(id==='cap')assert.deepEqual(heap(g),expected.afterCap);
-      if(id==='pocket')assert.deepEqual(heap(g),expected.afterPocket);
-      if(['cap','cap-high','pocket'].includes(id)) {
-        assert.equal(g.window.cleared,0);
-        a=planner.advise(input(g));
-        assert.deepEqual(json(a.cells),id==='pocket'?expected.wellCells:expected.spinCells);
-        replay(g,a);
-      }
-      assert.equal(g.window.cleared,['pocket','well'].includes(id)?4:2);
-      assert.equal(g.window.tspin,!['pocket','well'].includes(id));
-      assert.equal(g.window.mini,false);
-      assert.deepEqual(heap(g),expected.after);
-      const next=planner.advise(input(g));
-      if(id==='cap-high') {
-        assert.equal(next.rule,'uncapped-pocket-I','re-recognize the demonstrated high-notch → pocket transition');
-        assert.deepEqual(json(next.cells),fixtures.pocket.pocketCells);
-        replay(g,next);assert.equal(g.window.cleared,0);assert.deepEqual(heap(g),fixtures.pocket.afterPocket);
-      } else assert.equal(next.kind,'abstain','no authored completion or assumed next phase');
-    }
-  }));
+// The matcher-output contracts were intentionally superseded. These checks keep
+// actual-engine legality, exact score/board transitions, identity/order, spawn,
+// immutability and fail-closed budgets; no old priority is a success oracle.
+function witness(g,a) {
+  assert.equal(a.kind,'target',JSON.stringify(a.diagnostics));
+  assert.equal(a.witness.steps.length,a.diagnostics.requestedHorizon);
+  const used=new Set();
+  for(const step of a.witness.steps) {
+    assert.ok(!used.has(step.piece.id));used.add(step.piece.id);
+    replay(g,step);
+    assert.deepEqual(heap(g),json(step.heap));
+    assert.equal(g.window.cleared,step.expected.cleared);
+    assert.equal(g.window.tspin,step.expected.tspin);
+    assert.equal(g.window.mini,step.expected.mini);
+    assert.notEqual(g.element('#notif').textContent,'TOP OUT');
+  }
+  assert.deepEqual(heap(g),json(a.witness.endpoint.heap));
+  assert.equal(g.window.piece,a.witness.endpoint.active.kind);
+  assert.equal(g.window.lastAction,a.witness.endpoint.active.lastAction,'newPiece preserves the last action; hold resets it');
+  assert.equal(g.window.holdP,a.witness.endpoint.hold?.kind||'');
+  assert.deepEqual(input(g).visibleNext.slice(0,a.witness.endpoint.visibleNext.length).map(p=>p.kind),json(a.witness.endpoint.visibleNext.map(p=>p.kind)));
+  assert.equal(a.witness.endpoint.newConstructionObligations,'paid');
+  assert.equal(a.witness.endpoint.opportunity.resourceStatus,'unverified-beyond-horizon');
+  assert.match(a.explanation,/3 locks and spawns checked.*unverified/);
 }
+module.exports={witness};
 
-test('st-core/generalized: varying upper filler, notch heights and lower support, no whole-board certificate',()=>withPage('st-lab.html',{},g=>{
-  for(const rows of [
-    ['......#...','######....','#######...','#######...'],
-    ['##........','####..#...','######....','#######...','#######...'],
-    ['..##......','####..#...','######....','#######...','#######...','#######.#.'],
-    ['#.........','####..#...','######....','#######...','#######...','##....#.#.','#######.#.'],
-  ]) {
-    arrange(g,pad(rows));const p=core(g),s=input(g),a=p.advise(s);
-    assert.equal(a.rule,'uncapped-pocket-cap');assert.equal(a.continuationVerified,true);
-    replay(g,a);assert.equal(g.window.cleared,0);
-    const t=p.advise(input(g));assert.equal(t.rule,'capped-pocket-tsd');
-    replay(g,t);assert.equal(g.window.cleared,2);assert.equal(g.window.tspin,true);assert.equal(g.window.mini,false);
+for(const id of ['cap','cap-high','pocket','well','spin'])test(`st-core/source ${id}: all three actual locks replay with exact scoring and terminal spawn`,()=>withPage('st-lab.html',hidden,g=>{
+  fixture(g,id);witness(g,core(g).advise(input(g)));
+}));
+
+test('st-core/scoring: source cap and non-mini double exact literal boards; final rotation matters',()=>withPage('st-lab.html',hidden,g=>{
+  fixture(g,'cap');const a=core(g).advise(input(g));
+  assert.equal(a.rule,'cap');replay(g,a);assert.deepEqual(heap(g),fixtures.cap.afterCap);
+  const t=a.witness.steps[1];assert.equal(t.rule,'double');replay(g,t);
+  assert.deepEqual(heap(g),fixtures.cap.after);assert.equal(g.window.tspin,true);assert.equal(g.window.mini,false);assert.equal(g.window.cleared,2);
+  fixture(g,'spin');const w=g.window;w.zzBot.hold();w.clearActive();w.xPOS=6;w.yPOS=35;w.rot=2;w.lastAction='SD';w.updateGhost();w.setShape();
+  const next=core(g).advise(input(g));assert.equal(next.rule,'double');assert.ok(next.path.some(a=>['CW','CCW','R180'].includes(a)));
+  w.zzBot.hardDrop();assert.equal(w.cleared,2);assert.equal(w.tspin,false);
+}));
+
+test('st-core/near negative: missing Left cell never receives stale double claim; real stale path is a single',()=>withPage('st-lab.html',hidden,g=>{
+  fixture(g,'spin');const a=core(g).advise(input(g));assert.equal(a.rule,'double');
+  g.window.board[37][0]={t:0,c:''};const changed=core(g).advise(input(g));
+  if(changed.kind==='target')assert.notDeepEqual(json(changed.cells),json(a.cells));
+  replay(g,a);assert.equal(g.window.cleared,1);assert.equal(g.window.tspin,true);
+}));
+
+test('st-core/immutable determinism and frozen rule tables',()=>withPage('st-lab.html',hidden,g=>{
+  fixture(g);const s=freeze(input(g)),before=JSON.stringify(s),a=json(core(g).advise(s));
+  for(let i=0;i<3;i++)assert.deepEqual(json(core(g).advise(s)),a);
+  assert.equal(JSON.stringify(s),before);a.cells[0][0]=0;
+  assert.notDeepEqual(json(core(g).advise(s).cells),a.cells);
+}));
+
+test('st-core/hold: actual, held, empty-hold and two-hold access preserve legal ordered spawns',()=>withPage('st-lab.html',hidden,g=>{
+  for(const hold of ['Z','']) {
+    arrange(g,fixtures.cap.before,{active:'T',hold,next:['Z','O','I','J','L','S']});
+    const a=core(g).advise(input(g));witness(g,a);
   }
-  // Extra upper filler and translated four-row pocket/well also remain eligible.
-  for(const lower of [[],['#......#.#'],['#......#.#','.#........']]) {
-    arrange(g,pad(['##........','....##....',...Array(4).fill('#######.#.'),...lower]),{active:'I',hold:'I'});
-    const p=core(g);const a=p.advise(input(g));assert.equal(a.rule,'uncapped-pocket-I');
-    replay(g,a);assert.equal(g.window.cleared,0);
-    const b=p.advise(input(g));assert.equal(b.rule,'well-I-quad');replay(g,b);assert.equal(g.window.cleared,4);
-  }
+  fixture(g,'pocket');const w=g.window;w.clearActive();w.holdP='O';w.xPOS=5;w.yPOS=36;w.rot=1;w.lastAction='SD';w.updateGhost();w.setShape();
+  const s=input(g);s.preferredTarget={kind:'I',cells:fixtures.pocket.pocketCells};
+  const a=core(g).advise(s);assert.equal(a.kind,'target');assert.deepEqual(json(a.prelude),['hold','hold']);witness(g,a);
 }));
 
-test('st-core/near negatives: missing left cell is a single, blocked pocket, unsupported supports and unreachable scoring cavity',()=>withPage('st-lab.html',{},g=>{
-  fixture(g,'spin');const stale=core(g).advise(input(g));
-  g.window.board[37][0]={t:0,c:''};
-  assert.equal(core(g).advise(input(g)).kind,'abstain');
-  replay(g,stale); // Deliberately ignore rejection: demonstrate the actual counterexample.
-  assert.equal(g.window.cleared,1);assert.equal(g.window.tspin,true);assert.equal(g.window.mini,false);
-  for(const [id,x,y] of [['cap',0,37],['cap',6,39],['pocket',0,38]]) {
-    fixture(g,id);g.window.board[y][x]={t:0,c:''};
-    assert.equal(core(g).advise(input(g)).kind,'abstain');
-  }
-  fixture(g,'pocket');g.window.board[39][9]={t:1,c:'X'};
-  assert.equal(core(g).advise(input(g)).kind,'abstain');
-  fixture(g,'spin'); // Roof blocks entry but keeps target rows and corners intact.
-  for(let x=5;x<10;x++)g.window.board[36][x]={t:1,c:'X'};
-  assert.equal(core(g).advise(input(g)).kind,'abstain');
+test('st-core/spawn: blocked intermediate hold and next spawns cannot be bypassed',()=>withPage('st-lab.html',hidden,g=>{
+  fixture(g,'pocket');const w=g.window;w.clearActive();w.holdP='O';w.board[19][4]={t:1,c:'X'};w.xPOS=5;w.yPOS=36;w.rot=1;w.lastAction='SD';w.updateGhost();w.setShape();
+  const a=core(g).advise(input(g));assert.equal(a.kind,'abstain');
+  w.zzBot.hold();assert.equal(g.element('#notif').textContent,'TOP OUT');
+  const rows=fixtures.cap.before.slice();rows[18]='......#...';
+  arrange(g,rows,{active:'Z',hold:'T',next:['I','T','O','J','L','S']});
+  const b=core(g).advise(input(g));assert.equal(b.kind,'abstain','next I spawn is checked even before any hold escape');
 }));
 
-test('st-core/real scoring: a double without final rotation is not a T-spin; fresh recognition after deviation',()=>withPage('st-lab.html',{},g=>{
-  fixture(g,'spin');g.tap('ShiftLeft');const w=g.window;
-  w.clearActive();w.xPOS=6;w.yPOS=35;w.rot=2;w.lastAction='SD';w.updateGhost();w.setShape();
-  const a=core(g).advise(input(g));
-  assert.equal(a.kind,'target');assert.ok(a.path.some(action=>['CW','CCW','R180'].includes(action)));
-  w.zzBot.hardDrop();g.advance(16);
-  assert.equal(w.cleared,2);assert.equal(w.tspin,false);
-  assert.deepEqual(heap(g),fixtures.cap.after);
-  assert.equal(core(g).advise(input(g)).kind,'abstain');
-}));
-
-test('st-core/determinism: immutable inputs, fresh advisors, duplicate-instance tie break',()=>withPage('st-lab.html',{},g=>{
-  fixture(g,'pocket');
-  const snapshot=freeze(input(g)),before=JSON.stringify(snapshot),planner=core(g);
-  const first=json(planner.advise(snapshot));
-  assert.equal(first.piece.id,'active');assert.deepEqual(first.prelude,[]);
-  for(let i=0;i<4;i++)assert.deepEqual(json(core(g).advise(snapshot)),first);
-  assert.equal(JSON.stringify(snapshot),before);
-  first.cells[0][0]=0;
-  assert.equal(planner.advise(snapshot).cells[0][0],9);
-}));
-
-test('st-core/hold: only active/held/next-0; empty and repeated swaps preserve order',()=>withPage('st-lab.html',{},g=>{
-  const planner=core(g);
-  fixture(g);const before=g.snapshot();
-  assert.equal(planner.advise(input(g)).piece.id,'hold');
-  g.tap('ShiftLeft');g.advance(16);
-  assert.equal(g.window.piece,'Z');assert.equal(g.window.holdP,'T');
-  assert.deepEqual(g.snapshot().queue,before.queue);
-  assert.deepEqual(json(planner.advise(input(g)).prelude),[]);
-  g.tap('ShiftLeft');g.advance(16);
-  assert.equal(g.window.piece,'T');assert.deepEqual(g.snapshot().queue,before.queue);
-  fixture(g);editPieces(g,{active:'T',hold:'',next:['Z','O','I','J','L','S']});const queue=g.snapshot().queue;
-  assert.equal(planner.advise(input(g)).from,'next-0');
-  g.tap('ShiftLeft');assert.deepEqual(g.snapshot().queue,queue.slice(1));
-  g.tap('ShiftLeft');assert.deepEqual(g.snapshot().queue,queue.slice(1));
-  assert.equal(g.window.piece,'T');assert.equal(g.window.holdP,'Z');
-  fixture(g);editPieces(g,{active:'O',hold:'J',next:['Z','T','I','S','L','O']});
-  assert.equal(planner.advise(input(g)).reason,'no-core-fit-found');
-  const bottom=heap(g);g.tap('Space');assert.notDeepEqual(heap(g),bottom);
-}));
-
-test('st-core/respawn: two holds recover trapped I without skipping preview',()=>withPage('st-lab.html',{},g=>{
-  fixture(g,'pocket');const w=g.window;
-  w.clearActive();w.holdP='O';w.xPOS=5;w.yPOS=36;w.rot=1;w.lastAction='SD';w.updateGhost();w.setShape();
-  const before=g.snapshot().queue,answer=core(g).advise(input(g));
-  assert.equal(answer.kind,'target');assert.equal(answer.piece.id,'active');
-  assert.deepEqual(json(answer.prelude),['hold','hold']);
-  replay(g,answer);
-  assert.deepEqual(g.snapshot().queue.slice(0,5),before.slice(1,6));
-  assert.deepEqual(heap(g),fixtures.pocket.afterPocket);
-}));
-
-test('st-core/respawn: held and next O must fit before a trapped I can respawn',()=>withPage('st-lab.html',{},g=>{
-  for(const hold of ['O','']) for(const blocked of [true,false]) {
-    fixture(g,'pocket');const w=g.window,x=blocked?4:0;
-    w.clearActive();w.holdP=hold;w.queue[0]='O';
-    w.board[19][x]={t:1,c:'X'};
-    w.xPOS=5;w.yPOS=36;w.rot=1;w.lastAction='SD';w.updateGhost();w.setShape();
-    g.element('#notif').textContent='';
-    const before=g.snapshot(),answer=core(g).advise(input(g));
-    assert.deepEqual(g.snapshot(),before);
-    if(blocked) {
-      assert.equal(answer.reason,'no-core-fit-found');
-      w.zzBot.hold();
-      assert.equal(g.element('#notif').textContent,'TOP OUT');
-      assert.equal(w.board[19][4].t,2);
-      w.zzBot.hold();
-      assert.equal(w.board[19][4].t,0);
-      assert.deepEqual(heap(g),fixtures.pocket.before);
-    } else {
-      assert.equal(answer.kind,'target');assert.deepEqual(json(answer.prelude),['hold','hold']);
-      replay(g,answer);
-      const expected=fixtures.pocket.afterPocket.slice();expected[19]='#.........';
-      assert.deepEqual(heap(g),expected);
-      assert.notEqual(g.element('#notif').textContent,'TOP OUT');
-      assert.equal(w.cleared,0);
-      assert.deepEqual(g.snapshot().queue.slice(0,5),before.queue.slice(1+Number(!hold),6+Number(!hold)));
-    }
-  }
-}));
-
-test('st-core/continuation: next spawn must fit before held or empty-hold T access',()=>withPage('st-lab.html',{},g=>{
-  for(const hold of ['T','']) for(const blocked of [true,false]) {
-    const rows=fixtures.cap.before.slice(),x=blocked?6:0;
-    rows[18]=blocked?'......#...':'#.........';
-    arrange(g,rows,{active:'Z',hold,next:['I','T','O','J','L','S']});
-    g.element('#notif').textContent='';
-    const before=g.snapshot(),answer=core(g).advise(input(g));
-    assert.deepEqual(g.snapshot(),before);
-    assert.equal(answer.rule,'uncapped-pocket-cap');assert.deepEqual(json(answer.prelude),[]);
-    assert.equal(answer.continuationVerified,!blocked);
-    if(blocked) assert.equal(answer.continuation,null);
-    else assert.equal(answer.continuation.piece.kind,'T');
-    replay(g,answer);
-    assert.equal(g.window.piece,'I');assert.equal(g.window.cleared,0);
-    if(blocked) {
-      assert.equal(g.element('#notif').textContent,'TOP OUT');
-      assert.equal(g.window.board[18][x].t,2);
-      g.window.zzBot.hold();
-      assert.equal(g.window.piece,'T');assert.equal(g.window.board[18][x].t,0);
-      assert.deepEqual(heap(g),fixtures.cap.afterCap);
-    } else {
-      const next=core(g).advise(input(g));
-      assert.equal(next.rule,'capped-pocket-tsd');assert.deepEqual(json(next.prelude),['hold']);
-      replay(g,next);
-      const expected=fixtures.cap.after.slice();expected[20]='#.........';
-      assert.deepEqual(heap(g),expected);
-      assert.equal(g.window.cleared,2);assert.equal(g.window.tspin,true);assert.equal(g.window.mini,false);
-      assert.notEqual(g.element('#notif').textContent,'TOP OUT');
-    }
-  }
-}));
-
-test('st-core/visible horizon: hidden suffix invariance, renderer clipping and separators',()=>withPage('st-lab.html',{},g=>{
-  fixture(g);const w=g.window,planner=core(g),api=w.eval('STCore');
-  const original=json(planner.advise(input(g)));
-  w.queue.splice(6,w.queue.length-6,...'MZZZZZZ|IIIIIII|');
-  assert.deepEqual(json(planner.advise(input(g))),original);
-  const expected=['I','O','T','J','L','S'];
-  for(let boundary=0;boundary<=6;boundary++) {
-    const q=[...expected];q.splice(boundary,0,'|');q.push('Z','M');
-    assert.deepEqual(json(api.visiblePreview(q)),expected);
-  }
-  assert.deepEqual(json(api.visiblePreview(['I','O','T','J','L','S','M'])),expected);
+test('st-core/visible prefix: hidden-suffix invariance, clipping, separators, no late-piece selection',()=>withPage('st-lab.html',hidden,g=>{
+  fixture(g);const p=core(g),api=g.window.eval('STCore'),a=json(p.advise(input(g)));
+  g.window.queue.splice(6,g.window.queue.length-6,...'MZZZZZZ|IIIIIII|');assert.deepEqual(json(p.advise(input(g))),a);
+  for(let boundary=0;boundary<=6;boundary++){const q=[...'IOTJLS'];q.splice(boundary,0,'|');q.push('Z','M');assert.deepEqual(json(api.visiblePreview(q)),[...'IOTJLS']);}
   assert.equal(api.visiblePreview(['I','|','|','T','J','L','S']),null);
   assert.equal(api.visiblePreview(['M','I','O','T','J','L','S']),null);
-  const limited=input(g);limited.hold=null;limited.visibleNext=[];
-  assert.equal(planner.advise(limited).reason,'no-core-fit-found');
+  assert.deepEqual(json(api.visiblePreview([...'IOTJLSM'])),[...'IOTJLS']);
+  const s=input(g);s.hold=null;s.visibleNext=[];assert.equal(p.advise(s).kind,'abstain');
+  const short=input(g);short.visibleNext=short.visibleNext.slice(0,2);assert.equal(p.advise(short).kind,'abstain','lock H must have a known following spawn');
 }));
 
-test('st-core/continuation: actual ordered legal access, not a promised future piece or completion',()=>withPage('st-lab.html',{},g=>{
-  fixture(g);g.tap('ShiftLeft');const planner=core(g),s=input(g);
-  assert.equal(planner.advise(s).continuationVerified,true);
-  s.hold={id:'hold',kind:'J'};s.visibleNext=[{id:'next-0',kind:'O'},{id:'next-1',kind:'T'}];
-  assert.equal(planner.advise(s).continuationVerified,false);
-  s.visibleNext=[{id:'next-0',kind:'T'}];
-  assert.equal(planner.advise(s).continuationVerified,true);
-  s.visibleNext=[];
-  assert.equal(planner.advise(s).continuationVerified,false);
-  fixture(g,'pocket');const pocket=input(g);pocket.hold={id:'hold',kind:'J'};
-  assert.equal(planner.advise(pocket).continuationVerified,false,'no assumed second I');
-  fixture(g,'well');assert.equal(planner.advise(input(g)).continuationVerified,false,'quad is not an indefinite continuation');
-}));
-
-test('st-core/abstentions: malformed snapshots, rules and deterministic finite budgets',()=>withPage('st-lab.html',{},g=>{
-  fixture(g);const s=input(g),planner=core(g);
-  for(const mutate of [
-    x=>{x.heap=[];},x=>{x.heap[39]='##########';},x=>{x.heap[39]='invalid';},
-    x=>{x.rules.mode='practice';},x=>{x.rules.gravity=true;},x=>{x.rules.kickset='SRS';},x=>{x.rules.version='old';},x=>{x.holdRule='once-per-lock';},
-    x=>{x.active.kind='M';},x=>{x.active.id=x.hold.id;},x=>{x.active.rotation=4;},
-    x=>{x.visibleNext.push({id:'q7',kind:'I'});},x=>{x.limits.maxPoseStates=Infinity;},
-  ]) {const invalid=json(s);mutate(invalid);assert.equal(planner.advise(invalid).reason,'unsupported');}
-  for(const limits of [{maxPoseStates:0},{maxPoseStates:1},{maxLockStates:0}]) {
-    const result=planner.advise({...s,limits:{...s.limits,...limits}});
-    assert.equal(result.reason,'budget-exhausted');assert.equal(result.cells,undefined);
-    assert.deepEqual(json(planner.advise({...s,limits:{...s.limits,...limits}})),json(result));
+test('st-core/limits: malformed input and shared budgets fail closed, including candidate generation',()=>withPage('st-lab.html',hidden,g=>{
+  fixture(g);const s=input(g),p=core(g);
+  for(const mutate of [x=>x.heap=[],x=>x.heap[39]='##########',x=>x.rules.gravity=true,x=>x.rules.mode='practice',x=>x.rules.kickset='SRS',x=>x.rules.version='old',x=>x.holdRule='once',x=>x.active.kind='M',x=>x.active.id=x.hold.id,x=>x.active.rotation=4,x=>x.visibleNext.push({id:'q7',kind:'I'}),x=>x.limits.maxPoseStates=Infinity]){const invalid=json(s);mutate(invalid);assert.equal(p.advise(invalid).reason,'unsupported');}
+  for(const limits of [{maxPoseStates:0},{maxPoseStates:1},{maxLockStates:0},{maxCandidates:0},{maxCandidates:4000}]) {
+    const a=p.advise({...s,limits});assert.equal(a.reason,'budget-exhausted');assert.equal(a.cells,undefined);assert.ok(a.diagnostics.effectiveHorizon<3);
+    assert.deepEqual(json(p.advise({...s,limits})),json(a));
   }
-  const shallow=planner.advise({...s,limits:{...s.limits,depth:1}});
-  assert.equal(shallow.kind,'target');assert.equal(shallow.continuationVerified,false);
+  const a=p.advise({...s,limits:{depth:1}});assert.equal(a.diagnostics.requestedHorizon,1);if(a.kind==='target')assert.equal(a.witness.steps.length,1);
+}));
+
+test('st-core/resumable search: slicing is identical to synchronous advice and abandonment has no side effects',()=>withPage('st-lab.html',hidden,g=>{
+  fixture(g);const s=input(g),before=g.snapshot(),p=core(g),job=p.start(s);let r,yields=0;
+  do{r=job.next();yields++;}while(!r.done);
+  assert.ok(yields>10000);assert.deepEqual(json(r.value),json(p.advise(s)));assert.deepEqual(g.snapshot(),before);
+  const abandoned=p.start(s);for(let i=0;i<50;i++)abandoned.next();abandoned.return();assert.deepEqual(g.snapshot(),before);
 }));

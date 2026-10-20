@@ -30,7 +30,7 @@ In normal game modes, the **gravity** checkbox saves immediately in a separate `
 
 ## ST free-play lab
 
-Open **ST lab** from the top menu for empty-board play with normal pieces. Build and maintain your own stack; occasional verified hints cover right-side Z caps, T-spin doubles, pocket I, well quads and Center SL/OJ/conditional LO completions followed by a checked double. Named drills and authored starts are removed. Pair starts and Left filler remain unadvised; this is not an opener, general filler, recovery or indefinite-ST coach.
+This branch replaces the **ST lab** matcher with an experimental three-lock continuation engine for playtesting, not a deployed replacement decision. It checks scoring-cycle, Center construction and repairable freestyle routes using actual pose, hold and ordered visible pieces. Empty-board play still uses normal pieces; opening coverage is not implemented, and abstentions are common. See [ST-LAB.md](ST-LAB.md) for the finite endpoint contract and [playtest instructions](docs/st-playtest.md) for established-stack examples. The captain decides whether to replace the current advisor; no indefinite-ST guarantee.
 
 Amber inset dashes show the strategy destination, including **HOLD FIRST** previews before a required swap. The normal gray drop ghost is unchanged. See [lab controls](./ST-LAB.md#play) for toggling advice and rebinding its key.
 
