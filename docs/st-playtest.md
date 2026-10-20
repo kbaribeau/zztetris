@@ -135,14 +135,16 @@ pieces** or additional actual locks.
   demonstrate sustained multi-bag coaching; even the longest stopped at ten.
   No fallback, rejected seed or hidden suffix was used to inflate the result.
 - Initial synchronous browser stress decisions reached about **44 ms**; slicing
-  was added. In the isolated desktop browser sample, the cycle/Center/allocation
-  decisions took about **103–174 ms elapsed**, **11–32 ms work**; a difficult
-  repair search timed out. The maximum observed slice was **14.3 ms**, despite
-  the 4-ms scheduling target. One movement-to-next-frame observation was 31 ms.
+  was added. Across isolated desktop samples, cycle/Center/allocation decisions
+  took about **103–214 ms elapsed**, **11–32 ms work**; a difficult repair search
+  timed out. The maximum observed slice was **14.3 ms** in the initial sample,
+  despite the 4-ms target; a clean-commit repeat peaked at **4.1 ms**. One
+  movement-to-next-frame observation was 31 ms.
 - At emulated **390×844**, warm examples displayed correctly, but cold cycle
   and difficult repair decisions could hit the 750-ms deadline (observed returns
-  around 793–800 ms at the next scheduled frame). Some frame intervals were
-  50–67 ms. These measurements do **not** establish smooth 60-fps performance,
+  around 793–800 ms at the next scheduled frame). The clean-commit repeat
+  completed the cycle/Center/allocation cases in 676/443/127 ms; the difficult
+  repair still timed out. Some frame intervals were 50–83 ms. These measurements do **not** establish smooth 60-fps performance,
   a strict 4-ms bound or physical mobile-device certification. Toggle/retry
   recomputes; it does not reuse a partially verified timeout result.
 - The old seed-29 natural quad is now an intentional abstention: that irregular

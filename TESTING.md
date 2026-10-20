@@ -29,7 +29,7 @@ Never pipe a test command into `tee` without preserving its exit status. To repr
 node --test --test-name-pattern='gameplay/index.html/collision' test/gameplay.test.cjs
 ```
 
-The ordinary unfiltered `npm test` remains the delivery command. Default seed **123** and the natural ST replay's seed **29** are recorded in each manifest; the replay's case entry records 29 rather than the default. Two successful runs should agree on case ids, outcomes, counts and seeds; elapsed durations and run ids naturally differ. `host/isolation` additionally compares actual game state across two same-seed fresh realms.
+The ordinary unfiltered `npm test` remains the delivery command. Default seed **123**, the natural ST replay's seed **29**, and the continuation closed-loop cases' declared seeds **2000/2005** are recorded in each manifest. Case entries use their actual seed rather than silently reporting the default for those replays. Two successful runs should agree on case ids, outcomes, counts and seeds; elapsed durations and run ids naturally differ. `host/isolation` additionally compares actual game state across two same-seed fresh realms.
 
 ## The test seam
 
