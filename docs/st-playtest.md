@@ -122,17 +122,13 @@ pieces** or additional actual locks.
 
 ## Search-allocation follow-up
 
-The branch now reuses movement/placement work within each calculation and shares
-work among retained first moves before prioritizing promising searches with
-periodic revisits. The strict three-lock endpoint contract and global ceilings
-are unchanged. [Comparison and limits](st-search-allocation.md) report the full
-381-position synthetic-preview replay: 244 → 262 offline recommendations, with
-20 prior abstentions recovered and two prior targets lost. All returned witnesses
-replayed successfully. This is not recovered player-preview prediction accuracy.
-
-The same twelve closed-loop seeds now yield **103 locks, eleven doubles, zero
-quads**; every run still eventually abstains. The earlier measurements below
-are retained as the delivered **baseline**, not claims about the revised search.
+See [ST-LAB.md](../ST-LAB.md#implementation-and-work-limits) for the current
+search and work limits. The [allocation comparison](st-search-allocation.md)
+owns the follow-up's replay, closed-loop and browser measurements, including
+coverage gains and losses, synthetic-preview caveats and first-abstention stops.
+Those measurements predate the subsequent acceptance fixes; their revision
+scope is recorded in that report. The earlier measurements below remain the
+delivered **baseline**.
 
 ## Baseline evidence at 0f7ca198
 

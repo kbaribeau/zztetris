@@ -70,9 +70,10 @@ narrow structural contract is **not a theorem of ST sustainability**:
    strip definition can reject useful cross-region or shallow-notch play.
 2. **Center (x=4..6):** a solid ladder of `###` / `##.` rows, with each notch
    supported by `###` below, no other unfinished row, and at least one covered
-   notch. A newly raised top must be flat `###`; an existing top `##.` cut may
-   remain at its original clear-translated height. A newly placed O or incomplete
-   pair cannot qualify merely by receiving a high heuristic score.
+   notch. A newly raised top must be flat `###`; only a `##.` cut present at the
+   snapshot's initial Center top may remain at its clear-translated height.
+   A newly placed O or incomplete pair cannot qualify merely by receiving a
+   high heuristic score.
 3. **Right (x=7..9):** well x=7 clear, spine x=8 contiguous to the floor, and
    pocket x=9 either bottom-filled/open or roofed only by the two-cell Z cap.
    This excludes many valid alternate ST geometries. All locked cells remain

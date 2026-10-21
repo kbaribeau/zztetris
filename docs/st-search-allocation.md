@@ -8,35 +8,15 @@ and unchanged separation of heuristic ranking from verified acceptance.
 
 ## Implementation
 
-[ST-LAB.md](../ST-LAB.md#implementation-and-work-limits) specifies the scheduler,
-cache keys, bounds and diagnostics. The external `create` / `start` / `advise`
-interface is unchanged. The browser adapter is unchanged too: approximately
-4-ms slices, at most 16,384 yielded units per render, 750-ms elapsed deadline,
-snapshot cancellation and no provisional targets.
+[ST-LAB.md](../ST-LAB.md#implementation-and-work-limits) owns the current
+scheduler, cache keys, bounds, diagnostics and browser scheduling contract.
+Its [endpoint contract](../ST-LAB.md#declared-endpoint-contract) specifies
+acceptance separately from heuristic ranking.
 
-- Movement traversal resumes across placement requests on the **same heap,
-  kind, pose and last action**. The first BFS path to each grounded cell set is
-  indexed; a non-mini T-spin path is a separate goal. No changed rule tables,
-  teleports, assumed rotations or skipped intervening spawns.
-- Geometry/clear facts are reusable for the same heap and kind. Resource-dependent
-  spawn and translated-debt checks are recalculated. Equal cells do not merge
-  different held instances, hold preludes or ordered remaining previews.
-- Each retained root initially gets up to 512 charged units. Remaining turns use
-  a deterministic 3:1 promising/revisit schedule. Depth and best observed rank
-  are only priority signals; even failed subtrees can look promising. Deeper
-  searches remain width-limited DFS. This is not exhaustive or optimal search.
-- Caches are bounded, LRU, and calculation-local; no persistent game history or
-  hidden bag inference. Evicted work counts again if recomputed. Each real pose
-  expansion, lock-path attempt, geometry enumeration, resource-dependent
-  placement check and virtual terminal query is charged to the shared limits.
-
-The numerical ceilings remain **60,000 movement expansions, 600 lock-path
-attempts, 120,000 geometric checks, width 12, depth three**. The terminal
-predicate and unpaid-construction rules are unchanged. A high rank, partial
-BFS, reachable first lock or hypothetical future piece cannot authorize advice.
-Only a full three-lock witness can be displayed. A verified fallback may be
-retained while revalidating the old preferred target; it remains a complete
-witness even if the extra preference search exhausts its budget.
+The measurements below compare baseline `0f7ca198` with the allocation candidate
+recorded in `576cd4173d89d62945756dd67e3724e4c9300353`. They predate the acceptance
+fixes in `e1ada8d384a0514c50ed3a3876d10a02d41e88c0` and do not validate that later
+revision. Consult the linked contracts for current behavior.
 
 ## Frozen replay comparison — not player prediction accuracy
 
@@ -124,7 +104,8 @@ reinstalled before capturing the narrow state.
 
 ## Continued play and regressions
 
-The same twelve fixed-seed, 56-lock-cap established-stack trials now reach
+At the measured allocation revision, the same twelve fixed-seed, 56-lock-cap
+established-stack trials reached
 **103 locks, eleven doubles, zero quads** versus the baseline's **55/eight/zero**.
 Seeds 1–4 reach `4,13,5,7`; 2000–2007 reach `7,9,6,3,6,10,7,26`. Eleven runs stop
 at a work budget; seed 2007 stops with no suitable witness. Every run still
@@ -132,12 +113,8 @@ abstains before its cap. No fallback or seed filtering. This does **not** prove
 sustained multi-bag coaching. Baseline and follow-up measurements are retained
 separately rather than rewriting the earlier limitations.
 
-`test/st-allocation.test.cjs` exercises initial allocation and revisits on three
-observed starvation cases, p34's new full witness (fails against the unchanged
-baseline), bounded caches, resource-distinct roots, interleaved calculations,
-abandonment, fresh-calculation determinism, exact charged/yielded work and
-actual-pose ROT versus SD scoring. Existing obligation, path/spawn, short-prefix,
-stable-target, cancellation and deadline tests remain unchanged and passing.
+See [TESTING.md](../TESTING.md#st-lab-behavioral-coverage) for current regression
+coverage, including `test/st-allocation.test.cjs` and the acceptance fixes.
 
 For playtesting use the [four established-stack examples](st-playtest.md), then
 try your own inputs. Original replay inputs and full before/after results,
