@@ -51,25 +51,42 @@ const STCore = (() => {
       const tspin=p.rotated&&occupied.filter(Boolean).length>=3;
       return {tspin:!!tspin,mini:!!tspin&&!(occupied[p.rotation]&&occupied[(p.rotation+1)%4])};
     }
-    // All loops, including failed path searches and geometric generation, share
-    // one decision budget. Yield at each charged unit for the browser adapter.
+    // Calculation-local LRU caches: <=16 indexed entries of each kind, plus
+    // one referenced traversal per suspended root (<=width). A movement graph
+    // has <=40*10*4*2 poses; geometry has <=4*12*24 probes. No resource state,
+    // translated obligation or acceptance result is merged by these keys.
+    const CACHE_ENTRIES=16,ROOT_QUANTUM=512;
+    function cached(map,key,make,b) {
+      let entry=map.get(key);
+      if(entry){map.delete(key);b.cacheHits++;}
+      else {entry=make();if(map.size===CACHE_ENTRIES){map.delete(map.keys().next().value);b.cacheEvictions++;}}
+      map.set(key,entry);return entry;
+    }
+    function charge(b,field,limit,reason) {
+      if(b[field]>=b.limits[limit]){b.stop=reason;return false;}
+      b[field]++;return true;
+    }
+    const poseKey=p=>`${p.x},${p.y},${p.rotation},${+p.rotated}`;
+    // One resumable BFS indexes all grounded endpoints it encounters. Actual
+    // lastAction and spin-required endpoints are distinct. Expand atomically
+    // before yielding so interleaved roots can share even an unfinished graph.
     function* pathTo(heap,active,cells,needsSpin,b) {
       if(!free(heap,active.kind,active))return null;
-      const cacheKey=JSON.stringify([heap,active.kind,active.x,active.y,active.rotation,active.lastAction,cellKey(cells),needsSpin]);
-      if(b.paths.has(cacheKey)){b.cacheHits++;return b.paths.get(cacheKey);}
-      const goal=cellKey(cells),key=p=>`${p.x},${p.y},${p.rotation},${+p.rotated}`;
-      const queue=[{x:active.x,y:active.y,rotation:active.rotation,rotated:active.lastAction==='ROT',parent:-1}],seen=new Set([key(queue[0])]);
-      for(let head=0;head<queue.length;head++) {
-        if(b.poseStates>=b.limits.maxPoseStates){b.stop='pose-budget';return null;}
-        b.poseStates++;yield;
-        const p=queue[head];
-        if(cellKey(cellsAt(active.kind,p))===goal&&!free(heap,active.kind,{...p,y:p.y+1})) {
-          const scoring=active.kind==='T'?spin(heap,p):{tspin:false,mini:false};
-          if(!needsSpin||(scoring.tspin&&!scoring.mini)) {
-            const path=['HD'];let n=p;
-            while(n.parent!==-1){path.unshift(n.action);n=queue[n.parent];}
-            const result={pose:{x:p.x,y:p.y,rotation:p.rotation},path,scoring,lastAction:p.rotated?'ROT':p.parent===-1?active.lastAction:p.action};b.paths.set(cacheKey,result);return result;
-          }
+      const cacheKey=JSON.stringify([heap,active.kind,active.x,active.y,active.rotation,active.lastAction]);
+      if(b.movements.has(cacheKey))b.movementReuses++;
+      const graph=cached(b.movements,cacheKey,()=>{
+        b.movementBuilds++;
+        const p={x:active.x,y:active.y,rotation:active.rotation,rotated:active.lastAction==='ROT',parent:-1};
+        return {queue:[p],seen:new Set([poseKey(p)]),head:0,goals:new Map()};
+      },b),goal=cellKey(cells)+(needsSpin?':spin':':any');
+      const {queue,seen,goals}=graph;
+      while(!goals.has(goal)&&graph.head<queue.length&&!b.stop) {
+        if(!charge(b,'poseStates','maxPoseStates','pose-budget'))return null;
+        const head=graph.head++,p=queue[head];
+        if(!free(heap,active.kind,{...p,y:p.y+1})) {
+          const key=cellKey(cellsAt(active.kind,p)),scoring=active.kind==='T'?spin(heap,p):{tspin:false,mini:false};
+          if(!goals.has(key+':any'))goals.set(key+':any',head);
+          if(scoring.tspin&&!scoring.mini&&!goals.has(key+':spin'))goals.set(key+':spin',head);
         }
         for(const action of ['L','R','SD','CW','CCW','R180']) {
           let n;
@@ -83,10 +100,16 @@ const STCore = (() => {
               if(free(heap,active.kind,c)){n=c;break;}
             }
           }
-          if(n&&!seen.has(key(n))){seen.add(key(n));queue.push({...n,parent:head,action});}
+          if(n&&!seen.has(poseKey(n))){seen.add(poseKey(n));queue.push({...n,parent:head,action});}
         }
+        yield;
       }
-      b.paths.set(cacheKey,null);return null;
+      if(!goals.has(goal))return null;
+      const p=queue[goals.get(goal)],path=['HD'];let n=p;
+      while(n.parent!==-1){path.unshift(n.action);n=queue[n.parent];}
+      return {pose:{x:p.x,y:p.y,rotation:p.rotation},path,
+        scoring:active.kind==='T'?spin(heap,p):{tspin:false,mini:false},
+        lastAction:p.rotated?'ROT':p.parent===-1?active.lastAction:p.action};
     }
     // Geometry facts, not a learned value or a certificate of resource access.
     function facts(heap) {
@@ -139,6 +162,8 @@ const STCore = (() => {
     // Their availability remains explicitly unverified beyond the horizon.
     function* opportunity(heap,b) {
       for(let y=37;y>=18;y--) {
+        if(!charge(b,'candidates','maxCandidates','candidate-budget'))return null;
+        yield;
         const cells=[[6,y],[7,y],[8,y],[7,y+1]];
         const cap=[[9,y],[8,y+1],[9,y+1],[8,y+2]];
         const empty=c=>c.every(([x,r])=>heap[r][x]==='.');
@@ -159,6 +184,8 @@ const STCore = (() => {
       // Cleanup is a distinct finite structural endpoint; two I instances are
       // never claimed available from this hypothetical shape/path check.
       for(const x of [7,9])for(let y=36;y>=18;y--) {
+        if(!charge(b,'candidates','maxCandidates','candidate-budget'))return null;
+        yield;
         const cells=[0,1,2,3].map(d=>[x,y+d]);
         if(!cells.every(([c,r])=>heap[r][c]==='.')||lock(heap,cells).cleared!==4)continue;
         const path=yield* pathTo(heap,spawn({kind:'I'}),cells,false,b);
@@ -181,42 +208,52 @@ const STCore = (() => {
       return null;
     }
     function compare(a,b) {for(let i=0;i<a.length;i++)if(a[i]!==b[i])return a[i]-b[i];return 0;}
+    function* geometry(heap,kind,b) {
+      const key=JSON.stringify([heap,kind]);
+      if(b.geometry.has(key))b.geometryReuses++;
+      const entry=cached(b.geometry,key,()=>({cursor:0,items:[],seen:new Set()}),b);
+      while(entry.cursor<4*12*24&&!b.stop) {
+        if(!charge(b,'candidates','maxCandidates','candidate-budget'))return [];
+        const i=entry.cursor++,rotation=Math.floor(i/(12*24)),x=Math.floor(i/24)%12-2,y=i%24+16,pose={x,y,rotation};
+        if(free(heap,kind,pose)&&!free(heap,kind,{...pose,y:y+1})) {
+          const cells=cellsAt(kind,pose),key=cellKey(cells);
+          if(cells.every(([,r])=>r>=18)&&!entry.seen.has(key)) {
+            entry.seen.add(key);
+            const after=lock(heap,cells),type=role(kind,cells,after);
+            if(type)entry.items.push({cells,key,after,type,f:facts(after.heap),rotation,x,y});
+          }
+        }
+        yield;
+      }
+      return entry.items;
+    }
     function* candidates(s,allowed,preferred,b) {
       const all=[];
       for(const choice of access(s)) {
-        const seen=new Set(),kind=choice.active.kind;
-        for(let rotation=0;rotation<4;rotation++)for(let x=-2;x<10;x++)for(let y=16;y<40;y++) {
-          if(b.candidates>=b.limits.maxCandidates){b.stop='candidate-budget';return [];}
-          b.candidates++;yield;
-          const pose={x,y,rotation};
-          if(!free(s.heap,kind,pose)||free(s.heap,kind,{...pose,y:y+1}))continue;
-          const cells=cellsAt(kind,pose),key=cellKey(cells);
-          if(cells.some(([,r])=>r<18)||seen.has(key))continue;
-          seen.add(key);
-          const after=lock(s.heap,cells),type=role(kind,cells,after);
-          if(!type)continue;
-          // The next actual spawn is part of every lock, including lock H.
+        const kind=choice.active.kind,list=yield* geometry(s.heap,kind,b);
+        for(const {cells,key,after,type,f,rotation,x,y} of list) {
+          // Resource-dependent spawn, translated debt and rank are NOT cached.
+          // Charge their real checks even when the placement geometry was reused.
+          if(!charge(b,'candidates','maxCandidates','candidate-budget'))return [];
+          yield;
           if(!choice.next.length){b.unknown++;continue;}
           const active=spawn(choice.next[0]);
           if(!free(after.heap,active.kind,active)){b.spawnRejects++;continue;}
-          const f=facts(after.heap),allowedAfter=shiftKeys(allowed,after.removed);
+          const allowedAfter=shiftKeys(allowed,after.removed);
           if(f.headroom<0)continue;
           const preferredMatch=preferred?.kind===kind&&Array.isArray(preferred.cells)&&preferred.cells.length===4&&preferred.cells.every(c=>Array.isArray(c)&&c.length===2&&c.every(Number.isInteger))&&cellKey(preferred.cells)===key;
-          // Lexicographic engineering heuristic, no hidden coefficients: first
-          // revisit a preferred endpoint, then repair debt/Center, retain Right,
-          // balance Left vs Center headroom, minimize holds, score last.
           const rank=[+!preferredMatch,f.holes.length,debt(f,allowedAfter).length,centerDebt(f,allowedAfter),+!f.right,
             Math.abs(Math.min(...f.tops.slice(0,4))-f.centerTop),choice.prelude.length,-after.cleared,rotation,x,y];
           all.push({choice,cells,after,type,f,allowed:allowedAfter,rank,preferred:preferredMatch,
             future:{heap:after.heap,active,hold:choice.hold,visibleNext:choice.next.slice(1)}});
         }
+        if(b.stop)return [];
       }
       all.sort((a,b)=>compare(a.rank,b.rank));
-      // Width is heuristic, not a proof of failure of discarded branches.
       b.widthPruned+=Math.max(0,all.length-b.limits.width);
       return all.slice(0,b.limits.width);
     }
-    function* search(s,allowed,depth,preferred,b) {
+    function* search(s,allowed,depth,b,progress) {
       b.maxDepth=Math.max(b.maxDepth,depth);
       if(depth===b.limits.depth) {
         const f=facts(s.heap);b.endpoints++;
@@ -227,26 +264,69 @@ const STCore = (() => {
           obligations:{newConstruction:'paid',inheritedNarrowChannels:f.channels,intentionalCenterNotches:f.notches,scoringResources:'unverified-beyond-horizon'},
           newConstructionObligations:'paid',future:'Center notches and Right cleanup are intentional, unverified beyond the horizon; no unseen piece is promised.'}};
       }
-      const list=yield* candidates(s,allowed,depth===0?preferred:null,b);
+      const list=yield* candidates(s,allowed,null,b);
       for(const c of list) {
         if(b.stop)return null;
-        if(b.lockStates>=b.limits.maxLockStates){b.stop='lock-budget';return null;}
-        b.lockStates++;
-        const path=yield* pathTo(s.heap,c.choice.active,c.cells,c.type==='double',b);
-        if(!path){b.pathRejects++;continue;}
-        // newPiece() preserves lastAction; only hold resets it. This matters
-        // when a following T is already grounded at spawn and drops in place.
-        const future={...c.future,active:{...c.future.active,lastAction:path.lastAction}};
-        const tail=yield* search(future,c.allowed,depth+1,null,b);
-        if(tail) {
-          const step={kind:'target',piece:{id:c.choice.active.id,kind:c.choice.active.kind},from:c.choice.from,prelude:c.choice.prelude,
-            cells:c.cells,pose:path.pose,path:path.path,rule:c.type,expected:{cleared:c.after.cleared,...path.scoring},heap:c.after.heap,
-            obligations:{scope:'freestyle vacancies/channels and unfinished Center construction',intentionalSTResources:'unverified-beyond-horizon',newVacancies:debt(c.f,c.allowed).map(k=>[k%10,Math.floor(k/10)]),unfinishedCenter:centerDebt(c.f,c.allowed),
-              status:debt(c.f,c.allowed).length||centerDebt(c.f,c.allowed)?'verified-payable-within-horizon':'paid'},facts:c.f};
-          return {...tail,steps:[step,...tail.steps]};
-        }
+        const route=yield* branch(s,c,depth,b,progress);
+        if(route)return route;
       }
       return null;
+    }
+    function* branch(s,c,depth,b,progress) {
+      if(!charge(b,'lockStates','maxLockStates','lock-budget'))return null;
+      yield;
+      const path=yield* pathTo(s.heap,c.choice.active,c.cells,c.type==='double',b);
+      if(!path){b.pathRejects++;return null;}
+      progress.depth=Math.max(progress.depth,depth+1);
+      if(compare(c.rank.slice(1,7),progress.bestRank)<0)progress.bestRank=c.rank.slice(1,7);
+      // newPiece preserves lastAction; only hold resets it.
+      const future={...c.future,active:{...c.future.active,lastAction:path.lastAction}};
+      const tail=yield* search(future,c.allowed,depth+1,b,progress);
+      if(!tail)return null;
+      const step={kind:'target',piece:{id:c.choice.active.id,kind:c.choice.active.kind},from:c.choice.from,prelude:c.choice.prelude,
+        cells:c.cells,pose:path.pose,path:path.path,rule:c.type,expected:{cleared:c.after.cleared,...path.scoring},heap:c.after.heap,
+        obligations:{scope:'freestyle vacancies/channels and unfinished Center construction',intentionalSTResources:'unverified-beyond-horizon',newVacancies:debt(c.f,c.allowed).map(k=>[k%10,Math.floor(k/10)]),unfinishedCenter:centerDebt(c.f,c.allowed),
+          status:debt(c.f,c.allowed).length||centerDebt(c.f,c.allowed)?'verified-payable-within-horizon':'paid'},facts:c.f};
+      return {...tail,steps:[step,...tail.steps]};
+    }
+    function* allocate(input,allowed,b) {
+      const list=yield* candidates(input,allowed,input.preferredTarget,b);
+      const jobs=list.map((c,index)=>{
+        const progress={index,piece:{id:c.choice.active.id,kind:c.choice.active.kind},cells:c.cells,prelude:c.choice.prelude,
+          preferred:!!c.preferred,rank:c.rank,depth:0,bestRank:c.rank.slice(1,7),work:0,turns:0,initialWork:0,status:'pending'};
+        b.roots.push(progress);return {progress,iterator:branch(input,c,0,b,progress)};
+      });
+      let fallback=null;
+      function* resume(job,initial) {
+        const p=job.progress;p.turns++;
+        for(let i=0;i<ROOT_QUANTUM&&!b.stop;i++) {
+          const next=job.iterator.next();
+          if(next.done){p.status=next.value?'verified':'exhausted';if(next.value)fallback={route:next.value,preferred:p.preferred};break;}
+          p.work++;if(initial)p.initialWork++;yield;
+        }
+      }
+      const ready=()=>fallback&&(fallback.preferred||!jobs.some(j=>j.progress.preferred&&j.progress.status==='pending'));
+      // Each retained root gets an initial slice unless a complete witness or
+      // the shared budget ends the decision. Suspended subtrees are not restarted.
+      for(const job of jobs){yield* resume(job,true);if(ready())return fallback.route;if(b.stop)break;}
+      let turn=0,cursor=0;
+      while(!b.stop&&jobs.some(j=>j.progress.status==='pending')) {
+        let job;
+        if(turn++%4===3) {
+          // One of every four turns revisits alternatives, even if an early root
+          // continually looks best. No random scheduling or hidden future value.
+          do{job=jobs[cursor++%jobs.length];}while(job.progress.status!=='pending');
+          b.fairRevisits++;
+        } else {
+          const priority=j=>[+!j.progress.preferred,-j.progress.depth,...j.progress.bestRank,j.progress.index];
+          job=jobs.filter(j=>j.progress.status==='pending').sort((a,b)=>compare(priority(a),priority(b)))[0];
+          b.promisingTurns++;
+        }
+        yield* resume(job,false);if(ready())return fallback.route;
+      }
+      // A saved fallback is already a FULL verified witness, never a partial
+      // branch. Extra effort to preserve an old target cannot invalidate it.
+      return fallback?.route||null;
     }
     function explain(step,route,horizon) {
       const reasons={double:'Scoring cycle: rotate T into a non-mini double.',cleanup:'Scoring-cycle cleanup: I clears four rows.',
@@ -264,7 +344,9 @@ const STCore = (() => {
       if(!free(input.heap,input.active.kind,input.active))return abstain('unsupported','The active piece overlaps the heap or lies outside the field.');
       const limits={...DEFAULTS,...input.limits};
       if(Object.keys(DEFAULTS).some(k=>!Number.isInteger(limits[k])||limits[k]< (k==='depth'||k==='width'?1:0)||limits[k]>DEFAULTS[k]))return abstain('unsupported','Invalid continuation work limits.');
-      const b={limits,poseStates:0,lockStates:0,candidates:0,cacheHits:0,widthPruned:0,unknown:0,spawnRejects:0,pathRejects:0,endpointRejects:0,endpoints:0,maxDepth:0,stop:null,paths:new Map()};
+      const b={limits,poseStates:0,lockStates:0,candidates:0,cacheHits:0,cacheEvictions:0,movementBuilds:0,movementReuses:0,geometryReuses:0,
+        widthPruned:0,unknown:0,spawnRejects:0,pathRejects:0,endpointRejects:0,endpoints:0,maxDepth:0,stop:null,
+        movements:new Map(),geometry:new Map(),roots:[],fairRevisits:0,promisingTurns:0};
       const initial=facts(input.heap),allowed=defectKeys(initial);
       allowed.openTop=initial.topFlat?null:initial.centerTop;
       // Empty boards are intentionally outside this first established-stack
@@ -272,12 +354,15 @@ const STCore = (() => {
       const wellCells=input.heap.flatMap((r,y)=>r[7]==='#'?[y]:[]);
       const stagedWell=wellCells.length===4&&wellCells[3]-wellCells[0]===3&&facts(input.heap.map(r=>r.slice(0,7)+'.'+r.slice(8))).right;
       const established=initial.notches.length>0&&(initial.right||stagedWell);
-      const route=established?yield* search(input,allowed,0,input.preferredTarget,b):null;
+      const route=established?yield* allocate(input,allowed,b):null;
       const diagnostics={requestedHorizon:limits.depth,effectiveHorizon:route?route.steps.length:0,maxReachedDepth:b.maxDepth,
         poseStates:b.poseStates,lockStates:b.lockStates,candidates:b.candidates,cacheHits:b.cacheHits,widthPruned:b.widthPruned,
         unknownPrefix:b.unknown,spawnRejects:b.spawnRejects,pathRejects:b.pathRejects,endpointRejects:b.endpointRejects,endpoints:b.endpoints,
-        stopReason:b.stop||(route?'witness-found':!established?'no-established-right-stack':'no-suitable-witness'),limits};
-      if(b.stop)return abstain('budget-exhausted','Search limit reached; no verified suitable continuation within budget. This is not impossibility.',diagnostics);
+        movementBuilds:b.movementBuilds,movementReuses:b.movementReuses,geometryReuses:b.geometryReuses,cacheEvictions:b.cacheEvictions,
+        cacheEntries:{movement:b.movements.size,geometry:b.geometry.size,limit:CACHE_ENTRIES},
+        roots:b.roots,rootQuantum:ROOT_QUANTUM,fairRevisits:b.fairRevisits,promisingTurns:b.promisingTurns,
+        searchStop:b.stop,stopReason:route?'witness-found':b.stop||(!established?'no-established-right-stack':'no-suitable-witness'),limits};
+      if(b.stop&&!route)return abstain('budget-exhausted','Search limit reached; no verified suitable continuation within budget. This is not impossibility.',diagnostics);
       if(!route)return abstain('no-core-fit-found','No suitable ST continuation verified through the requested horizon. Keep playing manually; opening coverage is not implemented.',diagnostics);
       const first=route.steps[0];
       return {...first,explanation:explain(first,route,limits.depth),continuationVerified:true,continuation:route.steps[1]||null,

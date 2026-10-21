@@ -120,7 +120,21 @@ status, work/stop counters and timing. The visible UI intentionally omits most
 of that detail. Hypothetical Z/T/I terminal probes are **not promised future
 pieces** or additional actual locks.
 
-## Evidence and limits at implementation handoff
+## Search-allocation follow-up
+
+The branch now reuses movement/placement work within each calculation and shares
+work among retained first moves before prioritizing promising searches with
+periodic revisits. The strict three-lock endpoint contract and global ceilings
+are unchanged. [Comparison and limits](st-search-allocation.md) report the full
+381-position synthetic-preview replay: 244 → 262 offline recommendations, with
+20 prior abstentions recovered and two prior targets lost. All returned witnesses
+replayed successfully. This is not recovered player-preview prediction accuracy.
+
+The same twelve closed-loop seeds now yield **103 locks, eleven doubles, zero
+quads**; every run still eventually abstains. The earlier measurements below
+are retained as the delivered **baseline**, not claims about the revised search.
+
+## Baseline evidence at 0f7ca198
 
 - **48 prior right-oriented snapshots:** 45 issued three-lock witnesses and
   three abstentions; all 135 actual locks and the separate terminal-access

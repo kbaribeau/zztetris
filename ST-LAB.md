@@ -37,8 +37,8 @@ Text inputs, focused controls, repeat and modified advice keys retain their
 input guards. The advice panel follows the field, so wrapping does not move the
 board/HOLD/NEXT. Large cells and narrow viewports scroll, not rescale collisions.
 
-Changed snapshots immediately hide the old target while checking. A sound prior
-target is searched first, but appears again only after its entire fresh route
+Changed snapshots immediately hide the old target while checking. A prior
+target gets search priority, but appears again only after its entire fresh route
 passes. No stale background result can paint over an edit, hold, undo or toggle.
 Unchanged frames reuse the answer without rewriting the live region or SVG.
 
@@ -127,17 +127,36 @@ Duplicate IDs, invalid poses/rules, overlapping active pieces, malformed preview
 and pre-existing full editor rows reject. `visiblePreview(queue)` alone projects
 the renderer's seven raw entries/six clipped slots; ambiguous separators reject.
 
-Search independently enumerates grounded placements and their clear results,
-then searches paths for a deterministic width-limited depth-first continuation.
+Search independently enumerates grounded placements and their clear results.
 Non-clearing construction stays in x≤6; Right candidates are Z caps, vertical I
 staging/cleanup and exact doubles. No old matcher is called. The lexicographic
-ordering is: revalidate preferred target, fewer buried Left cells, fewer new
-channels/vacancies, less unfinished Center work, preserved Right geometry,
+candidate ordering remains: revalidate preferred target, fewer buried Left cells,
+fewer new channels/vacancies, less unfinished Center work, preserved Right geometry,
 smaller Left/Center height difference, fewer holds, then clears and fixed pose
 order. These are engineering search heuristics, **not acceptance predicates or
-learned weights**. BFS gives a short command path to each tested target, not a
-human timing guarantee. The first complete acceptable witness wins; comparison
-of all viable first moves or exact optimality is not claimed.
+learned weights**.
+
+Each retained first move owns a resumable depth-first continuation. Initially
+each receives up to **512 charged units**, in rank order, unless a complete
+acceptable witness or the shared budget ends the decision. Thereafter three of
+four turns favor an unfinished search by preferred-target status, maximum depth
+reached, best geometric rank seen, then original root order. Every fourth turn
+revisits unfinished alternatives round-robin. These signals can favor fruitless
+subtrees; they are not proof of a future endpoint. Suspended searches resume,
+not restart. All roots share the original whole-decision limits below.
+
+A BFS indexed by heap, piece kind, actual pose and last action serves multiple
+placement requests, keeping unrestricted and non-mini-spin paths distinct.
+Only grounded placement/clear facts are shared by heap and kind. Hold, identities,
+ordered preview, following spawns and clear-translated obligations remain separate
+for every candidate, even when its cells match another's. Paths remain short BFS
+command routes, not a human timing guarantee.
+
+The first complete acceptable witness normally wins. A fully verified alternative
+may wait while an old preferred target receives fresh validation; it is usable
+if preferred searches finish without a witness or the work budget ends. A partial
+route or high rank never becomes advice. Comparison of every viable first move
+or exact optimality is not claimed. See [allocation measurements](docs/st-search-allocation.md).
 
 Whole-decision defaults/ceilings:
 
@@ -150,9 +169,19 @@ Whole-decision defaults/ceilings:
 | Candidates retained per state | 12 |
 
 Smaller nonnegative work limits, depth 1–3 and width 1–12 are supported for
-experiments. No per-node reset. Path caches live only within one decision.
-Failed paths, geometry enumeration and endpoint probes all consume shared work.
-Any exhaustion discards partial work, never emits an incomplete target. Width
+experiments. No per-node reset. Calculation-local LRU caches index at most **16
+movement graphs and 16 geometry entries**; suspended roots may each reference one
+additional evicted traversal. Each graph has at most 3,200 pose/action states;
+each geometry enumeration considers at most 1,152 poses. No cache survives a
+calculation or caches a resource-state acceptance result. Evicted work, if needed
+again, is recomputed and charged again.
+
+Each real movement expansion and lock-path attempt is charged. Geometric charges
+include newly enumerated poses, resource-dependent placement/spawn/debt checks
+(even on a geometry hit), and hypothetical terminal queries. Reused work is not
+charged as though it were recomputed; the unchanged ceilings now buy different
+amounts of useful search. These units are not equivalent CPU-time promises.
+Exhaustion never emits an incomplete target. Width
 pruning and these limits can miss good continuations. Empty/mirrored or otherwise
 unestablished Right stacks abstain before search.
 
@@ -166,7 +195,11 @@ completion callback or hidden-state cache exists.
 `stLab.diagnostics()` returns a copy of the current result and adapter counters:
 requested/effective **verified** horizon, maximum reached depth, work counts,
 width/path/spawn/endpoint rejection counts, stop reason, full witness, elapsed
-and CPU work time, maximum observed slice, cancellations and target churn.
+and CPU work time, maximum observed slice, cancellations and target churn. Root
+diagnostics report retained resource-distinct candidates, initial/total work,
+turns, reached depth and completion status; cache build/reuse/eviction counts and
+indexed entry counts describe calculation-local reuse. `searchStop` can record
+budget exhaustion while preserving an already fully verified fallback witness.
 Abstentions have effective verified horizon zero, even if a rejected branch
 reached depth three. `no-core-fit-found` is the retained UI reason code, not a
 claim that no continuation exists. Time/work exhaustion is reported separately.
