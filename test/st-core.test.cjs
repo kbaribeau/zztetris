@@ -11,7 +11,9 @@ const freeze=x=>{if(x&&typeof x==='object'){Object.values(x).forEach(freeze);Obj
 // immutability and fail-closed budgets; no old priority is a success oracle.
 function witness(g,a) {
   assert.equal(a.kind,'target',JSON.stringify(a.diagnostics));
-  assert.equal(a.witness.steps.length,a.diagnostics.requestedHorizon);
+  assert.equal(a.witness.steps.length,3);
+  assert.equal(a.diagnostics.requestedHorizon,3);
+  assert.equal(a.diagnostics.effectiveHorizon,3);
   const used=new Set();
   for(const step of a.witness.steps) {
     assert.ok(!used.has(step.piece.id));used.add(step.piece.id);
@@ -42,9 +44,27 @@ test('st-core/scoring: source cap and non-mini double exact literal boards; fina
   assert.equal(a.rule,'cap');replay(g,a);assert.deepEqual(heap(g),fixtures.cap.afterCap);
   const t=a.witness.steps[1];assert.equal(t.rule,'double');replay(g,t);
   assert.deepEqual(heap(g),fixtures.cap.after);assert.equal(g.window.tspin,true);assert.equal(g.window.mini,false);assert.equal(g.window.cleared,2);
+  assert.equal(t.obligations.unfinishedCenter,0);
+  assert.equal(heap(g)[33].slice(4,7),'##.');
   fixture(g,'spin');const w=g.window;w.zzBot.hold();w.clearActive();w.xPOS=6;w.yPOS=35;w.rot=2;w.lastAction='SD';w.updateGhost();w.setShape();
   const next=core(g).advise(input(g));assert.equal(next.rule,'double');assert.ok(next.path.some(a=>['CW','CCW','R180'].includes(a)));
   w.zzBot.hardDrop();assert.equal(w.cleared,2);assert.equal(w.tspin,false);
+}));
+
+test('st-core/Center top: repairing an irregular initial row cannot inherit a newly formed uncovered cut',()=>withPage('st-lab.html',hidden,g=>{
+  const rows=fixtures.cap.before.slice();rows[31]='###..#....';rows[32]='###..##...';
+  const cells=[[3,31],[4,31],[3,32],[4,32]];
+  arrange(g,rows,{active:'O',hold:'Z',next:['T','I','J','L','S','O']});
+  const a=core(g).advise({...input(g),preferredTarget:{kind:'O',cells}});
+  if(a.kind==='target') {
+    if(JSON.stringify(json(a.cells).sort())===JSON.stringify(cells.sort()))assert.equal(a.obligations.unfinishedCenter,1);
+    const endpoint=a.witness.endpoint;
+    assert.equal(endpoint.heap[endpoint.facts.centerTop].slice(4,7),'###','new Center tops must be covered even at the inherited height after clears');
+    witness(g,a);
+  } else {
+    assert.equal(a.cells,undefined);
+    assert.equal(a.diagnostics.effectiveHorizon,0);
+  }
 }));
 
 test('st-core/near negative: missing Left cell never receives stale double claim; real stale path is a single',()=>withPage('st-lab.html',hidden,g=>{
@@ -98,7 +118,10 @@ test('st-core/limits: malformed input and shared budgets fail closed, including 
     const a=p.advise({...s,limits});assert.equal(a.reason,'budget-exhausted');assert.equal(a.cells,undefined);assert.ok(a.diagnostics.effectiveHorizon<3);
     assert.deepEqual(json(p.advise({...s,limits})),json(a));
   }
-  const a=p.advise({...s,limits:{depth:1}});assert.equal(a.diagnostics.requestedHorizon,1);if(a.kind==='target')assert.equal(a.witness.steps.length,1);
+  for(const depth of [0,1,2,4]) {
+    const a=p.advise({...s,limits:{depth}});assert.equal(a.kind,'abstain');assert.equal(a.reason,'unsupported');assert.equal(a.cells,undefined);
+  }
+  witness(g,p.advise({...s,limits:{depth:3}}));
 }));
 
 test('st-core/resumable search: slicing is identical to synchronous advice and abandonment has no side effects',()=>withPage('st-lab.html',hidden,g=>{

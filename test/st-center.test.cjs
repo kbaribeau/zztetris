@@ -6,7 +6,7 @@ const {dualChannel,roof}=require('./support/st-continuation-fixtures.cjs');
 const {arrange,core,input,replay,heap,json}=require('./support/st-driver.cjs');
 const hidden={storage:{stGuideVisible:'false'}};
 const key=c=>c?.map(([x,y])=>y*10+x).sort((a,b)=>a-b).join(',');
-function replayAll(g,a){assert.equal(a.kind,'target',JSON.stringify(a.diagnostics));for(const s of a.witness.steps){replay(g,s);assert.deepEqual(heap(g),json(s.heap));assert.equal(g.window.cleared,s.expected.cleared);assert.equal(g.window.tspin,s.expected.tspin);assert.notEqual(g.element('#notif').textContent,'TOP OUT');}}
+function replayAll(g,a){assert.equal(a.kind,'target',JSON.stringify(a.diagnostics));assert.equal(a.witness.steps.length,3);for(const s of a.witness.steps){replay(g,s);assert.deepEqual(heap(g),json(s.heap));assert.equal(g.window.cleared,s.expected.cleared);assert.equal(g.window.tspin,s.expected.tspin);assert.notEqual(g.element('#notif').textContent,'TOP OUT');}}
 
 for(const [pair,f] of Object.entries(fixtures))test(`st-center/${pair}: three-lock construction, whole-board paths, no blanket partner policy`,()=>withPage('st-lab.html',hidden,g=>{
   arrange(g,f.before,{active:f.kind,hold:'',next:['O','T','I','J','L','S']});
@@ -23,7 +23,6 @@ test('st-continuation/new channels: S needs TWO distinct I remedies, including a
   assert.deepEqual(json(a.witness.steps.map(s=>s.piece.kind)),['S','I','I']);
   assert.notEqual(a.witness.steps[1].piece.id,a.witness.steps[2].piece.id);
   replayAll(g,a);assert.deepEqual(heap(g),dualChannel.after);assert.ok(a.witness.steps.every(s=>s.expected.cleared===0));
-  for(const depth of [1,2]){const short=p.advise({...s,preferredTarget,limits:{depth}});assert.notEqual(key(short.cells),key(dualChannel.cells),'a high estimate cannot discharge the other channel');}
   for(const next of [['I','O','O','J','L','I'],['O','O','J','L','I','I']]) {
     arrange(g,dualChannel.before,{...dualChannel,hold:'Z',next});const late=p.advise({...input(g),preferredTarget});
     assert.notEqual(key(late.cells),key(dualChannel.cells),'late preview Is are not a menu or reused resource');
@@ -37,7 +36,6 @@ test('st-continuation/freestyle roof: a temporary buried vacancy has an executed
   replay(g,a);assert.equal(heap(g)[30][1],'.');
   assert.equal(a.witness.steps[1].piece.kind,'S');replay(g,a.witness.steps[1]);assert.deepEqual(heap(g),roof.afterRepair);
   replay(g,a.witness.steps[2]);assert.equal(g.window.cleared,2);assert.equal(g.window.tspin,true);
-  const shallow=p.advise({...s,preferredTarget,limits:{depth:1}});assert.notEqual(key(shallow.cells),key(roof.cells));
 }));
 
 test('st-continuation/unfinished pairs: pair initiation is allowed only with completion inside the horizon',()=>withPage('st-lab.html',hidden,g=>{
@@ -46,7 +44,6 @@ test('st-continuation/unfinished pairs: pair initiation is allowed only with com
   const cells=[[4,f.y+1],[5,f.y+1],[4,f.y+2],[5,f.y+2]],preferredTarget={kind:'O',cells};
   arrange(g,rows,{active:'O',hold:'',next:['J','T','I','L','Z','S']});const s=input(g),p=core(g);
   const a=p.advise({...s,preferredTarget});assert.equal(key(a.cells),key(cells));assert.equal(a.obligations.status,'verified-payable-within-horizon');replayAll(g,a);
-  const short=p.advise({...s,preferredTarget,limits:{depth:1}});assert.notEqual(key(short.cells),key(cells));
 }));
 
 test('st-continuation/whole-board negatives: roofed access, missing support, mirrors and obstructed preference',()=>withPage('st-lab.html',hidden,g=>{

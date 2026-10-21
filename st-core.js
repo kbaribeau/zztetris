@@ -343,12 +343,12 @@ const STCore = (() => {
       if(!supported(input))return abstain('unsupported','Advice requires ST lab, SRS+, gravity off and a valid board/visible preview.');
       if(!free(input.heap,input.active.kind,input.active))return abstain('unsupported','The active piece overlaps the heap or lies outside the field.');
       const limits={...DEFAULTS,...input.limits};
-      if(Object.keys(DEFAULTS).some(k=>!Number.isInteger(limits[k])||limits[k]< (k==='depth'||k==='width'?1:0)||limits[k]>DEFAULTS[k]))return abstain('unsupported','Invalid continuation work limits.');
+      if(Object.keys(DEFAULTS).some(k=>!Number.isInteger(limits[k])||limits[k]<(k==='depth'?DEFAULTS.depth:k==='width'?1:0)||limits[k]>DEFAULTS[k]))return abstain('unsupported','Invalid continuation work limits.');
       const b={limits,poseStates:0,lockStates:0,candidates:0,cacheHits:0,cacheEvictions:0,movementBuilds:0,movementReuses:0,geometryReuses:0,
         widthPruned:0,unknown:0,spawnRejects:0,pathRejects:0,endpointRejects:0,endpoints:0,maxDepth:0,stop:null,
         movements:new Map(),geometry:new Map(),roots:[],fairRevisits:0,promisingTurns:0};
       const initial=facts(input.heap),allowed=defectKeys(initial);
-      allowed.openTop=initial.topFlat?null:initial.centerTop;
+      allowed.openTop=input.heap[initial.centerTop]?.slice(4,7)==='##.'?initial.centerTop:null;
       // Empty boards are intentionally outside this first established-stack
       // endpoint contract. No opening bag/orientation is inferred.
       const wellCells=input.heap.flatMap((r,y)=>r[7]==='#'?[y]:[]);

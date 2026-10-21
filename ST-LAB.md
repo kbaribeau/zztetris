@@ -168,8 +168,9 @@ Whole-decision defaults/ceilings:
 | Geometric candidate probes | 120,000 |
 | Candidates retained per state | 12 |
 
-Smaller nonnegative work limits, depth 1–3 and width 1–12 are supported for
-experiments. No per-node reset. Calculation-local LRU caches index at most **16
+Smaller nonnegative work limits and width 1–12 are supported for experiments.
+Depth is fixed at three actual locks; other requested depths are unsupported.
+No per-node reset. Calculation-local LRU caches index at most **16
 movement graphs and 16 geometry entries**; suspended roots may each reference one
 additional evicted traversal. Each graph has at most 3,200 pose/action states;
 each geometry enumeration considers at most 1,152 poses. No cache survives a
