@@ -41,6 +41,9 @@ letter (submit an empty value where specified), then click **NEXT** and paste th
 queue string. The first letter becomes active; the next six are visible.
 Trailing letters are reproduction data, **never visible to the advisor**.
 These queues are authored examples, not recovered video queues or random bags.
+The existing import/queue editor can leave transient active/ghost remnants;
+an ordinary movement refreshes them and triggers fresh advice. A timeout after
+that movement must hide the target, not keep the earlier recommendation.
 
 ### 1. Scoring cycle
 
@@ -67,9 +70,11 @@ the amber destination. A next target may change as the horizon moves forward.
 v115@GgB8GeB8DeG8CeG8CeF8DeG8CeG8CeF8CeH8AeI8AeA8KeAgH
 ```
 
-Expected first target: L finishes the existing SL overhang. Its three-lock route
-also accommodates O and scores T. S in the later preview does not blanket-veto
-construction; the claim is about the verified route, not every later piece.
+The current default can hold for O in Left, score T, then use the held L to
+finish the existing SL overhang. It need not finish Center first. S in the later
+preview does not blanket-veto construction; the claim is about the verified
+route, not every later piece. The desktop browser check timed out here; a fresh
+narrow check returned that O→T→L route.
 
 ### 3. Cross-region resource allocation / non-scoring filler
 
@@ -81,10 +86,11 @@ construction; the claim is about the verified route, not every later piece.
 v115@DgB8FeF8DeG8CeG8CeF8DeG8CeG8CeF8DeG8CeG8MeAgH
 ```
 
-The default chooses an I through hold, with a non-scoring Left route; it does
-not invent an immediate double. The same starting board also has an independent
-S→I→I witness in tests: both newly created shallow channels need **different**
-I instances. That witness is not guaranteed to be the default recommendation.
+The measured default starts S in Center, then uses I and O to complete a
+non-scoring construction. It does not invent an immediate double. The same board
+also has a different, independent Left S→I→I witness in tests: both newly created
+shallow channels need **different** I instances. That S placement is not the
+default Center S placement.
 
 ### 4. Repair an existing freestyle vacancy
 
@@ -96,8 +102,9 @@ I instances. That witness is not guaranteed to be the default recommendation.
 v115@3fB8BeC8CeA8BeD8CeF8DeG8CeG8CeF8DeG8CeG8CeF8CeH8AeI8AeA8KeAgH
 ```
 
-Expected first target: S tucks into the Left vacancy under J's roof. The checked
-route pays that vacancy and includes a double. Tests independently check the
+The measured default holds for a T double first, then S tucks into the
+clear-translated Left vacancy, followed by I in Center. Scoring alone does not
+pay the roof debt; the actual S repair is still checked. Tests independently check the
 preceding J→S construction too, including a double before the repair when its
 translated debt is paid by lock three. Searching **before** J can still exhaust
 the UI budget instead of finding that route. This is a real coverage limitation.
@@ -128,8 +135,9 @@ change: live frontier rather than historical best rank, concrete visible-resourc
 repair estimates, and repair-family diversity within the unchanged limits.
 Offline coverage is 285/381 versus 259/381, with no lost targets in that corpus.
 The 24 fresh paired trials have five losses and an unchanged zero lower quartile;
-none reaches the 56-lock cap. Browser deadlines and rolling-query debt continuity
-remain limitations. Other proposed horizon/history/endpoint changes are not included.
+none reaches the 56-lock cap. The bounded browser panel regresses **9/28→2/28**
+targets; this is not a browser-ready improvement claim. Deadlines and rolling-query
+debt continuity remain limitations. Other proposed horizon/history/endpoint changes are not included.
 
 ## Historical search-allocation follow-up
 

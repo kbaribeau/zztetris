@@ -118,15 +118,55 @@ blind plan commitment is not justified by paying one obligation.
 
 The existing full-browser comparison is still a disclosed regression:
 **199/381 targets at original `0f7ca198`, versus 179/381 at corrected `efe1070`**,
-with 200 deadline stops in the latter. Offline gains do not erase it. Browser
-work is a bounded residual check, not a performance optimization or a repeat
-full-corpus timing study. Current-source browser results will be recorded before
-publication; no browser improvement is claimed here yet.
+with 200 deadline stops in the latter. Offline gains do not erase it.
+
+The new bounded residual check is **also a regression**. At 1440×1100 in an
+isolated real-Chrome session, the same pre-existing 28-case development panel
+returns **9 targets / 19 deadline stops** on `efe1070`, versus **2 targets /
+26 deadline stops** on this implementation. Gains: p27,p199. Losses:
+p44,51,58,60,78,98,130,155,243. All issued three-lock witnesses execute exactly.
+p23/p177's offline recoveries do not survive this browser sample's deadline.
+
+| Bounded browser sample, all 28 each | Baseline | Candidate |
+| --- | ---: | ---: |
+| Elapsed median / maximum ms | 773.25 / 877.5 | 794.4 / 856.2 |
+| CPU median / maximum ms | 44.05 / 52.4 | 48.0 / 65.3 |
+| Maximum observed slice ms | 5.8 | 13.8 |
+| Maximum frame interval ms | 150.0 | 133.4 |
+
+This is one sequential, host/frame-cadence-sensitive sample, not a significance
+result, optimization study or replacement full-corpus measurement. The nominal
+4-ms slice and 750-ms deadline are not hard-real-time guarantees. **No performance
+change was authorized or made to hide the regression.**
+
+On clean implementation commit `e273967034f2e65bab9ab80807fdc88f0a72c0ab`, three
+of four desktop prepared examples return targets (cycle 558 ms, allocation
+435 ms, repair 411 ms); Center times out at 752 ms. At emulated 390×844, cycle
+and Center return targets at 548/325 ms. An ordinary movement then makes Center
+revalidation time out, correctly removing its target. These are not physical
+mobile-device measurements. Desktop/narrow screenshots were inspected: amber
+targets, gray ghost, wrapped advice below the field, and actual timeout states.
+Existing import/queue-editor active/ghost remnants clear on movement; they were
+not changed by this increment.
+
+The separate desktop controls check preserves a sound target after movement
+and hold, hides target/text without shifting the field or changing the game,
+executes a lock, restores heaps through undo/redo, cancels edited-queue work on
+hide without later resurrection, disables advice under gravity, and restarts
+on an empty board with no target. The owned browser/server were stopped. These
+checks do not counterbalance the browser coverage loss.
 
 Local regressions cover unhinted construction recovery, roof repayment before
 or after clears, live versus historical frontier state, below-root diversity,
 distinct/late resource negatives, charged estimator work, stable targets and
 cancellation. See [TESTING.md](../TESTING.md#st-lab-behavioral-coverage).
+A supplemental audit replays 890 complete witnesses across the corpus and both
+engines' fresh/seen trials: 2,670 actual lock executions, 1,274 separately
+hypothetical probe executions, 890 endpoint/translated-obligation checks, zero
+final failures. These overlapping jobs are execution counts, not independent
+placements. Its first retained helper attempt failed its virtual-probe type tag
+before executing those probes; correcting the helper required no product change.
+
 Full inputs, both development generations, per-case/per-trial results, failures,
 replay checks and source hashes are retained in the task evidence. Skipped or
 absent GitHub CI is **not green CI**. Captain playtesting remains the acceptance
