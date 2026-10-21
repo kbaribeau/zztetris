@@ -208,6 +208,121 @@ const STCore = (() => {
       return null;
     }
     function compare(a,b) {for(let i=0;i<a.length;i++)if(a[i]!==b[i])return a[i]-b[i];return 0;}
+    // Search value is deliberately separate from terminal acceptance. A repair
+    // estimate may omit an intervening placement or a movement path; only branch
+    // and search can turn three actual locks into a recommendation.
+    const shapeRank=(f,allowed)=>[f.holes.length,debt(f,allowed).length,centerDebt(f,allowed),+!f.right,+!f.notches.length,
+      Math.abs(Math.min(...f.tops.slice(0,4))-f.centerTop),-f.headroom,-f.notches.length];
+    const needsRepair=(f,allowed)=>shapeRank(f,allowed).slice(0,5).some(n=>n>0);
+    function repairFamily(c) {
+      return [c.choice.active.kind,c.type,c.f.holes.length?'roof':debt(c.f,c.allowed).length?'channel':'left-clear',
+        centerDebt(c.f,c.allowed)?'center-open':'center-clear',c.f.right?'right-clear':'right-open'].join(':');
+    }
+    function repairAnchors(heap,f,allowed) {
+      const left=[...new Set([...f.holes.map(([x,y])=>y*10+x),...debt(f,allowed)])].sort((a,b)=>Math.floor(b/10)-Math.floor(a/10)||a%10-b%10);
+      if(left.length)return [[left[0]%10,Math.floor(left[0]/10)]];
+      const anchors=[];
+      for(let y=f.centerTop;y<40;y++) {
+        const row=heap[y].slice(4,7);
+        if((row!=='###'&&row!=='##.')||(row==='##.'&&heap[y+1]?.slice(4,7)!=='###')) {
+          for(let x=4;x<=6;x++)if(heap[y][x]==='.')anchors.push([x,y]);
+          break;
+        }
+      }
+      if(centerDebt(f,allowed)||!f.notches.length) {
+        if(!anchors.length)for(let x=4;x<=6;x++)if(heap[f.centerTop]?.[x]==='.')anchors.push([x,f.centerTop]);
+        // Covering a cut can turn it into an intentional notch without filling
+        // that cell. Inspect its roof too, rather than assuming a fixed recipe.
+        for(let x=4;x<=6;x++)if(f.centerTop>18)anchors.push([x,f.centerTop-1]);
+      }
+      if(!anchors.length&&!f.right)for(const x of [9,7])for(let y=39;y>=18;y--)if(heap[y][x]==='.') {anchors.push([x,y]);break;}
+      return anchors;
+    }
+    function* repairOptions(s,slots,b,wait=0,skipped=[]) {
+      for(const choice of access(s)) {
+        if(!charge(b,'candidates','maxCandidates','candidate-budget'))return;
+        b.repairResourceChecks++;yield;
+        if(!choice.next.length)continue;
+        const future={heap:s.heap,active:spawn(choice.next[0]),hold:choice.hold,visibleNext:choice.next.slice(1)};
+        if(!free(s.heap,future.active.kind,future.active))continue;
+        yield {choice,future,wait,skipped};
+        // Resource-only arrival estimate: these intervening locks have NO
+        // assumed placement. Their identities are consumed, never borrowed
+        // again; their geometry and paths still need the real search.
+        if(slots>1)yield* repairOptions(future,slots-1,b,wait+1,[...skipped,choice.active.id]);
+      }
+    }
+    function* estimateRepair(s,allowed,slots,b) {
+      const f=facts(s.heap),anchors=repairAnchors(s.heap,f,allowed);let best=null;
+      const options=repairOptions(s,slots,b);
+      while(!b.stop) {
+        const next=options.next();if(next.done)break;
+        if(!next.value){yield;continue;}
+        const {choice,future,wait,skipped}=next.value,kind=choice.active.kind,seen=new Set();
+        for(const [ax,ay] of anchors)for(let rotation=0;rotation<4;rotation++)for(const [dx,dy] of offsets[kind][rotation]) {
+          const pose={x:ax-dx,y:ay-dy,rotation},cells=cellsAt(kind,pose),key=cellKey(cells);
+          if(seen.has(key))continue;seen.add(key);
+          if(!charge(b,'candidates','maxCandidates','candidate-budget'))return best;
+          b.repairProbes++;
+          if(cells.every(([,y])=>y>=18)&&free(s.heap,kind,pose)&&!free(s.heap,kind,{...pose,y:pose.y+1})) {
+            const after=lock(s.heap,cells),type=role(kind,cells,after),nextAllowed=shiftKeys(allowed,after.removed);
+            if(type&&free(after.heap,future.active.kind,future.active)) {
+              const factsAfter=facts(after.heap),rank=shapeRank(factsAfter,nextAllowed);
+              if(factsAfter.headroom>=0&&(!best||compare([...rank,wait],[...best.rank,best.wait])<0))best={f:factsAfter,rank,allowed:nextAllowed,
+                state:{...future,heap:after.heap},wait,steps:[{id:choice.active.id,kind,cells,waitLocks:wait,skippedIds:skipped}]};
+            }
+          }
+          yield;
+        }
+      }
+      // At most one greedy extension, and only after an immediate remedy.
+      // A delayed resource has already consumed the intervening actual slots.
+      if(best&&slots>1&&!best.wait&&needsRepair(best.f,best.allowed)&&!b.stop) {
+        const tail=yield* estimateRepair(best.state,best.allowed,slots-1,b);
+        if(tail&&compare(tail.rank,best.rank)<0)best={...tail,steps:[...best.steps,...tail.steps]};
+      }
+      return best;
+    }
+    function* rankCandidates(all,slots,b) {
+      // Bound secondary work to four beam widths of assessments, within the
+      // SAME whole-decision budget. Stop sampling a family once it has a paid
+      // geometric estimate. Otherwise an unrepairable first pose can exclude
+      // every useful roof in its family before the real search even starts.
+      const groups=new Map();
+      for(const c of all)if(needsRepair(c.f,c.allowed)) {
+        const family=repairFamily(c);if(!groups.has(family))groups.set(family,[]);groups.get(family).push(c);
+      }
+      const pending=[...groups.values()].map(group=>{
+        const seen=new Set(),distinct=[],alternatives=[];
+        for(const c of group){const key=cellKey(c.cells);(seen.has(key)?alternatives:distinct).push(c);seen.add(key);}
+        // This changes assessment ORDER only. Resource-distinct candidates are
+        // neither merged nor assigned another candidate's estimate.
+        return {candidates:[...distinct,...alternatives],satisfied:false};
+      });let assessed=0;
+      for(let round=0;slots>0&&assessed<4*b.limits.width&&pending.some(g=>!g.satisfied&&g.candidates.length>round);round++)for(const group of pending) {
+        if(group.satisfied||!group.candidates[round]||assessed>=4*b.limits.width)continue;
+        const c=group.candidates[round];assessed++;b.repairEstimates++;
+        const estimate=yield* estimateRepair(c.future,c.allowed,slots,b);
+        if(b.stop)return [];
+        if(estimate&&compare(estimate.rank,shapeRank(c.f,c.allowed))<0) {
+          c.rank=[+!c.preferred,...estimate.rank,...c.tie];
+          c.repair={status:'unverified-geometric-estimate',slots,steps:estimate.steps,remaining:estimate.rank.slice(0,5)};
+          group.satisfied=c.repair.remaining.every(n=>n===0);
+        }
+      }
+      all.sort((a,b)=>compare(a.rank,b.rank));
+      const selected=all.slice(0,Math.ceil(b.limits.width/2)),represented=new Set();
+      const family=c=>repairFamily(c)+':'+c.repair.steps.map(s=>s.kind).join('');
+      const eligible=c=>c.repair&&c.repair.remaining.every(n=>n===0);
+      for(const c of selected)if(eligible(c))represented.add(family(c));
+      // Preferred targets retain their ordinary priority and fresh validation.
+      for(const c of all)if(c.preferred&&!selected.includes(c)&&selected.length<b.limits.width)selected.push(c);
+      for(const c of all)if(eligible(c)&&!represented.has(family(c))&&selected.length<b.limits.width) {
+        represented.add(family(c));if(!selected.includes(c)){selected.push(c);b.repairFamilyReservations++;}
+      }
+      for(const c of all)if(selected.length<b.limits.width&&!selected.includes(c))selected.push(c);
+      selected.sort((a,b)=>compare(a.rank,b.rank));return selected;
+    }
     function* geometry(heap,kind,b) {
       const key=JSON.stringify([heap,kind]);
       if(b.geometry.has(key))b.geometryReuses++;
@@ -227,7 +342,7 @@ const STCore = (() => {
       }
       return entry.items;
     }
-    function* candidates(s,allowed,preferred,b) {
+    function* candidates(s,allowed,preferred,b,slots) {
       const all=[];
       for(const choice of access(s)) {
         const kind=choice.active.kind,list=yield* geometry(s.heap,kind,b);
@@ -242,29 +357,29 @@ const STCore = (() => {
           const allowedAfter=shiftKeys(allowed,after.removed);
           if(f.headroom<0)continue;
           const preferredMatch=preferred?.kind===kind&&Array.isArray(preferred.cells)&&preferred.cells.length===4&&preferred.cells.every(c=>Array.isArray(c)&&c.length===2&&c.every(Number.isInteger))&&cellKey(preferred.cells)===key;
-          const rank=[+!preferredMatch,f.holes.length,debt(f,allowedAfter).length,centerDebt(f,allowedAfter),+!f.right,
-            Math.abs(Math.min(...f.tops.slice(0,4))-f.centerTop),choice.prelude.length,-after.cleared,rotation,x,y];
-          all.push({choice,cells,after,type,f,allowed:allowedAfter,rank,preferred:preferredMatch,
+          const tie=[choice.prelude.length,-after.cleared,rotation,x,y],rank=[+!preferredMatch,...shapeRank(f,allowedAfter),...tie];
+          all.push({choice,cells,after,type,f,allowed:allowedAfter,rank,tie,preferred:preferredMatch,
             future:{heap:after.heap,active,hold:choice.hold,visibleNext:choice.next.slice(1)}});
         }
         if(b.stop)return [];
       }
       all.sort((a,b)=>compare(a.rank,b.rank));
-      b.widthPruned+=Math.max(0,all.length-b.limits.width);
-      return all.slice(0,b.limits.width);
+      const retained=yield* rankCandidates(all,slots,b);
+      b.widthPruned+=Math.max(0,all.length-retained.length);
+      return retained;
     }
     function* search(s,allowed,depth,b,progress) {
       b.maxDepth=Math.max(b.maxDepth,depth);
       if(depth===b.limits.depth) {
         const f=facts(s.heap);b.endpoints++;
-        if(!terminal(f,allowed)){b.endpointRejects++;return null;}
+        if(!terminal(f,allowed)){b.endpointRejects++;progress.rejectedEndpoints++;return null;}
         const nextOpportunity=yield* opportunity(s.heap,b);
-        if(!nextOpportunity){b.endpointRejects++;return null;}
+        if(!nextOpportunity){b.endpointRejects++;progress.rejectedEndpoints++;return null;}
         return {steps:[],endpoint:{heap:s.heap,active:copy(s.active),hold:copy(s.hold),visibleNext:copy(s.visibleNext),facts:f,opportunity:nextOpportunity,
           obligations:{newConstruction:'paid',inheritedNarrowChannels:f.channels,intentionalCenterNotches:f.notches,scoringResources:'unverified-beyond-horizon'},
           newConstructionObligations:'paid',future:'Center notches and Right cleanup are intentional, unverified beyond the horizon; no unseen piece is promised.'}};
       }
-      const list=yield* candidates(s,allowed,null,b);
+      const list=yield* candidates(s,allowed,null,b,b.limits.depth-depth-1);
       for(const c of list) {
         if(b.stop)return null;
         const route=yield* branch(s,c,depth,b,progress);
@@ -273,12 +388,16 @@ const STCore = (() => {
       return null;
     }
     function* branch(s,c,depth,b,progress) {
+      // Replace, never minimize over history: after rejection/backtracking the
+      // next attempted branch owns the live frontier. Old depth/rank diagnostics
+      // must not keep a rejected descendant at the front of the work queue.
+      progress.frontierRank=c.rank.slice(1,9);progress.frontierDepth=depth+1;progress.frontierChanges++;
       if(!charge(b,'lockStates','maxLockStates','lock-budget'))return null;
       yield;
       const path=yield* pathTo(s.heap,c.choice.active,c.cells,c.type==='double',b);
       if(!path){b.pathRejects++;return null;}
       progress.depth=Math.max(progress.depth,depth+1);
-      if(compare(c.rank.slice(1,7),progress.bestRank)<0)progress.bestRank=c.rank.slice(1,7);
+      if(compare(c.rank.slice(1,9),progress.bestRank)<0)progress.bestRank=c.rank.slice(1,9);
       // newPiece preserves lastAction; only hold resets it.
       const future={...c.future,active:{...c.future.active,lastAction:path.lastAction}};
       const tail=yield* search(future,c.allowed,depth+1,b,progress);
@@ -290,10 +409,11 @@ const STCore = (() => {
       return {...tail,steps:[step,...tail.steps]};
     }
     function* allocate(input,allowed,b) {
-      const list=yield* candidates(input,allowed,input.preferredTarget,b);
+      const list=yield* candidates(input,allowed,input.preferredTarget,b,b.limits.depth-1);
       const jobs=list.map((c,index)=>{
         const progress={index,piece:{id:c.choice.active.id,kind:c.choice.active.kind},cells:c.cells,prelude:c.choice.prelude,
-          preferred:!!c.preferred,rank:c.rank,depth:0,bestRank:c.rank.slice(1,7),work:0,turns:0,initialWork:0,status:'pending'};
+          preferred:!!c.preferred,rank:c.rank,depth:0,bestRank:c.rank.slice(1,9),frontierRank:c.rank.slice(1,9),frontierDepth:0,frontierChanges:0,rejectedEndpoints:0,
+          repair:c.repair||null,work:0,turns:0,initialWork:0,status:'pending'};
         b.roots.push(progress);return {progress,iterator:branch(input,c,0,b,progress)};
       });
       let fallback=null;
@@ -318,7 +438,7 @@ const STCore = (() => {
           do{job=jobs[cursor++%jobs.length];}while(job.progress.status!=='pending');
           b.fairRevisits++;
         } else {
-          const priority=j=>[+!j.progress.preferred,-j.progress.depth,...j.progress.bestRank,j.progress.index];
+          const priority=j=>[+!j.progress.preferred,...j.progress.frontierRank,-j.progress.frontierDepth,j.progress.index];
           job=jobs.filter(j=>j.progress.status==='pending').sort((a,b)=>compare(priority(a),priority(b)))[0];
           b.promisingTurns++;
         }
@@ -346,7 +466,7 @@ const STCore = (() => {
       if(Object.keys(DEFAULTS).some(k=>!Number.isInteger(limits[k])||limits[k]<(k==='depth'?DEFAULTS.depth:k==='width'?1:0)||limits[k]>DEFAULTS[k]))return abstain('unsupported','Invalid continuation work limits.');
       const b={limits,poseStates:0,lockStates:0,candidates:0,cacheHits:0,cacheEvictions:0,movementBuilds:0,movementReuses:0,geometryReuses:0,
         widthPruned:0,unknown:0,spawnRejects:0,pathRejects:0,endpointRejects:0,endpoints:0,maxDepth:0,stop:null,
-        movements:new Map(),geometry:new Map(),roots:[],fairRevisits:0,promisingTurns:0};
+        movements:new Map(),geometry:new Map(),roots:[],fairRevisits:0,promisingTurns:0,repairEstimates:0,repairProbes:0,repairResourceChecks:0,repairFamilyReservations:0};
       const initial=facts(input.heap),allowed=defectKeys(initial);
       allowed.openTop=input.heap[initial.centerTop]?.slice(4,7)==='##.'?initial.centerTop:null;
       // Empty boards are intentionally outside this first established-stack
@@ -361,6 +481,7 @@ const STCore = (() => {
         movementBuilds:b.movementBuilds,movementReuses:b.movementReuses,geometryReuses:b.geometryReuses,cacheEvictions:b.cacheEvictions,
         cacheEntries:{movement:b.movements.size,geometry:b.geometry.size,limit:CACHE_ENTRIES},
         roots:b.roots,rootQuantum:ROOT_QUANTUM,fairRevisits:b.fairRevisits,promisingTurns:b.promisingTurns,
+        repairEstimates:b.repairEstimates,repairProbes:b.repairProbes,repairResourceChecks:b.repairResourceChecks,repairFamilyReservations:b.repairFamilyReservations,
         searchStop:b.stop,stopReason:route?'witness-found':b.stop||(!established?'no-established-right-stack':'no-suitable-witness'),limits};
       if(b.stop&&!route)return abstain('budget-exhausted','Search limit reached; no verified suitable continuation within budget. This is not impossibility.',diagnostics);
       if(!route)return abstain('no-core-fit-found','No suitable ST continuation verified through the requested horizon. Keep playing manually; opening coverage is not implemented.',diagnostics);

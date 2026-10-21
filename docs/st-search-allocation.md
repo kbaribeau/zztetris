@@ -1,5 +1,9 @@
 # Search-allocation follow-up
 
+**Historical allocation report.** The later acceptance fixes and current
+[live-frontier follow-up](st-live-frontier.md) have separate revision-bound
+measurements; do not treat the tables below as current-head validation.
+
 Branch-only follow-up to the delivered candidate
 `0f7ca19898fd9d621125d5684d22f8e064ea01be`. No merge, deployment or replacement
 acceptance. The captain authorized calculation-local reuse, initial fair root

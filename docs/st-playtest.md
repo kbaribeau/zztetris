@@ -98,8 +98,9 @@ v115@3fB8BeC8CeA8BeD8CeF8DeG8CeG8CeF8DeG8CeG8CeF8CeH8AeI8AeA8KeAgH
 
 Expected first target: S tucks into the Left vacancy under J's roof. The checked
 route pays that vacancy and includes a double. Tests independently check the
-preceding J→S construction too, but searching **before** J can exhaust the UI
-budget instead of finding that route. This is a real coverage limitation.
+preceding J→S construction too, including a double before the repair when its
+translated debt is paid by lock three. Searching **before** J can still exhaust
+the UI budget instead of finding that route. This is a real coverage limitation.
 
 ## What to try
 
@@ -120,7 +121,17 @@ status, work/stop counters and timing. The visible UI intentionally omits most
 of that detail. Hypothetical Z/T/I terminal probes are **not promised future
 pieces** or additional actual locks.
 
-## Search-allocation follow-up
+## Live-frontier follow-up
+
+The [current comparison](st-live-frontier.md) reports the recommendation-1-only
+change: live frontier rather than historical best rank, concrete visible-resource
+repair estimates, and repair-family diversity within the unchanged limits.
+Offline coverage is 285/381 versus 259/381, with no lost targets in that corpus.
+The 24 fresh paired trials have five losses and an unchanged zero lower quartile;
+none reaches the 56-lock cap. Browser deadlines and rolling-query debt continuity
+remain limitations. Other proposed horizon/history/endpoint changes are not included.
+
+## Historical search-allocation follow-up
 
 See [ST-LAB.md](../ST-LAB.md#implementation-and-work-limits) for the current
 search and work limits. The [allocation comparison](st-search-allocation.md)

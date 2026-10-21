@@ -34,8 +34,18 @@ test('st-continuation/freestyle roof: a temporary buried vacancy has an executed
   const a=p.advise({...s,preferredTarget});assert.equal(key(a.cells),key(roof.cells));
   assert.equal(a.obligations.status,'verified-payable-within-horizon');assert.ok(a.obligations.newVacancies.length);
   replay(g,a);assert.equal(heap(g)[30][1],'.');
-  assert.equal(a.witness.steps[1].piece.kind,'S');replay(g,a.witness.steps[1]);assert.deepEqual(heap(g),roof.afterRepair);
-  replay(g,a.witness.steps[2]);assert.equal(g.window.cleared,2);assert.equal(g.window.tspin,true);
+  assert.deepEqual(json(a.witness.steps.slice(1).map(s=>s.piece.kind)).sort(),['S','T']);
+  for(const step of a.witness.steps.slice(1)) {
+    replay(g,step);assert.deepEqual(heap(g),json(step.heap));
+    if(step.piece.kind==='T') {assert.equal(g.window.cleared,2);assert.equal(g.window.tspin,true);assert.equal(g.window.mini,false);}
+    if(step===a.witness.steps[1]) {
+      if(step.piece.kind==='S')assert.deepEqual(heap(g),roof.afterRepair);
+      else assert.equal(heap(g)[32][1],'.','scoring translates the debt; it does not pay it');
+    }
+  }
+  assert.deepEqual(heap(g),roof.afterDouble);
+  assert.equal(a.witness.endpoint.obligations.newConstruction,'paid');
+  assert.deepEqual(json(a.witness.endpoint.facts.holes),[]);
 }));
 
 test('st-continuation/unfinished pairs: pair initiation is allowed only with completion inside the horizon',()=>withPage('st-lab.html',hidden,g=>{

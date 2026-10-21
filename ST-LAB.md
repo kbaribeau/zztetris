@@ -94,6 +94,14 @@ Z caps and cleanup residue can remain; their future resource obligations are
 **unverified beyond H**, disclosed separately. The endpoint does not promise
 another available double, replenishment or indefinite play.
 
+**Rolling-query limitation:** these obligations belong to one calculation, not
+persistent gameplay history. A newly built `##.` can become the next snapshot's
+initial cut, so a fresh valid witness can postpone a repair promised by the
+previous witness. Stable destination preference is not commitment to the old
+three-lock route. This increment does not add history/proof handoff or remove
+the initial-cut exemption; within-query verification is not cross-query debt
+continuity.
+
 ### Four concepts and explanations
 
 - **Scoring cycle and cleanup:** actual cap/double/staging/quad transitions,
@@ -130,21 +138,41 @@ the renderer's seven raw entries/six clipped slots; ambiguous separators reject.
 
 Search independently enumerates grounded placements and their clear results.
 Non-clearing construction stays in x≤6; Right candidates are Z caps, vertical I
-staging/cleanup and exact doubles. No old matcher is called. The lexicographic
-candidate ordering remains: revalidate preferred target, fewer buried Left cells,
-fewer new channels/vacancies, less unfinished Center work, preserved Right geometry,
-smaller Left/Center height difference, fewer holds, then clears and fixed pose
-order. These are engineering search heuristics, **not acceptance predicates or
-learned weights**.
+staging/cleanup and exact doubles. No old matcher is called. Ranking uses buried
+Left cells, new vacancies/channels, unfinished Center work, Right geometry,
+covered-notch presence, Left/Center height difference, headroom and notch count;
+holds, clears and fixed pose order break ties. A preferred destination remains
+first for fresh validation. These are engineering heuristics, **not acceptance
+predicates or learned weights**.
+
+At root and descendants, bounded repair estimates can value an initially ugly
+construction using specific visible instances. They anchor possible remedies
+at actual vacancies or unfinished Center cells/roofs, respecting ordered hold
+and draw schedules and the remaining actual slots. At most two remedy locks
+are estimated after a root placement, with one greedy extension of an immediate
+remedy. A delayed resource consumes an intervening identity but does **not**
+prove that intervening piece has a placement. Movement, spin, the real intervening
+heap and terminal access still require the actual search. Estimates are labelled
+`unverified-geometric-estimate`; none becomes a witness or an available future
+resource merely by ranking well.
+
+Each state assesses at most **four beam widths** of candidates (48 at default
+width), sampling distinct geometries before extra resource variants within a
+repair family and stopping that family's assessment once a geometrically paid
+estimate is found. Instances/states are never merged and estimates are not copied
+between equal-cell resource alternatives. Half the beam starts with ordinary
+rank order; its remaining slots can retain other evidenced repair families,
+then fill from rank order. Beam width and whole-decision budgets do not increase.
 
 Each retained first move owns a resumable depth-first continuation. Initially
 each receives up to **512 charged units**, in rank order, unless a complete
 acceptable witness or the shared budget ends the decision. Thereafter three of
-four turns favor an unfinished search by preferred-target status, maximum depth
-reached, best geometric rank seen, then original root order. Every fourth turn
-revisits unfinished alternatives round-robin. These signals can favor fruitless
-subtrees; they are not proof of a future endpoint. Suspended searches resume,
-not restart. All roots share the original whole-decision limits below.
+four turns favor preferred status, the **current attempted frontier's** geometric
+rank, current attempted depth and original root order. Backtracking replaces that
+signal; maximum depth/best rank ever seen are diagnostics only. Every fourth turn
+revisits unfinished alternatives round-robin. Current estimates can still favor
+fruitless subtrees; they are not proof. Suspended searches resume, not restart.
+All roots share the original whole-decision limits below.
 
 A BFS indexed by heap, piece kind, actual pose and last action serves multiple
 placement requests, keeping unrestricted and non-mini-spin paths distinct.
@@ -157,7 +185,8 @@ The first complete acceptable witness normally wins. A fully verified alternativ
 may wait while an old preferred target receives fresh validation; it is usable
 if preferred searches finish without a witness or the work budget ends. A partial
 route or high rank never becomes advice. Comparison of every viable first move
-or exact optimality is not claimed. See [allocation measurements](docs/st-search-allocation.md).
+or exact optimality is not claimed. See the [live-frontier comparison](docs/st-live-frontier.md)
+and [historical allocation measurements](docs/st-search-allocation.md).
 
 Whole-decision defaults/ceilings:
 
@@ -180,7 +209,8 @@ again, is recomputed and charged again.
 
 Each real movement expansion and lock-path attempt is charged. Geometric charges
 include newly enumerated poses, resource-dependent placement/spawn/debt checks
-(even on a geometry hit), and hypothetical terminal queries. Reused work is not
+(even on a geometry hit), repair-resource schedule checks and anchored geometric
+repair probes, and hypothetical terminal queries. Reused work is not
 charged as though it were recomputed; the unchanged ceilings now buy different
 amounts of useful search. These units are not equivalent CPU-time promises.
 Exhaustion never emits an incomplete target. Width
@@ -199,8 +229,10 @@ requested/effective **verified** horizon, maximum reached depth, work counts,
 width/path/spawn/endpoint rejection counts, stop reason, full witness, elapsed
 and CPU work time, maximum observed slice, cancellations and target churn. Root
 diagnostics report retained resource-distinct candidates, initial/total work,
-turns, reached depth and completion status; cache build/reuse/eviction counts and
-indexed entry counts describe calculation-local reuse. `searchStop` can record
+turns, reached depth, current frontier rank/attempted depth, rejected endpoints,
+unverified repair estimates and completion status. Repair assessment/probe/resource
+check and family-reservation counts expose ranking work; cache build/reuse/eviction
+counts and indexed entry counts describe calculation-local reuse. `searchStop` can record
 budget exhaustion while preserving an already fully verified fallback witness.
 Abstentions have effective verified horizon zero, even if a rejected branch
 reached depth three. `no-core-fit-found` is the retained UI reason code, not a

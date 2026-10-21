@@ -30,7 +30,7 @@ async function trial(seed,maxLocks=56) {
 async function main() {
   const results=[];for(const seed of [1,2,3,4,2000,2001,2002,2003,2004,2005,2006,2007])results.push(await trial(seed));
   const output={revision:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),dirty:!!execFileSync('git',['status','--porcelain'],{encoding:'utf8'}).trim(),node:process.version,
-    protocol:'Twelve fixed seeds, established cap-base heap; normal generator, no hidden suffix in advisor; up to 56 locks, first abstention stops. Seeds >=2000 held out from algorithm design. Earlier 1000-series exploratory runs are separate evidence, not final held-out results. Locks are not bag boundaries.',results};
+    protocol:'Twelve fixed seeds, established cap-base heap; normal generator, no hidden suffix in advisor; up to 56 locks, first abstention stops. All twelve seeds are now seen development evidence, not a new held-out evaluation. Earlier 1000-series exploratory runs remain separate seen evidence. Locks are not bag boundaries.',results};
   const filename=process.argv[2]||'test-results/st-trial.json';fs.mkdirSync(require('node:path').dirname(filename),{recursive:true});fs.writeFileSync(filename,JSON.stringify(output,null,2)+'\n');
   console.log(JSON.stringify(results.map(({decisions,...r})=>({...r,maxMs:Math.max(...decisions.map(d=>d.ms))})),null,2));
 }
