@@ -32,7 +32,9 @@ async function main() {
     if (process.version !== 'v24.20.0') throw new Error('Use the pinned Node version from .nvmrc (24.20.0)');
     if (!result.testFiles.length) throw new Error('No test files found');
     // Parent watchdog also bounds a child stuck in synchronous product code.
-    deadline = setTimeout(() => controller.abort(new Error('Suite exceeded 60 seconds')), 60000);
+    // Regional-model regressions add real bounded searches; retain the tighter
+    // per-file deadline below while allowing the larger serial suite to finish.
+    deadline = setTimeout(() => controller.abort(new Error('Suite exceeded 120 seconds')), 120000);
     const stream = run({ files: result.testFiles, concurrency: 1, timeout: 15000, signal: controller.signal });
     for (const outcome of ['pass', 'fail']) stream.on(`test:${outcome}`, data => {
       const file = path.relative(root, data.file || '');

@@ -1,5 +1,7 @@
 # ST milestone evaluation
 
+This is the historical pre-regional baseline. See [the experimental regional revision](st-regional-feedback.md) for the latest failed sustainability comparison; the baseline results below are deliberately retained.
+
 Measured 2026-10-22, Node v24.20.0, Linux cloud checkout. Reproduce with `node scripts/evaluate-st.cjs --extended`. This report records both current bounded successes and remaining strategic limitations.
 
 The [compact recorded results and input traces](st-evaluation-results.json) preserve the frozen run in the repository, rather than relying on temporary execution files.

@@ -1,5 +1,5 @@
 /* Milestone-one finite-information coach. No fixture IDs, seeds or hidden queues. */
-(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules.js'),require('./st-bag.js')):factory(root.STRules,root.STBag);if(typeof module==='object'&&module.exports)module.exports=api;else root.STPlanner=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,B){
+(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules.js'),require('./st-bag.js'),require('./st-structure.js')):factory(root.STRules,root.STBag,root.STStructure);if(typeof module==='object'&&module.exports)module.exports=api;else root.STPlanner=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,B,S){
 'use strict';
 const clone=x=>JSON.parse(JSON.stringify(x));
 function observe(input){
@@ -42,13 +42,34 @@ function context(s){return JSON.stringify([s.rules,s.board,s.hold,s.canHold,s.qu
 function stateKey(s){return JSON.stringify([s.rules,s.board,s.active,s.hold,s.canHold,s.queue,s.bag??null]);}
 function extendForced(state){if(!state.bag)return state;const t=B.forcedNext(state.bag);if(!t)return state;return {...state,queue:[...state.queue,t],bag:B.consume(state.bag,t)};}
 function compare(a,b){for(let i=0;i<a.rank.length;i++)if(a.rank[i]!==b.rank[i])return b.rank[i]-a.rank[i];return a.key.localeCompare(b.key);}
-function nodeFor(p,parent,initial,rootIndex){const assessment=assess(p.state.board),path=[...(parent?.path??[]),p],tsds=path.filter(v=>v.event.spin==='full'&&v.event.lines===2).length;
- const damage=Math.max(0,assessment.leftSealed-initial.leftSealed),safe=assessment.maxHeight<20&&!p.event.topOut;
- // Top-out cannot be bought with points. Cavity costs are endpoint heuristics,
- // not hard gates: ST reservoir vacancies may be repaid by later cleanup.
- p.structuralEvidence={centerPartnerDeficitBefore:(parent?.assessment??initial).center.partnerDeficit,centerPartnerDeficitAfter:assessment.center.partnerDeficit,placedPiece:p.event.type};
- const rank=[safe?1:0,assessment.regionalSupport?1:0,tsds>0?1:0,assessment.estimate-damage*4, -path.reduce((n,v)=>n+v.witness.length+(v.hold?2:0),0),path.reduce((n,v)=>n+v.event.lines,0)];
- return{state:p.state,path,assessment,rank,baseEstimateRank:rank[3],qualified:!assessment.right.slots.length,rootIndex,key:JSON.stringify(path[0].target)+':'+path[0].hold};}
+function nodeFor(p,parent,initial,rootIndex){
+ const assessment=assess(p.state.board),path=[...(parent?.path??[]),p];
+ const structure=S.assess(p.state),before=parent?.state??initial.state;
+ const transition=S.transition(before,p,structure);
+ // A crossing placement is not forbidden. Track its outstanding dependency,
+ // rather than rewarding a short tactical event regardless of the rebuild.
+ const dependencyDebt=Math.max(0,(parent?.dependencyDebt??0)+transition.dependencyDebt);
+ const priorAssessment=parent?.assessment??initial;
+ // A prepared scoring cavity is an access obligation, not just an endpoint
+ // bonus. Losing its geometry without clearing is a repair commitment; a later
+ // checked rebuilding prefix can restore it. Geometry alone is not entry proof.
+ const losesEntry=priorAssessment.right.slots.length>0&&!assessment.right.slots.length&&p.event.lines===0;
+ const scoredCycle=(p.event.spin==='full'&&p.event.lines===2)||p.event.lines===4;
+ const entryDebt=assessment.right.slots.length||scoredCycle?0:Math.max(parent?.entryDebt??0,losesEntry?1:0);
+ assessment.structure=structure;
+ assessment.obligations=structure.obligations.concat(assessment.obligations.filter(o=>o.kind==='T-slot'));
+ const damage=Math.max(0,assessment.leftSealed-initial.leftSealed);
+ const safe=assessment.maxHeight<20&&!p.event.topOut;
+ const headroomRisk=Math.max(0,assessment.maxHeight-14)**2;
+ const structuralScore=structure.supportEstimate+assessment.estimate-damage*4-dependencyDebt*3-headroomRisk-entryDebt*12;
+ assessment.structure.headroomRisk=headroomRisk;
+ const tsds=path.filter(v=>v.event.spin==='full'&&v.event.lines===2).length;
+ p.structuralEvidence={...transition,centerPartnerDeficitBefore:(parent?.assessment??initial).center.partnerDeficit,centerPartnerDeficitAfter:assessment.center.partnerDeficit,placedPiece:p.event.type,structure,dependencyDebt,entryDebt,nonclearScoringGeometryLost:losesEntry};
+ // Nearby structural estimates are deliberately comparable. The finite
+ // executable TSD then breaks ties; it cannot buy a poorer structural band.
+ const rank=[safe?1:0,assessment.regionalSupport?1:0,Math.floor(structuralScore/4),tsds*2,-path.reduce((n,v)=>n+v.witness.length+(v.hold?2:0),0),path.reduce((n,v)=>n+v.event.lines,0)];
+ return{state:p.state,path,assessment,rank,structuralScore,dependencyDebt,entryDebt,baseEstimateRank:rank[3],qualified:!assessment.right.slots.length,rootIndex,key:JSON.stringify(path[0].target)+':'+path[0].hold};
+}
 function diversify(nodes,width){const sorted=[...nodes].sort(compare),chosen=[],roots=new Set(),groups=new Set();
  // Protect meaningfully different construction families, not just top-scoring
  // near-identical surfaces. This is diversity, not a canned move template.
@@ -64,11 +85,11 @@ function plan(raw,options={}){
  if(s.topOut)return{...base,status:'no-supported-continuation-found',reason:'This position has topped out under the selected rules.'};
  if(!s.active)return{...base,status:'insufficient-known-pieces',reason:'No active piece is available in this observation.'};
  if(s.board.every(r=>r==='..........'))return{...base,status:'unsupported-position',reason:'Opening construction is outside milestone one. Choose an established-stack fixture.'};
- const initial=assess(s.board);
+ const initial=assess(s.board);initial.state=s;
  if(!initial.maintenanceScope)return{...base,status:'unsupported-position',reason:initial.left.height<2||initial.center.height<3?'This stack is below the established-stack maintenance profile. Choose another fixture or rebuild manually; opening construction is not coached.':'This position is outside the initial right-hand ST maintenance profile: established left/center stack and lower column-eight scoring channel required.',assessment:initial};
  const limit=options.maxNodes??45000,maxDepth=options.depth??3,width=options.width??8,expandedRoots=new Set(),accessCache=new Map();let stopped=false;
  base.metrics.accessNodes=0;
- const optimistic=n=>({...n,rank:n.rank.map((v,i)=>i===3&&!n.qualified?v+24:v)});
+ const optimistic=n=>({...n,rank:n.rank.map((v,i)=>i===3&&!n.qualified?v+1:v)});
  const qualify=nodes=>{
   // Geometry is only an upper bound. Resolve the most promising candidates
   // lazily; inaccessible cavities must never earn a T-slot reward.
@@ -80,7 +101,10 @@ function plan(raw,options={}){
    let access=accessCache.get(key);
    if(!access){access=R.tDoubleAccess(n.state.board,{maxNodes:Math.max(0,limit-base.metrics.nodes),deadline,now});base.metrics.accessNodes+=access.visited;base.metrics.nodes+=access.visited;if(access.complete)accessCache.set(key,access);else stopped=true;}
    n.qualified=true;n.assessment.right.entry={status:access.reachable===true?'reachable-if-T-available':access.reachable===false?'unreachable':'unresolved-budget',witness:access.witness||null,target:access.event?.target||null};
-   n.rank[3]=n.baseEstimateRank+(access.reachable===true?24:access.reachable===false?-12:0);
+   // A failed entry proof is structural repair work, not merely a lost
+   // tactical tie-break. Otherwise inaccessible cavities can look renewable.
+   if(access.reachable===false){n.structuralScore-=16;n.rank[2]=Math.floor(n.structuralScore/4);n.assessment.structure.blockedEntryRepair=16;}
+   n.rank[3]=n.baseEstimateRank+(access.reachable===true?1:0);
    n.assessment.obligations=n.assessment.obligations.map(o=>o.kind!=='T-slot'?o:({...o,status:access.reachable===true&&o.at[0]===access.event.target.x&&o.at[1]===access.event.target.y?'entry-verified-arrival-unresolved':access.reachable===false?'entry-blocked':'unresolved',note:'Counterfactual T entry is checked separately from whether a T arrives in time.'}));
   };
   // Evaluate the best member of each distinct root construction family too.
@@ -114,11 +138,18 @@ function plan(raw,options={}){
  if(best.assessment.maxHeight>=20||!best.assessment.regionalSupport)return{...base,status:'no-supported-continuation-found',reason:'Checked continuations do not preserve the supported regional profile and headroom; no supported ST recommendation was established.',assessment:best.assessment};
  const first=best.path[0],verified=R.replay(s,first.witness);if(!verified.valid)return{...base,status:'invalid-witness',reason:'Internal witness validation failed; no advice is displayed.'};
  const tsdAt=best.path.findIndex(p=>p.event.spin==='full'&&p.event.lines===2);
- const reason=tsdAt>=0?`${first.hold?'Hold first. ':''}${tsdAt===0?'Execute the T-spin double.':`This placement has a checked T-spin double within ${tsdAt+1} locks.`}`:
+ const tacticalReason=tsdAt>=0?`${first.hold?'Hold first. ':''}${tsdAt===0?'Execute the T-spin double.':`This placement has a checked T-spin double within ${tsdAt+1} locks.`}`:
  `${first.hold?'Hold first. ':''}${first.event.lines===0?'Place without clearing. ':'Place here. '}${best.assessment.right.entry?.status==='reachable-if-T-available'?'The checked endpoint preserves executable T-double entry when a T is available.':best.assessment.channel.openBelowStack?'The checked endpoint keeps column eight below the left/center stack.':'The checked endpoint needs a scoring-channel rebuild; its structure is uncertain.'}`;
+ const facts=first.structuralEvidence,partners=[...new Set(facts.structure.center.completions.map(c=>c.piece))];
+ const structuralReason=facts.allocation==='horizontal-left-I'&&facts.structure.left.flat?'Keep the left region flat.':
+  facts.allocation==='center-partner-preparation'&&partners.length?`Build the center with a checked ${partners.join(' or ')} completion shape.`:
+  facts.allocation==='center-completion'?(new Set(facts.structure.center.profile).size===1?'Complete a level center surface.':'Advance the center into a supported S/L preparation shape.'):
+  facts.allocation==='right-cap-preparation'?'Rebuild the right scoring structure.':
+  facts.allocation==='left-filler'?'Build the left region without crossing into the center.':null;
+ const reason=structuralReason?`${first.hold?'Hold first. ':''}${structuralReason} ${tacticalReason.replace(/^Hold first\. /,'')}`:tacticalReason;
  return{...base,status:'recommended-with-verified-prefix',target:first.target,hold:first.hold,witness:first.witness,reason,
  continuation:best.path.map(p=>({target:p.target,hold:p.hold,witness:p.witness,event:p.event,structuralEvidence:p.structuralEvidence})),
- evidence:{verifiedLocks:best.path.length,tsdAt:tsdAt>=0?tsdAt+1:null,knownPieceHorizon:s.queue.length+1,rootEnumerationComplete:root.complete,budgetExhausted:stopped,informationBoundary:!best.state.active,initialSealed:initial.sealed,endpointSealed:best.assessment.sealed,regionalSupport:best.assessment.regionalSupport,channel:best.assessment.channel,endpointTEntry:best.assessment.right.entry?.status??'not-established',unresolvedObligations:best.assessment.obligations,claim:'Finite executable prefix; endpoint estimates are not a sustainability guarantee.'},assessment:best.assessment};
+ evidence:{verifiedLocks:best.path.length,tsdAt:tsdAt>=0?tsdAt+1:null,knownPieceHorizon:s.queue.length+1,rootEnumerationComplete:root.complete,budgetExhausted:stopped,informationBoundary:!best.state.active,initialSealed:initial.sealed,endpointSealed:best.assessment.sealed,regionalSupport:best.assessment.regionalSupport,channel:best.assessment.channel,endpointTEntry:best.assessment.right.entry?.status??'not-established',unresolvedObligations:best.assessment.obligations,structuralScore:best.structuralScore,structuralRank:best.rank,structure:best.assessment.structure,dependencyDebt:best.dependencyDebt,claim:'Finite executable prefix; endpoint estimates are not a sustainability guarantee.'},assessment:best.assessment};
 }
 // Keep a committed target through an exactly followed input, including HOLD.
 // The entire remaining prefix is replayed from the new observation, so a newly
