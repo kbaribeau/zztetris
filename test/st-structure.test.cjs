@@ -75,9 +75,14 @@ test('essential identity allocation wins over earlier optional obligations and p
  const a=S.allocate([{kind:'left-surface',alternatives:['Z']},{kind:'right-cap',priority:'essential',alternatives:['Z']}],[{id:'active',piece:'Z',available:'now'}]);assert.equal(a.assignments[0].obligation,'right-cap');
  const b=S.allocate([{kind:'right-cap',priority:'essential',alternatives:['Z']}],[{id:'late',piece:'Z',available:'when-drawn',drawOffset:5},{id:'hold',piece:'Z',available:'hold-now'}]);assert.equal(b.assignments[0].instance,'hold');
 });
-test('existing cap recommendation executes Z cap followed by alternate left J/O fills',()=>{
+test('existing cap recommendation reserves Z for the right and verifies its renewable reservoir',()=>{
  const P=require('../st-planner'),s=state('cap-rebuild'),p=P.plan(s,{depth:3,width:8,maxNodes:45000});assert.ok(p.target);assert.equal(p.continuation[0].event.type,'Z');assert.ok(p.continuation[0].event.cells.every(([x])=>x>=8));
- assert.deepEqual(p.continuation.slice(1).map(p=>p.event.type),['J','O']);assert.ok(p.continuation.slice(1).every(p=>p.event.cells.every(([x])=>x<4)));
+ assert.equal(p.continuation[0].structuralEvidence.allocation,'right-cap-preparation');
+ assert.equal(p.continuation[0].structuralEvidence.opportunityCost,0);
+ assert.ok(p.continuation.every(step=>step.structuralEvidence.newlyCovered===0));
+ assert.doesNotMatch(p.reason,/fills the left with J then O/);
+ assert.equal(p.assessment.structure.right.reservoir.status,'verified-clear-reopens-reservoir');
+ assert.equal(p.assessment.damageSealed,0);assert.equal(p.assessment.right.entry.status,'reachable-if-T-available');
  let n=s;for(const step of p.continuation){const replay=R.replay(n,step.witness);assert.equal(replay.valid,true);n=replay.state;}
 });
 test('existing quad rebuild labels L then O by ordered geometry, not by finishing-piece lookup',()=>{
@@ -94,4 +99,13 @@ test('all four ordered center families have replayed geometry in already-existin
   const s=state(id),first=R.replay(s,actions);assert.equal(first.valid,true);const t=S.transition(s,{state:first.state,event:first.events[0]});assert.equal(t.pairFamily,family);
   const c=t.pairProgress.completion,finish=R.replay(R.createState({board:first.state.board,active:c.piece,canHold:false}),c.witness);assert.equal(finish.valid,true);assert.deepEqual(finish.events[0].cells,c.cells);assert.equal(S.geometry(finish.state.board).center.status,'level');
  }
+});
+
+test('existing alternate J/O left-fill mechanics remain available after the Z cap',()=>{
+ let n=state('cap-rebuild');
+ for(const [i,witness]of [['R','R','R','R','CW','HD'],['L','L','L','CCW','HD'],['L','L','HD']].entries()){
+  const replay=R.replay(n,witness);assert.equal(replay.valid,true);assert.equal(replay.events.length,1);
+  assert.equal(replay.events[0].type,['Z','J','O'][i]);assert.ok(replay.events[0].cells.every(([x])=>i===0?x>=8:x<4));n=replay.state;
+ }
+ assert.equal(R.tDoubleAccess(n.board).reachable,true);
 });

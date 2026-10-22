@@ -12,7 +12,7 @@ function assess(board){
  // an overhang can be accessible from the side and is not automatically bad.
  const air=new Set(),todo=[];for(let x=0;x<10;x++)if(board[0][x]==='.')todo.push([x,0]);
  for(let i=0;i<todo.length;i++){const[x,y]=todo[i],key=y*10+x;if(air.has(key))continue;air.add(key);for(const[dx,dy]of [[1,0],[-1,0],[0,1],[0,-1]]){const a=x+dx,c=y+dy;if(a>=0&&a<10&&c>=0&&c<40&&board[c][a]==='.'&&!air.has(c*10+a))todo.push([a,c]);}}
- let sealed=0,covered=0,leftSealed=0;for(let x=0;x<10;x++)for(let y=40-heights[x];y<40;y++)if(board[y][x]==='.'){covered++;if(!air.has(y*10+x)){sealed++;if(x<7)leftSealed++;}}
+ const sealedCells=[];let sealed=0,covered=0,leftSealed=0;for(let x=0;x<10;x++)for(let y=40-heights[x];y<40;y++)if(board[y][x]==='.'){covered++;if(!air.has(y*10+x)){sealed++;sealedCells.push([x,y]);if(x<7)leftSealed++;}}
  const slots=[];for(let y=Math.max(17,40-Math.max(...heights)-4);y<39;y++)for(let x=5;x<9;x++)for(let rotation=0;rotation<4;rotation++){
   const a={type:'T',x,y,rotation,lastRotation:{from:(rotation+3)%4,to:rotation,kickIndex:0}};
   if(!R.fits(board,a)||R.fits(board,{...a,y:y+1})||R.spin(board,a)==='none')continue;
@@ -33,7 +33,7 @@ function assess(board){
  const recoverableBase=establishedBase||(leftHeight>=1&&centerHeight>=5&&heights.slice(0,7).filter(h=>h>=1).length>=4);
  const maintenanceScope=recoverableBase&&heights[7]<Math.max(leftHeight,centerHeight);
  const regionalSupport=establishedBase&&heights[7]<=Math.min(leftHeight,centerHeight)-2;
- return {maintenanceScope,regionalSupport,regionImbalance,channel:{column:7,height:heights[7],openBelowStack:heights[7]<=Math.min(leftHeight,centerHeight)-2},heights,maxHeight,headroom:20-maxHeight,sealed,leftSealed,covered,left:{height:leftHeight,roughness},center:{height:centerHeight,profile:center,partnerDeficit,partnerStatus:partnerDeficit?'unfinished-open-surface':'level-surface'},right:{height:rightHeight,slots:uniqueSlots},
+ return {maintenanceScope,regionalSupport,regionImbalance,channel:{column:7,height:heights[7],openBelowStack:heights[7]<=Math.min(leftHeight,centerHeight)-2},heights,maxHeight,headroom:20-maxHeight,sealed,sealedCells,leftSealed,covered,damageSealed:sealed,damageCovered:covered,left:{height:leftHeight,roughness},center:{height:centerHeight,profile:center,partnerDeficit,partnerStatus:partnerDeficit?'unfinished-open-surface':'level-surface'},right:{height:rightHeight,slots:uniqueSlots},
   obligations:uniqueSlots.map(s=>({kind:'T-slot',demands:['T'],status:'unresolved',at:[s.x,s.y],note:'Geometric slot; arrival and executable entry not yet proved.'})).concat(partnerDeficit?[{kind:'center-partner',demands:[],openSurfaceCells:partnerDeficit,status:'unresolved',note:'Uneven center surface, not a requirement to fill every gap; compatible piece identity must be established by a checked continuation, not guessed from a silhouette.'}]:[]),
   estimate:-leftSealed*12-(sealed-leftSealed)*2-covered-roughness*1.3-imbalance*4-regionImbalance*4-maxHeight*.3,
   assumptions:['Structural estimates are heuristic; only the returned input prefix is verified.']};
@@ -89,7 +89,12 @@ function plan(raw,options={}){
  if(!initial.maintenanceScope)return{...base,status:'unsupported-position',reason:initial.left.height<2||initial.center.height<3?'This stack is below the established-stack maintenance profile. Choose another fixture or rebuild manually; opening construction is not coached.':'This position is outside the initial right-hand ST maintenance profile: established left/center stack and lower column-eight scoring channel required.',assessment:initial};
  const limit=options.maxNodes??45000,maxDepth=options.depth??3,width=options.width??8,expandedRoots=new Set(),accessCache=new Map();let stopped=false;
  base.metrics.accessNodes=0;
- const optimistic=n=>({...n,rank:n.rank.map((v,i)=>i===3&&!n.qualified?v+1:v)});
+ const optimistic=n=>({...n,rank:n.rank.map((v,i)=>{
+  if(n.qualified)return v;
+  const cavity=n.assessment.structure.right.reservoir;
+  if(i===2&&cavity)return Math.floor((n.structuralScore+cavity.cells.length*3)/4);
+  return i===3?v+1:v;
+ })});
  const qualify=nodes=>{
   // Geometry is only an upper bound. Resolve the most promising candidates
   // lazily; inaccessible cavities must never earn a T-slot reward.
@@ -104,6 +109,24 @@ function plan(raw,options={}){
    // A failed entry proof is structural repair work, not merely a lost
    // tactical tie-break. Otherwise inaccessible cavities can look renewable.
    if(access.reachable===false){n.structuralScore-=16;n.rank[2]=Math.floor(n.structuralScore/4);n.assessment.structure.blockedEntryRepair=16;}
+   // Refund damage only for the exact recognized reservoir cells, after a
+   // counterfactual T has a real input witness and its clear reopens the shaft.
+   // T arrival is a separate obligation: this establishes geometry, not supply.
+   const cavity=n.assessment.structure.right.reservoir;
+   if(cavity&&access.reachable===true){
+    const replay=R.replay(R.createState({board:n.state.board,active:'T',canHold:false}),access.witness);
+    const event=replay.events[0],post=replay.valid?assess(replay.state.board):null;
+    const keys=new Set(n.assessment.sealedCells.map(([x,y])=>x+','+y));
+    const reopened=post&&event?.spin==='full'&&event.lines===2&&event.clearedRows.includes(cavity.roofRow)&&
+     cavity.cells.every(([x,y])=>keys.has(x+','+y)&&replay.state.board[y][x]==='.'&&!post.sealedCells.some(([a,b])=>a===x&&b===y));
+    if(reopened){
+     const count=cavity.cells.length,credit=count*3;
+     n.assessment.structure.right={...n.assessment.structure.right,reservoir:{...cavity,status:'verified-clear-reopens-reservoir',witness:access.witness.slice(),clearRows:event.clearedRows.slice()}};
+     n.assessment.intentionalReservoir={cells:cavity.cells.map(c=>c.slice()),sealedExempt:count,coveredExempt:count,credit,proof:'reachable counterfactual T-double reopens these cells; arrival not established'};
+     n.assessment.damageSealed=n.assessment.sealed-count;n.assessment.damageCovered=n.assessment.covered-count;
+     n.assessment.estimate+=credit;n.structuralScore+=credit;n.rank[2]=Math.floor(n.structuralScore/4);
+    }
+   }
    n.rank[3]=n.baseEstimateRank+(access.reachable===true?1:0);
    n.assessment.obligations=n.assessment.obligations.map(o=>o.kind!=='T-slot'?o:({...o,status:access.reachable===true&&o.at[0]===access.event.target.x&&o.at[1]===access.event.target.y?'entry-verified-arrival-unresolved':access.reachable===false?'entry-blocked':'unresolved',note:'Counterfactual T entry is checked separately from whether a T arrives in time.'}));
   };

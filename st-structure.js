@@ -80,6 +80,17 @@ function leftSubstitutes(board){const key=board.join('');if(substituteCache.has(
  }
  if(substituteCache.size>=128)substituteCache.clear();const best=[...new Map(out.sort((a,b)=>rough(a.resultProfile)-rough(b.resultProfile)).reverse().map(c=>[c.pieces.join(''),c])).values()];substituteCache.set(key,best);return best;
 }
+// Canonical Z cap: a solid column-nine wall and exactly the two-cell roof
+// in column ten. The empty shaft below that roof is only a candidate reservoir;
+// the planner must verify a reachable T-double that reopens those exact cells.
+function capReservoir(board,h){
+ const [channel,wall,cap]=h.slice(7),top=40-cap;
+ if(channel!==0||wall<2||cap!==wall+1)return null;
+ if(board[top][9]==='.'||board[top+1][9]==='.')return null;
+ for(let y=40-wall;y<40;y++)if(board[y][8]==='.')return null;
+ const cells=[];for(let y=top+2;y<40;y++){if(board[y][9]!=='.')return null;cells.push([9,y]);}
+ return {status:'clear-witness-required',cells,roofRow:top+1,pattern:'canonical-Z-cap-reservoir'};
+}
 function geometry(board){const key=board.map(r=>r.replace(/[IJLOSTZX#]/g,'#')).join('');if(cache.has(key))return cache.get(key);
  const h=heights(board),left=h.slice(0,4),center=h.slice(4,7),right=h.slice(7),flatLeft=new Set(left).size===1,flatCenter=new Set(center).size===1;
  const centerCompletions=flatCenter?[]:completions(board,4,6,'SLOJZ');
@@ -96,7 +107,7 @@ function geometry(board){const key=board.map(r=>r.replace(/[IJLOSTZX#]/g,'#')).j
  // Permit a one-I-height offset; larger bottlenecks require concrete repair.
  const frontierDebt=Math.max(0,Math.max(...center)-Math.min(...left)-4);
  const scoringRowDebt=Math.max(0,Math.max(...right)-Math.min(...h.slice(0,7))-1);
- const g={frontierDebt,scoringRowDebt,left:{profile:left,flat:flatLeft,roughness:rough(left),covered:leftInternal,horizontalI:flatLeft?{status:'straight-drop-platform',columns:[1,2,3,4]}:null,completions:leftCompletions},center:{profile:center,status:centerStatus,motif,patternSupport:motifSupported?'reference-supported':'unrecognized',coveredInternal:centerInternal,sealedVoids:centerInternal,coveredCavities:covered(board,[4,5,6]),completionDebt:centerStatus==='unrecognized'?1:0,completions:centerCompletions},right:{profile:right,shapeStatus:rightShape,renewalDebt,completions:rightShape==='cap-preparation'?capCompletions(board):[]},supportEstimate:(flatLeft?2:0)-rough(left)*1.5-leftInternal*8+(motifSupported?(flatCenter?4:2):centerCompletions.some(c=>c.patternSupport==='reference-supported')?0:-8)-centerInternal*6-renewalDebt*6-frontierDebt*4-scoringRowDebt*3,uncertainty:rightShape==='unrecognized'||centerStatus==='unrecognized'||!motifSupported};
+ const g={frontierDebt,scoringRowDebt,left:{profile:left,flat:flatLeft,roughness:rough(left),covered:leftInternal,horizontalI:flatLeft?{status:'straight-drop-platform',columns:[1,2,3,4]}:null,completions:leftCompletions},center:{profile:center,status:centerStatus,motif,patternSupport:motifSupported?'reference-supported':'unrecognized',coveredInternal:centerInternal,sealedVoids:centerInternal,coveredCavities:covered(board,[4,5,6]),completionDebt:centerStatus==='unrecognized'?1:0,completions:centerCompletions},right:{profile:right,shapeStatus:rightShape,renewalDebt,reservoir:capReservoir(board,h),completions:rightShape==='cap-preparation'?capCompletions(board):[]},supportEstimate:(flatLeft?2:0)-rough(left)*1.5-leftInternal*8+(motifSupported?(flatCenter?4:2):centerCompletions.some(c=>c.patternSupport==='reference-supported')?0:-8)-centerInternal*6-renewalDebt*6-frontierDebt*4-scoringRowDebt*3,uncertainty:rightShape==='unrecognized'||centerStatus==='unrecognized'||!motifSupported};
  if(cache.size>=2048)cache.clear();cache.set(key,g);return g;
 }
 function instances(state){const out=[];if(state.active)out.push({id:'active',piece:state.active.type,source:'active',available:'now'});if(state.hold)out.push({id:'hold',piece:state.hold,source:'hold',available:state.canHold?'hold-now':'after-next-lock'});(state.queue||[]).forEach((piece,i)=>out.push({id:'queue:'+i,piece,source:'visible',drawOffset:i+1,available:'when-drawn'}));if(state.bag){const p=B.forcedNext(state.bag);if(p)out.push({id:'forced-next',piece:p,source:'forced-beyond-preview',available:'after-preview'});}return out;}
