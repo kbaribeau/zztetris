@@ -1,0 +1,42 @@
+// Artifact consistency check; video evidence must be reviewed separately.
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+const assert = require('node:assert/strict');
+const crypto = require('node:crypto');
+const load = vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../../tetris-fumen.js'), 'utf8'), { window: {}, console });
+const { Field, encoder, decoder } = load(2);
+const text = fs.readFileSync(path.join(__dirname, 'RA8YaBH-5zQ.fumen'), 'utf8');
+const data = JSON.parse(fs.readFileSync(path.join(__dirname, 'RA8YaBH-5zQ.json'), 'utf8'));
+assert.equal(crypto.createHash('sha256').update(text).digest('hex'), data.validation.fumen_sha256);
+const pages = decoder.decode(text.trim());
+assert.equal(encoder.encode(pages), text.trim());
+assert.equal(pages.length, data.placements.length + 1);
+const field = Field.create();
+let lines = 0;
+const counts = {};
+for (const [index, p] of data.placements.entries()) {
+  assert.equal(p.index, index + 1);
+  assert.equal(pages[index].field.str(), field.str());
+  assert.deepEqual(JSON.parse(JSON.stringify(pages[index].operation)), p.operation);
+  assert(field.canFill(p.operation), `Collision at placement ${p.index}`);
+  assert(field.canLock(p.operation), `Unsupported placement ${p.index}`);
+  field.fill(p.operation);
+  const cleared = [];
+  for (let y = 0; y < 23; y++) if (Array.from({ length: 10 }, (_, x) => field.at(x, y)).every(c => c !== '_')) cleared.push(y);
+  assert.deepEqual(cleared, p.cleared_rows);
+  if (cleared.length) counts[cleared.length] = (counts[cleared.length] || 0) + 1;
+  lines += cleared.length;
+  field.clearLine();
+}
+assert.equal(pages.at(-1).field.str(), field.str());
+const board = Array.from({ length: 20 }, (_, y) => Array.from({ length: 10 }, (_, x) => '_ILOZTJS'.indexOf(field.at(x, y))));
+assert.deepEqual(board, data.final_board);
+const cells = board.flat().filter(Boolean).length;
+assert.equal(lines, data.validation.cleared_lines);
+assert.deepEqual(counts, data.validation.clear_counts);
+assert.equal(cells, data.validation.final_cells);
+assert.equal(cells, data.placements.length * 4 - lines * 10);
+assert.equal(pages.length, data.validation.pages);
+assert.equal(data.placements.length, data.validation.placements);
+console.log(`${data.placements.length} placements; ${pages.length} pages; ${lines} lines; ${cells} final cells. Exact round-trip and every transition verified.`);
