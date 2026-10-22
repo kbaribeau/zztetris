@@ -12,7 +12,7 @@ const ANIMATE = 'https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animat
 const files = [...new Set([
   'rotationSystem.js', 'io.js', 'utils.js', 'tetris-fumen.js', 'tetrio.js',
   ...ALL_PAGES.flatMap(({ engine, mode }) => [engine, mode]),
-  'st-core.js', 'st-binding.js', 'st-lab.js', 'training-settings.js', 'styles/st-lab.css',
+  'st-binding.js', 'st-lab.js', 'st-rules.js', 'st-bag.js', 'st-fixtures.js', 'st-planner.js', 'training-settings.js', 'styles/st-lab.css',
   'navigation.js', 'styles/navigation.css',
   'styles/zztetris.css', 'styles/paint_bucket.css',
   'styles/import_export.css', 'styles/board_settings.css',
@@ -178,6 +178,7 @@ async function boot(page, { storage = {}, seed = SEED, autoLoadImages = true } =
       },
       snapshot() {
         // A semantic projection of rendered/persisted game state, not a second engine.
+        if (page === 'st-lab.html' && window.stLab) return JSON.parse(JSON.stringify(window.stLab.snapshot()));
         return JSON.parse(JSON.stringify({
           heap: window.board?.map(row => row.map(c => c.t === 1 ? c.c : '.').join('')),
           piece: window.piece, queue: window.queue, hold: window.holdP,

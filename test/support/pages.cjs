@@ -12,7 +12,7 @@ const PAGES = [
   { page: '4w6res.html', engine: 'base.js', mode: '4w6res.js', cadence: 700 },
 ];
 // The lab has temporary rules and its own dedicated startup/settings cases.
-const LAB_PAGE = { page:'st-lab.html', engine:'base.js', mode:'zztetris.js', cadence:700 };
+const LAB_PAGE = { page:'st-lab.html', engine:'st-rules.js', mode:'st-lab.js', cadence:0 };
 const ALL_PAGES = [...PAGES, LAB_PAGE];
 const ENGINES = ['index.html', '3w.html', 'cancellingsickness.html'];
 const SEED = 123;

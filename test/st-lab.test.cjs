@@ -1,206 +1,173 @@
 const test=require('node:test');
 const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const vm=require('node:vm');
+const path=require('node:path');
 const {withPage}=require('./support/page.cjs');
 const {settings,DEFAULT_CONFIG}=require('./support/pages.cjs');
-const {fixture,editPieces,input,core,replay,heap}=require('./support/st-driver.cjs');
-const {fixtures}=require('./support/st-fixtures.cjs');
-const target=g=>g.element('#st-target');
-const reason=g=>g.element('#st-status').dataset.result;
-const refresh=g=>g.advance(16);
-
-for(const gravity of [undefined,'true','false']) {
-  test(`st-lab/entry/${gravity ?? 'absent'}: empty normal play, temporary rules, default-on`,()=>withPage('st-lab.html',{storage:settings(gravity===undefined?{}:{gravity})},g=>{
-    refresh(g);const beforeStorage=g.storage(),initial=g.snapshot();
-    assert.equal(g.element('#grav').checked,false);
-    assert.ok(heap(g).every(row=>row==='..........'));
-    assert.equal(initial.hold,'');assert.equal(new Set([initial.piece,...initial.queue.slice(0,6)]).size,7,'normal first bag');
-    assert.equal(g.window.document.querySelector('#st-exercise'),null);
-    assert.equal(g.window.document.querySelector('#st-start'),null);
-    assert.equal(target(g).children.length,0);assert.equal(reason(g),'no-core-fit-found');
-    g.advance(700);assert.equal(g.window.yPOS,17);
-    fixture(g);
-    assert.equal(g.element('#st-toggle').getAttribute('aria-pressed'),'true');
-    assert.equal(target(g).children.length,8);
-    assert.match(g.element('#st-status').textContent,/HOLD FIRST.*T → Z/);
-    assert.deepEqual(g.storage(),beforeStorage);
-    g.click('#grav');refresh(g);
-    assert.equal(reason(g),'unsupported');assert.equal(target(g).children.length,0);
-    assert.deepEqual(g.storage(),beforeStorage);
-    g.tap('KeyR');refresh(g);assert.equal(g.element('#grav').checked,true,'restart does not silently rewrite current rules');
-    g.click('#grav');fixture(g);
-    g.window.eval("document.getElementById('kickset').value='SRS'; updateKickTable();");refresh(g);
-    assert.equal(reason(g),'unsupported');assert.equal(target(g).children.length,0);
-    g.window.eval("document.getElementById('kickset').value='SRS+'; updateKickTable();");refresh(g);
-    assert.equal(reason(g),'target');assert.deepEqual(g.storage(),beforeStorage);
-    g.tap('KeyR');refresh(g);
-    assert.ok(heap(g).every(row=>row==='..........'));assert.equal(reason(g),'no-core-fit-found');
-    assert.equal(g.window.holdP,'');assert.equal(g.window.hist.length,1);
-  }));
+const R=require('../st-rules.js');
+const F=require('../st-fixtures.js');
+const json=x=>JSON.parse(JSON.stringify(x));
+function workers(g){
+ const instances=[];
+ g.window.Worker=class {
+  constructor(url){this.url=url;this.terminated=false;instances.push(this);}
+  postMessage(message){this.message=json(message);}
+  terminate(){this.terminated=true;}
+  respond(result,patch={}){this.onmessage({data:{type:'result',id:this.message.id,revision:this.message.observation.revision,result,...patch}});}
+ };
+ g.click('#st-reset');g.advance(40);
+ return instances;
 }
+function legalResult(observation,predicate=()=>true){
+ const p=R.placements(R.createState(observation),{maxNodes:8000}).placements.find(predicate);assert.ok(p);
+ return {status:'recommended-with-verified-prefix',revision:observation.revision,target:p.target,hold:p.hold,witness:p.witness,reason:'Tested legal continuation.',metrics:{nodes:1},continuation:[{target:p.target,witness:p.witness,event:p.event}]};
+}
+for(const gravity of [undefined,'true','false'])test(`st-lab/isolated ${gravity??'absent'}: new rules and preferences do not mutate ordinary modes`,()=>withPage('st-lab.html',{storage:settings(gravity===undefined?{}:{gravity})},g=>{
+ const before=g.storage(),s=g.snapshot();
+ assert.equal(s.rules,'st-zero-v1');assert.equal(s.queue.length,6);assert.ok(s.board.some(r=>r!=='..........'));
+ assert.match(g.element('#st-status').textContent,/Web Workers/);
+ assert.equal(g.element('#st-status').dataset.result,'worker-unavailable');
+ assert.equal(g.window.zzBot,undefined);assert.equal(g.window.board,undefined);
+ g.tap('ShiftLeft');const held=g.snapshot();assert.equal(held.canHold,false);
+ g.tap('ShiftLeft');assert.deepEqual(g.snapshot(),held,'second hold blocked');
+ g.tap('Space');assert.equal(g.snapshot().canHold,true);
+ assert.deepEqual(g.storage(),before);
+ g.click('#st-reset');assert.deepEqual({...g.snapshot(),revision:0},{...s,revision:0});
+}));
 
-test('st-lab/toggle: display only, no repeat, persisted off; normal practice unaffected',async()=>{
-  let storage;
-  await withPage('st-lab.html',{storage:settings({gravity:'true'})},g=>{
-    fixture(g);const before=g.snapshot(),saved=g.storage();
-    g.tap('KeyA');assert.equal(target(g).children.length,0);assert.equal(reason(g),'off');
-    assert.deepEqual(g.snapshot(),before);assert.deepEqual(g.storage(),{...saved,stGuideVisible:'false'});
-    g.key('keydown','KeyA',true);g.key('keyup','KeyA');
-    assert.equal(g.element('#st-toggle').getAttribute('aria-pressed'),'false');
-    g.click('#st-toggle');assert.equal(target(g).children.length,8);assert.deepEqual(g.snapshot(),before);
-    g.tap('KeyA');g.tap('KeyR');fixture(g);assert.equal(target(g).children.length,0);
-    storage=g.storage();
-  });
-  await withPage('st-lab.html',{storage},g=>{fixture(g);assert.equal(target(g).children.length,0);});
-  await withPage('index.html',{storage},g=>{
-    assert.equal(g.element('#grav').checked,true);const before=g.snapshot();
-    g.tap('KeyA');assert.deepEqual(g.snapshot(),before);assert.equal(g.window.stLab,undefined);
-    assert.equal(g.window.document.querySelector('#st-target'),null);
-  });
+test('st-lab/input: focus and modifiers cannot play; release and blur stop repeats',()=>withPage('st-lab.html',{},g=>{
+ const before=g.snapshot();
+ for(const selector of ['#st-snapshot','#st-fixture','#st-toggle','nav button']){
+  const element=g.element(selector);element.focus();
+  for(const code of ['Space','KeyR','KeyX','ArrowRight','KeyA'])element.dispatchEvent(new g.window.KeyboardEvent('keydown',{code,bubbles:true}));
+ }
+ assert.deepEqual(g.snapshot(),before);
+ g.window.document.dispatchEvent(new g.window.KeyboardEvent('keydown',{code:'ArrowRight',ctrlKey:true,bubbles:true}));assert.deepEqual(g.snapshot(),before);
+ g.key('keydown','ArrowRight');g.advance(20);assert.equal(g.snapshot().active.x,before.active.x+1);
+ g.key('keyup','ArrowRight');const once=g.snapshot();g.advance(200);assert.deepEqual(g.snapshot(),once);
+ g.key('keydown','ArrowLeft');g.window.dispatchEvent(new g.window.Event('blur'));const blurred=g.snapshot();g.advance(200);assert.deepEqual(g.snapshot(),blurred);
+}));
+
+test('st-lab/workers: off-main requests expose only observation and cancel stale movement results',()=>withPage('st-lab.html',{},g=>{
+ const ws=workers(g),old=ws[0],oldResult=legalResult(old.message.observation);
+ assert.equal(old.url,'st-worker.js');
+ assert.equal(old.message.observation.queue.length,6);
+ assert.equal('future' in old.message.observation,false);assert.equal('construction' in old.message.observation,false);assert.equal('seed' in old.message.observation,false);
+ old.respond(oldResult);assert.equal(g.element('#st-target').children.length,4);
+ g.tap('ArrowRight');assert.equal(g.element('#st-target').children.length,0,'invalidated immediately');
+ g.advance(40);const fresh=ws.at(-1);assert.notEqual(fresh,old);assert.equal(old.terminated,true);
+ old.respond(oldResult);assert.equal(g.element('#st-target').children.length,0,'stale revision cannot revive target');
+ fresh.respond(legalResult(fresh.message.observation));assert.equal(g.element('#st-target').children.length,4);
+}));
+
+test('st-lab/worker safety: impossible target withheld and errors are nonfatal',()=>withPage('st-lab.html',{},g=>{
+ const ws=workers(g),w=ws.at(-1),bad=legalResult(w.message.observation);bad.target.x=-100;
+ w.respond(bad);assert.equal(g.element('#st-status').dataset.result,'invalid-witness');assert.equal(g.element('#st-target').children.length,0);
+ const before=g.snapshot();g.tap('ArrowRight');assert.notEqual(g.snapshot().active.x,before.active.x);g.advance(40);
+ ws.at(-1).onerror({preventDefault(){}});assert.equal(g.element('#st-status').dataset.result,'worker-error');
+}));
+
+test('st-lab/hints: key and storage hide BOTH target and explanation; worker is cancelled',()=>withPage('st-lab.html',{},g=>{
+ const ws=workers(g),w=ws.at(-1);w.respond(legalResult(w.message.observation));
+ g.tap('KeyA');assert.equal(g.element('#st-status').hidden,true);assert.equal(g.element('#st-diagnostics').hidden,true);assert.equal(g.element('#st-target').children.length,0);assert.equal(g.storage().stGuideVisible,'false');
+ g.tap('KeyA');g.advance(40);assert.equal(g.element('#st-status').hidden,false);
+ const pending=ws.at(-1);g.window.localStorage.setItem('stGuideVisible','false');g.window.dispatchEvent(new g.window.StorageEvent('storage',{key:'stGuideVisible',storageArea:g.window.localStorage}));
+ assert.equal(pending.terminated,true);assert.equal(g.element('#st-status').hidden,true);
+}));
+
+test('st-lab/settings: saved bindings, timing and conflicting advice key respected',()=>{
+ const config=[...DEFAULT_CONFIG];config[1]='KeyA';config[11]='185';
+ return withPage('st-lab.html',{storage:settings({config:JSON.stringify(config),stAdviceKey:'KeyB'})},g=>{
+  assert.equal(g.window.DAS,185);const x=g.snapshot().active.x;g.tap('KeyA');assert.equal(g.snapshot().active.x,x+1);
+  const before=g.snapshot();g.tap('KeyB');assert.deepEqual(g.snapshot(),before);assert.equal(g.element('#st-status').hidden,true);
+ });
 });
 
-test('st-lab/input guards: typing/selecting, modifiers and button activation never drop/toggle accidentally',()=>withPage('st-lab.html',{},g=>{
-  fixture(g);const w=g.window,before=g.snapshot();
-  const textarea=w.document.createElement('textarea');w.document.body.append(textarea);
-  for(const element of [textarea,g.element('#kickset')]) {
-    element.focus();
-    for(const code of ['KeyA','Space','KeyR','KeyX','ArrowRight'])element.dispatchEvent(new w.KeyboardEvent('keydown',{code,bubbles:true}));
-  }
-  assert.deepEqual(g.snapshot(),before);assert.equal(target(g).children.length,8);
-  g.element('#st-toggle').focus();g.element('#st-toggle').dispatchEvent(new w.KeyboardEvent('keydown',{code:'Space',bubbles:true}));
+test('st-lab/import/export: finite visible state, valid unknown history, rejected malformed input is atomic',()=>withPage('st-lab.html',{},g=>{
+ g.click('#st-export');const exported=JSON.parse(g.element('#st-snapshot').value);
+ assert.equal(exported.queue.length,6);assert.equal('future' in exported,false);assert.equal('seed' in exported,false);
+ delete exported.bag;exported.queue=[];exported.hold=null;
+ g.element('#st-snapshot').value=JSON.stringify(exported);g.click('#st-import');assert.match(g.element('#st-import-status').textContent,/imported/);
+ g.tap('Space');assert.equal(g.snapshot().active,null);assert.equal(g.snapshot().queue.length,0);assert.equal(g.element('#st-status').dataset.result,'insufficient-known-pieces');
+ const before=g.snapshot();g.element('#st-snapshot').value='{"board":[]}';g.click('#st-import');assert.match(g.element('#st-import-status').textContent,/rejected/);assert.deepEqual(g.snapshot(),before);
+}));
+
+test('st-lab/fixtures: selector changes board, resets private future and rejects previous replies',()=>withPage('st-lab.html',{},g=>{
+ const ws=workers(g),old=ws[0],answer=legalResult(old.message.observation);
+ const second=F.list.find(f=>f.id!==g.element('#st-fixture').value);
+ g.element('#st-fixture').value=second.id;g.element('#st-fixture').dispatchEvent(new g.window.Event('change'));
+ assert.equal(old.terminated,true);assert.deepEqual(g.snapshot().board,second.observation.board);
+ old.respond(answer);assert.equal(g.element('#st-target').children.length,0);
+ g.click('#st-empty');assert.ok(g.snapshot().board.every(r=>r==='..........'));assert.equal(g.snapshot().queue.length,6);
+ const observed=[g.snapshot().active.type,...g.snapshot().queue];assert.deepEqual(observed.slice().sort(),['I','J','L','O','S','T','Z']);
+}));
+
+test('st-lab/watchdog: stalled worker is terminated, no impossible-state claim',()=>withPage('st-lab.html',{},g=>{
+ const ws=workers(g);g.advance(3000);assert.equal(ws[0].terminated,true);
+ assert.equal(g.element('#st-status').dataset.result,'budget-exhausted');assert.match(g.element('#st-status').textContent,/no claim about impossibility/);
+}));
+
+test('st-worker/protocol: real worker code imports pure modules and returns revision-tagged planning result',()=>{
+ const messages=[],context={Date,performance,console,self:{postMessage:data=>messages.push(data)}};
+ context.globalThis=context;
+ context.importScripts=(...files)=>{for(const file of files)vm.runInContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),context,{filename:file});};
+ vm.createContext(context);vm.runInContext(fs.readFileSync(path.join(__dirname,'../st-worker.js'),'utf8'),context);
+ const observation=json(F.list[0].observation);
+ context.self.onmessage({data:{type:'plan',id:3,observation,options:{timeMs:20,maxNodes:1500,depth:1}}});
+ assert.equal(messages.length,1);assert.equal(messages[0].id,3);assert.equal(messages[0].revision,observation.revision);assert.equal(messages[0].type,'result');
+ assert.ok(messages[0].result.status);if(messages[0].result.target)assert.ok(R.replay(observation,messages[0].result.witness).valid);
+});
+
+
+test('st-lab/bag boundaries: display setting redraws only observed boundaries, never changes state',()=>withPage('st-lab.html',{},g=>{
+ const before=g.snapshot();
+ for(const value of ['true','false']){
+  g.window.localStorage.setItem('bagBoundaries',value);
+  g.window.dispatchEvent(new g.window.StorageEvent('storage',{key:'bagBoundaries',storageArea:g.window.localStorage}));
   assert.deepEqual(g.snapshot(),before);
-  w.document.dispatchEvent(new w.KeyboardEvent('keydown',{code:'KeyA',ctrlKey:true,bubbles:true}));
-  assert.equal(target(g).children.length,8);
-  g.click('#st-toggle');assert.deepEqual(g.snapshot(),before);assert.equal(target(g).children.length,0);
-  const right=new w.KeyboardEvent('keydown',{code:'ArrowRight',bubbles:true,cancelable:true});
-  w.document.dispatchEvent(right);assert.equal(right.defaultPrevented,true);
-  g.advance(16);assert.equal(w.xPOS,before.x+1);g.key('keyup','ArrowRight');
+ }
+ // An imported unknown frontier remains unknown, even with boundary display on.
+ const unknown={...before};delete unknown.bag;
+ g.element('#st-snapshot').value=JSON.stringify(unknown);g.click('#st-import');
+ g.window.localStorage.setItem('bagBoundaries','true');g.window.stLab.render();assert.equal(g.snapshot().bag,undefined);
 }));
 
-test('st-lab/binding: separate preference, conflict refusal, real controls edit/reset',async()=>{
-  let saved;
-  const config=[...DEFAULT_CONFIG];config[1]='KeyA';
-  await withPage('controls.html',{storage:settings({config:JSON.stringify(config),gravity:'true'})},g=>{
-    const before=g.storage().config;
-    assert.match(g.element('#st-key-status').textContent,/conflicts/);
-    g.click('#st-advice-key');g.tap('KeyX');
-    assert.equal(g.storage().stAdviceKey,undefined);assert.match(g.element('#st-key-status').textContent,/unused/);
-    g.tap('KeyB');assert.equal(g.storage().stAdviceKey,'KeyB');assert.equal(g.storage().config,before);saved=g.storage();
-  });
-  await withPage('st-lab.html',{storage:saved},g=>{
-    fixture(g);const x=g.window.xPOS;
-    g.key('keydown','KeyA');g.advance(16);g.key('keyup','KeyA');g.advance(16);
-    assert.equal(g.window.xPOS,x+1);assert.equal(g.element('#st-toggle').getAttribute('aria-pressed'),'true');
-    const before=g.snapshot();g.tap('KeyB');assert.deepEqual(g.snapshot(),before);assert.equal(target(g).children.length,0);
-  });
-  await withPage('st-lab.html',{storage:settings({config:JSON.stringify(config)})},g=>{
-    fixture(g);assert.match(g.element('#st-toggle').textContent,/conflicts/);
-    g.click('#st-toggle');assert.equal(target(g).children.length,0);
-    assert.equal(g.storage().stAdviceKey,undefined);
-  });
-  await withPage('controls.html',{storage:saved},g=>{g.resetControls();assert.equal(g.storage().stAdviceKey,undefined);assert.equal(g.storage().gravity,'true');});
+test('st-lab/zero ARR: configured DAS then wall shift, no gravity',()=>{
+ const config=[...DEFAULT_CONFIG];config[12]='0';
+ return withPage('st-lab.html',{storage:settings({config:JSON.stringify(config)})},g=>{
+  const before=g.snapshot();g.key('keydown','ArrowRight');g.advance(160);g.key('keyup','ArrowRight');
+  const after=g.snapshot();assert.equal(R.move(after,'R'),after,'at right wall');assert.equal(after.active.y,before.active.y);
+ });
 });
 
-test('st-lab/pending target: movement/hold recompute; scales without touching collision board',()=>{
-  const config=[...DEFAULT_CONFIG];config[14]='24';
-  return withPage('st-lab.html',{storage:settings({config:JSON.stringify(config)})},g=>{
-    fixture(g);const original=heap(g),before=g.snapshot(),w=g.window;
-    assert.equal(target(g).getAttribute('viewBox'),'0 0 240 528');
-    const rect=target(g).querySelector('rect');
-    assert.equal(Number(rect.getAttribute('x')),9*24+24*.22);
-    assert.equal(Number(rect.getAttribute('y')),(37-18)*24+24*.22);
-    assert.deepEqual(g.snapshot(),before);
-    g.tap('ShiftLeft');refresh(g);assert.match(g.element('#st-status').textContent,/ACTIVE Z/);
-    assert.deepEqual(heap(g),original);assert.equal(target(g).children.length,8);
-    w.zzBot.move('L');w.zzBot.rotate('CW');refresh(g);
-    const current=input(g),answer=core(g).advise(current);
-    assert.equal(current.active.x,w.xPOS);assert.equal(current.active.rotation,w.rot);
-    replay(g,answer);assert.deepEqual(heap(g),fixtures.cap.afterCap);
-  });
-});
 
-test('st-lab/history: hidden locks, undo/redo, filler and branches re-recognize current geometry',()=>withPage('st-lab.html',{},g=>{
-  fixture(g);const planner=core(g);
-  replay(g,planner.advise(input(g)));assert.deepEqual(heap(g),fixtures.cap.afterCap);
-  const second=planner.advise(input(g));g.tap('KeyA');replay(g,second);
-  assert.equal(target(g).children.length,0);
-  g.tap('KeyA');assert.equal(reason(g),'no-core-fit-found');
-  g.tap('KeyT');refresh(g);assert.equal(reason(g),'target');
-  g.tap('KeyY');refresh(g);assert.equal(reason(g),'no-core-fit-found');
-  g.tap('KeyT');refresh(g);g.tap('Space');refresh(g); // harmless O filler, no assumed phase
-  assert.equal(reason(g),'target','filler may preserve the scoring geometry');
-  assert.notDeepEqual(heap(g),fixtures.cap.afterCap);
-  g.tap('KeyT');refresh(g);assert.deepEqual(heap(g),fixtures.cap.afterCap);
-  replay(g,planner.advise(input(g)));assert.equal(reason(g),'no-core-fit-found');
-  assert.equal(g.window.hist.length,3);
+test('st-lab/import: longer preview rejected rather than using bag knowledge from wrong frontier',()=>withPage('st-lab.html',{},g=>{
+ const before=g.snapshot(),input=json(before);input.queue.push('I');
+ g.element('#st-snapshot').value=JSON.stringify(input);g.click('#st-import');
+ assert.match(g.element('#st-import-status').textContent,/Only six/);assert.deepEqual(g.snapshot(),before);
 }));
 
-test('st-lab/history truncation and imports: geometry needs no metadata or phase',async()=>withPage('st-lab.html',{},async g=>{
-  fixture(g);const w=g.window;
-  for(let i=0;i<505;i++)w.updateHistory();
-  assert.ok(w.hist.length<=501);g.tap('KeyT');refresh(g);assert.equal(reason(g),'target');
-  const imported=w.fullEncode(w.hist.slice(0,1));
-  w.navigator.clipboard.readText=async()=>imported;
-  await w.importFullFumen();refresh(g);assert.equal(reason(g),'target');
-  // In-place history mutation must also be reflected, not inherit cached advice.
-  w.hist[w.histPos].board=JSON.stringify(w.board.map(row=>row.map(()=>({t:0,c:''}))));
-  w.board=JSON.parse(w.hist[w.histPos].board);w.updateGhost();w.setShape();refresh(g);
-  assert.equal(reason(g),'no-core-fit-found');
+
+for(const hold of [false,true])test(`st-lab/stability: exact ${hold?'hold':'movement'} witness preserves visible target while revalidating`,()=>withPage('st-lab.html',{},g=>{
+ const ws=workers(g),w=ws.at(-1),answer=legalResult(w.message.observation,p=>p.hold===hold&&p.witness.length>1);
+ w.respond(answer);const target=g.element('#st-target').innerHTML;
+ g.window.stLab.act(answer.witness[0]);
+ assert.equal(g.element('#st-target').innerHTML,target,'no blank or moved target while worker is pending');
+ assert.equal(g.window.stLab.result.retained,true);
+ assert.deepEqual(json(g.window.stLab.result.witness),answer.witness.slice(1));
+ if(hold)assert.equal(g.window.stLab.result.hold,false);
+ g.advance(40);const next=ws.at(-1);assert.equal(next.message.previous.retained,true);
+ const P=require('../st-planner.js');const revalidated=P.revalidate(next.message.observation,next.message.previous,{maxNodes:8000});
+ assert.ok(revalidated);next.respond(revalidated);assert.equal(g.element('#st-target').innerHTML,target);
 }));
 
-test('st-lab/edits: drawing, garbage, mirror, shuffle, editors, imports and reset refresh advice',async()=>withPage('st-lab.html',{},async g=>{
-  const w=g.window;
-  fixture(g);
-  g.element('#b').dispatchEvent(new w.MouseEvent('mousedown',{button:0,clientX:18+9*20+1,clientY:18+21*20+1,bubbles:true}));
-  refresh(g);assert.equal(reason(g),'no-core-fit-found');assert.equal(target(g).children.length,0);
-  w.document.dispatchEvent(new w.MouseEvent('mouseup',{bubbles:true}));
-  for(const action of ['garbage','mirror','fullMirror','shuffleQueue']) {
-    fixture(g);w[action](0);refresh(g);
-    const a=core(g).advise(input(g));assert.equal(reason(g),a.kind==='abstain'?a.reason:a.kind);
-    if(action==='mirror'||action==='fullMirror')assert.equal(target(g).children.length,0);
-    if(action==='garbage')assert.notDeepEqual(heap(g),fixtures.cap.before);
-  }
-  fixture(g);w.prompt=()=> 'J';g.click('#h');refresh(g);assert.equal(reason(g),'no-core-fit-found');
-  w.prompt=()=> 'OZTISLJ';g.click('#n');refresh(g);assert.equal(w.piece,'O');assert.equal(reason(g),'no-core-fit-found');
-  fixture(g);w.navigator.clipboard.readText=async()=> '_'.repeat(400);await w.importTetrio();refresh(g);
-  assert.equal(reason(g),'no-core-fit-found');assert.equal(target(g).children.length,0);
-  fixture(g);const empty=w.board.map(row=>row.map(()=>({t:0,c:''})));const fumen=w.encode(empty);
-  w.navigator.clipboard.readText=async()=>fumen;await w.importFumen();refresh(g);assert.equal(reason(g),'no-core-fit-found');
-  fixture(g);g.tap('KeyR');refresh(g);assert.equal(reason(g),'no-core-fit-found');
-  assert.ok(heap(g).every(row=>row==='..........'));
-}));
 
-test('st-lab/advice order: live advice follows the playing field across display states',()=>withPage('st-lab.html',{},g=>{
-  const w=g.window,field=g.element('.lab-field-scroll'),status=g.element('#st-status');
-  const messages=new Set();
-  const check=expected=>{
-    refresh(g);assert.equal(reason(g),expected);messages.add(status.textContent);
-    assert.equal(field.contains(status),false,'advice must not enter the gameplay row');
-    for(const canvas of ['#b','#h','#n']) {
-      assert.ok(g.element(canvas).compareDocumentPosition(status)&w.Node.DOCUMENT_POSITION_FOLLOWING,
-        'live advice must follow the board, HOLD and NEXT in document/reading order');
-    }
-  };
-  check('no-core-fit-found');
-  fixture(g);check('target');
-  fixture(g,'well');check('target');
-  g.click('#grav');check('unsupported');
-  g.click('#st-toggle');check('off');
-  g.click('#st-toggle');g.click('#grav');g.tap('KeyR');check('no-core-fit-found');
-  assert.equal(messages.size,5,'exercise distinct real renderer messages, not replacement text');
-  // jsdom proves reading order only; real-browser geometry covers CSS flow/wrapping.
-}));
-
-test('st-lab/unchanged frame: no DOM churn or repeated live-region announcements',()=>withPage('st-lab.html',{},g=>{
-  fixture(g);
-  const observer=new g.window.MutationObserver(()=>{});
-  observer.observe(g.window.document.querySelector('main'),{subtree:true,attributes:true,childList:true,characterData:true});
-  g.advance(100);assert.equal(observer.takeRecords().length,0);observer.disconnect();
-}));
-
-test('st-lab/abstention: no reset, fabricated target or queue/settings mutation',()=>withPage('st-lab.html',{storage:settings({gravity:'false'})},g=>{
-  fixture(g);editPieces(g,{active:'O',hold:'J',next:['Z','T','I','S','L','O']});const before=g.snapshot(),saved=g.storage();refresh(g);
-  assert.equal(reason(g),'no-core-fit-found');assert.equal(target(g).children.length,0);
-  assert.deepEqual(g.snapshot(),before);assert.deepEqual(g.storage(),saved);
-  g.click('#grav');const edited=g.snapshot();refresh(g);
-  assert.equal(reason(g),'unsupported');assert.deepEqual(g.snapshot(),edited);
+test('st-lab/import: unique observed bag remainder supplies one known piece, consumed once',()=>withPage('st-lab.html',{},g=>{
+ const input=g.snapshot();input.queue=[];
+ const B=require('../st-bag.js');input.bag=B.fromObserved({observed:['I','J','L','O','S','T'],startPhase:0});
+ assert.equal(B.forcedNext(input.bag),'Z');
+ g.element('#st-snapshot').value=JSON.stringify(input);g.click('#st-import');
+ assert.deepEqual(g.snapshot().queue,['Z']);assert.deepEqual(g.snapshot().bag,json(B.consume(input.bag,'Z')));
+ g.tap('Space');assert.equal(g.snapshot().active.type,'Z');assert.equal(g.snapshot().queue.length,0);
 }));

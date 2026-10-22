@@ -1,216 +1,34 @@
-# ST free-play lab
+# ST lab: established-stack coaching
 
-> **Future direction:** [Read the agreed ST lab vision](docs/st-lab-vision.md). It is direction, not shipped capability or implementation authority.
-
-Open **ST lab** from the [shared top menu](README.md), or [open the lab](st-lab.html).
-Play begins on an empty board with the normal shuffled seven-piece bags. Build
-and maintain your own stack. Occasional **amber inset dashed targets** identify
-verified right-sided Z caps, non-mini T-spin doubles, pocket I fills, well
-quads and narrow Center SL/OJ/conditional LO pair completions. Unsupported positions have **no target**, not a guessed best move.
-The former named exercises, authored starts and completion flows are removed.
-
-This is not an opener, general filler or recovery coach. It does not infer parity,
-Extra-Z history, strategic Reset, sustainable stacking or indefinite correctness.
-A corner silhouette alone is not enough to establish a double or useful strategy.
-There is no guarantee of frequent hints or of encountering every action family.
+The lab implements the first bounded coaching milestone: maintain an established **right-hand ST stack**, not solve empty-board openings or guarantee indefinite survival. Start at the default **O before T-spin double** demonstration. Other reachable starts are available in the fixture selector.
 
 ## Play
 
-Advice and its display toggle sit below the playing field, so changing or wrapped
-messages do not move the board, HOLD or NEXT. The field keeps its normal size;
-scroll the page to read longer advice, or the field horizontally on very narrow
-screens.
+- The gray outline is the ordinary hard-drop ghost. The amber outline is a separately checked coaching target. Follow the explanation, including HOLD when requested; no auto-play button executes the plan for you.
+- Keyboard bindings come from Game Settings; on-page buttons provide the same manual actions. Advice defaults to `KeyA` unless rebound. Display preferences persist without changing ordinary modes.
+- The lab has its own explicit `st-zero-v1` rules: 10×40 board, zero gravity, manual hard-drop lock, SRS+ kicks including 180°, and **one hold per locked piece**. Ordinary practice retains its previous rules and unlimited hold. See [rules contract](docs/st-rules-contract.md).
+- Reset restarts the selected position. Empty board is available for manual play, but opener coaching is explicitly unsupported.
+- Snapshot export contains only visible state and optional observed bag evidence. Import accepts at most six preview pieces. Missing history remains unknown. Full Fumen/editor/undo tools remain available through the ordinary-practice link; the lab does not pretend those legacy controls operate its new state.
+- Diagnostics show checked lock horizon, node count, elapsed time, budget status and executable continuation. A geometric slot or heuristic score is not proof that its required piece will arrive or enter.
 
-- Ordinary movement, hold, hard drop, undo/redo, drawing, imports and restart
-  remain available. Restart uses the normal engine's empty-board/queue behavior;
-  it never supplies an ST setup or replays a lesson.
-- Amber inset dashes are separate from the **gray outer hard-drop ghost** for
-  your active piece. Colored fill is the active piece. Advice never moves it.
-- `HOLD FIRST · T → Z` identifies a legally held/next-0 Z, before you hold.
-  `HOLD TWICE` respawns the original piece using this trainer's unlimited swaps.
-  A later visible piece is not immediately selectable.
-- A TSD requires a grounded final rotation then a zero-distance hard drop.
-  Simply dropping a T-shaped placement is not necessarily a T-spin.
-- Each target verifies the immediate placement. A setup's **following scoring
-  action** is announced only if its required piece and reachable path are
-  established by current hold and ordered visible preview. Otherwise the text
-  explicitly says *immediate action only*. Neither statement promises a chain.
+## Architecture and information contract
 
-**A** (`KeyA`) and the advice button toggle the saved guide display choice in
-**Game Settings → Training**. Advice defaults on; bag boundaries default off.
-See [shared settings](README.md) for persistence and Reset behavior. Hiding
-advice changes no moves or board state. When shown again it analyzes fresh state.
-Rebind in **Game Settings → ST lab advice**; click then press an unused key.
-Escape cancels capture. The binding is stored in `localStorage.stAdviceKey`, not
-in the legacy 16-slot `config`. Conflicts with gameplay keys disable the shortcut
-with an explanation; the button still works. Reset to Defaults clears this key.
+`st-rules.js` is an immutable rules/actual-pose reachability kernel. Every recommendation has a replayable sequence of movement, rotation, hold and hard-drop inputs. Rotation evidence is validated; non-T spin-equivalent states are collapsed during search, not geometrically impossible placements invented.
 
-Repeated or Ctrl/Alt/Meta-modified advice keys are ignored. Typing/selecting and
-keyboard activation of focused controls do not move/drop pieces. Unmodified game
-keys do not scroll the lab. Settings Save & Close, the shared menu and normal
-settings persistence are unchanged. Other modes do not load the advisor.
+`st-bag.js` retains possible seven-bag remainders. Knowledge is at the **end of the visible preview**, so consuming active/held pieces must not consume it a second time. A future piece is usable only when all remaining possibilities force it. Unknown imports do not require a seed or original history.
 
-The lab opens with temporary **SRS+ and gravity off**, without rewriting saved
-normal-play preferences. Enabling gravity or applying another kickset stops
-advice and explains the limitation; restart does not silently switch rules back.
-Return to supported settings to re-enable recognition. Gravity-on advice is not
-implemented. Ordinary Practice and other modes retain their own behavior.
+`st-fixtures.js` contains legally reconstructed established positions from two independent Fumen sources. Original hold, preview and inputs were not recovered from those files: the validated seven-bag streams and witnesses are synthetic. See [corpus provenance](docs/st-fixture-corpus.md). Fixture IDs, reference answers and private future pieces never enter the planner.
 
-## Recognized geometry and limits
+`st-planner.js` evaluates separate left/center/right regions, scoring-channel height, headroom, left roughness, left/center height imbalance, sealed versus reachable cavities and geometric T-double slots. Its explicit initial support profile requires an established left/center stack (including a healthy two-high left base) and lower eighth-column scoring channel. Recovery admission also permits a depleted one-high left base beneath an established center of at least five rows. Admission permits a temporary regional imbalance with the channel still below at least one of the left/center regions; every returned endpoint must restore the stricter separation below both. This avoids rejecting a checked intermediate clear as though it were a new unsupported opening. It is a limited eligibility heuristic, not a complete ST recognizer. Center evaluation records height, unresolved open-surface partner deficit and actual checked before/after placement progress, not a full partner-pair classifier. Reservoir vacancies are not hard-rejected as holes: a legal cap can temporarily create one and repay it with a double.
 
-Coordinates are zero-based (`x=0..9`, `y=0..39`, top-down). The current orientation
-has the pocket in human column 10 and the well in column 8. Targets translate
-vertically in the visible field, not horizontally or to the opposite orientation.
+The bounded beam preserves different piece/hold/construction families and verifies continuations over observed pieces. Geometric slot rewards are only optimistic bounds: promising candidates are lazily checked for an executable hypothetical T-double path before any actual bonus is awarded. A blocked or unverified cavity cannot farm that reward. This hypothetical proof does not assert T availability and is never an eligibility gate for incomplete construction. A T-slot obligation stays unresolved until actual replay proves entry and clear. Only completed deeper iterations replace the prior result; partial work and budget exhaustion never mean “impossible.” Defaults are depth 3, width 8, 45,000 visited poses and a **750 ms soft search deadline**. Assessment can finish just after the deadline; the UI terminates an overdue worker at 2.5 seconds. These are operational budgets, not guaranteed response latency.
 
-| Action | Required local result |
-| --- | --- |
-| Z cap | Z at `(9,y),(8,y+1),(9,y+1),(8,y+2)`, no clear. Leaves a reachable non-mini double-shaped T notch with the affected rows complete after T. This virtual T check does **not** assert that a T is available. |
-| T-spin double | T at `(6,y),(7,y),(8,y),(7,y+1)` under the cap; a legal grounded final rotation, non-mini spin and exactly two actual completed rows. |
-| Pocket I | Four rightmost pocket cells filled without a clear, beside four rows with an open column-8 well. Leaves a reachable well quad; another I is not assumed. |
-| Well I | Vertical I in column 8 completes exactly four rows. |
-| Center SL completion | Existing S at `(5,y+1),(6,y+1),(4,y+2),(5,y+2)`; L fills `(4,y),(5,y),(6,y),(4,y+1)`. |
-| Center OJ completion | Existing O at `(4,y+1),(5,y+1),(4,y+2),(5,y+2)`; J fills `(4,y),(5,y),(6,y),(6,y+1)`. |
-| Center LO completion (conditional) | Existing L at `(4,y),(4,y+1),(4,y+2),(5,y+2)`; O fills `(5,y),(6,y),(5,y+1),(6,y+1)`. |
+`st-worker.js` runs search outside the main thread. The controller terminates superseded workers and checks worker identity, request ID, revision and witness before displaying advice. Exactly following a checked input preserves the same target, including through HOLD; the remaining prefix is replayed before retention. A deviation hides old advice immediately and replans from the actual pose. The main thread performs only short replay/validation, never placement search.
 
-Center completions require a solid three-cell platform `(4..6,y+3)`, with
-`y=18..36`. The three-row Center envelope must be empty except for the listed
-existing member; the new right-edge notch `(6,y+2)` remains empty. No line is
-cleared by completion. Only the next **single placement** is shown, never both
-members. Actual current/hold/empty-hold/two-hold paths, every intervening spawn,
-and a legally available **exact non-mini TSD after completion** must be checked
-against the whole board. A shape alone, an inaccessible later T, or a double
-that becomes a single is insufficient. Left and Center need not be equal height.
+## Evidence and limits
 
-**LO reserve rule:** abstain from LO completion if **any S is observable** in
-the active piece, hold or any of the six visible preview slots. No S home is
-currently verified. No visible S is not proof of no future obligation: the
-explanation explicitly warns that a later S still needs a checked home. Hidden
-queue/bag history is never inspected or inferred. This conservative rule also
-rejects positions where a human could safely accommodate that S elsewhere.
+See the [acceptance map](docs/st-milestone-acceptance.md), [evaluation report](docs/st-evaluation.md) and run `node scripts/evaluate-st.cjs` for a repeatable corpus/closed-loop evaluation. The default demo was measured with real replanning and fresh six-piece preview after every lock: a nonclear filler, full TSD and supported nonclear rebuild, then another full TSD, through 12 locks. The production 750 ms budget also completed this cycle.
 
-**Completion only:** SL starts with S, OJ with O, LO with L. No pair initiation
-is recommended, even with the partner visible: partner plus scoring would need
-three actual locks, beyond this increment's unchanged two-lock horizon. O-first
-is not a substitute for the existing L in LO. There is no Left filler coaching
-or S-disposal search. Existing supported Z/T/I choices retain priority; Center
-completion is considered only when none is verified. This is finite continuation
-evidence, not proof of sustainable general ST or optimal piece allocation.
+This does **not** establish robust indefinite ST play. All five measured starts now produce at least one TSD within 12 locks, after fixing a geometric-slot reward that previously produced inaccessible cavities. A low stack after successful clears can still leave the supported maintenance profile. Finite-prefix legality, corpus success and survivability are separate from strategic quality and human learning. Left-side coaching, deep stochastic futures, arbitrary damaged-stack recovery, TSTs and PCs are outside this first profile. One small legal filler deviation has a structural recovery case; that is not general recovery evidence.
 
-Unrelated upper filler and stack-height variation are allowed. Required affected
-rows, supports, collisions and reachable paths are checked against the **whole
-current board**, not a named lesson, phase or one of five stored heaps. A missing
-left cell that changes a double to a single rejects the target even when the
-right corner is unchanged. Blocked pockets and unreachable cavities reject it
-too. Complete editor-created rows, malformed snapshots and overlapping active
-pieces are unsupported rather than counted as unrelated scoring credit.
-
-A supported scoring action is not a judgment about allocation or strategic
-usefulness. Arbitrary garbage play, other notch/pocket geometries and scoring
-orientations are not covered. Empty boards and ordinary filler turns commonly
-receive **No supported ST continuation verified**. Keep playing manually. **Search limit
-reached** means incomplete analysis, not impossibility; no partial target is
-shown. Nothing repairs the stack, advances a phase or automatically restarts.
-
-### Sources
-
-The right-side Z/T/I mechanisms derive from [Hard Drop ST Stacking, revision
-37604](https://harddrop.com/w/index.php?title=ST_Stacking&oldid=37604), zero-indexed
-diagrams 0/1/4 (cap/T/residue), 9/10 (pocket I), and 13/14/cleared result (well I),
-mirrored into the right-Z/T convention of [Shocky's ST Stacking
-Guide](https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit),
-chapters 1–4. Source diagrams are not empty-board opening solutions. Independent
-literal occupancy/cell transcriptions remain in `test/support/st-fixtures.cjs`
-**only as tests**. Actual-engine generalized checks, not an assumption that all
-mirrored kicks work identically, establish the tested examples.
-
-Center pair geometry follows Shocky's §3.2 “Three SL pairs”, “An OJ pair” and
-“An LO pair”; §§6–7 motivate the caution about the hanging S. Independent
-reflected Marathon examples are pages **23–24** (frames 826/847), **155–157**
-(4665/4689/4712) and **64–65** (2009/2025), retained in
-`test/support/st-center-fixtures.cjs`. OJ's subsequent double is observed in the
-replay; immediate doubles in the SL/LO tests are hypothetical visible queues,
-not recovered player intent. Source lock order is not draw/hold order.
-
-Reflecting every cell `x → 9−x` and swapping S↔Z, J↔L gives ZJ/OL/JO on the
-opposite scoring orientation (Center columns 4–6, not 5–7). The retained filler
-study independently replayed those paths under SRS+; rotations must be searched
-fresh, not reflected numerically. This increment does **not** add those runtime
-orientations. Mirrored inputs are tested to avoid mislabelling them.
-
-A [full-run video reference](references/st-stacking/README.md) provides raw Fumen
-placement data and source-frame mappings from a separate Marathon replay. It is
-an inspectable reference for future ST lab work, not a runtime lesson, authored
-start or advisor correctness oracle; its provenance and validation limits are
-documented alongside the data.
-
-## Contributor interface
-
-`STCore.create(pieces, srsPlusKicks)` captures immutable copies of the real rule
-tables and returns one pure operation: `advise(input)` → `target` or `abstain`.
-There is no exercise catalog, certificate or progress transition API.
-
-A snapshot contains the 40×10 locked-only `heap` (`#` / `.`), active instance
-`{id,kind,x,y,rotation,lastAction}`, held instance or null, ordered `visibleNext`
-instances, `holdRule:'unlimited-swap'`, and
-`rules:{version:STCore.version,mode:'st-lab',kickset:'SRS+',gravity:false}`.
-IDs are unique within a snapshot; duplicate letters are distinct instances.
-Only `STCore.visiblePreview(queue)` reaches search: it mirrors the seven-raw-entry
-renderer and six-slot clipping, rejects ambiguous multiple separators/unsupported
-visible pieces, and never examines the hidden suffix.
-
-Targets provide identity, `from`, 0/1/2-hold `prelude`, `cells`, landing `pose`,
-executable `path` ending in zero-distance HD, `rule`, `expected` scoring,
-`explanation`, `continuationVerified`, optional `continuation`, and diagnostics.
-A continuation is one legally accessible scoring follow-up to a setup or Center
-completion, not an arbitrary future-piece menu or claim about replenishment.
-`preferredTarget:{kind,cells}` is an optional tie-break among freshly verified
-candidates of equal continuation status. It cannot bypass geometry, access,
-scoring, LO reserve or work-limit checks. The adapter carries only this preference
-to keep a sound target stable after movement/hold/edits; it is not history evidence.
-
-Candidates are generated from present geometry and simulated clear results.
-Reachability uses actual ordered SRS+ kicks (including 180s) over
-`(x,y,rotation,last-action-is-rotation)`, with stable BFS action order
-`L,R,SD,CW,CCW,R180`. Current piece, one hold, then two-hold respawn are considered;
-empty hold consumes only next-0. Every spawn must fit the heap, including the
-intervening held piece in a two-hold respawn and the next piece spawned before
-continuation access. A setup also needs a reachable hypothetical
-scoring placement, separately from legal piece access for a continuation.
-
-Default hard ceilings: **30,000 expanded poses, 128 verified lock endpoints,
-two actual locks including the immediate action**. Smaller nonnegative budgets
-and depth 1 are supported; invalid/larger limits reject. Hypothetical setup
-checks count toward those work budgets even at depth 1. Within a call, identical
-heap/pose/goal searches share paths. Any exhausted budget discards all candidates.
-Prefer verified continuation, a revalidated preferred target, fewer holds,
-shorter path, then rotation/x/y;
-geometry, hold and BFS order break remaining ties deterministically. There is no
-random search, clock tie-break, strategy framework, background service or solver.
-These work limits are not a latency or completeness guarantee.
-
-`st-lab.js` snapshots fresh board/piece/rules/visible-preview state each render
-frame. Identical snapshots reuse the answer; changes recompute synchronously
-before painting an independent pointer-transparent SVG at configured cell size.
-There is no stale phase, history sidecar, hidden queue fingerprint or asynchronous
-result to restore. Locks, clears, filler, deviations, undo/redo, branches, edits,
-imports, mirror and restart all use this same recognition path. Unchanged frames
-do not rewrite target DOM/live regions. Nothing enters the collision board.
-
-## Verification
-
-See [TESTING.md](TESTING.md#st-lab-behavioral-coverage) and `npm test` using `.nvmrc`.
-
-Tests retain independent sourced positive/negative boards, legal hold/path and
-actual scoring checks, generalized filler/height variants and the missing-left-
-cell single counterexample. `test/st-natural.test.cjs` begins empty using the
-actual engine's normal generated pieces (test-host seed 29); eleven legal locks
-and hold lead to one verified I quad. Its literal action history is in
-`test/support/st-natural.cjs`. No prerequisite board or queue is injected.
-**One replay proves one occurrence, not natural frequency or an all-family chain.**
-
-The browser-free host substitutes RNG/clocks/assets and does not render pixels.
-Supplement UI changes with real desktop/narrow screenshots and controls/settings
-checks as required by `.no-mistakes.yaml`. Viewport emulation is not physical
-touch-device certification. Larger configured cells may scroll inside the field;
-never shrink collision coordinates. Hosting remains static HTML/JS/CSS with MIT
-attribution, no build step and no new production dependency.
+Automated rules, corpus, planner, closed-loop and actual-page behavior tests are in `npm test`. Real browser pixels, desktop/narrow layout, real worker loading under the deployment host and subjective learning/playtest acceptance remain unverified in this cloud environment. Do not mark the overall milestone fully accepted until those checks pass. No ordinary engine, Fumen recording or legacy rotation file is changed.

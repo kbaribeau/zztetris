@@ -1,0 +1,5533 @@
+{
+  "config": {
+    "depth": 3,
+    "width": 8,
+    "maxNodes": 45000
+  },
+  "environment": {
+    "node": "v24.20.0",
+    "platform": "linux"
+  },
+  "cases": [
+    {
+      "id": "o-filler",
+      "split": "dev",
+      "status": "recommended-with-verified-prefix",
+      "validWitness": true,
+      "witnessFailures": 0,
+      "verifiedLocks": 3,
+      "metrics": {
+        "nodes": 26822,
+        "roots": 73,
+        "rootExpanded": 8,
+        "depth": 3,
+        "completeDepth": 3,
+        "elapsedMs": 705,
+        "accessNodes": 9353
+      },
+      "firstLines": 0,
+      "firstSpin": "none",
+      "checkedTsdAt": null,
+      "elapsedMs": 705,
+      "nodes": 26822,
+      "budgetExhausted": false
+    },
+    {
+      "id": "center-j",
+      "split": "dev",
+      "status": "recommended-with-verified-prefix",
+      "validWitness": true,
+      "witnessFailures": 0,
+      "verifiedLocks": 3,
+      "metrics": {
+        "nodes": 23114,
+        "roots": 83,
+        "rootExpanded": 8,
+        "depth": 3,
+        "completeDepth": 3,
+        "elapsedMs": 516,
+        "accessNodes": 7931
+      },
+      "firstLines": 2,
+      "firstSpin": "full",
+      "checkedTsdAt": 1,
+      "elapsedMs": 516,
+      "nodes": 23114,
+      "budgetExhausted": false
+    },
+    {
+      "id": "empty-hold",
+      "split": "dev",
+      "status": "recommended-with-verified-prefix",
+      "validWitness": true,
+      "witnessFailures": 0,
+      "verifiedLocks": 3,
+      "metrics": {
+        "nodes": 26068,
+        "roots": 84,
+        "rootExpanded": 8,
+        "depth": 3,
+        "completeDepth": 3,
+        "elapsedMs": 568,
+        "accessNodes": 11729
+      },
+      "firstLines": 2,
+      "firstSpin": "full",
+      "checkedTsdAt": 1,
+      "elapsedMs": 568,
+      "nodes": 26068,
+      "budgetExhausted": false
+    },
+    {
+      "id": "left-l",
+      "split": "dev",
+      "status": "recommended-with-verified-prefix",
+      "validWitness": true,
+      "witnessFailures": 0,
+      "verifiedLocks": 3,
+      "metrics": {
+        "nodes": 36270,
+        "roots": 87,
+        "rootExpanded": 8,
+        "depth": 3,
+        "completeDepth": 3,
+        "elapsedMs": 629,
+        "accessNodes": 21268
+      },
+      "firstLines": 2,
+      "firstSpin": "full",
+      "checkedTsdAt": 1,
+      "elapsedMs": 629,
+      "nodes": 36270,
+      "budgetExhausted": false
+    },
+    {
+      "id": "held-t-double",
+      "split": "dev",
+      "status": "recommended-with-verified-prefix",
+      "validWitness": true,
+      "witnessFailures": 0,
+      "verifiedLocks": 3,
+      "metrics": {
+        "nodes": 26768,
+        "roots": 87,
+        "rootExpanded": 8,
+        "depth": 3,
+        "completeDepth": 3,
+        "elapsedMs": 573,
+        "accessNodes": 12858
+      },
+      "firstLines": 2,
+      "firstSpin": "full",
+      "checkedTsdAt": 1,
+      "elapsedMs": 573,
+      "nodes": 26768,
+      "budgetExhausted": false
+    },
+    {
+      "id": "cap-rebuild",
+      "split": "dev",
+      "status": "recommended-with-verified-prefix",
+      "validWitness": true,
+      "witnessFailures": 0,
+      "verifiedLocks": 3,
+      "metrics": {
+        "nodes": 38832,
+        "roots": 80,
+        "rootExpanded": 8,
+        "depth": 3,
+        "completeDepth": 3,
+        "elapsedMs": 593,
+        "accessNodes": 24890
+      },
+      "firstLines": 0,
+      "firstSpin": "none",
+      "checkedTsdAt": null,
+      "elapsedMs": 593,
+      "nodes": 38832,
+      "budgetExhausted": false
+    },
+    {
+      "id": "o-before-double",
+      "split": "dev",
+      "status": "recommended-with-verified-prefix",
+      "validWitness": true,
+      "witnessFailures": 0,
+      "verifiedLocks": 3,
+      "metrics": {
+        "nodes": 23207,
+        "roots": 74,
+        "rootExpanded": 8,
+        "depth": 3,
+        "completeDepth": 3,
+        "elapsedMs": 565,
+        "accessNodes": 6397
+      },
+      "firstLines": 0,
+      "firstSpin": "none",
+      "checkedTsdAt": 2,
+      "elapsedMs": 565,
+      "nodes": 23207,
+      "budgetExhausted": false
+    },
+    {
+      "id": "direct-double",
+      "split": "dev",
+      "status": "recommended-with-verified-prefix",
+      "validWitness": true,
+      "witnessFailures": 0,
+      "verifiedLocks": 3,
+      "metrics": {
+        "nodes": 28276,
+        "roots": 83,
+        "rootExpanded": 8,
+        "depth": 3,
+        "completeDepth": 3,
+        "elapsedMs": 536,
+        "accessNodes": 13518
+      },
+      "firstLines": 0,
+      "firstSpin": "none",
+      "checkedTsdAt": 2,
+      "elapsedMs": 536,
+      "nodes": 28276,
+      "budgetExhausted": false
+    },
+    {
+      "id": "s-after-double",
+      "split": "dev",
+      "status": "recommended-with-verified-prefix",
+      "validWitness": true,
+      "witnessFailures": 0,
+      "verifiedLocks": 3,
+      "metrics": {
+        "nodes": 38245,
+        "roots": 76,
+        "rootExpanded": 8,
+        "depth": 3,
+        "completeDepth": 3,
+        "elapsedMs": 594,
+        "accessNodes": 24195
+      },
+      "firstLines": 0,
+      "firstSpin": "none",
+      "checkedTsdAt": null,
+      "elapsedMs": 594,
+      "nodes": 38245,
+      "budgetExhausted": false
+    },
+    {
+      "id": "i-via-hold",
+      "split": "dev",
+      "status": "recommended-with-verified-prefix",
+      "validWitness": true,
+      "witnessFailures": 0,
+      "verifiedLocks": 2,
+      "metrics": {
+        "nodes": 45000,
+        "roots": 80,
+        "rootExpanded": 8,
+        "depth": 3,
+        "completeDepth": 2,
+        "elapsedMs": 653,
+        "accessNodes": 30441
+      },
+      "firstLines": 0,
+      "firstSpin": "none",
+      "checkedTsdAt": null,
+      "elapsedMs": 653,
+      "nodes": 45000,
+      "budgetExhausted": true
+    },
+    {
+      "id": "higher-cap",
+      "split": "held-out",
+      "status": "recommended-with-verified-prefix",
+      "validWitness": true,
+      "witnessFailures": 0,
+      "verifiedLocks": 3,
+      "metrics": {
+        "nodes": 28597,
+        "roots": 85,
+        "rootExpanded": 8,
+        "depth": 3,
+        "completeDepth": 3,
+        "elapsedMs": 595,
+        "accessNodes": 15471
+      },
+      "firstLines": 0,
+      "firstSpin": "none",
+      "checkedTsdAt": 3,
+      "elapsedMs": 595,
+      "nodes": 28597,
+      "budgetExhausted": false
+    },
+    {
+      "id": "higher-double",
+      "split": "held-out",
+      "status": "recommended-with-verified-prefix",
+      "validWitness": true,
+      "witnessFailures": 0,
+      "verifiedLocks": 3,
+      "metrics": {
+        "nodes": 29216,
+        "roots": 82,
+        "rootExpanded": 8,
+        "depth": 3,
+        "completeDepth": 3,
+        "elapsedMs": 549,
+        "accessNodes": 16070
+      },
+      "firstLines": 1,
+      "firstSpin": "none",
+      "checkedTsdAt": 2,
+      "elapsedMs": 549,
+      "nodes": 29216,
+      "budgetExhausted": false
+    },
+    {
+      "id": "offset-double",
+      "split": "held-out",
+      "status": "recommended-with-verified-prefix",
+      "validWitness": true,
+      "witnessFailures": 0,
+      "verifiedLocks": 3,
+      "metrics": {
+        "nodes": 17434,
+        "roots": 83,
+        "rootExpanded": 8,
+        "depth": 3,
+        "completeDepth": 3,
+        "elapsedMs": 494,
+        "accessNodes": 3940
+      },
+      "firstLines": 2,
+      "firstSpin": "full",
+      "checkedTsdAt": 1,
+      "elapsedMs": 494,
+      "nodes": 17434,
+      "budgetExhausted": false
+    },
+    {
+      "id": "o-rebuild",
+      "split": "held-out",
+      "status": "recommended-with-verified-prefix",
+      "validWitness": true,
+      "witnessFailures": 0,
+      "verifiedLocks": 3,
+      "metrics": {
+        "nodes": 14506,
+        "roots": 74,
+        "rootExpanded": 8,
+        "depth": 3,
+        "completeDepth": 3,
+        "elapsedMs": 448,
+        "accessNodes": 1626
+      },
+      "firstLines": 0,
+      "firstSpin": "none",
+      "checkedTsdAt": null,
+      "elapsedMs": 448,
+      "nodes": 14506,
+      "budgetExhausted": false
+    },
+    {
+      "id": "after-quad",
+      "split": "held-out",
+      "status": "recommended-with-verified-prefix",
+      "validWitness": true,
+      "witnessFailures": 0,
+      "verifiedLocks": 3,
+      "metrics": {
+        "nodes": 35955,
+        "roots": 76,
+        "rootExpanded": 8,
+        "depth": 3,
+        "completeDepth": 3,
+        "elapsedMs": 609,
+        "accessNodes": 19879
+      },
+      "firstLines": 0,
+      "firstSpin": "none",
+      "checkedTsdAt": null,
+      "elapsedMs": 609,
+      "nodes": 35955,
+      "budgetExhausted": false
+    },
+    {
+      "id": "late-held-double",
+      "split": "held-out",
+      "status": "recommended-with-verified-prefix",
+      "validWitness": true,
+      "witnessFailures": 0,
+      "verifiedLocks": 3,
+      "metrics": {
+        "nodes": 26648,
+        "roots": 83,
+        "rootExpanded": 8,
+        "depth": 3,
+        "completeDepth": 3,
+        "elapsedMs": 533,
+        "accessNodes": 12648
+      },
+      "firstLines": 1,
+      "firstSpin": "none",
+      "checkedTsdAt": 2,
+      "elapsedMs": 533,
+      "nodes": 26648,
+      "budgetExhausted": false
+    },
+    {
+      "id": "unknown-bag-double",
+      "split": "held-out",
+      "status": "recommended-with-verified-prefix",
+      "validWitness": true,
+      "witnessFailures": 0,
+      "verifiedLocks": 3,
+      "metrics": {
+        "nodes": 26768,
+        "roots": 87,
+        "rootExpanded": 8,
+        "depth": 3,
+        "completeDepth": 3,
+        "elapsedMs": 531,
+        "accessNodes": 12858
+      },
+      "firstLines": 2,
+      "firstSpin": "full",
+      "checkedTsdAt": 1,
+      "elapsedMs": 531,
+      "nodes": 26768,
+      "budgetExhausted": false
+    },
+    {
+      "id": "actual-pose-double",
+      "split": "held-out",
+      "status": "recommended-with-verified-prefix",
+      "validWitness": true,
+      "witnessFailures": 0,
+      "verifiedLocks": 3,
+      "metrics": {
+        "nodes": 28276,
+        "roots": 83,
+        "rootExpanded": 8,
+        "depth": 3,
+        "completeDepth": 3,
+        "elapsedMs": 547,
+        "accessNodes": 13518
+      },
+      "firstLines": 0,
+      "firstSpin": "none",
+      "checkedTsdAt": 2,
+      "elapsedMs": 547,
+      "nodes": 28276,
+      "budgetExhausted": false
+    },
+    {
+      "id": "marathon-preparation",
+      "split": "held-out",
+      "status": "recommended-with-verified-prefix",
+      "validWitness": true,
+      "witnessFailures": 0,
+      "verifiedLocks": 3,
+      "metrics": {
+        "nodes": 27550,
+        "roots": 76,
+        "rootExpanded": 8,
+        "depth": 3,
+        "completeDepth": 3,
+        "elapsedMs": 707,
+        "accessNodes": 8435
+      },
+      "firstLines": 1,
+      "firstSpin": "none",
+      "checkedTsdAt": 2,
+      "elapsedMs": 707,
+      "nodes": 27550,
+      "budgetExhausted": false
+    },
+    {
+      "id": "marathon-double",
+      "split": "held-out",
+      "status": "recommended-with-verified-prefix",
+      "validWitness": true,
+      "witnessFailures": 0,
+      "verifiedLocks": 3,
+      "metrics": {
+        "nodes": 25696,
+        "roots": 82,
+        "rootExpanded": 8,
+        "depth": 3,
+        "completeDepth": 3,
+        "elapsedMs": 569,
+        "accessNodes": 9759
+      },
+      "firstLines": 2,
+      "firstSpin": "full",
+      "checkedTsdAt": 1,
+      "elapsedMs": 569,
+      "nodes": 25696,
+      "budgetExhausted": false
+    },
+    {
+      "id": "marathon-rebuild",
+      "split": "held-out",
+      "status": "recommended-with-verified-prefix",
+      "validWitness": true,
+      "witnessFailures": 0,
+      "verifiedLocks": 3,
+      "metrics": {
+        "nodes": 24802,
+        "roots": 76,
+        "rootExpanded": 8,
+        "depth": 3,
+        "completeDepth": 3,
+        "elapsedMs": 548,
+        "accessNodes": 9075
+      },
+      "firstLines": 1,
+      "firstSpin": "none",
+      "checkedTsdAt": null,
+      "elapsedMs": 548,
+      "nodes": 24802,
+      "budgetExhausted": false
+    },
+    {
+      "id": "marathon-later-double",
+      "split": "held-out",
+      "status": "recommended-with-verified-prefix",
+      "validWitness": true,
+      "witnessFailures": 0,
+      "verifiedLocks": 3,
+      "metrics": {
+        "nodes": 23989,
+        "roots": 87,
+        "rootExpanded": 8,
+        "depth": 3,
+        "completeDepth": 3,
+        "elapsedMs": 523,
+        "accessNodes": 12787
+      },
+      "firstLines": 2,
+      "firstSpin": "full",
+      "checkedTsdAt": 1,
+      "elapsedMs": 523,
+      "nodes": 23989,
+      "budgetExhausted": false
+    },
+    {
+      "id": "left-side-diagnostic",
+      "split": "diagnostic",
+      "status": "unsupported-position",
+      "validWitness": false,
+      "witnessFailures": 0,
+      "verifiedLocks": 0,
+      "metrics": {
+        "nodes": 0,
+        "roots": 0,
+        "rootExpanded": 0,
+        "depth": 0,
+        "completeDepth": 0,
+        "elapsedMs": 0
+      },
+      "firstLines": null,
+      "firstSpin": null,
+      "checkedTsdAt": null,
+      "elapsedMs": 0,
+      "nodes": 0,
+      "budgetExhausted": false
+    },
+    {
+      "id": "deviated-o-recovery",
+      "split": "dev",
+      "status": "recommended-with-verified-prefix",
+      "validWitness": true,
+      "witnessFailures": 0,
+      "verifiedLocks": 3,
+      "metrics": {
+        "nodes": 25750,
+        "roots": 73,
+        "rootExpanded": 8,
+        "depth": 3,
+        "completeDepth": 3,
+        "elapsedMs": 561,
+        "accessNodes": 9247
+      },
+      "firstLines": 0,
+      "firstSpin": "none",
+      "checkedTsdAt": null,
+      "elapsedMs": 561,
+      "nodes": 25750,
+      "budgetExhausted": false
+    }
+  ],
+  "timing": {
+    "min": 0,
+    "median": 565,
+    "p95": 705,
+    "max": 707
+  },
+  "loops": [
+    {
+      "id": "o-before-double",
+      "baseline": false,
+      "bagUnaware": false,
+      "config": {
+        "depth": 3,
+        "width": 8,
+        "maxNodes": 45000
+      },
+      "status": "lock-limit",
+      "locks": 12,
+      "tsds": 2,
+      "cycle": true,
+      "steps": [
+        {
+          "lock": 1,
+          "type": "O",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 12,
+          "elapsedMs": 543,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 2,
+          "type": "I",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "R",
+            "R",
+            "CW",
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 12,
+          "elapsedMs": 536,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 3,
+          "type": "T",
+          "lines": 2,
+          "spin": "full",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "R",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "R",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 518,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 4,
+          "type": "J",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "CCW",
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 537,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 5,
+          "type": "I",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "CCW",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 12,
+          "elapsedMs": 476,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 6,
+          "type": "L",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 12,
+          "elapsedMs": 550,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 7,
+          "type": "S",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 13,
+          "elapsedMs": 806,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 8,
+          "type": "T",
+          "lines": 2,
+          "spin": "full",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "R",
+            "SD",
+            "SD",
+            "CCW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 11,
+          "elapsedMs": 485,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 9,
+          "type": "O",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 11,
+          "elapsedMs": 533,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 10,
+          "type": "I",
+          "lines": 1,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 498,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 11,
+          "type": "S",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 11,
+          "elapsedMs": 553,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 12,
+          "type": "Z",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 11,
+          "elapsedMs": 724,
+          "budgetExhausted": false
+        }
+      ]
+    },
+    {
+      "id": "o-before-double",
+      "baseline": true,
+      "bagUnaware": false,
+      "config": null,
+      "status": "top-out",
+      "locks": 5,
+      "tsds": 0,
+      "cycle": false,
+      "steps": [
+        {
+          "lock": 1,
+          "type": "O",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 14,
+          "elapsedMs": 0,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 2,
+          "type": "T",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 16,
+          "elapsedMs": 0,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 3,
+          "type": "S",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 18,
+          "elapsedMs": 0,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 4,
+          "type": "J",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 20,
+          "elapsedMs": 0,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 5,
+          "type": "I",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 21,
+          "elapsedMs": 0,
+          "budgetExhausted": false
+        }
+      ]
+    },
+    {
+      "id": "o-filler",
+      "baseline": false,
+      "bagUnaware": false,
+      "config": {
+        "depth": 3,
+        "width": 8,
+        "maxNodes": 45000
+      },
+      "status": "lock-limit",
+      "locks": 12,
+      "tsds": 1,
+      "cycle": true,
+      "steps": [
+        {
+          "lock": 1,
+          "type": "O",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 8,
+          "elapsedMs": 934,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 2,
+          "type": "J",
+          "lines": 1,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "R180",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 7,
+          "elapsedMs": 602,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 3,
+          "type": "O",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 9,
+          "elapsedMs": 578,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 4,
+          "type": "I",
+          "lines": 1,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 8,
+          "elapsedMs": 656,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 5,
+          "type": "Z",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "CCW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 8,
+          "elapsedMs": 582,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 6,
+          "type": "L",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "CCW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 8,
+          "elapsedMs": 890,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 7,
+          "type": "J",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "L",
+            "L",
+            "L",
+            "CW",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 8,
+          "elapsedMs": 1307,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 8,
+          "type": "T",
+          "lines": 2,
+          "spin": "full",
+          "hold": false,
+          "witness": [
+            "R",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "R",
+            "R",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 6,
+          "elapsedMs": 820,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 9,
+          "type": "S",
+          "lines": 1,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 5,
+          "elapsedMs": 711,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 10,
+          "type": "S",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 7,
+          "elapsedMs": 819,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 11,
+          "type": "L",
+          "lines": 2,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "R",
+            "R",
+            "R",
+            "R180",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 5,
+          "elapsedMs": 635,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 12,
+          "type": "Z",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 7,
+          "elapsedMs": 630,
+          "budgetExhausted": false
+        }
+      ]
+    },
+    {
+      "id": "o-filler",
+      "baseline": true,
+      "bagUnaware": false,
+      "config": null,
+      "status": "top-out",
+      "locks": 8,
+      "tsds": 0,
+      "cycle": false,
+      "steps": [
+        {
+          "lock": 1,
+          "type": "O",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 0,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 2,
+          "type": "J",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 12,
+          "elapsedMs": 0,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 3,
+          "type": "O",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 13,
+          "elapsedMs": 0,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 4,
+          "type": "I",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 14,
+          "elapsedMs": 0,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 5,
+          "type": "Z",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 16,
+          "elapsedMs": 0,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 6,
+          "type": "L",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 18,
+          "elapsedMs": 0,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 7,
+          "type": "S",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 19,
+          "elapsedMs": 0,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 8,
+          "type": "J",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 21,
+          "elapsedMs": 0,
+          "budgetExhausted": false
+        }
+      ]
+    },
+    {
+      "id": "marathon-preparation",
+      "baseline": false,
+      "bagUnaware": false,
+      "config": {
+        "depth": 3,
+        "width": 8,
+        "maxNodes": 45000
+      },
+      "status": "lock-limit",
+      "locks": 12,
+      "tsds": 1,
+      "cycle": false,
+      "steps": [
+        {
+          "lock": 1,
+          "type": "I",
+          "lines": 1,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 9,
+          "elapsedMs": 569,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 2,
+          "type": "T",
+          "lines": 2,
+          "spin": "full",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "CW",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 7,
+          "elapsedMs": 591,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 3,
+          "type": "I",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 7,
+          "elapsedMs": 550,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 4,
+          "type": "Z",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "R",
+            "R",
+            "R",
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 7,
+          "elapsedMs": 532,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 5,
+          "type": "L",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 9,
+          "elapsedMs": 590,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 6,
+          "type": "S",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 558,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 7,
+          "type": "O",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 527,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 8,
+          "type": "Z",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 12,
+          "elapsedMs": 516,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 9,
+          "type": "J",
+          "lines": 1,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "R",
+            "R",
+            "R",
+            "R180",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 11,
+          "elapsedMs": 570,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 10,
+          "type": "L",
+          "lines": 1,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 578,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 11,
+          "type": "O",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 613,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 12,
+          "type": "I",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 591,
+          "budgetExhausted": false
+        }
+      ]
+    },
+    {
+      "id": "marathon-preparation",
+      "baseline": true,
+      "bagUnaware": false,
+      "config": null,
+      "status": "top-out",
+      "locks": 7,
+      "tsds": 0,
+      "cycle": false,
+      "steps": [
+        {
+          "lock": 1,
+          "type": "Z",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 12,
+          "elapsedMs": 0,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 2,
+          "type": "T",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 14,
+          "elapsedMs": 0,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 3,
+          "type": "I",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 15,
+          "elapsedMs": 0,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 4,
+          "type": "S",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 17,
+          "elapsedMs": 0,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 5,
+          "type": "L",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 19,
+          "elapsedMs": 0,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 6,
+          "type": "J",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 21,
+          "elapsedMs": 0,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 7,
+          "type": "O",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 22,
+          "elapsedMs": 0,
+          "budgetExhausted": false
+        }
+      ]
+    },
+    {
+      "id": "marathon-rebuild",
+      "baseline": false,
+      "bagUnaware": false,
+      "config": {
+        "depth": 3,
+        "width": 8,
+        "maxNodes": 45000
+      },
+      "status": "lock-limit",
+      "locks": 12,
+      "tsds": 1,
+      "cycle": false,
+      "steps": [
+        {
+          "lock": 1,
+          "type": "I",
+          "lines": 1,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 7,
+          "elapsedMs": 548,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 2,
+          "type": "Z",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "R",
+            "R",
+            "R",
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 7,
+          "elapsedMs": 572,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 3,
+          "type": "L",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 9,
+          "elapsedMs": 571,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 4,
+          "type": "S",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 567,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 5,
+          "type": "O",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 529,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 6,
+          "type": "Z",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 12,
+          "elapsedMs": 554,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 7,
+          "type": "J",
+          "lines": 1,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "R",
+            "R",
+            "R",
+            "R180",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 11,
+          "elapsedMs": 557,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 8,
+          "type": "L",
+          "lines": 1,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 567,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 9,
+          "type": "O",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 618,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 10,
+          "type": "I",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 597,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 11,
+          "type": "T",
+          "lines": 2,
+          "spin": "full",
+          "hold": false,
+          "witness": [
+            "R",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "R",
+            "R",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 8,
+          "elapsedMs": 746,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 12,
+          "type": "J",
+          "lines": 1,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 7,
+          "elapsedMs": 734,
+          "budgetExhausted": true
+        }
+      ]
+    },
+    {
+      "id": "marathon-rebuild",
+      "baseline": true,
+      "bagUnaware": false,
+      "config": null,
+      "status": "top-out",
+      "locks": 8,
+      "tsds": 0,
+      "cycle": false,
+      "steps": [
+        {
+          "lock": 1,
+          "type": "I",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 9,
+          "elapsedMs": 0,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 2,
+          "type": "S",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 11,
+          "elapsedMs": 0,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 3,
+          "type": "L",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 13,
+          "elapsedMs": 0,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 4,
+          "type": "J",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 15,
+          "elapsedMs": 0,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 5,
+          "type": "O",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 16,
+          "elapsedMs": 0,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 6,
+          "type": "Z",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 18,
+          "elapsedMs": 0,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 7,
+          "type": "S",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 20,
+          "elapsedMs": 0,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 8,
+          "type": "L",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 22,
+          "elapsedMs": 0,
+          "budgetExhausted": false
+        }
+      ]
+    },
+    {
+      "id": "higher-cap",
+      "baseline": false,
+      "bagUnaware": false,
+      "config": {
+        "depth": 3,
+        "width": 8,
+        "maxNodes": 45000
+      },
+      "status": "lock-limit",
+      "locks": 12,
+      "tsds": 2,
+      "cycle": true,
+      "steps": [
+        {
+          "lock": 1,
+          "type": "Z",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 14,
+          "elapsedMs": 699,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 2,
+          "type": "I",
+          "lines": 1,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 13,
+          "elapsedMs": 523,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 3,
+          "type": "T",
+          "lines": 2,
+          "spin": "full",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "R",
+            "R",
+            "CW",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 11,
+          "elapsedMs": 495,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 4,
+          "type": "L",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 12,
+          "elapsedMs": 497,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 5,
+          "type": "Z",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 12,
+          "elapsedMs": 582,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 6,
+          "type": "S",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 13,
+          "elapsedMs": 600,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 7,
+          "type": "T",
+          "lines": 2,
+          "spin": "full",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "CW",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 11,
+          "elapsedMs": 527,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 8,
+          "type": "O",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 11,
+          "elapsedMs": 525,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 9,
+          "type": "I",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 11,
+          "elapsedMs": 572,
+          "budgetExhausted": true
+        },
+        {
+          "lock": 10,
+          "type": "J",
+          "lines": 1,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 678,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 11,
+          "type": "L",
+          "lines": 3,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "CCW",
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 7,
+          "elapsedMs": 787,
+          "budgetExhausted": true
+        },
+        {
+          "lock": 12,
+          "type": "J",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "L",
+            "L",
+            "L",
+            "R180",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 7,
+          "elapsedMs": 1155,
+          "budgetExhausted": false
+        }
+      ]
+    }
+  ],
+  "ablations": [
+    {
+      "id": "o-before-double",
+      "baseline": false,
+      "bagUnaware": false,
+      "config": {
+        "depth": 3,
+        "width": 8,
+        "maxNodes": 45000,
+        "allowHold": false
+      },
+      "status": "lock-limit",
+      "locks": 3,
+      "tsds": 1,
+      "cycle": true,
+      "steps": [
+        {
+          "lock": 1,
+          "type": "O",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 12,
+          "elapsedMs": 291,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 2,
+          "type": "T",
+          "lines": 2,
+          "spin": "full",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "CW",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 251,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 3,
+          "type": "S",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 12,
+          "elapsedMs": 266,
+          "budgetExhausted": false
+        }
+      ]
+    },
+    {
+      "id": "o-before-double",
+      "baseline": false,
+      "bagUnaware": true,
+      "config": {
+        "depth": 3,
+        "width": 8,
+        "maxNodes": 45000
+      },
+      "status": "lock-limit",
+      "locks": 3,
+      "tsds": 1,
+      "cycle": false,
+      "steps": [
+        {
+          "lock": 1,
+          "type": "O",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 12,
+          "elapsedMs": 539,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 2,
+          "type": "I",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "R",
+            "R",
+            "CW",
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 12,
+          "elapsedMs": 549,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 3,
+          "type": "T",
+          "lines": 2,
+          "spin": "full",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "R",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "R",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 493,
+          "budgetExhausted": false
+        }
+      ]
+    }
+  ],
+  "productionLoop": {
+    "id": "o-before-double",
+    "baseline": false,
+    "bagUnaware": false,
+    "config": {
+      "depth": 3,
+      "width": 8,
+      "maxNodes": 45000,
+      "timeMs": 750
+    },
+    "status": "lock-limit",
+    "locks": 12,
+    "tsds": 2,
+    "cycle": true,
+    "steps": [
+      {
+        "lock": 1,
+        "type": "O",
+        "lines": 0,
+        "spin": "none",
+        "hold": false,
+        "witness": [
+          "L",
+          "L",
+          "HD"
+        ],
+        "regionalSupport": true,
+        "openChannel": true,
+        "maxHeight": 12,
+        "elapsedMs": 608,
+        "budgetExhausted": false
+      },
+      {
+        "lock": 2,
+        "type": "I",
+        "lines": 0,
+        "spin": "none",
+        "hold": true,
+        "witness": [
+          "HOLD",
+          "R",
+          "R",
+          "R",
+          "CW",
+          "R",
+          "HD"
+        ],
+        "regionalSupport": true,
+        "openChannel": true,
+        "maxHeight": 12,
+        "elapsedMs": 561,
+        "budgetExhausted": false
+      },
+      {
+        "lock": 3,
+        "type": "T",
+        "lines": 2,
+        "spin": "full",
+        "hold": true,
+        "witness": [
+          "HOLD",
+          "R",
+          "R",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "CCW",
+          "R",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "CCW",
+          "HD"
+        ],
+        "regionalSupport": true,
+        "openChannel": true,
+        "maxHeight": 10,
+        "elapsedMs": 527,
+        "budgetExhausted": false
+      },
+      {
+        "lock": 4,
+        "type": "J",
+        "lines": 0,
+        "spin": "none",
+        "hold": false,
+        "witness": [
+          "R",
+          "R",
+          "R",
+          "R",
+          "CCW",
+          "R",
+          "HD"
+        ],
+        "regionalSupport": true,
+        "openChannel": true,
+        "maxHeight": 10,
+        "elapsedMs": 543,
+        "budgetExhausted": false
+      },
+      {
+        "lock": 5,
+        "type": "I",
+        "lines": 0,
+        "spin": "none",
+        "hold": false,
+        "witness": [
+          "L",
+          "L",
+          "L",
+          "CCW",
+          "L",
+          "HD"
+        ],
+        "regionalSupport": true,
+        "openChannel": true,
+        "maxHeight": 12,
+        "elapsedMs": 469,
+        "budgetExhausted": false
+      },
+      {
+        "lock": 6,
+        "type": "L",
+        "lines": 0,
+        "spin": "none",
+        "hold": false,
+        "witness": [
+          "L",
+          "L",
+          "HD"
+        ],
+        "regionalSupport": true,
+        "openChannel": true,
+        "maxHeight": 12,
+        "elapsedMs": 558,
+        "budgetExhausted": false
+      },
+      {
+        "lock": 7,
+        "type": "S",
+        "lines": 0,
+        "spin": "none",
+        "hold": true,
+        "witness": [
+          "HOLD",
+          "L",
+          "L",
+          "HD"
+        ],
+        "regionalSupport": true,
+        "openChannel": true,
+        "maxHeight": 13,
+        "elapsedMs": 536,
+        "budgetExhausted": false
+      },
+      {
+        "lock": 8,
+        "type": "T",
+        "lines": 2,
+        "spin": "full",
+        "hold": false,
+        "witness": [
+          "R",
+          "R",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "CCW",
+          "R",
+          "SD",
+          "SD",
+          "CCW",
+          "HD"
+        ],
+        "regionalSupport": true,
+        "openChannel": true,
+        "maxHeight": 11,
+        "elapsedMs": 513,
+        "budgetExhausted": false
+      },
+      {
+        "lock": 9,
+        "type": "O",
+        "lines": 0,
+        "spin": "none",
+        "hold": true,
+        "witness": [
+          "HOLD",
+          "HD"
+        ],
+        "regionalSupport": true,
+        "openChannel": true,
+        "maxHeight": 11,
+        "elapsedMs": 539,
+        "budgetExhausted": false
+      },
+      {
+        "lock": 10,
+        "type": "I",
+        "lines": 1,
+        "spin": "none",
+        "hold": false,
+        "witness": [
+          "R",
+          "R",
+          "R",
+          "HD"
+        ],
+        "regionalSupport": true,
+        "openChannel": true,
+        "maxHeight": 10,
+        "elapsedMs": 503,
+        "budgetExhausted": false
+      },
+      {
+        "lock": 11,
+        "type": "S",
+        "lines": 0,
+        "spin": "none",
+        "hold": false,
+        "witness": [
+          "L",
+          "L",
+          "L",
+          "HD"
+        ],
+        "regionalSupport": true,
+        "openChannel": true,
+        "maxHeight": 11,
+        "elapsedMs": 532,
+        "budgetExhausted": false
+      },
+      {
+        "lock": 12,
+        "type": "Z",
+        "lines": 0,
+        "spin": "none",
+        "hold": true,
+        "witness": [
+          "HOLD",
+          "HD"
+        ],
+        "regionalSupport": true,
+        "openChannel": true,
+        "maxHeight": 11,
+        "elapsedMs": 523,
+        "budgetExhausted": false
+      }
+    ]
+  },
+  "extended": [
+    {
+      "id": "o-filler",
+      "baseline": false,
+      "bagUnaware": false,
+      "config": {
+        "depth": 3,
+        "width": 8,
+        "maxNodes": 45000
+      },
+      "status": "lock-limit",
+      "locks": 36,
+      "tsds": 2,
+      "cycle": true,
+      "steps": [
+        {
+          "lock": 1,
+          "type": "O",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 8,
+          "elapsedMs": 552,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 2,
+          "type": "J",
+          "lines": 1,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "R180",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 7,
+          "elapsedMs": 565,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 3,
+          "type": "O",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 9,
+          "elapsedMs": 563,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 4,
+          "type": "I",
+          "lines": 1,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 8,
+          "elapsedMs": 584,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 5,
+          "type": "Z",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "CCW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 8,
+          "elapsedMs": 552,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 6,
+          "type": "L",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "CCW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 8,
+          "elapsedMs": 627,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 7,
+          "type": "J",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "L",
+            "L",
+            "L",
+            "CW",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 8,
+          "elapsedMs": 665,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 8,
+          "type": "T",
+          "lines": 2,
+          "spin": "full",
+          "hold": false,
+          "witness": [
+            "R",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "R",
+            "R",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 6,
+          "elapsedMs": 652,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 9,
+          "type": "S",
+          "lines": 1,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 5,
+          "elapsedMs": 660,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 10,
+          "type": "S",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 7,
+          "elapsedMs": 654,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 11,
+          "type": "L",
+          "lines": 2,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "R",
+            "R",
+            "R",
+            "R180",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 5,
+          "elapsedMs": 619,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 12,
+          "type": "Z",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 7,
+          "elapsedMs": 725,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 13,
+          "type": "I",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "R",
+            "R",
+            "CW",
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 7,
+          "elapsedMs": 700,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 14,
+          "type": "J",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "L",
+            "L",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 7,
+          "elapsedMs": 703,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 15,
+          "type": "T",
+          "lines": 2,
+          "spin": "full",
+          "hold": false,
+          "witness": [
+            "R",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "R",
+            "R",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 5,
+          "elapsedMs": 627,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 16,
+          "type": "O",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "L",
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 5,
+          "elapsedMs": 583,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 17,
+          "type": "J",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 5,
+          "elapsedMs": 557,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 18,
+          "type": "S",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 5,
+          "elapsedMs": 545,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 19,
+          "type": "L",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "R180",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 5,
+          "elapsedMs": 691,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 20,
+          "type": "O",
+          "lines": 2,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 3,
+          "elapsedMs": 649,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 21,
+          "type": "I",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 4,
+          "elapsedMs": 648,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 22,
+          "type": "Z",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 6,
+          "elapsedMs": 635,
+          "budgetExhausted": true
+        },
+        {
+          "lock": 23,
+          "type": "I",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "CCW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 7,
+          "elapsedMs": 695,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 24,
+          "type": "T",
+          "lines": 1,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "R",
+            "R",
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 6,
+          "elapsedMs": 693,
+          "budgetExhausted": true
+        },
+        {
+          "lock": 25,
+          "type": "L",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "CW",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 6,
+          "elapsedMs": 582,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 26,
+          "type": "Z",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 6,
+          "elapsedMs": 682,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 27,
+          "type": "J",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "R180",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 6,
+          "elapsedMs": 716,
+          "budgetExhausted": true
+        },
+        {
+          "lock": 28,
+          "type": "T",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 7,
+          "elapsedMs": 702,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 29,
+          "type": "S",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "R",
+            "R",
+            "R",
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 7,
+          "elapsedMs": 593,
+          "budgetExhausted": true
+        },
+        {
+          "lock": 30,
+          "type": "O",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 9,
+          "elapsedMs": 586,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 31,
+          "type": "J",
+          "lines": 1,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "R180",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 8,
+          "elapsedMs": 627,
+          "budgetExhausted": true
+        },
+        {
+          "lock": 32,
+          "type": "L",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "CW",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 8,
+          "elapsedMs": 637,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 33,
+          "type": "S",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "CCW",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 8,
+          "elapsedMs": 664,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 34,
+          "type": "O",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 8,
+          "elapsedMs": 692,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 35,
+          "type": "I",
+          "lines": 3,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "R",
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 5,
+          "elapsedMs": 796,
+          "budgetExhausted": true
+        },
+        {
+          "lock": 36,
+          "type": "T",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "CCW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 6,
+          "elapsedMs": 696,
+          "budgetExhausted": true
+        }
+      ]
+    },
+    {
+      "id": "marathon-rebuild",
+      "baseline": false,
+      "bagUnaware": false,
+      "config": {
+        "depth": 3,
+        "width": 8,
+        "maxNodes": 45000
+      },
+      "status": "lock-limit",
+      "locks": 36,
+      "tsds": 2,
+      "cycle": true,
+      "steps": [
+        {
+          "lock": 1,
+          "type": "I",
+          "lines": 1,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 7,
+          "elapsedMs": 536,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 2,
+          "type": "Z",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "R",
+            "R",
+            "R",
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 7,
+          "elapsedMs": 522,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 3,
+          "type": "L",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 9,
+          "elapsedMs": 544,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 4,
+          "type": "S",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 518,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 5,
+          "type": "O",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 861,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 6,
+          "type": "Z",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 12,
+          "elapsedMs": 516,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 7,
+          "type": "J",
+          "lines": 1,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "R",
+            "R",
+            "R",
+            "R180",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 11,
+          "elapsedMs": 556,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 8,
+          "type": "L",
+          "lines": 1,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 574,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 9,
+          "type": "O",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 673,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 10,
+          "type": "I",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 528,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 11,
+          "type": "T",
+          "lines": 2,
+          "spin": "full",
+          "hold": false,
+          "witness": [
+            "R",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "R",
+            "R",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 8,
+          "elapsedMs": 606,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 12,
+          "type": "J",
+          "lines": 1,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 7,
+          "elapsedMs": 602,
+          "budgetExhausted": true
+        },
+        {
+          "lock": 13,
+          "type": "S",
+          "lines": 1,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "R",
+            "R",
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": false,
+          "openChannel": false,
+          "maxHeight": 6,
+          "elapsedMs": 598,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 14,
+          "type": "I",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 6,
+          "elapsedMs": 668,
+          "budgetExhausted": true
+        },
+        {
+          "lock": 15,
+          "type": "L",
+          "lines": 3,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "CCW",
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 3,
+          "elapsedMs": 422,
+          "budgetExhausted": true
+        },
+        {
+          "lock": 16,
+          "type": "J",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 4,
+          "elapsedMs": 754,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 17,
+          "type": "Z",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 4,
+          "elapsedMs": 693,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 18,
+          "type": "T",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "L",
+            "L",
+            "L",
+            "R180",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 5,
+          "elapsedMs": 682,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 19,
+          "type": "Z",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 5,
+          "elapsedMs": 632,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 20,
+          "type": "S",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 5,
+          "elapsedMs": 825,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 21,
+          "type": "I",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 6,
+          "elapsedMs": 918,
+          "budgetExhausted": true
+        },
+        {
+          "lock": 22,
+          "type": "O",
+          "lines": 2,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "R",
+            "R",
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 4,
+          "elapsedMs": 745,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 23,
+          "type": "L",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 6,
+          "elapsedMs": 757,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 24,
+          "type": "O",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 6,
+          "elapsedMs": 706,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 25,
+          "type": "T",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "CCW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 8,
+          "elapsedMs": 655,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 26,
+          "type": "S",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 8,
+          "elapsedMs": 638,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 27,
+          "type": "J",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 8,
+          "elapsedMs": 619,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 28,
+          "type": "Z",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 8,
+          "elapsedMs": 1079,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 29,
+          "type": "O",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 793,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 30,
+          "type": "L",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "CCW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 878,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 31,
+          "type": "I",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "L",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CW",
+            "L",
+            "SD",
+            "SD",
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 795,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 32,
+          "type": "J",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "L",
+            "L",
+            "L",
+            "CW",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 802,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 33,
+          "type": "T",
+          "lines": 2,
+          "spin": "full",
+          "hold": false,
+          "witness": [
+            "R",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "R",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 8,
+          "elapsedMs": 827,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 34,
+          "type": "S",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 8,
+          "elapsedMs": 744,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 35,
+          "type": "I",
+          "lines": 2,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "CW",
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 6,
+          "elapsedMs": 557,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 36,
+          "type": "J",
+          "lines": 1,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "CW",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "R180",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 5,
+          "elapsedMs": 644,
+          "budgetExhausted": false
+        }
+      ]
+    },
+    {
+      "id": "marathon-preparation",
+      "baseline": false,
+      "bagUnaware": false,
+      "config": {
+        "depth": 3,
+        "width": 8,
+        "maxNodes": 45000
+      },
+      "status": "lock-limit",
+      "locks": 36,
+      "tsds": 3,
+      "cycle": true,
+      "steps": [
+        {
+          "lock": 1,
+          "type": "I",
+          "lines": 1,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 9,
+          "elapsedMs": 652,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 2,
+          "type": "T",
+          "lines": 2,
+          "spin": "full",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "CW",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 7,
+          "elapsedMs": 635,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 3,
+          "type": "I",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 7,
+          "elapsedMs": 646,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 4,
+          "type": "Z",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "R",
+            "R",
+            "R",
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 7,
+          "elapsedMs": 578,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 5,
+          "type": "L",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 9,
+          "elapsedMs": 542,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 6,
+          "type": "S",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 669,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 7,
+          "type": "O",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 533,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 8,
+          "type": "Z",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 12,
+          "elapsedMs": 509,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 9,
+          "type": "J",
+          "lines": 1,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "R",
+            "R",
+            "R",
+            "R180",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 11,
+          "elapsedMs": 559,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 10,
+          "type": "L",
+          "lines": 1,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 520,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 11,
+          "type": "O",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 604,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 12,
+          "type": "I",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 564,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 13,
+          "type": "T",
+          "lines": 2,
+          "spin": "full",
+          "hold": false,
+          "witness": [
+            "R",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "R",
+            "R",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 8,
+          "elapsedMs": 622,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 14,
+          "type": "J",
+          "lines": 1,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 7,
+          "elapsedMs": 628,
+          "budgetExhausted": true
+        },
+        {
+          "lock": 15,
+          "type": "S",
+          "lines": 1,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "R",
+            "R",
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": false,
+          "openChannel": false,
+          "maxHeight": 6,
+          "elapsedMs": 594,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 16,
+          "type": "I",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 6,
+          "elapsedMs": 666,
+          "budgetExhausted": true
+        },
+        {
+          "lock": 17,
+          "type": "L",
+          "lines": 3,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "CCW",
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 3,
+          "elapsedMs": 386,
+          "budgetExhausted": true
+        },
+        {
+          "lock": 18,
+          "type": "J",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 4,
+          "elapsedMs": 818,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 19,
+          "type": "Z",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 4,
+          "elapsedMs": 664,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 20,
+          "type": "T",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "L",
+            "L",
+            "L",
+            "R180",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 5,
+          "elapsedMs": 676,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 21,
+          "type": "Z",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 5,
+          "elapsedMs": 613,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 22,
+          "type": "S",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 5,
+          "elapsedMs": 679,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 23,
+          "type": "I",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 6,
+          "elapsedMs": 739,
+          "budgetExhausted": true
+        },
+        {
+          "lock": 24,
+          "type": "O",
+          "lines": 2,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "R",
+            "R",
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 4,
+          "elapsedMs": 657,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 25,
+          "type": "L",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 6,
+          "elapsedMs": 686,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 26,
+          "type": "O",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 6,
+          "elapsedMs": 683,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 27,
+          "type": "T",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "R",
+            "CCW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 8,
+          "elapsedMs": 619,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 28,
+          "type": "S",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 8,
+          "elapsedMs": 571,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 29,
+          "type": "J",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 8,
+          "elapsedMs": 566,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 30,
+          "type": "Z",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 8,
+          "elapsedMs": 609,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 31,
+          "type": "O",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 589,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 32,
+          "type": "L",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "L",
+            "CCW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 1087,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 33,
+          "type": "I",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "L",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CW",
+            "L",
+            "SD",
+            "SD",
+            "CW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 1218,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 34,
+          "type": "J",
+          "lines": 0,
+          "spin": "none",
+          "hold": true,
+          "witness": [
+            "HOLD",
+            "L",
+            "L",
+            "L",
+            "CW",
+            "L",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 10,
+          "elapsedMs": 933,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 35,
+          "type": "T",
+          "lines": 2,
+          "spin": "full",
+          "hold": false,
+          "witness": [
+            "R",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "R",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 8,
+          "elapsedMs": 551,
+          "budgetExhausted": false
+        },
+        {
+          "lock": 36,
+          "type": "S",
+          "lines": 0,
+          "spin": "none",
+          "hold": false,
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "HD"
+          ],
+          "regionalSupport": true,
+          "openChannel": true,
+          "maxHeight": 8,
+          "elapsedMs": 681,
+          "budgetExhausted": false
+        }
+      ]
+    }
+  ],
+  "boundary": [
+    {
+      "id": "o-filler",
+      "status": "recommended-with-verified-prefix",
+      "before": {
+        "maintenanceScope": true,
+        "regionalSupport": true,
+        "regionImbalance": 0,
+        "channel": {
+          "column": 7,
+          "height": 1,
+          "openBelowStack": true
+        },
+        "heights": [
+          4,
+          4,
+          5,
+          6,
+          5,
+          5,
+          2,
+          1,
+          0,
+          0
+        ],
+        "maxHeight": 6,
+        "headroom": 14,
+        "sealed": 0,
+        "leftSealed": 0,
+        "covered": 0,
+        "left": {
+          "height": 6,
+          "roughness": 2
+        },
+        "center": {
+          "height": 5,
+          "profile": [
+            5,
+            5,
+            2
+          ],
+          "partnerDeficit": 3,
+          "partnerStatus": "unfinished-open-surface"
+        },
+        "right": {
+          "height": 1,
+          "slots": []
+        },
+        "obligations": [
+          {
+            "kind": "center-partner",
+            "demands": [],
+            "openSurfaceCells": 3,
+            "status": "unresolved",
+            "note": "Uneven center surface, not a requirement to fill every gap; compatible piece identity must be established by a checked continuation, not guessed from a silhouette."
+          }
+        ],
+        "estimate": -4.4,
+        "assumptions": [
+          "Structural estimates are heuristic; only the returned input prefix is verified."
+        ]
+      },
+      "endpoint": {
+        "maintenanceScope": true,
+        "regionalSupport": true,
+        "regionImbalance": 0,
+        "channel": {
+          "column": 7,
+          "height": 0,
+          "openBelowStack": true
+        },
+        "heights": [
+          3,
+          4,
+          4,
+          4,
+          3,
+          3,
+          1,
+          0,
+          1,
+          1
+        ],
+        "maxHeight": 4,
+        "headroom": 16,
+        "sealed": 0,
+        "leftSealed": 0,
+        "covered": 0,
+        "left": {
+          "height": 4,
+          "roughness": 1
+        },
+        "center": {
+          "height": 3,
+          "profile": [
+            3,
+            3,
+            1
+          ],
+          "partnerDeficit": 2,
+          "partnerStatus": "unfinished-open-surface"
+        },
+        "right": {
+          "height": 1,
+          "slots": []
+        },
+        "obligations": [
+          {
+            "kind": "center-partner",
+            "demands": [],
+            "openSurfaceCells": 2,
+            "status": "unresolved",
+            "note": "Uneven center surface, not a requirement to fill every gap; compatible piece identity must be established by a checked continuation, not guessed from a silhouette."
+          }
+        ],
+        "estimate": -2.5,
+        "assumptions": [
+          "Structural estimates are heuristic; only the returned input prefix is verified."
+        ]
+      },
+      "metrics": {
+        "nodes": 34624,
+        "roots": 68,
+        "rootExpanded": 8,
+        "depth": 3,
+        "completeDepth": 3,
+        "elapsedMs": 712,
+        "accessNodes": 15042
+      }
+    },
+    {
+      "id": "marathon-rebuild",
+      "status": "recommended-with-verified-prefix",
+      "before": {
+        "maintenanceScope": true,
+        "regionalSupport": true,
+        "regionImbalance": 0,
+        "channel": {
+          "column": 7,
+          "height": 0,
+          "openBelowStack": true
+        },
+        "heights": [
+          5,
+          5,
+          3,
+          3,
+          5,
+          5,
+          2,
+          0,
+          0,
+          1
+        ],
+        "maxHeight": 5,
+        "headroom": 15,
+        "sealed": 0,
+        "leftSealed": 0,
+        "covered": 1,
+        "left": {
+          "height": 5,
+          "roughness": 2
+        },
+        "center": {
+          "height": 5,
+          "profile": [
+            5,
+            5,
+            2
+          ],
+          "partnerDeficit": 3,
+          "partnerStatus": "unfinished-open-surface"
+        },
+        "right": {
+          "height": 1,
+          "slots": []
+        },
+        "obligations": [
+          {
+            "kind": "center-partner",
+            "demands": [],
+            "openSurfaceCells": 3,
+            "status": "unresolved",
+            "note": "Uneven center surface, not a requirement to fill every gap; compatible piece identity must be established by a checked continuation, not guessed from a silhouette."
+          }
+        ],
+        "estimate": -5.1,
+        "assumptions": [
+          "Structural estimates are heuristic; only the returned input prefix is verified."
+        ]
+      },
+      "endpoint": {
+        "maintenanceScope": true,
+        "regionalSupport": true,
+        "regionImbalance": 0,
+        "channel": {
+          "column": 7,
+          "height": 0,
+          "openBelowStack": true
+        },
+        "heights": [
+          3,
+          3,
+          1,
+          1,
+          3,
+          4,
+          4,
+          0,
+          1,
+          1
+        ],
+        "maxHeight": 4,
+        "headroom": 16,
+        "sealed": 0,
+        "leftSealed": 0,
+        "covered": 1,
+        "left": {
+          "height": 3,
+          "roughness": 2
+        },
+        "center": {
+          "height": 4,
+          "profile": [
+            3,
+            4,
+            4
+          ],
+          "partnerDeficit": 1,
+          "partnerStatus": "unfinished-open-surface"
+        },
+        "right": {
+          "height": 1,
+          "slots": []
+        },
+        "obligations": [
+          {
+            "kind": "center-partner",
+            "demands": [],
+            "openSurfaceCells": 1,
+            "status": "unresolved",
+            "note": "Uneven center surface, not a requirement to fill every gap; compatible piece identity must be established by a checked continuation, not guessed from a silhouette."
+          }
+        ],
+        "estimate": -4.8,
+        "assumptions": [
+          "Structural estimates are heuristic; only the returned input prefix is verified."
+        ]
+      },
+      "metrics": {
+        "nodes": 42020,
+        "roots": 69,
+        "rootExpanded": 8,
+        "depth": 3,
+        "completeDepth": 3,
+        "elapsedMs": 807,
+        "accessNodes": 19082
+      }
+    },
+    {
+      "id": "marathon-preparation",
+      "status": "recommended-with-verified-prefix",
+      "before": {
+        "maintenanceScope": true,
+        "regionalSupport": true,
+        "regionImbalance": 0,
+        "channel": {
+          "column": 7,
+          "height": 3,
+          "openBelowStack": true
+        },
+        "heights": [
+          8,
+          8,
+          6,
+          6,
+          8,
+          8,
+          2,
+          3,
+          3,
+          0
+        ],
+        "maxHeight": 8,
+        "headroom": 12,
+        "sealed": 0,
+        "leftSealed": 0,
+        "covered": 2,
+        "left": {
+          "height": 8,
+          "roughness": 2
+        },
+        "center": {
+          "height": 8,
+          "profile": [
+            8,
+            8,
+            2
+          ],
+          "partnerDeficit": 6,
+          "partnerStatus": "unfinished-open-surface"
+        },
+        "right": {
+          "height": 3,
+          "slots": []
+        },
+        "obligations": [
+          {
+            "kind": "center-partner",
+            "demands": [],
+            "openSurfaceCells": 6,
+            "status": "unresolved",
+            "note": "Uneven center surface, not a requirement to fill every gap; compatible piece identity must be established by a checked continuation, not guessed from a silhouette."
+          }
+        ],
+        "estimate": -7,
+        "assumptions": [
+          "Structural estimates are heuristic; only the returned input prefix is verified."
+        ]
+      },
+      "endpoint": {
+        "maintenanceScope": true,
+        "regionalSupport": true,
+        "regionImbalance": 0,
+        "channel": {
+          "column": 7,
+          "height": 0,
+          "openBelowStack": true
+        },
+        "heights": [
+          5,
+          5,
+          4,
+          5,
+          5,
+          5,
+          2,
+          0,
+          0,
+          1
+        ],
+        "maxHeight": 5,
+        "headroom": 15,
+        "sealed": 0,
+        "leftSealed": 0,
+        "covered": 0,
+        "left": {
+          "height": 5,
+          "roughness": 2
+        },
+        "center": {
+          "height": 5,
+          "profile": [
+            5,
+            5,
+            2
+          ],
+          "partnerDeficit": 3,
+          "partnerStatus": "unfinished-open-surface"
+        },
+        "right": {
+          "height": 1,
+          "slots": []
+        },
+        "obligations": [
+          {
+            "kind": "center-partner",
+            "demands": [],
+            "openSurfaceCells": 3,
+            "status": "unresolved",
+            "note": "Uneven center surface, not a requirement to fill every gap; compatible piece identity must be established by a checked continuation, not guessed from a silhouette."
+          }
+        ],
+        "estimate": -4.1,
+        "assumptions": [
+          "Structural estimates are heuristic; only the returned input prefix is verified."
+        ]
+      },
+      "metrics": {
+        "nodes": 20291,
+        "roots": 68,
+        "rootExpanded": 8,
+        "depth": 3,
+        "completeDepth": 3,
+        "elapsedMs": 493,
+        "accessNodes": 4036
+      }
+    }
+  ],
+  "witnessChecks": {
+    "failures": 0,
+    "executedAdvice": 209,
+    "mode": "fail-fast: every witness replay and resulting state checked",
+    "baselineLocks": 28,
+    "additionalBoundaryPrefixLocks": 9
+  },
+  "productionDeadlineExhaustions": 0,
+  "recordedDateUTC": "2026-10-22",
+  "note": "Measured frozen configuration. Compact executable input traces retain outcomes and timings; replay from named fixture with observed preview replenishment. Fixture references/future are evaluation-only, never planner inputs."
+}

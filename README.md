@@ -30,11 +30,9 @@ In normal game modes, the **gravity** checkbox saves immediately in a separate `
 
 ## ST free-play lab
 
-Open **ST lab** from the top menu for empty-board play with normal pieces. Build and maintain your own stack; occasional verified hints cover right-side Z caps, T-spin doubles, pocket I, well quads and Center SL/OJ/conditional LO completions followed by a checked double. Named drills and authored starts are removed. Pair starts and Left filler remain unadvised; this is not an opener, general filler, recovery or indefinite-ST coach.
+Open **ST lab** for bounded coaching from established right-hand ST stacks. The default demonstration supports non-clearing filler → T-spin double → rebuild with fresh preview information. Amber targets have executable input witnesses; the gray outline remains the hard-drop ghost. Diagnostics distinguish checked continuations, heuristics and exhausted search budgets.
 
-Amber inset dashes show the strategy destination, including **HOLD FIRST** previews before a required swap. The normal gray drop ghost is unchanged. See [lab controls](./ST-LAB.md#play) for toggling advice and rebinding its key.
-
-Lab SRS+/gravity-off rules are temporary and do not overwrite normal-play preferences. Unsupported/no-fit states remove advice and explain why; there is no automatic reset, dedicated retry or recovery advice. See [ST-LAB.md](./ST-LAB.md) for controls, exact scope, sources and limitations.
+The lab uses its own zero-gravity SRS+ profile with **one hold per lock**, without changing ordinary trainer modes. Empty-board play is manual only; full Fumen/editor tools remain in ordinary practice. See [ST-LAB.md](./ST-LAB.md) for controls, architecture, measured evidence and remaining playtest limits.
 
 ## Features (probably buggy lol)
 

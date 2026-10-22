@@ -2,7 +2,6 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { ALL_PAGES, PAGES, ENGINES, settings, DEFAULT_CONFIG } = require('./support/pages.cjs');
 const { boot, withPage } = require('./support/page.cjs');
-const { fixture } = require('./support/st-driver.cjs');
 const paths = g => g.preview().n.filter(call => call.path);
 const sprites = g => g.preview().n.filter(call => call.piece);
 const state = g => JSON.stringify([g.snapshot(), g.window.board, g.window.hist, g.window.lastAction, g.window.held]);
@@ -14,7 +13,7 @@ function receive(g, key, value) {
   w.dispatchEvent(new w.StorageEvent('storage', { key, oldValue, newValue: value, storageArea: w.localStorage }));
 }
 
-for (const { page } of ALL_PAGES) {
+for (const { page } of PAGES) {
   for (const preference of [undefined, 'false', 'true']) {
     test(`training/${page}/${preference ?? 'missing'}: bag preference, immediate redraw, state preservation and reload`, async () => {
       const config = [...DEFAULT_CONFIG]; config[1] = 'KeyD';
@@ -120,10 +119,10 @@ for (const preference of [undefined, 'true', 'false']) {
     let saved;
     try {
       await withPage('st-lab.html', { storage }, g => {
-        fixture(g);
+        g.window.stLab.loadFixture('o-filler');
         const check = enabled => {
           assert.equal(g.element('#st-toggle').getAttribute('aria-pressed'), String(enabled));
-          assert.equal(g.element('#st-target').children.length, enabled ? 8 : 0);
+          assert.equal(g.element('#st-target').children.length, 0);
         };
         check(preference !== 'false');
         const before = state(g);
@@ -137,11 +136,11 @@ for (const preference of [undefined, 'true', 'false']) {
         g.key('keydown', 'KeyB', true); g.key('keyup', 'KeyB'); check(preference !== 'false');
         g.click('#st-toggle'); check(preference === 'false');
         assert.equal(state(g), before);
-        g.tap('KeyR'); fixture(g); check(preference === 'false'); // restart and fresh recognition preserve display choice
+        g.tap('KeyR'); g.window.stLab.loadFixture('o-filler'); check(preference === 'false'); // restart preserves the preference even while coaching is unavailable
         saved = g.storage();
       });
       await withPage('st-lab.html', { storage: saved }, g => {
-        fixture(g); assert.equal(g.element('#st-toggle').getAttribute('aria-pressed'), saved.stGuideVisible);
+        g.window.stLab.loadFixture('o-filler'); assert.equal(g.element('#st-toggle').getAttribute('aria-pressed'), saved.stGuideVisible);
       });
     } finally { controls.dispose(); }
   });

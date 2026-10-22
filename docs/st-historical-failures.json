@@ -1,0 +1,1243 @@
+{
+  "description": "Historical failing decisions before executable-T-entry qualification. These are legal input traces, not expected current recommendations. Replay from the named unchanged fixture and reveal fresh preview after each lock.",
+  "policy": "Depth 3, width 8, maxNodes 45000; obsolete geometric-slot reward without executable entry qualification.",
+  "cases": [
+    {
+      "fixture": "o-filler",
+      "status": "lock-limit",
+      "locks": 36,
+      "tsds": 0,
+      "steps": [
+        {
+          "witness": [
+            "L",
+            "L",
+            "HD"
+          ],
+          "type": "O",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "R180",
+            "HD"
+          ],
+          "type": "J",
+          "lines": 1,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "type": "O",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "HOLD",
+            "R",
+            "R",
+            "R",
+            "R",
+            "CW",
+            "HD"
+          ],
+          "type": "Z",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "CW",
+            "HD"
+          ],
+          "type": "L",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "HD"
+          ],
+          "type": "S",
+          "lines": 1,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "HOLD",
+            "CCW",
+            "HD"
+          ],
+          "type": "I",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "HOLD",
+            "R",
+            "R",
+            "R",
+            "R",
+            "CCW",
+            "R",
+            "HD"
+          ],
+          "type": "J",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "CW",
+            "HD"
+          ],
+          "type": "S",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "HOLD",
+            "R",
+            "R",
+            "CCW",
+            "HD"
+          ],
+          "type": "T",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "CW",
+            "HD"
+          ],
+          "type": "I",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "CW",
+            "HD"
+          ],
+          "type": "Z",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "CW",
+            "HD"
+          ],
+          "type": "J",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "HD"
+          ],
+          "type": "O",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "CW",
+            "HD"
+          ],
+          "type": "T",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "HOLD",
+            "R",
+            "R",
+            "CCW",
+            "HD"
+          ],
+          "type": "L",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "R180",
+            "HD"
+          ],
+          "type": "J",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "SD",
+            "SD",
+            "CW",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "L",
+            "HD"
+          ],
+          "type": "I",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "CW",
+            "L",
+            "HD"
+          ],
+          "type": "L",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "HD"
+          ],
+          "type": "O",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "L",
+            "L",
+            "CCW",
+            "HD"
+          ],
+          "type": "T",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "HOLD",
+            "L",
+            "L",
+            "L",
+            "CCW",
+            "HD"
+          ],
+          "type": "S",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "CCW",
+            "L",
+            "HD"
+          ],
+          "type": "I",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "L",
+            "L",
+            "CCW",
+            "HD"
+          ],
+          "type": "S",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "CW",
+            "HD"
+          ],
+          "type": "L",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "CCW",
+            "HD"
+          ],
+          "type": "Z",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "CCW",
+            "R",
+            "HD"
+          ],
+          "type": "J",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "HOLD",
+            "R",
+            "R",
+            "R",
+            "CW",
+            "HD"
+          ],
+          "type": "Z",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "L",
+            "L",
+            "HD"
+          ],
+          "type": "O",
+          "lines": 2,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "HOLD",
+            "L",
+            "L",
+            "R180",
+            "HD"
+          ],
+          "type": "T",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "CW",
+            "L",
+            "HD"
+          ],
+          "type": "J",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "CW",
+            "HD"
+          ],
+          "type": "L",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "HOLD",
+            "R",
+            "R",
+            "CW",
+            "HD"
+          ],
+          "type": "I",
+          "lines": 2,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "L",
+            "L",
+            "HD"
+          ],
+          "type": "O",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "HOLD",
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "type": "S",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "CCW",
+            "R",
+            "HD"
+          ],
+          "type": "T",
+          "lines": 0,
+          "spin": "none"
+        }
+      ]
+    },
+    {
+      "fixture": "marathon-preparation",
+      "status": "no-supported-continuation-found",
+      "locks": 31,
+      "tsds": 1,
+      "steps": [
+        {
+          "witness": [
+            "HOLD",
+            "R",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "HD"
+          ],
+          "type": "I",
+          "lines": 1,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "CW",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CW",
+            "HD"
+          ],
+          "type": "T",
+          "lines": 2,
+          "spin": "full"
+        },
+        {
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "type": "I",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "CW",
+            "HD"
+          ],
+          "type": "S",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "CCW",
+            "R",
+            "HD"
+          ],
+          "type": "L",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "HOLD",
+            "R",
+            "HD"
+          ],
+          "type": "Z",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "HD"
+          ],
+          "type": "O",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "CW",
+            "HD"
+          ],
+          "type": "Z",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "HOLD",
+            "R",
+            "R",
+            "R",
+            "R",
+            "R180",
+            "HD"
+          ],
+          "type": "J",
+          "lines": 1,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "R",
+            "CW",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "R180",
+            "HD"
+          ],
+          "type": "L",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "HD"
+          ],
+          "type": "O",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "CW",
+            "HD"
+          ],
+          "type": "I",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "CW",
+            "HD"
+          ],
+          "type": "T",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "CCW",
+            "R",
+            "HD"
+          ],
+          "type": "J",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "CW",
+            "HD"
+          ],
+          "type": "Z",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "CW",
+            "HD"
+          ],
+          "type": "I",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "L",
+            "CCW",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "R180",
+            "HD"
+          ],
+          "type": "L",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "L",
+            "L",
+            "CCW",
+            "HD"
+          ],
+          "type": "J",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "CW",
+            "HD"
+          ],
+          "type": "T",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "type": "O",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "HD"
+          ],
+          "type": "Z",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "type": "S",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "CCW",
+            "L",
+            "HD"
+          ],
+          "type": "I",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "CW",
+            "HD"
+          ],
+          "type": "T",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "CCW",
+            "R",
+            "HD"
+          ],
+          "type": "L",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "HD"
+          ],
+          "type": "O",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "HOLD",
+            "L",
+            "L",
+            "CCW",
+            "HD"
+          ],
+          "type": "S",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "CW",
+            "HD"
+          ],
+          "type": "S",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "CW",
+            "L",
+            "HD"
+          ],
+          "type": "J",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "type": "O",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "L",
+            "CCW",
+            "HD"
+          ],
+          "type": "I",
+          "lines": 0,
+          "spin": "none"
+        }
+      ]
+    },
+    {
+      "fixture": "marathon-rebuild",
+      "status": "no-supported-continuation-found",
+      "locks": 29,
+      "tsds": 0,
+      "steps": [
+        {
+          "witness": [
+            "R",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "SD",
+            "SD",
+            "SD",
+            "CCW",
+            "HD"
+          ],
+          "type": "I",
+          "lines": 1,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "CW",
+            "HD"
+          ],
+          "type": "S",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "CCW",
+            "R",
+            "HD"
+          ],
+          "type": "L",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "HOLD",
+            "R",
+            "HD"
+          ],
+          "type": "Z",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "HD"
+          ],
+          "type": "O",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "CW",
+            "HD"
+          ],
+          "type": "Z",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "HOLD",
+            "R",
+            "R",
+            "R",
+            "R",
+            "R180",
+            "HD"
+          ],
+          "type": "J",
+          "lines": 1,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "R",
+            "CW",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "R180",
+            "HD"
+          ],
+          "type": "L",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "HD"
+          ],
+          "type": "O",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "CW",
+            "HD"
+          ],
+          "type": "I",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "CW",
+            "HD"
+          ],
+          "type": "T",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "CCW",
+            "R",
+            "HD"
+          ],
+          "type": "J",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "CW",
+            "HD"
+          ],
+          "type": "Z",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "CW",
+            "HD"
+          ],
+          "type": "I",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "L",
+            "CCW",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "R180",
+            "HD"
+          ],
+          "type": "L",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "L",
+            "L",
+            "CCW",
+            "HD"
+          ],
+          "type": "J",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "CW",
+            "HD"
+          ],
+          "type": "T",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "type": "O",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "HD"
+          ],
+          "type": "Z",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "type": "S",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "CCW",
+            "L",
+            "HD"
+          ],
+          "type": "I",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "CW",
+            "HD"
+          ],
+          "type": "T",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "CCW",
+            "R",
+            "HD"
+          ],
+          "type": "L",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "HD"
+          ],
+          "type": "O",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "HOLD",
+            "L",
+            "L",
+            "CCW",
+            "HD"
+          ],
+          "type": "S",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "R",
+            "R",
+            "R",
+            "R",
+            "CW",
+            "HD"
+          ],
+          "type": "S",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "CW",
+            "L",
+            "HD"
+          ],
+          "type": "J",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "type": "O",
+          "lines": 0,
+          "spin": "none"
+        },
+        {
+          "witness": [
+            "L",
+            "CCW",
+            "HD"
+          ],
+          "type": "I",
+          "lines": 0,
+          "spin": "none"
+        }
+      ]
+    }
+  ]
+}

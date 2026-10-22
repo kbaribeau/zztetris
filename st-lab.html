@@ -3,97 +3,61 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>ZZTetris · ST free-play lab</title>
+  <title>ZZTetris · ST maintenance lab</title>
   <link rel="icon" href="assets/pieceSprite/z.png">
-  <link rel="stylesheet" href="styles/zztetris.css">
-  <link rel="stylesheet" href="styles/paint_bucket.css">
   <link rel="stylesheet" href="styles/st-lab.css">
   <link rel="stylesheet" href="styles/navigation.css">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-  <script src="rotationSystem.js"></script>
-  <script src="io.js"></script>
-  <script src="training-settings.js"></script>
-  <script src="utils.js"></script>
-  <script src="tetris-fumen.js"></script>
-  <script defer src="base.js"></script>
-  <script defer src="tetrio.js"></script>
-  <script defer src="zztetris.js"></script>
-  <script defer src="st-core.js"></script>
+  <script defer src="training-settings.js"></script>
   <script defer src="st-binding.js"></script>
+  <script defer src="st-rules.js"></script>
+  <script defer src="st-bag.js"></script>
+  <script defer src="st-fixtures.js"></script>
+  <script defer src="st-planner.js"></script>
   <script defer src="st-lab.js"></script>
   <script defer src="navigation.js"></script>
 </head>
 <body data-st-lab>
   <nav class="app-nav" aria-label="Main navigation"></nav>
   <header>
-    <h1>ST free-play lab</h1>
-    <p>Build your own stack with normal pieces. Occasional right-side Z/T/I and Center pair-completion hints, not a move-by-move coach.</p>
+    <h1>ST maintenance lab</h1>
+    <p>Practice keeping an established ST stack usable. The coach checks a finite continuation, not indefinite survival.</p>
   </header>
   <main>
-    <div class="lab-field-scroll">
-      <div class="lab-field">
-        <div class="queue">HOLD<hr><canvas id="h" width="90" height="60"></canvas><div id="notif"></div></div>
-        <div class="lab-board"><canvas id="b" width="200" height="440" style="padding:18px"></canvas><svg id="st-target" aria-hidden="true"></svg></div>
-        <div class="queue">NEXT<hr><canvas id="n" width="90" height="360"></canvas></div>
-      </div>
-    </div>
-    <section class="lab-advice" aria-label="Strategy advice">
-      <button class="button" id="st-toggle" aria-pressed="true">Advice ON · KeyA</button>
-      <p id="st-status" role="status" aria-live="polite">Empty-board free play · build and maintain the stack yourself.</p>
-      <p class="lab-note">Temporary SRS+ / gravity off; saved normal-play preferences are unchanged. Advice honors your Training display choice. Limited SL/OJ/conditional LO completions; no pair starts, Left filler, opener or recovery guidance. Restart clears the board with normal pieces, not a supplied setup.</p>
-      <p class="lab-note">Amber inset dashes = ST destination · gray outline = current hard-drop ghost · filled color = active piece. HOLD FIRST targets belong to the named held/next piece, not the active piece. Advice never moves pieces for you.</p>
+    <section class="lab-toolbar" aria-label="Practice position">
+      <label for="st-fixture">Starting position</label>
+      <select id="st-fixture"></select>
+      <button id="st-reset" type="button">Reset position</button>
+      <button id="st-empty" type="button">Empty board (manual practice)</button>
+      <p id="st-position-note" class="lab-note"></p>
     </section>
-    <details class="lab-options"><summary>Normal editing / practice controls</summary>
-      <p>Advice rechecks the current board after edits, imports, undo/redo and locks. The lab never repairs your queue or board. Gravity on or another kickset disables advice.</p>
-      <button class="button" onclick="this.blur(); shuffleQueue()">Shuffle Queue</button>
-      <button class="button" onclick="this.blur(); shuffleQueuePlusHold()">Shuffle Queue + Hold</button>
-      <button class="button" onclick="this.blur(); mirror()">Mirror</button>
-      <button class="button" onclick="this.blur(); fullMirror()">Full Mirror</button>
-      <form class="paint-bucket" name="paintbucket">
-        <label for="X"><input type="radio" name="paintbucket" id="X" value="X" checked><span></span></label>
-        <label for="I"><input type="radio" name="paintbucket" id="I" value="I"><span></span></label>
-        <label for="J"><input type="radio" name="paintbucket" id="J" value="J"><span></span></label>
-        <label for="S"><input type="radio" name="paintbucket" id="S" value="S"><span></span></label>
-        <label for="O"><input type="radio" name="paintbucket" id="O" value="O"><span></span></label>
-        <label for="Z"><input type="radio" name="paintbucket" id="Z" value="Z"><span></span></label>
-        <label for="L"><input type="radio" name="paintbucket" id="L" value="L"><span></span></label>
-        <label for="T"><input type="radio" name="paintbucket" id="T" value="T"><span></span></label>
-      </form>
-      <label><input type="checkbox" checked id="autocolor"> autocolor</label>
-      <label><input type="checkbox" id="grav"> gravity (temporary here; advice requires off)</label>
-      <label>Garbage column<select id="garbageCol"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select></label>
-      <button class="button" onclick="this.blur(); garbage(document.getElementById('garbageCol').value)">Add garbage</button>
-      <label>Kickset<select id="kickset"><option>SRS+</option><option>SRS</option><option>kzl</option><option>alge</option><option>SRS-X</option><option>Tetra-Online</option><option>ASC</option><option>none</option></select></label>
-      <button class="button" onclick="this.blur(); updateKickTable()">Apply kickset</button>
-      <p>Import:</p>
-      <button class="button" onclick="this.blur(); importFumen()">Fumen</button>
-      <button class="button" onclick="this.blur(); importFullFumen()">Full Fumen</button>
-      <button class="button" onclick="this.blur(); importTetrio()">TETRIO</button>
-      <button class="button" onclick="this.blur(); importImageButton()">Image</button>
-      <p>Export:</p>
-      <button class="button" onclick="this.blur(); exportFumen()">Fumen</button>
-      <button class="button" onclick="this.blur(); exportFullFumen()">Full Fumen</button>
-      <button class="button" onclick="this.blur(); exportTetrio()">TETRIO</button>
+    <div class="lab-field-scroll"><div class="lab-field">
+      <div class="queue"><h2>HOLD</h2><canvas id="h" width="90" height="70" aria-label="Held piece"></canvas><p id="st-hold-state" class="lab-note"></p></div>
+      <div class="lab-board"><canvas id="b" width="200" height="440" aria-label="Tetris board"></canvas><svg id="st-target" width="200" height="440" viewBox="0 0 200 440" aria-hidden="true"></svg></div>
+      <div class="queue"><h2>NEXT</h2><canvas id="n" width="90" height="360" aria-label="Six visible upcoming pieces"></canvas></div>
+    </div></div>
+    <section class="lab-advice" aria-label="Strategy advice">
+      <button id="st-toggle" type="button" aria-pressed="true">Advice ON · KeyA</button>
+      <p id="st-status" role="status" aria-live="polite">Starting coach…</p>
+      <details id="st-diagnostics"><summary>Coach diagnostics</summary><pre id="st-diagnostic-text"></pre></details>
+      <p class="lab-note">Zero gravity · SRS+ · one hold per lock · manual hard-drop locking. Gray outline: hard-drop ghost. Gold outline: coaching target. A HOLD label means swap first. Advice uses only this position and the six visible previews, plus any valid observed bag evidence.</p>
+    </section>
+    <section class="lab-controls" aria-label="Play controls">
+      <h2>Manual controls</h2><p id="st-key-help" class="lab-note"></p>
+      <div class="lab-buttons">
+        <button data-action="L" aria-label="Move left">←</button><button data-action="R" aria-label="Move right">→</button>
+        <button data-action="SD">Down</button><button data-action="CCW">↶</button><button data-action="CW">↷</button>
+        <button data-action="R180">180°</button><button data-action="HOLD">Hold</button><button data-action="HD">Hard drop</button>
+      </div>
+      <p id="st-game-status" role="status" aria-live="polite"></p>
+    </section>
+    <details class="lab-options"><summary>Snapshot import / export</summary>
+      <p>JSON snapshots contain the current board, pose, hold, visible queue and optional observed bag evidence. They do not export hidden future pieces. Imported snapshots have a finite queue; no future order is invented when it ends.</p>
+      <label for="st-snapshot">Snapshot JSON</label><textarea id="st-snapshot" rows="8" spellcheck="false"></textarea>
+      <button id="st-import" type="button">Import snapshot</button><button id="st-export" type="button">Export visible snapshot</button>
+      <p id="st-import-status" role="status"></p>
+      <p>For legacy board drawing, Fumen tools, undo/redo, gravity and other kicksets, use <a href="index.html">ordinary practice</a>. Those modes are unchanged; their unlimited-hold rules are not this milestone’s rules.</p>
     </details>
-    <div id="tcc" class="tc">
-      <div>
-        <span id="tc-un"><svg><use xlink:href="./assets/icons/dark.svg#s-un"></use></svg></span>
-        <span id="tc-dr"><svg><use xlink:href="./assets/icons/dark.svg#s-r180"></use></svg></span>
-        <span id="tc-h"><svg><use xlink:href="./assets/icons/dark.svg#s-hold"></use></svg></span>
-        <span id="tc-hd"><svg><use xlink:href="./assets/icons/dark.svg#s-harddrop"></use></svg></span>
-      </div><div>
-        <span id="tc-l"><svg><use xlink:href="./assets/icons/dark.svg#s-back"></use></svg></span>
-        <span id="tc-r"><svg><use xlink:href="./assets/icons/dark.svg#s-forward"></use></svg></span>
-        <span id="tc-d"><svg><use xlink:href="./assets/icons/dark.svg#s-down"></use></svg></span>
-        <span id="tc-cc"><svg><use xlink:href="./assets/icons/dark.svg#s-ccw"></use></svg></span>
-        <span id="tc-c"><svg><use xlink:href="./assets/icons/dark.svg#s-cw"></use></svg></span>
-        <span id="tc-re"><svg><use xlink:href="./assets/icons/dark.svg#s-reload"></use></svg></span>
-      </div><canvas id="mobile_controls"></canvas>
-    </div>
   </main>
-  <footer>
-    <p><a href="ST-LAB.md">Lab rules, sources and limitations</a> · <a href="https://github.com/swng/zztetris#readme">ZZTetris by swng and contributors</a> · <a href="LICENSE">MIT license</a></p>
-    <p>Source diagrams: <a href="https://harddrop.com/w/index.php?title=ST_Stacking&amp;oldid=37604">Hard Drop ST Stacking</a>; right-Z/T terminology: <a href="https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit">Shocky's ST Stacking Guide</a>. No continuous guidance or indefinite-ST guarantee.</p>
-  </footer>
+  <footer><a href="ST-LAB.md">Rules and limitations</a> · <a href="controls.html">Game Settings</a> · <a href="LICENSE">MIT license</a></footer>
 </body>
 </html>
