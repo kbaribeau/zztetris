@@ -1,4 +1,4 @@
-# Infinite TST video reference
+# Infinite TST video references
 
 [`RA8YaBH-5zQ.fumen`](RA8YaBH-5zQ.fumen) reconstructs the placement sequence in
 [Infinite TST Marathon [PPT]](https://www.youtube.com/watch?v=RA8YaBH-5zQ) by
@@ -15,6 +15,32 @@ bottom. Final-board rows and the explicitly named overlay-cell pairs are ordered
 bottom to top / `[y,x]` respectively. Evidence times refer to observed poses or
 boards, **not exact lock times**. The MP4 has 60 frames per second.
 
+## Second reference: TST perpetual engine (Sprint)
+
+[`IkI7pnpRIrg.fumen`](IkI7pnpRIrg.fumen) reconstructs **116 placements in
+117 pages**, including the final board, from Nilgiri306's
+[TST永久機関 記事用動画](https://www.youtube.com/watch?v=IkI7pnpRIrg).
+The reconstruction uses the user-provided video; the YouTube identifier comes
+from its uploaded filename, not a separately fetched copy.
+[`IkI7pnpRIrg.json`](IkI7pnpRIrg.json) uses the same canonical operation,
+cleared-row and evidence-frame conventions as the Marathon reference.
+
+This is Puyo Puyo Tetris **Sprint**, not Marathon: fourteen T-piece triples
+clear **42 actual rows**, crossing the 40-line target on the final triple.
+The final board has **44 occupied cells** (`116 × 4 − 42 × 10`); the final HUD
+shows 2:43.91 and score 35,615. The 60 fps source is 1920 × 1080 and 168.9 seconds.
+The maximum post-clear stack height is 14 rows.
+
+Independent review replayed every placement and compared all 116 full 20-row
+post-placement boards with separately decoded source frames, using displaced
+median-colour patches and a separate hue classifier. Every occupied cell
+matches, allowing at most four additional cells for the next active piece.
+Each matching observation is within its placement's own interval, before the
+next placement; all fourteen triple-collapse transitions and the final HUD
+were also reviewed. Artifact replay and exact encode/decode round-trip pass.
+The shared validator below checks both references; it does not repeat the
+original source-pixel audit. The same scope and limitations apply to both.
+
 ## Intended use
 
 This is an inspectable reference for a future infinite-TST/tower lab: repeated
@@ -24,7 +50,7 @@ the current ST coach. It adds no starting positions, gameplay changes or advice
 rules. Review individual positions before adopting them as independent fixtures
 or normative coaching examples.
 
-## Reconstruction and validation
+## Marathon reconstruction and validation
 
 The sequence was reconstructed from the user-supplied copy of the linked video.
 All 20 visible rows were retained; the post-clear stack reaches 19 rows. Temporal
