@@ -40,7 +40,7 @@ test('existing late held double can rebuild with a checked J then O center pair'
  const j=R.placements(t.state).placements.find(p=>JSON.stringify(p.witness)===JSON.stringify(['R','R','CCW','HD']));assert.ok(j);
  const a=S.assess(j.state),o=a.center.completions.find(c=>c.piece==='O');assert.ok(o);
  let n=R.createState({board:j.state.board,active:'O',canHold:false});for(const action of o.witness)n=R.move(n,action);
- const transition=S.transition(j.state,{state:n,event:n.lastEvent});assert.equal(transition.pairFamily,'OJ');assert.equal(transition.allocation,'center-completion');
+ const transition=S.transition(j.state,{state:n,event:n.lastEvent});assert.equal(transition.pairFamily,null,'a finishing O alone does not establish an ordered pair history');assert.equal(transition.allocation,'center-completion');
  assert.equal(S.assess(n).center.status,'level');assert.equal(S.assess(n).center.sealedVoids,0);assert.ok(S.assess(n).center.coveredCavities>0);
 });
 test('existing quad rebuild exposes SL family and grades unknown partner supply instead of rejecting it',()=>{
@@ -52,7 +52,7 @@ test('the other existing late-held J/O route finishes into a supported SL-ready 
  const s=state('late-held-double'),t=R.placements(s).placements.find(p=>p.event.spin==='full'&&p.event.lines===2),j=R.placements(t.state).placements.find(p=>JSON.stringify(p.witness)===JSON.stringify(['R','HD']));
  const completion=S.assess(j.state).center.completions.find(c=>c.piece==='O');assert.ok(completion);assert.equal(completion.resultStatus,'SL-preparation-surface');
  let n=R.createState({board:j.state.board,active:'O',canHold:false});for(const action of completion.witness)n=R.move(n,action);
- assert.equal(S.transition(t.state,j).pairFamily,'OJ');assert.equal(S.assess(n).center.sealedVoids,0);assert.ok(S.assess(n).center.completions.some(c=>c.piece==='L'));
+ assert.equal(S.transition(t.state,j).pairFamily,null,'J then O must not be mislabeled as common O then J');assert.equal(S.assess(n).center.sealedVoids,0);assert.ok(S.assess(n).center.completions.some(c=>c.piece==='L'));
 });
 test('existing I-via-hold deep left deficit has a witnessed partial I repair without new cover',()=>{
  const s=state('i-via-hold'),before=S.assess(s),repair=before.left.completions.find(c=>c.piece==='I'&&c.resultStatus==='partial-repair');assert.ok(repair);
@@ -60,4 +60,38 @@ test('existing I-via-hold deep left deficit has a witnessed partial I repair wit
  const after=S.assess(n);assert.deepEqual(n.lastEvent.target,repair.target);assert.deepEqual(after.left.profile,[11,11,14,14]);assert.equal(after.left.covered,before.left.covered);assert.ok(after.left.roughness<before.left.roughness);
  assert.ok(before.obligations.find(o=>o.kind==='left-surface').completions.some(c=>c.piece==='I'&&c.resultStatus==='partial-repair'));
  assert.equal(S.assess(state('o-filler')).left.completions.some(c=>c.resultStatus==='partial-repair'),false,'ordinary shallow filler must not be labeled deep repair');
+});
+test('existing cap rebuild reserves scarce Z ahead of optional left work and exposes J/O substitute',()=>{
+ const s=state('cap-rebuild'),a=S.assess(s),cap=a.obligations.find(o=>o.kind==='right-cap');assert.ok(cap);assert.equal(cap.priority,'essential');assert.equal(cap.access,'available-now-requires-actual-path');
+ for(const c of cap.completions){const replay=R.replay(R.createState({board:s.board,active:'Z',canHold:false}),c.witness);assert.equal(replay.valid,true);assert.deepEqual(replay.events[0].cells,c.cells);assert.equal(S.geometry(replay.state.board).right.shapeStatus,'staggered-scoring-wall');}
+ const route=S.leftSubstitutes(s.board).find(r=>r.pieces.join('')==='JO');assert.ok(route);assert.equal(route.resultStatus,'partial-scoring-row-fill');
+ let board=s.board;for(const step of route.steps){const replay=R.replay(R.createState({board,active:step.piece,canHold:false}),step.witness);assert.equal(replay.valid,true);assert.deepEqual(replay.events[0].cells,step.cells);board=replay.state.board;}
+ assert.deepEqual(S.geometry(board).left.profile,route.resultProfile);assert.equal(S.geometry(board).left.covered,a.left.covered);
+ const ps=placements('cap-rebuild'),left=ps.find(p=>p.event.type==='Z'&&p.event.cells.every(([x])=>x<4)),right=ps.find(p=>p.event.type==='Z'&&S.geometry(p.state.board).right.shapeStatus==='staggered-scoring-wall');
+ assert.ok(S.transition(s,left).opportunityCost>0);assert.equal(S.transition(s,right).opportunityCost,0);
+ assert.equal(S.assess(left.state).capSupplyBurden,2);assert.equal(S.assess(right.state).capSupplyBurden,0);
+});
+test('essential identity allocation wins over earlier optional obligations and prefers accessible supply',()=>{
+ const a=S.allocate([{kind:'left-surface',alternatives:['Z']},{kind:'right-cap',priority:'essential',alternatives:['Z']}],[{id:'active',piece:'Z',available:'now'}]);assert.equal(a.assignments[0].obligation,'right-cap');
+ const b=S.allocate([{kind:'right-cap',priority:'essential',alternatives:['Z']}],[{id:'late',piece:'Z',available:'when-drawn',drawOffset:5},{id:'hold',piece:'Z',available:'hold-now'}]);assert.equal(b.assignments[0].instance,'hold');
+});
+test('existing cap recommendation executes Z cap followed by alternate left J/O fills',()=>{
+ const P=require('../st-planner'),s=state('cap-rebuild'),p=P.plan(s,{depth:3,width:8,maxNodes:45000});assert.ok(p.target);assert.equal(p.continuation[0].event.type,'Z');assert.ok(p.continuation[0].event.cells.every(([x])=>x>=8));
+ assert.deepEqual(p.continuation.slice(1).map(p=>p.event.type),['J','O']);assert.ok(p.continuation.slice(1).every(p=>p.event.cells.every(([x])=>x<4)));
+ let n=s;for(const step of p.continuation){const replay=R.replay(n,step.witness);assert.equal(replay.valid,true);n=replay.state;}
+});
+test('existing quad rebuild labels L then O by ordered geometry, not by finishing-piece lookup',()=>{
+ const s=state('after-quad'),p=placements('after-quad').find(p=>p.event.type==='L'&&p.event.cells.every(([x])=>x>=4&&x<=6)&&S.transition(s,p).pairFamily==='LO');assert.ok(p);
+ const t=S.transition(s,p);assert.deepEqual(t.pairProgress.orderedPieces,['L','O']);assert.equal(t.pairProgress.step,1);assert.equal(t.pairProgress.completion.resultStatus,'level');
+ assert.deepEqual(S.CENTER_PAIRS,{L:'O',O:'J',S:'L',Z:'J'});
+});
+test('existing cap rebuild does not call an arbitrary right Z a completed cap',()=>{
+ const s=state('cap-rebuild'),wrong=R.placements(s).placements.find(p=>p.event.type==='Z'&&p.event.cells.every(([x])=>x>=7)&&S.geometry(p.state.board).right.shapeStatus==='unrecognized');assert.ok(wrong);
+ const t=S.transition(s,wrong);assert.equal(t.allocation,'unrecognized-role');assert.ok(t.opportunityCost>0);
+});
+test('all four ordered center families have replayed geometry in already-existing starts',()=>{
+ for(const[id,actions,family]of[['o-filler',['HD'],'OJ'],['empty-hold',['HOLD','R','HD'],'SL'],['left-l',['CW','HD'],'LO'],['cap-rebuild',['R','HD'],'ZJ']]){
+  const s=state(id),first=R.replay(s,actions);assert.equal(first.valid,true);const t=S.transition(s,{state:first.state,event:first.events[0]});assert.equal(t.pairFamily,family);
+  const c=t.pairProgress.completion,finish=R.replay(R.createState({board:first.state.board,active:c.piece,canHold:false}),c.witness);assert.equal(finish.valid,true);assert.deepEqual(finish.events[0].cells,c.cells);assert.equal(S.geometry(finish.state.board).center.status,'level');
+ }
 });

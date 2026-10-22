@@ -2,7 +2,7 @@
  * that an unrecognized position is impossible. No fixture IDs or hidden stream. */
 (function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules.js'),require('./st-bag.js')):factory(root.STRules,root.STBag);if(typeof module==='object'&&module.exports)module.exports=api;else root.STStructure=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,B){
 'use strict';
-const cache=new Map(),clone=x=>JSON.parse(JSON.stringify(x));
+const cache=new Map(),substituteCache=new Map(),clone=x=>JSON.parse(JSON.stringify(x));
 const heights=board=>Array.from({length:10},(_,x)=>{const y=board.findIndex(r=>r[x]!=='.');return y<0?0:40-y;});
 const rough=p=>p.slice(1).reduce((n,h,i)=>n+Math.abs(h-p[i]),0);
 // Positive three-row center motifs observed in the two existing Fumen sources.
@@ -44,13 +44,45 @@ function completions(board,lo,hi,pieces){const h0=heights(board),protectedCols=l
    while(state.active.x!==x){const action=state.active.x>x?'L':'R',n=R.move(state,action);if(n===state)break;state=n;witness.push(action);}
    if(state.active.x!==x)continue;const n=R.move(state,'HD'),e=n.lastEvent;
    if(!e||e.lines||e.topOut||e.target.rotation!==rotation||e.target.x!==x||e.target.y!==y)continue;
-   seen.add(key);out.push({piece,family:lo===4?({S:'S–L',L:'S–L',O:'O–J',J:'O–J'}[piece]||null):null,target:e.target,cells:e.cells,witness:[...witness,'HD'],access:'hypothetical-spawn-straight-drop',resultProfile:h.slice(lo,hi+1),resultStatus:level?'level':partialRepair?'partial-repair':'SL-preparation-surface',patternSupport:lo!==4?null:CENTER_MOTIFS.has(centerMotif(n.board))?'reference-supported':'unrecognized',preserveCells:e.cells.map(c=>c.slice())});
+   seen.add(key);out.push({piece,family:null,target:e.target,cells:e.cells,witness:[...witness,'HD'],access:'hypothetical-spawn-straight-drop',resultProfile:h.slice(lo,hi+1),resultStatus:level?'level':partialRepair?'partial-repair':'SL-preparation-surface',patternSupport:lo!==4?null:CENTER_MOTIFS.has(centerMotif(n.board))?'reference-supported':'unrecognized',preserveCells:e.cells.map(c=>c.slice())});
   }
  }return out;
 }
+// The pair is an ordered construction, never inferred from one finishing piece.
+const CENTER_PAIRS=Object.freeze({L:'O',O:'J',S:'L',Z:'J'});
+function localDrops(board,lo,hi,pieces){const out=[],seen=new Set();
+ for(const type of pieces)for(let rotation=0;rotation<4;rotation++)for(let x=lo-2;x<=hi;x++){
+  const cells=R.cells({type,x,y:0,rotation});if(cells.some(([cx])=>cx<lo||cx>hi))continue;
+  let state=R.createState({board,active:type,canHold:false});const witness=[];
+  if(!R.fits(board,state.active))continue;
+  const turn=['','CW','R180','CCW'][rotation];if(turn){const next=R.move(state,turn);if(next===state)continue;state=next;witness.push(turn);}
+  while(state.active.x!==x){const a=state.active.x>x?'L':'R',next=R.move(state,a);if(next===state)break;state=next;witness.push(a);}
+  if(state.active.x!==x)continue;state=R.move(state,'HD');const e=state.lastEvent;
+  if(!e||e.topOut||e.lines||e.target.rotation!==rotation||e.cells.some(([cx])=>cx<lo||cx>hi))continue;
+  const key=e.cells.slice().sort().join(';');if(seen.has(key))continue;seen.add(key);
+  out.push({piece:type,target:e.target,cells:e.cells,witness:[...witness,'HD'],board:state.board,access:'hypothetical-spawn-straight-drop'});
+ }return out;
+}
+function capCompletions(board){return localDrops(board,8,9,'Z').filter(c=>{const h=heights(c.board);return h[7]===0&&h[9]===h[8]+1;}).map(({board,...c})=>c);}
+// Short substitutes are positive geometry evidence, not promises about piece
+// arrival. Only useful first fills (no new left holes) are extended, at most two
+// locks. This deliberately does not turn a missing route into impossibility.
+function leftSubstitutes(board){const key=board.join('');if(substituteCache.has(key))return substituteCache.get(key);
+ const before=covered(board,[0,1,2,3]),out=[];
+ for(const first of localDrops(board,0,3,'IJLOS')){
+  if(covered(first.board,[0,1,2,3])>before)continue;
+  for(const second of localDrops(first.board,0,3,'IJLOS')){
+   const h=heights(second.board).slice(0,4),old=heights(board).slice(0,4);
+   if(covered(second.board,[0,1,2,3])>before||Math.min(...h)<=Math.min(...old)||Math.max(...h)>Math.max(...old)+4||Math.max(...h)-Math.min(...h)>3)continue;
+   const {board:ignored,...step}=second;
+   out.push({pieces:[first.piece,second.piece],steps:[{piece:first.piece,target:first.target,cells:first.cells,witness:first.witness},step],resultProfile:h,resultStatus:new Set(h).size===1?'level':'partial-scoring-row-fill',access:'two hypothetical fresh-spawn drops; actual timing requires search'});
+  }
+ }
+ if(substituteCache.size>=128)substituteCache.clear();const best=[...new Map(out.sort((a,b)=>rough(a.resultProfile)-rough(b.resultProfile)).reverse().map(c=>[c.pieces.join(''),c])).values()];substituteCache.set(key,best);return best;
+}
 function geometry(board){const key=board.map(r=>r.replace(/[IJLOSTZX#]/g,'#')).join('');if(cache.has(key))return cache.get(key);
  const h=heights(board),left=h.slice(0,4),center=h.slice(4,7),right=h.slice(7),flatLeft=new Set(left).size===1,flatCenter=new Set(center).size===1;
- const centerCompletions=flatCenter?[]:completions(board,4,6,'SLOJ');
+ const centerCompletions=flatCenter?[]:completions(board,4,6,'SLOJZ');
  const leftCompletions=flatLeft?[]:completions(board,0,3,'IJLOSTZ');
  const centerInternal=sealed(board,[4,5,6]);const leftInternal=covered(board,[0,1,2,3]);
  const [channel,pedestal,cap]=right;const normalBase=channel===0;
@@ -64,18 +96,33 @@ function geometry(board){const key=board.map(r=>r.replace(/[IJLOSTZX#]/g,'#')).j
  // Permit a one-I-height offset; larger bottlenecks require concrete repair.
  const frontierDebt=Math.max(0,Math.max(...center)-Math.min(...left)-4);
  const scoringRowDebt=Math.max(0,Math.max(...right)-Math.min(...h.slice(0,7))-1);
- const g={frontierDebt,scoringRowDebt,left:{profile:left,flat:flatLeft,roughness:rough(left),covered:leftInternal,horizontalI:flatLeft?{status:'straight-drop-platform',columns:[1,2,3,4]}:null,completions:leftCompletions},center:{profile:center,status:centerStatus,motif,patternSupport:motifSupported?'reference-supported':'unrecognized',coveredInternal:centerInternal,sealedVoids:centerInternal,coveredCavities:covered(board,[4,5,6]),completionDebt:centerStatus==='unrecognized'?1:0,completions:centerCompletions},right:{profile:right,shapeStatus:rightShape,renewalDebt},supportEstimate:(flatLeft?2:0)-rough(left)*1.5-leftInternal*8+(motifSupported?(flatCenter?4:2):centerCompletions.some(c=>c.patternSupport==='reference-supported')?0:-8)-centerInternal*6-renewalDebt*6-frontierDebt*4-scoringRowDebt*3,uncertainty:rightShape==='unrecognized'||centerStatus==='unrecognized'||!motifSupported};
+ const g={frontierDebt,scoringRowDebt,left:{profile:left,flat:flatLeft,roughness:rough(left),covered:leftInternal,horizontalI:flatLeft?{status:'straight-drop-platform',columns:[1,2,3,4]}:null,completions:leftCompletions},center:{profile:center,status:centerStatus,motif,patternSupport:motifSupported?'reference-supported':'unrecognized',coveredInternal:centerInternal,sealedVoids:centerInternal,coveredCavities:covered(board,[4,5,6]),completionDebt:centerStatus==='unrecognized'?1:0,completions:centerCompletions},right:{profile:right,shapeStatus:rightShape,renewalDebt,completions:rightShape==='cap-preparation'?capCompletions(board):[]},supportEstimate:(flatLeft?2:0)-rough(left)*1.5-leftInternal*8+(motifSupported?(flatCenter?4:2):centerCompletions.some(c=>c.patternSupport==='reference-supported')?0:-8)-centerInternal*6-renewalDebt*6-frontierDebt*4-scoringRowDebt*3,uncertainty:rightShape==='unrecognized'||centerStatus==='unrecognized'||!motifSupported};
  if(cache.size>=2048)cache.clear();cache.set(key,g);return g;
 }
 function instances(state){const out=[];if(state.active)out.push({id:'active',piece:state.active.type,source:'active',available:'now'});if(state.hold)out.push({id:'hold',piece:state.hold,source:'hold',available:state.canHold?'hold-now':'after-next-lock'});(state.queue||[]).forEach((piece,i)=>out.push({id:'queue:'+i,piece,source:'visible',drawOffset:i+1,available:'when-drawn'}));if(state.bag){const p=B.forcedNext(state.bag);if(p)out.push({id:'forced-next',piece:p,source:'forced-beyond-preview',available:'after-preview'});}return out;}
-function allocate(obligations,supply){const assignments=[],conflicts=[];let best=[];function walk(i,used,a){if(i===obligations.length){if(a.length>best.length)best=a.slice();return;}const o=obligations[i];for(const p of supply)if(!used.has(p.id)&&o.alternatives.includes(p.piece)){used.add(p.id);a.push({obligation:o.kind,instance:p.id,piece:p.piece});walk(i+1,used,a);a.pop();used.delete(p.id);}walk(i+1,used,a);}walk(0,new Set(),[]);assignments.push(...best);for(let i=0;i<obligations.length;i++)for(let j=i+1;j<obligations.length;j++){const a=supply.filter(p=>obligations[i].alternatives.includes(p.piece)),b=supply.filter(p=>obligations[j].alternatives.includes(p.piece));if(a.length&&b.length&&new Set([...a,...b].map(p=>p.id)).size<2)conflicts.push({obligations:[obligations[i].kind,obligations[j].kind],instances:[...new Set([...a,...b].map(p=>p.id))]});}return{assignments,conflicts,matched:best.length,timing:'Identity allocation only; arrival order and execution still require search.'};}
+function allocate(obligations,supply){
+ const weight=o=>o.priority==='essential'?100:o.kind==='left-surface'?1:10;
+ const delay=p=>p.available==='now'||p.available==='hold-now'?0:p.available==='after-next-lock'?1:p.drawOffset??8;
+ let best=[],bestScore=-Infinity,bestDelay=Infinity;
+ function walk(i,used,a,score,time){if(i===obligations.length){if(score>bestScore||(score===bestScore&&time<bestDelay)){best=a.slice();bestScore=score;bestDelay=time;}return;}
+  const o=obligations[i];for(const p of supply)if(!used.has(p.id)&&o.alternatives.includes(p.piece)){used.add(p.id);a.push({obligation:o.kind,instance:p.id,piece:p.piece,priority:o.priority??'normal',arrival:p.available});walk(i+1,used,a,score+weight(o),time+delay(p));a.pop();used.delete(p.id);}walk(i+1,used,a,score,time);
+ }walk(0,new Set(),[],0,0);
+ const conflicts=[];for(let i=0;i<obligations.length;i++)for(let j=i+1;j<obligations.length;j++){const a=supply.filter(p=>obligations[i].alternatives.includes(p.piece)),b=supply.filter(p=>obligations[j].alternatives.includes(p.piece));if(a.length&&b.length&&new Set([...a,...b].map(p=>p.id)).size<2)conflicts.push({obligations:[obligations[i].kind,obligations[j].kind],instances:[...new Set([...a,...b].map(p=>p.id))]});}
+ return{assignments:best,conflicts,matched:best.length,priorityScore:bestScore,arrivalEstimate:bestDelay,timing:'Distinct instances, essential-role priority and arrival estimates; execution still requires search.'};
+}
 function assess(stateOrBoard){const state=Array.isArray(stateOrBoard)?{board:stateOrBoard}:stateOrBoard,g=clone(geometry(state.board)),obligations=[];
  if(g.center.completions.length)obligations.push({kind:'center-partner',alternatives:[...new Set(g.center.completions.map(c=>c.piece))],completions:g.center.completions,note:'Exact straight-drop completion of the current center surface; keep completion cells free.'});
  if(!g.left.flat&&g.left.completions.length)obligations.push({kind:'left-surface',alternatives:[...new Set(g.left.completions.map(c=>c.piece))],completions:g.left.completions,note:'Optional left-surface improvement, not a mandatory immediate fill.'});
  if(g.right.shapeStatus==='staggered-scoring-wall')obligations.push({kind:'scoring-cycle',alternatives:['T'],completions:[],note:'Normal scoring-wall shape; actual T-spin entry and line completion require execution verification.'});
+ if(g.right.completions.length)obligations.unshift({kind:'right-cap',priority:'essential',alternatives:['Z'],completions:g.right.completions,note:'A checked Z cap restores the scoring wall; preserve this role before optional surface filling.'});
  const supply=instances(state),allocation=allocate(obligations,supply);for(const o of obligations){o.supply=supply.filter(p=>o.alternatives.includes(p.piece));o.status=o.supply.length?'known-piece-identity':'future-supply-unresolved';}
+ const cap=obligations.find(o=>o.kind==='right-cap');
+ if(cap){cap.access=cap.supply.some(p=>p.available==='now'||p.available==='hold-now')?'available-now-requires-actual-path':cap.supply.some(p=>p.source==='visible')?'visible-later-requires-order-and-access':'unresolved-future';}
+ // An unresolved future cap after a successful clear is uncertainty, not a
+ // failed obligation. Strong cost belongs to *spending* its known scarce Z.
+ const capSupplyBurden=!cap?0:!cap.supply.length?2:cap.supply.some(p=>p.available==='now'||p.available==='hold-now')?0:1;
  const center=obligations.find(o=>o.kind==='center-partner'),supplyBurden=!center?0:!center.supply.length?2:center.supply.some(p=>p.source==='active'||p.source==='hold')?0:center.supply.some(p=>p.source==='visible')?0.5:1;
- return{...g,centerCompletionDebt:g.center.completionDebt,supplyBurden,obligations,supply:{instances:supply,...allocation,conflictCount:allocation.conflicts.length},supportEstimate:g.supportEstimate-allocation.conflicts.length*3-supplyBurden,claim:'Local regional support estimate, not a sustainability guarantee.'};
+ return{...g,capSupplyBurden,centerCompletionDebt:g.center.completionDebt,supplyBurden,obligations,supply:{instances:supply,...allocation,conflictCount:allocation.conflicts.length},supportEstimate:g.supportEstimate-allocation.conflicts.length*3-supplyBurden-capSupplyBurden,claim:'Local regional support estimate, not a sustainability guarantee.'};
 }
 function transition(before,p,afterStructure){const cells=p.event.cells,regions=[...new Set(cells.map(([x])=>x<4?'left':x<7?'center':'right'))],after=afterStructure||geometry(p.state.board),prior=geometry(before.board);let allocation='unrecognized-role',debt=0;
  const pure=regions.length===1?regions[0]:null,type=p.event.type;
@@ -83,21 +130,31 @@ function transition(before,p,afterStructure){const cells=p.event.cells,regions=[
  else if(type==='I'&&p.event.lines===4){allocation='quad-cleanup';}
  else if(pure==='left'&&type==='T'&&prior.right.shapeStatus==='staggered-scoring-wall'){allocation='scoring-T-diversion';debt+=6;}
  else if(pure==='left'){allocation='left-filler';if(type==='I'&&cells.every(([,y])=>y===cells[0][1]))allocation='horizontal-left-I';}
- else if(pure==='center'&&'SLOJ'.includes(type)&&(after.center.status!=='unrecognized'))allocation=after.center.status==='level'?'center-completion':'center-partner-preparation';
+ else if(pure==='center'&&'SLOJZ'.includes(type)&&(after.center.status!=='unrecognized'))allocation=after.center.status==='level'?'center-completion':'center-partner-preparation';
  else if(type==='Z'&&cells.every(([x])=>x>=7)){
   if(prior.right.shapeStatus==='staggered-scoring-wall'&&Math.max(...after.right.profile)>Math.max(...prior.right.profile)&&p.event.lines===0){allocation='right-cap-extension';debt+=3;}
-  else allocation='right-cap-preparation';
+  else if(after.right.shapeStatus==='staggered-scoring-wall')allocation='right-cap-preparation';
+  else {allocation='unrecognized-role';debt+=5;}
  }
  else {debt+=regions.includes('right')?5:3;if(regions.includes('left')&&regions.includes('center'))debt+=3;}
  const newlyCovered=Math.max(0,after.left.covered-prior.left.covered)+Math.max(0,after.center.coveredInternal-prior.center.coveredInternal);
  const regionalRepair=Math.max(0,after.right.renewalDebt-prior.right.renewalDebt);
  const repaired=Math.max(0,prior.right.renewalDebt-after.right.renewalDebt)+Math.max(0,prior.left.covered-after.left.covered)+Math.max(0,prior.center.coveredInternal-after.center.coveredInternal);
  debt+=newlyCovered*3+regionalRepair*2-Math.min(8,repaired*2);
- const finish=prior.center.completions.find(c=>c.piece===type&&JSON.stringify(c.cells.slice().sort())===JSON.stringify(cells.slice().sort())),partner=after.center.completions.find(c=>({S:'L',L:'S',O:'J',J:'O'})[type]===c.piece);
- const pairFamily=pure==='center'?(partner?('SL'.includes(type)?'SL':'OJ'):finish?('SL'.includes(type)?'SL':'OJ'):null):null;
+ const finish=prior.center.completions.find(c=>c.piece===type&&JSON.stringify(c.cells.slice().sort())===JSON.stringify(cells.slice().sort()));
+ const partner=pure==='center'?after.center.completions.find(c=>CENTER_PAIRS[type]===c.piece&&c.resultStatus==='level'):null;
+ const pairFamily=partner?type+partner.piece:null;
+ const pairProgress=partner?{orderedPieces:[type,partner.piece],step:1,status:'partner-placement-checked',placedCells:cells,completion:partner}:null;
+ // Spending the sole observed Z on optional work destroys a concrete cap
+ // opportunity. A later bag guarantee is not a timely visible replacement.
+ const capDemand=prior.right.completions.length>0;
+ const remainingZ=instances(p.state).filter(i=>i.piece==='Z');
+ const opportunityCost=capDemand&&type==='Z'&&allocation!=='right-cap-preparation'&&!remainingZ.length?4:0;
+ const substitutes=capDemand&&type==='Z'?leftSubstitutes(before.board):[];
+ debt+=opportunityCost;
  if(finish&&pure==='center')allocation='center-completion';
- const reason=allocation==='horizontal-left-I'?'Keep the left region flat.':allocation==='center-partner-preparation'?'Prepare a center pattern with a checked '+[...new Set(after.center.completions.map(c=>c.piece))].join('/')+' completion.':allocation==='center-completion'?'Complete the center pattern.':allocation==='scoring-double'?'Take the T-spin double and assess its rebuild.':allocation==='scoring-T-diversion'?'Diverts a T from the scoring role; another T may remain, but its timely use is not established.':allocation==='quad-cleanup'?'Clear the scoring channel with a quad.':allocation==='unrecognized-role'?'This allocation needs additional regional repair evidence.':allocation==='right-cap-extension'?'Extends an existing cap; renewed entry still needs checking.':'Preserve a supported regional piece role.';
- return{reason,pairFamily,pairEvidence:pairFamily?(finish?'matches checked finishing placement':'actual preparation plus checked partner placement'):null,regions,crossRegion:regions.length>1,allocation,status:['unrecognized-role','scoring-T-diversion','right-cap-extension'].includes(allocation)?'requires-repair-evidence':'supported-local-role',dependencyDebt:debt,newlyCovered,regionalRepair,repairCredit:Math.min(8,repaired*2),note:'Crossing a boundary is not forbidden. Debt measures unsupported allocation and new structural repair burden; a later checked repair may repay it.'};
+ const reason=allocation==='horizontal-left-I'?'Keep the left region flat.':allocation==='center-partner-preparation'?partner?'Start the ordered '+type+'/'+partner.piece+' center pair.':'Prepare the center; no ordered level-finishing pair has been established.':allocation==='center-completion'?'Complete the center pattern.':allocation==='scoring-double'?'Take the T-spin double and assess its rebuild.':allocation==='scoring-T-diversion'?'Diverts a T from the scoring role; another T may remain, but its timely use is not established.':allocation==='quad-cleanup'?'Clear the scoring channel with a quad.':allocation==='unrecognized-role'?'This allocation needs additional regional repair evidence.':allocation==='right-cap-extension'?'Extends an existing cap; renewed entry still needs checking.':'Preserve a supported regional piece role.';
+ return{reason,pairFamily,pairProgress,pairEvidence:pairFamily?'ordered actual preparation plus checked level-finishing placement':null,opportunityCost,leftSubstitutes:substitutes,regions,crossRegion:regions.length>1,allocation,status:['unrecognized-role','scoring-T-diversion','right-cap-extension'].includes(allocation)?'requires-repair-evidence':'supported-local-role',dependencyDebt:debt,newlyCovered,regionalRepair,repairCredit:Math.min(8,repaired*2),note:'Crossing a boundary is not forbidden. Debt measures unsupported allocation and new structural repair burden; a later checked repair may repay it.'};
 }
-return Object.freeze({assess,transition,geometry,instances,allocate,clearCache:()=>cache.clear()});
+return Object.freeze({assess,transition,geometry,instances,allocate,CENTER_PAIRS,leftSubstitutes,clearCache:()=>{cache.clear();substituteCache.clear();}});
 });

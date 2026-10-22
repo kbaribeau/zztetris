@@ -94,6 +94,9 @@ test('st-lab/import/export: finite visible state, valid unknown history, rejecte
 }));
 
 test('st-lab/fixtures: selector changes board, resets private future and rejects previous replies',()=>withPage('st-lab.html',{},g=>{
+ assert.equal(F.list.length,24);
+ assert.deepEqual([...g.element('#st-fixture').options].map(o=>o.value),['',...F.list.map(f=>f.id)]);
+ assert.throws(()=>F.get('reservoir-order-review'),/Unknown ST fixture/);
  const ws=workers(g),old=ws[0],answer=legalResult(old.message.observation);
  const second=F.list.find(f=>f.id!==g.element('#st-fixture').value);
  g.element('#st-fixture').value=second.id;g.element('#st-fixture').dispatchEvent(new g.window.Event('change'));

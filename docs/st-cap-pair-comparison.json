@@ -1,0 +1,561 @@
+{
+  "original": {
+    "version": "original",
+    "starts": {
+      "count": 24,
+      "executable": 23,
+      "noRecommendation": [
+        {
+          "id": "left-side-diagnostic",
+          "status": "unsupported-position"
+        }
+      ]
+    },
+    "loops": [
+      {
+        "id": "o-filler",
+        "status": "lock-limit",
+        "locks": 36,
+        "tsds": 2,
+        "height": 19,
+        "witnessFailures": 0,
+        "endpointTEntry": false,
+        "endpointEntrySearchComplete": true
+      },
+      {
+        "id": "marathon-rebuild",
+        "status": "lock-limit",
+        "locks": 36,
+        "tsds": 2,
+        "height": 18,
+        "witnessFailures": 0,
+        "endpointTEntry": false,
+        "endpointEntrySearchComplete": true
+      },
+      {
+        "id": "marathon-preparation",
+        "status": "lock-limit",
+        "locks": 36,
+        "tsds": 3,
+        "height": 17,
+        "witnessFailures": 0,
+        "endpointTEntry": false,
+        "endpointEntrySearchComplete": true
+      }
+    ]
+  },
+  "finalCurrent": {
+    "version": "final-current",
+    "starts": {
+      "count": 24,
+      "executable": 23,
+      "noRecommendation": [
+        {
+          "id": "left-side-diagnostic",
+          "status": "unsupported-position"
+        }
+      ]
+    },
+    "loops": [
+      {
+        "id": "o-filler",
+        "status": "lock-limit",
+        "locks": 36,
+        "tsds": 2,
+        "height": 17,
+        "witnessFailures": 0,
+        "endpointTEntry": false,
+        "endpointEntrySearchComplete": true
+      },
+      {
+        "id": "marathon-rebuild",
+        "status": "lock-limit",
+        "locks": 36,
+        "tsds": 3,
+        "height": 14,
+        "witnessFailures": 0,
+        "endpointTEntry": false,
+        "endpointEntrySearchComplete": true
+      },
+      {
+        "id": "marathon-preparation",
+        "status": "lock-limit",
+        "locks": 36,
+        "tsds": 4,
+        "height": 15,
+        "witnessFailures": 0,
+        "endpointTEntry": false,
+        "endpointEntrySearchComplete": true
+      }
+    ]
+  },
+  "changedStarts": [
+    {
+      "id": "empty-hold",
+      "before": {
+        "type": "T",
+        "cells": [
+          [
+            6,
+            37
+          ],
+          [
+            7,
+            37
+          ],
+          [
+            8,
+            37
+          ],
+          [
+            7,
+            38
+          ]
+        ],
+        "lines": 2,
+        "spin": "full",
+        "hold": false
+      },
+      "after": {
+        "type": "S",
+        "cells": [
+          [
+            5,
+            27
+          ],
+          [
+            6,
+            27
+          ],
+          [
+            4,
+            28
+          ],
+          [
+            5,
+            28
+          ]
+        ],
+        "lines": 0,
+        "spin": "none",
+        "hold": true
+      },
+      "afterReason": "Hold first. Place S in the center to start an S/L pair. The next L completes it. This placement has a checked T-spin double within 3 locks."
+    },
+    {
+      "id": "cap-rebuild",
+      "before": {
+        "type": "Z",
+        "cells": [
+          [
+            2,
+            28
+          ],
+          [
+            1,
+            29
+          ],
+          [
+            2,
+            29
+          ],
+          [
+            1,
+            30
+          ]
+        ],
+        "lines": 0,
+        "spin": "none",
+        "hold": false
+      },
+      "after": {
+        "type": "Z",
+        "cells": [
+          [
+            9,
+            36
+          ],
+          [
+            8,
+            37
+          ],
+          [
+            9,
+            37
+          ],
+          [
+            8,
+            38
+          ]
+        ],
+        "lines": 0,
+        "spin": "none",
+        "hold": false
+      },
+      "afterReason": "Reserve Z for the right cap. The checked continuation fills the left with J then O. Place without clearing. The checked endpoint preserves executable T-double entry when a T is available."
+    },
+    {
+      "id": "marathon-later-double",
+      "before": {
+        "type": "T",
+        "cells": [
+          [
+            6,
+            37
+          ],
+          [
+            7,
+            37
+          ],
+          [
+            8,
+            37
+          ],
+          [
+            7,
+            38
+          ]
+        ],
+        "lines": 2,
+        "spin": "full",
+        "hold": false
+      },
+      "after": {
+        "type": "Z",
+        "cells": [
+          [
+            2,
+            24
+          ],
+          [
+            1,
+            25
+          ],
+          [
+            2,
+            25
+          ],
+          [
+            1,
+            26
+          ]
+        ],
+        "lines": 0,
+        "spin": "none",
+        "hold": true
+      },
+      "afterReason": "Hold first. Build the left region without crossing into the center. This placement has a checked T-spin double within 3 locks."
+    }
+  ],
+  "firstLoopDifferences": [
+    {
+      "id": "o-filler",
+      "firstDifferentLock": 2,
+      "before": {
+        "lock": 2,
+        "before": {
+          "active": "J",
+          "hold": null,
+          "queue": [
+            "O",
+            "I",
+            "Z",
+            "L",
+            "S",
+            "J"
+          ],
+          "slots": [
+            {
+              "x": 6,
+              "y": 35,
+              "rotation": 2,
+              "lines": 2,
+              "access": "geometry-only"
+            }
+          ],
+          "leftSealed": 0,
+          "sealed": 1
+        },
+        "afterHold": "J",
+        "slots": [
+          {
+            "x": 6,
+            "y": 35,
+            "rotation": 2,
+            "lines": 2,
+            "access": "geometry-only"
+          }
+        ],
+        "sealed": 1,
+        "leftSealed": 0,
+        "obligations": [
+          {
+            "kind": "T-slot",
+            "demands": [
+              "T"
+            ],
+            "status": "unresolved",
+            "at": [
+              6,
+              35
+            ],
+            "note": "Geometric slot; arrival and executable entry not yet proved."
+          }
+        ],
+        "type": "O",
+        "lines": 0,
+        "spin": "none",
+        "hold": true,
+        "witness": [
+          "HOLD",
+          "L",
+          "L",
+          "L",
+          "L",
+          "HD"
+        ],
+        "regionalSupport": true,
+        "openChannel": true,
+        "maxHeight": 8,
+        "elapsedMs": 1559,
+        "budgetExhausted": false
+      },
+      "after": {
+        "lock": 2,
+        "before": {
+          "active": "J",
+          "hold": null,
+          "queue": [
+            "O",
+            "I",
+            "Z",
+            "L",
+            "S",
+            "J"
+          ],
+          "slots": [
+            {
+              "x": 6,
+              "y": 35,
+              "rotation": 2,
+              "lines": 2,
+              "access": "geometry-only"
+            }
+          ],
+          "leftSealed": 0,
+          "sealed": 1
+        },
+        "afterHold": null,
+        "slots": [
+          {
+            "x": 6,
+            "y": 35,
+            "rotation": 2,
+            "lines": 2,
+            "access": "geometry-only"
+          }
+        ],
+        "sealed": 1,
+        "leftSealed": 0,
+        "obligations": [
+          {
+            "kind": "T-slot",
+            "demands": [
+              "T"
+            ],
+            "status": "unresolved",
+            "at": [
+              6,
+              35
+            ],
+            "note": "Geometric slot; arrival and executable entry not yet proved."
+          },
+          {
+            "kind": "center-partner",
+            "demands": [],
+            "openSurfaceCells": 2,
+            "status": "unresolved",
+            "note": "Uneven center surface, not a requirement to fill every gap; compatible piece identity must be established by a checked continuation, not guessed from a silhouette."
+          }
+        ],
+        "type": "J",
+        "lines": 0,
+        "spin": "none",
+        "hold": false,
+        "witness": [
+          "R",
+          "HD"
+        ],
+        "regionalSupport": true,
+        "openChannel": true,
+        "maxHeight": 10,
+        "elapsedMs": 1124,
+        "budgetExhausted": false
+      }
+    },
+    {
+      "id": "marathon-rebuild",
+      "firstDifferentLock": 12,
+      "before": {
+        "lock": 12,
+        "before": {
+          "active": "J",
+          "hold": "I",
+          "queue": [
+            "Z",
+            "I",
+            "L",
+            "J",
+            "T",
+            "O"
+          ],
+          "slots": [],
+          "leftSealed": 0,
+          "sealed": 0
+        },
+        "afterHold": "I",
+        "slots": [],
+        "sealed": 0,
+        "leftSealed": 0,
+        "obligations": [],
+        "type": "J",
+        "lines": 0,
+        "spin": "none",
+        "hold": false,
+        "witness": [
+          "L",
+          "L",
+          "HD"
+        ],
+        "regionalSupport": true,
+        "openChannel": true,
+        "maxHeight": 14,
+        "elapsedMs": 1083,
+        "budgetExhausted": false
+      },
+      "after": {
+        "lock": 12,
+        "before": {
+          "active": "J",
+          "hold": "I",
+          "queue": [
+            "Z",
+            "I",
+            "L",
+            "J",
+            "T",
+            "O"
+          ],
+          "slots": [],
+          "leftSealed": 0,
+          "sealed": 0
+        },
+        "afterHold": "J",
+        "slots": [],
+        "sealed": 0,
+        "leftSealed": 0,
+        "obligations": [],
+        "type": "I",
+        "lines": 0,
+        "spin": "none",
+        "hold": true,
+        "witness": [
+          "HOLD",
+          "L",
+          "L",
+          "L",
+          "CCW",
+          "L",
+          "HD"
+        ],
+        "regionalSupport": true,
+        "openChannel": true,
+        "maxHeight": 15,
+        "elapsedMs": 885,
+        "budgetExhausted": false
+      }
+    },
+    {
+      "id": "marathon-preparation",
+      "firstDifferentLock": 14,
+      "before": {
+        "lock": 14,
+        "before": {
+          "active": "J",
+          "hold": "I",
+          "queue": [
+            "Z",
+            "I",
+            "L",
+            "J",
+            "T",
+            "O"
+          ],
+          "slots": [],
+          "leftSealed": 0,
+          "sealed": 0
+        },
+        "afterHold": "I",
+        "slots": [],
+        "sealed": 0,
+        "leftSealed": 0,
+        "obligations": [],
+        "type": "J",
+        "lines": 0,
+        "spin": "none",
+        "hold": false,
+        "witness": [
+          "L",
+          "L",
+          "HD"
+        ],
+        "regionalSupport": true,
+        "openChannel": true,
+        "maxHeight": 14,
+        "elapsedMs": 2695,
+        "budgetExhausted": false
+      },
+      "after": {
+        "lock": 14,
+        "before": {
+          "active": "J",
+          "hold": "I",
+          "queue": [
+            "Z",
+            "I",
+            "L",
+            "J",
+            "T",
+            "O"
+          ],
+          "slots": [],
+          "leftSealed": 0,
+          "sealed": 0
+        },
+        "afterHold": "J",
+        "slots": [],
+        "sealed": 0,
+        "leftSealed": 0,
+        "obligations": [],
+        "type": "I",
+        "lines": 0,
+        "spin": "none",
+        "hold": true,
+        "witness": [
+          "HOLD",
+          "L",
+          "L",
+          "L",
+          "CCW",
+          "L",
+          "HD"
+        ],
+        "regionalSupport": true,
+        "openChannel": true,
+        "maxHeight": 15,
+        "elapsedMs": 873,
+        "budgetExhausted": false
+      }
+    }
+  ]
+}

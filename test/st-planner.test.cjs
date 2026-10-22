@@ -40,11 +40,25 @@ test('st-planner/ST scope: a nonempty generic board is not enough to claim ST su
  const board=R.emptyBoard();board[39]='O.........';
  assert.equal(P.plan(R.createState({board,active:'T',queue:['O']})).status,'unsupported-position');
 });
-test('st-planner/reservoir construction: a sealed right vacancy does not prune a legal cap-to-double',()=>{
- const s=R.createState({board:fixtures.cap.before,active:'T',hold:'Z',queue:['O','I','J','L','S','T']});
- const p=P.plan(s,{depth:2,width:8,maxNodes:45000});assert.equal(p.evidence.tsdAt,2);
- let current=s;for(const step of p.continuation){const r=R.replay(current,step.witness);assert.ok(r.valid);current=r.state;}
- assert.equal(current.lastEvent.spin,'full');assert.equal(current.lastEvent.lines,2);
+// Literal mechanics paths, independent of recommendation ranking. The direct
+// Z cap-to-double path contains no O. The separate O commutation check proves
+// state identity only, not a supported center pattern or good ST strategy.
+const reservoirState=()=>R.createState({board:fixtures.cap.before,active:'T',hold:'Z',queue:['O','I','J','L','S','T']});
+const capInputs=['HOLD','R','R','R','R','CW','HD'];
+const doubleInputs=['HOLD','R','R','R','CW',...Array(18).fill('SD'),'CW','HD'];
+const endpoint=s=>({board:s.board,active:s.active,hold:s.hold,canHold:s.canHold,queue:s.queue,streamCursor:s.streamCursor});
+function checked(s,actions){const r=R.replay(s,actions);assert.ok(r.valid);assert.equal(r.events.length,1);assert.equal(r.events[0].topOut,false);return r.state;}
+test('st-planner/reservoir mechanics: O-free two-lock cap-to-double remains legal',()=>{
+ const cap=checked(reservoirState(),capInputs),clear=checked(cap,doubleInputs);
+ assert.equal(clear.lastEvent.spin,'full');assert.equal(clear.lastEvent.lines,2);
+ assert.deepEqual(clear.board.map(r=>r.replace(/[IJLOSTZ]/g,'#')),fixtures.cap.after);
+});
+test('st-planner/reservoir mechanics only: O before or after the double reaches the same three-lock state',()=>{
+ const cap=checked(reservoirState(),capInputs);
+ const immediate=checked(checked(cap,doubleInputs),['HOLD','HD']);
+ const postponed=checked(checked(cap,['HD']),doubleInputs);
+ assert.equal(postponed.lastEvent.spin,'full');assert.equal(postponed.lastEvent.lines,2);
+ assert.deepEqual(endpoint(immediate),endpoint(postponed));
 });
 test('st-planner/commitment: following HOLD and movement keeps an executable stable target',()=>{
  let s=R.createState({board:fixtures.cap.before,active:'T',hold:'Z',queue:['O','I','J','L','S','T']});

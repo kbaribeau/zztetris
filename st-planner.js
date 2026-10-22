@@ -140,12 +140,36 @@ function plan(raw,options={}){
  const tsdAt=best.path.findIndex(p=>p.event.spin==='full'&&p.event.lines===2);
  const tacticalReason=tsdAt>=0?`${first.hold?'Hold first. ':''}${tsdAt===0?'Execute the T-spin double.':`This placement has a checked T-spin double within ${tsdAt+1} locks.`}`:
  `${first.hold?'Hold first. ':''}${first.event.lines===0?'Place without clearing. ':'Place here. '}${best.assessment.right.entry?.status==='reachable-if-T-available'?'The checked endpoint preserves executable T-double entry when a T is available.':best.assessment.channel.openBelowStack?'The checked endpoint keeps column eight below the left/center stack.':'The checked endpoint needs a scoring-channel rebuild; its structure is uncertain.'}`;
- const facts=first.structuralEvidence,partners=[...new Set(facts.structure.center.completions.map(c=>c.piece))];
- const structuralReason=facts.allocation==='horizontal-left-I'&&facts.structure.left.flat?'Keep the left region flat.':
-  facts.allocation==='center-partner-preparation'&&partners.length?`Build the center with a checked ${partners.join(' or ')} completion shape.`:
-  facts.allocation==='center-completion'?(new Set(facts.structure.center.profile).size===1?'Complete a level center surface.':'Advance the center into a supported S/L preparation shape.'):
+ const facts=first.structuralEvidence;
+ // Describe the selected executed sequence, not the union of hypothetical
+ // pieces that could complete different center surfaces. Pair order matters.
+ const orderedPartner=S.CENTER_PAIRS[first.event.type];
+ const centerOnly=p=>p.event.cells.every(([x])=>x>=4&&x<=6);
+ const cellKey=cells=>JSON.stringify(cells.slice().sort(([ax,ay],[bx,by])=>ax-bx||ay-by));
+ let pairReason=null;
+ if(centerOnly(first)&&first.event.lines===0&&orderedPartner){
+  for(let i=1;i<best.path.length;i++){
+   const next=best.path[i];
+   if(next.event.lines!==0)break;
+   if(next.event.cells.some(([x])=>x>=4&&x<=6)){
+    const completion=facts.structure.center.completions.find(c=>c.piece===orderedPartner&&c.resultStatus==='level'&&cellKey(c.cells)===cellKey(next.event.cells));
+    if(centerOnly(next)&&next.event.type===orderedPartner&&completion){
+     facts.pairProgress={...facts.pairProgress,orderedPieces:[first.event.type,orderedPartner],step:1,status:'completed-in-checked-prefix',completionLock:i+1};
+     next.structuralEvidence.pairFamily=first.event.type+orderedPartner;
+     next.structuralEvidence.pairProgress={orderedPieces:[first.event.type,orderedPartner],step:2,status:'completed',preparationCells:first.event.cells,completionCells:next.event.cells};
+     pairReason=`Place ${first.event.type} in the center to start an ${first.event.type}/${orderedPartner} pair. ${i===1?'The next '+orderedPartner:'The checked continuation’s '+orderedPartner} completes it.`;
+    }
+    break;
+   }
+  }
+ }
+ const leftFollow=best.path.slice(1);
+ const capReason=facts.allocation==='right-cap-preparation'&&leftFollow.length&&leftFollow.every(p=>p.event.lines===0&&p.event.cells.every(([x])=>x<4))?`Reserve ${first.event.type} for the right cap. The checked continuation fills the left with ${leftFollow.map(p=>p.event.type).join(' then ')}.`:null;
+ const structuralReason=pairReason||capReason||(facts.allocation==='horizontal-left-I'&&facts.structure.left.flat?'Keep the left region flat.':
+  facts.allocation==='center-partner-preparation'?'Prepare the center surface; its next completion is not established by this checked prefix.':
+  facts.allocation==='center-completion'?(new Set(facts.structure.center.profile).size===1?'Complete a level center surface.':'Advance the center into a supported preparation surface.'):
   facts.allocation==='right-cap-preparation'?'Rebuild the right scoring structure.':
-  facts.allocation==='left-filler'?'Build the left region without crossing into the center.':null;
+  facts.allocation==='left-filler'?'Build the left region without crossing into the center.':null);
  const reason=structuralReason?`${first.hold?'Hold first. ':''}${structuralReason} ${tacticalReason.replace(/^Hold first\. /,'')}`:tacticalReason;
  return{...base,status:'recommended-with-verified-prefix',target:first.target,hold:first.hold,witness:first.witness,reason,
  continuation:best.path.map(p=>({target:p.target,hold:p.hold,witness:p.witness,event:p.event,structuralEvidence:p.structuralEvidence})),
