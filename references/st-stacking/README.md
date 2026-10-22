@@ -1,4 +1,4 @@
-# ST-stacking video reference
+# ST-stacking video references
 
 [`sm22939781.fumen`](sm22939781.fumen) reconstructs the complete placement sequence
 of the Marathon run in [NicoNico video sm22939781](https://www.nicovideo.jp/watch/sm22939781).
@@ -57,3 +57,33 @@ The directory contains newly reconstructed placement data and documentation;
 it redistributes no video, audio or source screenshots. Attribution does not
 assert a license grant for the original video or game media. The repository's
 existing license is unchanged.
+
+## 40-line sprint: hXc2nbXcXOc
+
+[`hXc2nbXcXOc.fumen`](hXc2nbXcXOc.fumen) reconstructs the complete run in
+[ST Stacking 21.309 seconds (5.26 PPS)](https://www.youtube.com/watch?v=hXc2nbXcXOc):
+**112 placements, 17 clear events and 40 cleared lines** in 113 pages, including
+the final settled board. The clears are 14 doubles and three quads.
+[`hXc2nbXcXOc.json`](hXc2nbXcXOc.json) records operations, zero-based evidence
+frames/times, clear rows, provenance and the export hash. The final placement's
+evidence is pre-clear; the earlier placement evidence is post-placement.
+
+Reconstruction used a user-supplied 1280×720, 30 fps copy of the video. Every
+placement board was compared with video evidence. The final T matches its
+colored pre-clear frames, and all 48 occupied cells of the reconstructed
+endpoint match the gray completion board. Independent review checked all 111
+earlier placement HUD counts and all 16 earlier clear-event HUDs; the final
+HUD confirms 112 placements and 21.309 seconds. No unresolved placement remains.
+
+The repository's bundled Fumen library passed exact encode/decode roundtrip,
+all field/operation comparisons, fit/support/collision and clear transitions.
+Conservation is 448 placed cells minus 400 cleared cells = 48 final cells.
+The viewer UI was not verified; this is decode/replay and video evidence, not
+a claim of browser-editor testing. Open Fumen and paste the raw file into
+**Load Data** to inspect it.
+
+As with the Marathon reference, this is reference data only, not an ST lab
+advice oracle or a reconstruction of holds, input paths, kicks, exact lock
+timing or scoring. Canonical symmetric rotations may differ from the inputs.
+Fit/support checks alone do not prove input reachability. No original media
+is redistributed and no source-media license grant is asserted.
