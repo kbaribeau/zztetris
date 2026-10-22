@@ -63,7 +63,7 @@ function localDrops(board,lo,hi,pieces){const out=[],seen=new Set();
   out.push({piece:type,target:e.target,cells:e.cells,witness:[...witness,'HD'],board:state.board,access:'hypothetical-spawn-straight-drop'});
  }return out;
 }
-function capCompletions(board){return localDrops(board,8,9,'Z').filter(c=>{const h=heights(c.board);return h[7]===0&&h[9]===h[8]+1;}).map(({board,...c})=>c);}
+function capCompletions(board){return localDrops(board,8,9,'Z').filter(c=>{const h=heights(c.board);return h[9]===h[8]+1&&h[7]<h[8];}).map(({board,...c})=>c);}
 // Short substitutes are positive geometry evidence, not promises about piece
 // arrival. Only useful first fills (no new left holes) are extended, at most two
 // locks. This deliberately does not turn a missing route into impossibility.
@@ -91,13 +91,40 @@ function capReservoir(board,h){
  const cells=[];for(let y=top+2;y<40;y++){if(board[y][9]!=='.')return null;cells.push([9,y]);}
  return {status:'clear-witness-required',cells,roofRow:top+1,pattern:'canonical-Z-cap-reservoir'};
 }
+// The scoring cycle includes a bottom-four-row cleanup, not just the Z roof.
+// Occupancy, not piece colours or a historical clear counter, identifies its phase.
+function rightCycle(board,h){
+ const [channel,wall,cap]=h.slice(7),solid=(x,n)=>n===0||board.slice(40-n).every(row=>row[x]!=='.');
+ const wallSolid=solid(8,wall),channelBase=channel===0||(channel%4===0&&solid(7,channel));
+ const leftCenterBase=board.slice(36).every(row=>row.slice(0,7).split('').every(c=>c!=='.'));
+ const cleanupRows=leftCenterBase&&solid(8,4);
+ const tenFilled=solid(9,4),eightEmpty=board.every(row=>row[7]==='.'),tenEmpty=board.every(row=>row[9]==='.');
+ const eightFilled=solid(7,4);
+ let shape='unrecognized',phase='unrecognized';
+ if(channel===0&&wall===0&&cap===0){shape='cleared-base';phase='post-clear-rebuild';}
+ else if(channelBase&&wallSolid&&wall>channel&&cap===0){shape='cap-preparation';phase=channel>0?'cap-rebuild-above-cleanup-I':'cap-rebuild';}
+ else if(channelBase&&wallSolid&&cap===wall+1&&wall>channel){shape='staggered-scoring-wall';phase=channel>0?'scoring-above-cleanup-I':tenFilled?'scoring-with-cleanup-prepared':'scoring';}
+ // A filled outer column is intentional cleanup preparation. It need not
+ // already have a T cap above it and must not be charged as a broken wall.
+ if(cleanupRows&&eightEmpty&&tenFilled&&cap===4){shape='quad-preparation';phase='cleanup-ready';}
+ const cleanupColumns=[];
+ if(cleanupRows&&eightEmpty&&tenFilled)cleanupColumns.push(7);
+ if(cleanupRows&&tenEmpty&&eightFilled)cleanupColumns.push(9);
+ // Three wall cells admit the known early I preparation: the next double
+ // can finish the fourth cleanup row. This is not yet an executable quad.
+ const prepareColumn=leftCenterBase&&wallSolid&&wall>=3&&eightEmpty&&tenEmpty?9:null;
+ return {shape,phase,cleanupColumns,prepareColumn,wallSolid,channelBase};
+}
+function canonicalClear(event){return event.lines===0||
+ (event.type==='T'&&event.spin==='full'&&event.lines===2&&event.cells.every(([x])=>x>=6))||
+ (event.type==='I'&&event.lines===4&&event.cells.every(([x])=>x>=7));}
 function geometry(board){const key=board.map(r=>r.replace(/[IJLOSTZX#]/g,'#')).join('');if(cache.has(key))return cache.get(key);
  const h=heights(board),left=h.slice(0,4),center=h.slice(4,7),right=h.slice(7),flatLeft=new Set(left).size===1,flatCenter=new Set(center).size===1;
  const centerCompletions=flatCenter?[]:completions(board,4,6,'SLOJZ');
  const leftCompletions=flatLeft?[]:completions(board,0,3,'IJLOSTZ');
  const centerInternal=sealed(board,[4,5,6]);const leftInternal=covered(board,[0,1,2,3]);
- const [channel,pedestal,cap]=right;const normalBase=channel===0;
- const rightShape=normalBase&&pedestal===0&&cap===0?'cleared-base':normalBase&&cap===0&&pedestal>0?'cap-preparation':normalBase&&cap===pedestal+1?'staggered-scoring-wall':'unrecognized';
+ const [channel,pedestal,cap]=right,cycle=rightCycle(board,h);
+ const rightShape=cycle.shape;
  // Excess right-wall discontinuity creates an extra repair obligation. It is
  // evidence against the small grammar, not proof of an inaccessible T slot.
  const renewalDebt=rightShape==='unrecognized'?Math.max(1,channel+Math.abs(cap-pedestal-1)):0;
@@ -107,7 +134,7 @@ function geometry(board){const key=board.map(r=>r.replace(/[IJLOSTZX#]/g,'#')).j
  // Permit a one-I-height offset; larger bottlenecks require concrete repair.
  const frontierDebt=Math.max(0,Math.max(...center)-Math.min(...left)-4);
  const scoringRowDebt=Math.max(0,Math.max(...right)-Math.min(...h.slice(0,7))-1);
- const g={frontierDebt,scoringRowDebt,left:{profile:left,flat:flatLeft,roughness:rough(left),covered:leftInternal,horizontalI:flatLeft?{status:'straight-drop-platform',columns:[1,2,3,4]}:null,completions:leftCompletions},center:{profile:center,status:centerStatus,motif,patternSupport:motifSupported?'reference-supported':'unrecognized',coveredInternal:centerInternal,sealedVoids:centerInternal,coveredCavities:covered(board,[4,5,6]),completionDebt:centerStatus==='unrecognized'?1:0,completions:centerCompletions},right:{profile:right,shapeStatus:rightShape,renewalDebt,reservoir:capReservoir(board,h),completions:rightShape==='cap-preparation'?capCompletions(board):[]},supportEstimate:(flatLeft?2:0)-rough(left)*1.5-leftInternal*8+(motifSupported?(flatCenter?4:2):centerCompletions.some(c=>c.patternSupport==='reference-supported')?0:-8)-centerInternal*6-renewalDebt*6-frontierDebt*4-scoringRowDebt*3,uncertainty:rightShape==='unrecognized'||centerStatus==='unrecognized'||!motifSupported};
+ const g={frontierDebt,scoringRowDebt,left:{profile:left,flat:flatLeft,roughness:rough(left),covered:leftInternal,horizontalI:flatLeft?{status:'straight-drop-platform',columns:[1,2,3,4]}:null,completions:leftCompletions},center:{profile:center,status:centerStatus,motif,patternSupport:motifSupported?'reference-supported':'unrecognized',coveredInternal:centerInternal,sealedVoids:centerInternal,coveredCavities:covered(board,[4,5,6]),completionDebt:centerStatus==='unrecognized'?1:0,completions:centerCompletions},right:{profile:right,shapeStatus:rightShape,cycle,renewalDebt,reservoir:capReservoir(board,h),completions:rightShape==='cap-preparation'?capCompletions(board):[]},supportEstimate:(flatLeft?2:0)-rough(left)*1.5-leftInternal*8+(motifSupported?(flatCenter?4:2):centerCompletions.some(c=>c.patternSupport==='reference-supported')?0:-8)-centerInternal*6-renewalDebt*6-frontierDebt*4-scoringRowDebt*3,uncertainty:rightShape==='unrecognized'||centerStatus==='unrecognized'||!motifSupported};
  if(cache.size>=2048)cache.clear();cache.set(key,g);return g;
 }
 function instances(state){const out=[];if(state.active)out.push({id:'active',piece:state.active.type,source:'active',available:'now'});if(state.hold)out.push({id:'hold',piece:state.hold,source:'hold',available:state.canHold?'hold-now':'after-next-lock'});(state.queue||[]).forEach((piece,i)=>out.push({id:'queue:'+i,piece,source:'visible',drawOffset:i+1,available:'when-drawn'}));if(state.bag){const p=B.forcedNext(state.bag);if(p)out.push({id:'forced-next',piece:p,source:'forced-beyond-preview',available:'after-preview'});}return out;}
@@ -125,6 +152,7 @@ function assess(stateOrBoard){const state=Array.isArray(stateOrBoard)?{board:sta
  if(g.center.completions.length)obligations.push({kind:'center-partner',alternatives:[...new Set(g.center.completions.map(c=>c.piece))],completions:g.center.completions,note:'Exact straight-drop completion of the current center surface; keep completion cells free.'});
  if(!g.left.flat&&g.left.completions.length)obligations.push({kind:'left-surface',alternatives:[...new Set(g.left.completions.map(c=>c.piece))],completions:g.left.completions,note:'Optional left-surface improvement, not a mandatory immediate fill.'});
  if(g.right.shapeStatus==='staggered-scoring-wall')obligations.push({kind:'scoring-cycle',alternatives:['T'],completions:[],note:'Normal scoring-wall shape; actual T-spin entry and line completion require execution verification.'});
+ if(g.right.cycle.cleanupColumns.length||g.right.cycle.prepareColumn!==null)obligations.unshift({kind:'right-cleanup-I',priority:'essential',alternatives:['I'],completions:[],columns:g.right.cycle.cleanupColumns.length?g.right.cycle.cleanupColumns:[g.right.cycle.prepareColumn],stage:g.right.cycle.cleanupColumns.length?'clear':'prepare',note:'Advance the recognized bottom-four-row cleanup without blocking the remaining scoring cycle.'});
  if(g.right.completions.length)obligations.unshift({kind:'right-cap',priority:'essential',alternatives:['Z'],completions:g.right.completions,note:'A checked Z cap restores the scoring wall; preserve this role before optional surface filling.'});
  const supply=instances(state),allocation=allocate(obligations,supply);for(const o of obligations){o.supply=supply.filter(p=>o.alternatives.includes(p.piece));o.status=o.supply.length?'known-piece-identity':'future-supply-unresolved';}
  const cap=obligations.find(o=>o.kind==='right-cap');
@@ -139,6 +167,7 @@ function transition(before,p,afterStructure){const cells=p.event.cells,regions=[
  const pure=regions.length===1?regions[0]:null,type=p.event.type;
  if(p.event.spin==='full'&&p.event.lines===2){allocation='scoring-double';}
  else if(type==='I'&&p.event.lines===4){allocation='quad-cleanup';}
+ else if(type==='I'&&pure==='right'&&prior.right.cycle.prepareColumn!==null&&cells.every(([x])=>x===prior.right.cycle.prepareColumn)&&(after.right.cycle.cleanupColumns.length||after.right.cycle.phase==='scoring-with-cleanup-prepared')){allocation='quad-preparation';}
  else if(pure==='left'&&type==='T'&&prior.right.shapeStatus==='staggered-scoring-wall'){allocation='scoring-T-diversion';debt+=6;}
  else if(pure==='left'){allocation='left-filler';if(type==='I'&&cells.every(([,y])=>y===cells[0][1]))allocation='horizontal-left-I';}
  else if(pure==='center'&&'SLOJZ'.includes(type)&&(after.center.status!=='unrecognized'))allocation=after.center.status==='level'?'center-completion':'center-partner-preparation';
@@ -159,13 +188,20 @@ function transition(before,p,afterStructure){const cells=p.event.cells,regions=[
  // Spending the sole observed Z on optional work destroys a concrete cap
  // opportunity. A later bag guarantee is not a timely visible replacement.
  const capDemand=prior.right.completions.length>0;
- const remainingZ=instances(p.state).filter(i=>i.piece==='Z');
- const opportunityCost=capDemand&&type==='Z'&&allocation!=='right-cap-preparation'&&!remainingZ.length?4:0;
+ const opportunityCost=capDemand&&type==='Z'&&allocation!=='right-cap-preparation'?4:0;
  const substitutes=capDemand&&type==='Z'?leftSubstitutes(before.board):[];
  debt+=opportunityCost;
  if(finish&&pure==='center')allocation='center-completion';
- const reason=allocation==='horizontal-left-I'?'Keep the left region flat.':allocation==='center-partner-preparation'?partner?'Start the ordered '+type+'/'+partner.piece+' center pair.':'Prepare the center; no ordered level-finishing pair has been established.':allocation==='center-completion'?'Complete the center pattern.':allocation==='scoring-double'?'Take the T-spin double and assess its rebuild.':allocation==='scoring-T-diversion'?'Diverts a T from the scoring role; another T may remain, but its timely use is not established.':allocation==='quad-cleanup'?'Clear the scoring channel with a quad.':allocation==='unrecognized-role'?'This allocation needs additional regional repair evidence.':allocation==='right-cap-extension'?'Extends an existing cap; renewed entry still needs checking.':'Preserve a supported regional piece role.';
- return{reason,pairFamily,pairProgress,pairEvidence:pairFamily?'ordered actual preparation plus checked level-finishing placement':null,opportunityCost,leftSubstitutes:substitutes,regions,crossRegion:regions.length>1,allocation,status:['unrecognized-role','scoring-T-diversion','right-cap-extension'].includes(allocation)?'requires-repair-evidence':'supported-local-role',dependencyDebt:debt,newlyCovered,regionalRepair,repairCredit:Math.min(8,repaired*2),note:'Crossing a boundary is not forbidden. Debt measures unsupported allocation and new structural repair burden; a later checked repair may repay it.'};
+ const cycleViolations=[];
+ if(opportunityCost)cycleViolations.push('spent-cap-Z-on-optional-work');
+ // The planner supplies this only after actual-pose/hold enumeration finds
+ // an executable cap. A hypothetical spawn completion alone is not access.
+ const capAvailable=capDemand&&p.availableCap===true;
+ if(capAvailable&&!['right-cap-preparation','quad-preparation','quad-cleanup','scoring-double'].includes(allocation))cycleViolations.push('postponed-available-cap-for-optional-work');
+ if(type==='T'&&p.event.lines===0&&['scoring','scoring-above-cleanup-I','scoring-with-cleanup-prepared'].includes(prior.right.cycle.phase))cycleViolations.push('spent-scoring-T-without-double');
+ if(type==='I'&&(prior.right.cycle.prepareColumn!==null||prior.right.cycle.cleanupColumns.length)&&!['quad-preparation','quad-cleanup'].includes(allocation))cycleViolations.push('spent-cleanup-I-on-optional-work');
+ const reason=allocation==='horizontal-left-I'?'Keep the left region flat.':allocation==='center-partner-preparation'?partner?'Start the ordered '+type+'/'+partner.piece+' center pair.':'Prepare the center; no ordered level-finishing pair has been established.':allocation==='center-completion'?'Complete the center pattern.':allocation==='scoring-double'?'Take the T-spin double and assess its rebuild.':allocation==='scoring-T-diversion'?'Diverts a T from the scoring role; another T may remain, but its timely use is not established.':allocation==='quad-preparation'?'Prepare the right-side I cleanup while keeping column eight open.':allocation==='quad-cleanup'?'Clear the scoring channel with a quad.':allocation==='unrecognized-role'?'This allocation needs additional regional repair evidence.':allocation==='right-cap-extension'?'Extends an existing cap; renewed entry still needs checking.':'Preserve a supported regional piece role.';
+ return{reason,cycleViolations,pairFamily,pairProgress,pairEvidence:pairFamily?'ordered actual preparation plus checked level-finishing placement':null,opportunityCost,leftSubstitutes:substitutes,regions,crossRegion:regions.length>1,allocation,status:['unrecognized-role','scoring-T-diversion','right-cap-extension'].includes(allocation)?'requires-repair-evidence':'supported-local-role',dependencyDebt:debt,newlyCovered,regionalRepair,repairCredit:Math.min(8,repaired*2),note:'Crossing a boundary is not forbidden. Debt measures unsupported allocation and new structural repair burden; a later checked repair may repay it.'};
 }
-return Object.freeze({assess,transition,geometry,instances,allocate,CENTER_PAIRS,leftSubstitutes,clearCache:()=>{cache.clear();substituteCache.clear();}});
+return Object.freeze({assess,transition,geometry,instances,allocate,canonicalClear,CENTER_PAIRS,leftSubstitutes,clearCache:()=>{cache.clear();substituteCache.clear();}});
 });

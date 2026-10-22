@@ -80,3 +80,18 @@ test('st-fixtures/corpus coverage and isolation: both sources, hold modes, held-
  const r=R.replay(f.observation,f.expectations.referenceWitness),b=P.assess(r.state.board);
  assert.equal(r.valid,true);assert.equal(b.left.roughness,1);assert.equal(b.leftSealed,0);assert.equal(b.regionalSupport,true);assert.equal(b.channel.openBelowStack,true);assert.ok(b.maxHeight<20);
  });
+
+test('st-fixtures/reviewed cycle cases: append three named development regressions without replacing the original corpus',()=>{
+ const original=['o-filler','center-j','empty-hold','left-l','held-t-double','cap-rebuild','o-before-double','direct-double','s-after-double','i-via-hold','higher-cap','higher-double','offset-double','o-rebuild','after-quad','late-held-double','unknown-bag-double','actual-pose-double','marathon-preparation','marathon-double','marathon-rebuild','marathon-later-double','left-side-diagnostic','deviated-o-recovery'];
+ assert.deepEqual(F.list.slice(0,24).map(f=>f.id),original);
+ assert.deepEqual(F.list.slice(24).map(f=>[f.id,f.provenance.beforePlacement,f.provenance.mirrored]),[
+  ['restore-the-right-cap',83,false],['center-before-quad-cleanup',92,false],['double-above-the-cleanup-i',145,true]
+ ]);
+ for(const f of F.list.slice(24)){
+  assert.equal(f.split,'dev');assert.ok(f.categories.includes('user-reviewed'));
+  assert.doesNotMatch(f.label,/sprint|marathon|83|92|145/i);
+  assert.match(f.provenance.knownInformation,/Synthetic compatible seven-bag/);
+  assert.ok(f.provenance.notRecovered.includes('original hold'));
+  assert.equal(f.observation.queue.length,6);assert.ok(f.future.length>0);
+ }
+});

@@ -94,7 +94,7 @@ test('st-lab/import/export: finite visible state, valid unknown history, rejecte
 }));
 
 test('st-lab/fixtures: selector changes board, resets private future and rejects previous replies',()=>withPage('st-lab.html',{},g=>{
- assert.equal(F.list.length,24);
+ assert.equal(F.list.length,27);
  assert.deepEqual([...g.element('#st-fixture').options].map(o=>o.value),['',...F.list.map(f=>f.id)]);
  assert.throws(()=>F.get('reservoir-order-review'),/Unknown ST fixture/);
  const ws=workers(g),old=ws[0],answer=legalResult(old.message.observation);
@@ -173,4 +173,21 @@ test('st-lab/import: unique observed bag remainder supplies one known piece, con
  g.element('#st-snapshot').value=JSON.stringify(input);g.click('#st-import');
  assert.deepEqual(g.snapshot().queue,['Z']);assert.deepEqual(g.snapshot().bag,json(B.consume(input.bag,'Z')));
  g.tap('Space');assert.equal(g.snapshot().active.type,'Z');assert.equal(g.snapshot().queue.length,0);
+}));
+
+for(const id of ['restore-the-right-cap','center-before-quad-cleanup','double-above-the-cleanup-i'])test(`st-lab/cycle fixture/${id}: selectable and resettable without leaking reference or future`,()=>withPage('st-lab.html',{},g=>{
+ const ws=workers(g),f=F.get(id),select=g.element('#st-fixture');
+ select.value=id;select.dispatchEvent(new g.window.Event('change'));g.advance(40);
+ assert.deepEqual(g.snapshot().board,f.observation.board);
+ assert.deepEqual(g.snapshot().queue,f.observation.queue);
+ assert.equal(g.snapshot().hold,f.observation.hold);
+ assert.match(g.element('#st-position-note').textContent,/not inferred from a recording/);
+ assert.equal([...select.options].find(o=>o.value===id).textContent,f.label);
+ const sent=ws.at(-1).message.observation;
+ assert.deepEqual(sent.queue,f.observation.queue);assert.equal(sent.queue.length,6);
+ for(const key of ['future','provenance','expectations','id','label'])assert.equal(key in sent,false,key);
+ g.tap('Space');g.click('#st-reset');g.advance(40);
+ assert.deepEqual(g.snapshot().board,f.observation.board);
+ assert.deepEqual(g.snapshot().queue,f.observation.queue);
+ assert.equal(g.snapshot().hold,f.observation.hold);
 }));

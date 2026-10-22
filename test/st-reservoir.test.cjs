@@ -12,7 +12,7 @@ test('reservoir/user snapshot: full search completes the S/L center rather than 
  assert.deepEqual(a.intentionalReservoir.cells,[[9,37],[9,38],[9,39]]);
  assert.equal(a.intentionalReservoir.credit,9);assert.equal(a.sealed,3);assert.equal(a.damageSealed,0);
  assert.equal(a.covered,6);assert.equal(a.damageCovered,3,'unrelated roofed cells keep their original penalty');
- assert.equal(result.evidence.structuralScore,-11.3);assert.deepEqual(result.evidence.structuralRank,[1,1,-3,1,-10,0]);endpoint();
+ assert.equal(result.evidence.structuralScore,-11.3);assert.deepEqual(result.evidence.structuralRank,[1,1,0,-3,1,-10,0]);endpoint();
 });
 test('reservoir/proof: actual clear reopens exact shaft, without inventing T arrival',()=>{
  const state=endpoint(),cavity=result.assessment.structure.right.reservoir;

@@ -67,8 +67,9 @@ function nodeFor(p,parent,initial,rootIndex){
  p.structuralEvidence={...transition,centerPartnerDeficitBefore:(parent?.assessment??initial).center.partnerDeficit,centerPartnerDeficitAfter:assessment.center.partnerDeficit,placedPiece:p.event.type,structure,dependencyDebt,entryDebt,nonclearScoringGeometryLost:losesEntry};
  // Nearby structural estimates are deliberately comparable. The finite
  // executable TSD then breaks ties; it cannot buy a poorer structural band.
- const rank=[safe?1:0,assessment.regionalSupport?1:0,Math.floor(structuralScore/4),tsds*2,-path.reduce((n,v)=>n+v.witness.length+(v.hold?2:0),0),path.reduce((n,v)=>n+v.event.lines,0)];
- return{state:p.state,path,assessment,rank,structuralScore,dependencyDebt,entryDebt,baseEstimateRank:rank[3],qualified:!assessment.right.slots.length,rootIndex,key:JSON.stringify(path[0].target)+':'+path[0].hold};
+ const cycleDebt=(parent?.cycleDebt??0)+transition.cycleViolations.length;
+ const rank=[safe?1:0,assessment.regionalSupport?1:0,cycleDebt?-cycleDebt:0,Math.floor(structuralScore/4),tsds*2,-path.reduce((n,v)=>n+v.witness.length+(v.hold?2:0),0),path.reduce((n,v)=>n+v.event.lines,0)];
+ return{state:p.state,path,assessment,rank,structuralScore,dependencyDebt,entryDebt,cycleDebt,baseEstimateRank:rank[4],qualified:!assessment.right.slots.length,rootIndex,key:JSON.stringify(path[0].target)+':'+path[0].hold};
 }
 function diversify(nodes,width){const sorted=[...nodes].sort(compare),chosen=[],roots=new Set(),groups=new Set();
  // Protect meaningfully different construction families, not just top-scoring
@@ -92,8 +93,8 @@ function plan(raw,options={}){
  const optimistic=n=>({...n,rank:n.rank.map((v,i)=>{
   if(n.qualified)return v;
   const cavity=n.assessment.structure.right.reservoir;
-  if(i===2&&cavity)return Math.floor((n.structuralScore+cavity.cells.length*3)/4);
-  return i===3?v+1:v;
+  if(i===3&&cavity)return Math.floor((n.structuralScore+cavity.cells.length*3)/4);
+  return i===4?v+1:v;
  })});
  const qualify=nodes=>{
   // Geometry is only an upper bound. Resolve the most promising candidates
@@ -108,7 +109,7 @@ function plan(raw,options={}){
    n.qualified=true;n.assessment.right.entry={status:access.reachable===true?'reachable-if-T-available':access.reachable===false?'unreachable':'unresolved-budget',witness:access.witness||null,target:access.event?.target||null};
    // A failed entry proof is structural repair work, not merely a lost
    // tactical tie-break. Otherwise inaccessible cavities can look renewable.
-   if(access.reachable===false){n.structuralScore-=16;n.rank[2]=Math.floor(n.structuralScore/4);n.assessment.structure.blockedEntryRepair=16;}
+   if(access.reachable===false){n.structuralScore-=16;n.rank[3]=Math.floor(n.structuralScore/4);n.assessment.structure.blockedEntryRepair=16;}
    // Refund damage only for the exact recognized reservoir cells, after a
    // counterfactual T has a real input witness and its clear reopens the shaft.
    // T arrival is a separate obligation: this establishes geometry, not supply.
@@ -124,10 +125,10 @@ function plan(raw,options={}){
      n.assessment.structure.right={...n.assessment.structure.right,reservoir:{...cavity,status:'verified-clear-reopens-reservoir',witness:access.witness.slice(),clearRows:event.clearedRows.slice()}};
      n.assessment.intentionalReservoir={cells:cavity.cells.map(c=>c.slice()),sealedExempt:count,coveredExempt:count,credit,proof:'reachable counterfactual T-double reopens these cells; arrival not established'};
      n.assessment.damageSealed=n.assessment.sealed-count;n.assessment.damageCovered=n.assessment.covered-count;
-     n.assessment.estimate+=credit;n.structuralScore+=credit;n.rank[2]=Math.floor(n.structuralScore/4);
+     n.assessment.estimate+=credit;n.structuralScore+=credit;n.rank[3]=Math.floor(n.structuralScore/4);
     }
    }
-   n.rank[3]=n.baseEstimateRank+(access.reachable===true?1:0);
+   n.rank[4]=n.baseEstimateRank+(access.reachable===true?1:0);
    n.assessment.obligations=n.assessment.obligations.map(o=>o.kind!=='T-slot'?o:({...o,status:access.reachable===true&&o.at[0]===access.event.target.x&&o.at[1]===access.event.target.y?'entry-verified-arrival-unresolved':access.reachable===false?'entry-blocked':'unresolved',note:'Counterfactual T entry is checked separately from whether a T arrives in time.'}));
   };
   // Evaluate the best member of each distinct root construction family too.
@@ -141,23 +142,24 @@ function plan(raw,options={}){
   return selected;
  };
  s=extendForced(s);
- const enumerate=state=>{const remaining=limit-base.metrics.nodes;if(remaining<=0||now()>=deadline){stopped=true;return{placements:[],complete:false};}const r=R.placements(state,{allowHold:options.allowHold!==false,maxNodes:remaining,deadline,now});base.metrics.nodes+=r.visited;if(!r.complete)stopped=true;return r;};
+ const enumerate=state=>{const remaining=limit-base.metrics.nodes;if(remaining<=0||now()>=deadline){stopped=true;return{placements:[],complete:false};}const r=R.placements(state,{allowHold:options.allowHold!==false,maxNodes:remaining,deadline,now});base.metrics.nodes+=r.visited;if(!r.complete)stopped=true;const caps=S.geometry(state.board).right.completions;const sameCells=(a,b)=>a.length===b.length&&a.every(([x,y])=>b.some(([u,v])=>x===u&&y===v));const availableCap=r.placements.some(p=>p.event.type==='Z'&&caps.some(c=>sameCells(p.event.cells,c.cells)));for(const p of r.placements)p.availableCap=availableCap;return r;};
  const root=enumerate(s);base.metrics.roots=root.placements.length;
- let frontier=qualify(root.placements.map((p,i)=>nodeFor(p,null,initial,i)));
- let best=frontier.length?[...frontier].sort(compare)[0]:null;base.metrics.depth=best?1:0;base.metrics.completeDepth=root.complete&&best&&!stopped?1:0;
+ let frontier=qualify(root.placements.filter(p=>S.canonicalClear(p.event)).map((p,i)=>nodeFor(p,null,initial,i)));
+ const cleanBest=nodes=>nodes.filter(n=>n.cycleDebt===0).sort(compare)[0]??null;
+ let best=cleanBest(frontier);base.metrics.depth=best?1:0;base.metrics.completeDepth=root.complete&&best&&!stopped?1:0;
  let layer=diversify(frontier,width);
  for(let depth=2;depth<=maxDepth&&!stopped&&layer.length;depth++){
   const next=[],seen=new Map();let complete=true;
   for(const n of layer){if(!n.state.active)continue;expandedRoots.add(n.rootIndex);const e=enumerate(n.state);if(!e.complete)complete=false;
-   for(const p of e.placements){const child=nodeFor(p,n,initial,n.rootIndex),key=stateKey(child.state),prior=seen.get(key);if(!prior||compare(child,prior)<0)seen.set(key,child);}
+   for(const p of e.placements){if(!S.canonicalClear(p.event))continue;const child=nodeFor(p,n,initial,n.rootIndex),key=stateKey(child.state),prior=seen.get(key);if(!prior||compare(child,prior)<0)seen.set(key,child);}
    if(stopped)break;
   }
-  next.push(...qualify([...seen.values()]));if(stopped)complete=false;if(next.length){const candidate=[...next].sort(compare)[0];base.metrics.depth=depth;if(complete){best=candidate;base.metrics.completeDepth=depth;}}
+  next.push(...qualify([...seen.values()]));if(stopped)complete=false;if(next.length){const candidate=cleanBest(next);base.metrics.depth=depth;if(complete&&candidate){best=candidate;base.metrics.completeDepth=depth;}}
   layer=diversify(next,width);
  }
  if(now()>=deadline)stopped=true;
  base.metrics.rootExpanded=expandedRoots.size;base.metrics.elapsedMs=Date.now()-started;
- if(!best)return{...base,status:stopped?'budget-exhausted':'no-supported-continuation-found',reason:stopped?'Search budget ended before an executable continuation was established.':'No supported continuation was found in the checked moves; this is not proof that none exists.'};
+ if(!best)return{...base,status:stopped?'budget-exhausted':'no-supported-continuation-found',reason:stopped?'Search budget ended before an executable continuation was established.':'No canonical ST continuation preserving the recognized piece obligations was found in the checked moves; this is not proof that none exists.'};
  if(best.assessment.maxHeight>=20||!best.assessment.regionalSupport)return{...base,status:'no-supported-continuation-found',reason:'Checked continuations do not preserve the supported regional profile and headroom; no supported ST recommendation was established.',assessment:best.assessment};
  const first=best.path[0],verified=R.replay(s,first.witness);if(!verified.valid)return{...base,status:'invalid-witness',reason:'Internal witness validation failed; no advice is displayed.'};
  const tsdAt=best.path.findIndex(p=>p.event.spin==='full'&&p.event.lines===2);
@@ -191,24 +193,26 @@ function plan(raw,options={}){
  const structuralReason=pairReason||capReason||(facts.allocation==='horizontal-left-I'&&facts.structure.left.flat?'Keep the left region flat.':
   facts.allocation==='center-partner-preparation'?'Prepare the center surface; its next completion is not established by this checked prefix.':
   facts.allocation==='center-completion'?(new Set(facts.structure.center.profile).size===1?'Complete a level center surface.':'Advance the center into a supported preparation surface.'):
+  facts.allocation==='quad-preparation'?'Prepare the right-side I cleanup while keeping column eight open.':
   facts.allocation==='right-cap-preparation'?'Rebuild the right scoring structure.':
   facts.allocation==='left-filler'?'Build the left region without crossing into the center.':null);
  const reason=structuralReason?`${first.hold?'Hold first. ':''}${structuralReason} ${tacticalReason.replace(/^Hold first\. /,'')}`:tacticalReason;
  return{...base,status:'recommended-with-verified-prefix',target:first.target,hold:first.hold,witness:first.witness,reason,
  continuation:best.path.map(p=>({target:p.target,hold:p.hold,witness:p.witness,event:p.event,structuralEvidence:p.structuralEvidence})),
- evidence:{verifiedLocks:best.path.length,tsdAt:tsdAt>=0?tsdAt+1:null,knownPieceHorizon:s.queue.length+1,rootEnumerationComplete:root.complete,budgetExhausted:stopped,informationBoundary:!best.state.active,initialSealed:initial.sealed,endpointSealed:best.assessment.sealed,regionalSupport:best.assessment.regionalSupport,channel:best.assessment.channel,endpointTEntry:best.assessment.right.entry?.status??'not-established',unresolvedObligations:best.assessment.obligations,structuralScore:best.structuralScore,structuralRank:best.rank,structure:best.assessment.structure,dependencyDebt:best.dependencyDebt,claim:'Finite executable prefix; endpoint estimates are not a sustainability guarantee.'},assessment:best.assessment};
+ evidence:{strategy:'canonical-right-ST',cycleDebt:best.cycleDebt,clearPolicy:'right-region full T-spin doubles and I tetrises only',verifiedLocks:best.path.length,tsdAt:tsdAt>=0?tsdAt+1:null,knownPieceHorizon:s.queue.length+1,rootEnumerationComplete:root.complete,budgetExhausted:stopped,informationBoundary:!best.state.active,initialSealed:initial.sealed,endpointSealed:best.assessment.sealed,regionalSupport:best.assessment.regionalSupport,channel:best.assessment.channel,endpointTEntry:best.assessment.right.entry?.status??'not-established',unresolvedObligations:best.assessment.obligations,structuralScore:best.structuralScore,structuralRank:best.rank,structure:best.assessment.structure,dependencyDebt:best.dependencyDebt,claim:'Finite executable prefix; endpoint estimates are not a sustainability guarantee.'},assessment:best.assessment};
 }
 // Keep a committed target through an exactly followed input, including HOLD.
 // The entire remaining prefix is replayed from the new observation, so a newly
 // revealed piece cannot silently preserve an obsolete proof.
 function advance(raw,previous,action){
+ if(previous?.evidence?.cycleDebt>0)return null;
  if(!previous?.target||action==='HD'||previous.witness?.[0]!==action)return null;
  let state;try{state=observe(raw);}catch{return null;}
  if(R.validate(state).length||(state.bag&&B.validate(state.bag).length))return null;
  const witness=previous.witness.slice(1);if(!witness.length)return null;
  const steps=previous.continuation.map((step,i)=>({...step,witness:i?step.witness:witness,hold:i?step.hold:witness.includes('HOLD')}));
  let current=state;for(const step of steps){const replay=R.replay(current,step.witness);
-  if(!replay.valid||replay.events.length!==1||JSON.stringify(replay.events[0])!==JSON.stringify(step.event))return null;
+  if(!replay.valid||replay.events.length!==1||!S.canonicalClear(replay.events[0])||JSON.stringify(replay.events[0])!==JSON.stringify(step.event))return null;
   current=replay.state;
  }
  return{...previous,revision:state.revision,context:context(state),witness,hold:witness.includes('HOLD'),continuation:steps,
@@ -216,9 +220,9 @@ function advance(raw,previous,action){
   evidence:{...previous.evidence,knownPieceHorizon:state.queue.length+1}};
 }
 function revalidate(raw,previous,options={}){
- let s;try{s=observe(raw);}catch{return null;}if(!previous?.target||context(s)!==previous.context||R.validate(s).length)return null;
+ let s;try{s=observe(raw);}catch{return null;}if(previous?.evidence?.cycleDebt>0||previous?.continuation?.some(p=>!S.canonicalClear(p.event)))return null;if(!previous?.target||context(s)!==previous.context||R.validate(s).length)return null;
  const enumeration=R.placements(s,{maxNodes:options.maxNodes??8000,deadline:options.deadline,now:options.now});
- const p=enumeration.placements.find(p=>p.hold===previous.hold&&JSON.stringify(p.target)===JSON.stringify(previous.target)&&p.event.spin===previous.continuation?.[0]?.event.spin&&p.event.lines===previous.continuation?.[0]?.event.lines);
+ const p=enumeration.placements.find(p=>S.canonicalClear(p.event)&&p.hold===previous.hold&&JSON.stringify(p.target)===JSON.stringify(previous.target)&&p.event.spin===previous.continuation?.[0]?.event.spin&&p.event.lines===previous.continuation?.[0]?.event.lines);
  if(!p)return null;return{...previous,revision:s.revision,witness:p.witness,continuation:[{...previous.continuation[0],target:p.target,hold:p.hold,witness:p.witness,event:p.event},...previous.continuation.slice(1)],metrics:{...previous.metrics,revalidationNodes:enumeration.visited},retained:true};
 }
 return Object.freeze({observe,assess,plan,revalidate,advance});
