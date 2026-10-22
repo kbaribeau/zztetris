@@ -19,10 +19,10 @@ The JSON records the raw file's SHA-256, including its final newline.
 Use this as an inspectable reference for recurring stack shapes, filler
 allocation, clear sequences and possible future regression examples. Compare
 specific positions with the source before turning them into independently
-reviewed fixtures or general advice. The current lab recognizes a narrower,
-right-sided set of immediate mechanisms; this replay includes other geometry
-and a triple. Mirroring a picture or reproducing a board does not establish
-reachable input paths, strategic usefulness or a correct advice rule.
+reviewed fixtures or general advice. See [ST-LAB.md](../../ST-LAB.md) for the
+current continuation contract; this replay includes other geometry and a triple.
+Mirroring a picture or reproducing a board does not establish reachable input
+paths, strategic usefulness or a correct advice rule.
 
 This data is not loaded by the runtime, a scripted lesson, an authored gameplay
 start, or a normative `STCore.advise()` oracle. It does not supply the lab's

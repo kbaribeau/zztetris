@@ -6,9 +6,15 @@
 (() => {
   const advisor=STCore.create(pieces,kicksets['SRS+']);
   const $id=id=>document.getElementById(id);
-  let cacheKey='', result=null;
+  let cacheKey='', result=null, job=null, preferredTarget=null, started=0, decisionWorkMs=0, workUnits=0;
+  const stats={decisions:0,cancelled:0,targetChurn:0,maxSliceMs:0,lastDecisionMs:0,lastWorkMs:0};
+  let lastTarget='';
   const lockedHeap=()=>board.map(row=>row.map(cell=>cell.t===1?'#':'.').join(''));
-  function clear() {cacheKey='';result=null;$id('st-target').replaceChildren();delete $id('st-target').dataset.drawing;}
+  function clear() {
+    if(job)stats.cancelled++;
+    cacheKey='';result=null;job=null;preferredTarget=null;
+    $id('st-target').replaceChildren();delete $id('st-target').dataset.drawing;
+  }
   // No phase/certificate sidecar: undo, imports, edits and ordinary locks all
   // receive the same fresh geometric analysis. Only visible preview enters it.
   function snapshot() {
@@ -17,13 +23,39 @@
       hold:holdP?{id:'hold',kind:holdP}:null,
       visibleNext:next?.map((kind,i)=>({id:'next-'+i,kind})),holdRule:'unlimited-swap',
       rules:{version:STCore.version,mode:'st-lab',kickset:kicks===kicksets['SRS+']?'SRS+':'unsupported',gravity:$id('grav').checked},
-      limits:{maxPoseStates:30000,maxLockStates:128,depth:2}};
+      limits:{...STCore.limits}};
   }
   function advice() {
     const input=snapshot(), key=JSON.stringify(input);
     if(key!==cacheKey) {
-      const preferredTarget=result?.kind==='target'?{kind:result.piece.kind,cells:result.cells}:null;
-      result=advisor.advise({...input,preferredTarget});cacheKey=key;
+      if(job)stats.cancelled++;
+      job=advisor.start({...input,preferredTarget});cacheKey=key;
+      result={kind:'pending',explanation:'Checking a three-lock ST continuation…'};
+      started=performance.now();decisionWorkMs=0;workUnits=0;stats.decisions++;
+    }
+    if(job) {
+      const begin=performance.now();
+      // A measured synchronous stress decision took 44 ms. Bound each frame by
+      // both work and elapsed time; no worker, hidden queue, or async callback.
+      for(let work=0;work<16384;work++) {
+        if(performance.now()-started>750) {
+          job=null;result={kind:'abstain',reason:'time-exhausted',explanation:'Analysis time limit reached; no verified decision. This is not impossibility.',diagnostics:{stopReason:'adapter-deadline',requestedHorizon:3,effectiveHorizon:0,workUnits}};break;
+        }
+        const next=job.next();workUnits++;
+        if(next.done){result=next.value;job=null;break;}
+        if(performance.now()-begin>=4)break;
+      }
+      const elapsed=performance.now()-begin;decisionWorkMs+=elapsed;
+      stats.maxSliceMs=Math.max(stats.maxSliceMs,elapsed);
+      if(!job) {
+        stats.lastDecisionMs=performance.now()-started;stats.lastWorkMs=decisionWorkMs;stats.lastWorkUnits=workUnits;
+        if(result.kind==='target') {
+          preferredTarget={kind:result.piece.kind,cells:result.cells};
+          const targetKey=JSON.stringify(preferredTarget);
+          if(lastTarget&&targetKey!==lastTarget)stats.targetChurn++;
+          lastTarget=targetKey;
+        } else preferredTarget=null;
+      }
     }
     return result;
   }
@@ -35,13 +67,14 @@
     const toggleLabel=`Advice ${enabled?'ON':'OFF'} · ${code || 'key conflicts; rebind in Game Settings'}`;
     if($id('st-toggle').textContent!==toggleLabel) $id('st-toggle').textContent=toggleLabel;
     if($id('st-toggle').getAttribute('aria-pressed')!==String(enabled)) $id('st-toggle').setAttribute('aria-pressed',String(enabled));
+    if(!enabled&&(cacheKey||job))clear();
     const answer=enabled?advice():null;
     let message;
     if(!enabled) message='Advice display off. Normal ghost and gameplay remain available.';
     else if(answer.kind==='target') {
       const prelude=answer.prelude.length===2 ? `HOLD TWICE · respawn ${answer.piece.kind}` : answer.prelude.length ? `HOLD FIRST · ${piece} → ${answer.piece.kind}` : `ACTIVE ${answer.piece.kind}`;
       message=`${prelude} · amber ST target for ${answer.piece.kind}. ${answer.explanation}`;
-      message+=answer.continuationVerified ? ` A following ${answer.continuation.piece.kind} scoring action is also verified with legal access in the visible preview/hold.` : ' Immediate action only; no following scoring action verified.';
+      // The explanation describes a finite route, not necessarily a next score.
     } else message=answer.explanation;
     if($id('st-status').textContent!==message) $id('st-status').textContent=message;
     const resultLabel=answer?.kind==='abstain'?answer.reason:answer?.kind || 'off';
@@ -83,5 +116,5 @@
     }
   },true);
   $id('grav').addEventListener('change',()=>{clear();render();});
-  window.stLab=Object.freeze({render,snapshot});
+  window.stLab=Object.freeze({render,snapshot,diagnostics:()=>JSON.parse(JSON.stringify({result,stats,pending:!!job}))});
 })();

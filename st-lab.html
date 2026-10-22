@@ -27,7 +27,7 @@
   <nav class="app-nav" aria-label="Main navigation"></nav>
   <header>
     <h1>ST free-play lab</h1>
-    <p>Build your own stack with normal pieces. Occasional right-side Z/T/I and Center pair-completion hints, not a move-by-move coach.</p>
+    <p>Continuation-engine playtest: one placement backed by three checked locks. Build your own stack with normal pieces; advice may abstain.</p>
   </header>
   <main>
     <div class="lab-field-scroll">
@@ -40,7 +40,7 @@
     <section class="lab-advice" aria-label="Strategy advice">
       <button class="button" id="st-toggle" aria-pressed="true">Advice ON · KeyA</button>
       <p id="st-status" role="status" aria-live="polite">Empty-board free play · build and maintain the stack yourself.</p>
-      <p class="lab-note">Temporary SRS+ / gravity off; saved normal-play preferences are unchanged. Advice honors your Training display choice. Limited SL/OJ/conditional LO completions; no pair starts, Left filler, opener or recovery guidance. Restart clears the board with normal pieces, not a supplied setup.</p>
+      <p class="lab-note">Temporary SRS+ / gravity off; saved normal-play preferences are unchanged. Right scoring only. Finite scoring-cycle, Center construction and repairable freestyle routes—not indefinite sustainability. Opening coverage is not implemented. Restart uses an empty board and normal pieces. See the <a href="docs/st-playtest.md">playtest examples and limits</a>.</p>
       <p class="lab-note">Amber inset dashes = ST destination · gray outline = current hard-drop ghost · filled color = active piece. HOLD FIRST targets belong to the named held/next piece, not the active piece. Advice never moves pieces for you.</p>
     </section>
     <details class="lab-options"><summary>Normal editing / practice controls</summary>
@@ -93,7 +93,7 @@
   </main>
   <footer>
     <p><a href="ST-LAB.md">Lab rules, sources and limitations</a> · <a href="https://github.com/swng/zztetris#readme">ZZTetris by swng and contributors</a> · <a href="LICENSE">MIT license</a></p>
-    <p>Source diagrams: <a href="https://harddrop.com/w/index.php?title=ST_Stacking&amp;oldid=37604">Hard Drop ST Stacking</a>; right-Z/T terminology: <a href="https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit">Shocky's ST Stacking Guide</a>. No continuous guidance or indefinite-ST guarantee.</p>
+    <p>Source diagrams: <a href="https://harddrop.com/w/index.php?title=ST_Stacking&amp;oldid=37604">Hard Drop ST Stacking</a>; right-Z/T terminology: <a href="https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit">Shocky's ST Stacking Guide</a>. Experimental branch; replacement remains a playtest decision. No indefinite-ST guarantee.</p>
   </footer>
 </body>
 </html>

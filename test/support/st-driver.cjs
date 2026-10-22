@@ -15,14 +15,18 @@ function arrange(g,rows,{active='T',hold='Z',next=['O','I','J','L','S','T']}={})
   w.board=rows.map(row=>[...row].map(c=>({t:c==='#'?1:0,c:c==='#'?'X':''})));
   w.queue=w.JSON.parse(JSON.stringify([active,...next,...'IOTJLSZ|IOTJLSZ|']));w.holdP=hold;w.held=false;w.lastAction='';
   w.newPiece();w.hist=[{board:JSON.stringify(w.board),queue:JSON.stringify(w.queue),hold:w.holdP,piece:w.piece}];w.histPos=0;
-  g.advance(16);
+  settle(g);
+}
+function settle(g) {
+  for(let i=0;i<60;i++) {g.advance(16);if(g.element('#st-status').dataset.result!=='pending')return;}
+  assert.fail('advisor did not finish within its adapter deadline');
 }
 function editPieces(g,{active,hold,next}) {
   const w=g.window,prompt=w.prompt;
   try {
     w.prompt=()=>hold;g.click('#h');
     w.clearActive();w.prompt=()=>[active,...next,...'IOTJLSZIOTJLSZ'].join('');g.click('#n');
-    g.advance(16);
+    settle(g);
   } finally {w.prompt=prompt;}
 }
 function replay(g,result) {
@@ -40,6 +44,6 @@ function replay(g,result) {
     } else if(['L','R','SD'].includes(action)) w.zzBot.move(action);
     else w.zzBot.rotate(action);
   }
-  g.advance(16);
+  settle(g);
 }
-module.exports={json,heap,core,input,fixture,arrange,editPieces,replay};
+module.exports={json,heap,core,input,fixture,arrange,editPieces,replay,settle};

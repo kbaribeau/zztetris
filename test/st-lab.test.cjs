@@ -2,11 +2,22 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const {withPage}=require('./support/page.cjs');
 const {settings,DEFAULT_CONFIG}=require('./support/pages.cjs');
-const {fixture,editPieces,input,core,replay,heap}=require('./support/st-driver.cjs');
+const {fixture,editPieces,input,core,replay,heap,settle}=require('./support/st-driver.cjs');
 const {fixtures}=require('./support/st-fixtures.cjs');
 const target=g=>g.element('#st-target');
 const reason=g=>g.element('#st-status').dataset.result;
-const refresh=g=>g.advance(16);
+const refresh=settle;
+const fresh=g=>{
+  refresh(g);const shown=g.window.stLab.diagnostics().result;
+  if(shown.kind==='target') {
+    const a=core(g).advise({...input(g),preferredTarget:{kind:shown.piece.kind,cells:shown.cells}});
+    assert.equal(a.kind,'target');assert.equal(JSON.stringify(a.cells),JSON.stringify(shown.cells));
+  } else {
+    // Revalidating a previous target can spend the shared budget differently
+    // from a fresh no-preference search. Either abstention must remove its SVG.
+    assert.equal(shown.kind,'abstain');assert.equal(target(g).children.length,0);
+  }
+};
 
 for(const gravity of [undefined,'true','false']) {
   test(`st-lab/entry/${gravity ?? 'absent'}: empty normal play, temporary rules, default-on`,()=>withPage('st-lab.html',{storage:settings(gravity===undefined?{}:{gravity})},g=>{
@@ -46,7 +57,7 @@ test('st-lab/toggle: display only, no repeat, persisted off; normal practice una
     assert.deepEqual(g.snapshot(),before);assert.deepEqual(g.storage(),{...saved,stGuideVisible:'false'});
     g.key('keydown','KeyA',true);g.key('keyup','KeyA');
     assert.equal(g.element('#st-toggle').getAttribute('aria-pressed'),'false');
-    g.click('#st-toggle');assert.equal(target(g).children.length,8);assert.deepEqual(g.snapshot(),before);
+    g.click('#st-toggle');refresh(g);assert.equal(target(g).children.length,8);assert.deepEqual(g.snapshot(),before);
     g.tap('KeyA');g.tap('KeyR');fixture(g);assert.equal(target(g).children.length,0);
     storage=g.storage();
   });
@@ -123,14 +134,14 @@ test('st-lab/history: hidden locks, undo/redo, filler and branches re-recognize 
   replay(g,planner.advise(input(g)));assert.deepEqual(heap(g),fixtures.cap.afterCap);
   const second=planner.advise(input(g));g.tap('KeyA');replay(g,second);
   assert.equal(target(g).children.length,0);
-  g.tap('KeyA');assert.equal(reason(g),'no-core-fit-found');
-  g.tap('KeyT');refresh(g);assert.equal(reason(g),'target');
-  g.tap('KeyY');refresh(g);assert.equal(reason(g),'no-core-fit-found');
+  const afterScore=heap(g);g.tap('KeyA');fresh(g);assert.deepEqual(heap(g),afterScore);
+  g.tap('KeyT');fresh(g);assert.equal(reason(g),'target');
+  g.tap('KeyY');fresh(g);assert.deepEqual(heap(g),afterScore);
   g.tap('KeyT');refresh(g);g.tap('Space');refresh(g); // harmless O filler, no assumed phase
-  assert.equal(reason(g),'target','filler may preserve the scoring geometry');
+  fresh(g); // Filler may now have a longer verified route, or honestly abstain.
   assert.notDeepEqual(heap(g),fixtures.cap.afterCap);
   g.tap('KeyT');refresh(g);assert.deepEqual(heap(g),fixtures.cap.afterCap);
-  replay(g,planner.advise(input(g)));assert.equal(reason(g),'no-core-fit-found');
+  replay(g,planner.advise(input(g)));fresh(g);
   assert.equal(g.window.hist.length,3);
 }));
 
@@ -151,7 +162,7 @@ test('st-lab/edits: drawing, garbage, mirror, shuffle, editors, imports and rese
   const w=g.window;
   fixture(g);
   g.element('#b').dispatchEvent(new w.MouseEvent('mousedown',{button:0,clientX:18+9*20+1,clientY:18+21*20+1,bubbles:true}));
-  refresh(g);assert.equal(reason(g),'no-core-fit-found');assert.equal(target(g).children.length,0);
+  fresh(g); // Drawing can invalidate the old cap yet leave another finite route.
   w.document.dispatchEvent(new w.MouseEvent('mouseup',{bubbles:true}));
   for(const action of ['garbage','mirror','fullMirror','shuffleQueue']) {
     fixture(g);w[action](0);refresh(g);
@@ -159,8 +170,8 @@ test('st-lab/edits: drawing, garbage, mirror, shuffle, editors, imports and rese
     if(action==='mirror'||action==='fullMirror')assert.equal(target(g).children.length,0);
     if(action==='garbage')assert.notDeepEqual(heap(g),fixtures.cap.before);
   }
-  fixture(g);w.prompt=()=> 'J';g.click('#h');refresh(g);assert.equal(reason(g),'no-core-fit-found');
-  w.prompt=()=> 'OZTISLJ';g.click('#n');refresh(g);assert.equal(w.piece,'O');assert.equal(reason(g),'no-core-fit-found');
+  fixture(g);w.prompt=()=> 'J';g.click('#h');fresh(g);
+  w.prompt=()=> 'OZTISLJ';g.click('#n');fresh(g);assert.equal(w.piece,'O');
   fixture(g);w.navigator.clipboard.readText=async()=> '_'.repeat(400);await w.importTetrio();refresh(g);
   assert.equal(reason(g),'no-core-fit-found');assert.equal(target(g).children.length,0);
   fixture(g);const empty=w.board.map(row=>row.map(()=>({t:0,c:''})));const fumen=w.encode(empty);
@@ -198,7 +209,7 @@ test('st-lab/unchanged frame: no DOM churn or repeated live-region announcements
 }));
 
 test('st-lab/abstention: no reset, fabricated target or queue/settings mutation',()=>withPage('st-lab.html',{storage:settings({gravity:'false'})},g=>{
-  fixture(g);editPieces(g,{active:'O',hold:'J',next:['Z','T','I','S','L','O']});const before=g.snapshot(),saved=g.storage();refresh(g);
+  g.tap('KeyR');editPieces(g,{active:'O',hold:'J',next:['Z','T','I','S','L','O']});const before=g.snapshot(),saved=g.storage();refresh(g);
   assert.equal(reason(g),'no-core-fit-found');assert.equal(target(g).children.length,0);
   assert.deepEqual(g.snapshot(),before);assert.deepEqual(g.storage(),saved);
   g.click('#grav');const edited=g.snapshot();refresh(g);

@@ -36,7 +36,11 @@ async function main() {
     const stream = run({ files: result.testFiles, concurrency: 1, timeout: 15000, signal: controller.signal });
     for (const outcome of ['pass', 'fail']) stream.on(`test:${outcome}`, data => {
       const file = path.relative(root, data.file || '');
-      result.cases.push({ id: data.name, file, seed: seedsByFile[file] ?? SEED,
+      // Closed-loop case IDs declare their independently seeded game realm.
+      const trialSeed = /^st-continuation\/held-out closed loop seed (\d+):/.exec(data.name)?.[1];
+      const seed = trialSeed === undefined ? seedsByFile[file] ?? SEED : Number(trialSeed);
+      if (!result.seeds.includes(seed)) result.seeds.push(seed);
+      result.cases.push({ id: data.name, file, seed,
         outcome: data.skip ? 'skip' : data.todo ? 'todo' : outcome,
         durationMs: data.details.duration_ms,
         ...(data.details.error ? { failure: inspect(data.details.error, { depth: 6 }) } : {}),
