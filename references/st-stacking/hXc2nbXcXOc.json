@@ -1,0 +1,2030 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "url": "https://www.youtube.com/watch?v=hXc2nbXcXOc",
+    "title": "[40 LINES] ST Stacking 21.309 seconds (5.26 PPS)",
+    "sourceDurationSeconds": 24.381,
+    "frameRate": 30,
+    "frameIndexing": "zero-based",
+    "games": 1,
+    "nonGameplay": "Opening and closing completion footage are excluded from placement pages."
+  },
+  "export": {
+    "format": "Fumen v115",
+    "file": "hXc2nbXcXOc.fumen",
+    "sha256": "971e6d8a5634b64027871880382ea4c814033454f4e10a414cc389dfb0d543d8",
+    "pages": 113,
+    "placements": 112,
+    "finalSnapshotPage": 113,
+    "clearedLines": 40,
+    "clearEvents": 17,
+    "clearEventsByLines": {
+      "2": 14,
+      "4": 3
+    },
+    "finalOccupiedCells": 48
+  },
+  "validation": {
+    "encoder": "Repository bundled tetris-fumen.js",
+    "exactEncodeDecodeRoundTrip": true,
+    "allFitSupportAndClearTransitionsChecked": true,
+    "allPlacementBoardsComparedWithVideo": true,
+    "finalGrayOccupancyMatches": true,
+    "independentPlacementHudCountsChecked": 111,
+    "independentClearEventHudChecks": 16,
+    "finalHudPlacements": 112,
+    "finalHudTimeSeconds": 21.309,
+    "maximumStackHeight": 15,
+    "noUnresolvedPlacements": true,
+    "editorUiVerified": false,
+    "method": "Assisted frame-to-board reconstruction. Post-placement colored boards are matched after the next piece spawns; final placement is checked before its clear and against the gray endpoint. Active/ghost pieces are excluded.",
+    "limitations": [
+      "Evidence timestamps are observation times, not exact lock/input times.",
+      "Hold/queue identities, movement inputs, kick paths and scoring classification are not encoded.",
+      "Canonical Fumen rotations may differ from equivalent symmetric input orientations.",
+      "Fit/support checks do not independently prove input reachability.",
+      "The viewer UI was not verified; the export was validated through decode and replay."
+    ]
+  },
+  "pages": [
+    {
+      "game": 1,
+      "page": 1,
+      "placement": 1,
+      "operation": {
+        "type": "I",
+        "rotation": "spawn",
+        "x": 1,
+        "y": 0
+      },
+      "observationFrame": 44,
+      "observationTimeSeconds": 1.466667,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 2,
+      "placement": 2,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 5,
+        "y": 0
+      },
+      "observationFrame": 47,
+      "observationTimeSeconds": 1.566667,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 3,
+      "placement": 3,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 3,
+        "y": 1
+      },
+      "observationFrame": 51,
+      "observationTimeSeconds": 1.7,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 4,
+      "placement": 4,
+      "operation": {
+        "type": "S",
+        "rotation": "spawn",
+        "x": 5,
+        "y": 2
+      },
+      "observationFrame": 55,
+      "observationTimeSeconds": 1.833333,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 5,
+      "placement": 5,
+      "operation": {
+        "type": "L",
+        "rotation": "reverse",
+        "x": 5,
+        "y": 4
+      },
+      "observationFrame": 59,
+      "observationTimeSeconds": 1.966667,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 6,
+      "placement": 6,
+      "operation": {
+        "type": "Z",
+        "rotation": "right",
+        "x": 8,
+        "y": 1
+      },
+      "observationFrame": 64,
+      "observationTimeSeconds": 2.133333,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 7,
+      "placement": 7,
+      "operation": {
+        "type": "T",
+        "rotation": "right",
+        "x": 1,
+        "y": 2
+      },
+      "observationFrame": 71,
+      "observationTimeSeconds": 2.366667,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 8,
+      "placement": 8,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 0,
+        "y": 3
+      },
+      "observationFrame": 76,
+      "observationTimeSeconds": 2.533333,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 9,
+      "placement": 9,
+      "operation": {
+        "type": "T",
+        "rotation": "left",
+        "x": 3,
+        "y": 3
+      },
+      "observationFrame": 80,
+      "observationTimeSeconds": 2.666667,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 10,
+      "placement": 10,
+      "operation": {
+        "type": "Z",
+        "rotation": "spawn",
+        "x": 1,
+        "y": 4
+      },
+      "observationFrame": 85,
+      "observationTimeSeconds": 2.833333,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 11,
+      "placement": 11,
+      "operation": {
+        "type": "S",
+        "rotation": "spawn",
+        "x": 5,
+        "y": 5
+      },
+      "observationFrame": 90,
+      "observationTimeSeconds": 3,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 12,
+      "placement": 12,
+      "operation": {
+        "type": "L",
+        "rotation": "reverse",
+        "x": 5,
+        "y": 7
+      },
+      "observationFrame": 94,
+      "observationTimeSeconds": 3.133333,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 13,
+      "placement": 13,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 2,
+        "y": 5
+      },
+      "observationFrame": 100,
+      "observationTimeSeconds": 3.333333,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 14,
+      "placement": 14,
+      "operation": {
+        "type": "J",
+        "rotation": "left",
+        "x": 1,
+        "y": 7
+      },
+      "observationFrame": 115,
+      "observationTimeSeconds": 3.833333,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 15,
+      "placement": 15,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 2,
+        "y": 7
+      },
+      "observationFrame": 123,
+      "observationTimeSeconds": 4.1,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 16,
+      "placement": 16,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 0,
+        "y": 9
+      },
+      "observationFrame": 128,
+      "observationTimeSeconds": 4.266667,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 17,
+      "placement": 17,
+      "operation": {
+        "type": "Z",
+        "rotation": "right",
+        "x": 5,
+        "y": 9
+      },
+      "observationFrame": 139,
+      "observationTimeSeconds": 4.633333,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 18,
+      "placement": 18,
+      "operation": {
+        "type": "L",
+        "rotation": "spawn",
+        "x": 2,
+        "y": 9
+      },
+      "observationFrame": 144,
+      "observationTimeSeconds": 4.8,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 19,
+      "placement": 19,
+      "operation": {
+        "type": "S",
+        "rotation": "spawn",
+        "x": 2,
+        "y": 10
+      },
+      "observationFrame": 151,
+      "observationTimeSeconds": 5.033333,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 20,
+      "placement": 20,
+      "operation": {
+        "type": "J",
+        "rotation": "right",
+        "x": 4,
+        "y": 9
+      },
+      "observationFrame": 154,
+      "observationTimeSeconds": 5.133333,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 21,
+      "placement": 21,
+      "operation": {
+        "type": "S",
+        "rotation": "spawn",
+        "x": 5,
+        "y": 11
+      },
+      "observationFrame": 159,
+      "observationTimeSeconds": 5.3,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 22,
+      "placement": 22,
+      "operation": {
+        "type": "L",
+        "rotation": "reverse",
+        "x": 5,
+        "y": 13
+      },
+      "observationFrame": 163,
+      "observationTimeSeconds": 5.433333,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 23,
+      "placement": 23,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 7,
+        "y": 2
+      },
+      "observationFrame": 170,
+      "observationTimeSeconds": 5.666667,
+      "clearedRows": [
+        1,
+        2
+      ],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 24,
+      "placement": 24,
+      "operation": {
+        "type": "Z",
+        "rotation": "right",
+        "x": 8,
+        "y": 2
+      },
+      "observationFrame": 175,
+      "observationTimeSeconds": 5.833333,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 25,
+      "placement": 25,
+      "operation": {
+        "type": "J",
+        "rotation": "left",
+        "x": 1,
+        "y": 10
+      },
+      "observationFrame": 180,
+      "observationTimeSeconds": 6,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 26,
+      "placement": 26,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 2,
+        "y": 10
+      },
+      "observationFrame": 186,
+      "observationTimeSeconds": 6.2,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 27,
+      "placement": 27,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 7,
+        "y": 3
+      },
+      "observationFrame": 194,
+      "observationTimeSeconds": 6.466667,
+      "clearedRows": [
+        2,
+        3
+      ],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 28,
+      "placement": 28,
+      "operation": {
+        "type": "S",
+        "rotation": "spawn",
+        "x": 5,
+        "y": 10
+      },
+      "observationFrame": 198,
+      "observationTimeSeconds": 6.6,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 29,
+      "placement": 29,
+      "operation": {
+        "type": "J",
+        "rotation": "right",
+        "x": 0,
+        "y": 9
+      },
+      "observationFrame": 203,
+      "observationTimeSeconds": 6.766667,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 30,
+      "placement": 30,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 2,
+        "y": 12
+      },
+      "observationFrame": 211,
+      "observationTimeSeconds": 7.033333,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 31,
+      "placement": 31,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 3,
+        "y": 12
+      },
+      "observationFrame": 216,
+      "observationTimeSeconds": 7.2,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 32,
+      "placement": 32,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 0,
+        "y": 11
+      },
+      "observationFrame": 221,
+      "observationTimeSeconds": 7.366667,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 33,
+      "placement": 33,
+      "operation": {
+        "type": "L",
+        "rotation": "reverse",
+        "x": 5,
+        "y": 12
+      },
+      "observationFrame": 225,
+      "observationTimeSeconds": 7.5,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 34,
+      "placement": 34,
+      "operation": {
+        "type": "Z",
+        "rotation": "right",
+        "x": 8,
+        "y": 3
+      },
+      "observationFrame": 230,
+      "observationTimeSeconds": 7.666667,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 35,
+      "placement": 35,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 7,
+        "y": 4
+      },
+      "observationFrame": 239,
+      "observationTimeSeconds": 7.966667,
+      "clearedRows": [
+        3,
+        4
+      ],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 36,
+      "placement": 36,
+      "operation": {
+        "type": "S",
+        "rotation": "spawn",
+        "x": 5,
+        "y": 11
+      },
+      "observationFrame": 243,
+      "observationTimeSeconds": 8.1,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 37,
+      "placement": 37,
+      "operation": {
+        "type": "L",
+        "rotation": "reverse",
+        "x": 5,
+        "y": 13
+      },
+      "observationFrame": 248,
+      "observationTimeSeconds": 8.266667,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 38,
+      "placement": 38,
+      "operation": {
+        "type": "Z",
+        "rotation": "right",
+        "x": 8,
+        "y": 4
+      },
+      "observationFrame": 253,
+      "observationTimeSeconds": 8.433333,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 39,
+      "placement": 39,
+      "operation": {
+        "type": "J",
+        "rotation": "left",
+        "x": 1,
+        "y": 12
+      },
+      "observationFrame": 258,
+      "observationTimeSeconds": 8.6,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 40,
+      "placement": 40,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 7,
+        "y": 5
+      },
+      "observationFrame": 264,
+      "observationTimeSeconds": 8.8,
+      "clearedRows": [
+        4,
+        5
+      ],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 41,
+      "placement": 41,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 2,
+        "y": 10
+      },
+      "observationFrame": 270,
+      "observationTimeSeconds": 9,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 42,
+      "placement": 42,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 9,
+        "y": 2
+      },
+      "observationFrame": 274,
+      "observationTimeSeconds": 9.133333,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 43,
+      "placement": 43,
+      "operation": {
+        "type": "J",
+        "rotation": "right",
+        "x": 0,
+        "y": 11
+      },
+      "observationFrame": 279,
+      "observationTimeSeconds": 9.3,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 44,
+      "placement": 44,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 7,
+        "y": 2
+      },
+      "observationFrame": 285,
+      "observationTimeSeconds": 9.5,
+      "clearedRows": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 45,
+      "placement": 45,
+      "operation": {
+        "type": "S",
+        "rotation": "spawn",
+        "x": 5,
+        "y": 8
+      },
+      "observationFrame": 290,
+      "observationTimeSeconds": 9.666667,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 46,
+      "placement": 46,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 2,
+        "y": 8
+      },
+      "observationFrame": 296,
+      "observationTimeSeconds": 9.866667,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 47,
+      "placement": 47,
+      "operation": {
+        "type": "Z",
+        "rotation": "right",
+        "x": 8,
+        "y": 1
+      },
+      "observationFrame": 312,
+      "observationTimeSeconds": 10.4,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 48,
+      "placement": 48,
+      "operation": {
+        "type": "L",
+        "rotation": "reverse",
+        "x": 5,
+        "y": 10
+      },
+      "observationFrame": 317,
+      "observationTimeSeconds": 10.566667,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 49,
+      "placement": 49,
+      "operation": {
+        "type": "S",
+        "rotation": "spawn",
+        "x": 5,
+        "y": 11
+      },
+      "observationFrame": 321,
+      "observationTimeSeconds": 10.7,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 50,
+      "placement": 50,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 0,
+        "y": 9
+      },
+      "observationFrame": 327,
+      "observationTimeSeconds": 10.9,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 51,
+      "placement": 51,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 7,
+        "y": 2
+      },
+      "observationFrame": 333,
+      "observationTimeSeconds": 11.1,
+      "clearedRows": [
+        1,
+        2
+      ],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 52,
+      "placement": 52,
+      "operation": {
+        "type": "L",
+        "rotation": "reverse",
+        "x": 5,
+        "y": 11
+      },
+      "observationFrame": 338,
+      "observationTimeSeconds": 11.266667,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 53,
+      "placement": 53,
+      "operation": {
+        "type": "J",
+        "rotation": "left",
+        "x": 3,
+        "y": 9
+      },
+      "observationFrame": 341,
+      "observationTimeSeconds": 11.366667,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 54,
+      "placement": 54,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 0,
+        "y": 11
+      },
+      "observationFrame": 347,
+      "observationTimeSeconds": 11.566667,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 55,
+      "placement": 55,
+      "operation": {
+        "type": "Z",
+        "rotation": "right",
+        "x": 8,
+        "y": 2
+      },
+      "observationFrame": 351,
+      "observationTimeSeconds": 11.7,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 56,
+      "placement": 56,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 1,
+        "y": 9
+      },
+      "observationFrame": 357,
+      "observationTimeSeconds": 11.9,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 57,
+      "placement": 57,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 7,
+        "y": 3
+      },
+      "observationFrame": 363,
+      "observationTimeSeconds": 12.1,
+      "clearedRows": [
+        2,
+        3
+      ],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 58,
+      "placement": 58,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 3,
+        "y": 11
+      },
+      "observationFrame": 369,
+      "observationTimeSeconds": 12.3,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 59,
+      "placement": 59,
+      "operation": {
+        "type": "S",
+        "rotation": "spawn",
+        "x": 5,
+        "y": 10
+      },
+      "observationFrame": 375,
+      "observationTimeSeconds": 12.5,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 60,
+      "placement": 60,
+      "operation": {
+        "type": "L",
+        "rotation": "reverse",
+        "x": 5,
+        "y": 12
+      },
+      "observationFrame": 379,
+      "observationTimeSeconds": 12.633333,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 61,
+      "placement": 61,
+      "operation": {
+        "type": "J",
+        "rotation": "left",
+        "x": 2,
+        "y": 10
+      },
+      "observationFrame": 384,
+      "observationTimeSeconds": 12.8,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 62,
+      "placement": 62,
+      "operation": {
+        "type": "Z",
+        "rotation": "right",
+        "x": 8,
+        "y": 3
+      },
+      "observationFrame": 388,
+      "observationTimeSeconds": 12.933333,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 63,
+      "placement": 63,
+      "operation": {
+        "type": "S",
+        "rotation": "right",
+        "x": 0,
+        "y": 11
+      },
+      "observationFrame": 393,
+      "observationTimeSeconds": 13.1,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 64,
+      "placement": 64,
+      "operation": {
+        "type": "L",
+        "rotation": "right",
+        "x": 1,
+        "y": 13
+      },
+      "observationFrame": 400,
+      "observationTimeSeconds": 13.333333,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 65,
+      "placement": 65,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 7,
+        "y": 4
+      },
+      "observationFrame": 407,
+      "observationTimeSeconds": 13.566667,
+      "clearedRows": [
+        3,
+        4
+      ],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 66,
+      "placement": 66,
+      "operation": {
+        "type": "J",
+        "rotation": "right",
+        "x": 0,
+        "y": 12
+      },
+      "observationFrame": 412,
+      "observationTimeSeconds": 13.733333,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 67,
+      "placement": 67,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 2,
+        "y": 11
+      },
+      "observationFrame": 418,
+      "observationTimeSeconds": 13.933333,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 68,
+      "placement": 68,
+      "operation": {
+        "type": "Z",
+        "rotation": "right",
+        "x": 8,
+        "y": 4
+      },
+      "observationFrame": 423,
+      "observationTimeSeconds": 14.1,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 69,
+      "placement": 69,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 7,
+        "y": 5
+      },
+      "observationFrame": 430,
+      "observationTimeSeconds": 14.333333,
+      "clearedRows": [
+        4,
+        5
+      ],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 70,
+      "placement": 70,
+      "operation": {
+        "type": "J",
+        "rotation": "left",
+        "x": 3,
+        "y": 12
+      },
+      "observationFrame": 435,
+      "observationTimeSeconds": 14.5,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 71,
+      "placement": 71,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 9,
+        "y": 2
+      },
+      "observationFrame": 440,
+      "observationTimeSeconds": 14.666667,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 72,
+      "placement": 72,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 7,
+        "y": 2
+      },
+      "observationFrame": 447,
+      "observationTimeSeconds": 14.9,
+      "clearedRows": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 73,
+      "placement": 73,
+      "operation": {
+        "type": "Z",
+        "rotation": "right",
+        "x": 8,
+        "y": 1
+      },
+      "observationFrame": 453,
+      "observationTimeSeconds": 15.1,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 74,
+      "placement": 74,
+      "operation": {
+        "type": "S",
+        "rotation": "spawn",
+        "x": 5,
+        "y": 5
+      },
+      "observationFrame": 459,
+      "observationTimeSeconds": 15.3,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 75,
+      "placement": 75,
+      "operation": {
+        "type": "L",
+        "rotation": "reverse",
+        "x": 5,
+        "y": 7
+      },
+      "observationFrame": 463,
+      "observationTimeSeconds": 15.433333,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 76,
+      "placement": 76,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 1,
+        "y": 8
+      },
+      "observationFrame": 468,
+      "observationTimeSeconds": 15.6,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 77,
+      "placement": 77,
+      "operation": {
+        "type": "S",
+        "rotation": "spawn",
+        "x": 5,
+        "y": 8
+      },
+      "observationFrame": 472,
+      "observationTimeSeconds": 15.733333,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 78,
+      "placement": 78,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 7,
+        "y": 2
+      },
+      "observationFrame": 479,
+      "observationTimeSeconds": 15.966667,
+      "clearedRows": [
+        1,
+        2
+      ],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 79,
+      "placement": 79,
+      "operation": {
+        "type": "J",
+        "rotation": "right",
+        "x": 0,
+        "y": 7
+      },
+      "observationFrame": 485,
+      "observationTimeSeconds": 16.166667,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 80,
+      "placement": 80,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 2,
+        "y": 8
+      },
+      "observationFrame": 490,
+      "observationTimeSeconds": 16.333333,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 81,
+      "placement": 81,
+      "operation": {
+        "type": "L",
+        "rotation": "reverse",
+        "x": 5,
+        "y": 8
+      },
+      "observationFrame": 495,
+      "observationTimeSeconds": 16.5,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 82,
+      "placement": 82,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 3,
+        "y": 12
+      },
+      "observationFrame": 500,
+      "observationTimeSeconds": 16.666667,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 83,
+      "placement": 83,
+      "operation": {
+        "type": "Z",
+        "rotation": "right",
+        "x": 8,
+        "y": 2
+      },
+      "observationFrame": 505,
+      "observationTimeSeconds": 16.833333,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 84,
+      "placement": 84,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 7,
+        "y": 3
+      },
+      "observationFrame": 511,
+      "observationTimeSeconds": 17.033333,
+      "clearedRows": [
+        2,
+        3
+      ],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 85,
+      "placement": 85,
+      "operation": {
+        "type": "S",
+        "rotation": "spawn",
+        "x": 5,
+        "y": 7
+      },
+      "observationFrame": 523,
+      "observationTimeSeconds": 17.433333,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 86,
+      "placement": 86,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 0,
+        "y": 7
+      },
+      "observationFrame": 529,
+      "observationTimeSeconds": 17.633333,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 87,
+      "placement": 87,
+      "operation": {
+        "type": "L",
+        "rotation": "reverse",
+        "x": 5,
+        "y": 9
+      },
+      "observationFrame": 533,
+      "observationTimeSeconds": 17.766667,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 88,
+      "placement": 88,
+      "operation": {
+        "type": "Z",
+        "rotation": "right",
+        "x": 8,
+        "y": 3
+      },
+      "observationFrame": 538,
+      "observationTimeSeconds": 17.933333,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 89,
+      "placement": 89,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 7,
+        "y": 4
+      },
+      "observationFrame": 547,
+      "observationTimeSeconds": 18.233333,
+      "clearedRows": [
+        3,
+        4
+      ],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 90,
+      "placement": 90,
+      "operation": {
+        "type": "J",
+        "rotation": "reverse",
+        "x": 1,
+        "y": 7
+      },
+      "observationFrame": 552,
+      "observationTimeSeconds": 18.4,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 91,
+      "placement": 91,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 9,
+        "y": 2
+      },
+      "observationFrame": 558,
+      "observationTimeSeconds": 18.6,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 92,
+      "placement": 92,
+      "operation": {
+        "type": "S",
+        "rotation": "spawn",
+        "x": 5,
+        "y": 8
+      },
+      "observationFrame": 562,
+      "observationTimeSeconds": 18.733333,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 93,
+      "placement": 93,
+      "operation": {
+        "type": "L",
+        "rotation": "reverse",
+        "x": 5,
+        "y": 10
+      },
+      "observationFrame": 567,
+      "observationTimeSeconds": 18.9,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 94,
+      "placement": 94,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 1,
+        "y": 8
+      },
+      "observationFrame": 572,
+      "observationTimeSeconds": 19.066667,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 95,
+      "placement": 95,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 0,
+        "y": 10
+      },
+      "observationFrame": 578,
+      "observationTimeSeconds": 19.266667,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 96,
+      "placement": 96,
+      "operation": {
+        "type": "J",
+        "rotation": "spawn",
+        "x": 2,
+        "y": 10
+      },
+      "observationFrame": 583,
+      "observationTimeSeconds": 19.433333,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 97,
+      "placement": 97,
+      "operation": {
+        "type": "Z",
+        "rotation": "right",
+        "x": 8,
+        "y": 4
+      },
+      "observationFrame": 587,
+      "observationTimeSeconds": 19.566667,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 98,
+      "placement": 98,
+      "operation": {
+        "type": "S",
+        "rotation": "spawn",
+        "x": 5,
+        "y": 11
+      },
+      "observationFrame": 593,
+      "observationTimeSeconds": 19.766667,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 99,
+      "placement": 99,
+      "operation": {
+        "type": "L",
+        "rotation": "reverse",
+        "x": 5,
+        "y": 13
+      },
+      "observationFrame": 598,
+      "observationTimeSeconds": 19.933333,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 100,
+      "placement": 100,
+      "operation": {
+        "type": "J",
+        "rotation": "left",
+        "x": 3,
+        "y": 12
+      },
+      "observationFrame": 603,
+      "observationTimeSeconds": 20.1,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 101,
+      "placement": 101,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 7,
+        "y": 5
+      },
+      "observationFrame": 610,
+      "observationTimeSeconds": 20.333333,
+      "clearedRows": [
+        4,
+        5
+      ],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 102,
+      "placement": 102,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 7,
+        "y": 2
+      },
+      "observationFrame": 616,
+      "observationTimeSeconds": 20.533333,
+      "clearedRows": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 103,
+      "placement": 103,
+      "operation": {
+        "type": "Z",
+        "rotation": "right",
+        "x": 8,
+        "y": 1
+      },
+      "observationFrame": 620,
+      "observationTimeSeconds": 20.666667,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 104,
+      "placement": 104,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 1,
+        "y": 6
+      },
+      "observationFrame": 625,
+      "observationTimeSeconds": 20.833333,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 105,
+      "placement": 105,
+      "operation": {
+        "type": "J",
+        "rotation": "right",
+        "x": 0,
+        "y": 7
+      },
+      "observationFrame": 630,
+      "observationTimeSeconds": 21,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 106,
+      "placement": 106,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 7,
+        "y": 2
+      },
+      "observationFrame": 637,
+      "observationTimeSeconds": 21.233333,
+      "clearedRows": [
+        1,
+        2
+      ],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 107,
+      "placement": 107,
+      "operation": {
+        "type": "L",
+        "rotation": "right",
+        "x": 2,
+        "y": 7
+      },
+      "observationFrame": 644,
+      "observationTimeSeconds": 21.466667,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 108,
+      "placement": 108,
+      "operation": {
+        "type": "S",
+        "rotation": "spawn",
+        "x": 5,
+        "y": 6
+      },
+      "observationFrame": 648,
+      "observationTimeSeconds": 21.6,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 109,
+      "placement": 109,
+      "operation": {
+        "type": "O",
+        "rotation": "spawn",
+        "x": 3,
+        "y": 7
+      },
+      "observationFrame": 653,
+      "observationTimeSeconds": 21.766667,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 110,
+      "placement": 110,
+      "operation": {
+        "type": "I",
+        "rotation": "right",
+        "x": 0,
+        "y": 9
+      },
+      "observationFrame": 661,
+      "observationTimeSeconds": 22.033333,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 111,
+      "placement": 111,
+      "operation": {
+        "type": "Z",
+        "rotation": "right",
+        "x": 8,
+        "y": 2
+      },
+      "observationFrame": 666,
+      "observationTimeSeconds": 22.2,
+      "clearedRows": [],
+      "evidencePhase": "post-placement"
+    },
+    {
+      "game": 1,
+      "page": 112,
+      "placement": 112,
+      "operation": {
+        "type": "T",
+        "rotation": "reverse",
+        "x": 7,
+        "y": 3
+      },
+      "observationFrame": 677,
+      "observationTimeSeconds": 22.566667,
+      "clearedRows": [
+        2,
+        3
+      ],
+      "evidencePhase": "pre-clear"
+    }
+  ],
+  "finalBoard": [
+    [
+      3,
+      3,
+      6,
+      1,
+      2,
+      7,
+      7,
+      0,
+      4,
+      0
+    ],
+    [
+      1,
+      3,
+      3,
+      1,
+      2,
+      7,
+      7,
+      0,
+      4,
+      0
+    ],
+    [
+      6,
+      3,
+      3,
+      6,
+      2,
+      7,
+      7,
+      0,
+      0,
+      0
+    ],
+    [
+      6,
+      3,
+      3,
+      6,
+      2,
+      2,
+      2,
+      0,
+      0,
+      0
+    ],
+    [
+      6,
+      6,
+      2,
+      2,
+      7,
+      7,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      1,
+      0,
+      2,
+      3,
+      3,
+      7,
+      7,
+      0,
+      0,
+      0
+    ],
+    [
+      1,
+      0,
+      2,
+      3,
+      3,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ]
+}
