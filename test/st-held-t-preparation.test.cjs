@@ -54,3 +54,43 @@ test('old broken marathon rollout retains cleanup-order mechanics but no longer 
  assert.ok(S.transition(s,{...z,availableCleanupPreparation:true}).cycleViolations.includes('capped-before-available-cleanup-I'));
  assert.equal(S.transition(s,{...i,availableCleanupPreparation:true}).cycleViolations.includes('capped-before-available-cleanup-I'),false);
 });
+
+const delayed=require('./support/st-user-delayed-cap-t.json');
+for(const timed of [false,true])test(`visible filler prefix preserves a real T until the Z cap (${timed?'750ms':'full'})`,()=>{
+ const a=P.plan(delayed,timed?{timeMs:750}:{});
+ assert.ok(a.target,a.reason);assert.equal(a.evidence.preparationProof.kind,'visible-prefix-Z-saved-T');
+ assert.equal(a.evidence.preparationProof.locks,5);assert.equal(a.continuation.length,5);
+ let state=R.createState(delayed),notches=S.notchPattern(state.board);
+ for(const [i,p] of a.continuation.entries()){
+  const replay=R.replay(state,p.witness);assert.ok(replay.valid);assert.deepEqual(replay.events,[p.event]);
+  const check=S.advanceNotches(state.board,{event:p.event,state:replay.state},notches);assert.ok(check.valid);notches=check.pattern;
+  assert.ok(S.canonicalClear(p.event));if(i<4)assert.notEqual(p.event.type,'T');state=replay.state;
+ }
+ assert.equal(a.continuation[3].structuralEvidence.allocation,'right-cap-preparation');
+ assert.equal(a.continuation[4].event.type,'T');assert.equal(a.continuation[4].event.spin,'full');assert.equal(a.continuation[4].event.lines,2);
+ assert.ok(P.assess(state.board).maxHeight<=14);assert.ok(a.metrics.nodes<=45000);
+ assert.ok(!a.continuation.some(p=>p.event.type==='I'&&p.event.cells.every(([x])=>x===9)),'this phase must not put I into the future Z cap');
+ const moved=R.move(R.createState(delayed),a.witness[0]),advanced=P.advance(moved,a,a.witness[0]);assert.ok(advanced);assert.equal(advanced.continuation.length,5);
+ assert.equal(P.advance({...moved,queue:['J',...moved.queue.slice(1)]},a,a.witness[0]),null);
+});
+test('delayed cap proof cannot invent a missing visible T or Z',()=>{
+ for(const queue of [['O','J','Z','I','S','L'],['O','T','J','I','S','L']]){
+  const a=P.plan({...delayed,queue});assert.equal(a.evidence?.preparationProof??null,null);
+ }
+});
+test('delayed cap proof requires permitted hold and a sufficient requested horizon',()=>{
+ for(const options of [{allowHold:false},{depth:2}]){const a=P.plan(delayed,options);assert.equal(a.evidence?.preparationProof??null,null);}
+});
+test('interrupted delayed cap proof never spends T in its returned prefix or claims success',()=>{
+ const root=R.placements(R.createState(delayed));const a=P.plan(delayed,{maxNodes:root.visited+1});
+ assert.equal(a.evidence?.preparationProof??null,null);assert.ok(a.metrics.nodes<=root.visited+1);
+ assert.ok(a.continuation.every(p=>p.event.type!=='T'||p.event.lines===2));
+});
+test('existing o-filler lock21 keeps its stronger equally long prefix without spending the saved T',()=>{
+ // Existing accepted 36-lock trace, not a new unseen generalization position.
+ const s=require('./support/st-existing-cap-proof-tie.json'),a=P.plan(s);
+ assert.equal(a.target.type,'O');assert.ok(a.continuation[0].event.cells.every(([x])=>x<4));
+ assert.equal(a.continuation[1].event.type,'Z');assert.ok(a.continuation.every(p=>p.event.type!=='T'||p.event.lines===2));
+ let state=R.createState(s);for(const p of a.continuation){const r=R.replay(state,p.witness);assert.ok(r.valid);assert.deepEqual(r.events,[p.event]);state=r.state;}
+ assert.equal(state.hold,'T');assert.equal(a.evidence.preparationProof,null,'a different safe prefix must not inherit an unrelated proof');
+});

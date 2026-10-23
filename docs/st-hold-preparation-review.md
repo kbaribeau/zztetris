@@ -31,3 +31,50 @@ Independent comparison against local baseline `7f260ec` (published equivalent tr
 All three reach 36 locks without invalid witnesses or noncanonical clears. They are finite development evidence, not an indefinite-play guarantee. An independent enumeration audit replayed 2,326 v2 placements across the 27 starts, including 156 two-hold outcomes, with matching states and unchanged bag evidence during swaps. Tests cover both old and practice profiles, full and 750 ms planning, proof interruption, stale advice, UI hold buttons/keyboard, migrations, and the prior center-L regression.
 
 For reproducible practice-profile rollouts, `closedLoop` in `scripts/evaluate-st.cjs` accepts `{practice:true}`. It defaults to the original legacy fixture profile so historical evaluation provenance remains explicit. Run the full `npm test` suite on the pinned Node version; the clean-commit artifact manifest is the authoritative run record. Real browser rendering and subjective playtest acceptance remain separate.
+
+## Visible filler prefix extension (2026-10-23)
+
+The preparation proof also handles a T arriving before a near, visible Z while
+other pieces still need placement. It searches at most six locks with a four-node
+beam, sharing the normal 45,000-node budget and deadline. It starts only in a
+recognized cap-rebuild phase, with a visible T before Z (Z at most three preview
+positions ahead). This bound is a deliberately incomplete event search, not a
+claim that other sequences are impossible.
+
+Every intermediate placement uses the actual active pose, hold rules and supplied
+queue. It must preserve canonical clears, cycle obligations and future scoring
+notches. The terminal event is an actual Z cap followed by an actually held T's
+replayed full double. The direct cap step has active Z and occupied held T, so no
+I is immediately available through hold; earlier I placements still receive the
+ordinary cleanup-order checks. No unseen piece is invented.
+
+Between equally proved routes, the immediate structural band takes precedence
+over endpoint estimates, preserving a stronger supported first step without an
+automatic center-piece rule. Once proved, the prefix survives ordinary shallow
+beam pruning. T filler is
+excluded until that T scores, not indefinitely after it scores. An interrupted
+proof does not earn preparation evidence or authorize conflicting T filler.
+Preparation evidence is attached only when the returned continuation is the proved
+prefix. If no bounded proof is found, no general T ban is inferred.
+
+The supplied moved-L snapshot (`st-user-delayed-cap-t.json`) now has a five-lock
+witness: hold L, I in column four, O on the left, recover L to complete the center,
+Z cap, and the saved T double. (The hold itself is not a lock.) This finishes at
+height 13 rather than spending the T on the left before Z arrives. I in column ten
+would overlap the required Z cap here and is not an eligible cleanup preparation.
+The recommendation does not assert that this is the globally optimal route.
+
+The earlier S/L reservoir snapshot keeps its accepted L-center first move, now
+with a four-lock L/I/Z/T proof and height 12. Its independent reservoir-credit
+assertions run with hold disabled, preserving the exact earlier counterfactual
+geometry checks without requiring the obsolete T-filler continuation.
+
+Combined validation with notch-compatible center completion evidence preserves all
+27 existing first recommendations. The three explicit-v2 36-lock runs finish with
+5/0/13 (o-filler), 4/0/17 (marathon-rebuild), and 5/0/16
+(marathon-preparation), expressed as TSDs/quads/ending height. Compared with the
+accepted pre-change baseline only rebuild's final height changes, from 18 to 17.
+All 108 locks replay canonically without inherited-notch or fresh-phase mismatch.
+The known o-filler lock-21 position is retained as a regression: an equally long
+ordinary prefix may remain preferable to the first found constructive proof, but
+must preserve its T and must not claim that different proof as its own evidence.

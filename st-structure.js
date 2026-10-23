@@ -19,7 +19,7 @@ function sealed(board,cols){const top=Math.max(0,39-Math.max(...heights(board)))
  let n=0;for(const x of cols)for(let y=top;y<40;y++)if(board[y][x]==='.'&&!seen[y*10+x])n++;return n;}
 // Straight-drop witnesses from a hypothetical fresh piece. The actual active
 // pose and the order in which this piece becomes available are checked by search.
-function completions(board,lo,hi,pieces){const h0=heights(board),protectedCols=lo===4?[4,5]:[0,1,2,3],out=[],seen=new Set();
+function completions(board,lo,hi,pieces,notches){const h0=heights(board),protectedCols=lo===4?[4,5]:[0,1,2,3],out=[],seen=new Set();
  for(const piece of pieces)for(let rotation=0;rotation<4;rotation++){
   const offsets=R.cells({type:piece,x:0,y:0,rotation}),minX=Math.min(...offsets.map(c=>c[0])),maxX=Math.max(...offsets.map(c=>c[0]));
   for(let x=lo-minX;x<=hi-maxX;x++){
@@ -44,6 +44,10 @@ function completions(board,lo,hi,pieces){const h0=heights(board),protectedCols=l
    while(state.active.x!==x){const action=state.active.x>x?'L':'R',n=R.move(state,action);if(n===state)break;state=n;witness.push(action);}
    if(state.active.x!==x)continue;const n=R.move(state,'HD'),e=n.lastEvent;
    if(!e||e.lines||e.topOut||e.target.rotation!==rotation||e.target.x!==x||e.target.y!==y)continue;
+   // A geometrically legal partner is not ST support if it fills a reserved
+   // notch. Execute the advertised witness and inherit the caller's cycle phase.
+   if(lo===4){const replay=R.replay(R.createState({board,active:piece,canHold:false}),[...witness,'HD']);
+    if(!replay.valid||replay.events.length!==1||!canonicalClear(replay.events[0])||!advanceNotches(board,{event:replay.events[0],state:replay.state},notches).valid)continue;}
    seen.add(key);out.push({piece,family:null,target:e.target,cells:e.cells,witness:[...witness,'HD'],access:'hypothetical-spawn-straight-drop',resultProfile:h.slice(lo,hi+1),resultStatus:level?'level':partialRepair?'partial-repair':'SL-preparation-surface',patternSupport:lo!==4?null:CENTER_MOTIFS.has(centerMotif(n.board))?'reference-supported':'unrecognized',preserveCells:e.cells.map(c=>c.slice())});
   }
  }return out;
@@ -162,9 +166,12 @@ function advanceNotches(before,p,inherited){
  const pattern=surviving.length?notchRows(p.state.board,Math.max(...surviving),'translated-established-cycle'):notchPattern(p.state.board);
  return {valid:!blockedCells.length&&pattern.status!=='broken',violation:blockedCells.length?'filled-protected-column-seven-notch':pattern.status==='broken'?'column-seven-notch-blocked':null,pattern,blockedCells};
 }
-function geometry(board){const key=board.map(r=>r.replace(/[IJLOSTZX#]/g,'#')).join('');if(cache.has(key))return cache.get(key);
+function geometry(board,options={}){const notches=options.notches??notchPattern(board);
+ // Identical occupancy can carry a different translated scoring phase. Never
+ // reuse partner evidence from another phase (or from an unanchored board).
+ const key=board.map(r=>r.replace(/[IJLOSTZX#]/g,'#')).join('')+JSON.stringify([notches.status,notches.anchorRow,notches.protectedRows,notches.blockedRows]);if(cache.has(key))return cache.get(key);
  const h=heights(board),left=h.slice(0,4),center=h.slice(4,7),right=h.slice(7),flatLeft=new Set(left).size===1,flatCenter=new Set(center).size===1;
- const centerCompletions=flatCenter?[]:completions(board,4,6,'SLOJZ');
+ const centerCompletions=flatCenter?[]:completions(board,4,6,'SLOJZ',notches);
  const leftCompletions=flatLeft?[]:completions(board,0,3,'IJLOSTZ');
  const centerInternal=sealed(board,[4,5,6]);const leftInternal=covered(board,[0,1,2,3]);
  const [channel,pedestal,cap]=right,cycle=rightCycle(board,h);
@@ -192,7 +199,7 @@ function allocate(obligations,supply){
  const conflicts=[];for(let i=0;i<obligations.length;i++)for(let j=i+1;j<obligations.length;j++){const a=supply.filter(p=>obligations[i].alternatives.includes(p.piece)),b=supply.filter(p=>obligations[j].alternatives.includes(p.piece));if(a.length&&b.length&&new Set([...a,...b].map(p=>p.id)).size<2)conflicts.push({obligations:[obligations[i].kind,obligations[j].kind],instances:[...new Set([...a,...b].map(p=>p.id))]});}
  return{assignments:best,conflicts,matched:best.length,priorityScore:bestScore,arrivalEstimate:bestDelay,timing:'Distinct instances, essential-role priority and arrival estimates; execution still requires search.'};
 }
-function assess(stateOrBoard){const state=Array.isArray(stateOrBoard)?{board:stateOrBoard}:stateOrBoard,g=clone(geometry(state.board)),obligations=[];
+function assess(stateOrBoard,options={}){const state=Array.isArray(stateOrBoard)?{board:stateOrBoard}:stateOrBoard,g=clone(geometry(state.board,options)),obligations=[];
  if(g.center.completions.length)obligations.push({kind:'center-partner',alternatives:[...new Set(g.center.completions.map(c=>c.piece))],completions:g.center.completions,note:'Exact straight-drop completion of the current center surface; keep completion cells free.'});
  if(!g.left.flat&&g.left.completions.length)obligations.push({kind:'left-surface',alternatives:[...new Set(g.left.completions.map(c=>c.piece))],completions:g.left.completions,note:'Optional left-surface improvement, not a mandatory immediate fill.'});
  if(g.right.shapeStatus==='staggered-scoring-wall')obligations.push({kind:'scoring-cycle',alternatives:['T'],completions:[],note:'Normal scoring-wall shape; actual T-spin entry and line completion require execution verification.'});
@@ -207,7 +214,7 @@ function assess(stateOrBoard){const state=Array.isArray(stateOrBoard)?{board:sta
  const center=obligations.find(o=>o.kind==='center-partner'),supplyBurden=!center?0:!center.supply.length?2:center.supply.some(p=>p.source==='active'||p.source==='hold')?0:center.supply.some(p=>p.source==='visible')?0.5:1;
  return{...g,capSupplyBurden,centerCompletionDebt:g.center.completionDebt,supplyBurden,obligations,supply:{instances:supply,...allocation,conflictCount:allocation.conflicts.length},supportEstimate:g.supportEstimate-allocation.conflicts.length*3-supplyBurden-capSupplyBurden,claim:'Local regional support estimate, not a sustainability guarantee.'};
 }
-function transition(before,p,afterStructure){const cells=p.event.cells,regions=[...new Set(cells.map(([x])=>x<4?'left':x<7?'center':'right'))],after=afterStructure||geometry(p.state.board),prior=geometry(before.board);let allocation='unrecognized-role',debt=0;
+function transition(before,p,afterStructure,options={}){const beforeNotches=options.notches??notchPattern(before.board),afterNotches=advanceNotches(before.board,p,beforeNotches).pattern;const cells=p.event.cells,regions=[...new Set(cells.map(([x])=>x<4?'left':x<7?'center':'right'))],after=afterStructure||geometry(p.state.board,{notches:afterNotches}),prior=geometry(before.board,{notches:beforeNotches});let allocation='unrecognized-role',debt=0;
  const pure=regions.length===1?regions[0]:null,type=p.event.type;
  if(p.event.spin==='full'&&p.event.lines===2){allocation='scoring-double';}
  else if(type==='I'&&p.event.lines===4){allocation='quad-cleanup';}

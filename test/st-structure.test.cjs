@@ -35,12 +35,17 @@ test('all existing fixture assessments expose finite estimates and bounded, hone
  for(const f of F.list){const a=S.assess(f.observation);assert.ok(Number.isFinite(a.supportEstimate));assert.ok(Number.isFinite(a.center.completionDebt));assert.ok(Number.isFinite(a.supply.conflictCount));assert.match(a.claim,/not a sustainability guarantee/);if(a.center.patternSupport==='unrecognized')assert.equal(a.uncertainty,true);}
  assert.equal(S.assess(state('o-rebuild')).right.shapeStatus,'cap-preparation');
 });
-test('existing late held double can rebuild with a checked J then O center pair',()=>{
+test('late held J/O stays physically executable but its blocked notch cannot supply ST partner evidence',()=>{
  const s=state('late-held-double'),t=R.placements(s).placements.find(p=>p.event.spin==='full'&&p.event.lines===2);
+ const phase=S.advanceNotches(s.board,t).pattern;
  const j=R.placements(t.state).placements.find(p=>JSON.stringify(p.witness)===JSON.stringify(['R','R','CCW','HD']));assert.ok(j);
- const a=S.assess(j.state),o=a.center.completions.find(c=>c.piece==='O');assert.ok(o);
- let n=R.createState({board:j.state.board,active:'O',canHold:false});for(const action of o.witness)n=R.move(n,action);
- const transition=S.transition(j.state,{state:n,event:n.lastEvent});assert.equal(transition.pairFamily,null,'a finishing O alone does not establish an ordered pair history');assert.equal(transition.allocation,'center-completion');
+ const check=S.advanceNotches(t.state.board,j,phase);assert.equal(check.valid,false);assert.deepEqual(check.blockedCells,[[6,28]]);
+ assert.equal(S.assess(j.state,{notches:check.pattern}).center.completions.some(c=>c.piece==='O'),false);
+ // Preserve the old physical-geometry coverage without calling it ST support.
+ const replay=R.replay(R.createState({board:j.state.board,active:'O',canHold:false}),['HD']);assert.equal(replay.valid,true);
+ const n=replay.state,transition=S.transition(j.state,{state:n,event:replay.events[0]},undefined,{notches:check.pattern});
+ assert.equal(transition.pairFamily,null);assert.equal(transition.allocation,'center-completion','physical level completion is not notch-valid ST evidence');
+ assert.equal(S.advanceNotches(j.state.board,{state:n,event:replay.events[0]},check.pattern).valid,false);
  assert.equal(S.assess(n).center.status,'level');assert.equal(S.assess(n).center.sealedVoids,0);assert.ok(S.assess(n).center.coveredCavities>0);
 });
 test('existing quad rebuild exposes SL family and grades unknown partner supply instead of rejecting it',()=>{
@@ -48,11 +53,16 @@ test('existing quad rebuild exposes SL family and grades unknown partner supply 
  assert.equal(S.transition(s,p).pairFamily,'SL');const known=S.assess(p.state),unknown=S.assess({...p.state,active:null,hold:null,queue:[],bag:null});
  assert.ok(unknown.supplyBurden>known.supplyBurden);assert.equal(unknown.center.status,known.center.status);
 });
-test('the other existing late-held J/O route finishes into a supported SL-ready surface',()=>{
+test('alternate late-held J/O retains SL-ready geometry but not evidence through an already blocked notch',()=>{
  const s=state('late-held-double'),t=R.placements(s).placements.find(p=>p.event.spin==='full'&&p.event.lines===2),j=R.placements(t.state).placements.find(p=>JSON.stringify(p.witness)===JSON.stringify(['R','HD']));
- const completion=S.assess(j.state).center.completions.find(c=>c.piece==='O');assert.ok(completion);assert.equal(completion.resultStatus,'SL-preparation-surface');
- let n=R.createState({board:j.state.board,active:'O',canHold:false});for(const action of completion.witness)n=R.move(n,action);
- assert.equal(S.transition(t.state,j).pairFamily,null,'J then O must not be mislabeled as common O then J');assert.equal(S.assess(n).center.sealedVoids,0);assert.ok(S.assess(n).center.completions.some(c=>c.piece==='L'));
+ const check=S.advanceNotches(t.state.board,j,S.advanceNotches(s.board,t).pattern);assert.equal(check.valid,false);assert.deepEqual(check.blockedCells,[[6,28]]);
+ assert.equal(S.assess(j.state,{notches:check.pattern}).center.completions.some(c=>c.piece==='O'),false);
+ const replay=R.replay(R.createState({board:j.state.board,active:'O',canHold:false}),['R','HD']);assert.equal(replay.valid,true);
+ const n=replay.state;assert.deepEqual(S.assess(n).center.profile,[13,14,14]);assert.equal(S.assess(n).center.sealedVoids,0);
+ assert.equal(S.transition(t.state,j).pairFamily,null,'J then O must not be mislabeled as common O then J');
+ assert.equal(S.assess(n,{notches:check.pattern}).center.completions.length,0);
+ // Its old hypothetical L is legal geometry too, not permission to ignore the broken phase.
+ const l=R.replay(R.createState({board:n.board,active:'L',canHold:false}),['R180','R','HD']);assert.equal(l.valid,true);assert.equal(S.assess(l.state).center.status,'level');
 });
 test('existing I-via-hold deep left deficit has a witnessed partial I repair without new cover',()=>{
  const s=state('i-via-hold'),before=S.assess(s),repair=before.left.completions.find(c=>c.piece==='I'&&c.resultStatus==='partial-repair');assert.ok(repair);
@@ -98,9 +108,10 @@ test('existing cap rebuild does not call an arbitrary right Z a completed cap',(
  const t=S.transition(s,wrong);assert.equal(t.allocation,'unrecognized-role');assert.ok(t.opportunityCost>0);
 });
 test('all four ordered center families have replayed geometry in already-existing starts',()=>{
- for(const[id,actions,family]of[['o-filler',['HD'],'OJ'],['empty-hold',['HOLD','R','HD'],'SL'],['left-l',['CW','HD'],'LO'],['cap-rebuild',['R','HD'],'ZJ']]){
+ for(const[id,actions,family]of[['o-filler',['HD'],'OJ'],['empty-hold',['HOLD','R','HD'],'SL'],['after-quad',['HOLD','CW','HD'],'LO'],['cap-rebuild',['R','CW','HD'],'ZJ']]){
   const s=state(id),first=R.replay(s,actions);assert.equal(first.valid,true);const t=S.transition(s,{state:first.state,event:first.events[0]});assert.equal(t.pairFamily,family);
-  const c=t.pairProgress.completion,finish=R.replay(R.createState({board:first.state.board,active:c.piece,canHold:false}),c.witness);assert.equal(finish.valid,true);assert.deepEqual(finish.events[0].cells,c.cells);assert.equal(S.geometry(finish.state.board).center.status,'level');
+  const firstPhase=S.advanceNotches(s.board,{state:first.state,event:first.events[0]});assert.equal(firstPhase.valid,true);
+  const c=t.pairProgress.completion,finish=R.replay(R.createState({board:first.state.board,active:c.piece,canHold:false}),c.witness);assert.equal(finish.valid,true);assert.deepEqual(finish.events[0].cells,c.cells);assert.equal(S.advanceNotches(first.state.board,{state:finish.state,event:finish.events[0]},firstPhase.pattern).valid,true);assert.equal(S.geometry(finish.state.board).center.status,'level');
  }
 });
 
@@ -111,4 +122,19 @@ test('existing alternate J/O left-fill mechanics remain available after the Z ca
   assert.equal(replay.events[0].type,['Z','J','O'][i]);assert.ok(replay.events[0].cells.every(([x])=>i===0?x>=8:x<4));n=replay.state;
  }
  assert.equal(R.tDoubleAccess(n.board).reachable,true);
+});
+
+test('old left-L hypothetical O stays physically level-finishing but fills a reserved notch',()=>{
+ const s=state('left-l'),l=R.replay(s,['CW','HD']);assert.equal(l.valid,true);
+ const p={state:l.state,event:l.events[0]},phase=S.advanceNotches(s.board,p);assert.equal(phase.valid,true);
+ const o=R.replay(R.createState({board:l.state.board,active:'O',canHold:false}),['R','HD']);assert.equal(o.valid,true);assert.equal(S.geometry(o.state.board).center.status,'level');
+ const check=S.advanceNotches(l.state.board,{state:o.state,event:o.events[0]},phase.pattern);assert.equal(check.valid,false);assert.deepEqual(check.blockedCells,[[6,25]]);
+ const transition=S.transition(s,p);assert.equal(transition.pairFamily,null);assert.equal(transition.pairProgress,null);
+ assert.equal(S.assess(l.state,{notches:phase.pattern}).center.completions.some(c=>c.piece==='O'),false);
+});
+
+test('old horizontal center Z has legal geometry but cannot establish Z/J across a reserved notch',()=>{
+ const s=state('cap-rebuild'),z=R.replay(s,['R','HD']);assert.equal(z.valid,true);
+ const p={state:z.state,event:z.events[0]},check=S.advanceNotches(s.board,p);assert.equal(check.valid,false);assert.deepEqual(check.blockedCells,[[6,27]]);
+ assert.equal(S.transition(s,p).pairFamily,null);
 });

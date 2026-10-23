@@ -2,7 +2,10 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const R=require('../st-rules'),S=require('../st-structure'),P=require('../st-planner');
 const snapshot=require('./support/st-user-center-cap.json');
 // Kevin's supplied manual-playtest snapshot, not a new generalization fixture.
-const result=P.plan(snapshot,{depth:3,width:8,maxNodes:45000});
+// Isolate reservoir scoring from held-T continuation selection. The new hold
+// proof has separate default-planner coverage below; this no-hold ablation keeps
+// the original exact reservoir credit and counterfactual-arrival assertions.
+const result=P.plan(snapshot,{depth:3,width:8,maxNodes:45000,allowHold:false});
 function endpoint(){let state=R.createState(snapshot);for(const step of result.continuation){const replay=R.replay(state,step.witness);assert.equal(replay.valid,true);assert.deepEqual(replay.events[0],step.event);state=replay.state;}return state;}
 test('reservoir/user snapshot: full search completes the S/L center rather than penalizing the later Z cap',()=>{
  assert.equal(result.metrics.completeDepth,3);assert.equal(result.evidence.budgetExhausted,false);
@@ -57,4 +60,13 @@ test('reservoir/unrelated damage: existing inaccessible reward-farming cavity ge
  const board=[...Array(33).fill('..........'),'OO..LLL...','OOOOLSS..Z','ZZOOSS..ZZ','ITTTLSS.ZJ','ITTTSS...Z','ITJJJOO.ZZ','IIIIJOO.Z.'];
  const a=P.assess(board);assert.ok(a.sealed>0);assert.equal(a.damageSealed,a.sealed);assert.equal(a.damageCovered,a.covered);
  assert.equal(S.geometry(board).right.reservoir,null);assert.equal(R.tDoubleAccess(board).reachable,false);
+});
+
+test('reservoir/user snapshot retains accepted center first while preserving actual T through the cap',()=>{
+ const advice=P.plan(snapshot);assert.deepEqual(advice.target,{type:'L',x:4,y:25,rotation:2});
+ assert.equal(advice.evidence.preparationProof.kind,'visible-prefix-Z-saved-T');assert.equal(advice.continuation.length,4);
+ let state=R.createState(snapshot),notches=S.notchPattern(state.board);
+ for(const p of advice.continuation){const r=R.replay(state,p.witness);assert.ok(r.valid);assert.deepEqual(r.events,[p.event]);const c=S.advanceNotches(state.board,{event:p.event,state:r.state},notches);assert.ok(c.valid);notches=c.pattern;state=r.state;}
+ assert.deepEqual(advice.continuation.map(p=>p.event.type),['L','I','Z','T']);
+ assert.equal(advice.continuation[3].event.spin,'full');assert.equal(advice.continuation[3].event.lines,2);assert.equal(P.assess(state.board).maxHeight,12);
 });

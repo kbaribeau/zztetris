@@ -47,9 +47,10 @@ function extendForced(state){if(!state.bag)return state;const t=B.forcedNext(sta
 function compare(a,b){for(let i=0;i<a.rank.length;i++)if(a.rank[i]!==b.rank[i])return b.rank[i]-a.rank[i];return a.key.localeCompare(b.key);}
 function nodeFor(p,parent,initial,rootIndex){
  const assessment=assess(p.state.board),path=[...(parent?.path??[]),p];
- const structure=S.assess(p.state),before=parent?.state??initial.state;
- const transition=S.transition(before,p,structure);
- const notchCheck=S.advanceNotches(before.board,p,parent?.notches??initial.notches);
+ const before=parent?.state??initial.state,priorNotches=parent?.notches??initial.notches;
+ const notchCheck=S.advanceNotches(before.board,p,priorNotches);
+ const structure=S.assess(p.state,{notches:notchCheck.pattern});
+ const transition=S.transition(before,p,structure,{notches:priorNotches});
  transition.futureNotches=notchCheck;
  // A crossing placement is not forbidden. Track its outstanding dependency,
  // rather than rewarding a short tactical event regardless of the rebuild.
@@ -192,9 +193,53 @@ function plan(raw,options={}){
    }
   }
  }
- const spendsReservedT=p=>(preparation||preparationUnresolved)&&p.event.type==='T'&&p.event.lines===0;
+ // Extend cap preparation through a bounded prefix of the visible queue. This
+ // is a constructive search, not a global T penalty: only a replayed Z cap and
+ // the actual saved T double create an obligation. The small beam may miss a
+ // route; a failed search is never evidence that no route exists.
+ let preparationKind='visible-I-Z-held-T';
+ const visible=[s.active.type,...s.queue],tIndex=s.hold==='T'?-1:visible.indexOf('T'),zIndex=visible.indexOf('Z');
+ const capPending=S.geometry(s.board).right.cycle.phase.startsWith('cap-rebuild');
+ if(!preparation&&!preparationUnresolved&&maxDepth>=3&&options.allowHold!==false&&capPending&&(tIndex>=0||s.hold==='T')&&zIndex>tIndex&&zIndex<=3){
+  const admissible=n=>n.cycleDebt===0&&n.notchValid&&n.assessment.maxHeight<20;
+  let candidates=root.placements.filter(p=>p.event.type!=='T'&&S.canonicalClear(p.event)).map((p,i)=>nodeFor(p,null,initial,i)).filter(admissible);
+  const rootBands=new Map(candidates.map(n=>[n.rootIndex,n.rank[3]]));
+  // Among witnessed cap/T routes retain stronger immediate supported structure
+  // before comparing endpoint estimates. This is not a center-piece override.
+  const compareProof=(a,b)=>(rootBands.get(b.rootIndex)-rootBands.get(a.rootIndex))||compare(a,b);
+  let beam=diversify(candidates,4),proofStopped=!root.complete;
+  const maxProofLocks=Math.min(6,s.queue.length+1);
+  for(let depth=1;depth<maxProofLocks&&beam.length&&!preparation&&!proofStopped;depth++){
+   const next=[];
+   for(const n of beam){
+    if(now()>=deadline||base.metrics.nodes>=limit){proofStopped=true;break;}
+    // A cap is accepted only when the immediately subsequent held T is real.
+    if(n.state.active?.type==='Z'&&n.state.hold==='T')for(const cap of S.geometry(n.state.board).right.completions){
+     const z=R.replay(n.state,cap.witness);
+     if(!z.valid||z.events.length!==1||z.events[0].type!=='Z'||z.events[0].lines||z.state.topOut)continue;
+     // Active Z plus occupied held T excludes an executable I, even with unlimited swaps.
+     const second={target:z.events[0].target,hold:false,holdCount:0,witness:cap.witness.slice(),state:z.state,event:z.events[0],availableCleanupPreparation:false};
+     const capNode=nodeFor(second,n,initial,n.rootIndex);if(!admissible(capNode)||depth+2>maxProofLocks)continue;
+     const held=R.move(z.state,'HOLD');if(held===z.state||held.topOut||held.active?.type!=='T')continue;
+     const access=R.tDoubleAccess(held.board,{maxNodes:Math.max(0,limit-base.metrics.nodes),deadline,now});base.metrics.nodes+=access.visited;base.metrics.accessNodes+=access.visited;
+     if(!access.complete){proofStopped=true;break;}if(!access.reachable)continue;
+     const witness=['HOLD',...access.witness],t=R.replay(z.state,witness);
+     if(!t.valid||t.events.length!==1||!S.canonicalClear(t.events[0])||t.events[0].lines!==2||t.state.topOut)continue;
+     const terminal=nodeFor({target:t.events[0].target,hold:true,holdCount:1,witness,state:t.state,event:t.events[0]},capNode,initial,n.rootIndex);
+     if(admissible(terminal)&&terminal.assessment.regionalSupport&&(!preparation||compareProof(terminal,preparation)<0)){preparation=terminal;preparationKind='visible-prefix-Z-saved-T';}
+    }
+    if(preparation||proofStopped)continue;
+    if(!n.state.active||depth+2>=maxProofLocks)continue;
+    const e=enumerate(n.state);if(!e.complete)proofStopped=true;
+    for(const p of e.placements){if(p.event.type==='T'||!S.canonicalClear(p.event))continue;const child=nodeFor(p,n,initial,n.rootIndex);if(admissible(child))next.push(child);}
+   }
+   const unique=new Map();for(const n of next){const key=nodeKey(n),prior=unique.get(key);if(!prior||compare(n,prior)<0)unique.set(key,n);}beam=diversify([...unique.values()],4);
+  }
+  preparationUnresolved=proofStopped&&!preparation;
+ }
+ const spendsReservedT=(p,parent=null)=>(preparation||preparationUnresolved)&&p.event.type==='T'&&p.event.lines===0&&!parent?.path.some(step=>step.event.type==='T'&&step.event.lines===2&&step.event.spin==='full');
  let frontier=qualify(root.placements.filter(p=>S.canonicalClear(p.event)&&!spendsReservedT(p)).map((p,i)=>nodeFor(p,null,initial,i)).filter(n=>n.notchValid));
- if(preparation){preparation=qualify([preparation])[0]??preparation;base.metrics.preparationProofLocks=3;}
+ if(preparation){preparation=qualify([preparation])[0]??preparation;base.metrics.preparationProofLocks=preparation.path.length;}
 
  const cleanBest=nodes=>nodes.filter(n=>n.cycleDebt===0).sort(compare)[0]??null;
  let best=preparation??cleanBest(frontier);base.metrics.depth=best?best.path.length:0;base.metrics.completeDepth=root.complete&&best&&!stopped?1:0;
@@ -202,7 +247,7 @@ function plan(raw,options={}){
  for(let depth=2;depth<=maxDepth&&!stopped&&layer.length;depth++){
   const next=[],seen=new Map();let complete=true;
   for(const n of layer){if(!n.state.active)continue;expandedRoots.add(n.rootIndex);const e=enumerate(n.state);if(!e.complete)complete=false;
-   for(const p of e.placements){if(!S.canonicalClear(p.event))continue;const child=nodeFor(p,n,initial,n.rootIndex);if(!child.notchValid)continue;const key=nodeKey(child),prior=seen.get(key);if(!prior||compare(child,prior)<0)seen.set(key,child);}
+   for(const p of e.placements){if(!S.canonicalClear(p.event)||spendsReservedT(p,n))continue;const child=nodeFor(p,n,initial,n.rootIndex);if(!child.notchValid)continue;const key=nodeKey(child),prior=seen.get(key);if(!prior||compare(child,prior)<0)seen.set(key,child);}
    if(stopped)break;
   }
   next.push(...qualify([...seen.values()]));if(stopped)complete=false;if(next.length){const candidate=cleanBest(next);base.metrics.depth=Math.max(base.metrics.depth,depth);if(complete&&candidate){best=preparation&&depth<preparation.path.length?preparation:candidate;base.metrics.completeDepth=depth;}}
@@ -250,7 +295,7 @@ function plan(raw,options={}){
  const reason=structuralReason?`${holdPrompt(first)}${structuralReason} ${tacticalReason.replace(/^Hold (?:first|twice)\. /,'')}`:tacticalReason;
  return{...base,status:'recommended-with-verified-prefix',target:first.target,hold:first.hold,holdCount:holdCount(first),witness:first.witness,reason,
  continuation:best.path.map(p=>({target:p.target,hold:p.hold,holdCount:holdCount(p),witness:p.witness,event:p.event,resultContext:context(p.state),structuralEvidence:p.structuralEvidence})),
- evidence:{strategy:'canonical-right-ST',futureNotches:best.notches,preparationProof:preparation?{kind:'visible-I-Z-held-T',locks:3,claim:'Executed preparation preserves the current T for a checked double.'}:null,cycleDebt:best.cycleDebt,clearPolicy:'right-region full T-spin doubles and I tetrises only',verifiedLocks:best.path.length,tsdAt:tsdAt>=0?tsdAt+1:null,knownPieceHorizon:s.queue.length+1,rootEnumerationComplete:root.complete,budgetExhausted:stopped,informationBoundary:!best.state.active,initialSealed:initial.sealed,endpointSealed:best.assessment.sealed,regionalSupport:best.assessment.regionalSupport,channel:best.assessment.channel,endpointTEntry:best.assessment.right.entry?.status??'not-established',unresolvedObligations:best.assessment.obligations,structuralScore:best.structuralScore,structuralRank:best.rank,structure:best.assessment.structure,dependencyDebt:best.dependencyDebt,claim:'Finite executable prefix; endpoint estimates are not a sustainability guarantee.'},assessment:best.assessment};
+ evidence:{strategy:'canonical-right-ST',futureNotches:best.notches,preparationProof:preparation&&preparation.path.every((p,i)=>best.path[i]&&p.event.type===best.path[i].event.type&&p.event.lines===best.path[i].event.lines&&p.event.spin===best.path[i].event.spin&&JSON.stringify(p.state.board)===JSON.stringify(best.path[i].state.board)&&p.state.hold===best.path[i].state.hold&&JSON.stringify(p.state.queue)===JSON.stringify(best.path[i].state.queue))?{kind:preparationKind,locks:preparation.path.length,claim:'Executed preparation preserves an available T for a checked double.'}:null,cycleDebt:best.cycleDebt,clearPolicy:'right-region full T-spin doubles and I tetrises only',verifiedLocks:best.path.length,tsdAt:tsdAt>=0?tsdAt+1:null,knownPieceHorizon:s.queue.length+1,rootEnumerationComplete:root.complete,budgetExhausted:stopped,informationBoundary:!best.state.active,initialSealed:initial.sealed,endpointSealed:best.assessment.sealed,regionalSupport:best.assessment.regionalSupport,channel:best.assessment.channel,endpointTEntry:best.assessment.right.entry?.status??'not-established',unresolvedObligations:best.assessment.obligations,structuralScore:best.structuralScore,structuralRank:best.rank,structure:best.assessment.structure,dependencyDebt:best.dependencyDebt,claim:'Finite executable prefix; endpoint estimates are not a sustainability guarantee.'},assessment:best.assessment};
 }
 // Keep a committed target through an exactly followed input, including HOLD.
 // The entire remaining prefix is replayed from the new observation, so a newly
