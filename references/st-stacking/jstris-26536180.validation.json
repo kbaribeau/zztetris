@@ -1,0 +1,20 @@
+{
+  "chars": 11095,
+  "pages": 2519,
+  "ops": 2519,
+  "lines": 1000,
+  "hist": {
+    "0": 2102,
+    "2": 334,
+    "4": 83
+  },
+  "mismatches": [],
+  "first": "#Q=[](L)TSOZJIOSIJZTLLIJTZSOSJILZOTLJTZSOIJTSZLOIZJITLSOIOZJSLTTILSZJOOJSILZTZJTLISOOTJISLZOLIZJSTTIJLSOZOTZLSJIOZSITLJOITSJZLTOZSLJILJSOTZI",
+  "last": "#Q=[Z](T)LZJI",
+  "lastOp": {
+    "type": "T",
+    "rotation": "reverse",
+    "x": 7,
+    "y": 3
+  }
+}

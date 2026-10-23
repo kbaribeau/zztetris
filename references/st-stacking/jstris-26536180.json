@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "url": "https://jstris.jezevec10.com/replay/26536180",
+    "nativeDataUrl": "https://jstris.jezevec10.com/replay/data?id=26536180&type=0",
+    "recordUrl": "https://jstris.jezevec10.com/api/record/26536180",
+    "title": "Sprint 1000L",
+    "player": "Supershocky",
+    "gameDurationSeconds": 1448.2,
+    "retrievedAt": "2026-10-23"
+  },
+  "conversion": {
+    "converterUrl": "https://fumen.tstman.net/jstris",
+    "date": "2026-10-23",
+    "method": "One-off unauthenticated public service conversion of URI-compressed native replay JSON. No general adapter added.",
+    "workflowSource": "https://github.com/smdbs01/jstris-pc-mode-replay-viewer/blob/main/src/components/uploaders/ReplayCodeUploader.vue"
+  },
+  "originalSettings": {
+    "v": 3.3,
+    "softDropId": 4,
+    "gameStart": 1608274999282,
+    "gameEnd": 1608276447482,
+    "seed": "tgkya",
+    "m": 4,
+    "bs": 1,
+    "se": 0,
+    "das": 95,
+    "r": 0
+  },
+  "export": {
+    "format": "Fumen v115",
+    "file": "jstris-26536180.fumen",
+    "pages": 2519,
+    "placements": 2519,
+    "finalSnapshotPage": null,
+    "clearedLines": 1000,
+    "clearEvents": 417,
+    "clearEventsByLines": {
+      "2": 334,
+      "4": 83
+    },
+    "finalOccupiedCells": 76
+  },
+  "validation": {
+    "engine": "Repository bundled tetris-fumen.js",
+    "placementCountMatchesOfficialRecord": true,
+    "allConsecutivePlacementAndClearFieldsAgree": true,
+    "independentOfficialPlaybackComparison": false,
+    "spinClassificationVerified": false,
+    "limitations": [
+      "Native encoded input stream was converted by an external service, not independently decoded.",
+      "Two-line clears are not independently verified T-spin doubles.",
+      "Final page is a placement, not a separate post-clear board.",
+      "Quiz hold/queue metadata is not independently verified against native playback."
+    ],
+    "allFitAndSupportChecksPassed": true,
+    "finalCellConservationPassed": true
+  },
+  "sha256": {
+    "jstris-26536180.fumen": "b62f906ee217ab121e96e71f5348e4e778d045607e2ddea994dc8e4390b36ae4",
+    "jstris-26536180.native.json": "64353c78293352880f13346a9173338aec404672dcc304b4da997283f909a606",
+    "jstris-26536180.record.json": "3b346f8319453538c64cf3ca93ae36d4b2ef996a031343a6c46e4b0d13472ca9",
+    "jstris-26536180.validation.json": "2a63cc2f9b542aaa2cca850167b0ca6abc5c51b26bef275b896a37737a06a6f6"
+  }
+}

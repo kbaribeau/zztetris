@@ -1,0 +1,568 @@
+{
+  "source": "Autoplay Independent preparation seed 10333, zero-based lock 13; visible observations only.",
+  "before": {
+    "rules": "st-zero-v2",
+    "board": [
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "....LLL...",
+      "....LZ....",
+      "....ZZZ...",
+      "JJ..ZZZ...",
+      "JJ...Z....",
+      "JJOOLLL...",
+      "JJOOLSS...",
+      "IIIISS....",
+      "IIIILLL...",
+      "OOJILSS...",
+      "OOJISS....",
+      "TJJIJJJ...",
+      "TTSIOOJ...",
+      "TZSSOO...Z",
+      "ZZTSLLL.ZZ",
+      "ZZTTLSS.Z."
+    ],
+    "active": {
+      "type": "T",
+      "x": 3,
+      "y": 17,
+      "rotation": 0,
+      "lastRotation": null
+    },
+    "hold": "S",
+    "canHold": true,
+    "queue": [
+      "O",
+      "I",
+      "I",
+      "L",
+      "J",
+      "S"
+    ],
+    "revision": 71,
+    "streamCursor": 33,
+    "topOut": false,
+    "bag": {
+      "remaining": [
+        104
+      ],
+      "observedCount": 39,
+      "provenance": "known-phase"
+    },
+    "lastEvent": {
+      "type": "L",
+      "target": {
+        "type": "L",
+        "x": 4,
+        "y": 22,
+        "rotation": 2
+      },
+      "cells": [
+        [
+          4,
+          24
+        ],
+        [
+          5,
+          24
+        ],
+        [
+          6,
+          24
+        ],
+        [
+          4,
+          25
+        ]
+      ],
+      "lines": 0,
+      "clearedRows": [],
+      "spin": "none",
+      "topOut": false
+    }
+  },
+  "precedingWitness": [
+    "R",
+    "R",
+    "R",
+    "CW",
+    "SD",
+    "SD",
+    "SD",
+    "SD",
+    "SD",
+    "SD",
+    "SD",
+    "SD",
+    "SD",
+    "SD",
+    "SD",
+    "SD",
+    "SD",
+    "SD",
+    "SD",
+    "SD",
+    "SD",
+    "SD",
+    "CW",
+    "HD"
+  ],
+  "snapshot": {
+    "rules": "st-zero-v2",
+    "board": [
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "....LLL...",
+      "....LZ....",
+      "....ZZZ...",
+      "JJ..ZZZ...",
+      "JJ...Z....",
+      "JJOOLLL...",
+      "JJOOLSS...",
+      "IIIISS....",
+      "IIIILLL...",
+      "OOJILSS...",
+      "OOJISS....",
+      "TJJIJJJ...",
+      "TTSIOOJ...",
+      "ZZTTLSS.Z."
+    ],
+    "active": {
+      "type": "O",
+      "x": 3,
+      "y": 17,
+      "rotation": 0,
+      "lastRotation": null
+    },
+    "hold": "S",
+    "canHold": true,
+    "queue": [
+      "I",
+      "I",
+      "L",
+      "J",
+      "S",
+      "O"
+    ],
+    "revision": 95,
+    "streamCursor": 34,
+    "topOut": false,
+    "bag": {
+      "remaining": [
+        96
+      ],
+      "observedCount": 40,
+      "provenance": "known-phase"
+    },
+    "lastEvent": {
+      "type": "T",
+      "target": {
+        "type": "T",
+        "x": 6,
+        "y": 35,
+        "rotation": 2
+      },
+      "cells": [
+        [
+          6,
+          37
+        ],
+        [
+          7,
+          37
+        ],
+        [
+          8,
+          37
+        ],
+        [
+          7,
+          38
+        ]
+      ],
+      "lines": 2,
+      "clearedRows": [
+        37,
+        38
+      ],
+      "spin": "full",
+      "topOut": false
+    }
+  },
+  "badAdvice": {
+    "target": {
+      "type": "O",
+      "x": 1,
+      "y": 28,
+      "rotation": 0
+    },
+    "witness": [
+      "L",
+      "L",
+      "HD"
+    ],
+    "hold": false,
+    "holdCount": 0,
+    "context": "[\"st-zero-v2\",[\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"....LLL...\",\"....LZ....\",\"....ZZZ...\",\"JJ..ZZZ...\",\"JJ...Z....\",\"JJOOLLL...\",\"JJOOLSS...\",\"IIIISS....\",\"IIIILLL...\",\"OOJILSS...\",\"OOJISS....\",\"TJJIJJJ...\",\"TTSIOOJ...\",\"ZZTTLSS.Z.\"],\"S\",true,[\"I\",\"I\",\"L\",\"J\",\"S\",\"O\"],{\"remaining\":[96],\"observedCount\":40,\"provenance\":\"known-phase\"},\"O\"]",
+    "continuation": [
+      {
+        "target": {
+          "type": "O",
+          "x": 1,
+          "y": 28,
+          "rotation": 0
+        },
+        "hold": false,
+        "holdCount": 0,
+        "witness": [
+          "L",
+          "L",
+          "HD"
+        ],
+        "event": {
+          "type": "O",
+          "target": {
+            "type": "O",
+            "x": 1,
+            "y": 28,
+            "rotation": 0
+          },
+          "cells": [
+            [
+              2,
+              29
+            ],
+            [
+              3,
+              29
+            ],
+            [
+              2,
+              30
+            ],
+            [
+              3,
+              30
+            ]
+          ],
+          "lines": 0,
+          "clearedRows": [],
+          "spin": "none",
+          "topOut": false
+        },
+        "resultContext": "[\"st-zero-v2\",[\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"....LLL...\",\"....LZ....\",\"....ZZZ...\",\"JJOOZZZ...\",\"JJOO.Z....\",\"JJOOLLL...\",\"JJOOLSS...\",\"IIIISS....\",\"IIIILLL...\",\"OOJILSS...\",\"OOJISS....\",\"TJJIJJJ...\",\"TTSIOOJ...\",\"ZZTTLSS.Z.\"],\"S\",true,[\"I\",\"L\",\"J\",\"S\",\"O\"],{\"remaining\":[96],\"observedCount\":40,\"provenance\":\"known-phase\"},\"I\"]"
+      },
+      {
+        "target": {
+          "type": "I",
+          "x": 0,
+          "y": 27,
+          "rotation": 0
+        },
+        "hold": false,
+        "holdCount": 0,
+        "witness": [
+          "L",
+          "L",
+          "L",
+          "HD"
+        ],
+        "event": {
+          "type": "I",
+          "target": {
+            "type": "I",
+            "x": 0,
+            "y": 27,
+            "rotation": 0
+          },
+          "cells": [
+            [
+              0,
+              28
+            ],
+            [
+              1,
+              28
+            ],
+            [
+              2,
+              28
+            ],
+            [
+              3,
+              28
+            ]
+          ],
+          "lines": 0,
+          "clearedRows": [],
+          "spin": "none",
+          "topOut": false
+        },
+        "resultContext": "[\"st-zero-v2\",[\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"....LLL...\",\"....LZ....\",\"IIIIZZZ...\",\"JJOOZZZ...\",\"JJOO.Z....\",\"JJOOLLL...\",\"JJOOLSS...\",\"IIIISS....\",\"IIIILLL...\",\"OOJILSS...\",\"OOJISS....\",\"TJJIJJJ...\",\"TTSIOOJ...\",\"ZZTTLSS.Z.\"],\"S\",true,[\"L\",\"J\",\"S\",\"O\"],{\"remaining\":[96],\"observedCount\":40,\"provenance\":\"known-phase\"},\"I\"]"
+      },
+      {
+        "target": {
+          "type": "I",
+          "x": 0,
+          "y": 26,
+          "rotation": 0
+        },
+        "hold": false,
+        "holdCount": 0,
+        "witness": [
+          "L",
+          "L",
+          "L",
+          "HD"
+        ],
+        "event": {
+          "type": "I",
+          "target": {
+            "type": "I",
+            "x": 0,
+            "y": 26,
+            "rotation": 0
+          },
+          "cells": [
+            [
+              0,
+              27
+            ],
+            [
+              1,
+              27
+            ],
+            [
+              2,
+              27
+            ],
+            [
+              3,
+              27
+            ]
+          ],
+          "lines": 0,
+          "clearedRows": [],
+          "spin": "none",
+          "topOut": false
+        },
+        "resultContext": "[\"st-zero-v2\",[\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"....LLL...\",\"IIIILZ....\",\"IIIIZZZ...\",\"JJOOZZZ...\",\"JJOO.Z....\",\"JJOOLLL...\",\"JJOOLSS...\",\"IIIISS....\",\"IIIILLL...\",\"OOJILSS...\",\"OOJISS....\",\"TJJIJJJ...\",\"TTSIOOJ...\",\"ZZTTLSS.Z.\"],\"S\",true,[\"J\",\"S\",\"O\"],{\"remaining\":[96],\"observedCount\":40,\"provenance\":\"known-phase\"},\"L\"]"
+      }
+    ],
+    "reason": "Build the left region without crossing into the center. Place without clearing. The checked endpoint keeps column eight below the left/center stack."
+  },
+  "repair": [
+    {
+      "witness": [
+        "HD"
+      ],
+      "event": {
+        "type": "O",
+        "target": {
+          "type": "O",
+          "x": 3,
+          "y": 23,
+          "rotation": 0
+        },
+        "cells": [
+          [
+            4,
+            24
+          ],
+          [
+            5,
+            24
+          ],
+          [
+            4,
+            25
+          ],
+          [
+            5,
+            25
+          ]
+        ],
+        "lines": 0,
+        "clearedRows": [],
+        "spin": "none",
+        "topOut": false
+      }
+    },
+    {
+      "witness": [
+        "L",
+        "L",
+        "L",
+        "CCW",
+        "HD"
+      ],
+      "event": {
+        "type": "I",
+        "target": {
+          "type": "I",
+          "x": 0,
+          "y": 25,
+          "rotation": 3
+        },
+        "cells": [
+          [
+            1,
+            25
+          ],
+          [
+            1,
+            26
+          ],
+          [
+            1,
+            27
+          ],
+          [
+            1,
+            28
+          ]
+        ],
+        "lines": 0,
+        "clearedRows": [],
+        "spin": "none",
+        "topOut": false
+      }
+    },
+    {
+      "witness": [
+        "L",
+        "L",
+        "L",
+        "CCW",
+        "L",
+        "HD"
+      ],
+      "event": {
+        "type": "I",
+        "target": {
+          "type": "I",
+          "x": -1,
+          "y": 25,
+          "rotation": 3
+        },
+        "cells": [
+          [
+            0,
+            25
+          ],
+          [
+            0,
+            26
+          ],
+          [
+            0,
+            27
+          ],
+          [
+            0,
+            28
+          ]
+        ],
+        "lines": 0,
+        "clearedRows": [],
+        "spin": "none",
+        "topOut": false
+      }
+    },
+    {
+      "witness": [
+        "L",
+        "CCW",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "R180",
+        "HD"
+      ],
+      "event": {
+        "type": "L",
+        "target": {
+          "type": "L",
+          "x": 2,
+          "y": 27,
+          "rotation": 1
+        },
+        "cells": [
+          [
+            3,
+            28
+          ],
+          [
+            3,
+            29
+          ],
+          [
+            3,
+            30
+          ],
+          [
+            4,
+            30
+          ]
+        ],
+        "lines": 0,
+        "clearedRows": [],
+        "spin": "none",
+        "topOut": false
+      }
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-# ST-stacking video references
+# ST-stacking references
 
 [`sm22939781.fumen`](sm22939781.fumen) reconstructs the complete placement sequence
 of the Marathon run in [NicoNico video sm22939781](https://www.nicovideo.jp/watch/sm22939781).
@@ -87,3 +87,58 @@ advice oracle or a reconstruction of holds, input paths, kicks, exact lock
 timing or scoring. Canonical symmetric rotations may differ from the inputs.
 Fit/support checks alone do not prove input reachability. No original media
 is redistributed and no source-media license grant is asserted.
+
+## Jstris 1000-line sprint: 26536180
+
+[`jstris-26536180.fumen`](jstris-26536180.fumen) is a one-off conversion of
+[Supershocky's Sprint 1000L replay](https://jstris.jezevec10.com/replay/26536180):
+**2,519 placements, 417 clear events and 1,000 cleared lines** over 24m 08.2s.
+The 2,519 Fumen pages each contain a placement; unlike the video references,
+there is **no extra final settled-board page**. Clears comprise 334 doubles
+and 83 quads. A double is not, by itself, proof of a T-spin.
+
+The original public [native JSON](jstris-26536180.native.json),
+[official record metadata](jstris-26536180.record.json),
+[validation summary](jstris-26536180.validation.json) and
+[provenance/settings/hashes](jstris-26536180.json) are retained alongside it.
+Native settings include replay version 3.3, seed `tgkya`, DAS 95 and the original
+mode/drop fields. The native file is an archival source, not runtime input.
+
+### Conversion and verification
+
+On 2026-10-23 the public replay data was serialized as a URI-compressed replay
+code and submitted without authentication to <https://fumen.tstman.net/jstris>.
+This follows an [existing community conversion workflow](https://github.com/smdbs01/jstris-pc-mode-replay-viewer/blob/main/src/components/uploaders/ReplayCodeUploader.vue).
+The bundled Fumen codec decoded all pages; the 2,519 locks match the official
+record, reconstructed clears total exactly 1,000, and every consecutive field
+agrees with its preceding placement and line clear, with zero mismatches. All locks pass fit/support checks; cell conservation is
+10,076 placed cells minus 10,000 cleared cells = 76 final occupied cells.
+These are structural checks, **not an independent comparison with official
+visual playback**, an independent native-input decoder, or verified spin/kick
+classification. Quiz hold/queue metadata is likewise not independently checked.
+Hashes include the Fumen file's final newline.
+
+### Guidance for recommendation-engine research
+
+- Use this long session to inspect candidate Reset windows and stable-height
+  periods across multiple bags, rather than only terminal high-stack failures.
+  Distinguish ordinary I-reservoir/quad cleanup from deliberate T/Z diversions
+  and regional replenishment; do not label every quad or left-side T a Reset.
+- Compare candidate windows with ordinary-play controls. Record the starting
+  regional geometry, visible pieces, allocation choices, subsequent clears,
+  and whether height/material balance recovers over the following bags.
+- Treat the source as evidence, not a universal move oracle. Equivalent orderings
+  can be valid; one successful trajectory does not prove a general rule.
+  Review specific positions before promoting them to regression cases.
+- Never leak the full recorded future into the coach. A seed or long quiz queue
+  may assist reconstruction, but recommendation comparisons must expose only
+  the original visible preview/hold and justified bag knowledge. Do not invent
+  piece-instance identities, unseen pieces or lock timing from Fumen pages.
+- Use existing Fumen tooling and small, evidence-backed engine tests. This is
+  reference data only: no general Jstris adapter, import UI, runtime loader or
+  reference-format migration is introduced. Original game rules and the lab's
+  rules must not be assumed identical.
+
+No original video/audio, browser headers or credentials are included. Public
+availability does not establish a source-media license grant; the repository's
+existing license is unchanged.

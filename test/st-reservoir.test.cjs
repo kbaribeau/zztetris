@@ -62,11 +62,18 @@ test('reservoir/unrelated damage: existing inaccessible reward-farming cavity ge
  assert.equal(S.geometry(board).right.reservoir,null);assert.equal(R.tDoubleAccess(board).reachable,false);
 });
 
-test('reservoir/user snapshot retains accepted center first while preserving actual T through the cap',()=>{
- const advice=P.plan(snapshot);assert.deepEqual(advice.target,{type:'L',x:4,y:25,rotation:2});
- assert.equal(advice.evidence.preparationProof.kind,'visible-prefix-Z-saved-T');assert.equal(advice.continuation.length,4);
+test('reservoir/user snapshot completes its reserved center and preserves actual T through the cap',()=>{
+ const advice=P.plan(snapshot);assert.ok(advice.target,advice.reason);
  let state=R.createState(snapshot),notches=S.notchPattern(state.board);
- for(const p of advice.continuation){const r=R.replay(state,p.witness);assert.ok(r.valid);assert.deepEqual(r.events,[p.event]);const c=S.advanceNotches(state.board,{event:p.event,state:r.state},notches);assert.ok(c.valid);notches=c.pattern;state=r.state;}
- assert.deepEqual(advice.continuation.map(p=>p.event.type),['L','I','Z','T']);
- assert.equal(advice.continuation[3].event.spin,'full');assert.equal(advice.continuation[3].event.lines,2);assert.equal(P.assess(state.board).maxHeight,12);
+ let cells=S.geometry(state.board).center.completions.find(c=>c.piece==='L').cells.map(c=>c.slice()),completed=false,doubles=0;
+ for(const p of advice.continuation){
+  const r=R.replay(state,p.witness);assert.ok(r.valid);assert.deepEqual(r.events,[p.event]);
+  const check=S.advanceNotches(state.board,{event:p.event,state:r.state},notches);assert.ok(check.valid);notches=check.pattern;
+  if(!completed&&p.event.type==='L'&&JSON.stringify(p.event.cells.slice().sort())===JSON.stringify(cells.slice().sort()))completed=true;
+  if(!completed)cells=cells.filter(([,y])=>!p.event.clearedRows.includes(y)).map(([x,y])=>[x,y+p.event.clearedRows.filter(row=>row>y).length]);
+  if(p.event.type==='T'&&p.event.spin==='full'&&p.event.lines===2)doubles++;
+  state=r.state;
+ }
+ assert.equal(completed,true,'The original exact L completion is executed, immediately or by the visible replacement L.');
+ assert.ok(doubles>=1);assert.equal(P.assess(state.board).sealed,0);assert.ok(P.assess(state.board).maxHeight<20);
 });

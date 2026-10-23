@@ -141,7 +141,25 @@ function notchPattern(board){
  const floorCap=cycle.shape==='cleared-base'?capCompletions(board)[0]:null;
  const floorAnchor=floorCap?Math.max(...floorCap.cells.filter(([x])=>x===8).map(([,y])=>40-y))+1:null;
  const height=floorAnchor??(outerIPrepared||cleanupReady?h[8]+3:scoringRoof?h[8]+1:cycle.shape==='cap-preparation'?h[8]+3:null);
- if(height===null)return {status:'unanchored',anchorRow:null,protectedRows:[],blockedRows:[],source:'right-cycle-phase-not-established'};
+ if(height===null){
+  // A legal filler above a cap does not erase the lower scoring cycle. Inspect
+  // the actual buried roof rather than only the topmost column heights. The
+  // notch beside the roof, solid lower wall, open scoring channel and exact
+  // reservoir/optional bottom cleanup I distinguish it from an O or I roof.
+  const anchors=[];
+  const shaft=(x,start)=>board.slice(start).every(r=>r[x]==='.')||
+   (start<=36&&board.slice(start,36).every(r=>r[x]==='.')&&board.slice(36).every(r=>r[x]!=='.'));
+  for(let y=0;y<38;y++)if(board[y][8]==='.'&&board[y][9]!=='.'&&board[y+1][9]!=='.'&&
+   board.slice(y+1).every(r=>r[8]!=='.')&&shaft(7,y)&&shaft(9,y+2))anchors.push(y);
+  if(anchors.length===1)return notchRows(board,anchors[0],'recognized-buried-scoring-cap');
+  // The already-supported three-cell wall plus bottom outer I is pre-cap,
+  // even if a filler now rises above that I. Do not misread its solid shaft
+  // as a Z roof or lose the next-cap phase because its top silhouette changed.
+  if(board[36][8]==='.'&&board.slice(37).every(r=>r[8]!=='.')&&
+   board.slice(36).every(r=>r[7]==='.'&&r[9]!=='.'))
+   return notchRows(board,34,'recognized-buried-cleanup-preparation');
+  return {status:'unanchored',anchorRow:null,protectedRows:[],blockedRows:[],source:'right-cycle-phase-not-established'};
+ }
  return notchRows(board,40-height,floorCap?'witnessed-floor-Z-cap':!outerIPrepared&&!cleanupReady&&scoringRoof?'recognized-scoring-wall':'recognized-next-Z-cap');
 }
 function notchRows(board,anchorRow,source){
@@ -164,7 +182,19 @@ function advanceNotches(before,p,inherited){
  // including fresh rows entering the top, rather than re-anchoring modulo 3.
  const surviving=prior.protectedRows.filter(y=>!cleared.includes(y)).map(y=>y+cleared.filter(r=>r>y).length);
  const pattern=surviving.length?notchRows(p.state.board,Math.max(...surviving),'translated-established-cycle'):notchPattern(p.state.board);
- return {valid:!blockedCells.length&&pattern.status!=='broken',violation:blockedCells.length?'filled-protected-column-seven-notch':pattern.status==='broken'?'column-seven-notch-blocked':null,pattern,blockedCells};
+ const recognized=notchPattern(p.state.board);
+ // Preserving blank teeth is not enough if construction creates a different
+ // positively recognized scoring cycle. Do not hand the next fresh planner a
+ // contradictory anchor (for example, a four-cell I substituted for a Z wall).
+ const conflict=recognized.status!=='unanchored'&&recognized.anchorRow!==pattern.anchorRow;
+ // Nonclearing construction must not erase independently observed phase
+ // evidence: the next fresh request would otherwise forget its reserved teeth.
+ // Canonical clears retain the existing translated-prefix checks; recognizing
+ // every residual post-clear shape is a separate, still incomplete grammar.
+ // Buried caps/cleanup remain recognized above, and unknown roots or an
+ // already-unrecognized post-clear board do not acquire an invented phase.
+ const lost=p.event.lines===0&&recognized.status==='unanchored'&&notchPattern(before).status!=='unanchored';
+ return {valid:!blockedCells.length&&pattern.status!=='broken'&&!conflict&&!lost,violation:blockedCells.length?'filled-protected-column-seven-notch':pattern.status==='broken'?'column-seven-notch-blocked':conflict?'changed-established-scoring-phase':lost?'lost-established-scoring-phase':null,pattern,blockedCells};
 }
 function geometry(board,options={}){const notches=options.notches??notchPattern(board);
  // Identical occupancy can carry a different translated scoring phase. Never

@@ -17,7 +17,7 @@
   const context=$('b').getContext('2d');
   let state, origin, future=[], generated=false, observed=null;
   let worker=null, requestId=0, debounce=null, watchdog=null, revision=0;
-  let result=null, previous=null, coachStatus='idle', coachMessage='';
+  let result=null, previous=null, commitment=null, coachStatus='idle', coachMessage='';
   let selectedId=null, lockCount=0;
   const repeating=new Map();
   const fixtures=STFixtures.list || [];
@@ -73,7 +73,11 @@
           result=candidate || null;
           coachStatus=result?.status || 'no-supported-continuation-found';
           coachMessage=result?.reason || 'No supported ST continuation was established within the checked horizon.';
-          if(result?.target) previous={...clone(result),revision:state.revision};
+          if(result?.target){
+            previous={...clone(result),revision:state.revision};
+            const resources=STPlanner.cycleResources(result.continuation||[]);
+            commitment=resources.tsds+resources.quads+resources.pocket+(resources.centerCompletions||0)>0?{observation:clone(observation()),advice:clone(result)}:null;
+          }
           render();
         };
         activeWorker.onerror=event=>{
@@ -82,6 +86,7 @@
           cancel();coachStatus='worker-error';coachMessage='The coach worker could not start. Manual practice is still available.';result=null;render();
         };
         activeWorker.postMessage({type:'plan',id,observation:observation(),previous:previous?clone(previous):null,
+          commitment:commitment?clone(commitment):null,
           options:{timeMs:750,depth:3,width:8,maxNodes:45000}});
         watchdog=setTimeout(()=>{
           if(worker!==activeWorker)return;
@@ -125,7 +130,7 @@
     state=STRules.migrateState({...clone(input),revision:++revision});
     const errors=STRules.validate(state);if(errors.length)throw new Error(errors.join('; '));
     if(state.queue.length>6){future.unshift(...state.queue.slice(6));state={...state,queue:state.queue.slice(0,6)};}
-    replenish();previous=null;result=null;lockCount=0;
+    replenish();previous=null;result=null;commitment=null;lockCount=0;
     if(!keepOrigin)origin={input:clone(input),options:{tail:tail.slice(),random,history:history?.slice()||null,note}};
     setText($('st-position-note'),note);setText($('st-game-status'),'');requestPlan();render();
   }
@@ -156,6 +161,14 @@
     }
     // Active movement does not expose pieces; only draws shorten the preview.
     replenish();
+    if(locked){
+      // Keep the proof's original public observation, not an input-history
+      // guess. The planner checks that the actual lock matches its first step,
+      // then replays the suffix using only the newly visible observation.
+      const suffix=commitment&&typeof STPlanner.continueCommitment==='function'
+        ?STPlanner.continueCommitment(commitment.observation,observation(),commitment.advice,state.lastEvent):null;
+      commitment=suffix?{observation:clone(observation()),advice:clone(suffix)}:null;
+    }
     const advanced=!locked&&displayed?STPlanner.advance(observation(),displayed,action):null;
     if(advanced){result=advanced;previous=advanced;coachMessage=advanced.reason;coachStatus=advanced.status;}
     requestPlan({retain:Boolean(advanced)});render();

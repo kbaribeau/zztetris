@@ -68,3 +68,12 @@ to another scoring pattern such as the Marathon reference's ending TST.
 
 See [future-notch review](docs/st-future-notch-review.md) for reference checks,
 existing-corpus results, and the remaining Marathon rollout tradeoffs.
+
+See [autoplay structural repairs](docs/st-autoplay-repair-review.md) for buried-cycle
+phase recognition and the conservative first-lock internal-cavity guard. These
+address two observed autoplay failures without claiming indefinite sustainability.
+
+[Verified resource commitments](docs/st-cycle-resource-review.md) preserve checked
+T-scoring and I-Pocket routes across actual locks and fresh worker requests.
+This does not yet recognize the community Midgame/Reset cycle; the known Reset
+reference limitations are documented rather than hidden by a universal T rule.

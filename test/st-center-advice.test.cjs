@@ -2,21 +2,33 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const F=require('../st-fixtures'),P=require('../st-planner'),R=require('../st-rules');
 const opts={depth:3,width:8,maxNodes:45000};
-test('st-advice/empty hold names the selected ordered S/L pair, not all hypothetical partners',()=>{
- let state=F.get('empty-hold').observation;
- const plan=P.plan(state,opts);
- assert.equal(plan.hold,true);
- assert.match(plan.reason,/Hold first\. Place S in the center to start an S\/L pair\. The next L completes it\./);
- assert.doesNotMatch(plan.reason,/S or L|L\/O pair|O\/J pair/);
- assert.deepEqual(plan.continuation.slice(0,2).map(p=>p.event.type),['S','L']);
- for(const step of plan.continuation.slice(0,2)){
-  assert.ok(step.event.cells.every(([x])=>x>=4&&x<=6));
-  const replay=R.replay(state,step.witness);assert.equal(replay.valid,true);state=replay.state;
+const S=require('../st-structure'),emptyOrders=require('./support/st-empty-hold-orders.json');
+function verifyEmptyOrder(steps){
+ let state=P.observe(F.get('empty-hold').observation),notches=S.notchPattern(state.board);const center=[];let doubles=0;
+ for(const step of steps){
+  const r=R.replay(state,step.witness);assert.equal(r.valid,true);assert.equal(r.events.length,1);
+  const event=r.events[0];assert.ok(S.canonicalClear(event));
+  const check=S.advanceNotches(state.board,{event,state:r.state},notches);assert.ok(check.valid);notches=check.pattern;
+  if(event.cells.every(([x])=>x>=4&&x<=6))center.push(event.type);
+  if(event.type==='T'&&event.spin==='full'&&event.lines===2)doubles++;
+  state=r.state;
  }
- assert.equal(plan.continuation[0].structuralEvidence.pairProgress.status,'completed-in-checked-prefix');
- assert.equal(plan.continuation[1].structuralEvidence.pairProgress.step,2);
- assert.deepEqual(plan.continuation[1].structuralEvidence.pairProgress.orderedPieces,['S','L']);
- assert.equal(new Set(plan.continuation[1].structuralEvidence.structure.center.profile).size,1);
+ assert.deepEqual(center,['S','L']);assert.equal(doubles,1);assert.equal(P.assess(state.board).sealed,0);assert.deepEqual(state.board,emptyOrders.expectedBoard);return state;
+}
+test('st-advice/empty hold completes S/L and the double in either accepted order',()=>{
+ const plan=P.plan(F.get('empty-hold').observation,opts);assert.equal(plan.continuation.length,3);
+ verifyEmptyOrder(plan.continuation);
+ const pair=plan.continuation.find(p=>p.structuralEvidence.pairFamily==='SL');assert.ok(pair);
+ assert.deepEqual(pair.structuralEvidence.pairProgress.orderedPieces,['S','L']);
+ assert.doesNotMatch(plan.reason,/S or L|L\/O pair|O\/J pair/);
+});
+test('st-advice/accepted empty-hold orders retain distinct legacy hold mechanics',()=>{
+ const center=verifyEmptyOrder(emptyOrders.orders.centerFirst.map(witness=>({witness})));
+ const score=verifyEmptyOrder(emptyOrders.orders.scoreFirst.map(witness=>({witness})));
+ assert.deepEqual([center.active.type,center.hold,center.queue,center.canHold],['Z','I',['J','O'],true]);
+ assert.deepEqual([score.active.type,score.hold,score.queue,score.canHold],['I',null,['Z','J','O'],true]);
+ const held=R.move(score,'HOLD');assert.deepEqual([held.active.type,held.hold,held.queue],['Z','I',['J','O']]);
+ assert.equal(held.canHold,false);assert.notEqual(center.canHold,held.canHold);
 });
 test('st-advice/a short checked prefix cannot promise an unexecuted center pair completion',()=>{
  const plan=P.plan(F.get('after-quad').observation,{...opts,depth:1});

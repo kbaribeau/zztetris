@@ -1,0 +1,950 @@
+{
+  "holdI": {
+    "snapshot": {
+      "rules": "st-zero-v2",
+      "board": [
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        ".JJ.LOO...",
+        ".JOOLOO...",
+        ".JOOLL....",
+        "IIIILLL...",
+        "IIIILSS...",
+        "LLOOSS...Z",
+        "ILOOJJJ.ZZ",
+        "ILSSOOJ.Z.",
+        "SSJJLSS.Z.",
+        "JSSJLSS.Z.",
+        "LOOJIOO.Z.",
+        "OOJLLLS.Z.",
+        "SSIILLL.Z."
+      ],
+      "active": {
+        "type": "I",
+        "x": 3,
+        "y": 17,
+        "rotation": 0,
+        "lastRotation": null
+      },
+      "hold": "L",
+      "canHold": true,
+      "queue": [
+        "T",
+        "J",
+        "Z",
+        "S",
+        "O",
+        "Z"
+      ],
+      "revision": 1170,
+      "streamCursor": 178,
+      "topOut": false,
+      "lastEvent": null,
+      "bag": {
+        "remaining": [
+          55
+        ],
+        "observedCount": 184,
+        "provenance": "known-phase"
+      }
+    },
+    "witnesses": [
+      [
+        "HOLD",
+        "CW",
+        "HD"
+      ],
+      [
+        "R",
+        "R",
+        "R",
+        "CW",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "CW",
+        "HD"
+      ],
+      [
+        "HOLD",
+        "R",
+        "R",
+        "R",
+        "CW",
+        "R",
+        "HD"
+      ]
+    ]
+  },
+  "savedT": {
+    "snapshot": {
+      "rules": "st-zero-v2",
+      "board": [
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "JJSS......",
+        "JSSL......",
+        "JLLL......",
+        "JJSS.OO...",
+        "JSSL.OO...",
+        "JLLL.S....",
+        "IJJJ.SS...",
+        "IZZJOOS...",
+        "IJZZOO....",
+        "IJJJLLL...",
+        "OOOOLSS...",
+        "IIIILSS.Z.",
+        "JLLLLOO.Z."
+      ],
+      "active": {
+        "type": "T",
+        "x": 3,
+        "y": 17,
+        "rotation": 0,
+        "lastRotation": null
+      },
+      "hold": "O",
+      "canHold": true,
+      "queue": [
+        "S",
+        "O",
+        "Z",
+        "I",
+        "J",
+        "L"
+      ],
+      "revision": 501,
+      "streamCursor": 99,
+      "topOut": false,
+      "lastEvent": null,
+      "bag": {
+        "remaining": [
+          0
+        ],
+        "observedCount": 105,
+        "provenance": "known-phase"
+      }
+    },
+    "advice": {
+      "target": {
+        "type": "O",
+        "x": 1,
+        "y": 24,
+        "rotation": 0
+      },
+      "witness": [
+        "HOLD",
+        "L",
+        "L",
+        "HD"
+      ],
+      "hold": true,
+      "holdCount": 1,
+      "reason": "Hold first. Build the left region without crossing into the center. This placement has a checked T-spin double within 5 locks.",
+      "continuation": [
+        {
+          "target": {
+            "type": "O",
+            "x": 1,
+            "y": 24,
+            "rotation": 0
+          },
+          "witness": [
+            "HOLD",
+            "L",
+            "L",
+            "HD"
+          ],
+          "hold": true,
+          "holdCount": 1,
+          "event": {
+            "type": "O",
+            "target": {
+              "type": "O",
+              "x": 1,
+              "y": 24,
+              "rotation": 0
+            },
+            "cells": [
+              [
+                2,
+                25
+              ],
+              [
+                3,
+                25
+              ],
+              [
+                2,
+                26
+              ],
+              [
+                3,
+                26
+              ]
+            ],
+            "lines": 0,
+            "clearedRows": [],
+            "spin": "none",
+            "topOut": false
+          }
+        },
+        {
+          "target": {
+            "type": "S",
+            "x": 3,
+            "y": 22,
+            "rotation": 3
+          },
+          "witness": [
+            "CCW",
+            "HD"
+          ],
+          "hold": false,
+          "holdCount": 0,
+          "event": {
+            "type": "S",
+            "target": {
+              "type": "S",
+              "x": 3,
+              "y": 22,
+              "rotation": 3
+            },
+            "cells": [
+              [
+                3,
+                23
+              ],
+              [
+                3,
+                24
+              ],
+              [
+                4,
+                24
+              ],
+              [
+                4,
+                25
+              ]
+            ],
+            "lines": 0,
+            "clearedRows": [],
+            "spin": "none",
+            "topOut": false
+          }
+        },
+        {
+          "target": {
+            "type": "O",
+            "x": -1,
+            "y": 24,
+            "rotation": 0
+          },
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "hold": false,
+          "holdCount": 0,
+          "event": {
+            "type": "O",
+            "target": {
+              "type": "O",
+              "x": -1,
+              "y": 24,
+              "rotation": 0
+            },
+            "cells": [
+              [
+                0,
+                25
+              ],
+              [
+                1,
+                25
+              ],
+              [
+                0,
+                26
+              ],
+              [
+                1,
+                26
+              ]
+            ],
+            "lines": 0,
+            "clearedRows": [],
+            "spin": "none",
+            "topOut": false
+          }
+        },
+        {
+          "target": {
+            "type": "Z",
+            "x": 7,
+            "y": 34,
+            "rotation": 1
+          },
+          "witness": [
+            "CW",
+            "R",
+            "R",
+            "R",
+            "R",
+            "HD"
+          ],
+          "hold": false,
+          "holdCount": 0,
+          "event": {
+            "type": "Z",
+            "target": {
+              "type": "Z",
+              "x": 7,
+              "y": 34,
+              "rotation": 1
+            },
+            "cells": [
+              [
+                9,
+                35
+              ],
+              [
+                8,
+                36
+              ],
+              [
+                9,
+                36
+              ],
+              [
+                8,
+                37
+              ]
+            ],
+            "lines": 0,
+            "clearedRows": [],
+            "spin": "none",
+            "topOut": false
+          }
+        },
+        {
+          "target": {
+            "type": "T",
+            "x": 6,
+            "y": 33,
+            "rotation": 2
+          },
+          "witness": [
+            "HOLD",
+            "SD",
+            "SD",
+            "R",
+            "R",
+            "R",
+            "CW",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CW",
+            "HD"
+          ],
+          "hold": true,
+          "holdCount": 1,
+          "event": {
+            "type": "T",
+            "target": {
+              "type": "T",
+              "x": 6,
+              "y": 33,
+              "rotation": 2
+            },
+            "cells": [
+              [
+                6,
+                35
+              ],
+              [
+                7,
+                35
+              ],
+              [
+                8,
+                35
+              ],
+              [
+                7,
+                36
+              ]
+            ],
+            "lines": 2,
+            "clearedRows": [
+              35,
+              36
+            ],
+            "spin": "full",
+            "topOut": false
+          }
+        }
+      ]
+    }
+  },
+  "lateZ": {
+    "snapshot": {
+      "rules": "st-zero-v2",
+      "board": [
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "OOJSLL....",
+        "OOJSSL....",
+        "JJJISL....",
+        "JJJI......",
+        "IOOI......",
+        "IOOI......",
+        "ILLL.SS...",
+        "ILSSSS....",
+        "ISSLJJZ...",
+        "ILLLJZZ...",
+        "JJOOLSS.Z.",
+        "ITTTLSS.Z.",
+        "IIIIJOO.Z."
+      ],
+      "active": {
+        "type": "T",
+        "x": 3,
+        "y": 17,
+        "rotation": 0,
+        "lastRotation": null
+      },
+      "hold": "L",
+      "canHold": true,
+      "queue": [
+        "S",
+        "I",
+        "O",
+        "J",
+        "Z",
+        "L"
+      ],
+      "revision": 152,
+      "streamCursor": 37,
+      "topOut": false,
+      "lastEvent": null,
+      "bag": {
+        "remaining": [
+          123
+        ],
+        "observedCount": 43,
+        "provenance": "known-phase"
+      }
+    },
+    "advice": {
+      "target": {
+        "type": "T",
+        "x": 0,
+        "y": 24,
+        "rotation": 0
+      },
+      "witness": [
+        "L",
+        "L",
+        "L",
+        "HD"
+      ],
+      "hold": false,
+      "holdCount": 0,
+      "reason": "Build the left region without crossing into the center. Place without clearing. The checked endpoint keeps column eight below the left/center stack.",
+      "continuation": [
+        {
+          "target": {
+            "type": "T",
+            "x": 0,
+            "y": 24,
+            "rotation": 0
+          },
+          "witness": [
+            "L",
+            "L",
+            "L",
+            "HD"
+          ],
+          "hold": false,
+          "holdCount": 0,
+          "event": {
+            "type": "T",
+            "target": {
+              "type": "T",
+              "x": 0,
+              "y": 24,
+              "rotation": 0
+            },
+            "cells": [
+              [
+                1,
+                25
+              ],
+              [
+                0,
+                26
+              ],
+              [
+                1,
+                26
+              ],
+              [
+                2,
+                26
+              ]
+            ],
+            "lines": 0,
+            "clearedRows": [],
+            "spin": "none",
+            "topOut": false
+          }
+        },
+        {
+          "target": {
+            "type": "S",
+            "x": 2,
+            "y": 23,
+            "rotation": 3
+          },
+          "witness": [
+            "L",
+            "CCW",
+            "HD"
+          ],
+          "hold": false,
+          "holdCount": 0,
+          "event": {
+            "type": "S",
+            "target": {
+              "type": "S",
+              "x": 2,
+              "y": 23,
+              "rotation": 3
+            },
+            "cells": [
+              [
+                2,
+                24
+              ],
+              [
+                2,
+                25
+              ],
+              [
+                3,
+                25
+              ],
+              [
+                3,
+                26
+              ]
+            ],
+            "lines": 0,
+            "clearedRows": [],
+            "spin": "none",
+            "topOut": false
+          }
+        },
+        {
+          "target": {
+            "type": "L",
+            "x": 4,
+            "y": 30,
+            "rotation": 2
+          },
+          "witness": [
+            "HOLD",
+            "R",
+            "R",
+            "CW",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CW",
+            "L",
+            "HD"
+          ],
+          "hold": true,
+          "holdCount": 1,
+          "event": {
+            "type": "L",
+            "target": {
+              "type": "L",
+              "x": 4,
+              "y": 30,
+              "rotation": 2
+            },
+            "cells": [
+              [
+                4,
+                32
+              ],
+              [
+                5,
+                32
+              ],
+              [
+                6,
+                32
+              ],
+              [
+                4,
+                33
+              ]
+            ],
+            "lines": 0,
+            "clearedRows": [],
+            "spin": "none",
+            "topOut": false
+          }
+        }
+      ]
+    }
+  },
+  "heldZ": {
+    "snapshot": {
+      "rules": "st-zero-v2",
+      "board": [
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "...I......",
+        "...I......",
+        "...I.SS...",
+        ".J.ISS....",
+        ".JJJLOO...",
+        ".JJJLOO...",
+        "..SJLL....",
+        ".ZSSLOO...",
+        "ZZSSLOO...",
+        "ZTSSLL....",
+        "TTTSJJJ...",
+        "OOJSLLJ...",
+        "OOJSSL....",
+        "JJJISL....",
+        "JJJIOO....",
+        "IOOIOO....",
+        "IOOILLL...",
+        "ILLLLSS..."
+      ],
+      "active": {
+        "type": "T",
+        "x": 3,
+        "y": 17,
+        "rotation": 0,
+        "lastRotation": null
+      },
+      "hold": "Z",
+      "canHold": true,
+      "queue": [
+        "J",
+        "Z",
+        "S",
+        "L",
+        "O",
+        "T"
+      ],
+      "revision": 268,
+      "streamCursor": 56,
+      "topOut": false,
+      "lastEvent": null,
+      "bag": {
+        "remaining": [
+          1
+        ],
+        "observedCount": 62,
+        "provenance": "known-phase"
+      }
+    },
+    "advice": {
+      "target": {
+        "type": "T",
+        "x": 1,
+        "y": 22,
+        "rotation": 3
+      },
+      "witness": [
+        "L",
+        "L",
+        "CCW",
+        "HD"
+      ],
+      "hold": false,
+      "holdCount": 0,
+      "reason": "Build the left region without crossing into the center. Place without clearing. The checked endpoint keeps column eight below the left/center stack.",
+      "continuation": [
+        {
+          "target": {
+            "type": "T",
+            "x": 1,
+            "y": 22,
+            "rotation": 3
+          },
+          "witness": [
+            "L",
+            "L",
+            "CCW",
+            "HD"
+          ],
+          "hold": false,
+          "holdCount": 0,
+          "event": {
+            "type": "T",
+            "target": {
+              "type": "T",
+              "x": 1,
+              "y": 22,
+              "rotation": 3
+            },
+            "cells": [
+              [
+                2,
+                23
+              ],
+              [
+                1,
+                24
+              ],
+              [
+                2,
+                24
+              ],
+              [
+                2,
+                25
+              ]
+            ],
+            "lines": 0,
+            "clearedRows": [],
+            "spin": "none",
+            "topOut": false
+          }
+        },
+        {
+          "target": {
+            "type": "Z",
+            "x": 7,
+            "y": 36,
+            "rotation": 1
+          },
+          "witness": [
+            "HOLD",
+            "R",
+            "R",
+            "R",
+            "R",
+            "CW",
+            "HD"
+          ],
+          "hold": true,
+          "holdCount": 1,
+          "event": {
+            "type": "Z",
+            "target": {
+              "type": "Z",
+              "x": 7,
+              "y": 36,
+              "rotation": 1
+            },
+            "cells": [
+              [
+                9,
+                37
+              ],
+              [
+                8,
+                38
+              ],
+              [
+                9,
+                38
+              ],
+              [
+                8,
+                39
+              ]
+            ],
+            "lines": 0,
+            "clearedRows": [],
+            "spin": "none",
+            "topOut": false
+          }
+        },
+        {
+          "target": {
+            "type": "Z",
+            "x": 3,
+            "y": 21,
+            "rotation": 1
+          },
+          "witness": [
+            "CW",
+            "HD"
+          ],
+          "hold": false,
+          "holdCount": 0,
+          "event": {
+            "type": "Z",
+            "target": {
+              "type": "Z",
+              "x": 3,
+              "y": 21,
+              "rotation": 1
+            },
+            "cells": [
+              [
+                5,
+                22
+              ],
+              [
+                4,
+                23
+              ],
+              [
+                5,
+                23
+              ],
+              [
+                4,
+                24
+              ]
+            ],
+            "lines": 0,
+            "clearedRows": [],
+            "spin": "none",
+            "topOut": false
+          }
+        }
+      ]
+    }
+  }
+}

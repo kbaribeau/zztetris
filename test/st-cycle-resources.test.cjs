@@ -1,0 +1,76 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict');
+const R=require('../st-rules'),P=require('../st-planner'),S=require('../st-structure');
+const cases=require('./support/st-cycle-resources.json');
+const config={depth:3,width:8,maxNodes:45000,timeMs:750};
+function follow(s,a){const r=R.replay(s,a.witness);assert.ok(r.valid);assert.equal(r.events.length,1);return r.state;}
+test('cycle resources reserve the held I through the visible T double until Pocket opens',()=>{
+ const s=P.observe(cases.holdI.snapshot),a=P.plan(s,config);assert.ok(a.target,a.reason);
+ assert.equal(a.continuation[0].event.type,'L');assert.equal(a.hold,true);
+ assert.deepEqual(a.continuation.map(p=>[p.event.type,p.event.lines]),[['L',0],['T',2],['I',0]]);
+ assert.equal(a.evidence.cycleResources.pocket,1);assert.equal(a.evidence.cycleResources.iFillers,0);
+ let state=s,advice=a;for(let i=0;i<2;i++){const next=follow(state,advice),suffix=P.continueCommitment(state,next,advice);assert.ok(suffix);
+  const fresh=P.plan(next,{...config,commitment:{observation:next,advice:suffix}});assert.ok(fresh.target);assert.equal(fresh.continuation[0].event.type,i===0?'T':'I');state=next;advice=fresh;}
+ const end=follow(state,advice);assert.equal(P.continueCommitment(state,end,advice),null);
+});
+test('observed saved-T route survives the actual preceding O lock and fresh worker plan',()=>{
+ const s=P.observe(cases.savedT.snapshot),a=cases.savedT.advice,next=follow(s,a),suffix=P.continueCommitment(s,next,a);assert.ok(suffix);
+ const fresh=P.plan(next,{...config,commitment:{observation:next,advice:suffix}});assert.ok(fresh.target);
+ assert.ok(fresh.evidence.cycleResources.tsds>=1);assert.equal(fresh.evidence.cycleResources.tFillers,0);
+ let state=next;for(const step of fresh.continuation){const r=R.replay(state,step.witness);assert.ok(r.valid);assert.ok(S.canonicalClear(r.events[0]));state=r.state;}
+});
+test('commitments are replayed, not trusted goal metadata or arbitrary imported history',()=>{
+ const s=P.observe(cases.savedT.snapshot),a=cases.savedT.advice,next=follow(s,a);
+ const fake=JSON.parse(JSON.stringify(a));fake.continuation[1].witness=['HD'];assert.equal(P.continueCommitment(s,next,fake),null);
+ const changed={...next,hold:'I'};assert.equal(P.continueCommitment(s,changed,a),null);
+ const noGoal={...a,continuation:a.continuation.slice(0,2)};assert.equal(P.continueCommitment(s,next,noGoal),null);
+ const observed=P.observe({...s,cycleResources:{tsds:999},commitment:fake});assert.equal(observed.cycleResources,undefined);assert.equal(observed.commitment,undefined);
+});
+test('resource accounting reports material and allows nonclearing Reset Ts without a quota',()=>{
+ const events=[{type:'T',lines:0,cells:[[0,30]]},{type:'T',lines:0,cells:[[1,29]]},{type:'I',lines:4,cells:[[7,36]]}];
+ const r=P.cycleResources(events.map(event=>({event})));assert.equal(r.tFillers,2);assert.equal(r.quads,1);assert.equal(r.materialDelta,-28);assert.equal(r.locks,3);
+});
+test('known reference paired-T placements remain an explicit unsupported-policy limitation',()=>{
+ const controls=require('./support/st-reference-reset-limitations.json');assert.equal(controls.length,4);
+ for(const c of controls){const s=R.createState({board:c.before,active:'T'}),r=R.replay(s,c.witness);assert.ok(r.valid,`${c.source} ${c.page}`);assert.deepEqual(r.state.board,c.after);
+  const transition=S.transition(s,{state:r.state,event:r.events[0]});assert.ok(transition.cycleViolations.includes('spent-scoring-T-without-double'));
+  assert.ok(r.events[0].cells.every(([x])=>x<4));assert.equal(r.events[0].lines,0);
+ }
+});
+
+test('quad consumes a prior Pocket preparation rather than counting two outstanding goals',()=>{
+ const prepared={event:{type:'I',lines:0,cells:[[9,36]]},structuralEvidence:{allocation:'quad-preparation'}},quad={event:{type:'I',lines:4,cells:[[7,36]]}};
+ assert.equal(P.cycleResources([prepared]).outstandingPocket,1);
+ const completed=P.cycleResources([prepared,quad]);assert.equal(completed.pocket,1);assert.equal(completed.quads,1);assert.equal(completed.outstandingPocket,0);
+ assert.equal(P.cycleResources([quad,prepared]).outstandingPocket,1);
+});
+
+test('goal comparison trims post-goal filler and only reserves relevant resource roles',()=>{
+ const t={event:{type:'T',spin:'full',lines:2,cells:[[7,35]]}},i={event:{type:'I',lines:0,cells:[[0,30]]}},f={event:{type:'L',lines:0,cells:[[0,31]]}};
+ const q={event:{type:'I',lines:4,cells:[[7,36]]}},p={event:{type:'I',lines:0,cells:[[9,36]]},structuralEvidence:{allocation:'quad-preparation'}};
+ const wasteT={event:{type:'T',lines:0,cells:[[0,30]]}};
+ assert.equal(P.resourceGoalPrefix([f,q,f],[f,q]),2);
+ assert.equal(P.resourceGoalPrefix([i,t,f],[t]),2,'an unrelated I repair does not spend a T reservation');
+ assert.equal(P.resourceGoalPrefix([wasteT,t],[t]),null,'do not waste the reserved T and substitute a later T');
+ assert.equal(P.resourceGoalPrefix([i,p],[p]),null,'do not waste the reserved I and substitute a later I');
+ assert.equal(P.resourceGoalPrefix([i,t,p],[t,p]),null,'mixed goals retain both resource protections');
+ assert.equal(P.resourceGoalPrefix([q,f],[p,q]),1,'a completed quad consumes the preparation obligation');
+ assert.equal(P.resourceGoalPrefix([wasteT,t],[t,wasteT]),null,'post-goal T waste cannot fund an earlier substitution');
+ assert.equal(P.resourceGoalPrefix([i,q],[q,i]),null,'post-goal I waste cannot fund an earlier substitution');
+});
+
+for(const c of require('./support/st-commitment-comparison.json'))test('same-horizon commitment replacement: '+c.name,()=>{
+ const suffix=P.continueCommitment(c.before,c.snapshot,c.previous,c.event);assert.ok(suffix);
+ // Fixed node budget removes host-timing noise from this policy regression.
+ const a=P.plan(c.snapshot,{...config,now:()=>0,commitment:{observation:c.snapshot,advice:suffix}});
+ assert.ok(a.target,a.reason);assert.deepEqual(a.target,c.expectedTarget);assert.equal(a.metrics.commitmentComparison.replacement,true);
+ assert.equal(a.metrics.commitmentComparison.freshHorizon,a.metrics.commitmentComparison.savedHorizon);
+ assert.equal(a.metrics.commitmentComparison.freshSettled,true);assert.equal(a.metrics.commitmentComparison.savedSettled,true);
+ assert.ok(P.resourceGoalPrefix(a.continuation,suffix.continuation));
+ let s=P.observe(c.snapshot);for(const step of a.continuation){const r=R.replay(s,step.witness);assert.ok(r.valid);assert.ok(S.canonicalClear(r.events[0]));s=r.state;}
+});
+test('interrupted fresh comparison keeps the executable saved resource proof',()=>{
+ const c=require('./support/st-commitment-comparison.json')[1],suffix=P.continueCommitment(c.before,c.snapshot,c.previous,c.event);assert.ok(suffix);
+ const a=P.plan(c.snapshot,{...config,timeMs:0,commitment:{observation:c.snapshot,advice:suffix}});
+ assert.ok(a.target);assert.deepEqual(a.target,suffix.target);assert.equal(a.evidence.commitmentRetained,true);assert.equal(a.metrics.commitmentComparison.replacement,false);
+});

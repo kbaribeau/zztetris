@@ -25,12 +25,12 @@ test('st-center-phase/existing O partner remains supported but stacked O gets no
 });
 test('st-center-phase/cache separates identical occupancy under different inherited phases',()=>{
  const s=state(),p=dropO(s),normal=S.advanceNotches(s.board,p,S.notchPattern(s.board)).pattern;
- // Explicit alternate inherited phase tests cache isolation, not a new gameplay fixture.
+ // Explicit contradictory phase tests cache isolation, not a new gameplay fixture.
+ // It cannot earn a partner by overriding the board's positively recognized cycle.
  const alternate={status:'established',anchorRow:27,protectedRows:[27,24,21,18,15,12,9,6,3,0],blockedRows:[]};
  S.clearCache();
- const a=S.geometry(p.state.board,{notches:alternate});assert.ok(a.center.completions.some(c=>c.piece==='J'));
- for(const c of a.center.completions)assert.equal(replayPartner(p.state.board,c,alternate).valid,true);
- const b=S.geometry(p.state.board,{notches:normal});assert.equal(b.center.completions.some(c=>c.piece==='J'),false);
+ const a=S.geometry(p.state.board,{notches:alternate});assert.equal(a.center.completions.length,0);
+ const b=S.geometry(p.state.board,{notches:normal});assert.equal(b.center.completions.some(c=>c.piece==='J'),false);assert.ok(b.center.completions.length>0);
  assert.deepEqual(S.geometry(p.state.board,{notches:alternate}),a);
  S.clearCache();assert.deepEqual(S.geometry(p.state.board,{notches:normal}),b);
  assert.deepEqual(S.geometry(p.state.board,{notches:alternate}),a);
@@ -59,6 +59,8 @@ test('st-center-phase/existing incomplete center constructions retain replayable
   for(const c of g.center.completions)assert.equal(replayPartner(s.board,c,notches).valid,true);
  }
  const plan=P.plan(F.get('empty-hold').observation,{depth:3,width:8,maxNodes:45000});
- assert.equal(plan.continuation[0].structuralEvidence.pairFamily,'SL');
- assert.equal(plan.continuation[0].structuralEvidence.pairProgress.status,'completed-in-checked-prefix');
+ const pair=plan.continuation.find(p=>p.structuralEvidence.pairFamily==='SL');assert.ok(pair);
+ assert.deepEqual(pair.structuralEvidence.pairProgress.orderedPieces,['S','L']);
+ const finish=plan.continuation.find(p=>p.event.type==='L'&&p.event.cells.every(([x])=>x>=4&&x<=6));assert.ok(finish);
+ assert.equal(new Set(finish.structuralEvidence.structure.center.profile).size,1);
 });
