@@ -38,7 +38,7 @@ test('st-advice/a short checked prefix cannot promise an unexecuted center pair 
 test('st-advice/an existing finishing J is a completion without invented O/J preparation history',()=>{
  const plan=P.plan(F.get('center-j').observation,opts);
  assert.equal(plan.target.type,'J');
- assert.match(plan.reason,/Complete a level center surface/);
+ assert.match(plan.reason,/Complete the center overhang with a level top/);
  assert.doesNotMatch(plan.reason,/start an|pair/);
 });
 
@@ -46,7 +46,7 @@ test('st-advice/quad rebuild reports S preparation without promising the unexecu
  const plan=P.plan(F.get('after-quad').observation,opts),first=plan.continuation[0];
  assert.equal(first.event.type,'S');assert.ok(first.event.cells.every(([x])=>x>=4&&x<=6));
  assert.equal(first.structuralEvidence.pairFamily,'SL');
- assert.match(plan.reason,/Prepare the center surface; its next completion is not established/);
+ assert.match(plan.reason,/A completing placement has not been checked yet/);
  assert.doesNotMatch(plan.reason,/completes it|S or L|L\/O pair/);
  assert.equal(plan.assessment.structure.right.reservoir.status,'verified-clear-reopens-reservoir');
 });
@@ -58,7 +58,7 @@ test('st-advice/previous quad L/O continuation still names its executed pair pre
  const rules={...R,placements:(state,options)=>{const r=R.placements(state,options);return{...r,placements:r.placements.filter(p=>targets.some(t=>JSON.stringify(t)===JSON.stringify(p.target)))};}};
  vm.runInNewContext(fs.readFileSync(require.resolve('../st-planner.js'),'utf8'),{module,require:name=>name==='./st-rules.js'?rules:name==='./st-bag.js'?require('../st-bag'):require('../st-structure')});
  const plan=module.exports.plan(F.get('after-quad').observation,{...opts,depth:2});
- assert.match(plan.reason,/Hold first\. Place L in the center to start an L\/O pair\. The next O completes it\./);
+ assert.match(plan.reason,/Hold once\. Place L in the Center\. Then place O to complete the L\/O overhang\./);
  assert.equal(plan.continuation[0].structuralEvidence.pairProgress.status,'completed-in-checked-prefix');
  assert.equal(plan.continuation[1].structuralEvidence.pairProgress.step,2);
  let state=F.get('after-quad').observation;

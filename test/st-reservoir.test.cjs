@@ -24,7 +24,7 @@ test('reservoir/proof: actual clear reopens exact shaft, without inventing T arr
  const clear=R.replay(R.createState({board:state.board,active:'T',canHold:false}),cavity.witness);
  assert.equal(clear.valid,true);assert.equal(clear.events[0].spin,'full');assert.equal(clear.events[0].lines,2);
  assert.deepEqual(clear.events[0].clearedRows,[35,36]);assert.equal(P.assess(clear.state.board).sealed,0);
- assert.equal(result.evidence.tsdAt,null);assert.match(result.reason,/when a T is available/);
+ assert.equal(result.evidence.tsdAt,null);assert.match(result.reason,/if a T is available/);
  assert.ok(result.assessment.obligations.some(o=>o.kind==='T-slot'&&o.status==='entry-verified-arrival-unresolved'));
 });
 test('reservoir/proof is assessment-local, never cached as geometric certainty',()=>{

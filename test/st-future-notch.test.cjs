@@ -43,7 +43,7 @@ test('unrecognized geometry does not guess phase; known floor rebuild is anchore
 test('already damaged user position abstains honestly rather than claiming a repair',()=>{
  const center=R.placements(snapshot).placements.find(p=>p.event.type==='J'&&p.event.cells.some(([x,y])=>x===6&&y===27));
  const bad={...center.state,queue:['T','S','J','I','L']};assert.equal(S.notchPattern(bad.board).status,'broken');
- const a=P.plan(bad,config);assert.equal(a.target,null);assert.match(a.reason,/already filled/);
+ const a=P.plan(bad,config);assert.equal(a.target,null);assert.match(a.reason,/column 7 is filled/);
 });
 test('revalidation and in-flight advancement reject the old notch-blocking recommendation',()=>{
  const center=R.placements(snapshot).placements.find(p=>p.event.type==='J'&&p.event.cells.some(([x,y])=>x===6&&y===27));

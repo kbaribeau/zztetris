@@ -69,7 +69,7 @@ test('cycle search retains a shorter clean prefix when deeper enumerated moves d
 test('cycle search abstains when only obligation-diverting root moves are enumerated',()=>{
  const s=F.get('double-above-the-cleanup-i').observation;
  const p=plannerWithPlacements((s,moves)=>moves.filter(p=>p.event.type==='T'&&p.event.cells.every(([x])=>x<4)));
- const a=p.plan(s,{...config,depth:1});assert.equal(a.target,null);assert.equal(a.status,'no-supported-continuation-found');assert.match(a.reason,/canonical ST/);
+ const a=p.plan(s,{...config,depth:1});assert.equal(a.target,null);assert.equal(a.status,'no-supported-continuation-found');assert.match(a.reason,/supported ST sequence/);
 });
 test('cycle cadence: already-reviewed early preparation and later left I have distinct roles',()=>{
  const fs=require('node:fs'),vm=require('node:vm');

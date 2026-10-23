@@ -1,6 +1,8 @@
 # ST lab: established-stack coaching
 
-The lab implements the first bounded coaching milestone: maintain an established **right-hand ST stack**, not solve empty-board openings or guarantee indefinite survival. Start at the default **O before T-spin double** demonstration. Other reachable starts are available in the fixture selector.
+The lab implements the first bounded coaching milestone: maintain an established **right-hand ST stack**, not solve empty-board openings or guarantee indefinite survival. The screen offers exactly two play modes: **Empty board** (manual opening practice; opening coaching is not yet implemented) and **Stable ST stack** (the existing Independent rebuild position, the default). The other development fixtures remain internal regression inputs, not selectable starts.
+
+The last selected play mode is saved locally as `stLabMode`; unknown or retired values fall back to Stable ST stack. **Restart current board** restores the current starting board, including an imported snapshot. Snapshot import/export remains a diagnostic tool, not a third preset, and an import does not overwrite the saved mode. Choosing a mode replaces the imported origin. The rules, unlimited hold swaps, and coaching engine are unchanged.
 
 ## Play
 

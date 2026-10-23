@@ -10,7 +10,7 @@ function doubleHoldAdvice(){
 }
 test('planner describes and retains only the remaining meaningful holds',()=>{
  const{s,a}=doubleHoldAdvice();assert.equal(a.holdCount,2);assert.match(a.reason,/^Hold twice\./);
- const once=R.move(s,'HOLD'),next=P.advance(once,a,'HOLD');assert.ok(next);assert.equal(next.holdCount,1);assert.match(next.reason,/^Hold first\./);
+ const once=R.move(s,'HOLD'),next=P.advance(once,a,'HOLD');assert.ok(next);assert.equal(next.holdCount,1);assert.match(next.reason,/^Hold once\./);
  const twice=R.move(once,'HOLD'),last=P.advance(twice,next,'HOLD');assert.ok(last);assert.equal(last.holdCount,0);assert.equal(last.hold,false);assert.doesNotMatch(last.reason,/^Hold/);
  assert.equal(twice.streamCursor,s.streamCursor+1);assert.equal(twice.hold,s.queue[0]);
 });

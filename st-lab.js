@@ -21,8 +21,42 @@
   let selectedId=null, lockCount=0;
   const repeating=new Map();
   const fixtures=STFixtures.list || [];
+  const modeKey='stLabMode',stableId='marathon-rebuild';
+  const playModes=[{id:'empty',label:'Empty board'},{id:stableId,label:'Stable ST stack'}];
+  function rememberMode(id){try{localStorage.setItem(modeKey,id);}catch{ /* Storage may be disabled; play still works. */ }}
+  function chooseMode(id,{persist=true}={}){
+    const mode=playModes.some(m=>m.id===id)?id:stableId;
+    if(mode==='empty')empty();else loadFixture(stableId);
+    setText($('st-import-status'),'');
+    if(persist)rememberMode(mode);
+  }
   const profile=STRules.PROFILE.id || 'st-zero-v1';
   const setText=(node,text)=>{if(node.textContent!==text)node.textContent=text;};
+  // Worker metadata is not markup or an unrestricted navigation destination.
+  // Keep this exact allowlist independent of imported snapshots and planner data.
+  const communitySourceURLs=new Set([
+    'https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit',
+    'https://tl.net/forum/games/175252-10000-guide-tetris-ultra-st-stacking'
+  ]);
+  function renderSources(visible) {
+    const container=$('st-sources'),list=$('st-source-list');
+    list.replaceChildren();container.hidden=true;
+    // Exact-witness retention keeps the recommendation status while a fresh
+    // worker checks it. Error, ended-queue and other nonrecommendations do not.
+    if(!visible || coachStatus!=='recommended-with-verified-prefix' || !result?.target || !Array.isArray(result.sources))return;
+    const seen=new Set();
+    for(const source of result.sources){
+      if(!source || typeof source!=='object' || Array.isArray(source)
+        || !['id','label','url','section','scope'].every(key=>typeof source[key]==='string'&&source[key].trim())
+        || !communitySourceURLs.has(source.url) || seen.has(source.id))continue;
+      seen.add(source.id);
+      const item=document.createElement('li'),link=document.createElement('a');
+      link.href=source.url;link.target='_blank';link.rel='noopener noreferrer';
+      link.textContent=`${source.label} · ${source.section}`;link.title=source.scope;
+      item.append(link);list.append(item);
+    }
+    container.hidden=!list.children.length;
+  }
   const observation=()=>{
     const data={rules:state.rules,board:state.board.slice(),active:state.active?clone(state.active):null,
       hold:state.hold,canHold:state.canHold,queue:state.queue.slice(0,6),revision:state.revision,
@@ -50,9 +84,9 @@
     cancel();if(!retain)result=null;
     if(!TrainingSettings.guideVisible){coachStatus='hidden';coachMessage='';render();return;}
     if(state.topOut){coachStatus='top-out';coachMessage='This position has topped out. Reset to continue.';render();return;}
-    if(!state.active){coachStatus='insufficient-known-pieces';coachMessage='The supplied queue has ended. Import a new observed position or reset.';render();return;}
-    if(typeof Worker!=='function'){coachStatus='worker-unavailable';coachMessage='Coaching requires Web Workers, which are unavailable here. Manual practice still works.';render();return;}
-    if(!retain){coachStatus='thinking';coachMessage='Checking a continuation…';}render();
+    if(!state.active){coachStatus='insufficient-known-pieces';coachMessage='The supplied queue has ended. Import another snapshot or reset.';render();return;}
+    if(typeof Worker!=='function'){result=null;coachStatus='worker-unavailable';coachMessage='Coaching is unavailable in this browser. You can still practice manually.';render();return;}
+    if(!retain){coachStatus='thinking';coachMessage='Checking the next moves…';}render();
     const currentRevision=state.revision;
     // Input bursts settle briefly; only one worker is alive. Termination cancels
     // synchronous old searches instead of merely ignoring expensive stale work.
@@ -64,15 +98,15 @@
         activeWorker.onmessage=({data})=>{
           if(worker!==activeWorker || data?.id!==id || data.revision!==state.revision || currentRevision!==state.revision)return;
           clearTimeout(watchdog);watchdog=null;activeWorker.terminate();worker=null;
-          if(data.type==='error'){coachStatus='worker-error';coachMessage='The coach could not evaluate this position. Manual practice is still available.';result=null;render();return;}
+          if(data.type==='error'){coachStatus='worker-error';coachMessage='The coach could not evaluate this position. You can still practice manually.';result=null;render();return;}
           if(data.type!=='result')return;
           const candidate=data.result;
           if(candidate?.target && !safeTarget(candidate)){
-            coachStatus='invalid-witness';coachMessage='A suggested path failed validation and has been withheld.';result=null;render();return;
+            coachStatus='invalid-witness';coachMessage='The suggested move failed validation, so it is not shown.';result=null;render();return;
           }
           result=candidate || null;
           coachStatus=result?.status || 'no-supported-continuation-found';
-          coachMessage=result?.reason || 'No supported ST continuation was established within the checked horizon.';
+          coachMessage=result?.reason || 'No supported ST sequence was found within this search.';
           if(result?.target){
             previous={...clone(result),revision:state.revision};
             const resources=STPlanner.cycleResources(result.continuation||[]);
@@ -83,17 +117,17 @@
         activeWorker.onerror=event=>{
           event.preventDefault?.();
           if(worker!==activeWorker)return;
-          cancel();coachStatus='worker-error';coachMessage='The coach worker could not start. Manual practice is still available.';result=null;render();
+          cancel();coachStatus='worker-error';coachMessage='The coach could not start. You can still practice manually.';result=null;render();
         };
         activeWorker.postMessage({type:'plan',id,observation:observation(),previous:previous?clone(previous):null,
           commitment:commitment?clone(commitment):null,
           options:{timeMs:750,depth:3,width:8,maxNodes:45000}});
         watchdog=setTimeout(()=>{
           if(worker!==activeWorker)return;
-          cancel();result=null;coachStatus='budget-exhausted';coachMessage='The coach exceeded its response budget; no claim about impossibility is made.';render();
+          cancel();result=null;coachStatus='budget-exhausted';coachMessage='The coach timed out. A valid continuation may still exist.';render();
         },2500);
       } catch {
-        cancel();coachStatus='worker-unavailable';coachMessage='The coach worker could not start. Manual practice is still available.';render();
+        cancel();result=null;coachStatus='worker-unavailable';coachMessage='The coach could not start. You can still practice manually.';render();
       }
     },40);
   }
@@ -139,13 +173,13 @@
     if(!fixture)throw new Error('Unknown fixture');
     selectedId=id;$('st-fixture').value=id;
     const input=fixture.observation || fixture.state;
-    resetState(input,{tail:fixture.future||[],note:`${fixture.label||fixture.name||id}. ${fixture.description||''} Preview/hold context is defined by this training fixture, not inferred from a recording.`});
+    resetState(input,{tail:fixture.future||[],note:id===stableId?'Stable ST stack. Continue from the Independent rebuild position with a defined practice sequence.':`${fixture.label||fixture.name||id}. ${fixture.description||''} Preview/hold context is defined by this training fixture, not inferred from a recording.`});
   }
   function empty() {
-    const initial=bag();selectedId=null;$('st-fixture').value='';
+    const initial=bag();selectedId='empty';$('st-fixture').value='empty';
     const active=initial.shift();
     resetState({rules:profile,board:STRules.emptyBoard(),active:{type:active,x:3,y:17,rotation:0,lastRotation:null},hold:null,canHold:true,queue:initial,streamCursor:1},
-      {random:true,history:[active,...initial],note:'Empty-board manual practice. Opening construction is outside this milestone’s coaching scope.'});
+      {random:true,history:[active,...initial],note:'Empty-board manual practice. Opening advice is not supported yet.'});
   }
   function act(action) {
     if(action==='RESET'){if(origin)resetState(origin.input,{...origin.options,keepOrigin:true});return;}
@@ -193,9 +227,10 @@
     $('st-toggle').setAttribute('aria-pressed',String(visible));
     $('st-status').hidden=!visible;$('st-diagnostics').hidden=!visible;
     if(visible){setText($('st-status'),`${coachMessage}`);$('st-status').dataset.result=coachStatus;}
+    renderSources(visible);
     setText($('st-diagnostic-text'),JSON.stringify({status:coachStatus,revision:state.revision,
       ...(result?{metrics:result.metrics,evidence:result.evidence,horizon:result.horizon,continuation:result.continuation}:{}),
-      note:'Finite checked evidence, not a guarantee of indefinite ST play.'},null,2));
+      note:'Only the shown sequence has been checked. Continued ST play is not guaranteed.'},null,2));
     context.clearRect(0,0,200,440);
     state.board.forEach((row,y)=>{if(y<18)return;[...row].forEach((type,x)=>{if(type!=='.')paintCell(context,x,y-18,type);});});
     if(state.active){
@@ -247,9 +282,8 @@
   window.addEventListener('storage',event=>{if(event.key==='stGuideVisible'||event.key===null)requestPlan();else if(event.key==='bagBoundaries')render();});
   $('st-toggle').addEventListener('click',()=>{toggle();$('st-toggle').blur();});
   $('st-reset').addEventListener('click',()=>{act('RESET');$('st-reset').blur();});
-  $('st-empty').addEventListener('click',()=>{empty();$('st-empty').blur();});
   document.querySelectorAll('[data-action]').forEach(button=>button.addEventListener('click',()=>{act(button.dataset.action);button.blur();}));
-  $('st-fixture').addEventListener('change',()=>{if($('st-fixture').value)loadFixture($('st-fixture').value);$('st-fixture').blur();});
+  $('st-fixture').addEventListener('change',()=>{chooseMode($('st-fixture').value);$('st-fixture').blur();});
   $('st-export').addEventListener('click',()=>{$('st-snapshot').value=JSON.stringify(observation(),null,2);setText($('st-import-status'),'Exported visible state only; hidden future was excluded.');});
   $('st-import').addEventListener('click',()=>{
     try{const input=JSON.parse($('st-snapshot').value);const errors=STRules.validate(input);if(errors.length)throw new Error(errors.join('; '));
@@ -260,9 +294,10 @@
       resetState(clean,{note:'Imported visible snapshot. Missing bag history remains unknown; preview is finite.'});selectedId=null;$('st-fixture').value='';setText($('st-import-status'),input.rules===STRules.LEGACY_PROFILE.id?'Snapshot imported and migrated from v1 to unlimited-hold v2.':'Snapshot imported.');
     }catch(error){setText($('st-import-status'),`Import rejected: ${error.message}`);}
   });
-  const blank=document.createElement('option');blank.value='';blank.textContent='Choose a position';$('st-fixture').append(blank);
-  for(const fixture of fixtures){const option=document.createElement('option');option.value=fixture.id;option.textContent=(fixture.id==='o-before-double'?'Demo · ':'')+(fixture.label||fixture.name||fixture.id);$('st-fixture').append(option);}
+  for(const mode of playModes){const option=document.createElement('option');option.value=mode.id;option.textContent=mode.label;$('st-fixture').append(option);}
   setText($('st-key-help'),actions.map((action,i)=>`${config[i]}: ${action.toLowerCase()}`).join(' · ')+' · Set bindings in Game Settings.');
   window.stLab=Object.freeze({render,act,loadFixture,snapshot:()=>clone(observation()),get result(){return result?clone(result):null;}});
-  if(fixtures.length)loadFixture(fixtures.some(f=>f.id==='o-before-double')?'o-before-double':fixtures[0].id);else empty();
+  let savedMode;try{savedMode=localStorage.getItem(modeKey);}catch{ /* Fall back to the stable stack. */ }
+  chooseMode(savedMode,{persist:false});
+  if(savedMode && !playModes.some(m=>m.id===savedMode))rememberMode(stableId);
 })();

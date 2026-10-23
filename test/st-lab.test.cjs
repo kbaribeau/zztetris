@@ -26,7 +26,7 @@ function legalResult(observation,predicate=()=>true){
 for(const gravity of [undefined,'true','false'])test(`st-lab/isolated ${gravity??'absent'}: new rules and preferences do not mutate ordinary modes`,()=>withPage('st-lab.html',{storage:settings(gravity===undefined?{}:{gravity})},g=>{
  const before=g.storage(),s=g.snapshot();
  assert.equal(s.rules,'st-zero-v2');assert.equal(s.queue.length,6);assert.ok(s.board.some(r=>r!=='..........'));
- assert.match(g.element('#st-status').textContent,/Web Workers/);
+ assert.match(g.element('#st-status').textContent,/Coaching is unavailable in this browser.*practice manually/);
  assert.equal(g.element('#st-status').dataset.result,'worker-unavailable');
  assert.equal(g.window.zzBot,undefined);assert.equal(g.window.board,undefined);
  g.tap('ShiftLeft');const held=g.snapshot();assert.equal(held.canHold,true);
@@ -96,20 +96,20 @@ test('st-lab/import/export: finite visible state, valid unknown history, rejecte
 
 test('st-lab/fixtures: selector changes board, resets private future and rejects previous replies',()=>withPage('st-lab.html',{},g=>{
  assert.equal(F.list.length,27);
- assert.deepEqual([...g.element('#st-fixture').options].map(o=>o.value),['',...F.list.map(f=>f.id)]);
+ assert.deepEqual([...g.element('#st-fixture').options].map(o=>o.value),['empty','marathon-rebuild']);
  assert.throws(()=>F.get('reservoir-order-review'),/Unknown ST fixture/);
  const ws=workers(g),old=ws[0],answer=legalResult(old.message.observation);
- const second=F.list.find(f=>f.id!==g.element('#st-fixture').value);
- g.element('#st-fixture').value=second.id;g.element('#st-fixture').dispatchEvent(new g.window.Event('change'));
+ const second=F.get('o-before-double');
+ g.window.stLab.loadFixture(second.id);
  assert.equal(old.terminated,true);assert.deepEqual(g.snapshot().board,second.observation.board);
  old.respond(answer);assert.equal(g.element('#st-target').children.length,0);
- g.click('#st-empty');assert.ok(g.snapshot().board.every(r=>r==='..........'));assert.equal(g.snapshot().queue.length,6);
+ g.element('#st-fixture').value='empty';g.element('#st-fixture').dispatchEvent(new g.window.Event('change'));assert.ok(g.snapshot().board.every(r=>r==='..........'));assert.equal(g.snapshot().queue.length,6);
  const observed=[g.snapshot().active.type,...g.snapshot().queue];assert.deepEqual(observed.slice().sort(),['I','J','L','O','S','T','Z']);
 }));
 
 test('st-lab/watchdog: stalled worker is terminated, no impossible-state claim',()=>withPage('st-lab.html',{},g=>{
  const ws=workers(g);g.advance(3000);assert.equal(ws[0].terminated,true);
- assert.equal(g.element('#st-status').dataset.result,'budget-exhausted');assert.match(g.element('#st-status').textContent,/no claim about impossibility/);
+ assert.equal(g.element('#st-status').dataset.result,'budget-exhausted');assert.match(g.element('#st-status').textContent,/timed out.*valid continuation may still exist/);
 }));
 
 test('st-worker/protocol: real worker code imports pure modules and returns revision-tagged planning result',()=>{
@@ -176,14 +176,14 @@ test('st-lab/import: unique observed bag remainder supplies one known piece, con
  g.tap('Space');assert.equal(g.snapshot().active.type,'Z');assert.equal(g.snapshot().queue.length,0);
 }));
 
-for(const id of ['restore-the-right-cap','center-before-quad-cleanup','double-above-the-cleanup-i'])test(`st-lab/cycle fixture/${id}: selectable and resettable without leaking reference or future`,()=>withPage('st-lab.html',{},g=>{
+for(const id of ['restore-the-right-cap','center-before-quad-cleanup','double-above-the-cleanup-i'])test(`st-lab/cycle fixture/${id}: internally loadable and resettable without leaking reference or future`,()=>withPage('st-lab.html',{},g=>{
  const ws=workers(g),f=F.get(id),select=g.element('#st-fixture');
- select.value=id;select.dispatchEvent(new g.window.Event('change'));g.advance(40);
+ g.window.stLab.loadFixture(id);g.advance(40);
  assert.deepEqual(g.snapshot().board,f.observation.board);
  assert.deepEqual(g.snapshot().queue,f.observation.queue);
  assert.equal(g.snapshot().hold,f.observation.hold);
  assert.match(g.element('#st-position-note').textContent,/not inferred from a recording/);
- assert.equal([...select.options].find(o=>o.value===id).textContent,f.label);
+ assert.equal([...select.options].some(o=>o.value===id),false);
  const sent=ws.at(-1).message.observation;
  assert.deepEqual(sent.queue,f.observation.queue);assert.equal(sent.queue.length,6);
  for(const key of ['future','provenance','expectations','id','label'])assert.equal(key in sent,false,key);

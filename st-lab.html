@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>ZZTetris · ST maintenance lab</title>
+  <title>ZZTetris · ST stacking lab</title>
   <link rel="icon" href="assets/pieceSprite/z.png">
   <link rel="stylesheet" href="styles/st-lab.css">
   <link rel="stylesheet" href="styles/navigation.css">
@@ -21,15 +21,14 @@
 <body data-st-lab>
   <nav class="app-nav" aria-label="Main navigation"></nav>
   <header>
-    <h1>ST maintenance lab</h1>
-    <p>Practice keeping an established ST stack usable. The coach checks a finite continuation, not indefinite survival.</p>
+    <h1>ST stacking lab</h1>
+    <p>Start from an empty board or practice maintaining a stable ST stack. Opening coaching is not supported yet; maintenance advice checks a finite continuation, not indefinite survival.</p>
   </header>
   <main>
-    <section class="lab-toolbar" aria-label="Practice position">
-      <label for="st-fixture">Starting position</label>
+    <section class="lab-toolbar" aria-label="Play mode">
+      <label for="st-fixture">Play mode</label>
       <select id="st-fixture"></select>
-      <button id="st-reset" type="button">Reset position</button>
-      <button id="st-empty" type="button">Empty board (manual practice)</button>
+      <button id="st-reset" type="button">Restart current board</button>
       <p id="st-position-note" class="lab-note"></p>
     </section>
     <div class="lab-field-scroll"><div class="lab-field">
@@ -40,8 +39,13 @@
     <section class="lab-advice" aria-label="Strategy advice">
       <button id="st-toggle" type="button" aria-pressed="true">Advice ON · KeyA</button>
       <p id="st-status" role="status" aria-live="polite">Starting coach…</p>
+      <div id="st-sources" class="lab-note" hidden>
+        <p>Community guidance:</p>
+        <ul id="st-source-list"></ul>
+        <p>These guides explain community concepts, not universal placement rules. The coach checks this specific move; the guides do not certify it.</p>
+      </div>
       <details id="st-diagnostics"><summary>Coach diagnostics</summary><pre id="st-diagnostic-text"></pre></details>
-      <p class="lab-note">Zero gravity · SRS+ · one hold per lock · manual hard-drop locking. Gray outline: hard-drop ghost. Gold outline: coaching target. A HOLD label means swap first. Advice uses only this position and the six visible previews, plus any valid observed bag evidence.</p>
+      <p id="st-rules-note" class="lab-note">st-zero-v2 · zero gravity · SRS+ · unlimited hold swaps · manual hard-drop locking. Gray outline: hard-drop ghost. Gold outline: coaching target. Follow any Hold instruction before placing the highlighted piece. Advice uses only this position and the six visible previews, plus any valid observed bag evidence.</p>
     </section>
     <section class="lab-controls" aria-label="Play controls">
       <h2>Manual controls</h2><p id="st-key-help" class="lab-note"></p>
@@ -54,10 +58,11 @@
     </section>
     <details class="lab-options"><summary>Snapshot import / export</summary>
       <p>JSON snapshots contain the current board, pose, hold, visible queue and optional observed bag evidence. They do not export hidden future pieces. Imported snapshots have a finite queue; no future order is invented when it ends.</p>
+      <p id="st-legacy-rules-note">Legacy st-zero-v1 uses one hold per lock for historical replay. Importing a v1 snapshot into this lab migrates it to unlimited-hold st-zero-v2.</p>
       <label for="st-snapshot">Snapshot JSON</label><textarea id="st-snapshot" rows="8" spellcheck="false"></textarea>
       <button id="st-import" type="button">Import snapshot</button><button id="st-export" type="button">Export visible snapshot</button>
       <p id="st-import-status" role="status"></p>
-      <p>For legacy board drawing, Fumen tools, undo/redo, gravity and other kicksets, use <a href="index.html">ordinary practice</a>. Those modes are unchanged; their unlimited-hold rules are not this milestone’s rules.</p>
+      <p id="st-ordinary-practice-note">For legacy board drawing, Fumen tools, undo/redo, gravity and other kicksets, use <a href="index.html">ordinary practice</a>. Those modes are unchanged.</p>
     </details>
   </main>
   <footer><a href="ST-LAB.md">Rules and limitations</a> · <a href="controls.html">Game Settings</a> · <a href="LICENSE">MIT license</a></footer>

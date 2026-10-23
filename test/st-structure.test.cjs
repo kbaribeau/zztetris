@@ -93,7 +93,7 @@ test('existing cap recommendation reserves Z for the right and verifies its rene
  // Advice must describe the actual checked continuation, not an earlier
  // preferred route or a union of hypothetical left substitutes.
  const leftJO=p.continuation.slice(1).map(step=>step.event.type).join('')==='JO'&&p.continuation.slice(1).every(step=>step.event.cells.every(([x])=>x<4));
- assert.equal(/fills the left with J then O/.test(p.reason),leftJO);
+ assert.equal(/build the Left with J then O/.test(p.reason),leftJO);
  assert.equal(p.assessment.structure.right.reservoir.status,'verified-clear-reopens-reservoir');
  assert.equal(p.assessment.damageSealed,0);assert.equal(p.assessment.right.entry.status,'reachable-if-T-available');
  let n=s;for(const step of p.continuation){const replay=R.replay(n,step.witness);assert.equal(replay.valid,true);n=replay.state;}

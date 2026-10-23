@@ -3,7 +3,136 @@
 'use strict';
 const clone=x=>JSON.parse(JSON.stringify(x));
 const holdCount=p=>p.holdCount??p.witness.filter(a=>a==='HOLD').length;
-const holdPrompt=p=>holdCount(p)===2?'Hold twice. ':holdCount(p)?'Hold first. ':'';
+const holdPrompt=p=>holdCount(p)===2?'Hold twice. ':holdCount(p)?'Hold once. ':'';
+const ADVICE_SOURCES={
+  "SHOCKY-1": {
+    "url": "https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit",
+    "section": "Chapter 1: The ST Stacking Timeline and Anatomy",
+    "id": "SHOCKY-1",
+    "label": "Shocky's ST Stacking Guide",
+    "scope": "Defines Left as columns 1–4, Center as 5–7, Right as 8–10, Pocket as column 10, Well as column 8, and a Z covering the Pocket as capped. Supports terminology, not this checked cap-replacement sequence."
+  },
+  "SHOCKY-3.1": {
+    "url": "https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit",
+    "section": "Chapter 3.1: The Right",
+    "id": "SHOCKY-3.1",
+    "label": "Shocky's ST Stacking Guide",
+    "scope": "Describes repeated Z-cap/T-spin-double play and I placement in Pocket/Well. Prefer the Pocket when both I placements are available. Does not certify a particular computed route."
+  },
+  "SHOCKY-3.2": {
+    "url": "https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit",
+    "section": "Chapter 3.2: The Center",
+    "id": "SHOCKY-3.2",
+    "label": "Shocky's ST Stacking Guide",
+    "scope": "Describes SL, OJ, LO and ZJ overhang pairs. LO can leave a Hanging S; ZJ needs contextual Z accounting. ZJ can be built in either order, and placement order depends on the position. A matching shape alone does not establish whole-run piece balance."
+  },
+  "SHOCKY-4": {
+    "url": "https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit",
+    "section": "Chapter 4: The Reset",
+    "id": "SHOCKY-4",
+    "label": "Shocky's ST Stacking Guide",
+    "scope": "Describes using two T pieces with Z pieces to rebuild Left/Center, and distinguishes mino parity from S/L parity. The project’s finite paired-T repair is not proof of a completed Reset."
+  },
+  "SHOCKY-8": {
+    "url": "https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit",
+    "section": "Chapters 8: The Extra Z and 9: Remembering What You’ve Forgotten",
+    "id": "SHOCKY-8",
+    "label": "Shocky's ST Stacking Guide",
+    "scope": "Discusses one Extra Z in the Midgame and observable piece-flow clues. A local cap replacement is not sufficient evidence that the historical Extra Z remains available."
+  },
+  "FLAME-TETRIS": {
+    "url": "https://tl.net/forum/games/175252-10000-guide-tetris-ultra-st-stacking",
+    "section": "Tetrising",
+    "id": "FLAME-TETRIS",
+    "label": "Flamewheel's ST Stacking Guide",
+    "scope": "Explains I-piece clears of right-side residue and prefers the rightmost option when both are available. Timing advice is written for timed Ultra and is not a universal survival rule."
+  },
+  "FLAME-CENTER": {
+    "url": "https://tl.net/forum/games/175252-10000-guide-tetris-ultra-st-stacking",
+    "section": "Center Stacking",
+    "id": "FLAME-CENTER",
+    "label": "Flamewheel's ST Stacking Guide",
+    "scope": "Explains two-piece center combinations with an open lower-right corner and a level three-wide top; capping here means finishing a combination. Its color-based piece names differ from current Guideline letters."
+  },
+  "FLAME-LEFT": {
+    "url": "https://tl.net/forum/games/175252-10000-guide-tetris-ultra-st-stacking",
+    "section": "Left-Side Stacking",
+    "id": "FLAME-LEFT",
+    "label": "Flamewheel's ST Stacking Guide",
+    "scope": "Describes shaped left surfaces and accommodation for awkward pieces, not a universal rule to keep all four left columns flat."
+  },
+  "SHOCKY-LEFT": {
+    "url": "https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit",
+    "section": "Chapters 3.3: The Left; 5: The Inconvenient I Piece; 6: The Pesky O Piece",
+    "id": "SHOCKY-LEFT",
+    "label": "Shocky's ST Stacking Guide",
+    "scope": "Normal Left is not fully flat; local O-friendly surfaces matter; horizontal I placements are exceptional."
+  }
+};
+
+// Presentation only: source background never supplies a move or changes ranking.
+function advicePresentation(path,assessment={},construction=null){
+ const first=path[0];if(!first)return{reason:'No checked move is available.',sources:[]};
+ const ids=new Set(),add=(...keys)=>keys.forEach(k=>ids.add(k));
+ const facts=first.structuralEvidence??{},center=p=>p.event.cells.every(([x])=>x>=4&&x<7);
+ const tsdAt=path.findIndex(p=>p.event.spin==='full'&&p.event.lines===2);
+ const region=[...new Set(first.event.cells.map(([x])=>x<4?'Left (columns 1–4)':x<7?'Center (columns 5–7)':'Right (columns 8–10)'))].join(' / ');
+ let structural='';
+ if(construction){
+  const tRepairs=path.filter(p=>p.event.type==='T'&&p.event.lines===0).length;
+  if(first.event.spin==='full'&&first.event.lines===2){structural='Take the checked T-spin double.';add('SHOCKY-3.1');}
+  else if(construction.kind==='cap-deferral'){
+   const capAt=path.findIndex(p=>p.event.type==='Z'&&p.event.cells.some(([x])=>x>=7));
+   structural=capAt===0?'Place Z on the Right to restore the cap over the Pocket (column 10).':`Place ${first.event.type} in the ${region} as shown.`;
+   if(capAt>0)structural+=` The checked sequence restores the Z cap in ${capAt+1} placements, including this one.`;
+   add('SHOCKY-1');
+  }else{
+   structural=first.event.type==='T'&&!first.event.lines?(tRepairs>1?`Place T in the ${region} to begin the checked paired-T mino-parity repair.`:`Place T in the ${region} to balance the checked pair of T placements.`):`Build the ${region} with ${first.event.type} as shown.`;
+   if(tRepairs)add('SHOCKY-4');if(center(first))add('SHOCKY-3.2','FLAME-CENTER');
+  }
+  if(tsdAt>0){structural+=` This checked sequence reaches a T-spin double in ${tsdAt+1} placements, including this one.`;add('SHOCKY-3.1');}
+  structural+=construction.kind==='cap-deferral'?' This verifies a visible cap replacement, not whether an Extra Z remains available.':' This finite repair is not proof of a completed Reset.';
+ }else{
+  let pair=facts.pairProgress;
+  // A scored first lock can expose a center-only suffix that was not the
+  // original root pair. Describe its actual checked cells, without mutating
+  // planner evidence or assuming preparation history from a piece letter.
+  const partner=S.CENTER_PAIRS[first.event.type];
+  if(center(first)&&first.event.lines===0&&partner){
+   const key=cells=>JSON.stringify(cells.slice().sort(([ax,ay],[bx,by])=>ax-bx||ay-by));
+   for(let i=1;i<path.length;i++){
+    const next=path[i];if(next.event.lines)break;
+    if(next.event.cells.some(([x])=>x>=4&&x<7)){
+     if(center(next)&&next.event.type===partner&&facts.structure?.center.completions.some(c=>c.piece===partner&&c.resultStatus==='level'&&key(c.cells)===key(next.event.cells)))pair={status:'completed-in-checked-prefix',step:1,orderedPieces:[first.event.type,partner],completionLock:i+1};
+     break;
+    }
+   }
+  }
+  if(pair?.status==='completed-in-checked-prefix'&&pair.step===1){
+   const [a,b]=pair.orderedPieces;structural=`Place ${a} in the Center. ${pair.completionLock===2?'Then place '+b:'The checked sequence later places '+b} to complete the ${a}/${b} overhang.`;add('SHOCKY-3.2','FLAME-CENTER');
+  }else if(pair?.status==='completed'&&pair.step===2){structural=`Complete the ${pair.orderedPieces.join('/')} center overhang as shown.`;add('SHOCKY-3.2','FLAME-CENTER');}
+  else if(facts.allocation==='horizontal-left-I'&&facts.structure?.left.flat){structural='Place I across the Left as shown.';add('SHOCKY-LEFT','FLAME-LEFT');}
+  else if(facts.allocation==='center-partner-preparation'){structural='Build the Center as shown. A completing placement has not been checked yet.';add('SHOCKY-3.2','FLAME-CENTER');}
+  else if(facts.allocation==='center-completion'){structural=new Set(facts.structure?.center.profile).size===1?'Complete the center overhang with a level top.':'Build the Center as shown; more work is needed to finish the overhang.';add('SHOCKY-3.2','FLAME-CENTER');}
+  else if(facts.allocation==='quad-preparation'){structural='Prepare the I-piece Tetris on the Right, keeping the Well (column 8) open.';add('SHOCKY-3.1','FLAME-TETRIS');}
+  else if(facts.allocation==='right-cap-preparation'){structural='Rebuild the Z cap over the Pocket (column 10) as shown.';add('SHOCKY-1');
+   const follow=path.slice(1);if(follow.length&&follow.every(p=>!p.event.lines&&p.event.cells.every(([x])=>x<4)))structural+=` Then build the Left with ${follow.map(p=>p.event.type).join(' then ')}.`;
+  }else if(facts.allocation==='left-filler'){structural='Build within the Left four columns.';add('SHOCKY-LEFT');}
+  let tactical;
+  if(tsdAt>=0){tactical=tsdAt===0?'Take the T-spin double.':`This checked sequence reaches a T-spin double in ${tsdAt+1} placements, including this one.`;add('SHOCKY-3.1');}
+  else{
+   const quad=first.event.type==='I'&&first.event.lines===4;
+   const column=first.event.cells[0][0]+1;
+   tactical=quad?`Take the Tetris in ${column===8?'the Well (column 8)':column===10?'the Pocket (column 10)':'column '+column}. `:first.event.lines===0?'Place here without clearing a line. ':'Place here. ';
+   if(assessment.right?.entry?.status==='reachable-if-T-available')tactical+='At the end of this sequence, a T-spin-double entry is reachable if a T is available.';
+   else if(assessment.channel?.openBelowStack){tactical+='At the end of this sequence, the Well (column 8) stays below the Left and Center stacks.';add('SHOCKY-1');}
+   else tactical+='The end position still needs rebuilding on the Right. Continued ST play is not established.';
+   if(first.event.type==='I'&&first.event.lines===4)add('SHOCKY-3.1','FLAME-TETRIS');
+  }
+  structural=[structural,tactical].filter(Boolean).join(' ');
+ }
+ return{reason:holdPrompt(first)+structural,sources:[...ids].map(id=>({...ADVICE_SOURCES[id]}))};
+}
 function observe(input){
  const s=R.createState({rules:input.rules,board:input.board,active:input.active,hold:input.hold,canHold:input.canHold,queue:input.queue,revision:input.revision,streamCursor:input.streamCursor,topOut:input.topOut});
  if(input.bag)s.bag=clone(input.bag);return s;
@@ -169,7 +298,7 @@ function constructionAdvice(s,proof,deadline=Infinity,now=()=>Date.now()){
  const first=continuation[0],done=verified.continuation.slice(0,proof.consumed);
  const parity=done.filter(p=>p.event.type==='T'&&!p.event.lines).reduce((v,p)=>v+p.event.cells.reduce((n,[x,y])=>n+((x+y)%2?1:-1),0),0);
  return {status:'recommended-with-verified-prefix',revision:s.revision,context:context(s),target:first.target,hold:first.hold,holdCount:first.holdCount,witness:first.witness,continuation,
-  reason:proof.kind==='cap-deferral'?'Use the verified replacement Z to repay the exact right cap, then take the checked T-spin double.':'Build the verified regional repair, preserving the paired T balance and center completion before the checked T-spin double.',
+  ...advicePresentation(continuation,assess(current.board),proof),
   metrics:{nodes:0,endpointMass:current.board.reduce((n,row)=>n+[...row].filter(c=>c!=='.').length,0),depth:continuation.length,completeDepth:continuation.length,elapsedMs:verified.elapsedMs},assessment:assess(current.board),
   evidence:{strategy:proof.kind==='cap-deferral'?'finite-cap-deferral':'finite-regional-repair',construction:clone(proof),cycleResources:cycleResources(continuation),cycleDebt:0,verifiedLocks:continuation.length,knownPieceHorizon:s.queue.length+1,
    constructionStage:{parity,capDebt:verified.cap&&proof.consumed<=verified.cap.paidAt?verified.cap.targets:[],remainingLocks:continuation.length,zAllocation:'Only the executed public route is reserved; no Extra-Z history is inferred.',completion:'Finite supported TSD endpoint, not a completed Reset.'},claim:'Finite executable regional repair; continued play is not guaranteed.'}};
@@ -199,13 +328,26 @@ function continueCommitment(before,after,advice,actualEvent=after?.lastEvent){
  }
  if(debt.length||centerDebt.length||!prior.regionalSupport||!resourceGoal(continuation))return null;
  const head=continuation[0];return {...advice,target:head.target,witness:head.witness,hold:head.witness.includes('HOLD'),holdCount:holdCount(head),continuation,context:context(s),revision:s.revision,
-  reason:'Continue the verified scoring and cleanup route.',evidence:{...advice.evidence,cycleResources:cycleResources(continuation),commitmentRetained:true}};
+  ...advicePresentation(continuation,prior),evidence:{...advice.evidence,cycleResources:cycleResources(continuation),commitmentRetained:true}};
 }
 function context(s){return JSON.stringify([s.rules,s.board,s.hold,s.canHold,s.queue,s.bag??null,s.active?.type]);}
 function stateKey(s){return JSON.stringify([s.rules,s.board,s.active,s.hold,s.canHold,s.queue,s.bag??null]);}
-function nodeKey(n){return stateKey(n.state)+':notches:'+n.notches.status+':'+n.notches.anchorRow+':cavities:'+JSON.stringify(n.cavityDebt.slice().sort(([ax,ay],[bx,by])=>ax-bx||ay-by))+':center:'+JSON.stringify(n.centerDebt)+':rootSeal:'+Boolean(n.path[0].structuralEvidence.cavityRepair.cells.length);}
+function nodeKey(n){return stateKey(n.state)+':notches:'+n.notches.status+':'+n.notches.anchorRow+':cavities:'+JSON.stringify(n.cavityDebt.slice().sort(([ax,ay],[bx,by])=>ax-bx||ay-by))+':center:'+JSON.stringify(n.centerDebt)+':centerContinuity:'+Boolean(n.centerContinuityDebt)+':rootSeal:'+Boolean(n.path[0].structuralEvidence.cavityRepair.cells.length);}
 function extendForced(state){if(!state.bag)return state;const t=B.forcedNext(state.bag);if(!t)return state;return {...state,queue:[...state.queue,t],bag:B.consume(state.bag,t)};}
 function compare(a,b){for(let i=0;i<a.rank.length;i++)if(a.rank[i]!==b.rank[i])return b.rank[i]-a.rank[i];return a.key.localeCompare(b.key);}
+// A three-row motif cannot certify a deeper missing column beneath it.
+// Ordered center partners fit within a tetromino-height (three-step) envelope;
+// taller open deficits remain legal, but require an actually completed repair.
+const reusableCenter=c=>c.status!=='unrecognized'&&c.patternSupport==='reference-supported'&&(!c.profile||Math.max(...c.profile)-Math.min(...c.profile)<=3);
+function centerContinuityStep(before,after,event,debt=false){
+ return !reusableCenter(after)&&(debt||(event.lines===0&&reusableCenter(before)));
+}
+function compareConstruction(a,b){for(let i=0;i<a.rank.length;i++){
+ // Do not trade an established reusable center for unresolved construction
+ // merely to improve an endpoint score or cash a nearby double. Temporary
+ // departures remain legal and regain this preference after actual repair.
+ if(i===3&&(a.centerContinuity??0)!==(b.centerContinuity??0))return (b.centerContinuity??0)-(a.centerContinuity??0);
+ if(a.rank[i]!==b.rank[i])return b.rank[i]-a.rank[i];}return a.key.localeCompare(b.key);}
 function nodeFor(p,parent,initial,rootIndex){
  const assessment=assess(p.state.board),path=[...(parent?.path??[]),p];
  const before=parent?.state??initial.state,priorNotches=parent?.notches??initial.notches;
@@ -238,7 +380,12 @@ function nodeFor(p,parent,initial,rootIndex){
  // executable TSD then breaks ties; it cannot buy a poorer structural band.
  const cycleDebt=(parent?.cycleDebt??0)+transition.cycleViolations.length+(notchCheck.valid?0:1);
  const rank=[safe?1:0,assessment.regionalSupport?1:0,cycleDebt?-cycleDebt:0,Math.floor(structuralScore/4),tsds*2,-path.reduce((n,v)=>n+v.witness.length+holdCount(v)*2,0),path.reduce((n,v)=>n+v.event.lines,0)];
- return{state:p.state,path,notches:notchCheck.pattern,notchValid:notchCheck.valid,assessment,rank,structuralScore,dependencyDebt,entryDebt,cycleDebt,cavityDebt,centerDebt,baseEstimateRank:rank[4],qualified:!assessment.right.slots.length,rootIndex,key:JSON.stringify(path[0].target)+':'+holdCount(path[0])};
+ const priorCenter=(parent?.assessment.structure??S.geometry(before.board,{notches:priorNotches})).center;
+ const centerDisrupted=p.event.lines===0&&reusableCenter(priorCenter)&&!reusableCenter(structure.center);
+ const centerContinuityDebt=centerContinuityStep(priorCenter,structure.center,p.event,parent?.centerContinuityDebt);
+ const centerContinuity=centerContinuityDebt?-1:0;
+ assessment.structure.centerContinuity={disruptedWithoutClear:centerDisrupted,unresolved:centerContinuityDebt,endpointReusable:reusableCenter(structure.center),preference:centerContinuity};
+ return{centerContinuity,centerContinuityDebt,state:p.state,path,notches:notchCheck.pattern,notchValid:notchCheck.valid,assessment,rank,structuralScore,dependencyDebt,entryDebt,cycleDebt,cavityDebt,centerDebt,baseEstimateRank:rank[4],qualified:!assessment.right.slots.length,rootIndex,key:JSON.stringify(path[0].target)+':'+holdCount(path[0])};
 }
 function diversify(nodes,width){const sorted=[...nodes].sort(compare),chosen=[],roots=new Set(),groups=new Set();
  // Protect meaningfully different construction families, not just top-scoring
@@ -248,13 +395,13 @@ function diversify(nodes,width){const sorted=[...nodes].sort(compare),chosen=[],
  const keys=new Set(chosen.map(n=>nodeKey(n)));for(const n of sorted)if(!keys.has(nodeKey(n))){chosen.push(n);keys.add(nodeKey(n));if(chosen.length===width)break;}return chosen;}
 function plan(raw,options={}){
  const started=Date.now(),now=options.now??(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs);
- let s;try{s=observe(raw);}catch(e){return{status:'invalid-input',revision:raw?.revision??0,target:null,reason:'The supplied observation is not valid.',errors:[e.message]};}
+ let s;try{s=observe(raw);}catch(e){return{status:'invalid-input',revision:raw?.revision??0,target:null,reason:'This snapshot could not be read. Check its format and try again.',errors:[e.message]};}
  const errors=R.validate(s);if(s.bag)errors.push(...B.validate(s.bag));
  const base={revision:s.revision,target:null,hold:false,holdCount:0,witness:[],continuation:[],reason:'',metrics:{nodes:0,roots:0,rootExpanded:0,depth:0,completeDepth:0,elapsedMs:0},context:context(s)};
- if(errors.length)return{...base,status:errors.includes('unsupported-profile')?'unsupported-profile':'invalid-input',reason:errors.join('; '),errors};
- if(s.topOut)return{...base,status:'no-supported-continuation-found',reason:'This position has topped out under the selected rules.'};
- if(!s.active)return{...base,status:'insufficient-known-pieces',reason:'No active piece is available in this observation.'};
- if(s.board.every(r=>r==='..........'))return{...base,status:'unsupported-position',reason:'Opening construction is outside milestone one. Choose an established-stack fixture.'};
+ if(errors.length)return{...base,status:errors.includes('unsupported-profile')?'unsupported-profile':'invalid-input',reason:'Unsupported or invalid snapshot: '+errors.map(e=>e.replaceAll('-',' ')).join('; ')+'.',errors};
+ if(s.topOut)return{...base,status:'no-supported-continuation-found',reason:'This position has topped out. Reset to continue.'};
+ if(!s.active)return{...base,status:'insufficient-known-pieces',reason:'This snapshot has no active piece. Import another position or reset.'};
+ if(s.board.every(r=>r==='..........'))return{...base,status:'unsupported-position',reason:'Opening advice is not supported yet. Choose an established stack or play the opening manually.'};
  const initial=assess(s.board);initial.state=s;initial.notches=S.notchPattern(s.board);
  if(!options.disableConstruction&&options.constructionPrevious?.evidence?.construction){const prior=options.constructionPrevious,proof=prior.evidence.construction;
   const cert=X.validateCertificate(proof.origin,proof.steps,{kind:proof.kind,timeMs:Math.max(0,deadline-now())});if(cert.valid&&JSON.stringify(cert.continuation.slice(proof.consumed).map(p=>p.event))===JSON.stringify(prior.continuation.map(p=>p.event))){const retained=revalidate(s,prior,{...options,deadline,maxNodes:Math.min(options.maxNodes??45000,8000)});if(retained)return retained;}
@@ -277,12 +424,12 @@ function plan(raw,options={}){
    saved.metrics.elapsedMs=now()-started;return saved;
   }
  }
- if(initial.notches.status==='broken')return{...base,status:'no-supported-continuation-found',reason:'An established column-seven notch is already filled. Normal ST continuation is not certified; this planner does not establish a repair for the broken pattern.',assessment:initial};
+ if(initial.notches.status==='broken')return{...base,status:'no-supported-continuation-found',reason:'A recognized T-slot opening in column 7 is filled. The coach does not support repairing this pattern yet.',assessment:initial};
  if(!options.disableConstruction&&!initial.maintenanceScope&&initial.center.height<3&&X&&initial.left.height>=2&&initial.notches.status==='established'&&S.geometry(s.board).right.shapeStatus==='staggered-scoring-wall'){
   const repair=X.search(s,{timeMs:Math.max(0,Math.min(680,deadline-now()-70)),maxNodes:options.maxNodes??45000});
   if(repair.valid){const advice=constructionAdvice(s,{origin:observe(s),steps:repair.continuation.map(p=>({witness:p.witness})),consumed:0},deadline,now);if(advice){advice.metrics.search=repair.search;advice.metrics.nodes=repair.search?.visited||0;advice.metrics.elapsedMs=now()-started;return advice;}}
  }
- if(!initial.maintenanceScope)return{...base,status:'unsupported-position',reason:initial.left.height<2||initial.center.height<3?'This stack is below the established-stack maintenance profile. Choose another fixture or rebuild manually; opening construction is not coached.':'This position is outside the initial right-hand ST maintenance profile: established left/center stack and lower column-eight scoring channel required.',assessment:initial};
+ if(!initial.maintenanceScope)return{...base,status:'unsupported-position',reason:initial.left.height<2||initial.center.height<3?'The stack is too low for the coach’s supported maintenance patterns. Rebuild manually or choose another position.':'This position is outside the supported right-side ST patterns. The coach expects established left and center stacks with a lower channel in column 8.',assessment:initial};
  const limit=options.maxNodes??45000,maxDepth=options.depth??3,width=options.width??8,expandedRoots=new Set(),accessCache=new Map();let stopped=false;
  base.metrics.accessNodes=0;let searchDeadline=deadline;
  const optimistic=n=>({...n,rank:n.rank.map((v,i)=>{
@@ -511,7 +658,7 @@ function plan(raw,options={}){
  let frontier=qualify(root.placements.filter(p=>S.canonicalClear(p.event)&&!spendsReservedT(p)).map((p,i)=>nodeFor(p,null,initial,i)).filter(n=>n.notchValid));
  if(preparation){preparation=qualify([preparation])[0]??preparation;base.metrics.preparationProofLocks=preparation.path.length;}
 
- const cleanBest=nodes=>nodes.filter(n=>n.cycleDebt===0&&certifiedCavities(n)).sort(compare)[0]??null;
+ const cleanBest=nodes=>nodes.filter(n=>n.cycleDebt===0&&certifiedCavities(n)).sort(compareConstruction)[0]??null;
  let best=preparation??cleanBest(frontier);base.metrics.depth=best?best.path.length:0;base.metrics.completeDepth=root.complete&&best&&!stopped?1:0;
  let layer=diversify(frontier,width),comparisonLayer=frontier;
  for(let depth=2;depth<=maxDepth&&!stopped&&layer.length;depth++){
@@ -534,12 +681,12 @@ function plan(raw,options={}){
   if(fresh&&coversResourceGoal(fresh,commitment)&&fresh.path.length>saved.path.length){
    const candidates=comparisonLayer.filter(n=>n.path.length===fresh.path.length&&matchesSaved(n)&&n.cycleDebt===0&&n.notchValid&&certifiedCavities(n)&&n.assessment.maxHeight<20&&n.assessment.regionalSupport);
    const qualified=qualify(candidates).filter(n=>n.qualified&&n.assessment.right.entry?.status!=='unresolved-budget');
-   saved=qualified.sort(compare)[0]??saved;
+   saved=qualified.sort(compareConstruction)[0]??saved;
   }
   if(fresh&&coversResourceGoal(fresh,commitment)&&fresh.path.length===saved.path.length&&fresh.assessment.maxHeight<20&&fresh.assessment.regionalSupport){
    qualify([fresh,saved]);
    const settled=n=>n.qualified&&n.assessment.right.entry?.status!=='unresolved-budget';
-   replacement=settled(fresh)&&settled(saved)&&compare(fresh,saved)<0;
+   replacement=settled(fresh)&&settled(saved)&&compareConstruction(fresh,saved)<0;
   }
   base.metrics.commitmentComparison={freshGoalLocks:fresh?resourceGoalPrefix(fresh.path,commitment.path):null,savedGoalLocks:resourceGoalPrefix(commitment.path,commitment.path),
    freshHorizon:fresh?.path.length??null,savedHorizon:saved.path.length,replacement,
@@ -570,19 +717,17 @@ function plan(raw,options={}){
   const mass=ordinary.state.board.reduce((n,row)=>n+[...row].filter(c=>c!=='.').length,0),cm=candidate.metrics.endpointMass;
   if(candidate.assessment.maxHeight<=ordinary.assessment.maxHeight&&cm<=mass&&(candidate.assessment.maxHeight<ordinary.assessment.maxHeight||cm<mass)){candidate.metrics.elapsedMs=now()-started;return candidate;}
  }
- if(!best)return{...base,status:stopped?'budget-exhausted':'no-supported-continuation-found',reason:stopped?'Search budget ended before an executable continuation was established.':'No canonical ST continuation preserving the recognized piece obligations was found in the checked moves; this is not proof that none exists.'};
- if(best.assessment.maxHeight>=20||!best.assessment.regionalSupport)return{...base,status:'no-supported-continuation-found',reason:'Checked continuations do not preserve the supported regional profile and headroom; no supported ST recommendation was established.',assessment:best.assessment};
- const first=best.path[0],verified=R.replay(s,first.witness);if(!verified.valid)return{...base,status:'invalid-witness',reason:'Internal witness validation failed; no advice is displayed.'};
+ if(!best)return{...base,status:stopped?'budget-exhausted':'no-supported-continuation-found',reason:stopped?'The search limit was reached before finding a checked move. A valid continuation may still exist.':'No supported ST sequence was found within this search. Other continuations may exist.'};
+ if(best.assessment.maxHeight>=20||!best.assessment.regionalSupport)return{...base,status:'no-supported-continuation-found',reason:'The checked sequences did not retain enough space and a supported stack shape. No move is recommended.',assessment:best.assessment};
+ const first=best.path[0],verified=R.replay(s,first.witness);if(!verified.valid)return{...base,status:'invalid-witness',reason:'The suggested input sequence failed validation, so it is not shown.'};
  const tsdAt=best.path.findIndex(p=>p.event.spin==='full'&&p.event.lines===2);
- const tacticalReason=tsdAt>=0?`${holdPrompt(first)}${tsdAt===0?'Execute the T-spin double.':`This placement has a checked T-spin double within ${tsdAt+1} locks.`}`:
- `${holdPrompt(first)}${first.event.lines===0?'Place without clearing. ':'Place here. '}${best.assessment.right.entry?.status==='reachable-if-T-available'?'The checked endpoint preserves executable T-double entry when a T is available.':best.assessment.channel.openBelowStack?'The checked endpoint keeps column eight below the left/center stack.':'The checked endpoint needs a scoring-channel rebuild; its structure is uncertain.'}`;
  const facts=first.structuralEvidence;
  // Describe the selected executed sequence, not the union of hypothetical
  // pieces that could complete different center surfaces. Pair order matters.
  const orderedPartner=S.CENTER_PAIRS[first.event.type];
  const centerOnly=p=>p.event.cells.every(([x])=>x>=4&&x<=6);
  const cellKey=cells=>JSON.stringify(cells.slice().sort(([ax,ay],[bx,by])=>ax-bx||ay-by));
- let pairReason=null;
+
  if(centerOnly(first)&&first.event.lines===0&&orderedPartner){
   for(let i=1;i<best.path.length;i++){
    const next=best.path[i];
@@ -593,22 +738,13 @@ function plan(raw,options={}){
      facts.pairProgress={...facts.pairProgress,orderedPieces:[first.event.type,orderedPartner],step:1,status:'completed-in-checked-prefix',completionLock:i+1};
      next.structuralEvidence.pairFamily=first.event.type+orderedPartner;
      next.structuralEvidence.pairProgress={orderedPieces:[first.event.type,orderedPartner],step:2,status:'completed',preparationCells:first.event.cells,completionCells:next.event.cells};
-     pairReason=`Place ${first.event.type} in the center to start an ${first.event.type}/${orderedPartner} pair. ${i===1?'The next '+orderedPartner:'The checked continuation’s '+orderedPartner} completes it.`;
     }
     break;
    }
   }
  }
- const leftFollow=best.path.slice(1);
- const capReason=facts.allocation==='right-cap-preparation'&&leftFollow.length&&leftFollow.every(p=>p.event.lines===0&&p.event.cells.every(([x])=>x<4))?`Reserve ${first.event.type} for the right cap. The checked continuation fills the left with ${leftFollow.map(p=>p.event.type).join(' then ')}.`:null;
- const structuralReason=pairReason||capReason||(facts.allocation==='horizontal-left-I'&&facts.structure.left.flat?'Keep the left region flat.':
-  facts.allocation==='center-partner-preparation'?'Prepare the center surface; its next completion is not established by this checked prefix.':
-  facts.allocation==='center-completion'?(new Set(facts.structure.center.profile).size===1?'Complete a level center surface.':'Advance the center into a supported preparation surface.'):
-  facts.allocation==='quad-preparation'?'Prepare the right-side I cleanup while keeping column eight open.':
-  facts.allocation==='right-cap-preparation'?'Rebuild the right scoring structure.':
-  facts.allocation==='left-filler'?'Build the left region without crossing into the center.':null);
- const reason=structuralReason?`${holdPrompt(first)}${structuralReason} ${tacticalReason.replace(/^Hold (?:first|twice)\. /,'')}`:tacticalReason;
- return{...base,status:'recommended-with-verified-prefix',target:first.target,hold:first.hold,holdCount:holdCount(first),witness:first.witness,reason,
+ const presentation=advicePresentation(best.path,best.assessment);
+ return{...base,status:'recommended-with-verified-prefix',target:first.target,hold:first.hold,holdCount:holdCount(first),witness:first.witness,...presentation,
  continuation:best.path.map(p=>({target:p.target,hold:p.hold,holdCount:holdCount(p),witness:p.witness,event:p.event,resultContext:context(p.state),structuralEvidence:p.structuralEvidence})),
  evidence:{strategy:'canonical-right-ST',cycleResources:cycleResources(best.path),commitmentRetained:best===commitment,futureNotches:best.notches,preparationProof:preparation&&preparation.path.every((p,i)=>best.path[i]&&p.event.type===best.path[i].event.type&&p.event.lines===best.path[i].event.lines&&p.event.spin===best.path[i].event.spin&&JSON.stringify(p.state.board)===JSON.stringify(best.path[i].state.board)&&p.state.hold===best.path[i].state.hold&&JSON.stringify(p.state.queue)===JSON.stringify(best.path[i].state.queue))?{kind:preparationKind,locks:preparation.path.length,claim:'Executed preparation preserves an available T for a checked double.'}:null,cycleDebt:best.cycleDebt,cavityRepair:{status:'verified-prefix-repaired',outstandingCells:best.cavityDebt},clearPolicy:'right-region full T-spin doubles and I tetrises only',verifiedLocks:best.path.length,tsdAt:tsdAt>=0?tsdAt+1:null,knownPieceHorizon:s.queue.length+1,rootEnumerationComplete:root.complete,budgetExhausted:stopped,informationBoundary:!best.state.active,initialSealed:initial.sealed,endpointSealed:best.assessment.sealed,regionalSupport:best.assessment.regionalSupport,channel:best.assessment.channel,endpointTEntry:best.assessment.right.entry?.status??'not-established',unresolvedObligations:best.assessment.obligations,structuralScore:best.structuralScore,structuralRank:best.rank,structure:best.assessment.structure,dependencyDebt:best.dependencyDebt,claim:'Finite executable prefix; endpoint estimates are not a sustainability guarantee.'},assessment:best.assessment};
 }
@@ -629,7 +765,7 @@ function advance(raw,previous,action){
  }
  if(!repairedPrefix(state,steps))return null;
  return{...previous,revision:state.revision,context:context(state),witness,hold:witness.includes('HOLD'),holdCount:witness.filter(a=>a==='HOLD').length,continuation:steps,
-  reason:holdPrompt({witness})+previous.reason.replace(/^Hold (?:first|twice)\. /,''),retained:true,
+  ...advicePresentation(steps,previous.assessment,previous.evidence?.construction),retained:true,
   evidence:{...previous.evidence,knownPieceHorizon:state.queue.length+1}};
 }
 function revalidate(raw,previous,options={}){
@@ -640,7 +776,7 @@ function revalidate(raw,previous,options={}){
  const continuation=[{...previous.continuation[0],target:p.target,hold:p.hold,holdCount:holdCount(p),witness:p.witness,event:p.event},...previous.continuation.slice(1)];
  let current=s,notches=S.notchPattern(s.board);for(const step of continuation){const replay=R.replay(current,step.witness);if(!replay.valid||replay.events.length!==1||!S.canonicalClear(replay.events[0])||JSON.stringify(replay.events[0])!==JSON.stringify(step.event)||(step.resultContext&&context(replay.state)!==step.resultContext))return null;const check=S.advanceNotches(current.board,{event:replay.events[0],state:replay.state},notches);if(!check.valid)return null;notches=check.pattern;current=replay.state;}
  if(!repairedPrefix(s,continuation))return null;
- return{...previous,revision:s.revision,hold:p.hold,holdCount:holdCount(p),witness:p.witness,continuation,metrics:{...previous.metrics,revalidationNodes:enumeration.visited},retained:true};
+ return{...previous,revision:s.revision,hold:p.hold,holdCount:holdCount(p),witness:p.witness,continuation,...advicePresentation(continuation,previous.assessment,previous.evidence?.construction),metrics:{...previous.metrics,revalidationNodes:enumeration.visited},retained:true};
 }
-return Object.freeze({observe,assess,plan,revalidate,advance,cavityRepairDebt,continueCommitment,cycleResources,resourceGoalPrefix,centerReservationStep});
+return Object.freeze({observe,assess,plan,revalidate,advance,cavityRepairDebt,continueCommitment,cycleResources,resourceGoalPrefix,centerReservationStep,centerContinuityStep});
 });

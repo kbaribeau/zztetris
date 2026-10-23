@@ -86,7 +86,7 @@ test('st-planner/counterfactual entry never invents actual T arrival or a checke
  const p=P.plan(s,{depth:2,width:8,maxNodes:45000});assert.ok(p.target);assert.equal(p.evidence.tsdAt,null);
  assert.equal(p.continuation.length,1);assert.equal(p.continuation[0].target.type,'O');
  assert.ok(p.assessment.obligations.every(o=>o.status!=='paid'));
- if(p.evidence.endpointTEntry==='reachable-if-T-available')assert.match(p.reason,/when a T is available/);
+ if(p.evidence.endpointTEntry==='reachable-if-T-available')assert.match(p.reason,/if a T is available/);
 });
 test('healthy two-row left base remains in maintenance scope after scoring',()=>{
  const heights=[2,2,2,2,6,8,8,0,1,2];

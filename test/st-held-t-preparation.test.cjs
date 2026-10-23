@@ -43,7 +43,7 @@ test('old broken marathon rollout retains cleanup-order mechanics but no longer 
  // Keep the independent cleanup-order regression, but no longer present that
  // already-broken board as a supported normal-ST planning result.
  const phase=S.notchPattern(s.board);assert.equal(phase.status,'broken');assert.deepEqual(phase.blockedRows,[34,31]);
- const advice=P.plan(s);assert.equal(advice.target,null);assert.match(advice.reason,/already filled/);
+ const advice=P.plan(s);assert.equal(advice.target,null);assert.match(advice.reason,/column 7 is filled/);
  const placements=R.placements(s).placements;
  const i=placements.find(p=>p.event.type==='I'&&p.event.cells.every(([x])=>x===9));
  const z=placements.find(p=>p.event.type==='Z'&&S.transition(s,p).allocation==='right-cap-preparation');assert.ok(i);assert.ok(z);

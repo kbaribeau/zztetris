@@ -4,7 +4,25 @@ const P=require('../st-planner'),R=require('../st-rules'),S=require('../st-struc
 const snapshot=require('./support/st-user-center-cap.json');
 const config={depth:3,width:8,maxNodes:45000};
 const key=c=>JSON.stringify(c.slice().sort(([ax,ay],[bx,by])=>ax-bx||ay-by));
-let cached;const plan=()=>cached??=(P.plan(snapshot,config));
+// Exercise the accepted delayed route independently of the default winner.
+// Cleaner endpoint ranking may now choose immediate center completion instead.
+let cached;const plan=()=>{if(cached)return cached;
+ let state=P.observe(snapshot),debt=[];const continuation=[];
+ for(const witness of require('./support/st-center-deferral-witness.json').witnesses){
+  const r=R.replay(state,witness);assert.ok(r.valid);assert.equal(r.events.length,1);
+  const event=r.events[0],reservation=P.centerReservationStep(state,{state:r.state,event},debt);debt=reservation.debt;
+  continuation.push({target:event.target,witness,event,hold:witness.includes('HOLD'),holdCount:witness.filter(x=>x==='HOLD').length,structuralEvidence:{centerReservation:reservation}});state=r.state;
+ }
+ assert.equal(debt.length,0);const first=continuation[0];
+ const certificate={...first,continuation,evidence:{cycleDebt:0},context:JSON.stringify([snapshot.rules,snapshot.board,snapshot.hold,snapshot.canHold,snapshot.queue,snapshot.bag??null,snapshot.active.type])};
+ assert.ok(P.revalidate(snapshot,certificate,config));
+ cached=P.plan(snapshot,{...config,commitment:{observation:snapshot,advice:certificate}});return cached;
+};
+test('default center choice either completes immediately or proves its exact visible replacement',()=>{
+ const a=P.plan(snapshot,config);assert.ok(a.target);let s=snapshot,debt=[];
+ for(const step of a.continuation){const r=R.replay(s,step.witness);assert.ok(r.valid);debt=P.centerReservationStep(s,{state:r.state,event:r.events[0]},debt).debt;s=r.state;}
+ assert.equal(debt.length,0);assert.equal(P.cycleResources(a.continuation).centerCompletions,1);
+});
 test('center reservation permits L diversion only with its exact visible replacement completion',()=>{
  const a=plan();assert.ok(a.target,a.reason);assert.equal(a.continuation.length,5);
  assert.deepEqual(a.continuation.map(p=>p.event.type),['L','I','Z','T','L']);assert.ok(a.continuation[0].event.cells.every(([x])=>x<4));

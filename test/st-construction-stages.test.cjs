@@ -51,12 +51,16 @@ test('visible replacement Z creates an executable exact-cap deferral certificate
  assert.equal(X.validateCertificate(zFixture.initial,a.continuation.slice(0,2),{kind:'cap-deferral'}).valid,false);
 });
 test('ordinary cap-first and verified optional-Z orders are compared at a shared completed horizon',()=>{
- const a=P.plan(zFixture.initial,{timeMs:750});assert.ok(a.target,a.reason);assert.ok(a.metrics.capStageCandidates>0);
+ // Test endpoint comparison independently of a host-dependent wall-clock cut.
+ // Production responsiveness remains covered by the timed tests and rollouts.
+ const a=P.plan(zFixture.initial,{maxNodes:45000});assert.ok(a.target,a.reason);assert.ok(a.metrics.capStageCandidates>0);
  assert.equal(a.continuation.length,3);assert.equal(a.continuation.at(-1).event.spin,'full');
  const state=a.continuation.reduce((s,p)=>{const r=R.replay(s,p.witness);assert.ok(r.valid);return r.state;},zFixture.initial);
- assert.equal(P.assess(state.board).maxHeight,9);assert.equal(state.board.join('').replaceAll('.','').length,44);
- // The data supports both orders here, not an unconditional instruction to
- // divert Z. Keep the ordinary cap-first order on an equal endpoint.
+ assert.ok(P.assess(state.board).maxHeight<=9);assert.equal(state.board.join('').replaceAll('.','').length,44);
+ assert.equal(S.geometry(state.board).center.status,'supported-partner-completion');
+ // The recorded Z deferral remains certified separately. Ordinary cap-first
+ // may instead preserve the reusable S/L center and finish lower (height 7),
+ // so matching the old unknown-center height-9 endpoint is not required.
  assert.ok(a.continuation[0].event.cells.some(([x])=>x>=7));
 });
 test('cap deferral debt survives a real first Z and is discharged by the exact replacement',()=>{
