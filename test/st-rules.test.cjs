@@ -9,7 +9,8 @@ test('st-rules/data: SRS+ shapes and all kick transitions match retained engine 
  const context={};vm.createContext(context);vm.runInContext(fs.readFileSync('rotationSystem.js','utf8'),context);
  for(const t of 'IJLOSTZ')assert.deepEqual(R.pieces[t],JSON.parse(JSON.stringify(context.pieces[t])));
  assert.deepEqual(R.kicks,JSON.parse(JSON.stringify(context.kicksets['SRS+'])));
- assert.equal(R.PROFILE.id,'st-zero-v1');assert.equal(R.PROFILE.hold,'once-per-lock');
+ assert.equal(R.PROFILE.id,'st-zero-v2');assert.equal(R.PROFILE.hold,'unlimited');
+ assert.equal(R.LEGACY_PROFILE.id,'st-zero-v1');assert.equal(R.LEGACY_PROFILE.hold,'once-per-lock');
 });
 test('st-rules/immutability and strict input validation',()=>{
  const s=state(),json=JSON.stringify(s);R.move(s,'R');R.move(s,'HD');assert.equal(JSON.stringify(s),json);
@@ -21,7 +22,7 @@ test('st-rules/immutability and strict input validation',()=>{
  assert.ok(R.validate({...s,active:{type:'T',x:3,y:17,rotation:7}}).includes('invalid-active'));
 });
 test('st-rules/hold: empty draws, occupied swaps, only one per lock',()=>{
- const s=state({queue:['I','O','L']});const h=R.move(s,'HOLD');assert.equal(h.active.type,'I');assert.equal(h.hold,'T');assert.deepEqual(h.queue,['O','L']);assert.equal(h.streamCursor,1);assert.equal(h.canHold,false);assert.equal(R.move(h,'HOLD'),h);
+ const s=state({rules:'st-zero-v1',queue:['I','O','L']});const h=R.move(s,'HOLD');assert.equal(h.active.type,'I');assert.equal(h.hold,'T');assert.deepEqual(h.queue,['O','L']);assert.equal(h.streamCursor,1);assert.equal(h.canHold,false);assert.equal(R.move(h,'HOLD'),h);
  const locked=R.move(h,'HD');assert.equal(locked.active.type,'O');assert.equal(locked.canHold,true);assert.equal(locked.streamCursor,2);
  const swapped=R.move(locked,'HOLD');assert.equal(swapped.active.type,'T');assert.equal(swapped.hold,'O');assert.deepEqual(swapped.queue,['L']);assert.equal(swapped.streamCursor,2);
  assert.equal(R.move(state(),'HOLD').active.type,'T','empty hold cannot invent unknown next piece');

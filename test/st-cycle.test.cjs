@@ -79,7 +79,8 @@ test('cycle cadence: already-reviewed early preparation and later left I have di
   const f=pages[number-1].field,board=Array.from({length:40},(_,y)=>Array.from({length:10},(_,x)=>39-y<23?f.at(x,39-y):'_').join('').replace(/_/g,'.'));
   const s=R.createState({board,active:'I',canHold:false}),p=R.placements(s).placements.find(p=>p.event.cells.every(([x])=>x===column));assert.ok(p);
   const transition=S.transition(s,p);assert.equal(transition.allocation,role);assert.deepEqual(transition.cycleViolations,[]);
-  if(number===91){assert.equal(S.geometry(p.state.board).right.cycle.phase,'scoring-with-cleanup-prepared');assert.deepEqual(S.geometry(p.state.board).right.cycle.cleanupColumns,[]);}
+  // The early outer I is ready, but the three-cell wall still needs its Z cap.
+  if(number===91){assert.equal(S.geometry(p.state.board).right.cycle.phase,'cap-rebuild-with-cleanup-prepared');assert.deepEqual(S.geometry(p.state.board).right.cycle.cleanupColumns,[]);}
  }
 });
 test('cycle revalidation does not retain a noncanonical later clear from stale advice',()=>{

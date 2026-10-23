@@ -40,6 +40,7 @@
     const replay=STRules.replay(observation(),candidate.witness);
     if(!replay.valid || replay.events.length!==1 || candidate.witness.at(-1)!=='HD')return false;
     if(Boolean(candidate.hold)!==candidate.witness.includes('HOLD'))return false;
+    if(candidate.holdCount!==undefined&&candidate.holdCount!==candidate.witness.filter(a=>a==='HOLD').length)return false;
     const event=replay.events?.at(-1);
     if(!event?.target)return false;
     const a=event.target,b=candidate.target;
@@ -121,7 +122,7 @@
   }
   function resetState(input,{tail=[],random=false,history=null,note='',keepOrigin=false}={}) {
     cancel();stopRepeating();future=tail.slice();generated=random;observed=history?.slice() || null;
-    state=STRules.createState({...clone(input),revision:++revision});
+    state=STRules.migrateState({...clone(input),revision:++revision});
     const errors=STRules.validate(state);if(errors.length)throw new Error(errors.join('; '));
     if(state.queue.length>6){future.unshift(...state.queue.slice(6));state={...state,queue:state.queue.slice(0,6)};}
     replenish();previous=null;result=null;lockCount=0;
@@ -178,7 +179,7 @@
     setText($('st-toggle'),`Advice ${visible?'ON':'OFF'} · ${key||'rebind conflicting advice key'}`);
     $('st-toggle').setAttribute('aria-pressed',String(visible));
     $('st-status').hidden=!visible;$('st-diagnostics').hidden=!visible;
-    if(visible){setText($('st-status'),`${result?.hold?'HOLD first. ':''}${coachMessage}`);$('st-status').dataset.result=coachStatus;}
+    if(visible){setText($('st-status'),`${coachMessage}`);$('st-status').dataset.result=coachStatus;}
     setText($('st-diagnostic-text'),JSON.stringify({status:coachStatus,revision:state.revision,
       ...(result?{metrics:result.metrics,evidence:result.evidence,horizon:result.horizon,continuation:result.continuation}:{}),
       note:'Finite checked evidence, not a guarantee of indefinite ST play.'},null,2));
@@ -202,7 +203,7 @@
         next.beginPath();next.moveTo(0,Math.max(2,i*60-2));next.lineTo(90,Math.max(2,i*60-2));next.stroke();
       }
     }
-    setText($('st-hold-state'),state.canHold?'Available':'Locked until drop');
+    setText($('st-hold-state'),!state.topOut&&state.active&&(state.hold||state.queue.length)?'Unlimited swaps':'Unavailable');
     const target=$('st-target');target.replaceChildren();
     if(visible&&result?.target){for(const [x,y] of STRules.cells(result.target)){
       if(y<18)continue;const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
@@ -243,7 +244,7 @@
       // Explicit whitelist prevents an import from injecting a hidden queue/seed.
       const clean={rules:input.rules,board:input.board,active:input.active,hold:input.hold,canHold:input.canHold,queue:input.queue.slice(0,6),streamCursor:input.streamCursor||0,topOut:Boolean(input.topOut)};
       if(input.bag){const bagErrors=STBag.validate(input.bag);if(bagErrors.length)throw new Error(bagErrors.join('; '));clean.bag=input.bag;}
-      resetState(clean,{note:'Imported visible snapshot. Missing bag history remains unknown; preview is finite.'});selectedId=null;$('st-fixture').value='';setText($('st-import-status'),'Snapshot imported.');
+      resetState(clean,{note:'Imported visible snapshot. Missing bag history remains unknown; preview is finite.'});selectedId=null;$('st-fixture').value='';setText($('st-import-status'),input.rules===STRules.LEGACY_PROFILE.id?'Snapshot imported and migrated from v1 to unlimited-hold v2.':'Snapshot imported.');
     }catch(error){setText($('st-import-status'),`Import rejected: ${error.message}`);}
   });
   const blank=document.createElement('option');blank.value='';blank.textContent='Choose a position';$('st-fixture').append(blank);

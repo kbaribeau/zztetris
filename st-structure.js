@@ -104,6 +104,9 @@ function rightCycle(board,h){
  if(channel===0&&wall===0&&cap===0){shape='cleared-base';phase='post-clear-rebuild';}
  else if(channelBase&&wallSolid&&wall>channel&&cap===0){shape='cap-preparation';phase=channel>0?'cap-rebuild-above-cleanup-I':'cap-rebuild';}
  else if(channelBase&&wallSolid&&cap===wall+1&&wall>channel){shape='staggered-scoring-wall';phase=channel>0?'scoring-above-cleanup-I':tenFilled?'scoring-with-cleanup-prepared':'scoring';}
+ // With only three wall cells, the outer I is ready but the Z cap is not.
+ // This is preparation, not an inaccessible completed scoring cavity.
+ if(leftCenterBase&&wallSolid&&wall===3&&channel===0&&tenFilled&&cap===4){shape='cap-preparation';phase='cap-rebuild-with-cleanup-prepared';}
  // A filled outer column is intentional cleanup preparation. It need not
  // already have a T cap above it and must not be charged as a broken wall.
  if(cleanupRows&&eightEmpty&&tenFilled&&cap===4){shape='quad-preparation';phase='cleanup-ready';}
@@ -167,7 +170,7 @@ function transition(before,p,afterStructure){const cells=p.event.cells,regions=[
  const pure=regions.length===1?regions[0]:null,type=p.event.type;
  if(p.event.spin==='full'&&p.event.lines===2){allocation='scoring-double';}
  else if(type==='I'&&p.event.lines===4){allocation='quad-cleanup';}
- else if(type==='I'&&pure==='right'&&prior.right.cycle.prepareColumn!==null&&cells.every(([x])=>x===prior.right.cycle.prepareColumn)&&(after.right.cycle.cleanupColumns.length||after.right.cycle.phase==='scoring-with-cleanup-prepared')){allocation='quad-preparation';}
+ else if(type==='I'&&pure==='right'&&prior.right.cycle.prepareColumn!==null&&cells.every(([x])=>x===prior.right.cycle.prepareColumn)&&(after.right.cycle.cleanupColumns.length||['scoring-with-cleanup-prepared','cap-rebuild-with-cleanup-prepared'].includes(after.right.cycle.phase))){allocation='quad-preparation';}
  else if(pure==='left'&&type==='T'&&prior.right.shapeStatus==='staggered-scoring-wall'){allocation='scoring-T-diversion';debt+=6;}
  else if(pure==='left'){allocation='left-filler';if(type==='I'&&cells.every(([,y])=>y===cells[0][1]))allocation='horizontal-left-I';}
  else if(pure==='center'&&'SLOJZ'.includes(type)&&(after.center.status!=='unrecognized'))allocation=after.center.status==='level'?'center-completion':'center-partner-preparation';
@@ -193,6 +196,7 @@ function transition(before,p,afterStructure){const cells=p.event.cells,regions=[
  debt+=opportunityCost;
  if(finish&&pure==='center')allocation='center-completion';
  const cycleViolations=[];
+ if(p.availableCleanupPreparation===true&&allocation==='right-cap-preparation'&&prior.right.cycle.prepareColumn!==null)cycleViolations.push('capped-before-available-cleanup-I');
  if(opportunityCost)cycleViolations.push('spent-cap-Z-on-optional-work');
  // The planner supplies this only after actual-pose/hold enumeration finds
  // an executable cap. A hypothetical spawn completion alone is not access.

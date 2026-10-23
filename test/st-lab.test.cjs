@@ -25,12 +25,13 @@ function legalResult(observation,predicate=()=>true){
 }
 for(const gravity of [undefined,'true','false'])test(`st-lab/isolated ${gravity??'absent'}: new rules and preferences do not mutate ordinary modes`,()=>withPage('st-lab.html',{storage:settings(gravity===undefined?{}:{gravity})},g=>{
  const before=g.storage(),s=g.snapshot();
- assert.equal(s.rules,'st-zero-v1');assert.equal(s.queue.length,6);assert.ok(s.board.some(r=>r!=='..........'));
+ assert.equal(s.rules,'st-zero-v2');assert.equal(s.queue.length,6);assert.ok(s.board.some(r=>r!=='..........'));
  assert.match(g.element('#st-status').textContent,/Web Workers/);
  assert.equal(g.element('#st-status').dataset.result,'worker-unavailable');
  assert.equal(g.window.zzBot,undefined);assert.equal(g.window.board,undefined);
- g.tap('ShiftLeft');const held=g.snapshot();assert.equal(held.canHold,false);
- g.tap('ShiftLeft');assert.deepEqual(g.snapshot(),held,'second hold blocked');
+ g.tap('ShiftLeft');const held=g.snapshot();assert.equal(held.canHold,true);
+ g.tap('ShiftLeft');const returned=g.snapshot();assert.equal(returned.active.type,s.active.type);assert.equal(returned.hold,held.active.type);assert.deepEqual(returned.queue,held.queue);assert.equal(returned.streamCursor,held.streamCursor);assert.deepEqual(returned.bag,held.bag);
+ assert.equal(g.element('#st-hold-state').textContent,'Unlimited swaps');
  g.tap('Space');assert.equal(g.snapshot().canHold,true);
  assert.deepEqual(g.storage(),before);
  g.click('#st-reset');assert.deepEqual({...g.snapshot(),revision:0},{...s,revision:0});
