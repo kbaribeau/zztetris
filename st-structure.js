@@ -121,6 +121,47 @@ function rightCycle(board,h){
 function canonicalClear(event){return event.lines===0||
  (event.type==='T'&&event.spin==='full'&&event.lines===2&&event.cells.every(([x])=>x>=6))||
  (event.type==='I'&&event.lines===4&&event.cells.every(([x])=>x>=7));}
+// The column-seven teeth belong to the scoring cycle, not an absolute board
+// height modulo three. A recognized Z wall establishes the next arm notch;
+// an uncapped solid wall establishes where its checked next Z cap will put it.
+// Blank construction cells between teeth are allowed: only notch cells are
+// reserved. Unknown geometry cannot establish this phase; an empty right
+// floor is anchored only by an actual hypothetical next-Z drop witness.
+function notchPattern(board){
+ const h=heights(board),cycle=rightCycle(board,h);
+ // A solid outer I is not a Z roof, even while left scoring rows are
+ // unfinished (rightCycle's cleanup classification also requires those rows).
+ const outerIPrepared=h[7]===0&&h[8]===3&&h[9]===4&&cycle.wallSolid&&board.slice(36).every(row=>row[9]!=='.');
+ const cleanupReady=cycle.shape!=='staggered-scoring-wall'&&cycle.cleanupColumns.length>0&&cycle.wallSolid&&cycle.channelBase;
+ const scoringRoof=cycle.shape==='staggered-scoring-wall'&&h[9]>=2&&board[40-h[9]][9]!=='.'&&board[41-h[9]][9]!=='.';
+ const floorCap=cycle.shape==='cleared-base'?capCompletions(board)[0]:null;
+ const floorAnchor=floorCap?Math.max(...floorCap.cells.filter(([x])=>x===8).map(([,y])=>40-y))+1:null;
+ const height=floorAnchor??(outerIPrepared||cleanupReady?h[8]+3:scoringRoof?h[8]+1:cycle.shape==='cap-preparation'?h[8]+3:null);
+ if(height===null)return {status:'unanchored',anchorRow:null,protectedRows:[],blockedRows:[],source:'right-cycle-phase-not-established'};
+ return notchRows(board,40-height,floorCap?'witnessed-floor-Z-cap':!outerIPrepared&&!cleanupReady&&scoringRoof?'recognized-scoring-wall':'recognized-next-Z-cap');
+}
+function notchRows(board,anchorRow,source){
+ const protectedRows=[];for(let y=anchorRow;y>=0;y-=3)if(y<40)protectedRows.push(y);
+ const blockedRows=protectedRows.filter(y=>board[y][6]!=='.');
+ return {status:blockedRows.length?'broken':'established',anchorRow,protectedRows,blockedRows,source};
+}
+function advanceNotches(before,p,inherited){
+ const prior=inherited&&inherited.status!=='unanchored'?inherited:notchPattern(before);
+ if(prior.status==='broken')return {valid:false,violation:'existing-column-seven-notch-blocked',pattern:prior,blockedCells:prior.blockedRows.map(y=>[6,y])};
+ if(prior.status==='unanchored'){
+  const pattern=notchPattern(p.state.board);
+  return {valid:pattern.status!=='broken',violation:pattern.status==='broken'?'established-cycle-with-blocked-notch':null,pattern,blockedCells:pattern.blockedRows.map(y=>[6,y])};
+ }
+ const cleared=p.event.clearedRows||[];
+ const currentDouble=canonicalClear(p.event)&&p.event.type==='T'&&p.event.spin==='full'&&p.event.lines===2;
+ const blockedCells=p.event.cells.filter(([x,y])=>x===6&&prior.protectedRows.includes(y)&&!(currentDouble&&y===prior.anchorRow&&cleared.includes(y)));
+ // Rows above each clear move down one. The consumed current arm disappears;
+ // the next surviving tooth becomes current. Extend the same phase upward,
+ // including fresh rows entering the top, rather than re-anchoring modulo 3.
+ const surviving=prior.protectedRows.filter(y=>!cleared.includes(y)).map(y=>y+cleared.filter(r=>r>y).length);
+ const pattern=surviving.length?notchRows(p.state.board,Math.max(...surviving),'translated-established-cycle'):notchPattern(p.state.board);
+ return {valid:!blockedCells.length&&pattern.status!=='broken',violation:blockedCells.length?'filled-protected-column-seven-notch':pattern.status==='broken'?'column-seven-notch-blocked':null,pattern,blockedCells};
+}
 function geometry(board){const key=board.map(r=>r.replace(/[IJLOSTZX#]/g,'#')).join('');if(cache.has(key))return cache.get(key);
  const h=heights(board),left=h.slice(0,4),center=h.slice(4,7),right=h.slice(7),flatLeft=new Set(left).size===1,flatCenter=new Set(center).size===1;
  const centerCompletions=flatCenter?[]:completions(board,4,6,'SLOJZ');
@@ -207,5 +248,5 @@ function transition(before,p,afterStructure){const cells=p.event.cells,regions=[
  const reason=allocation==='horizontal-left-I'?'Keep the left region flat.':allocation==='center-partner-preparation'?partner?'Start the ordered '+type+'/'+partner.piece+' center pair.':'Prepare the center; no ordered level-finishing pair has been established.':allocation==='center-completion'?'Complete the center pattern.':allocation==='scoring-double'?'Take the T-spin double and assess its rebuild.':allocation==='scoring-T-diversion'?'Diverts a T from the scoring role; another T may remain, but its timely use is not established.':allocation==='quad-preparation'?'Prepare the right-side I cleanup while keeping column eight open.':allocation==='quad-cleanup'?'Clear the scoring channel with a quad.':allocation==='unrecognized-role'?'This allocation needs additional regional repair evidence.':allocation==='right-cap-extension'?'Extends an existing cap; renewed entry still needs checking.':'Preserve a supported regional piece role.';
  return{reason,cycleViolations,pairFamily,pairProgress,pairEvidence:pairFamily?'ordered actual preparation plus checked level-finishing placement':null,opportunityCost,leftSubstitutes:substitutes,regions,crossRegion:regions.length>1,allocation,status:['unrecognized-role','scoring-T-diversion','right-cap-extension'].includes(allocation)?'requires-repair-evidence':'supported-local-role',dependencyDebt:debt,newlyCovered,regionalRepair,repairCredit:Math.min(8,repaired*2),note:'Crossing a boundary is not forbidden. Debt measures unsupported allocation and new structural repair burden; a later checked repair may repay it.'};
 }
-return Object.freeze({assess,transition,geometry,instances,allocate,canonicalClear,CENTER_PAIRS,leftSubstitutes,clearCache:()=>{cache.clear();substituteCache.clear();}});
+return Object.freeze({assess,transition,geometry,instances,allocate,canonicalClear,notchPattern,advanceNotches,CENTER_PAIRS,leftSubstitutes,clearCache:()=>{cache.clear();substituteCache.clear();}});
 });

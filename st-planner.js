@@ -42,12 +42,15 @@ function assess(board){
 }
 function context(s){return JSON.stringify([s.rules,s.board,s.hold,s.canHold,s.queue,s.bag??null,s.active?.type]);}
 function stateKey(s){return JSON.stringify([s.rules,s.board,s.active,s.hold,s.canHold,s.queue,s.bag??null]);}
+function nodeKey(n){return stateKey(n.state)+':notches:'+n.notches.status+':'+n.notches.anchorRow;}
 function extendForced(state){if(!state.bag)return state;const t=B.forcedNext(state.bag);if(!t)return state;return {...state,queue:[...state.queue,t],bag:B.consume(state.bag,t)};}
 function compare(a,b){for(let i=0;i<a.rank.length;i++)if(a.rank[i]!==b.rank[i])return b.rank[i]-a.rank[i];return a.key.localeCompare(b.key);}
 function nodeFor(p,parent,initial,rootIndex){
  const assessment=assess(p.state.board),path=[...(parent?.path??[]),p];
  const structure=S.assess(p.state),before=parent?.state??initial.state;
  const transition=S.transition(before,p,structure);
+ const notchCheck=S.advanceNotches(before.board,p,parent?.notches??initial.notches);
+ transition.futureNotches=notchCheck;
  // A crossing placement is not forbidden. Track its outstanding dependency,
  // rather than rewarding a short tactical event regardless of the rebuild.
  const dependencyDebt=Math.max(0,(parent?.dependencyDebt??0)+transition.dependencyDebt);
@@ -69,16 +72,16 @@ function nodeFor(p,parent,initial,rootIndex){
  p.structuralEvidence={...transition,centerPartnerDeficitBefore:(parent?.assessment??initial).center.partnerDeficit,centerPartnerDeficitAfter:assessment.center.partnerDeficit,placedPiece:p.event.type,structure,dependencyDebt,entryDebt,nonclearScoringGeometryLost:losesEntry};
  // Nearby structural estimates are deliberately comparable. The finite
  // executable TSD then breaks ties; it cannot buy a poorer structural band.
- const cycleDebt=(parent?.cycleDebt??0)+transition.cycleViolations.length;
+ const cycleDebt=(parent?.cycleDebt??0)+transition.cycleViolations.length+(notchCheck.valid?0:1);
  const rank=[safe?1:0,assessment.regionalSupport?1:0,cycleDebt?-cycleDebt:0,Math.floor(structuralScore/4),tsds*2,-path.reduce((n,v)=>n+v.witness.length+holdCount(v)*2,0),path.reduce((n,v)=>n+v.event.lines,0)];
- return{state:p.state,path,assessment,rank,structuralScore,dependencyDebt,entryDebt,cycleDebt,baseEstimateRank:rank[4],qualified:!assessment.right.slots.length,rootIndex,key:JSON.stringify(path[0].target)+':'+holdCount(path[0])};
+ return{state:p.state,path,notches:notchCheck.pattern,notchValid:notchCheck.valid,assessment,rank,structuralScore,dependencyDebt,entryDebt,cycleDebt,baseEstimateRank:rank[4],qualified:!assessment.right.slots.length,rootIndex,key:JSON.stringify(path[0].target)+':'+holdCount(path[0])};
 }
 function diversify(nodes,width){const sorted=[...nodes].sort(compare),chosen=[],roots=new Set(),groups=new Set();
  // Protect meaningfully different construction families, not just top-scoring
  // near-identical surfaces. This is diversity, not a canned move template.
  for(const n of sorted){const first=n.path[0],g=[first.target.type,holdCount(first),n.assessment.right.slots.length>0].join(':');if(!groups.has(g)){chosen.push(n);roots.add(n.rootIndex);groups.add(g);if(chosen.length===width)return chosen;}}
  for(const n of sorted)if(!roots.has(n.rootIndex)){chosen.push(n);roots.add(n.rootIndex);if(chosen.length===width)return chosen;}
- const keys=new Set(chosen.map(n=>stateKey(n.state)));for(const n of sorted)if(!keys.has(stateKey(n.state))){chosen.push(n);keys.add(stateKey(n.state));if(chosen.length===width)break;}return chosen;}
+ const keys=new Set(chosen.map(n=>nodeKey(n)));for(const n of sorted)if(!keys.has(nodeKey(n))){chosen.push(n);keys.add(nodeKey(n));if(chosen.length===width)break;}return chosen;}
 function plan(raw,options={}){
  const started=Date.now(),now=options.now??(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs);
  let s;try{s=observe(raw);}catch(e){return{status:'invalid-input',revision:raw?.revision??0,target:null,reason:'The supplied observation is not valid.',errors:[e.message]};}
@@ -88,7 +91,8 @@ function plan(raw,options={}){
  if(s.topOut)return{...base,status:'no-supported-continuation-found',reason:'This position has topped out under the selected rules.'};
  if(!s.active)return{...base,status:'insufficient-known-pieces',reason:'No active piece is available in this observation.'};
  if(s.board.every(r=>r==='..........'))return{...base,status:'unsupported-position',reason:'Opening construction is outside milestone one. Choose an established-stack fixture.'};
- const initial=assess(s.board);initial.state=s;
+ const initial=assess(s.board);initial.state=s;initial.notches=S.notchPattern(s.board);
+ if(initial.notches.status==='broken')return{...base,status:'no-supported-continuation-found',reason:'An established column-seven notch is already filled. Normal ST continuation is not certified; this planner does not establish a repair for the broken pattern.',assessment:initial};
  if(!initial.maintenanceScope)return{...base,status:'unsupported-position',reason:initial.left.height<2||initial.center.height<3?'This stack is below the established-stack maintenance profile. Choose another fixture or rebuild manually; opening construction is not coached.':'This position is outside the initial right-hand ST maintenance profile: established left/center stack and lower column-eight scoring channel required.',assessment:initial};
  const limit=options.maxNodes??45000,maxDepth=options.depth??3,width=options.width??8,expandedRoots=new Set(),accessCache=new Map();let stopped=false;
  base.metrics.accessNodes=0;
@@ -189,7 +193,7 @@ function plan(raw,options={}){
   }
  }
  const spendsReservedT=p=>(preparation||preparationUnresolved)&&p.event.type==='T'&&p.event.lines===0;
- let frontier=qualify(root.placements.filter(p=>S.canonicalClear(p.event)&&!spendsReservedT(p)).map((p,i)=>nodeFor(p,null,initial,i)));
+ let frontier=qualify(root.placements.filter(p=>S.canonicalClear(p.event)&&!spendsReservedT(p)).map((p,i)=>nodeFor(p,null,initial,i)).filter(n=>n.notchValid));
  if(preparation){preparation=qualify([preparation])[0]??preparation;base.metrics.preparationProofLocks=3;}
 
  const cleanBest=nodes=>nodes.filter(n=>n.cycleDebt===0).sort(compare)[0]??null;
@@ -198,7 +202,7 @@ function plan(raw,options={}){
  for(let depth=2;depth<=maxDepth&&!stopped&&layer.length;depth++){
   const next=[],seen=new Map();let complete=true;
   for(const n of layer){if(!n.state.active)continue;expandedRoots.add(n.rootIndex);const e=enumerate(n.state);if(!e.complete)complete=false;
-   for(const p of e.placements){if(!S.canonicalClear(p.event))continue;const child=nodeFor(p,n,initial,n.rootIndex),key=stateKey(child.state),prior=seen.get(key);if(!prior||compare(child,prior)<0)seen.set(key,child);}
+   for(const p of e.placements){if(!S.canonicalClear(p.event))continue;const child=nodeFor(p,n,initial,n.rootIndex);if(!child.notchValid)continue;const key=nodeKey(child),prior=seen.get(key);if(!prior||compare(child,prior)<0)seen.set(key,child);}
    if(stopped)break;
   }
   next.push(...qualify([...seen.values()]));if(stopped)complete=false;if(next.length){const candidate=cleanBest(next);base.metrics.depth=Math.max(base.metrics.depth,depth);if(complete&&candidate){best=preparation&&depth<preparation.path.length?preparation:candidate;base.metrics.completeDepth=depth;}}
@@ -246,7 +250,7 @@ function plan(raw,options={}){
  const reason=structuralReason?`${holdPrompt(first)}${structuralReason} ${tacticalReason.replace(/^Hold (?:first|twice)\. /,'')}`:tacticalReason;
  return{...base,status:'recommended-with-verified-prefix',target:first.target,hold:first.hold,holdCount:holdCount(first),witness:first.witness,reason,
  continuation:best.path.map(p=>({target:p.target,hold:p.hold,holdCount:holdCount(p),witness:p.witness,event:p.event,resultContext:context(p.state),structuralEvidence:p.structuralEvidence})),
- evidence:{strategy:'canonical-right-ST',preparationProof:preparation?{kind:'visible-I-Z-held-T',locks:3,claim:'Executed preparation preserves the current T for a checked double.'}:null,cycleDebt:best.cycleDebt,clearPolicy:'right-region full T-spin doubles and I tetrises only',verifiedLocks:best.path.length,tsdAt:tsdAt>=0?tsdAt+1:null,knownPieceHorizon:s.queue.length+1,rootEnumerationComplete:root.complete,budgetExhausted:stopped,informationBoundary:!best.state.active,initialSealed:initial.sealed,endpointSealed:best.assessment.sealed,regionalSupport:best.assessment.regionalSupport,channel:best.assessment.channel,endpointTEntry:best.assessment.right.entry?.status??'not-established',unresolvedObligations:best.assessment.obligations,structuralScore:best.structuralScore,structuralRank:best.rank,structure:best.assessment.structure,dependencyDebt:best.dependencyDebt,claim:'Finite executable prefix; endpoint estimates are not a sustainability guarantee.'},assessment:best.assessment};
+ evidence:{strategy:'canonical-right-ST',futureNotches:best.notches,preparationProof:preparation?{kind:'visible-I-Z-held-T',locks:3,claim:'Executed preparation preserves the current T for a checked double.'}:null,cycleDebt:best.cycleDebt,clearPolicy:'right-region full T-spin doubles and I tetrises only',verifiedLocks:best.path.length,tsdAt:tsdAt>=0?tsdAt+1:null,knownPieceHorizon:s.queue.length+1,rootEnumerationComplete:root.complete,budgetExhausted:stopped,informationBoundary:!best.state.active,initialSealed:initial.sealed,endpointSealed:best.assessment.sealed,regionalSupport:best.assessment.regionalSupport,channel:best.assessment.channel,endpointTEntry:best.assessment.right.entry?.status??'not-established',unresolvedObligations:best.assessment.obligations,structuralScore:best.structuralScore,structuralRank:best.rank,structure:best.assessment.structure,dependencyDebt:best.dependencyDebt,claim:'Finite executable prefix; endpoint estimates are not a sustainability guarantee.'},assessment:best.assessment};
 }
 // Keep a committed target through an exactly followed input, including HOLD.
 // The entire remaining prefix is replayed from the new observation, so a newly
@@ -258,8 +262,9 @@ function advance(raw,previous,action){
  if(R.validate(state).length||(state.bag&&B.validate(state.bag).length))return null;
  const witness=previous.witness.slice(1);if(!witness.length)return null;
  const steps=previous.continuation.map((step,i)=>({...step,witness:i?step.witness:witness,hold:i?step.hold:witness.includes('HOLD'),holdCount:i?holdCount(step):witness.filter(a=>a==='HOLD').length}));
- let current=state;for(const step of steps){const replay=R.replay(current,step.witness);
+ let current=state,notches=S.notchPattern(state.board);for(const step of steps){const replay=R.replay(current,step.witness);
   if(!replay.valid||replay.events.length!==1||!S.canonicalClear(replay.events[0])||JSON.stringify(replay.events[0])!==JSON.stringify(step.event)||(step.resultContext&&context(replay.state)!==step.resultContext))return null;
+  const check=S.advanceNotches(current.board,{event:replay.events[0],state:replay.state},notches);if(!check.valid)return null;notches=check.pattern;
   current=replay.state;
  }
  return{...previous,revision:state.revision,context:context(state),witness,hold:witness.includes('HOLD'),holdCount:witness.filter(a=>a==='HOLD').length,continuation:steps,
@@ -272,7 +277,7 @@ function revalidate(raw,previous,options={}){
  const p=enumeration.placements.find(p=>S.canonicalClear(p.event)&&holdCount(p)===holdCount(previous)&&JSON.stringify(p.target)===JSON.stringify(previous.target)&&p.event.spin===previous.continuation?.[0]?.event.spin&&p.event.lines===previous.continuation?.[0]?.event.lines);
  if(!p)return null;
  const continuation=[{...previous.continuation[0],target:p.target,hold:p.hold,holdCount:holdCount(p),witness:p.witness,event:p.event},...previous.continuation.slice(1)];
- let current=s;for(const step of continuation){const replay=R.replay(current,step.witness);if(!replay.valid||replay.events.length!==1||!S.canonicalClear(replay.events[0])||JSON.stringify(replay.events[0])!==JSON.stringify(step.event)||(step.resultContext&&context(replay.state)!==step.resultContext))return null;current=replay.state;}
+ let current=s,notches=S.notchPattern(s.board);for(const step of continuation){const replay=R.replay(current,step.witness);if(!replay.valid||replay.events.length!==1||!S.canonicalClear(replay.events[0])||JSON.stringify(replay.events[0])!==JSON.stringify(step.event)||(step.resultContext&&context(replay.state)!==step.resultContext))return null;const check=S.advanceNotches(current.board,{event:replay.events[0],state:replay.state},notches);if(!check.valid)return null;notches=check.pattern;current=replay.state;}
  return{...previous,revision:s.revision,hold:p.hold,holdCount:holdCount(p),witness:p.witness,continuation,metrics:{...previous.metrics,revalidationNodes:enumeration.visited},retained:true};
 }
 return Object.freeze({observe,assess,plan,revalidate,advance});

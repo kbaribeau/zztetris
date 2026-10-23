@@ -35,11 +35,22 @@ test('held T access-proof interruption does not authorize spending the saved T',
  assert.ok(a.metrics.accessNodes>0,'budget must enter the actual T access proof');
  assert.equal(a.evidence?.preparationProof??null,null);assert.ok(!a.target||a.target.type!=='T');
 });
-test('existing marathon rollout prepares the outer I before the cap can seal it',()=>{
+test('old broken marathon rollout retains cleanup-order mechanics but no longer certifies normal ST',()=>{
  // Derived from the already-reviewed marathon-rebuild rollout at lock25,
  // also reached by marathon-preparation at lock27; not a new held-out case.
  const s=R.migrateState(require('./support/st-existing-cleanup-before-cap.json'));
- const a=P.plan(s);assert.equal(a.target?.type,'I');assert.ok(a.continuation[0].event.cells.every(([x])=>x===9));
- assert.equal(a.continuation[1].event.type,'Z');assert.equal(a.continuation[1].structuralEvidence.allocation,'right-cap-preparation');
- let current=s;for(const step of a.continuation){const r=R.replay(current,step.witness);assert.equal(r.valid,true);assert.deepEqual(r.events[0],step.event);current=r.state;}
+ // The old engine reached this board after filling two scoring notches.
+ // Keep the independent cleanup-order regression, but no longer present that
+ // already-broken board as a supported normal-ST planning result.
+ const phase=S.notchPattern(s.board);assert.equal(phase.status,'broken');assert.deepEqual(phase.blockedRows,[34,31]);
+ const advice=P.plan(s);assert.equal(advice.target,null);assert.match(advice.reason,/already filled/);
+ const placements=R.placements(s).placements;
+ const i=placements.find(p=>p.event.type==='I'&&p.event.cells.every(([x])=>x===9));
+ const z=placements.find(p=>p.event.type==='Z'&&S.transition(s,p).allocation==='right-cap-preparation');assert.ok(i);assert.ok(z);
+ assert.equal(S.transition(s,i).allocation,'quad-preparation');
+ const cap=S.geometry(i.state.board).right.completions.find(c=>c.piece==='Z');assert.ok(cap);
+ assert.equal(i.state.hold,'Z');const replay=R.replay(i.state,['HOLD',...cap.witness]);assert.ok(replay.valid);assert.equal(replay.events[0].type,'Z');
+ assert.equal(S.transition(i.state,{state:replay.state,event:replay.events[0]}).allocation,'right-cap-preparation');
+ assert.ok(S.transition(s,{...z,availableCleanupPreparation:true}).cycleViolations.includes('capped-before-available-cleanup-I'));
+ assert.equal(S.transition(s,{...i,availableCleanupPreparation:true}).cycleViolations.includes('capped-before-available-cleanup-I'),false);
 });

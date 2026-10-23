@@ -154,7 +154,7 @@ test('st-lab/import: longer preview rejected rather than using bag knowledge fro
 
 
 for(const hold of [false,true])test(`st-lab/stability: exact ${hold?'hold':'movement'} witness preserves visible target while revalidating`,()=>withPage('st-lab.html',{},g=>{
- const ws=workers(g),w=ws.at(-1),answer=legalResult(w.message.observation,p=>p.hold===hold&&p.witness.length>1);
+ const ws=workers(g),w=ws.at(-1),answer=legalResult(w.message.observation,p=>p.hold===hold&&p.witness.length>1&&require('../st-structure').advanceNotches(w.message.observation.board,p).valid);
  w.respond(answer);const target=g.element('#st-target').innerHTML;
  g.window.stLab.act(answer.witness[0]);
  assert.equal(g.element('#st-target').innerHTML,target,'no blank or moved target while worker is pending');

@@ -42,3 +42,29 @@ The coach now recognizes bottom-four-row I cleanup preparation, scoring above an
 The planner retains a shorter compliant prefix if deeper search finds only obligation-diverting continuations, and abstains rather than silently labeling a departure as normal ST. This is not a new recovery mode. Cap-rebuild geometry alone does not establish imminent T timing: a narrow actual I → Z → held-T proof now protects that preparation from pruning, including the timed fallback. A three-cell wall above an outer cleanup I is cap-pending, not already scoring. An available outer I takes precedence over a Z cap that would seal it only when the ensuing Z placement is actually replayable. Other pre-cap T supply conflicts remain unresolved, and the previously reviewed L-center/T-left/Z-cap sequence remains supported. Exact scope, regression results and rollout tradeoffs are documented in [cycle review](docs/st-cycle-review.md).
 
 See [hold and preparation review](docs/st-hold-preparation-review.md) for v2 migration, bounded-proof limits and combined regression checks.
+
+### Column-seven scoring notches
+
+Normal ST advice preserves the two-filled / one-empty column-seven cadence above
+(and including) the next scoring arm. The phase comes from recognized scoring-wall
+or next-Z-cap geometry, not an absolute height modulo three and not the visibility
+of a future T. A solid outer cleanup I is distinguished from a Z roof, including
+when the left scoring rows are unfinished. Empty construction cells between the
+reserved notches remain allowed.
+
+The planner carries these reserved rows through its executable prefix, translating
+exactly through two- and four-line clears. The current T-spin double may occupy and
+clear its own arm notch. Other placements filling reserved notches are excluded,
+not merely penalized. Planner replay/revalidation checks the same constraint;
+manual placement legality is unchanged. An
+already-blocked established notch produces an honest no-supported-continuation
+result, not a fabricated recovery. A recognized cleanup foundation retains the
+next-cap phase, and an empty right
+floor is anchored by an actual hypothetical Z-drop witness. Thus replanning after
+I preparation or a quad does not forget the phase. Unrecognized right geometry
+without a phase witness remains unanchored; this does not certify its sustainability.
+The constraint targets ordinary ST double/quad cycles, not deliberate transitions
+to another scoring pattern such as the Marathon reference's ending TST.
+
+See [future-notch review](docs/st-future-notch-review.md) for reference checks,
+existing-corpus results, and the remaining Marathon rollout tradeoffs.
