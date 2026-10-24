@@ -18,7 +18,7 @@ test('st-planner/no fake certainty: budget, unsupported rules, missing pieces an
  assert.equal(P.plan({...state(),rules:'gravity-20'}).status,'unsupported-profile');
  assert.equal(P.plan({...state(),active:null}).status,'insufficient-known-pieces');
  assert.equal(P.plan({...state(),bag:{remaining:[]}}).status,'invalid-input');
- assert.equal(P.plan(R.createState({active:'T'})).status,'unsupported-position');
+ assert.equal(P.plan(R.createState({active:'T'})).status,'no-supported-continuation-found');
  assert.equal(P.plan({...state(),board:['bad']}).status,'invalid-input');
 });
 test('st-planner/frontier bag: only forced unseen pieces extend information horizon',()=>{

@@ -1,0 +1,211 @@
+{
+  "provenance": {
+    "kind": "synthetic-development-stream",
+    "seed": 1,
+    "rng": "LCG 1664525/1013904223, Fisher-Yates IJLOSTZ",
+    "capture": "Actual pre-HD public pose, legal full-T-spin-double event, and replenished six-preview result from opening development rollout. Not original reference input."
+  },
+  "before": {
+    "rules": "st-zero-v2",
+    "board": [
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "LLL.I.....",
+      "LSS.I.....",
+      "SSL.II....",
+      "OOL.II....",
+      "OOLLZI....",
+      "JJTZZI....",
+      "JTTZSSZ...",
+      "JTTSSZZ...",
+      "TTTJJZ....",
+      "LOOJJJZ...",
+      "LOOJJZZ...",
+      "LLLSJZ...Z",
+      "LLLSSOO.ZZ",
+      "IIIISOO.Z."
+    ],
+    "active": {
+      "type": "T",
+      "x": 6,
+      "y": 35,
+      "rotation": 2,
+      "lastRotation": {
+        "from": 1,
+        "to": 2,
+        "kickIndex": 0
+      }
+    },
+    "hold": "T",
+    "canHold": true,
+    "queue": [
+      "I",
+      "J",
+      "O",
+      "S",
+      "T",
+      "O"
+    ],
+    "revision": 426,
+    "streamCursor": 23,
+    "topOut": false,
+    "lastEvent": null
+  },
+  "after": {
+    "rules": "st-zero-v2",
+    "board": [
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "LLL.I.....",
+      "LSS.I.....",
+      "SSL.II....",
+      "OOL.II....",
+      "OOLLZI....",
+      "JJTZZI....",
+      "JTTZSSZ...",
+      "JTTSSZZ...",
+      "TTTJJZ....",
+      "LOOJJJZ...",
+      "LOOJJZZ...",
+      "IIIISOO.Z."
+    ],
+    "active": {
+      "type": "I",
+      "x": 3,
+      "y": 17,
+      "rotation": 0,
+      "lastRotation": null
+    },
+    "hold": "T",
+    "canHold": true,
+    "queue": [
+      "J",
+      "O",
+      "S",
+      "T",
+      "O",
+      "Z"
+    ],
+    "revision": 427,
+    "streamCursor": 24,
+    "topOut": false,
+    "lastEvent": {
+      "type": "T",
+      "target": {
+        "type": "T",
+        "x": 6,
+        "y": 35,
+        "rotation": 2
+      },
+      "cells": [
+        [
+          6,
+          37
+        ],
+        [
+          7,
+          37
+        ],
+        [
+          8,
+          37
+        ],
+        [
+          7,
+          38
+        ]
+      ],
+      "lines": 2,
+      "clearedRows": [
+        37,
+        38
+      ],
+      "spin": "full",
+      "topOut": false
+    }
+  },
+  "event": {
+    "type": "T",
+    "target": {
+      "type": "T",
+      "x": 6,
+      "y": 35,
+      "rotation": 2
+    },
+    "cells": [
+      [
+        6,
+        37
+      ],
+      [
+        7,
+        37
+      ],
+      [
+        8,
+        37
+      ],
+      [
+        7,
+        38
+      ]
+    ],
+    "lines": 2,
+    "clearedRows": [
+      37,
+      38
+    ],
+    "spin": "full",
+    "topOut": false
+  }
+}

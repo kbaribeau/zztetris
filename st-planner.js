@@ -401,7 +401,7 @@ function plan(raw,options={}){
  if(errors.length)return{...base,status:errors.includes('unsupported-profile')?'unsupported-profile':'invalid-input',reason:'Unsupported or invalid snapshot: '+errors.map(e=>e.replaceAll('-',' ')).join('; ')+'.',errors};
  if(s.topOut)return{...base,status:'no-supported-continuation-found',reason:'This position has topped out. Reset to continue.'};
  if(!s.active)return{...base,status:'insufficient-known-pieces',reason:'This snapshot has no active piece. Import another position or reset.'};
- if(s.board.every(r=>r==='..........'))return{...base,status:'unsupported-position',reason:'Opening advice is not supported yet. Choose an established stack or play the opening manually.'};
+ if(!options.disableOpening&&(options.openingPhase||s.board.every(r=>r==='..........'))){const opening=typeof module==='object'&&module.exports?require('./st-opening.js'):globalThis.STOpening;return opening.plan(s,{...options,deadline});}
  const initial=assess(s.board);initial.state=s;initial.notches=S.notchPattern(s.board);
  if(!options.disableConstruction&&options.constructionPrevious?.evidence?.construction){const prior=options.constructionPrevious,proof=prior.evidence.construction;
   const cert=X.validateCertificate(proof.origin,proof.steps,{kind:proof.kind,timeMs:Math.max(0,deadline-now())});if(cert.valid&&JSON.stringify(cert.continuation.slice(proof.consumed).map(p=>p.event))===JSON.stringify(prior.continuation.map(p=>p.event))){const retained=revalidate(s,prior,{...options,deadline,maxNodes:Math.min(options.maxNodes??45000,8000)});if(retained)return retained;}
@@ -752,6 +752,7 @@ function plan(raw,options={}){
 // The entire remaining prefix is replayed from the new observation, so a newly
 // revealed piece cannot silently preserve an obsolete proof.
 function advance(raw,previous,action){
+ if(previous?.evidence?.opening)return null;
  if(previous?.evidence?.cycleDebt>0)return null;
  if(!previous?.target||action==='HD'||previous.witness?.[0]!==action)return null;
  let state;try{state=observe(raw);}catch{return null;}
@@ -769,6 +770,7 @@ function advance(raw,previous,action){
   evidence:{...previous.evidence,knownPieceHorizon:state.queue.length+1}};
 }
 function revalidate(raw,previous,options={}){
+ if(previous?.evidence?.opening)return null;
  let s;try{s=observe(raw);}catch{return null;}if(previous?.evidence?.cycleDebt>0||previous?.continuation?.some(p=>!S.canonicalClear(p.event)))return null;if(!previous?.target||context(s)!==previous.context||R.validate(s).length)return null;
  const enumeration=R.placements(s,{maxNodes:options.maxNodes??8000,deadline:options.deadline,now:options.now});
  const p=enumeration.placements.find(p=>S.canonicalClear(p.event)&&holdCount(p)===holdCount(previous)&&JSON.stringify(p.target)===JSON.stringify(previous.target)&&p.event.spin===previous.continuation?.[0]?.event.spin&&p.event.lines===previous.continuation?.[0]?.event.lines);
@@ -778,5 +780,15 @@ function revalidate(raw,previous,options={}){
  if(!repairedPrefix(s,continuation))return null;
  return{...previous,revision:s.revision,hold:p.hold,holdCount:holdCount(p),witness:p.witness,continuation,...advicePresentation(continuation,previous.assessment,previous.evidence?.construction),metrics:{...previous.metrics,revalidationNodes:enumeration.visited},retained:true};
 }
-return Object.freeze({observe,assess,plan,revalidate,advance,cavityRepairDebt,continueCommitment,cycleResources,resourceGoalPrefix,centerReservationStep,centerContinuityStep});
+function openingModule(){return typeof module==='object'&&module.exports?require('./st-opening.js'):globalThis.STOpening;}
+function startOpeningSession(raw,options){return openingModule().startSession(raw,options);}
+function updateOpeningSession(session,before,after,event){return openingModule().updateSession(session,before,after,event);}
+function acceptOpeningResult(session,result){return openingModule().acceptResult(session,result);}
+function decide(raw,options={}){
+ const previous=options.previous;
+ if(previous?.evidence?.construction)options={...options,constructionPrevious:previous};
+ const retained=!options.commitment&&previous?revalidate(raw,previous,options):null;
+ return retained||plan(raw,options);
+}
+return Object.freeze({observe,assess,plan,decide,startOpeningSession,updateOpeningSession,acceptOpeningResult,revalidate,advance,cavityRepairDebt,continueCommitment,cycleResources,resourceGoalPrefix,centerReservationStep,centerContinuityStep});
 });

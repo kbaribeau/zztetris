@@ -19,7 +19,7 @@ test('st-modes: persisted mode is safely whitelisted '+JSON.stringify(saved),()=
  select(g,'empty');assert.equal(g.storage().stLabMode,'empty');
  const empty=g.snapshot();g.tap('ShiftLeft');g.tap('ShiftLeft');assert.equal(g.snapshot().canHold,true);
  g.tap('Space');g.click('#st-reset');assert.deepEqual(same(g.snapshot()),same(empty));
- assert.match(g.element('#st-position-note').textContent,/Opening advice is not supported yet/);
+ assert.match(g.element('#st-position-note').textContent,/partial construction using visible pieces/);
  select(g,'marathon-rebuild');assert.equal(g.storage().stLabMode,'marathon-rebuild');
  assert.deepEqual(g.snapshot().board,F.get('marathon-rebuild').observation.board);
 }));

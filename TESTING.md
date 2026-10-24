@@ -133,3 +133,7 @@ Sprite-readiness changes require the delayed-image browser comparison above in a
 ## No-mistakes validation
 
 The suite remains independently runnable with `npm test`. Repository-specific gate instructions live in [.no-mistakes.yaml](./.no-mistakes.yaml). Follow the [results retention](#results-and-failures) guidance and [change-triggered browser checklist](#short-change-triggered-browser-smoke). Preserve the project's accepted local-only/no-CI policy; an empty forge check list is not itself evidence of passing tests.
+
+## Closed-loop simulations
+
+Use the separate [ST simulation runner](docs/st-simulation.md) for bounded seeded play, replayable action traces, and matched comparisons. It is opt-in and is not part of `npm test`; a lock cap is censored evidence, not proof of indefinite play.

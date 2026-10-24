@@ -1,6 +1,6 @@
 # ST lab: established-stack coaching
 
-The lab implements the first bounded coaching milestone: maintain an established **right-hand ST stack**, not solve empty-board openings or guarantee indefinite survival. The screen offers exactly two play modes: **Empty board** (manual opening practice; opening coaching is not yet implemented) and **Stable ST stack** (the existing Independent rebuild position, the default). The other development fixtures remain internal regression inputs, not selectable starts.
+The lab offers separate bounded opening and maintenance coaching for a **right-hand ST stack**, without guaranteeing indefinite survival. The screen offers exactly two play modes: **Empty board** (partial construction using visible pieces) and **Stable ST stack** (the existing Independent rebuild position, the default). The other development fixtures remain internal regression inputs, not selectable starts.
 
 The last selected play mode is saved locally as `stLabMode`; unknown or retired values fall back to Stable ST stack. **Restart current board** restores the current starting board, including an imported snapshot. Snapshot import/export remains a diagnostic tool, not a third preset, and an import does not overwrite the saved mode. Choosing a mode replaces the imported origin. The rules, unlimited hold swaps, and coaching engine are unchanged.
 
@@ -9,7 +9,7 @@ The last selected play mode is saved locally as `stLabMode`; unknown or retired 
 - The gray outline is the ordinary hard-drop ghost. The amber outline is a separately checked coaching target. Follow the explanation, including HOLD when requested; no auto-play button executes the plan for you.
 - Keyboard bindings come from Game Settings; on-page buttons provide the same manual actions. Advice defaults to `KeyA` unless rebound. Display preferences persist without changing ordinary modes.
 - The lab has its own explicit `st-zero-v2` rules: 10×40 board, zero gravity, manual hard-drop lock, SRS+ kicks including 180°, and **unlimited hold swaps**. Ordinary practice is unchanged. Existing v1 fixtures and imports explicitly migrate to v2 in the lab; the kernel retains v1 for historical replay. Unlimited hold swaps the same two pieces, not the whole queue. See [rules contract](docs/st-rules-contract.md).
-- Reset restarts the selected position. Empty board is available for manual play, but opener coaching is explicitly unsupported.
+- Reset restarts the selected position and its coaching phase. Empty-board advice checks finite legal construction prefixes, then hands off only after an actual canonical clear and a freshly checked maintenance continuation. See [opening scope and limits](docs/st-opening.md).
 - Snapshot export contains only visible state and optional observed bag evidence. Import accepts at most six preview pieces. Missing history remains unknown. Full Fumen/editor/undo tools remain available through the ordinary-practice link; the lab does not pretend those legacy controls operate its new state.
 - Diagnostics show checked lock horizon, node count, elapsed time, budget status and executable continuation. A geometric slot or heuristic score is not proof that its required piece will arrive or enter.
 

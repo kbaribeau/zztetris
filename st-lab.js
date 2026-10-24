@@ -15,7 +15,7 @@
   window.DAS=das; // shared settings/navigation readback; not a second game engine.
   window.ctrlsPopup=()=>window.open('controls.html','popup','width=1200,height=800');
   const context=$('b').getContext('2d');
-  let state, origin, future=[], generated=false, observed=null;
+  let state, origin, future=[], generated=false, observed=null, openingPhase=false, openingClear=null;
   let worker=null, requestId=0, debounce=null, watchdog=null, revision=0;
   let result=null, previous=null, commitment=null, coachStatus='idle', coachMessage='';
   let selectedId=null, lockCount=0;
@@ -105,12 +105,13 @@
             coachStatus='invalid-witness';coachMessage='The suggested move failed validation, so it is not shown.';result=null;render();return;
           }
           result=candidate || null;
+          const phase=STPlanner.acceptOpeningResult({active:openingPhase,clear:openingClear},result);openingPhase=phase.active;openingClear=phase.clear;
           coachStatus=result?.status || 'no-supported-continuation-found';
           coachMessage=result?.reason || 'No supported ST sequence was found within this search.';
           if(result?.target){
             previous={...clone(result),revision:state.revision};
             const resources=STPlanner.cycleResources(result.continuation||[]);
-            commitment=resources.tsds+resources.quads+resources.pocket+(resources.centerCompletions||0)>0?{observation:clone(observation()),advice:clone(result)}:null;
+            commitment=!result.evidence?.opening&&resources.tsds+resources.quads+resources.pocket+(resources.centerCompletions||0)>0?{observation:clone(observation()),advice:clone(result)}:null;
           }
           render();
         };
@@ -121,7 +122,7 @@
         };
         activeWorker.postMessage({type:'plan',id,observation:observation(),previous:previous?clone(previous):null,
           commitment:commitment?clone(commitment):null,
-          options:{timeMs:750,depth:3,width:8,maxNodes:45000}});
+          options:{timeMs:750,depth:3,width:8,maxNodes:45000,openingPhase,openingClear:openingClear?clone(openingClear):null}});
         watchdog=setTimeout(()=>{
           if(worker!==activeWorker)return;
           cancel();result=null;coachStatus='budget-exhausted';coachMessage='The coach timed out. A valid continuation may still exist.';render();
@@ -159,13 +160,13 @@
       state={...state,bag:knowledge};
     }
   }
-  function resetState(input,{tail=[],random=false,history=null,note='',keepOrigin=false}={}) {
-    cancel();stopRepeating();future=tail.slice();generated=random;observed=history?.slice() || null;
+  function resetState(input,{tail=[],random=false,history=null,note='',keepOrigin=false,opening=false}={}) {
+    cancel();stopRepeating();future=tail.slice();generated=random;observed=history?.slice() || null;openingPhase=opening;openingClear=null;
     state=STRules.migrateState({...clone(input),revision:++revision});
     const errors=STRules.validate(state);if(errors.length)throw new Error(errors.join('; '));
     if(state.queue.length>6){future.unshift(...state.queue.slice(6));state={...state,queue:state.queue.slice(0,6)};}
     replenish();previous=null;result=null;commitment=null;lockCount=0;
-    if(!keepOrigin)origin={input:clone(input),options:{tail:tail.slice(),random,history:history?.slice()||null,note}};
+    if(!keepOrigin)origin={input:clone(input),options:{tail:tail.slice(),random,history:history?.slice()||null,note,opening}};
     setText($('st-position-note'),note);setText($('st-game-status'),'');requestPlan();render();
   }
   function loadFixture(id) {
@@ -179,11 +180,12 @@
     const initial=bag();selectedId='empty';$('st-fixture').value='empty';
     const active=initial.shift();
     resetState({rules:profile,board:STRules.emptyBoard(),active:{type:active,x:3,y:17,rotation:0,lastRotation:null},hold:null,canHold:true,queue:initial,streamCursor:1},
-      {random:true,history:[active,...initial],note:'Empty-board manual practice. Opening advice is not supported yet.'});
+      {random:true,opening:true,history:[active,...initial],note:'Empty-board opening practice. The coach checks partial construction using visible pieces; completing the opening is not guaranteed.'});
   }
   function act(action) {
     if(action==='RESET'){if(origin)resetState(origin.input,{...origin.options,keepOrigin:true});return;}
     if(!state.active)return;
+    const beforeLock=action==='HD'?observation():null;
     const next=STRules.move(state,action);
     if(next===state)return;
     const displayed=result;
@@ -196,6 +198,7 @@
     // Active movement does not expose pieces; only draws shorten the preview.
     replenish();
     if(locked){
+      if(openingPhase){const phase=STPlanner.updateOpeningSession({active:openingPhase,clear:openingClear},beforeLock,observation(),state.lastEvent);openingPhase=phase.active;openingClear=phase.clear;}
       // Keep the proof's original public observation, not an input-history
       // guess. The planner checks that the actual lock matches its first step,
       // then replays the suffix using only the newly visible observation.
@@ -291,7 +294,7 @@
       // Explicit whitelist prevents an import from injecting a hidden queue/seed.
       const clean={rules:input.rules,board:input.board,active:input.active,hold:input.hold,canHold:input.canHold,queue:input.queue.slice(0,6),streamCursor:input.streamCursor||0,topOut:Boolean(input.topOut)};
       if(input.bag){const bagErrors=STBag.validate(input.bag);if(bagErrors.length)throw new Error(bagErrors.join('; '));clean.bag=input.bag;}
-      resetState(clean,{note:'Imported visible snapshot. Missing bag history remains unknown; preview is finite.'});selectedId=null;$('st-fixture').value='';setText($('st-import-status'),input.rules===STRules.LEGACY_PROFILE.id?'Snapshot imported and migrated from v1 to unlimited-hold v2.':'Snapshot imported.');
+      resetState(clean,{opening:STPlanner.startOpeningSession(clean).active,note:'Imported visible snapshot. Missing bag history remains unknown; preview is finite.'});selectedId=null;$('st-fixture').value='';setText($('st-import-status'),input.rules===STRules.LEGACY_PROFILE.id?'Snapshot imported and migrated from v1 to unlimited-hold v2.':'Snapshot imported.');
     }catch(error){setText($('st-import-status'),`Import rejected: ${error.message}`);}
   });
   for(const mode of playModes){const option=document.createElement('option');option.value=mode.id;option.textContent=mode.label;$('st-fixture').append(option);}

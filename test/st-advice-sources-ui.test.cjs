@@ -165,6 +165,6 @@ test('st-sources/help: current unlimited HOLD practice is distinct from legacy v
  g.tap('ShiftLeft');const held=g.snapshot();g.click('[data-action="HOLD"]');
  assert.equal(g.snapshot().active.type,snapshot.active.type);assert.equal(g.snapshot().canHold,true);
  assert.deepEqual(g.snapshot().queue,held.queue);assert.equal(g.element('#st-hold-state').textContent,'Unlimited swaps');
- g.element('#st-fixture').value='empty';g.element('#st-fixture').dispatchEvent(new g.window.Event('change'));assert.equal(g.element('#st-position-note').textContent,'Empty-board manual practice. Opening advice is not supported yet.');
+ g.element('#st-fixture').value='empty';g.element('#st-fixture').dispatchEvent(new g.window.Event('change'));assert.equal(g.element('#st-position-note').textContent,'Empty-board opening practice. The coach checks partial construction using visible pieces; completing the opening is not guaranteed.');
  assert.equal(JSON.parse(g.element('#st-diagnostic-text').textContent).note,'Only the shown sequence has been checked. Continued ST play is not guaranteed.');
 }));

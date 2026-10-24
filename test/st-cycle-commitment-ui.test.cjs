@@ -39,11 +39,11 @@ test('st-cycle-ui/hidden guidance still advances proof on a manual lock',()=>wit
  for(const action of plan.witness)g.window.stLab.act(action);
  assert.equal(calls.length,1);g.click('#st-toggle');g.advance(40);assert.equal(workers.at(-1).message.commitment.advice.marker,'remaining-cycle-proof');
 }));
-test('st-worker/cycle commitment is compared in fresh search, not blindly retained',()=>{
- const calls=[],messages=[],commitment={observation:{board:['public']},advice:{witness:['HD']}},context={Date,self:{postMessage:x=>messages.push(x)},importScripts(){},STPlanner:{revalidate(){throw Error('must not bypass comparison');},plan(observation,options){calls.push({observation,options});return {status:'fresh-comparison'};}}};
+test('st-worker/forwards previous advice and cycle commitment to the shared decision entry',()=>{
+ const calls=[],messages=[],commitment={observation:{board:['public']},advice:{witness:['HD']}},context={Date,self:{postMessage:x=>messages.push(x)},importScripts(){},STPlanner:{revalidate(){throw Error('worker must not bypass shared decision');},plan(){throw Error('worker must not bypass shared decision');},decide(observation,options){calls.push({observation,options});return {status:'fresh-comparison'};}}};
  vm.createContext(context);vm.runInContext(fs.readFileSync(path.join(__dirname,'../st-worker.js'),'utf8'),context);
  context.self.onmessage({data:{type:'plan',id:4,observation:{revision:7},previous:{target:{}},commitment,options:{timeMs:750}}});
- assert.equal(calls.length,1);assert.deepEqual(calls[0].options.commitment,commitment);assert.equal(messages[0].result.status,'fresh-comparison');
+ assert.equal(calls.length,1);assert.deepEqual(calls[0].options.commitment,commitment);assert.deepEqual(calls[0].options.previous,{target:{}});assert.equal(messages[0].result.status,'fresh-comparison');
 });
 test('st-cycle-ui/stale worker cannot replace a newer cycle proof',()=>withPage('st-lab.html',{},g=>{
  const workers=setup(g),old=workers.at(-1),oldPlan={...advice(old.message.observation),marker:'old'};stubContinuation(g);
