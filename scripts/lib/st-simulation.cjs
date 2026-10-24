@@ -16,7 +16,7 @@ const clone = x => JSON.parse(JSON.stringify(x));
 // intentionally omits that field from its worker message. Match that boundary.
 function publicObservation(state){const observation=P.observe(state);delete observation.lastEvent;return observation;}
 const digest = x => crypto.createHash('sha256').update(typeof x === 'string' ? x : JSON.stringify(x)).digest('hex');
-const SOURCE_FILES = ['st-rules.js', 'st-bag.js', 'st-structure.js', 'st-paired-repair.js', 'st-planner.js', 'st-opening.js', 'st-worker.js', 'st-lab.js', 'st-fixtures.js', 'scripts/lib/st-simulation.cjs', 'scripts/simulate-st.cjs'];
+const SOURCE_FILES = ['st-rules.js', 'st-bag.js', 'st-structure.js', 'st-paired-repair.js', 'st-access.js', 'st-pattern-history.js', 'st-left-foundation.js', 'st-planner.js', 'st-opening.js', 'st-worker.js', 'st-lab.js', 'st-fixtures.js', 'scripts/lib/st-simulation.cjs', 'scripts/simulate-st.cjs'];
 const CONFIG = Object.freeze({depth:3, width:8, maxNodes:45000, timeMs:750});
 const PRESETS = Object.freeze({quick:{seeds:[10331, 20333], locks:24}, research:{seeds:Array.from({length:16}, (_,i) => 810001 + i * 997), locks:500}});
 const RNG_VERSION = 'mulberry32-seven-bag-v1';
@@ -87,6 +87,7 @@ function boardMetrics(state) {
 function createSession(input, api=P) {
   if(typeof api.startOpeningSession!=='function')throw Error('Shared opening session API is not available');
   let state=R.createState(clone(input.initial)), cursor=0, commitment=null, previous=null;
+  let patternHistory=api.startPatternHistory(publicObservation(state));
   let opening=api.startOpeningSession(publicObservation(state),{emptyMode:input.scenario==='empty'});
   function replenish() {
     while(state.queue.length<6) {
@@ -97,15 +98,15 @@ function createSession(input, api=P) {
   }
   return {
     get state(){return state;}, get cursor(){return cursor;}, get opening(){return clone(opening);},
-    request(id,options) { return {type:'plan',id,observation:publicObservation(state),previous:previous?clone(previous):null,commitment:commitment?clone(commitment):null,options:{...options,openingPhase:opening.active,openingClear:opening.clear?clone(opening.clear):null}}; },
+    request(id,options) { return {type:'plan',id,observation:publicObservation(state),previous:previous?clone(previous):null,commitment:commitment?clone(commitment):null,options:{...options,patternHistory:patternHistory?clone(patternHistory):null,openingPhase:opening.active,openingClear:opening.clear?clone(opening.clear):null,openingRepair:opening.repair?clone(opening.repair):null}}; },
     execute(advice) {
       const proof=validateAdvice(state,advice);
       const requiredDraws=state.queue.length-proof.state.queue.length;
       if(input.future.length-cursor<requiredDraws)throw Object.assign(Error('Private stream cannot replenish this witness; no actions applied'),{code:'INPUT_EXHAUSTED'});
       opening=api.acceptOpeningResult(opening,advice);
       previous={...clone(advice),revision:state.revision};
-      const resources=api.cycleResources(advice.continuation||[]);
-      commitment=!advice.evidence?.opening && resources.tsds+resources.quads+resources.pocket+(resources.centerCompletions||0)>0 ? {observation:clone(publicObservation(state)),advice:clone(advice)} : null;
+
+      commitment=!advice.evidence?.opening && api.resourceGoal(advice.continuation||[]) ? {observation:clone(publicObservation(state)),advice:clone(advice)} : null;
       let displayed=advice, event=null;
       const actions=[];
       for(const action of advice.witness) {
@@ -115,12 +116,13 @@ function createSession(input, api=P) {
         replenish();
         if(action==='HD') {
           event=clone(state.lastEvent); previous=null;
+          patternHistory=api.updatePatternHistory(patternHistory,before,publicObservation(state),event);
           opening=api.updateOpeningSession(opening,before,publicObservation(state),event);
-          const suffix=commitment?api.continueCommitment(commitment.observation,publicObservation(state),commitment.advice,event):null;
+          const suffix=commitment?api.continueCommitment(commitment.observation,publicObservation(state),commitment.advice,event,{patternHistory}):null;
           commitment=suffix?{observation:clone(publicObservation(state)),advice:clone(suffix)}:null;
           displayed=null;
         } else {
-          const advanced=displayed?api.advance(publicObservation(state),displayed,action):null;
+          const advanced=displayed?api.advance(publicObservation(state),displayed,action,{patternHistory}):null;
           if(advanced){displayed=advanced;previous=advanced;}
           else displayed=null;
         }

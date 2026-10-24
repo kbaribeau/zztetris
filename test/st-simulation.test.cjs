@@ -28,7 +28,7 @@ test('simulation/actual empty HOLD reveals preview before lock and does not leak
 });
 test('simulation/commitment admission excludes opening and advances after revealed lock',()=>{
  const input=E.makeInput('empty',123,2),calls=[];
- const api={...stub,cycleResources:()=>({tsds:1,quads:0,pocket:0}),continueCommitment(before,after,advice,event){calls.push({before,after,advice,event});return null;}};
+ const api={...stub,resourceGoal:()=>true,cycleResources:()=>({tsds:1,quads:0,pocket:0}),continueCommitment(before,after,advice,event){calls.push({before,after,advice,event});return null;}};
  const s=E.createSession(input,api);s.execute(hd(s.state));assert.equal(calls.length,0);
  const advice=hd(s.state);advice.evidence={};const origin=E.publicObservation(s.state);s.execute(advice);
  assert.equal(calls.length,1);assert.deepEqual(calls[0].before,origin);assert.equal(calls[0].after.queue.length,6);

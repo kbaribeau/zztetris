@@ -1,0 +1,2202 @@
+{
+  "provenance": "Recorded development stream502504730; no seed enters runtime policy. Actual public state and executed/replayed finite witnesses.",
+  "origin": {
+    "rules": "st-zero-v2",
+    "board": [
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "I.........",
+      "I.........",
+      "I...LLL...",
+      "I.OOLSS...",
+      "IJOOSS....",
+      "IJJJLOO...",
+      "IJJZLOO...",
+      "IJZZLL...Z",
+      "IJZTLOO.ZZ",
+      "ISTTLOO.Z.",
+      "TTTIOOJ.Z.",
+      "SSIIIIJ.Z."
+    ],
+    "active": {
+      "type": "L",
+      "x": 3,
+      "y": 17,
+      "rotation": 0,
+      "lastRotation": null
+    },
+    "hold": "S",
+    "canHold": true,
+    "queue": [
+      "S",
+      "Z",
+      "O",
+      "T",
+      "J",
+      "O"
+    ],
+    "revision": 388,
+    "streamCursor": 30,
+    "topOut": false,
+    "bag": {
+      "remaining": [
+        119
+      ],
+      "observedCount": 36,
+      "provenance": "known-phase"
+    }
+  },
+  "advice": {
+    "revision": 388,
+    "target": {
+      "type": "L",
+      "x": 1,
+      "y": 28,
+      "rotation": 2
+    },
+    "hold": false,
+    "holdCount": 0,
+    "witness": [
+      "L",
+      "L",
+      "R180",
+      "HD"
+    ],
+    "continuation": [
+      {
+        "target": {
+          "type": "L",
+          "x": 1,
+          "y": 28,
+          "rotation": 2
+        },
+        "hold": false,
+        "holdCount": 0,
+        "witness": [
+          "L",
+          "L",
+          "R180",
+          "HD"
+        ],
+        "event": {
+          "type": "L",
+          "target": {
+            "type": "L",
+            "x": 1,
+            "y": 28,
+            "rotation": 2
+          },
+          "cells": [
+            [
+              1,
+              30
+            ],
+            [
+              2,
+              30
+            ],
+            [
+              3,
+              30
+            ],
+            [
+              1,
+              31
+            ]
+          ],
+          "lines": 0,
+          "clearedRows": [],
+          "spin": "none",
+          "topOut": false
+        },
+        "resultContext": "[\"st-zero-v2\",[\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"I.........\",\"I.........\",\"ILLLLLL...\",\"ILOOLSS...\",\"IJOOSS....\",\"IJJJLOO...\",\"IJJZLOO...\",\"IJZZLL...Z\",\"IJZTLOO.ZZ\",\"ISTTLOO.Z.\",\"TTTIOOJ.Z.\",\"SSIIIIJ.Z.\"],\"S\",true,[\"Z\",\"O\",\"T\",\"J\",\"O\"],{\"remaining\":[119],\"observedCount\":36,\"provenance\":\"known-phase\"},\"S\"]",
+        "structuralEvidence": {
+          "reason": "Preserve a supported regional piece role.",
+          "cycleViolations": [],
+          "pairFamily": null,
+          "pairProgress": null,
+          "pairEvidence": null,
+          "opportunityCost": 0,
+          "leftSubstitutes": [],
+          "regions": [
+            "left"
+          ],
+          "crossRegion": false,
+          "allocation": "left-filler",
+          "status": "supported-local-role",
+          "dependencyDebt": 0,
+          "newlyCovered": 0,
+          "regionalRepair": 0,
+          "repairCredit": 0,
+          "note": "Crossing a boundary is not forbidden. Debt measures unsupported allocation and new structural repair burden; a later checked repair may repay it.",
+          "futureNotches": {
+            "valid": true,
+            "violation": null,
+            "pattern": {
+              "status": "established",
+              "anchorRow": 35,
+              "protectedRows": [
+                35,
+                32,
+                29,
+                26,
+                23,
+                20,
+                17,
+                14,
+                11,
+                8,
+                5,
+                2
+              ],
+              "blockedRows": [],
+              "source": "translated-established-cycle"
+            },
+            "blockedCells": []
+          },
+          "centerPartnerDeficitBefore": 0,
+          "centerPartnerDeficitAfter": 0,
+          "placedPiece": "L",
+          "structure": {
+            "frontierDebt": 0,
+            "scoringRowDebt": 0,
+            "left": {
+              "profile": [
+                12,
+                10,
+                10,
+                10
+              ],
+              "flat": false,
+              "roughness": 2,
+              "covered": 0,
+              "horizontalI": null,
+              "completions": []
+            },
+            "center": {
+              "profile": [
+                10,
+                10,
+                10
+              ],
+              "status": "level",
+              "motif": "###/###/##.",
+              "patternSupport": "reference-supported",
+              "coveredInternal": 0,
+              "sealedVoids": 0,
+              "coveredCavities": 2,
+              "completionDebt": 0,
+              "completions": []
+            },
+            "right": {
+              "profile": [
+                0,
+                4,
+                5
+              ],
+              "shapeStatus": "staggered-scoring-wall",
+              "cycle": {
+                "shape": "staggered-scoring-wall",
+                "phase": "scoring",
+                "cleanupColumns": [],
+                "prepareColumn": null,
+                "wallSolid": true,
+                "channelBase": true
+              },
+              "renewalDebt": 0,
+              "reservoir": {
+                "status": "verified-clear-reopens-reservoir",
+                "cells": [
+                  [
+                    9,
+                    37
+                  ],
+                  [
+                    9,
+                    38
+                  ],
+                  [
+                    9,
+                    39
+                  ]
+                ],
+                "roofRow": 36,
+                "pattern": "canonical-Z-cap-reservoir",
+                "witness": [
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "R",
+                  "R",
+                  "R",
+                  "CW",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "CW",
+                  "HD"
+                ],
+                "clearRows": [
+                  35,
+                  36
+                ]
+              },
+              "completions": []
+            },
+            "supportEstimate": 1,
+            "uncertainty": false,
+            "capSupplyBurden": 0,
+            "centerCompletionDebt": 0,
+            "supplyBurden": 0,
+            "obligations": [
+              {
+                "kind": "scoring-cycle",
+                "alternatives": [
+                  "T"
+                ],
+                "completions": [],
+                "note": "Normal scoring-wall shape; actual T-spin entry and line completion require execution verification.",
+                "supply": [
+                  {
+                    "id": "queue:2",
+                    "piece": "T",
+                    "source": "visible",
+                    "drawOffset": 3,
+                    "available": "when-drawn"
+                  }
+                ],
+                "status": "known-piece-identity"
+              }
+            ],
+            "supply": {
+              "instances": [
+                {
+                  "id": "active",
+                  "piece": "S",
+                  "source": "active",
+                  "available": "now"
+                },
+                {
+                  "id": "hold",
+                  "piece": "S",
+                  "source": "hold",
+                  "available": "hold-now"
+                },
+                {
+                  "id": "queue:0",
+                  "piece": "Z",
+                  "source": "visible",
+                  "drawOffset": 1,
+                  "available": "when-drawn"
+                },
+                {
+                  "id": "queue:1",
+                  "piece": "O",
+                  "source": "visible",
+                  "drawOffset": 2,
+                  "available": "when-drawn"
+                },
+                {
+                  "id": "queue:2",
+                  "piece": "T",
+                  "source": "visible",
+                  "drawOffset": 3,
+                  "available": "when-drawn"
+                },
+                {
+                  "id": "queue:3",
+                  "piece": "J",
+                  "source": "visible",
+                  "drawOffset": 4,
+                  "available": "when-drawn"
+                },
+                {
+                  "id": "queue:4",
+                  "piece": "O",
+                  "source": "visible",
+                  "drawOffset": 5,
+                  "available": "when-drawn"
+                }
+              ],
+              "assignments": [
+                {
+                  "obligation": "scoring-cycle",
+                  "instance": "queue:2",
+                  "piece": "T",
+                  "priority": "normal",
+                  "arrival": "when-drawn"
+                }
+              ],
+              "conflicts": [],
+              "matched": 1,
+              "priorityScore": 10,
+              "arrivalEstimate": 3,
+              "timing": "Distinct instances, essential-role priority and arrival estimates; execution still requires search.",
+              "conflictCount": 0
+            },
+            "claim": "Local regional support estimate, not a sustainability guarantee.",
+            "headroomRisk": 0,
+            "centerContinuity": {
+              "disruptedWithoutClear": false,
+              "unresolved": false,
+              "endpointReusable": true,
+              "preference": 0
+            }
+          },
+          "entryDebt": 0,
+          "nonclearScoringGeometryLost": false,
+          "centerReservation": {
+            "debt": [],
+            "completed": []
+          },
+          "cavityRepair": {
+            "status": "no-outstanding-new-internal-cavity",
+            "cells": []
+          }
+        }
+      },
+      {
+        "target": {
+          "type": "S",
+          "x": 4,
+          "y": 27,
+          "rotation": 0
+        },
+        "hold": false,
+        "holdCount": 0,
+        "witness": [
+          "R",
+          "HD"
+        ],
+        "event": {
+          "type": "S",
+          "target": {
+            "type": "S",
+            "x": 4,
+            "y": 27,
+            "rotation": 0
+          },
+          "cells": [
+            [
+              5,
+              28
+            ],
+            [
+              6,
+              28
+            ],
+            [
+              4,
+              29
+            ],
+            [
+              5,
+              29
+            ]
+          ],
+          "lines": 0,
+          "clearedRows": [],
+          "spin": "none",
+          "topOut": false
+        },
+        "resultContext": "[\"st-zero-v2\",[\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"I....SS...\",\"I...SS....\",\"ILLLLLL...\",\"ILOOLSS...\",\"IJOOSS....\",\"IJJJLOO...\",\"IJJZLOO...\",\"IJZZLL...Z\",\"IJZTLOO.ZZ\",\"ISTTLOO.Z.\",\"TTTIOOJ.Z.\",\"SSIIIIJ.Z.\"],\"S\",true,[\"O\",\"T\",\"J\",\"O\"],{\"remaining\":[119],\"observedCount\":36,\"provenance\":\"known-phase\"},\"Z\"]",
+        "structuralEvidence": {
+          "reason": "Start the ordered S/L center pair.",
+          "cycleViolations": [],
+          "pairFamily": "SL",
+          "pairProgress": {
+            "orderedPieces": [
+              "S",
+              "L"
+            ],
+            "step": 1,
+            "status": "partner-placement-checked",
+            "placedCells": [
+              [
+                5,
+                28
+              ],
+              [
+                6,
+                28
+              ],
+              [
+                4,
+                29
+              ],
+              [
+                5,
+                29
+              ]
+            ],
+            "completion": {
+              "piece": "L",
+              "family": null,
+              "target": {
+                "type": "L",
+                "x": 4,
+                "y": 25,
+                "rotation": 2
+              },
+              "cells": [
+                [
+                  4,
+                  27
+                ],
+                [
+                  5,
+                  27
+                ],
+                [
+                  6,
+                  27
+                ],
+                [
+                  4,
+                  28
+                ]
+              ],
+              "witness": [
+                "R180",
+                "R",
+                "HD"
+              ],
+              "access": "hypothetical-spawn-straight-drop",
+              "resultProfile": [
+                13,
+                13,
+                13
+              ],
+              "resultStatus": "level",
+              "patternSupport": "reference-supported",
+              "preserveCells": [
+                [
+                  4,
+                  27
+                ],
+                [
+                  5,
+                  27
+                ],
+                [
+                  6,
+                  27
+                ],
+                [
+                  4,
+                  28
+                ]
+              ]
+            }
+          },
+          "pairEvidence": "ordered actual preparation plus checked level-finishing placement",
+          "opportunityCost": 0,
+          "leftSubstitutes": [],
+          "regions": [
+            "center"
+          ],
+          "crossRegion": false,
+          "allocation": "center-partner-preparation",
+          "status": "supported-local-role",
+          "dependencyDebt": 0,
+          "newlyCovered": 0,
+          "regionalRepair": 0,
+          "repairCredit": 0,
+          "note": "Crossing a boundary is not forbidden. Debt measures unsupported allocation and new structural repair burden; a later checked repair may repay it.",
+          "futureNotches": {
+            "valid": true,
+            "violation": null,
+            "pattern": {
+              "status": "established",
+              "anchorRow": 35,
+              "protectedRows": [
+                35,
+                32,
+                29,
+                26,
+                23,
+                20,
+                17,
+                14,
+                11,
+                8,
+                5,
+                2
+              ],
+              "blockedRows": [],
+              "source": "translated-established-cycle"
+            },
+            "blockedCells": []
+          },
+          "centerPartnerDeficitBefore": 0,
+          "centerPartnerDeficitAfter": 1,
+          "placedPiece": "S",
+          "structure": {
+            "frontierDebt": 0,
+            "scoringRowDebt": 0,
+            "left": {
+              "profile": [
+                12,
+                10,
+                10,
+                10
+              ],
+              "flat": false,
+              "roughness": 2,
+              "covered": 0,
+              "horizontalI": null,
+              "completions": []
+            },
+            "center": {
+              "profile": [
+                11,
+                12,
+                12
+              ],
+              "status": "supported-partner-completion",
+              "motif": ".##/##./###",
+              "patternSupport": "reference-supported",
+              "coveredInternal": 0,
+              "sealedVoids": 0,
+              "coveredCavities": 3,
+              "completionDebt": 0,
+              "completions": [
+                {
+                  "piece": "L",
+                  "family": null,
+                  "target": {
+                    "type": "L",
+                    "x": 4,
+                    "y": 25,
+                    "rotation": 2
+                  },
+                  "cells": [
+                    [
+                      4,
+                      27
+                    ],
+                    [
+                      5,
+                      27
+                    ],
+                    [
+                      6,
+                      27
+                    ],
+                    [
+                      4,
+                      28
+                    ]
+                  ],
+                  "witness": [
+                    "R180",
+                    "R",
+                    "HD"
+                  ],
+                  "access": "hypothetical-spawn-straight-drop",
+                  "resultProfile": [
+                    13,
+                    13,
+                    13
+                  ],
+                  "resultStatus": "level",
+                  "patternSupport": "reference-supported",
+                  "preserveCells": [
+                    [
+                      4,
+                      27
+                    ],
+                    [
+                      5,
+                      27
+                    ],
+                    [
+                      6,
+                      27
+                    ],
+                    [
+                      4,
+                      28
+                    ]
+                  ]
+                }
+              ]
+            },
+            "right": {
+              "profile": [
+                0,
+                4,
+                5
+              ],
+              "shapeStatus": "staggered-scoring-wall",
+              "cycle": {
+                "shape": "staggered-scoring-wall",
+                "phase": "scoring",
+                "cleanupColumns": [],
+                "prepareColumn": null,
+                "wallSolid": true,
+                "channelBase": true
+              },
+              "renewalDebt": 0,
+              "reservoir": {
+                "status": "verified-clear-reopens-reservoir",
+                "cells": [
+                  [
+                    9,
+                    37
+                  ],
+                  [
+                    9,
+                    38
+                  ],
+                  [
+                    9,
+                    39
+                  ]
+                ],
+                "roofRow": 36,
+                "pattern": "canonical-Z-cap-reservoir",
+                "witness": [
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "R",
+                  "R",
+                  "R",
+                  "CW",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "CW",
+                  "HD"
+                ],
+                "clearRows": [
+                  35,
+                  36
+                ]
+              },
+              "completions": []
+            },
+            "supportEstimate": -3,
+            "uncertainty": false,
+            "capSupplyBurden": 0,
+            "centerCompletionDebt": 0,
+            "supplyBurden": 2,
+            "obligations": [
+              {
+                "kind": "center-partner",
+                "alternatives": [
+                  "L"
+                ],
+                "completions": [
+                  {
+                    "piece": "L",
+                    "family": null,
+                    "target": {
+                      "type": "L",
+                      "x": 4,
+                      "y": 25,
+                      "rotation": 2
+                    },
+                    "cells": [
+                      [
+                        4,
+                        27
+                      ],
+                      [
+                        5,
+                        27
+                      ],
+                      [
+                        6,
+                        27
+                      ],
+                      [
+                        4,
+                        28
+                      ]
+                    ],
+                    "witness": [
+                      "R180",
+                      "R",
+                      "HD"
+                    ],
+                    "access": "hypothetical-spawn-straight-drop",
+                    "resultProfile": [
+                      13,
+                      13,
+                      13
+                    ],
+                    "resultStatus": "level",
+                    "patternSupport": "reference-supported",
+                    "preserveCells": [
+                      [
+                        4,
+                        27
+                      ],
+                      [
+                        5,
+                        27
+                      ],
+                      [
+                        6,
+                        27
+                      ],
+                      [
+                        4,
+                        28
+                      ]
+                    ]
+                  }
+                ],
+                "note": "Exact straight-drop completion of the current center surface; keep completion cells free.",
+                "supply": [],
+                "status": "future-supply-unresolved"
+              },
+              {
+                "kind": "scoring-cycle",
+                "alternatives": [
+                  "T"
+                ],
+                "completions": [],
+                "note": "Normal scoring-wall shape; actual T-spin entry and line completion require execution verification.",
+                "supply": [
+                  {
+                    "id": "queue:1",
+                    "piece": "T",
+                    "source": "visible",
+                    "drawOffset": 2,
+                    "available": "when-drawn"
+                  }
+                ],
+                "status": "known-piece-identity"
+              }
+            ],
+            "supply": {
+              "instances": [
+                {
+                  "id": "active",
+                  "piece": "Z",
+                  "source": "active",
+                  "available": "now"
+                },
+                {
+                  "id": "hold",
+                  "piece": "S",
+                  "source": "hold",
+                  "available": "hold-now"
+                },
+                {
+                  "id": "queue:0",
+                  "piece": "O",
+                  "source": "visible",
+                  "drawOffset": 1,
+                  "available": "when-drawn"
+                },
+                {
+                  "id": "queue:1",
+                  "piece": "T",
+                  "source": "visible",
+                  "drawOffset": 2,
+                  "available": "when-drawn"
+                },
+                {
+                  "id": "queue:2",
+                  "piece": "J",
+                  "source": "visible",
+                  "drawOffset": 3,
+                  "available": "when-drawn"
+                },
+                {
+                  "id": "queue:3",
+                  "piece": "O",
+                  "source": "visible",
+                  "drawOffset": 4,
+                  "available": "when-drawn"
+                }
+              ],
+              "assignments": [
+                {
+                  "obligation": "scoring-cycle",
+                  "instance": "queue:1",
+                  "piece": "T",
+                  "priority": "normal",
+                  "arrival": "when-drawn"
+                }
+              ],
+              "conflicts": [],
+              "matched": 1,
+              "priorityScore": 10,
+              "arrivalEstimate": 2,
+              "timing": "Distinct instances, essential-role priority and arrival estimates; execution still requires search.",
+              "conflictCount": 0
+            },
+            "claim": "Local regional support estimate, not a sustainability guarantee.",
+            "headroomRisk": 0,
+            "centerContinuity": {
+              "disruptedWithoutClear": false,
+              "unresolved": false,
+              "endpointReusable": true,
+              "preference": 0
+            }
+          },
+          "entryDebt": 0,
+          "nonclearScoringGeometryLost": false,
+          "centerReservation": {
+            "debt": [],
+            "completed": []
+          },
+          "cavityRepair": {
+            "status": "no-outstanding-new-internal-cavity",
+            "cells": []
+          }
+        }
+      }
+    ],
+    "reason": "Build within the Left four columns. Place here without clearing a line. At the end of this sequence, a T-spin-double entry is reachable if a T is available.",
+    "metrics": {
+      "nodes": 17042,
+      "roots": 74,
+      "rootExpanded": 8,
+      "depth": 3,
+      "completeDepth": 2,
+      "elapsedMs": 772,
+      "accessNodes": 6992,
+      "capStageCandidates": 0
+    },
+    "context": "[\"st-zero-v2\",[\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"I.........\",\"I.........\",\"I...LLL...\",\"I.OOLSS...\",\"IJOOSS....\",\"IJJJLOO...\",\"IJJZLOO...\",\"IJZZLL...Z\",\"IJZTLOO.ZZ\",\"ISTTLOO.Z.\",\"TTTIOOJ.Z.\",\"SSIIIIJ.Z.\"],\"S\",true,[\"S\",\"Z\",\"O\",\"T\",\"J\",\"O\"],{\"remaining\":[119],\"observedCount\":36,\"provenance\":\"known-phase\"},\"L\"]",
+    "status": "recommended-with-verified-prefix",
+    "sources": [
+      {
+        "url": "https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit",
+        "section": "Chapters 3.3: The Left; 5: The Inconvenient I Piece; 6: The Pesky O Piece",
+        "id": "SHOCKY-LEFT",
+        "label": "Shocky's ST Stacking Guide",
+        "scope": "Normal Left is not fully flat; local O-friendly surfaces matter; horizontal I placements are exceptional."
+      }
+    ],
+    "evidence": {
+      "strategy": "canonical-right-ST",
+      "cycleResources": {
+        "centerCompletions": 0,
+        "locks": 2,
+        "lines": 0,
+        "materialDelta": 8,
+        "tsds": 0,
+        "quads": 0,
+        "pocket": 0,
+        "outstandingPocket": 0,
+        "tFillers": 0,
+        "iFillers": 0
+      },
+      "commitmentRetained": false,
+      "futureNotches": {
+        "status": "established",
+        "anchorRow": 35,
+        "protectedRows": [
+          35,
+          32,
+          29,
+          26,
+          23,
+          20,
+          17,
+          14,
+          11,
+          8,
+          5,
+          2
+        ],
+        "blockedRows": [],
+        "source": "translated-established-cycle"
+      },
+      "preparationProof": null,
+      "cycleDebt": 0,
+      "cavityRepair": {
+        "status": "verified-prefix-repaired",
+        "outstandingCells": []
+      },
+      "clearPolicy": "right-region full T-spin doubles and I tetrises only",
+      "verifiedLocks": 2,
+      "tsdAt": null,
+      "knownPieceHorizon": 7,
+      "rootEnumerationComplete": true,
+      "budgetExhausted": true,
+      "informationBoundary": false,
+      "initialSealed": 3,
+      "endpointSealed": 3,
+      "regionalSupport": true,
+      "channel": {
+        "column": 7,
+        "height": 0,
+        "openBelowStack": true
+      },
+      "endpointTEntry": "reachable-if-T-available",
+      "unresolvedObligations": [
+        {
+          "kind": "center-partner",
+          "alternatives": [
+            "L"
+          ],
+          "completions": [
+            {
+              "piece": "L",
+              "family": null,
+              "target": {
+                "type": "L",
+                "x": 4,
+                "y": 25,
+                "rotation": 2
+              },
+              "cells": [
+                [
+                  4,
+                  27
+                ],
+                [
+                  5,
+                  27
+                ],
+                [
+                  6,
+                  27
+                ],
+                [
+                  4,
+                  28
+                ]
+              ],
+              "witness": [
+                "R180",
+                "R",
+                "HD"
+              ],
+              "access": "hypothetical-spawn-straight-drop",
+              "resultProfile": [
+                13,
+                13,
+                13
+              ],
+              "resultStatus": "level",
+              "patternSupport": "reference-supported",
+              "preserveCells": [
+                [
+                  4,
+                  27
+                ],
+                [
+                  5,
+                  27
+                ],
+                [
+                  6,
+                  27
+                ],
+                [
+                  4,
+                  28
+                ]
+              ]
+            }
+          ],
+          "note": "Exact straight-drop completion of the current center surface; keep completion cells free.",
+          "supply": [],
+          "status": "future-supply-unresolved"
+        },
+        {
+          "kind": "scoring-cycle",
+          "alternatives": [
+            "T"
+          ],
+          "completions": [],
+          "note": "Normal scoring-wall shape; actual T-spin entry and line completion require execution verification.",
+          "supply": [
+            {
+              "id": "queue:1",
+              "piece": "T",
+              "source": "visible",
+              "drawOffset": 2,
+              "available": "when-drawn"
+            }
+          ],
+          "status": "known-piece-identity"
+        },
+        {
+          "kind": "T-slot",
+          "demands": [
+            "T"
+          ],
+          "status": "entry-verified-arrival-unresolved",
+          "at": [
+            6,
+            33
+          ],
+          "note": "Counterfactual T entry is checked separately from whether a T arrives in time."
+        }
+      ],
+      "structuralScore": -12.2,
+      "structuralRank": [
+        1,
+        1,
+        0,
+        -4,
+        1,
+        -6,
+        0
+      ],
+      "structure": {
+        "frontierDebt": 0,
+        "scoringRowDebt": 0,
+        "left": {
+          "profile": [
+            12,
+            10,
+            10,
+            10
+          ],
+          "flat": false,
+          "roughness": 2,
+          "covered": 0,
+          "horizontalI": null,
+          "completions": []
+        },
+        "center": {
+          "profile": [
+            11,
+            12,
+            12
+          ],
+          "status": "supported-partner-completion",
+          "motif": ".##/##./###",
+          "patternSupport": "reference-supported",
+          "coveredInternal": 0,
+          "sealedVoids": 0,
+          "coveredCavities": 3,
+          "completionDebt": 0,
+          "completions": [
+            {
+              "piece": "L",
+              "family": null,
+              "target": {
+                "type": "L",
+                "x": 4,
+                "y": 25,
+                "rotation": 2
+              },
+              "cells": [
+                [
+                  4,
+                  27
+                ],
+                [
+                  5,
+                  27
+                ],
+                [
+                  6,
+                  27
+                ],
+                [
+                  4,
+                  28
+                ]
+              ],
+              "witness": [
+                "R180",
+                "R",
+                "HD"
+              ],
+              "access": "hypothetical-spawn-straight-drop",
+              "resultProfile": [
+                13,
+                13,
+                13
+              ],
+              "resultStatus": "level",
+              "patternSupport": "reference-supported",
+              "preserveCells": [
+                [
+                  4,
+                  27
+                ],
+                [
+                  5,
+                  27
+                ],
+                [
+                  6,
+                  27
+                ],
+                [
+                  4,
+                  28
+                ]
+              ]
+            }
+          ]
+        },
+        "right": {
+          "profile": [
+            0,
+            4,
+            5
+          ],
+          "shapeStatus": "staggered-scoring-wall",
+          "cycle": {
+            "shape": "staggered-scoring-wall",
+            "phase": "scoring",
+            "cleanupColumns": [],
+            "prepareColumn": null,
+            "wallSolid": true,
+            "channelBase": true
+          },
+          "renewalDebt": 0,
+          "reservoir": {
+            "status": "verified-clear-reopens-reservoir",
+            "cells": [
+              [
+                9,
+                37
+              ],
+              [
+                9,
+                38
+              ],
+              [
+                9,
+                39
+              ]
+            ],
+            "roofRow": 36,
+            "pattern": "canonical-Z-cap-reservoir",
+            "witness": [
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "R",
+              "R",
+              "R",
+              "CW",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "CW",
+              "HD"
+            ],
+            "clearRows": [
+              35,
+              36
+            ]
+          },
+          "completions": []
+        },
+        "supportEstimate": -3,
+        "uncertainty": false,
+        "capSupplyBurden": 0,
+        "centerCompletionDebt": 0,
+        "supplyBurden": 2,
+        "obligations": [
+          {
+            "kind": "center-partner",
+            "alternatives": [
+              "L"
+            ],
+            "completions": [
+              {
+                "piece": "L",
+                "family": null,
+                "target": {
+                  "type": "L",
+                  "x": 4,
+                  "y": 25,
+                  "rotation": 2
+                },
+                "cells": [
+                  [
+                    4,
+                    27
+                  ],
+                  [
+                    5,
+                    27
+                  ],
+                  [
+                    6,
+                    27
+                  ],
+                  [
+                    4,
+                    28
+                  ]
+                ],
+                "witness": [
+                  "R180",
+                  "R",
+                  "HD"
+                ],
+                "access": "hypothetical-spawn-straight-drop",
+                "resultProfile": [
+                  13,
+                  13,
+                  13
+                ],
+                "resultStatus": "level",
+                "patternSupport": "reference-supported",
+                "preserveCells": [
+                  [
+                    4,
+                    27
+                  ],
+                  [
+                    5,
+                    27
+                  ],
+                  [
+                    6,
+                    27
+                  ],
+                  [
+                    4,
+                    28
+                  ]
+                ]
+              }
+            ],
+            "note": "Exact straight-drop completion of the current center surface; keep completion cells free.",
+            "supply": [],
+            "status": "future-supply-unresolved"
+          },
+          {
+            "kind": "scoring-cycle",
+            "alternatives": [
+              "T"
+            ],
+            "completions": [],
+            "note": "Normal scoring-wall shape; actual T-spin entry and line completion require execution verification.",
+            "supply": [
+              {
+                "id": "queue:1",
+                "piece": "T",
+                "source": "visible",
+                "drawOffset": 2,
+                "available": "when-drawn"
+              }
+            ],
+            "status": "known-piece-identity"
+          }
+        ],
+        "supply": {
+          "instances": [
+            {
+              "id": "active",
+              "piece": "Z",
+              "source": "active",
+              "available": "now"
+            },
+            {
+              "id": "hold",
+              "piece": "S",
+              "source": "hold",
+              "available": "hold-now"
+            },
+            {
+              "id": "queue:0",
+              "piece": "O",
+              "source": "visible",
+              "drawOffset": 1,
+              "available": "when-drawn"
+            },
+            {
+              "id": "queue:1",
+              "piece": "T",
+              "source": "visible",
+              "drawOffset": 2,
+              "available": "when-drawn"
+            },
+            {
+              "id": "queue:2",
+              "piece": "J",
+              "source": "visible",
+              "drawOffset": 3,
+              "available": "when-drawn"
+            },
+            {
+              "id": "queue:3",
+              "piece": "O",
+              "source": "visible",
+              "drawOffset": 4,
+              "available": "when-drawn"
+            }
+          ],
+          "assignments": [
+            {
+              "obligation": "scoring-cycle",
+              "instance": "queue:1",
+              "piece": "T",
+              "priority": "normal",
+              "arrival": "when-drawn"
+            }
+          ],
+          "conflicts": [],
+          "matched": 1,
+          "priorityScore": 10,
+          "arrivalEstimate": 2,
+          "timing": "Distinct instances, essential-role priority and arrival estimates; execution still requires search.",
+          "conflictCount": 0
+        },
+        "claim": "Local regional support estimate, not a sustainability guarantee.",
+        "headroomRisk": 0,
+        "centerContinuity": {
+          "disruptedWithoutClear": false,
+          "unresolved": false,
+          "endpointReusable": true,
+          "preference": 0
+        }
+      },
+      "dependencyDebt": 0,
+      "claim": "Finite executable prefix; endpoint estimates are not a sustainability guarantee."
+    },
+    "assessment": {
+      "maintenanceScope": true,
+      "regionalSupport": true,
+      "regionImbalance": 0,
+      "channel": {
+        "column": 7,
+        "height": 0,
+        "openBelowStack": true
+      },
+      "heights": [
+        12,
+        10,
+        10,
+        10,
+        11,
+        12,
+        12,
+        0,
+        4,
+        5
+      ],
+      "maxHeight": 12,
+      "headroom": 8,
+      "sealed": 3,
+      "sealedCells": [
+        [
+          9,
+          37
+        ],
+        [
+          9,
+          38
+        ],
+        [
+          9,
+          39
+        ]
+      ],
+      "leftSealed": 0,
+      "covered": 6,
+      "damageSealed": 0,
+      "damageCovered": 3,
+      "left": {
+        "height": 12,
+        "roughness": 2
+      },
+      "center": {
+        "height": 12,
+        "profile": [
+          11,
+          12,
+          12
+        ],
+        "partnerDeficit": 1,
+        "partnerStatus": "unfinished-open-surface"
+      },
+      "right": {
+        "height": 5,
+        "slots": [
+          {
+            "x": 6,
+            "y": 33,
+            "rotation": 2,
+            "lines": 2,
+            "access": "geometry-only"
+          }
+        ],
+        "entry": {
+          "status": "reachable-if-T-available",
+          "witness": [
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "R",
+            "R",
+            "R",
+            "CW",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CW",
+            "HD"
+          ],
+          "target": {
+            "type": "T",
+            "x": 6,
+            "y": 33,
+            "rotation": 2
+          }
+        }
+      },
+      "obligations": [
+        {
+          "kind": "center-partner",
+          "alternatives": [
+            "L"
+          ],
+          "completions": [
+            {
+              "piece": "L",
+              "family": null,
+              "target": {
+                "type": "L",
+                "x": 4,
+                "y": 25,
+                "rotation": 2
+              },
+              "cells": [
+                [
+                  4,
+                  27
+                ],
+                [
+                  5,
+                  27
+                ],
+                [
+                  6,
+                  27
+                ],
+                [
+                  4,
+                  28
+                ]
+              ],
+              "witness": [
+                "R180",
+                "R",
+                "HD"
+              ],
+              "access": "hypothetical-spawn-straight-drop",
+              "resultProfile": [
+                13,
+                13,
+                13
+              ],
+              "resultStatus": "level",
+              "patternSupport": "reference-supported",
+              "preserveCells": [
+                [
+                  4,
+                  27
+                ],
+                [
+                  5,
+                  27
+                ],
+                [
+                  6,
+                  27
+                ],
+                [
+                  4,
+                  28
+                ]
+              ]
+            }
+          ],
+          "note": "Exact straight-drop completion of the current center surface; keep completion cells free.",
+          "supply": [],
+          "status": "future-supply-unresolved"
+        },
+        {
+          "kind": "scoring-cycle",
+          "alternatives": [
+            "T"
+          ],
+          "completions": [],
+          "note": "Normal scoring-wall shape; actual T-spin entry and line completion require execution verification.",
+          "supply": [
+            {
+              "id": "queue:1",
+              "piece": "T",
+              "source": "visible",
+              "drawOffset": 2,
+              "available": "when-drawn"
+            }
+          ],
+          "status": "known-piece-identity"
+        },
+        {
+          "kind": "T-slot",
+          "demands": [
+            "T"
+          ],
+          "status": "entry-verified-arrival-unresolved",
+          "at": [
+            6,
+            33
+          ],
+          "note": "Counterfactual T entry is checked separately from whether a T arrives in time."
+        }
+      ],
+      "estimate": -9.2,
+      "assumptions": [
+        "Structural estimates are heuristic; only the returned input prefix is verified."
+      ],
+      "structure": {
+        "frontierDebt": 0,
+        "scoringRowDebt": 0,
+        "left": {
+          "profile": [
+            12,
+            10,
+            10,
+            10
+          ],
+          "flat": false,
+          "roughness": 2,
+          "covered": 0,
+          "horizontalI": null,
+          "completions": []
+        },
+        "center": {
+          "profile": [
+            11,
+            12,
+            12
+          ],
+          "status": "supported-partner-completion",
+          "motif": ".##/##./###",
+          "patternSupport": "reference-supported",
+          "coveredInternal": 0,
+          "sealedVoids": 0,
+          "coveredCavities": 3,
+          "completionDebt": 0,
+          "completions": [
+            {
+              "piece": "L",
+              "family": null,
+              "target": {
+                "type": "L",
+                "x": 4,
+                "y": 25,
+                "rotation": 2
+              },
+              "cells": [
+                [
+                  4,
+                  27
+                ],
+                [
+                  5,
+                  27
+                ],
+                [
+                  6,
+                  27
+                ],
+                [
+                  4,
+                  28
+                ]
+              ],
+              "witness": [
+                "R180",
+                "R",
+                "HD"
+              ],
+              "access": "hypothetical-spawn-straight-drop",
+              "resultProfile": [
+                13,
+                13,
+                13
+              ],
+              "resultStatus": "level",
+              "patternSupport": "reference-supported",
+              "preserveCells": [
+                [
+                  4,
+                  27
+                ],
+                [
+                  5,
+                  27
+                ],
+                [
+                  6,
+                  27
+                ],
+                [
+                  4,
+                  28
+                ]
+              ]
+            }
+          ]
+        },
+        "right": {
+          "profile": [
+            0,
+            4,
+            5
+          ],
+          "shapeStatus": "staggered-scoring-wall",
+          "cycle": {
+            "shape": "staggered-scoring-wall",
+            "phase": "scoring",
+            "cleanupColumns": [],
+            "prepareColumn": null,
+            "wallSolid": true,
+            "channelBase": true
+          },
+          "renewalDebt": 0,
+          "reservoir": {
+            "status": "verified-clear-reopens-reservoir",
+            "cells": [
+              [
+                9,
+                37
+              ],
+              [
+                9,
+                38
+              ],
+              [
+                9,
+                39
+              ]
+            ],
+            "roofRow": 36,
+            "pattern": "canonical-Z-cap-reservoir",
+            "witness": [
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "R",
+              "R",
+              "R",
+              "CW",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "CW",
+              "HD"
+            ],
+            "clearRows": [
+              35,
+              36
+            ]
+          },
+          "completions": []
+        },
+        "supportEstimate": -3,
+        "uncertainty": false,
+        "capSupplyBurden": 0,
+        "centerCompletionDebt": 0,
+        "supplyBurden": 2,
+        "obligations": [
+          {
+            "kind": "center-partner",
+            "alternatives": [
+              "L"
+            ],
+            "completions": [
+              {
+                "piece": "L",
+                "family": null,
+                "target": {
+                  "type": "L",
+                  "x": 4,
+                  "y": 25,
+                  "rotation": 2
+                },
+                "cells": [
+                  [
+                    4,
+                    27
+                  ],
+                  [
+                    5,
+                    27
+                  ],
+                  [
+                    6,
+                    27
+                  ],
+                  [
+                    4,
+                    28
+                  ]
+                ],
+                "witness": [
+                  "R180",
+                  "R",
+                  "HD"
+                ],
+                "access": "hypothetical-spawn-straight-drop",
+                "resultProfile": [
+                  13,
+                  13,
+                  13
+                ],
+                "resultStatus": "level",
+                "patternSupport": "reference-supported",
+                "preserveCells": [
+                  [
+                    4,
+                    27
+                  ],
+                  [
+                    5,
+                    27
+                  ],
+                  [
+                    6,
+                    27
+                  ],
+                  [
+                    4,
+                    28
+                  ]
+                ]
+              }
+            ],
+            "note": "Exact straight-drop completion of the current center surface; keep completion cells free.",
+            "supply": [],
+            "status": "future-supply-unresolved"
+          },
+          {
+            "kind": "scoring-cycle",
+            "alternatives": [
+              "T"
+            ],
+            "completions": [],
+            "note": "Normal scoring-wall shape; actual T-spin entry and line completion require execution verification.",
+            "supply": [
+              {
+                "id": "queue:1",
+                "piece": "T",
+                "source": "visible",
+                "drawOffset": 2,
+                "available": "when-drawn"
+              }
+            ],
+            "status": "known-piece-identity"
+          }
+        ],
+        "supply": {
+          "instances": [
+            {
+              "id": "active",
+              "piece": "Z",
+              "source": "active",
+              "available": "now"
+            },
+            {
+              "id": "hold",
+              "piece": "S",
+              "source": "hold",
+              "available": "hold-now"
+            },
+            {
+              "id": "queue:0",
+              "piece": "O",
+              "source": "visible",
+              "drawOffset": 1,
+              "available": "when-drawn"
+            },
+            {
+              "id": "queue:1",
+              "piece": "T",
+              "source": "visible",
+              "drawOffset": 2,
+              "available": "when-drawn"
+            },
+            {
+              "id": "queue:2",
+              "piece": "J",
+              "source": "visible",
+              "drawOffset": 3,
+              "available": "when-drawn"
+            },
+            {
+              "id": "queue:3",
+              "piece": "O",
+              "source": "visible",
+              "drawOffset": 4,
+              "available": "when-drawn"
+            }
+          ],
+          "assignments": [
+            {
+              "obligation": "scoring-cycle",
+              "instance": "queue:1",
+              "piece": "T",
+              "priority": "normal",
+              "arrival": "when-drawn"
+            }
+          ],
+          "conflicts": [],
+          "matched": 1,
+          "priorityScore": 10,
+          "arrivalEstimate": 2,
+          "timing": "Distinct instances, essential-role priority and arrival estimates; execution still requires search.",
+          "conflictCount": 0
+        },
+        "claim": "Local regional support estimate, not a sustainability guarantee.",
+        "headroomRisk": 0,
+        "centerContinuity": {
+          "disruptedWithoutClear": false,
+          "unresolved": false,
+          "endpointReusable": true,
+          "preference": 0
+        }
+      },
+      "intentionalReservoir": {
+        "cells": [
+          [
+            9,
+            37
+          ],
+          [
+            9,
+            38
+          ],
+          [
+            9,
+            39
+          ]
+        ],
+        "sealedExempt": 3,
+        "coveredExempt": 3,
+        "credit": 9,
+        "proof": "reachable counterfactual T-double reopens these cells; arrival not established"
+      }
+    }
+  },
+  "event": {
+    "type": "L",
+    "target": {
+      "type": "L",
+      "x": 1,
+      "y": 28,
+      "rotation": 2
+    },
+    "cells": [
+      [
+        1,
+        30
+      ],
+      [
+        2,
+        30
+      ],
+      [
+        3,
+        30
+      ],
+      [
+        1,
+        31
+      ]
+    ],
+    "lines": 0,
+    "clearedRows": [],
+    "spin": "none",
+    "topOut": false
+  },
+  "after": {
+    "rules": "st-zero-v2",
+    "board": [
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "I.........",
+      "I.........",
+      "ILLLLLL...",
+      "ILOOLSS...",
+      "IJOOSS....",
+      "IJJJLOO...",
+      "IJJZLOO...",
+      "IJZZLL...Z",
+      "IJZTLOO.ZZ",
+      "ISTTLOO.Z.",
+      "TTTIOOJ.Z.",
+      "SSIIIIJ.Z."
+    ],
+    "active": {
+      "type": "S",
+      "x": 3,
+      "y": 17,
+      "rotation": 0,
+      "lastRotation": null
+    },
+    "hold": "S",
+    "canHold": true,
+    "queue": [
+      "Z",
+      "O",
+      "T",
+      "J",
+      "O",
+      "S"
+    ],
+    "revision": 392,
+    "streamCursor": 31,
+    "topOut": false,
+    "bag": {
+      "remaining": [
+        103
+      ],
+      "observedCount": 37,
+      "provenance": "known-phase"
+    }
+  },
+  "distorted": {
+    "rules": "st-zero-v2",
+    "board": [
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      ".....S....",
+      "....SSS...",
+      "I...SSS...",
+      "I....S....",
+      "ILLLLLL...",
+      "ILOOLSS...",
+      "IJOOSS....",
+      "IJJJLOO...",
+      "IJJZLOO...",
+      "IJZZLL...Z",
+      "IJZTLOO.ZZ",
+      "ISTTLOO.Z.",
+      "TTTIOOJ.Z.",
+      "SSIIIIJ.Z."
+    ],
+    "active": {
+      "type": "O",
+      "x": 3,
+      "y": 17,
+      "rotation": 0,
+      "lastRotation": null
+    },
+    "hold": "Z",
+    "canHold": true,
+    "queue": [
+      "T",
+      "J",
+      "O",
+      "S",
+      "T",
+      "L"
+    ],
+    "revision": 398,
+    "streamCursor": 33,
+    "topOut": false,
+    "bag": {
+      "remaining": [
+        67
+      ],
+      "observedCount": 39,
+      "provenance": "known-phase"
+    }
+  },
+  "distortion": [
+    {
+      "type": "S",
+      "target": {
+        "type": "S",
+        "x": 3,
+        "y": 26,
+        "rotation": 1
+      },
+      "cells": [
+        [
+          4,
+          27
+        ],
+        [
+          4,
+          28
+        ],
+        [
+          5,
+          28
+        ],
+        [
+          5,
+          29
+        ]
+      ],
+      "lines": 0,
+      "clearedRows": [],
+      "spin": "none",
+      "topOut": false
+    },
+    {
+      "type": "S",
+      "target": {
+        "type": "S",
+        "x": 4,
+        "y": 25,
+        "rotation": 1
+      },
+      "cells": [
+        [
+          5,
+          26
+        ],
+        [
+          5,
+          27
+        ],
+        [
+          6,
+          27
+        ],
+        [
+          6,
+          28
+        ]
+      ],
+      "lines": 0,
+      "clearedRows": [],
+      "spin": "none",
+      "topOut": false
+    }
+  ]
+}

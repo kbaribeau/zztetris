@@ -44,7 +44,7 @@ test('undo: mode, restart and import discard history; no redo action is offered'
 }));
 test('undo: cancels stale workers, restores opening session and sends saved proof for fresh validation',()=>withPage('st-lab.html',{},g=>{
  const all=workers(g);g.click('#st-reset');const first=request(g,all),plan=advice(first.observation);
- g.window.STPlanner={...g.window.STPlanner,cycleResources:()=>({tsds:1,quads:0,pocket:0}),continueCommitment:()=>null};all.at(-1).respond(plan);
+ g.window.STPlanner={...g.window.STPlanner,resourceGoal:()=>true,cycleResources:()=>({tsds:1,quads:0,pocket:0}),continueCommitment:()=>null};all.at(-1).respond(plan);
  const origin=g.snapshot();for(const action of plan.witness)g.window.stLab.act(action);request(g,all);const stale=all.at(-1),stalePlan=advice(stale.message.observation);
  g.window.stLab.act('UNDO');assert.equal(stale.terminated,true);const restored=request(g,all);assert.deepEqual(same(restored.observation),same(origin));assert.deepEqual(restored.commitment.advice,plan);assert.equal(restored.previous,null);
  stale.respond(stalePlan);assert.equal(g.window.stLab.result,null,'old advice cannot reappear before restored request is checked');

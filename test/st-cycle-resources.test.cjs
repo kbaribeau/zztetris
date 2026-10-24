@@ -13,17 +13,18 @@ test('cycle resources reserve the held I through the visible T double until Pock
   const fresh=P.plan(next,{...config,commitment:{observation:next,advice:suffix}});assert.ok(fresh.target);assert.equal(fresh.continuation[0].event.type,i===0?'T':'I');state=next;advice=fresh;}
  const end=follow(state,advice);assert.equal(P.continueCommitment(state,end,advice),null);
 });
-test('observed saved-T route survives the actual preceding O lock and fresh worker plan',()=>{
- const s=P.observe(cases.savedT.snapshot),a=cases.savedT.advice,next=follow(s,a),suffix=P.continueCommitment(s,next,a);assert.ok(suffix);
- const fresh=P.plan(next,{...config,commitment:{observation:next,advice:suffix}});assert.ok(fresh.target);
- assert.ok(fresh.evidence.cycleResources.tsds>=1);assert.equal(fresh.evidence.cycleResources.tFillers,0);
- let state=next;for(const step of fresh.continuation){const r=R.replay(state,step.witness);assert.ok(r.valid);assert.ok(S.canonicalClear(r.events[0]));state=r.state;}
+test('an older saved-T proof cannot retain a move that strands a center cell',()=>{
+ const A=require('../st-access'),s=P.observe(cases.savedT.snapshot),a=cases.savedT.advice,next=follow(s,a);
+ assert.equal(P.continueCommitment(s,next,a),null);
+ const old=R.replay(next,a.continuation[1].witness),proof=A.check(next,{state:old.state,event:old.events[0]});
+ assert.equal(proof.reachable,false);assert.ok(proof.unreachable.some(([x,y])=>x===4&&y===26));
+ const fresh=P.plan(next,config);if(fresh.target){const r=R.replay(next,fresh.witness);assert.equal(A.check(next,{state:r.state,event:r.events[0]}).reachable,true);}
 });
 test('commitments are replayed, not trusted goal metadata or arbitrary imported history',()=>{
- const s=P.observe(cases.savedT.snapshot),a=cases.savedT.advice,next=follow(s,a);
+ const s=P.observe(cases.holdI.snapshot),a=P.plan(s,{depth:3,width:8,maxNodes:45000}),next=follow(s,a);assert.ok(P.continueCommitment(s,next,a));
  const fake=JSON.parse(JSON.stringify(a));fake.continuation[1].witness=['HD'];assert.equal(P.continueCommitment(s,next,fake),null);
- const changed={...next,hold:'I'};assert.equal(P.continueCommitment(s,changed,a),null);
- const noGoal={...a,continuation:a.continuation.slice(0,2)};assert.equal(P.continueCommitment(s,next,noGoal),null);
+ const changed={...next,hold:next.hold==='I'?'O':'I'};assert.equal(P.continueCommitment(s,changed,a),null);
+ const noGoal={...a,continuation:a.continuation.slice(0,1)};assert.equal(P.continueCommitment(s,next,noGoal),null);
  const observed=P.observe({...s,cycleResources:{tsds:999},commitment:fake});assert.equal(observed.cycleResources,undefined);assert.equal(observed.commitment,undefined);
 });
 test('resource accounting reports material and allows nonclearing Reset Ts without a quota',()=>{

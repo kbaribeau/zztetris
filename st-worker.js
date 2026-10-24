@@ -1,6 +1,6 @@
 /* Classic worker: the only input is the public observation, never game RNG. */
 'use strict';
-importScripts('st-rules.js','st-bag.js','st-structure.js','st-paired-repair.js','st-planner.js','st-opening.js');
+importScripts('st-rules.js','st-bag.js','st-structure.js','st-paired-repair.js','st-access.js','st-pattern-history.js', 'st-left-foundation.js','st-planner.js','st-opening.js');
 self.onmessage = ({data}) => {
   if (!data || data.type !== 'plan') return;
   try {

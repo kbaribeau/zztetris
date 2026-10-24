@@ -10,7 +10,7 @@ function setup(g){
 function advice(s){const p=R.placements(s,{maxNodes:8000}).placements.find(p=>p.witness.at(-1)==='HD');assert.ok(p);return {status:'recommended-with-verified-prefix',target:p.target,hold:p.hold,holdCount:p.holdCount,witness:p.witness,continuation:[{target:p.target,witness:p.witness,event:p.event}],reason:'Verified test plan.'};}
 // Plumbing-only fixtures stub goal accounting as well as suffix replay. Real
 // commitment validity is exercised separately below with the production API.
-function stubContinuation(g,returnSuffix=true){const calls=[];g.window.STPlanner={...g.window.STPlanner,cycleResources:()=>({tsds:1,quads:0,pocket:0}),continueCommitment:(before,after,plan)=>{calls.push(json({before,after,plan}));return returnSuffix?{...advice(after),marker:'remaining-cycle-proof'}:null;}};return calls;}
+function stubContinuation(g,returnSuffix=true){const calls=[];g.window.STPlanner={...g.window.STPlanner,resourceGoal:()=>true,cycleResources:()=>({tsds:1,quads:0,pocket:0}),continueCommitment:(before,after,plan)=>{calls.push(json({before,after,plan}));return returnSuffix?{...advice(after),marker:'remaining-cycle-proof'}:null;}};return calls;}
 test('st-cycle-ui/matching hard drop retains origin-bound proof after preview refresh',()=>withPage('st-lab.html',{},g=>{
  const workers=setup(g),initial=workers.at(-1).message.observation,plan=advice(initial),calls=stubContinuation(g);
  workers.at(-1).respond(plan);

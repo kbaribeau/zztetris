@@ -1,5 +1,5 @@
 /* Milestone-one finite-information coach. No fixture IDs, seeds or hidden queues. */
-(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules.js'),require('./st-bag.js'),require('./st-structure.js'),require('./st-paired-repair.js')):factory(root.STRules,root.STBag,root.STStructure,root.STPairedRepair);if(typeof module==='object'&&module.exports)module.exports=api;else root.STPlanner=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,B,S,X){
+(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules.js'),require('./st-bag.js'),require('./st-structure.js'),require('./st-paired-repair.js'),require('./st-access.js'),require('./st-pattern-history.js'),require('./st-left-foundation.js')):factory(root.STRules,root.STBag,root.STStructure,root.STPairedRepair,root.STAccess,root.STPatternHistory,root.STLeftFoundation);if(typeof module==='object'&&module.exports)module.exports=api;else root.STPlanner=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,B,S,X,A,H,Y){
 'use strict';
 const clone=x=>JSON.parse(JSON.stringify(x));
 const holdCount=p=>p.holdCount??p.witness.filter(a=>a==='HOLD').length;
@@ -90,6 +90,7 @@ function advicePresentation(path,assessment={},construction=null){
    structural=first.event.type==='T'&&!first.event.lines?(tRepairs>1?`Place T in the ${region} to begin the checked paired-T mino-parity repair.`:`Place T in the ${region} to balance the checked pair of T placements.`):`Build the ${region} with ${first.event.type} as shown.`;
    if(tRepairs)add('SHOCKY-4');if(center(first))add('SHOCKY-3.2','FLAME-CENTER');
   }
+  if(construction.kind==='left-foundation')structural+=' This checked pair fills the missing Left cells beside the next scoring rows; it does not yet complete the Center or prove the next score.';
   if(tsdAt>0){structural+=` This checked sequence reaches a T-spin double in ${tsdAt+1} placements, including this one.`;add('SHOCKY-3.1');}
   structural+=construction.kind==='cap-deferral'?' This verifies a visible cap replacement, not whether an Extra Z remains available.':' This finite repair is not proof of a completed Reset.';
  }else{
@@ -208,6 +209,17 @@ function centerGoalKeys(path){let rows=Array.from({length:40},(_,y)=>y);const ke
  }const cleared=p.event.clearedRows||[];rows=[...Array(cleared.length).fill(null),...rows.filter((_,y)=>!cleared.includes(y))];}
  return [...new Set(keys)];
 }
+// A finite preparation is the executed placement, not a promise that its
+// hypothetical partner arrives. Normalize identities through actual clears.
+function centerStageKeys(path){let rows=Array.from({length:40},(_,y)=>y);const keys=[];
+ for(const p of path){const t=p.structuralEvidence,c=t?.structure?.center;
+  if(t?.pairProgress?.step===1&&Array.isArray(t.pairProgress.completion?.cells)&&c&&reusableCenter(c)&&p.event.cells.every(([,y])=>rows[y]!=null)){
+   const partner=t.pairProgress.completion;
+   if(partner.cells.every(([,y])=>rows[y]!=null))keys.push(p.event.type+':'+centerCellsKey(p.event.cells.map(([x,y])=>[x,rows[y]]))+':'+partner.piece+':'+centerCellsKey(partner.cells.map(([x,y])=>[x,rows[y]])));
+  }
+  const cleared=p.event.clearedRows||[];rows=[...Array(cleared.length).fill(null),...rows.filter((_,y)=>!cleared.includes(y))];
+ }return [...new Set(keys)];
+}
 function certifiedCavities(n){
  // Replanning begins after every lock. Do not issue a first placement with
  // unresolved new sealing debt: a later repair witness is not a persistent
@@ -245,15 +257,15 @@ function cycleResources(path){
  const quads=events.filter(e=>e.type==='I'&&e.lines===4).length;
  const pocket=path.filter(p=>p.event.type==='I'&&!p.event.lines&&p.structuralEvidence?.allocation==='quad-preparation').length;
  let outstandingPocket=0;for(const p of path){if(p.event.type==='I'&&!p.event.lines&&p.structuralEvidence?.allocation==='quad-preparation')outstandingPocket++;if(p.event.type==='I'&&p.event.lines===4)outstandingPocket=Math.max(0,outstandingPocket-1);}
- return {centerCompletions:centerGoalKeys(path).length,locks:path.length,lines:events.reduce((n,e)=>n+e.lines,0),materialDelta:4*path.length-10*events.reduce((n,e)=>n+e.lines,0),tsds,quads,pocket,outstandingPocket,
+ return {leftFoundations:path.filter(p=>p.structuralEvidence?.leftFoundation?.completed).length,centerPreparations:centerStageKeys(path).length,centerCompletions:centerGoalKeys(path).length,locks:path.length,lines:events.reduce((n,e)=>n+e.lines,0),materialDelta:4*path.length-10*events.reduce((n,e)=>n+e.lines,0),tsds,quads,pocket,outstandingPocket,
   tFillers:events.filter(e=>e.type==='T'&&!e.lines).length,iFillers:events.filter(e=>e.type==='I'&&!e.lines&&e.cells.some(([x])=>x<7)).length};
 }
-function resourceGoal(path){const r=cycleResources(path);return r.tsds+r.quads+r.pocket+r.centerCompletions>0;}
+function resourceGoal(path){const r=cycleResources(path);return r.tsds+r.quads+r.pocket+r.centerCompletions+r.centerPreparations+r.leftFoundations>0;}
 // Compare only the resources protected by the outstanding goal. Incidental I
 // use on a T-only route is not an I reservation. Trailing post-goal filler must
 // not make an otherwise equivalent proof appear longer or more wasteful.
 function resourceGoalPrefix(path,goal){
- const centerGoals=centerGoalKeys(goal),hasCenter=prefix=>centerGoals.every(key=>centerGoalKeys(prefix).includes(key));
+ const centerGoals=centerGoalKeys(goal),primary=cycleResources(goal),stageGoals=primary.tsds+primary.quads+primary.pocket+primary.centerCompletions?[]:centerStageKeys(goal),hasCenter=prefix=>centerGoals.every(key=>centerGoalKeys(prefix).includes(key))&&stageGoals.every(key=>centerStageKeys(prefix).includes(key));
  const required=cycleResources(goal),fulfils=a=>a.tsds>=required.tsds&&a.quads>=required.quads&&a.outstandingPocket+Math.max(0,a.quads-required.quads)>=required.outstandingPocket;
  let b=required;for(let length=1;length<=goal.length;length++){const prefix=cycleResources(goal.slice(0,length));if(fulfils(prefix)&&hasCenter(goal.slice(0,length))){b=prefix;break;}}
  for(let length=1;length<=path.length;length++){
@@ -282,52 +294,72 @@ function committedNode(s,proof,roots,initial){
  }
  return resourceGoal(n.path)&&n.path.every(p=>S.canonicalClear(p.event))&&n.cycleDebt===0&&n.notchValid&&certifiedCavities(n)&&n.assessment.maxHeight<20&&n.assessment.regionalSupport?n:null;
 }
+function sameConstructionResult(expected,actual){
+ if(expected.rules!==actual.rules||JSON.stringify(expected.board)!==JSON.stringify(actual.board)||expected.hold!==actual.hold||expected.canHold!==actual.canHold||expected.topOut!==actual.topOut||(expected.active&&expected.active.type!==actual.active?.type)||!expected.queue.every((t,i)=>actual.queue[i]===t))return false;
+ if(expected.bag){if(!actual.bag)return false;let bag=expected.bag;const revealed=expected.active?actual.queue.slice(expected.queue.length):[...(actual.active?[actual.active.type]:[]),...actual.queue];for(const t of revealed)bag=B.consume(bag,t);if(JSON.stringify(bag)!==JSON.stringify(actual.bag))return false;}
+ return true;
+}
 // Construction history is an executable public proof, never an imported mode.
 // Recreate its complete route and bind the consumed prefix to the current board.
-function constructionAdvice(s,proof,deadline=Infinity,now=()=>Date.now()){
+function verifyConstruction(proof,options={}){return proof.kind==='left-foundation'?Y.validate(proof.origin,proof.steps,options):X.validateCertificate(proof.origin,proof.steps,{...options,kind:proof.kind});}
+function constructionAdvice(s,proof,deadline=Infinity,now=()=>Date.now(),maxNodes=12000,budgetTracker=null){
  if(!proof||!Number.isInteger(proof.consumed)||proof.consumed<0||proof.consumed>=proof.steps?.length)return null;
- const verified=X.validateCertificate(proof.origin,proof.steps,{kind:proof.kind,timeMs:Math.max(0,Math.min(750,deadline-now()))});if(!verified.valid)return null;
+ let visited=0;const charge=n=>{visited+=n||0;if(budgetTracker)budgetTracker.nodes+=n||0;};
+ const verified=verifyConstruction(proof,{timeMs:Math.max(0,Math.min(750,deadline-now())),deadline,now,maxNodes});charge(verified.visited);if(!verified.valid)return null;
  let expected=observe(proof.origin);
- for(const step of proof.steps.slice(0,proof.consumed))expected=R.replay(expected,step.witness).state;
- if(!sameObservedResult(expected,s))return null;
+ for(const step of verified.continuation.slice(0,proof.consumed))expected=R.replay(expected,step.witness).state;
+ if(JSON.stringify(expected.board)!==JSON.stringify(s.board))return null;
  let current=s;const continuation=[];
- for(const step of verified.continuation.slice(proof.consumed)){
-  const r=R.replay(current,step.witness);if(!r.valid||r.events.length!==1||JSON.stringify(r.events[0])!==JSON.stringify(step.event))return null;
-  current=r.state;continuation.push({...step,target:step.event.target,hold:step.witness.includes('HOLD'),holdCount:holdCount(step),resultContext:context(current)});
+ for(const [index,step]of verified.continuation.slice(proof.consumed).entries()){
+  const expectedAfter=R.replay(expected,step.witness).state;
+  const matches=r=>r.valid&&r.events.length===1&&JSON.stringify(r.events[0])===JSON.stringify(step.event)&&sameConstructionResult(expectedAfter,r.state);
+  let witness=step.witness,r=R.replay(current,witness);
+  if(!matches(r)&&index===0){
+   // The user may already have followed HOLD/movement inputs, or switched
+   // active and held pieces. Bind an equivalent actual first-lock witness to
+   // the SAME verified event and public result, never just a saved mode flag.
+   for(let k=1;k<step.witness.length;k++){const prefix=R.replay(expected,step.witness.slice(0,k));if(!prefix.valid||!sameObservedResult(prefix.state,current))continue;
+    const trial=R.replay(current,step.witness.slice(k));if(matches(trial)){witness=step.witness.slice(k);r=trial;break;}
+   }
+   if(!matches(r)&&now()<deadline&&visited<maxNodes){const e=R.placements(current,{deadline,now,maxNodes:maxNodes-visited});charge(e.visited);const found=e.placements.find(p=>JSON.stringify(p.event)===JSON.stringify(step.event)&&sameConstructionResult(expectedAfter,p.state));if(found){witness=found.witness;r={valid:true,state:found.state,events:[found.event]};}}
+  }
+  if(!matches(r))return null;
+  current=r.state;expected=expectedAfter;continuation.push({...step,witness,target:step.event.target,hold:witness.includes('HOLD'),holdCount:holdCount({witness}),resultContext:context(current)});
  }
  const first=continuation[0],done=verified.continuation.slice(0,proof.consumed);
  const parity=done.filter(p=>p.event.type==='T'&&!p.event.lines).reduce((v,p)=>v+p.event.cells.reduce((n,[x,y])=>n+((x+y)%2?1:-1),0),0);
  return {status:'recommended-with-verified-prefix',revision:s.revision,context:context(s),target:first.target,hold:first.hold,holdCount:first.holdCount,witness:first.witness,continuation,
   ...advicePresentation(continuation,assess(current.board),proof),
-  metrics:{nodes:0,endpointMass:current.board.reduce((n,row)=>n+[...row].filter(c=>c!=='.').length,0),depth:continuation.length,completeDepth:continuation.length,elapsedMs:verified.elapsedMs},assessment:assess(current.board),
+  metrics:{nodes:visited,endpointMass:current.board.reduce((n,row)=>n+[...row].filter(c=>c!=='.').length,0),depth:continuation.length,completeDepth:continuation.length,elapsedMs:verified.elapsedMs},assessment:assess(current.board),
   evidence:{strategy:proof.kind==='cap-deferral'?'finite-cap-deferral':'finite-regional-repair',construction:clone(proof),cycleResources:cycleResources(continuation),cycleDebt:0,verifiedLocks:continuation.length,knownPieceHorizon:s.queue.length+1,
-   constructionStage:{parity,capDebt:verified.cap&&proof.consumed<=verified.cap.paidAt?verified.cap.targets:[],remainingLocks:continuation.length,zAllocation:'Only the executed public route is reserved; no Extra-Z history is inferred.',completion:'Finite supported TSD endpoint, not a completed Reset.'},claim:'Finite executable regional repair; continued play is not guaranteed.'}};
+   constructionStage:{parity,capDebt:verified.cap&&proof.consumed<=verified.cap.paidAt?verified.cap.targets:[],remainingLocks:continuation.length,zAllocation:'Only the executed public route is reserved; no Extra-Z history is inferred.',completion:proof.kind==='left-foundation'?'Finite Left foundation completed; Center partner and future scoring remain unproved.':'Finite supported TSD endpoint, not a completed Reset.'},claim:'Finite executable regional repair; continued play is not guaranteed.'}};
 }
-function continueConstruction(before,after,advice,event){
+function continueConstruction(before,after,advice,event,options={}){
  const proof=advice?.evidence?.construction;if(!proof)return null;
- const verified=X.validateCertificate(proof.origin,proof.steps,{kind:proof.kind});if(!verified.valid||!Number.isInteger(proof.consumed)||proof.consumed<0)return null;
+ const verified=verifyConstruction(proof,options);if(!verified.valid||!Number.isInteger(proof.consumed)||proof.consumed<0)return null;
  const expected=verified.continuation.slice(proof.consumed);
  if(!expected.length||JSON.stringify(expected.map(p=>p.event))!==JSON.stringify(advice.continuation.map(p=>p.event)))return null;
  const r=R.replay(observe(before),advice.witness);
  if(!r.valid||r.events.length!==1||JSON.stringify(expected[0].event)!==JSON.stringify(event)||JSON.stringify(r.events[0])!==JSON.stringify(event)||!sameObservedResult(r.state,observe(after)))return null;
- return constructionAdvice(observe(after),{...proof,consumed:proof.consumed+1});
+ const tracker={nodes:verified.visited||0},suffix=constructionAdvice(observe(after),{...proof,consumed:proof.consumed+1},options.deadline,options.now,Math.max(0,(options.maxNodes??12000)-tracker.nodes),tracker);if(suffix)suffix.metrics.nodes=tracker.nodes;return suffix;
 }
-function continueCommitment(before,after,advice,actualEvent=after?.lastEvent){
- if(advice?.evidence?.construction)return continueConstruction(before,after,advice,actualEvent);
+function continueCommitment(before,after,advice,actualEvent=after?.lastEvent,options={}){
+ if(advice?.evidence?.construction){const now=options.now||(()=>Date.now()),deadline=options.deadline??now()+150,maxNodes=options.maxNodes??12000,suffix=continueConstruction(before,after,advice,actualEvent,{now,deadline,maxNodes});return suffix&&A.prefix(observe(after),suffix.continuation,{notches:H.resolve(after,options.patternHistory),deadline,now,maxNodes:Math.max(0,maxNodes-suffix.metrics.nodes)}).reachable===true?suffix:null;}
  if(!advice?.continuation?.length||advice.continuation.length<2)return null;
  let origin,s;try{origin=observe(before);s=observe(after);}catch{return null;}if(R.validate(origin).length||R.validate(s).length)return null;
  const first=R.replay(origin,advice.continuation[0].witness);if(!first.valid||first.events.length!==1||!actualEvent||JSON.stringify(first.events[0])!==JSON.stringify(actualEvent)||!S.canonicalClear(actualEvent)||!sameObservedResult(first.state,s))return null;
  const steps=advice.continuation.slice(1);if(!resourceGoal(steps))return null;
- let current=s,notches=S.notchPattern(s.board),debt=[],centerDebt=centerReservationStep(origin,{event:first.events[0],state:first.state}).debt,prior=assess(s.board);const continuation=[];
+ let current=s,notches=H.resolve(s,options.patternHistory),debt=[],centerDebt=centerReservationStep(origin,{event:first.events[0],state:first.state}).debt,prior=assess(s.board);const continuation=[];if(['broken','invalid-history'].includes(notches.status))return null;
  for(const step of steps){const r=R.replay(current,step.witness);if(!r.valid||r.events.length!==1||JSON.stringify(r.events[0])!==JSON.stringify(step.event)||!S.canonicalClear(r.events[0]))return null;
-  const policy=policyWitnesses(current),transition=S.transition(current,{event:r.events[0],state:r.state,...policy});if(transition.cycleViolations.length)return null;
+  const nextPhase=S.advanceNotches(current.board,{event:r.events[0],state:r.state},notches);if(!nextPhase.valid)return null;
+  const policy=policyWitnesses(current),transition=S.transition(current,{event:r.events[0],state:r.state,...policy},S.assess(r.state,{notches:nextPhase.pattern}),{notches});if(transition.cycleViolations.length)return null;
   const centerReservation=centerReservationStep(current,{event:r.events[0],state:r.state},centerDebt,notches);centerDebt=centerReservation.debt;
-  const previousState=current,check=S.advanceNotches(current.board,{event:r.events[0],state:r.state},notches),a=assess(r.state.board);if(!check.valid||a.maxHeight>=20)return null;
+  const previousState=current,previousNotches=notches,check=S.advanceNotches(current.board,{event:r.events[0],state:r.state},notches),a=assess(r.state.board);if(!check.valid||a.maxHeight>=20)return null;
   debt=cavityRepairDebt(prior,a,r.events[0],debt);if(!continuation.length&&debt.length)return null;notches=check.pattern;prior=a;current=r.state;
-  continuation.push({...step,resultContext:context(current),structuralEvidence:{...step.structuralEvidence,centerReservation,allocation:S.transition(previousState,{event:r.events[0],state:r.state}).allocation}});
+  continuation.push({...step,resultContext:context(current),structuralEvidence:{...S.transition(previousState,{event:r.events[0],state:r.state},S.assess(r.state,{notches}),{notches:previousNotches}),structure:S.assess(r.state,{notches}),centerReservation}});
  }
  if(debt.length||centerDebt.length||!prior.regionalSupport||!resourceGoal(continuation))return null;
- const head=continuation[0];return {...advice,target:head.target,witness:head.witness,hold:head.witness.includes('HOLD'),holdCount:holdCount(head),continuation,context:context(s),revision:s.revision,
+ const head=continuation[0];if(A.prefix(s,continuation,{notches:H.resolve(s,options.patternHistory),deadline:Date.now()+100,maxNodes:12000}).reachable!==true)return null;return {...advice,target:head.target,witness:head.witness,hold:head.witness.includes('HOLD'),holdCount:holdCount(head),continuation,context:context(s),revision:s.revision,
   ...advicePresentation(continuation,prior),evidence:{...advice.evidence,cycleResources:cycleResources(continuation),commitmentRetained:true}};
 }
 function context(s){return JSON.stringify([s.rules,s.board,s.hold,s.canHold,s.queue,s.bag??null,s.active?.type]);}
@@ -338,7 +370,7 @@ function compare(a,b){for(let i=0;i<a.rank.length;i++)if(a.rank[i]!==b.rank[i])r
 // A three-row motif cannot certify a deeper missing column beneath it.
 // Ordered center partners fit within a tetromino-height (three-step) envelope;
 // taller open deficits remain legal, but require an actually completed repair.
-const reusableCenter=c=>c.status!=='unrecognized'&&c.patternSupport==='reference-supported'&&(!c.profile||Math.max(...c.profile)-Math.min(...c.profile)<=3);
+const reusableCenter=c=>(!c.foundation||c.foundation.status==='aligned')&&c.status!=='unrecognized'&&c.patternSupport==='reference-supported'&&(!c.profile||Math.max(...c.profile)-Math.min(...c.profile)<=3);
 function centerContinuityStep(before,after,event,debt=false){
  return !reusableCenter(after)&&(debt||(event.lines===0&&reusableCenter(before)));
 }
@@ -393,7 +425,7 @@ function diversify(nodes,width){const sorted=[...nodes].sort(compare),chosen=[],
  for(const n of sorted){const first=n.path[0],g=[first.target.type,holdCount(first),n.assessment.right.slots.length>0].join(':');if(!groups.has(g)){chosen.push(n);roots.add(n.rootIndex);groups.add(g);if(chosen.length===width)return chosen;}}
  for(const n of sorted)if(!roots.has(n.rootIndex)){chosen.push(n);roots.add(n.rootIndex);if(chosen.length===width)return chosen;}
  const keys=new Set(chosen.map(n=>nodeKey(n)));for(const n of sorted)if(!keys.has(nodeKey(n))){chosen.push(n);keys.add(nodeKey(n));if(chosen.length===width)break;}return chosen;}
-function plan(raw,options={}){
+function planCore(raw,options={}){
  const started=Date.now(),now=options.now??(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs);
  let s;try{s=observe(raw);}catch(e){return{status:'invalid-input',revision:raw?.revision??0,target:null,reason:'This snapshot could not be read. Check its format and try again.',errors:[e.message]};}
  const errors=R.validate(s);if(s.bag)errors.push(...B.validate(s.bag));
@@ -401,33 +433,33 @@ function plan(raw,options={}){
  if(errors.length)return{...base,status:errors.includes('unsupported-profile')?'unsupported-profile':'invalid-input',reason:'Unsupported or invalid snapshot: '+errors.map(e=>e.replaceAll('-',' ')).join('; ')+'.',errors};
  if(s.topOut)return{...base,status:'no-supported-continuation-found',reason:'This position has topped out. Reset to continue.'};
  if(!s.active)return{...base,status:'insufficient-known-pieces',reason:'This snapshot has no active piece. Import another position or reset.'};
+ const observedPattern=H.resolve(s,options.patternHistory);if(['invalid-history','broken'].includes(observedPattern.status))return{...base,status:'no-supported-continuation-found',reason:observedPattern.status==='broken'?'A recognized T-slot opening in column 7 is filled. The coach does not support repairing this pattern yet.':'The recorded scoring-pattern evidence could not be verified. Reset or import a fresh snapshot before continuing.'};
  if(!options.disableOpening&&(options.openingPhase||s.board.every(r=>r==='..........'))){const opening=typeof module==='object'&&module.exports?require('./st-opening.js'):globalThis.STOpening;return opening.plan(s,{...options,deadline});}
- const initial=assess(s.board);initial.state=s;initial.notches=S.notchPattern(s.board);
- if(!options.disableConstruction&&options.constructionPrevious?.evidence?.construction){const prior=options.constructionPrevious,proof=prior.evidence.construction;
-  const cert=X.validateCertificate(proof.origin,proof.steps,{kind:proof.kind,timeMs:Math.max(0,deadline-now())});if(cert.valid&&JSON.stringify(cert.continuation.slice(proof.consumed).map(p=>p.event))===JSON.stringify(prior.continuation.map(p=>p.event))){const retained=revalidate(s,prior,{...options,deadline,maxNodes:Math.min(options.maxNodes??45000,8000)});if(retained)return retained;}
- }
+ const initial=assess(s.board);initial.state=s;initial.notches=H.resolve(s,options.patternHistory);
+ if(!options.disableConstruction&&options.constructionPrevious?.evidence?.construction){const tracker={nodes:0},retained=revalidate(s,options.constructionPrevious,{...options,deadline,budgetTracker:tracker,maxNodes:Math.min(8000,Math.max(0,(options.maxNodes??45000)-base.metrics.nodes))});base.metrics.nodes+=tracker.nodes;if(retained){retained.metrics.nodes=base.metrics.nodes;return retained;}}
+
  if(!options.disableConstruction&&options.commitment?.advice?.evidence?.construction){
-  const proof=options.commitment.advice.evidence.construction,saved=constructionAdvice(s,proof,deadline,now);
+  const proof=options.commitment.advice.evidence.construction,tracker={nodes:0},saved=constructionAdvice(s,proof,deadline,now,Math.max(0,(options.maxNodes??45000)-base.metrics.nodes),tracker);base.metrics.nodes+=tracker.nodes;
   if(saved){
    // Consider ordinary scoring at the SAME executed horizon. A replacement
    // must re-certify the original public construction and dominate its endpoint,
    // rather than silently abandoning a pending parity/center/Z obligation.
    if(initial.maintenanceScope&&saved.continuation.length<=s.queue.length+1&&deadline-now()>100){
-    const ordinary=plan(s,{...options,disableConstruction:true,deadline,commitment:null,constructionPrevious:null,depth:saved.continuation.length});
+    const ordinary=plan(s,{...options,disableConstruction:true,deadline,commitment:null,constructionPrevious:null,depth:saved.continuation.length,maxNodes:Math.max(0,(options.maxNodes??45000)-base.metrics.nodes)});base.metrics.nodes+=ordinary.metrics?.nodes||0;
     if(ordinary.target&&ordinary.continuation.length===saved.continuation.length){
-     const candidateProof={...proof,steps:[...proof.steps.slice(0,proof.consumed),...ordinary.continuation.map(p=>({witness:p.witness}))]},replacement=constructionAdvice(s,candidateProof,deadline,now);
+     const candidateProof={...proof,steps:[...proof.steps.slice(0,proof.consumed),...ordinary.continuation.map(p=>({witness:p.witness}))]},tracker={nodes:0},replacement=constructionAdvice(s,candidateProof,deadline,now,Math.max(0,(options.maxNodes??45000)-base.metrics.nodes),tracker);base.metrics.nodes+=tracker.nodes;
      if(replacement){const a=replacement.assessment,b=saved.assessment,ma=replacement.metrics.endpointMass,mb=saved.metrics.endpointMass;
-      if(a.maxHeight<=b.maxHeight&&ma<=mb&&(a.maxHeight<b.maxHeight||ma<mb))return replacement;
+      if(a.maxHeight<=b.maxHeight&&ma<=mb&&(a.maxHeight<b.maxHeight||ma<mb)){replacement.metrics.nodes=base.metrics.nodes;return replacement;}
      }
     }
    }
-   saved.metrics.elapsedMs=now()-started;return saved;
+   saved.metrics.elapsedMs=now()-started;saved.metrics.nodes=base.metrics.nodes;return saved;
   }
  }
- if(initial.notches.status==='broken')return{...base,status:'no-supported-continuation-found',reason:'A recognized T-slot opening in column 7 is filled. The coach does not support repairing this pattern yet.',assessment:initial};
+ if(initial.notches.status==='broken'||initial.notches.status==='invalid-history')return{...base,status:'no-supported-continuation-found',reason:'A recognized T-slot opening in column 7 is filled. The coach does not support repairing this pattern yet.',assessment:initial};
  if(!options.disableConstruction&&!initial.maintenanceScope&&initial.center.height<3&&X&&initial.left.height>=2&&initial.notches.status==='established'&&S.geometry(s.board).right.shapeStatus==='staggered-scoring-wall'){
-  const repair=X.search(s,{timeMs:Math.max(0,Math.min(680,deadline-now()-70)),maxNodes:options.maxNodes??45000});
-  if(repair.valid){const advice=constructionAdvice(s,{origin:observe(s),steps:repair.continuation.map(p=>({witness:p.witness})),consumed:0},deadline,now);if(advice){advice.metrics.search=repair.search;advice.metrics.nodes=repair.search?.visited||0;advice.metrics.elapsedMs=now()-started;return advice;}}
+  const repair=X.search(s,{timeMs:Math.max(0,Math.min(680,deadline-now()-70)),maxNodes:Math.max(0,(options.maxNodes??45000)-base.metrics.nodes)});base.metrics.nodes+=repair.search?.visited||0;
+  if(repair.valid){const tracker={nodes:0},advice=constructionAdvice(s,{origin:observe(s),steps:repair.continuation.map(p=>({witness:p.witness})),consumed:0},deadline,now,Math.max(0,(options.maxNodes??45000)-base.metrics.nodes),tracker);base.metrics.nodes+=tracker.nodes;if(advice){advice.metrics.search=repair.search;advice.metrics.nodes=base.metrics.nodes;advice.metrics.elapsedMs=now()-started;return advice;}}
  }
  if(!initial.maintenanceScope)return{...base,status:'unsupported-position',reason:initial.left.height<2||initial.center.height<3?'The stack is too low for the coach’s supported maintenance patterns. Rebuild manually or choose another position.':'This position is outside the supported right-side ST patterns. The coach expects established left and center stacks with a lower channel in column 8.',assessment:initial};
  const limit=options.maxNodes??45000,maxDepth=options.depth??3,width=options.width??8,expandedRoots=new Set(),accessCache=new Map();let stopped=false;
@@ -497,6 +529,8 @@ function plan(raw,options={}){
  for(const p of r.placements)p.availableCleanupPreparation=cleanupBeforeCap;
  return r;};
  const root=enumerate(s);base.metrics.roots=root.placements.length;
+ let foundationStage=null;
+ if(!options.disableConstruction&&!options.commitment&&Y){const stage=Y.search(initial.state,root.placements,{rootComplete:root.complete,deadline:Number.isFinite(deadline)?Math.min(deadline-25,now()+100):Infinity,now,maxNodes:Math.min(12000,Math.max(0,limit-base.metrics.nodes))});base.metrics.nodes+=stage.visited;if(stage.candidate){const tracker={nodes:0};foundationStage=constructionAdvice(s,stage.candidate,deadline,now,Math.max(0,limit-base.metrics.nodes),tracker);base.metrics.nodes+=tracker.nodes;}base.metrics.leftFoundationCandidate=Boolean(foundationStage);}
  // Reuse the already enumerated first moves. This short construction macro
  // proves an optional Z allocation followed by the ACTUAL other Z's exact cap
  // and an available T double. It cannot borrow an unseen future Z or T.
@@ -517,7 +551,7 @@ function plan(raw,options={}){
       const access=R.tDoubleAccess(t.state.board,{maxNodes:Math.max(0,limit-base.metrics.nodes),deadline:capDeadline,now});base.metrics.nodes+=access.visited;base.metrics.accessNodes+=access.visited;
       if(!access.complete||!access.reachable)continue;
       const proof={kind:'cap-deferral',origin:observe(s),steps:[{witness:first.witness},{witness:[...hold,...cap.witness]},{witness:[...tHold,...access.witness]}],consumed:0};
-      const candidate=constructionAdvice(s,proof,capDeadline,now);if(candidate)capStages.push(candidate);
+      const tracker={nodes:0},candidate=constructionAdvice(s,proof,capDeadline,now,Math.max(0,limit-base.metrics.nodes),tracker);base.metrics.nodes+=tracker.nodes;if(candidate)capStages.push(candidate);
      }
     }
    }
@@ -658,7 +692,8 @@ function plan(raw,options={}){
  let frontier=qualify(root.placements.filter(p=>S.canonicalClear(p.event)&&!spendsReservedT(p)).map((p,i)=>nodeFor(p,null,initial,i)).filter(n=>n.notchValid));
  if(preparation){preparation=qualify([preparation])[0]??preparation;base.metrics.preparationProofLocks=preparation.path.length;}
 
- const cleanBest=nodes=>nodes.filter(n=>n.cycleDebt===0&&certifiedCavities(n)).sort(compareConstruction)[0]??null;
+ const accessSafe=n=>{const proof=A.prefix(s,n.path,{notches:initial.notches,deadline,now,maxNodes:Math.max(0,limit-base.metrics.nodes)});base.metrics.nodes+=proof.visited;base.metrics.gapAccessNodes=(base.metrics.gapAccessNodes||0)+proof.visited;n.path[0].gapAccess=proof;return proof.reachable===true;};
+ const cleanBest=nodes=>nodes.filter(n=>n.cycleDebt===0&&certifiedCavities(n)).sort(compareConstruction).find(accessSafe)??null;
  let best=preparation??cleanBest(frontier);base.metrics.depth=best?best.path.length:0;base.metrics.completeDepth=root.complete&&best&&!stopped?1:0;
  let layer=diversify(frontier,width),comparisonLayer=frontier;
  for(let depth=2;depth<=maxDepth&&!stopped&&layer.length;depth++){
@@ -717,6 +752,22 @@ function plan(raw,options={}){
   const mass=ordinary.state.board.reduce((n,row)=>n+[...row].filter(c=>c!=='.').length,0),cm=candidate.metrics.endpointMass;
   if(candidate.assessment.maxHeight<=ordinary.assessment.maxHeight&&cm<=mass&&(candidate.assessment.maxHeight<ordinary.assessment.maxHeight||cm<mass)){candidate.metrics.elapsedMs=now()-started;return candidate;}
  }
+ if(foundationStage){
+  // Admission is a complete finite alternative, not proof that an unknown
+  // ordinary continuation is impossible. Never discard an existing score or
+  // protected Center/I/resource goal for this shorter Left-only construction.
+  let replace=!best;
+  if(best&&!resourceGoal(best.path)){
+   if(best.path.length<2)replace=true;
+   else{const r=R.replay(s,best.path.slice(0,2).flatMap(p=>p.witness)),end=JSON.parse(foundationStage.continuation.at(-1).resultContext)[1];
+    if(r.valid){const a=assess(end),b=assess(r.state.board),phase=initial.notches,ga=S.geometry(end,{notches:phase}).center,gb=S.geometry(r.state.board,{notches:phase}).center,quality=c=>c.patternSupport==='reference-supported'?(c.status==='level'?2:c.status==='unrecognized'?0:1):0;
+     replace=a.maxHeight<=b.maxHeight&&Y.leftCovered(end)<=Y.leftCovered(r.state.board)&&Math.abs(Y.parity(end))<=Math.abs(Y.parity(r.state.board))&&Y.deficits(end,phase).length<=Y.deficits(r.state.board,phase).length&&quality(ga)>=quality(gb)&&(Y.deficits(end,phase).length<Y.deficits(r.state.board,phase).length||Y.leftCovered(end)<Y.leftCovered(r.state.board)||Math.abs(Y.parity(end))<Math.abs(Y.parity(r.state.board)));
+    }
+   }
+  }
+  if(replace){foundationStage.metrics={...base.metrics,...foundationStage.metrics,nodes:base.metrics.nodes,depth:base.metrics.depth,completeDepth:base.metrics.completeDepth,stageProofLocks:2,elapsedMs:now()-started};return foundationStage;}
+ }
+ if(best&&!accessSafe(best))best=cleanBest([...comparisonLayer,...frontier]);
  if(!best)return{...base,status:stopped?'budget-exhausted':'no-supported-continuation-found',reason:stopped?'The search limit was reached before finding a checked move. A valid continuation may still exist.':'No supported ST sequence was found within this search. Other continuations may exist.'};
  if(best.assessment.maxHeight>=20||!best.assessment.regionalSupport)return{...base,status:'no-supported-continuation-found',reason:'The checked sequences did not retain enough space and a supported stack shape. No move is recommended.',assessment:best.assessment};
  const first=best.path[0],verified=R.replay(s,first.witness);if(!verified.valid)return{...base,status:'invalid-witness',reason:'The suggested input sequence failed validation, so it is not shown.'};
@@ -748,10 +799,17 @@ function plan(raw,options={}){
  continuation:best.path.map(p=>({target:p.target,hold:p.hold,holdCount:holdCount(p),witness:p.witness,event:p.event,resultContext:context(p.state),structuralEvidence:p.structuralEvidence})),
  evidence:{strategy:'canonical-right-ST',cycleResources:cycleResources(best.path),commitmentRetained:best===commitment,futureNotches:best.notches,preparationProof:preparation&&preparation.path.every((p,i)=>best.path[i]&&p.event.type===best.path[i].event.type&&p.event.lines===best.path[i].event.lines&&p.event.spin===best.path[i].event.spin&&JSON.stringify(p.state.board)===JSON.stringify(best.path[i].state.board)&&p.state.hold===best.path[i].state.hold&&JSON.stringify(p.state.queue)===JSON.stringify(best.path[i].state.queue))?{kind:preparationKind,locks:preparation.path.length,claim:'Executed preparation preserves an available T for a checked double.'}:null,cycleDebt:best.cycleDebt,cavityRepair:{status:'verified-prefix-repaired',outstandingCells:best.cavityDebt},clearPolicy:'right-region full T-spin doubles and I tetrises only',verifiedLocks:best.path.length,tsdAt:tsdAt>=0?tsdAt+1:null,knownPieceHorizon:s.queue.length+1,rootEnumerationComplete:root.complete,budgetExhausted:stopped,informationBoundary:!best.state.active,initialSealed:initial.sealed,endpointSealed:best.assessment.sealed,regionalSupport:best.assessment.regionalSupport,channel:best.assessment.channel,endpointTEntry:best.assessment.right.entry?.status??'not-established',unresolvedObligations:best.assessment.obligations,structuralScore:best.structuralScore,structuralRank:best.rank,structure:best.assessment.structure,dependencyDebt:best.dependencyDebt,claim:'Finite executable prefix; endpoint estimates are not a sustainability guarantee.'},assessment:best.assessment};
 }
+function plan(raw,options={}){
+ const now=options.now||(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs),result=planCore(raw,{...options,deadline});
+ if(!result?.target)return result;
+ const state=observe(raw),check=A.prefix(state,result.continuation||[],{notches:H.resolve(state,options.patternHistory),deadline,now,maxNodes:Math.max(0,(options.maxNodes??45000)-(result.metrics?.nodes||0))});
+ if(check?.reachable===true)return{...result,evidence:{...result.evidence,gapAccess:check},metrics:{...result.metrics,nodes:(result.metrics?.nodes||0)+check.visited}};
+ return{...result,status:check?.reachable===false?'no-supported-continuation-found':'budget-exhausted',target:null,witness:[],continuation:[],reason:'No move with checked access to its newly covered construction cells was found. A different repair may exist.',evidence:{gapAccess:check}};
+}
 // Keep a committed target through an exactly followed input, including HOLD.
 // The entire remaining prefix is replayed from the new observation, so a newly
 // revealed piece cannot silently preserve an obsolete proof.
-function advance(raw,previous,action){
+function advance(raw,previous,action,options={}){
  if(previous?.evidence?.opening)return null;
  if(previous?.evidence?.cycleDebt>0)return null;
  if(!previous?.target||action==='HD'||previous.witness?.[0]!==action)return null;
@@ -759,36 +817,51 @@ function advance(raw,previous,action){
  if(R.validate(state).length||(state.bag&&B.validate(state.bag).length))return null;
  const witness=previous.witness.slice(1);if(!witness.length)return null;
  const steps=previous.continuation.map((step,i)=>({...step,witness:i?step.witness:witness,hold:i?step.hold:witness.includes('HOLD'),holdCount:i?holdCount(step):witness.filter(a=>a==='HOLD').length}));
- let current=state,notches=S.notchPattern(state.board);for(const step of steps){const replay=R.replay(current,step.witness);
+ let current=state,notches=H.resolve(state,options.patternHistory);if(notches.status==='invalid-history'||notches.status==='broken')return null;for(const step of steps){const replay=R.replay(current,step.witness);
   if(!replay.valid||replay.events.length!==1||!S.canonicalClear(replay.events[0])||JSON.stringify(replay.events[0])!==JSON.stringify(step.event)||(step.resultContext&&context(replay.state)!==step.resultContext))return null;
   const check=S.advanceNotches(current.board,{event:replay.events[0],state:replay.state},notches);if(!check.valid)return null;notches=check.pattern;
   current=replay.state;
  }
  if(!repairedPrefix(state,steps))return null;
+ if(A.prefix(state,steps,{...options,notches:H.resolve(state,options.patternHistory)}).reachable!==true)return null;
  return{...previous,revision:state.revision,context:context(state),witness,hold:witness.includes('HOLD'),holdCount:witness.filter(a=>a==='HOLD').length,continuation:steps,
   ...advicePresentation(steps,previous.assessment,previous.evidence?.construction),retained:true,
   evidence:{...previous.evidence,knownPieceHorizon:state.queue.length+1}};
 }
 function revalidate(raw,previous,options={}){
+ const now=options.now||(()=>Date.now());options={...options,deadline:options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs),now};
  if(previous?.evidence?.opening)return null;
  let s;try{s=observe(raw);}catch{return null;}if(previous?.evidence?.cycleDebt>0||previous?.continuation?.some(p=>!S.canonicalClear(p.event)))return null;if(!previous?.target||context(s)!==previous.context||R.validate(s).length)return null;
+ if(previous.evidence?.construction){
+  const tracker={nodes:0},refreshed=constructionAdvice(s,previous.evidence.construction,options.deadline,now,options.maxNodes??8000,tracker);if(options.budgetTracker)options.budgetTracker.nodes+=tracker.nodes;
+  if(!refreshed||JSON.stringify(refreshed.continuation.map(p=>p.event))!==JSON.stringify(previous.continuation.map(p=>p.event)))return null;
+  const access=A.prefix(s,refreshed.continuation,{...options,notches:H.resolve(s,options.patternHistory),maxNodes:Math.max(0,(options.maxNodes??8000)-tracker.nodes)});if(options.budgetTracker)options.budgetTracker.nodes+=access.visited;
+  return access.reachable===true?{...refreshed,retained:true,metrics:{...refreshed.metrics,nodes:tracker.nodes+access.visited,revalidationNodes:tracker.nodes,gapAccessNodes:access.visited}}:null;
+ }
+
  const enumeration=R.placements(s,{maxNodes:options.maxNodes??8000,deadline:options.deadline,now:options.now});
+ if(options.budgetTracker)options.budgetTracker.nodes+=enumeration.visited;
  const p=enumeration.placements.find(p=>S.canonicalClear(p.event)&&holdCount(p)===holdCount(previous)&&JSON.stringify(p.target)===JSON.stringify(previous.target)&&p.event.spin===previous.continuation?.[0]?.event.spin&&p.event.lines===previous.continuation?.[0]?.event.lines);
  if(!p)return null;
  const continuation=[{...previous.continuation[0],target:p.target,hold:p.hold,holdCount:holdCount(p),witness:p.witness,event:p.event},...previous.continuation.slice(1)];
- let current=s,notches=S.notchPattern(s.board);for(const step of continuation){const replay=R.replay(current,step.witness);if(!replay.valid||replay.events.length!==1||!S.canonicalClear(replay.events[0])||JSON.stringify(replay.events[0])!==JSON.stringify(step.event)||(step.resultContext&&context(replay.state)!==step.resultContext))return null;const check=S.advanceNotches(current.board,{event:replay.events[0],state:replay.state},notches);if(!check.valid)return null;notches=check.pattern;current=replay.state;}
+ let current=s,notches=H.resolve(s,options.patternHistory);if(notches.status==='invalid-history'||notches.status==='broken')return null;for(const step of continuation){const replay=R.replay(current,step.witness);if(!replay.valid||replay.events.length!==1||!S.canonicalClear(replay.events[0])||JSON.stringify(replay.events[0])!==JSON.stringify(step.event)||(step.resultContext&&context(replay.state)!==step.resultContext))return null;const check=S.advanceNotches(current.board,{event:replay.events[0],state:replay.state},notches);if(!check.valid)return null;notches=check.pattern;current=replay.state;}
  if(!repairedPrefix(s,continuation))return null;
- return{...previous,revision:s.revision,hold:p.hold,holdCount:holdCount(p),witness:p.witness,continuation,...advicePresentation(continuation,previous.assessment,previous.evidence?.construction),metrics:{...previous.metrics,revalidationNodes:enumeration.visited},retained:true};
+ const access=A.prefix(s,continuation,{...options,notches:H.resolve(s,options.patternHistory),maxNodes:Math.max(0,(options.maxNodes??8000)-enumeration.visited)});if(options.budgetTracker)options.budgetTracker.nodes+=access.visited;if(access.reachable!==true)return null;
+ return{...previous,revision:s.revision,hold:p.hold,holdCount:holdCount(p),witness:p.witness,continuation,...advicePresentation(continuation,previous.assessment,previous.evidence?.construction),metrics:{...previous.metrics,nodes:enumeration.visited+access.visited,revalidationNodes:enumeration.visited,gapAccessNodes:access.visited},retained:true};
 }
 function openingModule(){return typeof module==='object'&&module.exports?require('./st-opening.js'):globalThis.STOpening;}
 function startOpeningSession(raw,options){return openingModule().startSession(raw,options);}
 function updateOpeningSession(session,before,after,event){return openingModule().updateSession(session,before,after,event);}
 function acceptOpeningResult(session,result){return openingModule().acceptResult(session,result);}
 function decide(raw,options={}){
- const previous=options.previous;
+ const now=options.now||(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs),budgetTracker={nodes:0},limit=options.maxNodes??45000;
+ options={...options,now,deadline};const previous=options.previous;
  if(previous?.evidence?.construction)options={...options,constructionPrevious:previous};
- const retained=!options.commitment&&previous?revalidate(raw,previous,options):null;
- return retained||plan(raw,options);
+ const retained=!options.commitment&&previous?revalidate(raw,previous,{...options,budgetTracker,maxNodes:limit}):null;
+ if(retained)return retained;
+ const result=plan(raw,{...options,maxNodes:Math.max(0,limit-budgetTracker.nodes)});
+ return budgetTracker.nodes?{...result,metrics:{...result.metrics,nodes:(result.metrics?.nodes||0)+budgetTracker.nodes,revalidationNodes:budgetTracker.nodes}}:result;
 }
-return Object.freeze({observe,assess,plan,decide,startOpeningSession,updateOpeningSession,acceptOpeningResult,revalidate,advance,cavityRepairDebt,continueCommitment,cycleResources,resourceGoalPrefix,centerReservationStep,centerContinuityStep});
+
+return Object.freeze({observe,assess,plan,decide,startPatternHistory:H.start,updatePatternHistory:H.update,resolvePatternHistory:H.resolve,gapAccess:A.check,checkAccessPrefix:A.prefix,startOpeningSession,updateOpeningSession,acceptOpeningResult,revalidate,advance,cavityRepairDebt,continueCommitment,cycleResources,resourceGoal,resourceGoalPrefix,centerReservationStep,centerContinuityStep});
 });

@@ -50,7 +50,7 @@ test('reservoir/budget interruption: optimistic eligibility cannot award an unve
  let calls=0;
  const rules={...R,tDoubleAccess:()=>{calls++;return{reachable:null,complete:false,visited:0};}};
  const module={exports:{}};
- vm.runInNewContext(fs.readFileSync(require.resolve('../st-planner.js'),'utf8'),{module,require:name=>name==='./st-rules.js'?rules:name==='./st-bag.js'?require('../st-bag'):S});
+ vm.runInNewContext(fs.readFileSync(require.resolve('../st-planner.js'),'utf8'),{module,require:name=>name==='./st-rules.js'?rules:name==='./st-bag.js'?require('../st-bag'):name==='./st-access.js'?require('../st-access'):name==='./st-pattern-history.js'?require('../st-pattern-history'):name==='./st-left-foundation.js'?require('../st-left-foundation'):S});
  const p=module.exports.plan(snapshot,{depth:3,width:8,maxNodes:45000});
  assert.ok(calls>0);assert.equal(p.evidence.budgetExhausted,true);assert.equal(p.assessment.intentionalReservoir,undefined);
  assert.equal(p.assessment.damageSealed,p.assessment.sealed);assert.equal(p.assessment.damageCovered,p.assessment.covered);

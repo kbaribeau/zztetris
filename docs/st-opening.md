@@ -14,7 +14,7 @@ This initial canonical subset only diverts non-clearing Ts entirely into the Lef
 
 `STPlanner.decide` is the shared worker decision entry point. `startOpeningSession`, `updateOpeningSession` and `acceptOpeningResult` manage the public session. Actual lock events are captured before/after preview replenishment. Imported phase flags or claimed clears are ignored. Reset restores the original mode/import; manual movement is freshly planned rather than replaying stale opening advice. There remain exactly two selectable play modes.
 
-Opening remains active until an actual canonical scoring clear is replay-verified against its preceding public pose, the resulting geometry has balanced Left cells, a supported Center motif and established notches, and maintenance produces an executable continuation from the newly visible state. A mere slot or height threshold is insufficient. Maintenance checking shares the deadline and reserves at most 12,000 nodes from the opening budget; its reserved allowance is reported separately from visited nodes. A failed handoff retains opening or honestly abstains.
+Opening remains active until an actual canonical scoring clear is replay-verified against its preceding public pose, the resulting geometry has balanced Left cells, a supported Center motif and established notches, the aligned lower Center has no non-notch vacancies below its shared surface, and maintenance produces an executable continuation from the newly visible state. A mere slot or height threshold is insufficient. Maintenance checking shares the deadline and reserves at most 12,000 nodes from the opening budget; its reserved allowance is reported separately from visited nodes. A failed handoff retains opening or honestly abstains.
 
 Advice calls these results partial construction, not a completed opening, completed Reset or guarantee of future supply. Community links provide background from [Shocky's guide, Chapters 1–4](https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit), not certification of a specific runtime move.
 
@@ -25,3 +25,7 @@ Four recorded opening prefixes provide occupancy-only controls for cross-region 
 The separate simulation runner supplies fresh-worker, seeded closed-loop evidence. Any abstention, height drift or capped run must be reported alongside successes. This first opening implementation is bounded and heuristic; it does not establish reliable survival for arbitrary bags, contingent multi-bag planning, or full Midgame→Reset→Midgame control.
 
 Fresh-worker quick smoke on two different seeded streams reached the 24-lock cap in both runs. First full T-spin doubles and checked handoffs occurred after locks 23 and 14, with 2 and 4 total cleared lines at the cap. These are short censored runs, not survival guarantees. The largest measured request was 803 ms including VM setup; 750 ms is a cooperative search budget, not a hard end-to-end latency guarantee. Source hashes and action traces are retained in the simulation manifests.
+
+## Handoff-aware clears and retained repairs
+
+See [the opening repair changes](st-opening-repair.md) for exact goal retention, shared-budget candidate-clear probes, and the stricter lower-foundation handoff criterion. These do not certify the acceptance target of reliable opening plus two subsequent Tetrises.

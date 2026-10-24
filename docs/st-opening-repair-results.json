@@ -1,0 +1,329 @@
+{
+  "baselineCommit": "b0b17670fdb21d266badf3162bb2d00e57df4f43",
+  "candidateCommit": "27d4cb7998b9a9d85bc0e1cea7ea370c303b8f4d",
+  "scope": "Four predeclared existing development inputs, identical streams and settings, 70-lock caps; no retries. Historical frozen baseline, not a simultaneous benchmark. Not an acceptance sample.",
+  "results": [
+    {
+      "seed": 502818917,
+      "identicalInput": true,
+      "baseline": {
+        "seed": 502818917,
+        "locks": 29,
+        "stop": "abstention",
+        "censored": false,
+        "detail": {
+          "status": "no-supported-continuation-found",
+          "reason": "No checked opening construction was found within this search. You can continue manually."
+        },
+        "inputHash": "6329b58ae4ad902c008310850a6e43fc72a230d5f7fa11c9ff96f49cd5eafb48",
+        "openingCompletedAt": null,
+        "lines": 2,
+        "tsds": 1,
+        "quads": 0,
+        "invalidRecommendations": 0,
+        "final": {
+          "height": 19,
+          "meanSkylineHeight": 10.3,
+          "occupiedRowsEquivalent": 9.6,
+          "mass": 96,
+          "sealed": 0,
+          "leftSealed": 0,
+          "parity": 2,
+          "regionalSupport": true,
+          "maintenanceScope": true
+        },
+        "timing": {
+          "plans": 30,
+          "medianMs": 364.92637499999955,
+          "p95Ms": 554.443252,
+          "maxMs": 607.029355
+        },
+        "postHandoffTsdLocks": [],
+        "postHandoffQuadLocks": [],
+        "twoQuadsWithIntermediateTsd": false
+      },
+      "candidate": {
+        "seed": 502818917,
+        "locks": 33,
+        "stop": "abstention",
+        "censored": false,
+        "detail": {
+          "status": "no-supported-continuation-found",
+          "reason": "The checked sequences did not retain enough space and a supported stack shape. No move is recommended."
+        },
+        "inputHash": "6329b58ae4ad902c008310850a6e43fc72a230d5f7fa11c9ff96f49cd5eafb48",
+        "openingCompletedAt": 24,
+        "lines": 2,
+        "tsds": 1,
+        "quads": 0,
+        "invalidRecommendations": 0,
+        "final": {
+          "height": 19,
+          "meanSkylineHeight": 13.8,
+          "occupiedRowsEquivalent": 11.2,
+          "mass": 112,
+          "sealed": 2,
+          "leftSealed": 0,
+          "parity": 0,
+          "regionalSupport": true,
+          "maintenanceScope": true
+        },
+        "timing": {
+          "plans": 34,
+          "medianMs": 592.2445719999996,
+          "p95Ms": 803.5178420000011,
+          "maxMs": 822.6331480000008
+        },
+        "postHandoffTsdLocks": [],
+        "postHandoffQuadLocks": [],
+        "twoQuadsWithIntermediateTsd": false
+      }
+    },
+    {
+      "seed": 503237833,
+      "identicalInput": true,
+      "baseline": {
+        "seed": 503237833,
+        "locks": 31,
+        "stop": "abstention",
+        "censored": false,
+        "detail": {
+          "status": "no-supported-continuation-found",
+          "reason": "No checked opening construction was found within this search. You can continue manually."
+        },
+        "inputHash": "4a36d1610484673665b18a626887555c6be62d3bfdfb40358dee77e28116f662",
+        "openingCompletedAt": null,
+        "lines": 2,
+        "tsds": 1,
+        "quads": 0,
+        "invalidRecommendations": 0,
+        "final": {
+          "height": 19,
+          "meanSkylineHeight": 12.5,
+          "occupiedRowsEquivalent": 10.4,
+          "mass": 104,
+          "sealed": 2,
+          "leftSealed": 0,
+          "parity": -2,
+          "regionalSupport": true,
+          "maintenanceScope": true
+        },
+        "timing": {
+          "plans": 32,
+          "medianMs": 392.78529700000036,
+          "p95Ms": 516.502296,
+          "maxMs": 680.357347
+        },
+        "postHandoffTsdLocks": [],
+        "postHandoffQuadLocks": [],
+        "twoQuadsWithIntermediateTsd": false
+      },
+      "candidate": {
+        "seed": 503237833,
+        "locks": 70,
+        "stop": "lock-cap",
+        "censored": true,
+        "detail": null,
+        "inputHash": "4a36d1610484673665b18a626887555c6be62d3bfdfb40358dee77e28116f662",
+        "openingCompletedAt": 19,
+        "lines": 18,
+        "tsds": 7,
+        "quads": 1,
+        "invalidRecommendations": 0,
+        "final": {
+          "height": 15,
+          "meanSkylineHeight": 10.5,
+          "occupiedRowsEquivalent": 10,
+          "mass": 100,
+          "sealed": 0,
+          "leftSealed": 0,
+          "parity": 0,
+          "regionalSupport": true,
+          "maintenanceScope": true
+        },
+        "timing": {
+          "plans": 70,
+          "medianMs": 768.7484560000012,
+          "p95Ms": 814.141936,
+          "maxMs": 819.6196070000005
+        },
+        "postHandoffTsdLocks": [
+          25,
+          31,
+          42,
+          47,
+          53,
+          62
+        ],
+        "postHandoffQuadLocks": [
+          45
+        ],
+        "twoQuadsWithIntermediateTsd": false
+      }
+    },
+    {
+      "seed": 506379703,
+      "identicalInput": true,
+      "baseline": {
+        "seed": 506379703,
+        "locks": 49,
+        "stop": "policy-violation",
+        "censored": false,
+        "detail": [
+          "notch-transition"
+        ],
+        "inputHash": "c679970bb8ed9823fc59b9837c68089ad46ce8e113f3d69926c73a7433912b40",
+        "openingCompletedAt": 22,
+        "lines": 6,
+        "tsds": 3,
+        "quads": 0,
+        "invalidRecommendations": 0,
+        "final": {
+          "height": 19,
+          "meanSkylineHeight": 14.5,
+          "occupiedRowsEquivalent": 13.6,
+          "mass": 136,
+          "sealed": 3,
+          "leftSealed": 0,
+          "parity": 0,
+          "regionalSupport": true,
+          "maintenanceScope": true
+        },
+        "timing": {
+          "plans": 49,
+          "medianMs": 617.058875,
+          "p95Ms": 806.1513049999994,
+          "maxMs": 831.929392
+        },
+        "postHandoffTsdLocks": [
+          24,
+          38
+        ],
+        "postHandoffQuadLocks": [],
+        "twoQuadsWithIntermediateTsd": false
+      },
+      "candidate": {
+        "seed": 506379703,
+        "locks": 37,
+        "stop": "abstention",
+        "censored": false,
+        "detail": {
+          "status": "no-supported-continuation-found",
+          "reason": "No checked opening construction was found within this search. You can continue manually."
+        },
+        "inputHash": "c679970bb8ed9823fc59b9837c68089ad46ce8e113f3d69926c73a7433912b40",
+        "openingCompletedAt": null,
+        "lines": 2,
+        "tsds": 1,
+        "quads": 0,
+        "invalidRecommendations": 0,
+        "final": {
+          "height": 19,
+          "meanSkylineHeight": 13.7,
+          "occupiedRowsEquivalent": 12.8,
+          "mass": 128,
+          "sealed": 2,
+          "leftSealed": 0,
+          "parity": 0,
+          "regionalSupport": true,
+          "maintenanceScope": true
+        },
+        "timing": {
+          "plans": 38,
+          "medianMs": 454.042320999999,
+          "p95Ms": 636.0717599999989,
+          "maxMs": 637.6884840000002
+        },
+        "postHandoffTsdLocks": [],
+        "postHandoffQuadLocks": [],
+        "twoQuadsWithIntermediateTsd": false
+      }
+    },
+    {
+      "seed": 502504730,
+      "identicalInput": true,
+      "baseline": {
+        "seed": 502504730,
+        "locks": 59,
+        "stop": "abstention",
+        "censored": false,
+        "detail": {
+          "status": "no-supported-continuation-found",
+          "reason": "The checked sequences did not retain enough space and a supported stack shape. No move is recommended."
+        },
+        "inputHash": "6d436e24024ebbf502faa37695534140a6631ac5a948f20c5a0cd97c794a6934",
+        "openingCompletedAt": 15,
+        "lines": 12,
+        "tsds": 4,
+        "quads": 1,
+        "invalidRecommendations": 0,
+        "final": {
+          "height": 19,
+          "meanSkylineHeight": 13.5,
+          "occupiedRowsEquivalent": 11.6,
+          "mass": 116,
+          "sealed": 1,
+          "leftSealed": 0,
+          "parity": 0,
+          "regionalSupport": true,
+          "maintenanceScope": true
+        },
+        "timing": {
+          "plans": 60,
+          "medianMs": 768.4768380000023,
+          "p95Ms": 806.3260719999998,
+          "maxMs": 827.7672349999993
+        },
+        "postHandoffTsdLocks": [
+          22,
+          33,
+          41
+        ],
+        "postHandoffQuadLocks": [
+          45
+        ],
+        "twoQuadsWithIntermediateTsd": false
+      },
+      "candidate": {
+        "seed": 502504730,
+        "locks": 53,
+        "stop": "abstention",
+        "censored": false,
+        "detail": {
+          "status": "no-supported-continuation-found",
+          "reason": "The checked sequences did not retain enough space and a supported stack shape. No move is recommended."
+        },
+        "inputHash": "6d436e24024ebbf502faa37695534140a6631ac5a948f20c5a0cd97c794a6934",
+        "openingCompletedAt": 15,
+        "lines": 8,
+        "tsds": 4,
+        "quads": 0,
+        "invalidRecommendations": 0,
+        "final": {
+          "height": 19,
+          "meanSkylineHeight": 15,
+          "occupiedRowsEquivalent": 13.2,
+          "mass": 132,
+          "sealed": 6,
+          "leftSealed": 0,
+          "parity": 2,
+          "regionalSupport": true,
+          "maintenanceScope": true
+        },
+        "timing": {
+          "plans": 54,
+          "medianMs": 772.3813870000013,
+          "p95Ms": 803.5026529999996,
+          "maxMs": 824.1880669999991
+        },
+        "postHandoffTsdLocks": [
+          22,
+          33,
+          37
+        ],
+        "postHandoffQuadLocks": [],
+        "twoQuadsWithIntermediateTsd": false
+      }
+    }
+  ]
+}

@@ -15,7 +15,7 @@
   window.DAS=das; // shared settings/navigation readback; not a second game engine.
   window.ctrlsPopup=()=>window.open('controls.html','popup','width=1200,height=800');
   const context=$('b').getContext('2d');
-  let state, origin, future=[], futureCursor=0, generated=false, observed=null, openingPhase=false, openingClear=null;
+  let state, origin, future=[], futureCursor=0, generated=false, observed=null, openingPhase=false, openingClear=null, openingRepair=null, patternHistory=null;
   let undoHistory=[], turnStart=null;
   let worker=null, requestId=0, debounce=null, watchdog=null, revision=0;
   let result=null, previous=null, commitment=null, coachStatus='idle', coachMessage='';
@@ -106,13 +106,13 @@
             coachStatus='invalid-witness';coachMessage='The suggested move failed validation, so it is not shown.';result=null;render();return;
           }
           result=candidate || null;
-          const phase=STPlanner.acceptOpeningResult({active:openingPhase,clear:openingClear},result);openingPhase=phase.active;openingClear=phase.clear;
+          const phase=STPlanner.acceptOpeningResult({active:openingPhase,clear:openingClear,repair:openingRepair},result);openingPhase=phase.active;openingClear=phase.clear;openingRepair=phase.repair||null;
           coachStatus=result?.status || 'no-supported-continuation-found';
           coachMessage=result?.reason || 'No supported ST sequence was found within this search.';
           if(result?.target){
             previous={...clone(result),revision:state.revision};
-            const resources=STPlanner.cycleResources(result.continuation||[]);
-            commitment=!result.evidence?.opening&&resources.tsds+resources.quads+resources.pocket+(resources.centerCompletions||0)>0?{observation:clone(observation()),advice:clone(result)}:null;
+
+            commitment=!result.evidence?.opening&&STPlanner.resourceGoal(result.continuation||[])?{observation:clone(observation()),advice:clone(result)}:null;
           }
           render();
         };
@@ -123,7 +123,7 @@
         };
         activeWorker.postMessage({type:'plan',id,observation:observation(),previous:previous?clone(previous):null,
           commitment:commitment?clone(commitment):null,
-          options:{timeMs:750,depth:3,width:8,maxNodes:45000,openingPhase,openingClear:openingClear?clone(openingClear):null}});
+          options:{timeMs:750,depth:3,width:8,maxNodes:45000,patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null}});
         watchdog=setTimeout(()=>{
           if(worker!==activeWorker)return;
           cancel();result=null;coachStatus='budget-exhausted';coachMessage='The coach timed out. A valid continuation may still exist.';render();
@@ -162,11 +162,11 @@
     }
   }
   function resetState(input,{tail=[],random=false,history=null,note='',keepOrigin=false,opening=false}={}) {
-    cancel();stopRepeating();future=tail.slice();futureCursor=0;undoHistory=[];turnStart=null;generated=random;observed=history?.slice() || null;openingPhase=opening;openingClear=null;
+    cancel();stopRepeating();future=tail.slice();futureCursor=0;undoHistory=[];turnStart=null;generated=random;observed=history?.slice() || null;openingPhase=opening;openingClear=null;openingRepair=null;
     state=STRules.migrateState({...clone(input),revision:++revision});
     const errors=STRules.validate(state);if(errors.length)throw new Error(errors.join('; '));
     if(state.queue.length>6){future.unshift(...state.queue.slice(6));state={...state,queue:state.queue.slice(0,6)};}
-    replenish();previous=null;result=null;commitment=null;lockCount=0;
+    replenish();patternHistory=STPlanner.startPatternHistory(observation());previous=null;result=null;commitment=null;lockCount=0;
     if(!keepOrigin)origin={input:clone(input),options:{tail:tail.slice(),random,history:history?.slice()||null,note,opening}};
     setText($('st-position-note'),note);setText($('st-game-status'),'');requestPlan();render();
   }
@@ -185,7 +185,7 @@
   }
   function checkpoint() {
     return {state:clone(state),futureCursor,observed:observed?.slice()||null,
-      openingPhase,openingClear:openingClear?clone(openingClear):null,
+      patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null,
       commitment:commitment?clone(commitment):null,lockCount};
   }
   function undo() {
@@ -193,7 +193,8 @@
     cancel();stopRepeating();
     const saved=undoHistory.pop();
     state={...clone(saved.state),revision:++revision};futureCursor=saved.futureCursor;
-    observed=saved.observed?.slice()||null;openingPhase=saved.openingPhase;openingClear=saved.openingClear?clone(saved.openingClear):null;
+    observed=saved.observed?.slice()||null;openingPhase=saved.openingPhase;openingClear=saved.openingClear?clone(saved.openingClear):null;openingRepair=saved.openingRepair?clone(saved.openingRepair):null;
+    patternHistory=saved.patternHistory?clone(saved.patternHistory):null;
     commitment=saved.commitment?clone(saved.commitment):null;lockCount=saved.lockCount;
     // Never resurrect displayed advice or an old worker response. The saved
     // proof is only a candidate for replay against this restored public state.
@@ -219,15 +220,16 @@
     // Active movement does not expose pieces; only draws shorten the preview.
     replenish();
     if(locked){
-      if(openingPhase){const phase=STPlanner.updateOpeningSession({active:openingPhase,clear:openingClear},beforeLock,observation(),state.lastEvent);openingPhase=phase.active;openingClear=phase.clear;}
+      patternHistory=STPlanner.updatePatternHistory(patternHistory,beforeLock,observation(),state.lastEvent);
+      if(openingPhase){const phase=STPlanner.updateOpeningSession({active:openingPhase,clear:openingClear,repair:openingRepair},beforeLock,observation(),state.lastEvent);openingPhase=phase.active;openingClear=phase.clear;openingRepair=phase.repair||null;}
       // Keep the proof's original public observation, not an input-history
       // guess. The planner checks that the actual lock matches its first step,
       // then replays the suffix using only the newly visible observation.
       const suffix=commitment&&typeof STPlanner.continueCommitment==='function'
-        ?STPlanner.continueCommitment(commitment.observation,observation(),commitment.advice,state.lastEvent):null;
+        ?STPlanner.continueCommitment(commitment.observation,observation(),commitment.advice,state.lastEvent,{patternHistory}):null;
       commitment=suffix?{observation:clone(observation()),advice:clone(suffix)}:null;
     }
-    const advanced=!locked&&displayed?STPlanner.advance(observation(),displayed,action):null;
+    const advanced=!locked&&displayed?STPlanner.advance(observation(),displayed,action,{patternHistory}):null;
     if(advanced){result=advanced;previous=advanced;coachMessage=advanced.reason;coachStatus=advanced.status;}
     requestPlan({retain:Boolean(advanced)});render();
   }

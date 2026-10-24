@@ -196,6 +196,16 @@ function advanceNotches(before,p,inherited){
  const lost=p.event.lines===0&&recognized.status==='unanchored'&&notchPattern(before).status!=='unanchored';
  return {valid:!blockedCells.length&&pattern.status!=='broken'&&!conflict&&!lost,violation:blockedCells.length?'filled-protected-column-seven-notch':pattern.status==='broken'?'column-seven-notch-blocked':conflict?'changed-established-scoring-phase':lost?'lost-established-scoring-phase':null,pattern,blockedCells};
 }
+// The top motif is insufficient: retain the actual scoring phase and inspect
+// the completed lower region, excluding only its established notch cells.
+// Unknown phase is unknown evidence, never a guessed modulo or illegal board.
+function centerFoundation(board,notches=notchPattern(board)){
+ const profile=heights(board).slice(4,7),vacancies=[];
+ if(notches.status!=='established')return {status:'unknown-phase',vacancies,profile};
+ for(let y=40-Math.min(...profile);y<40;y++)for(let x=4;x<7;x++)
+  if(board[y][x]==='.'&&!(x===6&&notches.protectedRows.includes(y)))vacancies.push([x,y]);
+ return {status:vacancies.length?'unfinished-lower-foundation':'aligned',vacancies,profile};
+}
 function geometry(board,options={}){const notches=options.notches??notchPattern(board);
  // Identical occupancy can carry a different translated scoring phase. Never
  // reuse partner evidence from another phase (or from an unanchored board).
@@ -215,7 +225,7 @@ function geometry(board,options={}){const notches=options.notches??notchPattern(
  // Permit a one-I-height offset; larger bottlenecks require concrete repair.
  const frontierDebt=Math.max(0,Math.max(...center)-Math.min(...left)-4);
  const scoringRowDebt=Math.max(0,Math.max(...right)-Math.min(...h.slice(0,7))-1);
- const g={frontierDebt,scoringRowDebt,left:{profile:left,flat:flatLeft,roughness:rough(left),covered:leftInternal,horizontalI:flatLeft?{status:'straight-drop-platform',columns:[1,2,3,4]}:null,completions:leftCompletions},center:{profile:center,status:centerStatus,motif,patternSupport:motifSupported?'reference-supported':'unrecognized',coveredInternal:centerInternal,sealedVoids:centerInternal,coveredCavities:covered(board,[4,5,6]),completionDebt:centerStatus==='unrecognized'?1:0,completions:centerCompletions},right:{profile:right,shapeStatus:rightShape,cycle,renewalDebt,reservoir:capReservoir(board,h),completions:rightShape==='cap-preparation'?capCompletions(board):[]},supportEstimate:(flatLeft?2:0)-rough(left)*1.5-leftInternal*8+(motifSupported?(flatCenter?4:2):centerCompletions.some(c=>c.patternSupport==='reference-supported')?0:-8)-centerInternal*6-renewalDebt*6-frontierDebt*4-scoringRowDebt*3,uncertainty:rightShape==='unrecognized'||centerStatus==='unrecognized'||!motifSupported};
+ const g={frontierDebt,scoringRowDebt,left:{profile:left,flat:flatLeft,roughness:rough(left),covered:leftInternal,horizontalI:flatLeft?{status:'straight-drop-platform',columns:[1,2,3,4]}:null,completions:leftCompletions},center:{foundation:centerFoundation(board,notches),profile:center,status:centerStatus,motif,patternSupport:motifSupported?'reference-supported':'unrecognized',coveredInternal:centerInternal,sealedVoids:centerInternal,coveredCavities:covered(board,[4,5,6]),completionDebt:centerStatus==='unrecognized'?1:0,completions:centerCompletions},right:{profile:right,shapeStatus:rightShape,cycle,renewalDebt,reservoir:capReservoir(board,h),completions:rightShape==='cap-preparation'?capCompletions(board):[]},supportEstimate:(flatLeft?2:0)-rough(left)*1.5-leftInternal*8+(motifSupported?(flatCenter?4:2):centerCompletions.some(c=>c.patternSupport==='reference-supported')?0:-8)-centerInternal*6-renewalDebt*6-frontierDebt*4-scoringRowDebt*3,uncertainty:rightShape==='unrecognized'||centerStatus==='unrecognized'||!motifSupported};
  if(cache.size>=2048)cache.clear();cache.set(key,g);return g;
 }
 function instances(state){const out=[];if(state.active)out.push({id:'active',piece:state.active.type,source:'active',available:'now'});if(state.hold)out.push({id:'hold',piece:state.hold,source:'hold',available:state.canHold?'hold-now':'after-next-lock'});(state.queue||[]).forEach((piece,i)=>out.push({id:'queue:'+i,piece,source:'visible',drawOffset:i+1,available:'when-drawn'}));if(state.bag){const p=B.forcedNext(state.bag);if(p)out.push({id:'forced-next',piece:p,source:'forced-beyond-preview',available:'after-preview'});}return out;}
@@ -285,5 +295,5 @@ function transition(before,p,afterStructure,options={}){const beforeNotches=opti
  const reason=allocation==='horizontal-left-I'?'Keep the left region flat.':allocation==='center-partner-preparation'?partner?'Start the ordered '+type+'/'+partner.piece+' center pair.':'Prepare the center; no ordered level-finishing pair has been established.':allocation==='center-completion'?'Complete the center pattern.':allocation==='scoring-double'?'Take the T-spin double and assess its rebuild.':allocation==='scoring-T-diversion'?'Diverts a T from the scoring role; another T may remain, but its timely use is not established.':allocation==='quad-preparation'?'Prepare the right-side I cleanup while keeping column eight open.':allocation==='quad-cleanup'?'Clear the scoring channel with a quad.':allocation==='unrecognized-role'?'This allocation needs additional regional repair evidence.':allocation==='right-cap-extension'?'Extends an existing cap; renewed entry still needs checking.':'Preserve a supported regional piece role.';
  return{reason,cycleViolations,pairFamily,pairProgress,pairEvidence:pairFamily?'ordered actual preparation plus checked level-finishing placement':null,opportunityCost,leftSubstitutes:substitutes,regions,crossRegion:regions.length>1,allocation,status:['unrecognized-role','scoring-T-diversion','right-cap-extension'].includes(allocation)?'requires-repair-evidence':'supported-local-role',dependencyDebt:debt,newlyCovered,regionalRepair,repairCredit:Math.min(8,repaired*2),note:'Crossing a boundary is not forbidden. Debt measures unsupported allocation and new structural repair burden; a later checked repair may repay it.'};
 }
-return Object.freeze({assess,transition,geometry,instances,allocate,canonicalClear,notchPattern,advanceNotches,CENTER_PAIRS,leftSubstitutes,clearCache:()=>{cache.clear();substituteCache.clear();}});
+return Object.freeze({assess,transition,geometry,instances,allocate,canonicalClear,centerFoundation,notchPattern,advanceNotches,CENTER_PAIRS,leftSubstitutes,clearCache:()=>{cache.clear();substituteCache.clear();}});
 });

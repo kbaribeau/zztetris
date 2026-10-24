@@ -3,14 +3,14 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const P=require('../st-planner'),R=require('../st-rules'),S=require('../st-structure');
 const initial=require('./support/st-user-clean-center.json');
 function replay(steps){let state=P.observe(initial),phase=S.notchPattern(state.board);for(const step of steps){const r=R.replay(state,step.witness);assert.ok(r.valid);assert.equal(r.events.length,1);assert.ok(S.canonicalClear(r.events[0]));const n=S.advanceNotches(state.board,{event:r.events[0],state:r.state},phase);assert.ok(n.valid);phase=n.pattern;state=r.state;}return {state,phase};}
-test('3A preserves an available S/L center instead of stranding it for the same double',()=>{
- const advice=P.plan(initial,{maxNodes:45000});assert.equal(advice.continuation.length,3);
- assert.equal(advice.target.type,'Z');assert.ok(advice.continuation[0].event.cells.every(([x])=>x<4));
- assert.equal(advice.continuation[1].event.type,'L');assert.ok(advice.continuation[1].event.cells.every(([x])=>x>=4&&x<7));
- assert.equal(advice.continuation[2].event.spin,'full');assert.equal(advice.continuation[2].event.lines,2);
- const {state,phase}=replay(advice.continuation),g=S.geometry(state.board,{notches:phase});
- assert.equal(g.center.status,'level');assert.deepEqual(g.center.profile,[12,12,12]);assert.equal(P.assess(state.board).maxHeight,12);
- assert.equal(advice.assessment.structure.centerContinuity.endpointReusable,true);
+test('3A does not preserve a clean center at the cost of a newly inaccessible left cell',()=>{
+ const A=require('../st-access'),advice=P.plan(initial,{maxNodes:45000});assert.ok(advice.target);
+ const first=R.replay(initial,advice.witness);assert.equal(A.check(initial,{state:first.state,event:first.events[0]}).reachable,true);
+ const old=R.placements(initial).placements.find(p=>p.target.type==='Z'&&p.target.x===1&&p.target.y===25&&p.target.rotation===0);assert.ok(old);
+ const bad=A.check(initial,old);assert.equal(bad.reachable,false);assert.deepEqual(bad.unreachable,[[1,27]]);
+ // The earlier exact winner was our inference, not a recorded reference move.
+ // Center cleanliness cannot justify a movement-inaccessible Left vacancy.
+ assert.notDeepEqual(advice.target,old.target);replay(advice.continuation);
 });
 test('3A old crossing Z remains legal but has an unresolved endpoint, not a forbidden move',()=>{
  const z=R.placements(initial).placements.find(p=>p.target.type==='Z'&&p.target.x===3&&p.target.y===24&&p.target.rotation===1);assert.ok(z);
