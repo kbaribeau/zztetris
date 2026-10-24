@@ -1,0 +1,16 @@
+cohort,seed,baseline_version,candidate_version,baseline_locks,candidate_locks,baseline_stop,candidate_stop,baseline_handoff,candidate_handoff,baseline_joint_at,candidate_joint_at,baseline_lines,candidate_lines,common_horizon,baseline_common_lines,candidate_common_lines,baseline_common_mass,candidate_common_mass,baseline_common_height,candidate_common_height,candidate_left_foundation_locks,candidate_pruned_prefixes
+matched-seven,502400001,eb3c9c3,e44daad,130,130,abstention,abstention,11,11,76,66,38,38,130,38,38,140,140,19,19,13;14,0
+matched-seven,505751329,eb3c9c3,e44daad,87,87,abstention,abstention,17,17,74,74,22,22,87,22,22,128,128,19,19,,0
+matched-seven,503028375,eb3c9c3,e44daad,140,140,abstention,abstention,19,19,80,80,50,50,140,50,50,60,60,9,9,,0
+matched-seven,502818917,eb3c9c3,e44daad,24,24,abstention,abstention,,,,,0,0,24,0,0,96,96,19,19,,22
+matched-seven,503237833,eb3c9c3,e44daad,86,29,abstention,abstention,19,,75,,24,2,29,4,2,76,96,11,19,,5
+matched-seven,506379703,eb3c9c3,e44daad,36,37,abstention,abstention,,,,,2,2,36,2,2,124,124,19,19,,0
+matched-seven,502504730,eb3c9c3,e44daad,59,59,abstention,abstention,15,15,,,14,12,59,14,12,96,116,16,19,,0
+additional-development-eight,502609459,c209e600,e44daad,31,30,abstention,abstention,,,,,0,0,30,0,0,120,120,18,19,,0
+additional-development-eight,502714188,c209e600,e44daad,41,41,abstention,abstention,,,,,4,4,41,4,4,124,124,19,19,,0
+additional-development-eight,502923646,c209e600,e44daad,27,25,abstention,abstention,,,,,0,0,25,0,0,100,100,18,19,,4
+additional-development-eight,503133104,c209e600,e44daad,30,30,abstention,abstention,16,16,,,6,6,30,6,6,60,60,10,10,,0
+additional-development-eight,503342562,c209e600,e44daad,71,49,abstention,abstention,14,14,,,14,12,49,12,12,76,76,14,14,,0
+additional-development-eight,503447291,c209e600,e44daad,31,31,abstention,abstention,,,,,2,2,31,2,2,104,104,19,19,,0
+additional-development-eight,503552020,c209e600,e44daad,13,70,abstention,abstention,10,10,,,2,16,13,2,2,32,32,6,5,13;14,0
+additional-development-eight,503656749,c209e600,e44daad,83,35,policy-violation,abstention,14,,76,,22,2,35,6,2,80,120,13,19,,4

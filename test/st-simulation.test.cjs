@@ -111,3 +111,12 @@ test('simulation/true top-out and exhausted private input are distinct outcomes'
  const finite=E.makeInput('empty',1,1);finite.future=[];
  const b=E.runEpisode(finite,{api:stub,planner:req=>hd(req.observation)});assert.equal(b.stop,'input-exhausted');assert.equal(b.censored,false);
 });
+
+
+test('simulation/replay ignores only regenerated commitment timing, never goals, events or supply',()=>{
+ const input=E.makeInput('empty',13,2),records=[];let duration=0;
+ const api={...stub,resourceGoal:()=>true,continueCommitment:(_before,after)=>({goal:{kind:'checked-goal'},continuation:[{event:{type:'T',lines:2}}],metrics:{elapsedMs:++duration,nodes:4}})};
+ E.runEpisode(input,{api,planner:req=>({...hd(req.observation),evidence:{}}),onRecord:r=>records.push(r)});
+ const replay=E.replayRecords(input,records,api);assert.equal(replay.locks,2);assert.deepEqual(replay.ignoredVolatileRequestFields,['commitment.advice.metrics.elapsedMs']);
+ for(const mutate of [r=>{r.request.commitment.advice.goal.kind='forged';},r=>{r.request.commitment.advice.continuation[0].event.lines=4;},r=>{r.request.commitment.observation.queue[0]='X';},r=>{r.request.commitment.advice.metrics.nodes=999;}]){const bad=E.clone(records);mutate(bad.find(r=>r.kind==='lock'&&r.lock===2));assert.throws(()=>E.replayRecords(input,bad,api),/Public decision state diverged/);}
+});

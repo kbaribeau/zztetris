@@ -31,7 +31,7 @@ function foundationAccess(board,f){
  }
  return -1;
 }
-function facts(board){const f=features(board),g=S.geometry(board);return{...f,centerStatus:g.center.status,centerPartners:g.center.completions.filter(c=>c.resultStatus==='level').map(c=>({piece:c.piece,cells:c.cells})),right:g.right.shapeStatus};}
+function facts(board,notches=S.notchPattern(board)){const f=features(board),g=S.geometry(board,{notches}),foundation=S.centerFoundation(board,notches);return{...f,notches,buriedCenterVacancies:foundation.vacancies,centerFoundationStatus:foundation.status,centerStatus:g.center.status,centerPartners:g.center.completions.filter(c=>c.resultStatus==='level').map(c=>({piece:c.piece,cells:c.cells})),right:g.right.shapeStatus};}
 function compare(a,b){for(let i=0;i<a.rank.length;i++){if(a.rank[i]!==b.rank[i])return b.rank[i]-a.rank[i];}return a.key.localeCompare(b.key);}
 function rank(f,event,path){
  const low=Math.min(...f.heights.slice(0,7)),high=Math.max(...f.heights.slice(0,7));
@@ -44,7 +44,10 @@ function rank(f,event,path){
   centerQuality*3-f.baseDebt*15-f.foundationDebt*5-f.grammar*8-f.scoringDebt*3+score*8+Math.min(low,5)*3-Math.abs(f.parity)*3-f.roughness*1.2-centerSpan*2-Math.max(0,gap-2)*3-f.maxHeight*.8-f.covered,
   -Math.abs(f.parity),-path.reduce((n,p)=>n+p.witness.length,0)];
 }
-function centerReady(board){const g=S.geometry(board);return g.center.patternSupport==='reference-supported'&&g.center.status!=='unrecognized';}
+function centerReady(board,notches=S.notchPattern(board)){const g=S.geometry(board,{notches});return g.center.patternSupport==='reference-supported'&&g.center.status!=='unrecognized';}
+// Unknown phase permits a finite top-pattern/parity goal, never an alignment
+// claim. Positively known buried debt cannot count as a completed repair.
+function repairEndpoint(board,notches=S.notchPattern(board)){return centerReady(board,notches)&&S.centerFoundation(board,notches).status!=='unfinished-lower-foundation';}
 function handoffGeometry(state){const f=facts(state.board),a=getPlanner().assess(state.board);return f.parity===0&&centerReady(state.board)&&f.notches.status==='established'&&!f.buriedCenterVacancies.length&&a.regionalSupport&&!a.leftSealed;}
 function sameCells(a,b){return JSON.stringify(a.map(c=>c.join(',')).sort())===JSON.stringify(b.map(c=>c.join(',')).sort());}
 function publicMatch(expected,actual){return JSON.stringify(expected.board)===JSON.stringify(actual.board)&&JSON.stringify(expected.active)===JSON.stringify(actual.active)&&expected.hold===actual.hold&&expected.canHold===actual.canHold&&expected.streamCursor===actual.streamCursor&&expected.topOut===actual.topOut&&expected.queue.every((t,i)=>actual.queue[i]===t);}
@@ -70,24 +73,28 @@ function remainingGoal(origin,path,goal){
  }
  return{balance:goal.balance,center:centerPaid?null:{piece:goal.center.piece,cells}};
 }
-function goalPaid(origin,path,goal){const remaining=remainingGoal(origin,path,goal);if(!remaining||remaining.center)return false;let state=origin;for(const step of path)state=R.replay(state,step.witness).state;return(!remaining.balance||balance(state.board)===0)&&centerReady(state.board);}
+function goalPaid(origin,path,goal,notches=S.notchPattern(origin.board)){const remaining=remainingGoal(origin,path,goal);if(!remaining||remaining.center)return false;let state=origin;for(const step of path){const r=R.replay(state,step.witness);if(!r.valid||r.events.length!==1)return false;const n=S.advanceNotches(state.board,{state:r.state,event:r.events[0]},notches);if(!n.valid)return false;notches=n.pattern;state=r.state;}return(!remaining.balance||balance(state.board)===0)&&repairEndpoint(state.board,notches);}
 function betterRank(a,b){for(let i=0;i<a.rank.length;i++)if(a.rank[i]!==b.rank[i])return a.rank[i]>b.rank[i];return false;}
 function proofDepth(proof){let n=0;for(;proof;proof=proof.basis)if(++n>4)break;return n;}
 // A repair is an actual finite construction improvement, not a quota of Ts or
 // a promise that an unseen partner will arrive. Center identity is exact.
-function repairCertificate(origin,path,requiredGoal=null){
+function repairCertificate(origin,path,requiredGoal=null,initialNotches=S.notchPattern(origin.board)){
  if(!path?.length||path.length>4)return null;
- let state=origin,notches=S.notchPattern(origin.board),debt=balance(origin.board)!==0,center=null,cleared=false;
+ const fresh=S.notchPattern(origin.board);
+ // A retained proof must regenerate its authority from its immutable origin.
+ // Do not silently downgrade history-only established evidence to unknown.
+ if(initialNotches.status==='broken'||initialNotches.status==='established'&&(fresh.status!=='established'||fresh.anchorRow!==initialNotches.anchorRow))return null;
+ let state=origin,notches=initialNotches,debt=balance(origin.board)!==0,center=null,cleared=false;
  for(let i=0;i<path.length;i++){
   const step=path[i];if(!Array.isArray(step.witness)||step.witness.length>256)return null;const r=R.replay(state,step.witness);if(!r.valid||r.events.length!==1||step.witness.at(-1)!=='HD'||JSON.stringify(r.events[0])!==JSON.stringify(step.event))return null;
-  const e=r.events[0],g=S.geometry(state.board);
+  const e=r.events[0],g=S.geometry(state.board,{notches});
   if(!cleared&&!e.lines&&g.center.patternSupport==='reference-supported'){
    const c=g.center.completions.find(c=>c.resultStatus==='level'&&c.piece===e.type&&sameCells(c.cells,e.cells));if(c)center={piece:c.piece,cells:c.cells.map(c=>c.slice())};
   }
   notches=validStep(state.board,{state:r.state,event:e},notches);if(!notches)return null;
   state=r.state;debt=debt||balance(state.board)!==0;cleared=cleared||e.lines>0;
   const goal={balance:balance(state.board)===0,center};
-  if(requiredGoal?goalPaid(origin,path.slice(0,i+1),requiredGoal):(((debt&&goal.balance)||goal.center)&&centerReady(state.board)))return{origin:clone(origin),steps:clone(path.slice(0,i+1)),goal:clone(requiredGoal||goal),consumed:0};
+  if(requiredGoal?goalPaid(origin,path.slice(0,i+1),requiredGoal,initialNotches):(((debt&&goal.balance)||goal.center)&&repairEndpoint(state.board,notches)))return{origin:clone(origin),steps:clone(path.slice(0,i+1)),goal:clone(requiredGoal||goal),consumed:0};
  }
  return null;
 }
@@ -97,7 +104,7 @@ function checkedRepair(proof,current,depth=0){
  if(R.validate(origin).length||origin.queue.length>6)return null;
  const basis=proof.basis?checkedRepair(proof.basis,origin,depth+1):null;if(proof.basis&&!basis)return null;
  const cert=repairCertificate(origin,proof.steps,basis?.goal);if(!cert||cert.steps.length!==proof.steps.length||proof.consumed>=cert.steps.length)return null;
- let expected=origin;for(const step of cert.steps.slice(0,proof.consumed))expected=R.replay(expected,step.witness).state;
+ let expected=origin,consumedPattern=S.notchPattern(origin.board);for(const step of cert.steps.slice(0,proof.consumed)){const r=R.replay(expected,step.witness),n=S.advanceNotches(expected.board,{state:r.state,event:r.events[0]},consumedPattern);if(!n.valid)return null;consumedPattern=n.pattern;expected=r.state;}
  // Exact saved input prefixes permit following HOLD/rotations. A different
  // manual path may safely drop the proof rather than inventing a pose bridge.
  const first=cert.steps[proof.consumed],prefix=[];let aligned=-1;
@@ -106,10 +113,10 @@ function checkedRepair(proof,current,depth=0){
  }
  if(aligned<0)return null;
  const path=clone(cert.steps.slice(proof.consumed));path[0].witness=path[0].witness.slice(aligned);
- let state=current,n=S.notchPattern(current.board);for(const step of path){const r=R.replay(state,step.witness);if(!r.valid||r.events.length!==1||JSON.stringify(r.events[0])!==JSON.stringify(step.event))return null;n=validStep(state.board,{state:r.state,event:r.events[0]},n);if(!n)return null;step.board=r.state.board;step.holdCount=step.witness.filter(a=>a==='HOLD').length;step.hold=step.holdCount>0;state=r.state;}
+ let state=current,n=consumedPattern;for(const step of path){const r=R.replay(state,step.witness);if(!r.valid||r.events.length!==1||JSON.stringify(r.events[0])!==JSON.stringify(step.event))return null;n=validStep(state.board,{state:r.state,event:r.events[0]},n);if(!n)return null;step.board=r.state.board;step.holdCount=step.witness.filter(a=>a==='HOLD').length;step.hold=step.holdCount>0;state=r.state;}
  // Center goals admitted here have no earlier clear, so their exact rows are
  // unchanged at consumption. A clear before repayment is checked, not waived.
- const goal=remainingGoal(origin,cert.steps.slice(0,proof.consumed),cert.goal);if(!goal||!goalPaid(current,path,goal))return null;
+ const goal=remainingGoal(origin,cert.steps.slice(0,proof.consumed),cert.goal);if(!goal||!goalPaid(current,path,goal,consumedPattern))return null;
  return{proof:{...cert,consumed:proof.consumed,...(basis?{basis:clone(proof.basis)}:{})},goal,path,state,f:features(state.board),notches:n,key:'saved-repair',rank:rank(features(state.board),path.at(-1).event,path)};
 }
 function startSession(raw,{emptyMode=false}={}){
@@ -153,7 +160,7 @@ function plan(raw,options={}){
  const accepted=handoff(state,options.openingClear,{...options,deadline});if(accepted)return accepted;
  // Reserve the complete handoff allowance even when an attempt abstains.
  const reserved=options.openingClear?Math.min(12000,limit):0;base.metrics.handoffReservedNodes=reserved;
- const initial=P.assess(state.board),initialFacts=facts(state.board);initialFacts.notches=P.resolvePatternHistory(state,options.patternHistory);
+ const initial=P.assess(state.board),initialFacts=facts(state.board,P.resolvePatternHistory(state,options.patternHistory));
  if(initial.maxHeight>=20||initialFacts.notches.status==='broken')return{...base,reason:'This opening needs a repair outside the supported construction search.'};
  let saved=checkedRepair(options.openingRepair,state);
  const mayClear=initialFacts.notches.status==='established'&&[state.active.type,state.hold,...state.queue.slice(0,3)].some(t=>t==='T'||t==='I');
@@ -161,7 +168,7 @@ function plan(raw,options={}){
  const searchDeadline=mayClear&&Number.isFinite(deadline)?deadline-Math.min(120,Math.max(0,deadline-now())/4):deadline;
  base.metrics.handoffProbeReservedNodes=probeReserve;
  let beam=[{state,path:[],f:initialFacts,notches:initialFacts.notches,key:'',rank:[]}],best=null,stopped=false;const clearCandidates=[],repairCandidates=[];
- const accessSafe=node=>{const proof=P.checkAccessPrefix(state,node.path,{notches:initialFacts.notches,deadline,now,maxNodes:Math.max(0,limit-reserved-base.metrics.nodes)});base.metrics.nodes+=proof.visited;base.metrics.gapAccessNodes=(base.metrics.gapAccessNodes||0)+proof.visited;return proof.reachable===true;};
+ const accessSafe=node=>{if(node.accessProof?.reachable===true||node.accessProof?.reachable===false)return node.accessProof.reachable;const proof=P.checkAccessPrefix(state,node.path,{notches:initialFacts.notches,deadline,now,maxNodes:Math.max(0,limit-reserved-base.metrics.nodes)});base.metrics.nodes+=proof.visited;base.metrics.gapAccessNodes=(base.metrics.gapAccessNodes||0)+proof.visited;node.accessProof=proof;return proof.reachable===true;};
  if(saved&&!accessSafe(saved))saved=null;
  for(let d=0;d<depth;d++){
   const nodes=[];
@@ -180,13 +187,17 @@ function plan(raw,options={}){
   }
   if(!nodes.length)break;
   const unique=[...new Map(nodes.sort(compare).reverse().map(n=>[n.key,n])).values()].sort(compare);
-  for(const node of unique){if(now()>=deadline){stopped=true;break;}if(node.path.at(-1).event.lines&&handoffGeometry(node.state))clearCandidates.push(node);if(saved&&node.path.length===saved.path.length&&goalPaid(state,node.path,saved.goal))repairCandidates.push(node);}
+  for(const node of unique){if(now()>=deadline){stopped=true;break;}if(node.path.at(-1).event.lines&&handoffGeometry(node.state))clearCandidates.push(node);if(saved&&node.path.length===saved.path.length&&goalPaid(state,node.path,saved.goal,initialFacts.notches))repairCandidates.push(node);}
   best=unique.find(node=>now()<deadline&&accessSafe(node))||best;base.metrics.depth=d+1;if(!stopped)base.metrics.completeDepth=d+1;
   base.metrics.enumeration='reduced-stage-envelope-not-exhaustive';
   // Keep different first-piece/region/parity families alive, not just adjacent
   // poses of one greedy foundation. This does not make enumeration exhaustive.
-  const chosen=[],groups=new Set();for(const n of unique){const e=n.path[0].event,g=[e.type,Math.floor(e.cells.reduce((s,c)=>s+c[0],0)/4/4),Math.sign(n.f.parity)].join(':');if(!groups.has(g)){chosen.push(n);groups.add(g);if(chosen.length>=width)break;}}
-  for(const n of unique)if(chosen.length<width&&!chosen.includes(n))chosen.push(n);
+  // A definitively rejected executed prefix cannot become returnable by adding
+  // descendants under the current no-delayed-access-repair policy. Unknown
+  // checks remain candidates; this is not an endpoint-shape pruning rule.
+  const expandable=unique.filter(n=>n.accessProof?.reachable!==false);base.metrics.accessPrunedPrefixes=(base.metrics.accessPrunedPrefixes||0)+unique.length-expandable.length;
+  const chosen=[],groups=new Set();for(const n of expandable){const e=n.path[0].event,g=[e.type,Math.floor(e.cells.reduce((s,c)=>s+c[0],0)/4/4),Math.sign(n.f.parity)].join(':');if(!groups.has(g)){chosen.push(n);groups.add(g);if(chosen.length>=width)break;}}
+  for(const n of expandable)if(chosen.length<width&&!chosen.includes(n))chosen.push(n);
   beam=chosen;if(stopped)break;
  }
  // Probe only actual candidate post-clear public states, within this request's
@@ -209,21 +220,21 @@ function plan(raw,options={}){
  if(saved){
   // A checked complete handoff is a stronger fulfilled goal. Otherwise compare
   // only equal-lock repair endpoints; unseen/pruned alternatives cannot win.
-  if(!(verified&&proofDepth(saved.proof)<4&&goalPaid(state,verified.path,saved.goal))){
+  if(!(verified&&proofDepth(saved.proof)<4&&goalPaid(state,verified.path,saved.goal,initialFacts.notches))){
    const replacement=repairCandidates.sort(compare).find(node=>now()<deadline&&accessSafe(node));
    if(replacement&&proofDepth(saved.proof)<4&&betterRank(replacement,saved))best=replacement;else{best=saved;retained=true;}
   }
  }
  base.metrics.elapsedMs=now()-started;base.metrics.repairRetained=retained;base.metrics.searchLimitReached=stopped;
  if(!best)return{...base,status:stopped?'budget-exhausted':base.status};
- const freshRepair=repairCertificate(state,best.path,saved&&!retained?saved.goal:null);
+ const freshRepair=repairCertificate(state,best.path,saved&&!retained?saved.goal:null,initialFacts.notches);
  const repair=retained?saved.proof:freshRepair&&saved?{...freshRepair,basis:clone(saved.proof)}:freshRepair;
- const first=best.path[0],end=facts(best.state.board),hold=first.holdCount===2?'Hold twice. ':first.holdCount?'Hold once. ':'';
+ const first=best.path[0],end=facts(best.state.board,best.notches),hold=first.holdCount===2?'Hold twice. ':first.holdCount?'Hold once. ':'';
  const region=first.event.cells.every(([x])=>x<4)?'Left':first.event.cells.every(([x])=>x>=4&&x<7)?'Center':first.event.cells.every(([x])=>x>=7)?'Right':'foundation';
- const pending=[];if(end.parity)pending.push(`Left mino balance is ${end.parity>0?'+':''}${end.parity}; its repair is not yet proved`);if(end.centerStatus!=='level')pending.push('the Center is still under construction');
- const reason=hold+(retained?'Continue the checked construction repair. ':'')+(first.event.lines?`Take the checked ${first.event.lines===4?'Tetris':'T-spin double'} while building the opening.`:`Place ${first.event.type} in the ${region} to build the ST opening.`)+` Checked ${best.path.length} legal placement${best.path.length===1?'':'s'} using only visible pieces. `+(pending.length?pending.join('; ')+'. ':'This prefix has balanced Left minos and a level Center. ')+ (best.handoffContinuation?'This prefix reaches a checked maintenance continuation; the handoff will be rechecked after the actual clear. ':'')+'This is partial construction, not a completed opening or proof of future piece availability.';
+ const pending=[];if(end.parity)pending.push(`Left mino balance is ${end.parity>0?'+':''}${end.parity}; its repair is not yet proved`);if(end.centerStatus!=='level')pending.push('the Center top pattern is still under construction');if(end.centerFoundationStatus==='unfinished-lower-foundation')pending.push('the lower Center still has unfilled cells outside the intended notches');else if(end.centerFoundationStatus==='unknown-phase')pending.push('the lower Center foundation is not yet phase-verified');
+ const reason=hold+(retained?'Continue the checked construction repair. ':'')+(first.event.lines?`Take the checked ${first.event.lines===4?'Tetris':'T-spin double'} while building the opening.`:`Place ${first.event.type} in the ${region} to build the ST opening.`)+` Checked ${best.path.length} legal placement${best.path.length===1?'':'s'} using only visible pieces. `+(pending.length?pending.join('; ').replace(/^./,c=>c.toUpperCase())+'. ':'This prefix has balanced Left minos and a level Center. ')+ (best.handoffContinuation?'This prefix reaches a checked maintenance continuation; the handoff will be rechecked after the actual clear. ':'')+'This is partial construction, not a completed opening or proof of future piece availability.';
  const sources=[{id:'SHOCKY-OPENING',label:"Shocky's ST Stacking Guide",url:'https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit',section:'Chapters 1–4: regions, construction and mino parity',scope:'Community background for opening construction. The coach checks this finite prefix; the guide does not certify this exact move or future availability.'}];
  return{...base,status:'recommended-with-verified-prefix',target:first.target,hold:first.hold,holdCount:first.holdCount,witness:first.witness,continuation:best.path,reason,sources,assessment:P.assess(best.state.board),evidence:{opening:{status:'partial-construction',initial:initialFacts,endpoint:end,unresolved:pending,repair,handoffCandidate:best.handoffContinuation?{status:'verified-public-post-clear-continuation',continuation:best.handoffContinuation}:null},knownPieceHorizon:state.queue.length+1}};
 }
-return Object.freeze({balance,features,facts,handoffGeometry,handoff,plan,startSession,updateSession,acceptResult,repairCertificate,checkedRepair,goalPaid});
+return Object.freeze({balance,features,facts,repairEndpoint,handoffGeometry,handoff,plan,startSession,updateSession,acceptResult,repairCertificate,checkedRepair,goalPaid});
 });

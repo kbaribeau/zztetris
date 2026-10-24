@@ -27,3 +27,9 @@ Normal search budgets are unchanged. Production stage discovery receives at most
 ## Compact opening regression data
 
 `test/support/st-opening-round1.json` is reduced from 1,358,616 to 216,816 bytes, retaining readable JSON. All 39 handoff observations and actual-clear proofs, all 41 consumed continuation witnesses/events, all eight failed-clear observations and the repair-control certificate remain structurally identical. Eleven count-only endpoints become seed-only records. Unused diagnostic context and duplicated evidence were removed, not the regression tests. The simulator complements these controls; it does not replace rare safety/lifecycle tests.
+
+## Autonomous development comparison
+
+The frozen candidate was compared with the preceding access/history checkpoint on the same saved development inputs. At the exact before-gap root, the engine autonomously selected the pair and reached the 40-additional-lock cap with 14 lines (five full T-spin doubles and one Tetris), with no covered Left cells throughout. The separate immediate-scoring control kept the T-spin double in both versions; the pair did not override that protected goal.
+
+Across seven full empty-board streams, five handed off in both versions, and four reached the joint opening criterion versus three previously. Only the repaired stream used this stage, at locks 13–14: it improved from a 13-lock abstention to 130 locks, 38 lines and three Tetrises. Later Center/Left defects still developed and it eventually abstained. All seven runs abstained; none is evidence of indefinite play or the agreed >99% held-out success target. Other timing-sensitive wins/losses are not attributed to this stage merely because the binary changed. All 562 full-run locks and 110 rooted locks were independently replayed; regenerated elapsed-time metadata was excluded from request equivalence, not events, actions, supply or obligations.

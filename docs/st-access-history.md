@@ -43,3 +43,9 @@ A production-budget pilot compared `493b82a` with the already observed `c209e600
 | 502504730 | 71 | 37 | Early divergence coincided with completed search depth dropping from3 to2; not clean causal strategy evidence. |
 
 Handoffs were5/7 in both versions; the joint goal (handoff, then two actual Tetrises with a full T-spin double between them) was3/7 versus2/7. These small, previously observed and timing-sensitive development runs do not establish broad reliability or a99% success rate. The later paired-foundation candidate must be tested separately rather than credited with these results.
+
+## Opening beam allocation
+
+An opening node whose complete executed prefix has a definitive negative movement-access result is no longer retained for later expansion. Under the current policy, every descendant would replay the same rejected lock and fail again; there is no delayed-clear or future-blocker exception that could make that prefix admissible. This does not prune a temporarily awkward endpoint, a physically accessible pocket, or an incomplete/unknown access check. The result is memoized only on that request's exact node/path.
+
+This reallocates finite search effort to still-admissible paths without changing the safety criterion or score weights. It is not a speed guarantee: exploring additional valid alternatives can consume more nodes. The fixed-node I10 diagnostic prunes four rejected prefixes but retains the same winner. A separate complete three-placement T/T/I probe found no admissible first T under current access/sealing constraints, so no new I-priority or paired-T exception was added to force that counterfactual.

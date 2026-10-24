@@ -36,3 +36,13 @@ Candidate `27d4cb7` passed the clean 475-test suite; independent focused review 
 There were no returned invalid recommendations, actual top-outs, policy stops or runner errors in these four candidate runs. None meets the new joint two-Tetris outcome. These mixed development results support the exact repair and stricter handoff semantics, not a general performance or reliability claim. Wall-clock search remains incomplete and timing-sensitive: maximum observed planning including runner overhead was approximately 825 ms despite the cooperative 750 ms planning budget. Historical baseline timing is not a controlled simultaneous benchmark. No further strategy tuning was performed to hide these outcomes.
 
 The subsequent phase-aligned Center and finite preparation changes are described in [Center foundation and continuation checks](st-center-foundation.md). They address the earlier maintenance construction divergence, not a relaxation of the late notch guards.
+
+## Known lower-foundation debt is not a completed repair
+
+A later development trace exposed a mismatch: the opening repair certificate accepted a balanced Left and a supported, level Center top while two known non-notch cells remained empty below that top. The handoff correctly rejected the same board later. Completing the top motif is not repayment of that lower-foundation debt.
+
+Repair-goal completion now checks the established, replay-translated scoring phase as well as the top motif. An actual temporary gap may still be filled by a later legal placement before the finite endpoint; it is not a per-placement ban. The recorded I→J preparation control demonstrates that distinction. An unknown phase remains unknown and may support only the explicitly partial parity/top-pattern construction claim, not an alignment claim. A history-only anchor that cannot be regenerated from the immutable proof origin cannot create a retained opening-repair certificate.
+
+Advice now reports known unfilled lower Center cells even when the top is level, and explicitly identifies an unverified phase. This patch does not force an unproved alternative at the earlier J placement. Bounded same-board alternatives exposed tradeoffs between Center debt, accessible Left pockets, height and supply; they did not establish a universal replacement policy. The diagnostic source is a development stream, not a canonical reference or hidden future oracle.
+
+The bounded follow-up, all15 recorded outcomes, timing diagnosis and remaining limits are summarized in [the dated development checkpoint](st-opening-development-2026-10-24.md).

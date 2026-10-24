@@ -182,14 +182,17 @@ function runEpisode(input, {config=CONFIG, planner=workerPlanner(), onRecord=()=
   delete summary.latencies;
   onRecord({kind:'summary',summary});return summary;
 }
+// A retained suffix is re-certified during replay, so its elapsed duration is
+// regenerated. Exclude only that measurement, never goals, witnesses or supply.
+function replayRequest(request){const value=clone(request);if(value.commitment?.advice?.metrics)delete value.commitment.advice.metrics.elapsedMs;return value;}
 function replayRecords(input, records, api=P) {
   const session=createSession(input,api);let locks=0;
   for(const record of records)if(record.kind==='lock') {
-    assert.deepEqual(session.request(record.lock,record.request.options),record.request,'Public decision state diverged before lock '+record.lock);
+    assert.deepEqual(replayRequest(session.request(record.lock,record.request.options)),replayRequest(record.request),'Public decision state diverged before lock '+record.lock);
     const actual=session.execute(record.advice);
     assert.deepEqual(actual.event,record.event);assert.deepEqual(actual.actions,record.actions);
     assert.deepEqual(publicObservation(session.state),record.after);locks++;
   }
-  return {mode:'recorded-action-replay',locks,verified:true,finalObservation:publicObservation(session.state),note:'No search rerun; this validates the saved actions against the current rules/controller.'};
+  return {mode:'recorded-action-replay',locks,verified:true,finalObservation:publicObservation(session.state),ignoredVolatileRequestFields:['commitment.advice.metrics.elapsedMs'],note:'No search rerun; exact actions/events/public state and non-timing request data are checked. Only regenerated commitment certification duration is excluded.'};
 }
 module.exports={publicObservation,CONFIG,PRESETS,RNG_VERSION,SOURCE_FILES,clone,digest,random,sourceHashes,makeInput,workerPlanner,validateAdvice,boardMetrics,createSession,runEpisode,replayRecords};
