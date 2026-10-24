@@ -206,6 +206,17 @@ function centerFoundation(board,notches=notchPattern(board)){
   if(board[y][x]==='.'&&!(x===6&&notches.protectedRows.includes(y)))vacancies.push([x,y]);
  return {status:vacancies.length?'unfinished-lower-foundation':'aligned',vacancies,profile};
 }
+// A phase-relative construction state, not evidence that a clear occurred.
+// Callers supplying a phase must already have validated its actual history.
+// This does not certify Left balance, Right duties, a full motif or handoff.
+function centerLevelBase(board,notches=notchPattern(board)){
+ if(notches.status==='broken')return {status:'invalid-phase'};
+ if(notches.status!=='established')return {status:'unknown-phase'};
+ if(!Number.isInteger(notches.anchorRow)||notches.anchorRow<0||notches.anchorRow>39)return {status:'invalid-phase'};
+ const anchor=notches.anchorRow;if(anchor===39)return {status:'other-foundation',anchorRow:anchor};
+ for(let y=0;y<40;y++)for(let x=4;x<7;x++)if((board[y][x]!=='.')!==(y>anchor))return {status:'other-foundation',anchorRow:anchor};
+ return {status:'phase-aligned-level-base',anchorRow:anchor,level:39-anchor};
+}
 function geometry(board,options={}){const notches=options.notches??notchPattern(board);
  // Identical occupancy can carry a different translated scoring phase. Never
  // reuse partner evidence from another phase (or from an unanchored board).
@@ -295,5 +306,5 @@ function transition(before,p,afterStructure,options={}){const beforeNotches=opti
  const reason=allocation==='horizontal-left-I'?'Keep the left region flat.':allocation==='center-partner-preparation'?partner?'Start the ordered '+type+'/'+partner.piece+' center pair.':'Prepare the center; no ordered level-finishing pair has been established.':allocation==='center-completion'?'Complete the center pattern.':allocation==='scoring-double'?'Take the T-spin double and assess its rebuild.':allocation==='scoring-T-diversion'?'Diverts a T from the scoring role; another T may remain, but its timely use is not established.':allocation==='quad-preparation'?'Prepare the right-side I cleanup while keeping column eight open.':allocation==='quad-cleanup'?'Clear the scoring channel with a quad.':allocation==='unrecognized-role'?'This allocation needs additional regional repair evidence.':allocation==='right-cap-extension'?'Extends an existing cap; renewed entry still needs checking.':'Preserve a supported regional piece role.';
  return{reason,cycleViolations,pairFamily,pairProgress,pairEvidence:pairFamily?'ordered actual preparation plus checked level-finishing placement':null,opportunityCost,leftSubstitutes:substitutes,regions,crossRegion:regions.length>1,allocation,status:['unrecognized-role','scoring-T-diversion','right-cap-extension'].includes(allocation)?'requires-repair-evidence':'supported-local-role',dependencyDebt:debt,newlyCovered,regionalRepair,repairCredit:Math.min(8,repaired*2),note:'Crossing a boundary is not forbidden. Debt measures unsupported allocation and new structural repair burden; a later checked repair may repay it.'};
 }
-return Object.freeze({assess,transition,geometry,instances,allocate,canonicalClear,centerFoundation,notchPattern,advanceNotches,CENTER_PAIRS,leftSubstitutes,clearCache:()=>{cache.clear();substituteCache.clear();}});
+return Object.freeze({assess,transition,geometry,instances,allocate,canonicalClear,centerFoundation,centerLevelBase,notchPattern,advanceNotches,CENTER_PAIRS,leftSubstitutes,clearCache:()=>{cache.clear();substituteCache.clear();}});
 });

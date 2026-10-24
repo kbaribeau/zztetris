@@ -3,14 +3,16 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const P=require('../st-planner'),R=require('../st-rules'),S=require('../st-structure'),X=require('../st-paired-repair');
 const fixture=require('./support/st-construction-recovery.json'),ordinary=require('./support/st-construction-ordinary-control.json');
 const clone=x=>JSON.parse(JSON.stringify(x));
+let recoveryAdvice;
+function actualRecoveryAdvice(){if(!recoveryAdvice){S.clearCache();recoveryAdvice=P.plan(fixture.initial,{timeMs:750});assert.ok(recoveryAdvice.target);}return clone(recoveryAdvice);}
 test('construction stage discovers a seven-lock public recovery without recorded witnesses',()=>{
  S.clearCache();const started=performance.now(),a=P.plan(fixture.initial,{timeMs:750});
  assert.ok(a.target,a.reason);assert.equal(a.evidence.strategy,'finite-regional-repair');assert.equal(a.continuation.length,7);assert.ok(performance.now()-started<850);
  assert.equal(a.evidence.cycleResources.tFillers,2);assert.equal(a.evidence.cycleResources.tsds,1);
- assert.ok(X.validateCertificate(fixture.initial,a.continuation).valid);assert.equal(a.metrics.search.depth,7);
+ assert.ok(X.validateCertificate(fixture.initial,a.continuation).valid);assert.equal(a.metrics.search.depth,7);recoveryAdvice=clone(a);
 });
 test('construction parity survives each real lock and retires only after the checked endpoint',()=>{
- let s=P.observe(fixture.initial),a=P.plan(s,{timeMs:750});assert.ok(a.target);
+ let s=P.observe(fixture.initial),a=actualRecoveryAdvice();assert.ok(a.target);
  for(let i=0;i<7;i++){
   const r=R.replay(s,a.witness);assert.ok(r.valid);const suffix=P.continueCommitment(s,r.state,a,r.events[0]);
   if(i===0)assert.equal(Math.abs(suffix.evidence.constructionStage.parity),2);
@@ -20,7 +22,7 @@ test('construction parity survives each real lock and retires only after the che
  }
 });
 test('construction refuses forged progress, wrong actual lock and absent visible parity/scoring supply',()=>{
- const a=P.plan(fixture.initial,{timeMs:750}),r=R.replay(fixture.initial,a.witness);
+ const a=actualRecoveryAdvice(),r=R.replay(fixture.initial,a.witness);
  const forged=clone(a);forged.evidence.construction.consumed=3;
  assert.equal(P.continueCommitment(fixture.initial,r.state,forged,r.events[0]),null);
  assert.equal(P.continueCommitment(fixture.initial,r.state,a,{...r.events[0],spin:'full'}),null);
@@ -38,7 +40,7 @@ test('construction retains ordinary scoring instead of imposing a reference T di
 });
 
 test('construction obeys an already exhausted response budget even with an existing proof',()=>{
- const a=P.plan(fixture.initial,{timeMs:750});const start=performance.now();
+ const a=actualRecoveryAdvice();const start=performance.now();
  const result=P.plan(fixture.initial,{timeMs:0,commitment:{observation:fixture.initial,advice:a}});
  assert.equal(result.target,null);assert.ok(performance.now()-start<100);
 });
@@ -86,5 +88,5 @@ test('cap stage cannot bypass existing I cleanup or accept a forged construction
  assert.equal(S.geometry(s.board).right.cycle.prepareColumn,9);
  const p=R.placements(s).placements.find(p=>p.event.type==='Z'&&p.event.cells.every(([x])=>x<7));assert.ok(p);
  assert.equal(X.validateCertificate(s,[{witness:p.witness}],{kind:'cap-deferral'}).reason,'cap-deferral-cannot-bypass-cleanup-I');
- const pair=P.plan(fixture.initial,{timeMs:750});assert.equal(X.validateCertificate(fixture.initial,pair.continuation,{kind:'cap-deferral'}).valid,false);
+ const pair=actualRecoveryAdvice();assert.equal(X.validateCertificate(fixture.initial,pair.continuation,{kind:'cap-deferral'}).valid,false);
 });

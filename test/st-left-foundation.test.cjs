@@ -3,6 +3,8 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const P=require('../st-planner'),Y=require('../st-left-foundation'),R=require('../st-rules'),S=require('../st-structure'),A=require('../st-access');
 const initial=require('./support/st-gap-phase.json').gap.observation,score=require('./support/st-left-foundation-score-control.json');
 const config={maxNodes:45000,depth:3,width:8},clone=x=>JSON.parse(JSON.stringify(x));
+let foundationAdvice;
+function actualFoundationAdvice(){if(!foundationAdvice){foundationAdvice=P.plan(initial,config);assert.equal(foundationAdvice.evidence.construction.kind,'left-foundation');}return clone(foundationAdvice);}
 function discovered(s=initial){const root=R.placements(s),found=Y.search(s,root.placements,{rootComplete:root.complete,deadline:Infinity,maxNodes:12000});assert.ok(found.candidate);return found;}
 test('visible paired stage discovers exact Left foundation completion without a supplied route',()=>{
  const found=discovered(),cert=Y.validate(initial,found.candidate.steps);assert.ok(cert.valid);assert.equal(cert.continuation.length,2);
@@ -10,7 +12,7 @@ test('visible paired stage discovers exact Left foundation completion without a 
  assert.ok(cert.end.board.every((row,y)=>row.slice(4)===initial.board[y].slice(4)));assert.equal(S.centerFoundation(cert.end.board).vacancies.length,0);
  assert.equal(A.prefix(initial,cert.continuation).reachable,true);
  const neutral={...initial,board:initial.board.map(r=>r.replace(/[IJLOSTZ]/g,'#'))};assert.ok(Y.validate(neutral,found.candidate.steps).valid);
- const advice=P.plan(initial,config);assert.equal(advice.evidence.construction.kind,'left-foundation');assert.equal(P.cycleResources(advice.continuation).leftFoundations,1);assert.equal(advice.evidence.cycleResources.tsds,0);assert.match(advice.reason,/does not yet complete the Center/);
+ const advice=P.plan(initial,config);assert.equal(advice.evidence.construction.kind,'left-foundation');assert.equal(P.cycleResources(advice.continuation).leftFoundations,1);assert.equal(advice.evidence.cycleResources.tsds,0);assert.match(advice.reason,/does not yet complete the Center/);foundationAdvice=clone(advice);
 });
 test('foundation stage refuses absent visible mate, immediate scoring, inherited roofs and forged steps',()=>{
  const found=discovered();assert.equal(Y.validate({...initial,queue:['L','L','O','I','J','S']},found.candidate.steps).valid,false);
@@ -21,7 +23,7 @@ test('foundation stage refuses absent visible mate, immediate scoring, inherited
  const root=R.placements(initial);assert.equal(Y.search(initial,root.placements,{rootComplete:false}).candidate,null);
 });
 test('foundation obligation survives first actual T and refreshed preview, then retires',()=>{
- const a=P.plan(initial,config),first=R.replay(initial,a.witness),next={...first.state,queue:[...first.state.queue,'Z'],bag:require('../st-bag').consume(first.state.bag,'Z')};
+ const a=actualFoundationAdvice(),first=R.replay(initial,a.witness),next={...first.state,queue:[...first.state.queue,'Z'],bag:require('../st-bag').consume(first.state.bag,'Z')};
  const suffix=P.continueCommitment(initial,next,a,first.events[0]);assert.ok(suffix);assert.equal(Math.abs(suffix.evidence.constructionStage.parity),2);assert.equal(suffix.continuation.length,1);
  const fresh=P.plan(next,{...config,commitment:{observation:next,advice:suffix}});assert.equal(fresh.evidence.construction.kind,'left-foundation');assert.equal(fresh.target.type,'T');
  const end=R.replay(next,fresh.witness);assert.equal(Y.parity(end.state.board),0);assert.equal(P.continueCommitment(next,end.state,fresh,end.events[0]),null);
@@ -44,7 +46,7 @@ test('two-lock discovery respects empty-hold supply and distinct resulting hold 
  const roots=R.placements(s,{allowHold:false}),later=Y.search(s,roots.placements,{rootComplete:roots.complete,deadline:Infinity,maxNodes:12000});assert.ok(later.candidate);assert.ok(later.candidate.steps[1].witness.includes('HOLD'));
 });
 test('occupied HOLD rebinds the same mate, while unrelated hold/preview and tiny budgets cannot certify it',()=>{
- const a=P.plan(initial,config),first=R.replay(initial,a.witness),suffix=P.continueCommitment(initial,first.state,a,first.events[0]);assert.ok(suffix);
+ const a=actualFoundationAdvice(),first=R.replay(initial,a.witness),suffix=P.continueCommitment(initial,first.state,a,first.events[0]);assert.ok(suffix);
  const swapped=R.move(first.state,'HOLD'),commitment={observation:first.state,advice:suffix};
  const tiny=P.plan(swapped,{maxNodes:1,timeMs:750,commitment});assert.equal(tiny.target,null);assert.ok(tiny.metrics.nodes<=1);
  const resumed=P.plan(swapped,{maxNodes:8000,timeMs:750,commitment});assert.equal(resumed.evidence.construction.kind,'left-foundation');assert.equal(resumed.holdCount,1);assert.ok(resumed.metrics.nodes<=8000);

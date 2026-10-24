@@ -1,5 +1,10 @@
 # Prefer clean center construction before nearby scoring
 
+> Historical evidence: the original inferred3A Z-left/L-center/TSD route below
+> was later rejected by the movement-access guard. It strands Left cell(1,27),
+> translated to(1,29)by the double. These earlier measurements are preserved as
+> history, not a currently accepted clean route. See [access/history review](st-access-history.md).
+
 The reviewed preparation trace first loses its known S/L center at lock 11, not
 at the later tall endpoint. From that same public board, Z-left, L-center and a
 T-spin double are executable in three locks and finish with a level center at
@@ -109,3 +114,54 @@ three completed locks) before its actual move divergence at 78, so timing and
 retained commitments confound causal attribution. No weights or seed exceptions
 were added to chase these outcomes. Longer construction visibility and better
 cycle-resource valuation remain limitations of the short-horizon preference.
+
+## Completed cap/T preparation comparison (2026-10-24)
+
+The later development stream502504730 exposes a narrower inconsistency in the
+bounded preparation search. Before lock38, both the original L-center and a
+legal L-left root are already among the four ordinary preparation roots. Each
+can execute a three-lock L/Z-cap/T-spin-double proof using only public supply.
+The L-center proof leaves unresolved Center continuity; the L-left proof keeps
+a level, reference-supported, aligned Center. The latter can leave a physically
+accessible Left pocket and is not a demonstrated whole-board dominance claim.
+
+Previously, this preparation-only comparison ranked the immediate root's
+structural band before the completed endpoint. If ordinary search stopped
+before finishing the next layer, that ordering could return the unresolved
+proof even though the cleaner completed proof was already available. The experimental
+comparison applied the existing three safety/support/cycle gates and
+endpoint continuity before the immediate root-band tie-break. No extra beam
+slot, new geometry exception or score weight is introduced. The original
+route remains legally executable; the change concerns which completed proof
+is preferred, not move legality.
+
+A same-state fixed-node ablation isolates the behavior: at18,000 nodes the
+candidate returns the cleaner three-lock double while ordinary search has
+completed only depth2. At45,000 nodes both versions already return the same
+clean proof with23,283 visited nodes. At12,000 nodes final access validation
+can return only a one-lock checked fallback: it must not claim a completed
+T-spin-double preparation. Regression tests replay both literal witnesses,
+compare exact events and full public endpoints, and verify the fallback's
+reported evidence. Equivalent movement-input order need not be identical.
+
+These are finite proof-selection results. Matched closed-loop continuations
+are a separate check; Center continuity alone does not establish survival or
+repayment of every Left/Right resource obligation.
+
+### Decision: revert the preparation comparator experiment
+
+Candidate`f9e8493` was compared with`0c76949` using an exact before-L38 rooted
+pair and three fresh alternating-order full-stream pairs. All690 executed
+locks replayed; every arm abstained, with no illegal/policy/harness failure.
+The rooted candidate lasts34 rather than22 further locks, but both score8
+lines. At common22-lock exposure both have mass96,height16 and no Left-covered
+cells; candidate has five buried Center vacancies versus baseline three.
+
+Full-start outcomes do not reproduce a benefit:502504730 lasts71→59 locks
+with14 lines in both;503237833 remains86/joint75/24 lines;502400001 lasts131→127
+with38 lines in both (joint goal76→66). Total288→272 locks, three handoffs
+and two joint goals in both arms. Timed search contributes variability, but
+there is no demonstrated scoring or equal-exposure structural improvement.
+The production comparator is therefore reverted. The exact legal alternatives
+and fixed-node findings remain research controls without enforcing the
+rejected winner. Reviewed test-local setup reuse is retained independently.

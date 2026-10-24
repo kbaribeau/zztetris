@@ -13,12 +13,14 @@ function parse(args) {
   for(let i=0;i<args.length;i++) {
     const key=args[i];
     if(key==='--help'){out.help=true;continue;}
+    if(key==='--usage-telemetry'){out['usage-telemetry']=true;continue;}
     if(key==='--compare'){out.compare=[args[++i],args[++i]];if(out.compare.some(x=>!x||x.startsWith('--')))throw Error('--compare requires two run directories');continue;}
     if(!['--preset','--scenario','--seeds','--locks','--out','--replay','--rerun','--episode-ms','--lane','--child'].includes(key))throw Error('Unknown option '+key);
     const value=args[++i];if(!value||value.startsWith('--'))throw Error('Missing value for '+key);out[key.slice(2)]=value;
   }
   return out;
 }
+function configuration(options={}){return options['usage-telemetry']?{...E.CONFIG,usageTelemetry:true}:E.CONFIG;}
 function failure(summary){return ['invalid-recommendation','execution-error','policy-violation','planner-error','planner-timeout','runner-error','artifact-limit','source-changed'].includes(summary.stop);}
 function compare(a,b) {
   if(a.episodes.length===0||b.episodes.length===0)throw Error('Comparison requires nonempty cohorts');
@@ -66,8 +68,10 @@ function fallback(directory,input,result) {
 }
 function main(args=process.argv.slice(2)) {
   const o=parse(args);
+  if(o['usage-telemetry']&&(o.replay||o.compare))throw Error('--usage-telemetry instruments new decisions; use it with a run or --rerun, not replay/compare');
+  const config=configuration(o);
   if(['compare','replay','rerun','child'].filter(key=>o[key]).length>1)throw Error('Choose one of --compare, --replay or --rerun');
-  if(o.help){console.log(`ST closed-loop evaluation (Node 24.20.0; no browser/dependencies)\n\nnpm run sim:st -- --preset quick [--scenario empty|stable|both]\nnpm run sim:st -- --preset research [--seeds 1,2] [--locks 500]\nnpm run sim:st -- --replay test-results/simulation/RUN/empty-1\nnpm run sim:st -- --rerun test-results/simulation/RUN/empty-1\nnpm run sim:st -- --compare BASELINE_RUN CANDIDATE_RUN\n\nOptions: --out parent-directory, --episode-ms wall-watchdog, --lane production.\nOnly production wall-clock lane is supported; fixed seeds are not deterministic search.\nQuick: 2 development seeds × 24 locks. Research: 16 seeds × 500 locks.\nDefaults start empty. Stable uses the public marathon-rebuild position with a seeded valid continuation, not its fixed demo tail.\nAbstention is a measured outcome, not a failing command or a top-out. Safety/runner failures exit nonzero.`);return;}
+  if(o.help){console.log(`ST closed-loop evaluation (Node 24.20.0; no browser/dependencies)\n\nnpm run sim:st -- --preset quick [--scenario empty|stable|both]\nnpm run sim:st -- --preset research [--seeds 1,2] [--locks 500]\nnpm run sim:st -- --replay test-results/simulation/RUN/empty-1\nnpm run sim:st -- --rerun test-results/simulation/RUN/empty-1\nnpm run sim:st -- --compare BASELINE_RUN CANDIDATE_RUN\n\nOptions: --out parent-directory, --episode-ms wall-watchdog, --lane production, --usage-telemetry.\nUsage counters are opt-in and recorded in run configuration; measure overhead before timed comparisons.\nOnly production wall-clock lane is supported; fixed seeds are not deterministic search.\nQuick: 2 development seeds × 24 locks. Research: 16 seeds × 500 locks.\nDefaults start empty. Stable uses the public marathon-rebuild position with a seeded valid continuation, not its fixed demo tail.\nAbstention is a measured outcome, not a failing command or a top-out. Safety/runner failures exit nonzero.`);return;}
   if(o.child){child(o.child);return;}
   if(process.version!=='v24.20.0')throw Error('Use Node 24.20.0 from .nvmrc; current '+process.version);
   if(o.compare){const report=compare(...o.compare.map(d=>json(path.join(d,'manifest.json'))));console.log(JSON.stringify(report,null,2));return report;}
@@ -81,17 +85,17 @@ function main(args=process.argv.slice(2)) {
   const rerun=o.rerun?json(path.join(path.resolve(o.rerun),'input.json')):null;
   if(rerun&&(o.seeds||o.scenario||o.locks))throw Error('--rerun preserves recorded input and cap; do not override seeds/scenario/locks');
   const inputs=rerun?[rerun]:(scenario==='both'?['empty','stable']:[scenario]).flatMap(s=>seeds.map(seed=>E.makeInput(s,seed,locks)));
-  const cap=rerun?rerun.locks:locks,episodeMs=integer(o['episode-ms']||Math.ceil(cap*(E.CONFIG.timeMs+1750)+5000),'episode-ms',100,7200000);
+  const cap=rerun?rerun.locks:locks,episodeMs=integer(o['episode-ms']||Math.ceil(cap*(config.timeMs+1750)+5000),'episode-ms',100,7200000);
   const id=new Date().toISOString().replaceAll(':','-')+'-'+process.pid;
   const directory=path.resolve(o.out||path.join(ROOT,'test-results/simulation'),id);fs.mkdirSync(directory,{recursive:true});
   const git=(...a)=>execFileSync('git',a,{cwd:ROOT,encoding:'utf8'}).trim();
-  const manifest={schemaVersion:1,id,command:args,startedAt:new Date().toISOString(),commit:git('rev-parse','HEAD'),dirty:Boolean(git('status','--porcelain')),node:process.version,platform:process.platform,arch:process.arch,cpu:os.cpus()[0]?.model,lockHash:E.digest(fs.readFileSync(path.join(ROOT,'package-lock.json'),'utf8')),sources:E.sourceHashes(),preset:rerun?'recorded-input-rerun':preset,config:E.CONFIG,locks:cap,rng:E.RNG_VERSION,lane:'production-wall-clock',execution:'rapid-uninterrupted-actual-witness-v1',episodeMs,episodes:[],complete:false};
+  const manifest={schemaVersion:1,id,command:args,startedAt:new Date().toISOString(),commit:git('rev-parse','HEAD'),dirty:Boolean(git('status','--porcelain')),node:process.version,platform:process.platform,arch:process.arch,cpu:os.cpus()[0]?.model,lockHash:E.digest(fs.readFileSync(path.join(ROOT,'package-lock.json'),'utf8')),sources:E.sourceHashes(),preset:rerun?'recorded-input-rerun':preset,config,locks:cap,rng:E.RNG_VERSION,lane:'production-wall-clock',execution:'rapid-uninterrupted-actual-witness-v1',episodeMs,episodes:[],complete:false};
   const manifestPath=path.join(directory,'manifest.json');write(manifestPath,manifest);
   console.log('Results: '+directory);
   for(const input of inputs) {
     if(JSON.stringify(E.sourceHashes())!==JSON.stringify(manifest.sources))throw Error('Source changed during evaluation; restart after edits settle. Partial manifest retained.');
     const episodeDir=path.join(directory,`${input.scenario}-${input.seed}`);fs.mkdirSync(episodeDir);
-    const inputPath=path.join(episodeDir,'input.json'),specPath=path.join(episodeDir,'spec.json');write(inputPath,input);write(specPath,{input:inputPath,directory:episodeDir,config:E.CONFIG});
+    const inputPath=path.join(episodeDir,'input.json'),specPath=path.join(episodeDir,'spec.json');write(inputPath,input);write(specPath,{input:inputPath,directory:episodeDir,config});
     const result=spawnSync(process.execPath,['--max-old-space-size=512',__filename,'--child',specPath],{cwd:ROOT,encoding:'utf8',timeout:episodeMs,killSignal:'SIGKILL',maxBuffer:1024*1024});
     const summaryPath=path.join(episodeDir,'summary.json');let summary=fs.existsSync(summaryPath)?json(summaryPath):fallback(episodeDir,input,result);
     if(JSON.stringify(E.sourceHashes())!==JSON.stringify(manifest.sources)){summary.stop='source-changed';summary.censored=false;summary.detail='Source files changed during episode; result is not revision-bound.';}
@@ -105,4 +109,4 @@ function main(args=process.argv.slice(2)) {
   return manifest;
 }
 if(require.main===module){try{main();}catch(error){console.error(error.stack);process.exitCode=1;}}
-module.exports={parse,compare,main,failure,readTrace};
+module.exports={parse,compare,main,failure,readTrace,configuration};

@@ -3,9 +3,11 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const P=require('../st-planner'),R=require('../st-rules'),F=require('../st-fixtures'),X=require('../st-paired-repair');
 const recovery=require('./support/st-construction-recovery.json'),cap=require('./support/st-visible-z-deferral.json');
 const urls=new Set(['https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit','https://tl.net/forum/games/175252-10000-guide-tetris-ultra-st-stacking']);
+let centerAdvice;
+function actualCenterAdvice(){if(!centerAdvice){centerAdvice=P.plan(F.get('center-j').observation,{maxNodes:45000});assert.ok(centerAdvice.target);}return JSON.parse(JSON.stringify(centerAdvice));}
 function sources(a){assert.ok(a.sources.length);for(const s of a.sources){assert.ok(urls.has(s.url));assert.ok(s.label&&s.section&&s.scope);assert.equal(typeof s.id,'string');}assert.equal(new Set(a.sources.map(s=>s.id)).size,a.sources.length);}
 test('actual center and right advice cites community concepts without universal flat-left claims',()=>{
- const center=P.plan(F.get('center-j').observation,{maxNodes:45000});sources(center);assert.ok(center.sources.some(s=>s.id==='SHOCKY-3.2'));assert.match(center.reason,/overhang/);
+ const center=actualCenterAdvice();sources(center);assert.ok(center.sources.some(s=>s.id==='SHOCKY-3.2'));assert.match(center.reason,/overhang/);
  const right=P.plan(F.get('cap-rebuild').observation,{maxNodes:45000});sources(right);assert.match(right.reason,/Pocket \(column 10\)/);assert.doesNotMatch(right.reason,/Keep the left region flat/);
 });
 test('paired repair wording follows actual remaining T and center stages through every lock',()=>{
@@ -29,7 +31,7 @@ test('cap-deferral wording stops claiming a pending replacement after actual rep
  r=R.replay(state,a.witness);a=P.continueCommitment(state,r.state,a,r.events[0]);assert.match(a.reason,/Take the checked T-spin double/);assert.doesNotMatch(a.reason,/restores the Z cap in|restore the cap over/);sources(a);
 });
 test('ordinary revalidation regenerates stale HOLD text and arbitrary imported source descriptors',()=>{
- const state=F.get('center-j').observation,a=P.plan(state,{maxNodes:45000});
+ const state=F.get('center-j').observation,a=actualCenterAdvice();
  const stale={...a,reason:'Hold twice. Bad stale advice.',sources:[{id:'bad',url:'javascript:alert(1)'}]};
  const valid=P.revalidate(state,stale);assert.ok(valid);assert.doesNotMatch(valid.reason,/Bad stale/);sources(valid);assert.ok(valid.sources.every(s=>s.id!=='bad'));
 });

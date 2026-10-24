@@ -1,0 +1,357 @@
+{
+  "provenance": "Development seed502504730 before lock38, frozen matched candidate258a6bd. Actual public observation and recorded three-lock cap/T proof, not a reference-player stream.",
+  "observation": {
+    "rules": "st-zero-v2",
+    "board": [
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "JJJ.......",
+      "OOJ.......",
+      "OOS.......",
+      "OOSS......",
+      "OOZS......",
+      "IZZSSSS...",
+      "IZSSSS....",
+      "ILLLLLL...",
+      "ILOOLSS...",
+      "IJOOSS....",
+      "IJJJLOO...",
+      "IJJZLOO...",
+      "ISTTLOO.Z.",
+      "TTTIOOJ.Z.",
+      "SSIIIIJ.Z."
+    ],
+    "active": {
+      "type": "L",
+      "x": 3,
+      "y": 17,
+      "rotation": 0,
+      "lastRotation": null
+    },
+    "hold": "T",
+    "canHold": true,
+    "queue": [
+      "Z",
+      "J",
+      "I",
+      "T",
+      "Z",
+      "L"
+    ],
+    "revision": 444,
+    "streamCursor": 39,
+    "topOut": false,
+    "bag": {
+      "remaining": [
+        27
+      ],
+      "observedCount": 45,
+      "provenance": "known-phase"
+    }
+  },
+  "oldSteps": [
+    {
+      "witness": [
+        "CW",
+        "HD"
+      ],
+      "event": {
+        "type": "L",
+        "target": {
+          "type": "L",
+          "x": 3,
+          "y": 26,
+          "rotation": 1
+        },
+        "cells": [
+          [
+            4,
+            27
+          ],
+          [
+            4,
+            28
+          ],
+          [
+            4,
+            29
+          ],
+          [
+            5,
+            29
+          ]
+        ],
+        "lines": 0,
+        "clearedRows": [],
+        "spin": "none",
+        "topOut": false
+      }
+    },
+    {
+      "witness": [
+        "CW",
+        "R",
+        "R",
+        "R",
+        "R",
+        "HD"
+      ],
+      "event": {
+        "type": "Z",
+        "target": {
+          "type": "Z",
+          "x": 7,
+          "y": 33,
+          "rotation": 1
+        },
+        "cells": [
+          [
+            9,
+            34
+          ],
+          [
+            8,
+            35
+          ],
+          [
+            9,
+            35
+          ],
+          [
+            8,
+            36
+          ]
+        ],
+        "lines": 0,
+        "clearedRows": [],
+        "spin": "none",
+        "topOut": false
+      }
+    },
+    {
+      "witness": [
+        "HOLD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "R",
+        "R",
+        "R",
+        "CW",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "CW",
+        "HD"
+      ],
+      "event": {
+        "type": "T",
+        "target": {
+          "type": "T",
+          "x": 6,
+          "y": 32,
+          "rotation": 2
+        },
+        "cells": [
+          [
+            6,
+            34
+          ],
+          [
+            7,
+            34
+          ],
+          [
+            8,
+            34
+          ],
+          [
+            7,
+            35
+          ]
+        ],
+        "lines": 2,
+        "clearedRows": [
+          34,
+          35
+        ],
+        "spin": "full",
+        "topOut": false
+      }
+    }
+  ],
+  "completedBaselineSteps": [
+    {
+      "witness": [
+        "L",
+        "CCW",
+        "HD"
+      ],
+      "event": {
+        "type": "L",
+        "target": {
+          "type": "L",
+          "x": 2,
+          "y": 23,
+          "rotation": 3
+        },
+        "cells": [
+          [
+            2,
+            24
+          ],
+          [
+            3,
+            24
+          ],
+          [
+            3,
+            25
+          ],
+          [
+            3,
+            26
+          ]
+        ],
+        "lines": 0,
+        "clearedRows": [],
+        "spin": "none",
+        "topOut": false
+      }
+    },
+    {
+      "witness": [
+        "R",
+        "R",
+        "R",
+        "R",
+        "CW",
+        "HD"
+      ],
+      "event": {
+        "type": "Z",
+        "target": {
+          "type": "Z",
+          "x": 7,
+          "y": 33,
+          "rotation": 1
+        },
+        "cells": [
+          [
+            9,
+            34
+          ],
+          [
+            8,
+            35
+          ],
+          [
+            9,
+            35
+          ],
+          [
+            8,
+            36
+          ]
+        ],
+        "lines": 0,
+        "clearedRows": [],
+        "spin": "none",
+        "topOut": false
+      }
+    },
+    {
+      "witness": [
+        "HOLD",
+        "R",
+        "R",
+        "R",
+        "CW",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "CW",
+        "HD"
+      ],
+      "event": {
+        "type": "T",
+        "target": {
+          "type": "T",
+          "x": 6,
+          "y": 32,
+          "rotation": 2
+        },
+        "cells": [
+          [
+            6,
+            34
+          ],
+          [
+            7,
+            34
+          ],
+          [
+            8,
+            34
+          ],
+          [
+            7,
+            35
+          ]
+        ],
+        "lines": 2,
+        "clearedRows": [
+          34,
+          35
+        ],
+        "spin": "full",
+        "topOut": false
+      }
+    }
+  ],
+  "completedBaselineNodes": 23283
+}

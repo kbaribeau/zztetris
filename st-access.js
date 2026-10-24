@@ -17,8 +17,10 @@ function access(board,cells,options={}){
  }
  let complete=true;const witnesses=[];
  for(const type of possible){if(now()>=deadline||visited>=limit){complete=false;break;}
-  const state=R.createState({rules:options.rules,board,active:type,queue:['I']}),e=R.placements(state,{allowHold:false,maxNodes:limit-visited,deadline,now});visited+=e.visited;
-  for(const p of e.placements){const hit=p.event.cells.filter(c=>missing.has(key(c)));if(hit.length){hit.forEach(c=>missing.delete(key(c)));witnesses.push({piece:type,cells:hit,witness:p.witness,target:p.target});}}
+  const state=R.createState({rules:options.rules,board,active:type,queue:['I']}),e=R.placements(state,{allowHold:false,maxNodes:limit-visited,deadline,now,stopWhen:p=>{
+   const hit=p.event.cells.filter(c=>missing.has(key(c)));if(hit.length){hit.forEach(c=>missing.delete(key(c)));witnesses.push({piece:type,cells:hit,witness:p.witness,target:p.target});}
+   return missing.size===0;
+  }});visited+=e.visited;
   if(!missing.size)break;if(!e.complete){complete=false;break;}
  }
  const result={status:!missing.size?'movement-access-witnessed':complete?'no-current-tetromino-access':'unknown-access-budget',complete:!missing.size||complete,reachable:!missing.size?true:complete?false:null,cells,unreachable:complete?[...missing].map(s=>s.split(',').map(Number)):[],witnesses,visited};

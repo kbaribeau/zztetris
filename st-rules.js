@@ -31,7 +31,7 @@ function replay(state,actions){let s=state;const events=[];for(let i=0;i<actions
 function poseKey(a){const r=a.lastRotation;const semantic=a.type==='T'&&r?((r.to-r.from+4)%4!==2&&r.kickIndex===4?'upgrade':'rotation'):'none';return[a.type,a.x,a.y,a.rotation,semantic].join(':');}
 function placements(s,options={}){
  const out=[],seenOut=new Map();let visited=0,complete=true;
- const maxNodes=options.maxNodes??16000,deadline=options.deadline??Infinity,now=options.now??(()=>Date.now());
+ const maxNodes=options.maxNodes??16000,deadline=options.deadline??Infinity,now=options.now??(()=>Date.now()),stopWhen=typeof options.stopWhen==='function'?options.stopWhen:null;
  if(validate(s).length||!s.active||s.topOut)return{placements:out,visited,complete:true};
  const unlimited=s.rules===PROFILE.id;
  const rootKey=state=>JSON.stringify([poseKey(state.active),state.hold,state.queue,state.canHold,state.streamCursor]);
@@ -60,7 +60,11 @@ function placements(s,options={}){
    const id=unlimited?JSON.stringify([event,locked.active,locked.hold,locked.queue,locked.streamCursor]):[roots[k].hold,event.target.type,event.target.x,event.target.y,event.target.rotation,event.spin].join(':');
    const placement={target:event.target,hold:roots[k].hold,holdCount:roots[k].holdCount,witness:[...n.witness,'HD'],state:locked,event};
    const index=seenOut.get(id);
-   if(index===undefined){seenOut.set(id,out.length);out.push(placement);}
+   if(index===undefined){seenOut.set(id,out.length);out.push(placement);
+    // Internal read-only predicate: a found witness can settle an existential
+    // query without claiming the remaining movement graph was enumerated.
+    if(stopWhen?.(placement)===true)return{placements:out,complete:false,visited,stopReason:'placement-predicate'};
+   }
    else if(placement.witness.length<out[index].witness.length)out[index]=placement;
   }
   for(const action of ['L','R','CW','CCW','R180','SD']){
