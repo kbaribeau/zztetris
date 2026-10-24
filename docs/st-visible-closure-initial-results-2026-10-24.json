@@ -1,0 +1,911 @@
+{
+  "complete": true,
+  "baselineCommit": "708d9869e0ed5422bbf6701518857e4682e00f83",
+  "candidateCommit": "9aca81e86bf458ffc58cd6dcb88b97a0b310634c",
+  "candidateBundle": "Reviewed visible-closure policy plus semantics-preserving cavity flood runtime optimization. This matched batch evaluates the bundle, not an isolated policy ablation. Fixed-node equivalence and one production root probe are separate supporting diagnostics.",
+  "protocol": "Four predeclared development streams, baseline retained0c policy versus reviewed visible-closure candidate; serial alternating8arms,750ms45k nodes,telemetryoff,no retries. Record all outcomes and equal horizon; stage path, closure selected path, retained goal and actual goal-paid completion separately. Not formal validation.",
+  "totals": {
+    "baseline": {
+      "episodes": 4,
+      "locks": 257,
+      "handoffs": 2,
+      "joint": 2,
+      "stops": {
+        "abstention": 4
+      },
+      "stagePathSelectedLocks": 3,
+      "invalidRecommendations": 0
+    },
+    "candidate": {
+      "episodes": 4,
+      "locks": 254,
+      "handoffs": 3,
+      "joint": 2,
+      "stops": {
+        "abstention": 4
+      },
+      "stagePathSelectedLocks": 3,
+      "invalidRecommendations": 0
+    }
+  },
+  "pairs": [
+    {
+      "seed": 502609459,
+      "commonHorizon": 30,
+      "baseline": {
+        "locks": 30,
+        "handoff": null,
+        "jointAt": null,
+        "stop": "abstention",
+        "censored": false,
+        "lines": 0,
+        "postTsdLocks": [],
+        "postQuadLocks": [],
+        "final": {
+          "height": 19,
+          "meanSkylineHeight": 12.9,
+          "occupiedRowsEquivalent": 12,
+          "mass": 120,
+          "sealed": 1,
+          "leftSealed": 0,
+          "parity": 0,
+          "regionalSupport": true,
+          "maintenanceScope": true
+        },
+        "peakHeight": 19,
+        "invalidRecommendations": 0,
+        "firstFoundationVacancy": 13,
+        "finalFoundation": {
+          "status": "unfinished-lower-foundation",
+          "vacancies": [
+            [
+              5,
+              35
+            ],
+            [
+              6,
+              35
+            ]
+          ],
+          "profile": [
+            18,
+            19,
+            19
+          ]
+        },
+        "maxLeftCovered": 3,
+        "common": {
+          "metrics": {
+            "lock": 30,
+            "lines": 0,
+            "tsds": 0,
+            "quads": 0,
+            "height": 19,
+            "meanSkylineHeight": 12.9,
+            "occupiedRowsEquivalent": 12,
+            "mass": 120,
+            "sealed": 1,
+            "leftSealed": 0,
+            "parity": 0,
+            "regionalSupport": true,
+            "maintenanceScope": true,
+            "centerDebt": 1,
+            "cavityDebt": 0
+          },
+          "foundation": {
+            "status": "unfinished-lower-foundation",
+            "vacancies": [
+              [
+                5,
+                35
+              ],
+              [
+                6,
+                35
+              ]
+            ],
+            "profile": [
+              18,
+              19,
+              19
+            ]
+          },
+          "leftCovered": 0
+        },
+        "visibleClosure": {
+          "reportedDecisions": 0,
+          "attempted": 0,
+          "verified": 0,
+          "nodes": 0,
+          "unknown": 0,
+          "selectedPathLocks": [],
+          "providedGoalLocks": [],
+          "retainedGoalLocks": [],
+          "goalPaidLocks": []
+        },
+        "foundationStageSelectedLocks": [],
+        "phaseBudgets": {
+          "opening": {
+            "decisions": 31,
+            "explicitLimit": 0,
+            "budgetAbstentions": 0
+          }
+        },
+        "terminalAdviceStatus": "no-supported-continuation-found"
+      },
+      "candidate": {
+        "locks": 100,
+        "handoff": 19,
+        "jointAt": 73,
+        "stop": "abstention",
+        "censored": false,
+        "lines": 26,
+        "postTsdLocks": [
+          24,
+          33,
+          37,
+          45,
+          51,
+          60,
+          68,
+          74
+        ],
+        "postQuadLocks": [
+          39,
+          73
+        ],
+        "final": {
+          "height": 18,
+          "meanSkylineHeight": 15.3,
+          "occupiedRowsEquivalent": 14,
+          "mass": 140,
+          "sealed": 4,
+          "leftSealed": 0,
+          "parity": 0,
+          "regionalSupport": true,
+          "maintenanceScope": true
+        },
+        "peakHeight": 18,
+        "invalidRecommendations": 0,
+        "firstFoundationVacancy": null,
+        "finalFoundation": {
+          "status": "aligned",
+          "vacancies": [],
+          "profile": [
+            18,
+            18,
+            18
+          ]
+        },
+        "maxLeftCovered": 0,
+        "common": {
+          "metrics": {
+            "lock": 30,
+            "lines": 4,
+            "tsds": 2,
+            "quads": 0,
+            "height": 12,
+            "meanSkylineHeight": 8.5,
+            "occupiedRowsEquivalent": 8,
+            "mass": 80,
+            "sealed": 3,
+            "leftSealed": 0,
+            "parity": 0,
+            "regionalSupport": true,
+            "maintenanceScope": true,
+            "centerDebt": 0,
+            "cavityDebt": 0
+          },
+          "foundation": {
+            "status": "aligned",
+            "vacancies": [],
+            "profile": [
+              10,
+              10,
+              10
+            ]
+          },
+          "leftCovered": 0
+        },
+        "visibleClosure": {
+          "reportedDecisions": 5,
+          "attempted": 27,
+          "verified": 1,
+          "nodes": 1117,
+          "unknown": 0,
+          "selectedPathLocks": [
+            6
+          ],
+          "providedGoalLocks": [
+            7,
+            8,
+            9,
+            10
+          ],
+          "retainedGoalLocks": [
+            7,
+            8,
+            9,
+            10
+          ],
+          "goalPaidLocks": [
+            10
+          ]
+        },
+        "foundationStageSelectedLocks": [],
+        "phaseBudgets": {
+          "opening": {
+            "decisions": 19,
+            "explicitLimit": 0,
+            "budgetAbstentions": 0
+          },
+          "maintenance": {
+            "decisions": 82,
+            "explicitLimit": 74,
+            "budgetAbstentions": 0
+          }
+        },
+        "terminalAdviceStatus": "no-supported-continuation-found"
+      }
+    },
+    {
+      "seed": 503237833,
+      "commonHorizon": 86,
+      "baseline": {
+        "locks": 86,
+        "handoff": 19,
+        "jointAt": 75,
+        "stop": "abstention",
+        "censored": false,
+        "lines": 24,
+        "postTsdLocks": [
+          25,
+          31,
+          41,
+          47,
+          53,
+          60,
+          68
+        ],
+        "postQuadLocks": [
+          45,
+          75
+        ],
+        "final": {
+          "height": 16,
+          "meanSkylineHeight": 11.4,
+          "occupiedRowsEquivalent": 10.4,
+          "mass": 104,
+          "sealed": 2,
+          "leftSealed": 0,
+          "parity": 2,
+          "regionalSupport": true,
+          "maintenanceScope": true
+        },
+        "peakHeight": 18,
+        "invalidRecommendations": 0,
+        "firstFoundationVacancy": null,
+        "finalFoundation": {
+          "status": "aligned",
+          "vacancies": [],
+          "profile": [
+            9,
+            10,
+            10
+          ]
+        },
+        "maxLeftCovered": 1,
+        "common": {
+          "metrics": {
+            "lock": 86,
+            "lines": 24,
+            "tsds": 8,
+            "quads": 2,
+            "height": 16,
+            "meanSkylineHeight": 11.4,
+            "occupiedRowsEquivalent": 10.4,
+            "mass": 104,
+            "sealed": 2,
+            "leftSealed": 0,
+            "parity": 2,
+            "regionalSupport": true,
+            "maintenanceScope": true,
+            "centerDebt": 0,
+            "cavityDebt": 0
+          },
+          "foundation": {
+            "status": "aligned",
+            "vacancies": [],
+            "profile": [
+              9,
+              10,
+              10
+            ]
+          },
+          "leftCovered": 1
+        },
+        "visibleClosure": {
+          "reportedDecisions": 0,
+          "attempted": 0,
+          "verified": 0,
+          "nodes": 0,
+          "unknown": 0,
+          "selectedPathLocks": [],
+          "providedGoalLocks": [],
+          "retainedGoalLocks": [],
+          "goalPaidLocks": []
+        },
+        "foundationStageSelectedLocks": [
+          1,
+          2,
+          3
+        ],
+        "phaseBudgets": {
+          "opening": {
+            "decisions": 19,
+            "explicitLimit": 1,
+            "budgetAbstentions": 0
+          },
+          "maintenance": {
+            "decisions": 68,
+            "explicitLimit": 66,
+            "budgetAbstentions": 1
+          }
+        },
+        "terminalAdviceStatus": "budget-exhausted"
+      },
+      "candidate": {
+        "locks": 86,
+        "handoff": 19,
+        "jointAt": 75,
+        "stop": "abstention",
+        "censored": false,
+        "lines": 24,
+        "postTsdLocks": [
+          25,
+          31,
+          43,
+          47,
+          53,
+          60,
+          68
+        ],
+        "postQuadLocks": [
+          45,
+          75
+        ],
+        "final": {
+          "height": 16,
+          "meanSkylineHeight": 11.4,
+          "occupiedRowsEquivalent": 10.4,
+          "mass": 104,
+          "sealed": 2,
+          "leftSealed": 0,
+          "parity": 2,
+          "regionalSupport": true,
+          "maintenanceScope": true
+        },
+        "peakHeight": 18,
+        "invalidRecommendations": 0,
+        "firstFoundationVacancy": null,
+        "finalFoundation": {
+          "status": "aligned",
+          "vacancies": [],
+          "profile": [
+            9,
+            10,
+            10
+          ]
+        },
+        "maxLeftCovered": 1,
+        "common": {
+          "metrics": {
+            "lock": 86,
+            "lines": 24,
+            "tsds": 8,
+            "quads": 2,
+            "height": 16,
+            "meanSkylineHeight": 11.4,
+            "occupiedRowsEquivalent": 10.4,
+            "mass": 104,
+            "sealed": 2,
+            "leftSealed": 0,
+            "parity": 2,
+            "regionalSupport": true,
+            "maintenanceScope": true,
+            "centerDebt": 0,
+            "cavityDebt": 0
+          },
+          "foundation": {
+            "status": "aligned",
+            "vacancies": [],
+            "profile": [
+              9,
+              10,
+              10
+            ]
+          },
+          "leftCovered": 1
+        },
+        "visibleClosure": {
+          "reportedDecisions": 2,
+          "attempted": 12,
+          "verified": 0,
+          "nodes": 1281,
+          "unknown": 0,
+          "selectedPathLocks": [],
+          "providedGoalLocks": [],
+          "retainedGoalLocks": [],
+          "goalPaidLocks": []
+        },
+        "foundationStageSelectedLocks": [
+          1,
+          2,
+          3
+        ],
+        "phaseBudgets": {
+          "opening": {
+            "decisions": 19,
+            "explicitLimit": 0,
+            "budgetAbstentions": 0
+          },
+          "maintenance": {
+            "decisions": 68,
+            "explicitLimit": 66,
+            "budgetAbstentions": 1
+          }
+        },
+        "terminalAdviceStatus": "budget-exhausted"
+      }
+    },
+    {
+      "seed": 502400001,
+      "commonHorizon": 43,
+      "baseline": {
+        "locks": 116,
+        "handoff": 11,
+        "jointAt": 76,
+        "stop": "abstention",
+        "censored": false,
+        "lines": 38,
+        "postTsdLocks": [
+          21,
+          34,
+          39,
+          47,
+          52,
+          63,
+          69,
+          75,
+          84,
+          89,
+          98,
+          102
+        ],
+        "postQuadLocks": [
+          40,
+          76,
+          94
+        ],
+        "final": {
+          "height": 15,
+          "meanSkylineHeight": 9.5,
+          "occupiedRowsEquivalent": 8.4,
+          "mass": 84,
+          "sealed": 2,
+          "leftSealed": 0,
+          "parity": 1,
+          "regionalSupport": true,
+          "maintenanceScope": true
+        },
+        "peakHeight": 15,
+        "invalidRecommendations": 0,
+        "firstFoundationVacancy": 105,
+        "finalFoundation": {
+          "status": "unfinished-lower-foundation",
+          "vacancies": [
+            [
+              5,
+              28
+            ],
+            [
+              6,
+              28
+            ],
+            [
+              5,
+              29
+            ],
+            [
+              6,
+              29
+            ],
+            [
+              6,
+              37
+            ]
+          ],
+          "profile": [
+            15,
+            15,
+            15
+          ]
+        },
+        "maxLeftCovered": 0,
+        "common": {
+          "metrics": {
+            "lock": 43,
+            "lines": 12,
+            "tsds": 4,
+            "quads": 1,
+            "height": 8,
+            "meanSkylineHeight": 5.4,
+            "occupiedRowsEquivalent": 5.2,
+            "mass": 52,
+            "sealed": 0,
+            "leftSealed": 0,
+            "parity": 0,
+            "regionalSupport": true,
+            "maintenanceScope": true,
+            "centerDebt": 0,
+            "cavityDebt": 0
+          },
+          "foundation": {
+            "status": "aligned",
+            "vacancies": [],
+            "profile": [
+              8,
+              8,
+              8
+            ]
+          },
+          "leftCovered": 0
+        },
+        "visibleClosure": {
+          "reportedDecisions": 0,
+          "attempted": 0,
+          "verified": 0,
+          "nodes": 0,
+          "unknown": 0,
+          "selectedPathLocks": [],
+          "providedGoalLocks": [],
+          "retainedGoalLocks": [],
+          "goalPaidLocks": []
+        },
+        "foundationStageSelectedLocks": [],
+        "phaseBudgets": {
+          "opening": {
+            "decisions": 11,
+            "explicitLimit": 0,
+            "budgetAbstentions": 0
+          },
+          "maintenance": {
+            "decisions": 106,
+            "explicitLimit": 103,
+            "budgetAbstentions": 1
+          }
+        },
+        "terminalAdviceStatus": "budget-exhausted"
+      },
+      "candidate": {
+        "locks": 43,
+        "handoff": 11,
+        "jointAt": null,
+        "stop": "abstention",
+        "censored": false,
+        "lines": 12,
+        "postTsdLocks": [
+          21,
+          34,
+          39
+        ],
+        "postQuadLocks": [
+          40
+        ],
+        "final": {
+          "height": 10,
+          "meanSkylineHeight": 5.5,
+          "occupiedRowsEquivalent": 5.2,
+          "mass": 52,
+          "sealed": 0,
+          "leftSealed": 0,
+          "parity": 0,
+          "regionalSupport": true,
+          "maintenanceScope": true
+        },
+        "peakHeight": 14,
+        "invalidRecommendations": 0,
+        "firstFoundationVacancy": null,
+        "finalFoundation": {
+          "status": "aligned",
+          "vacancies": [],
+          "profile": [
+            9,
+            10,
+            10
+          ]
+        },
+        "maxLeftCovered": 0,
+        "common": {
+          "metrics": {
+            "lock": 43,
+            "lines": 12,
+            "tsds": 4,
+            "quads": 1,
+            "height": 10,
+            "meanSkylineHeight": 5.5,
+            "occupiedRowsEquivalent": 5.2,
+            "mass": 52,
+            "sealed": 0,
+            "leftSealed": 0,
+            "parity": 0,
+            "regionalSupport": true,
+            "maintenanceScope": true,
+            "centerDebt": 0,
+            "cavityDebt": 0
+          },
+          "foundation": {
+            "status": "aligned",
+            "vacancies": [],
+            "profile": [
+              9,
+              10,
+              10
+            ]
+          },
+          "leftCovered": 0
+        },
+        "visibleClosure": {
+          "reportedDecisions": 0,
+          "attempted": 0,
+          "verified": 0,
+          "nodes": 0,
+          "unknown": 0,
+          "selectedPathLocks": [],
+          "providedGoalLocks": [],
+          "retainedGoalLocks": [],
+          "goalPaidLocks": []
+        },
+        "foundationStageSelectedLocks": [],
+        "phaseBudgets": {
+          "opening": {
+            "decisions": 11,
+            "explicitLimit": 0,
+            "budgetAbstentions": 0
+          },
+          "maintenance": {
+            "decisions": 33,
+            "explicitLimit": 30,
+            "budgetAbstentions": 1
+          }
+        },
+        "terminalAdviceStatus": "budget-exhausted"
+      }
+    },
+    {
+      "seed": 502923646,
+      "commonHorizon": 25,
+      "baseline": {
+        "locks": 25,
+        "handoff": null,
+        "jointAt": null,
+        "stop": "abstention",
+        "censored": false,
+        "lines": 0,
+        "postTsdLocks": [],
+        "postQuadLocks": [],
+        "final": {
+          "height": 19,
+          "meanSkylineHeight": 11.9,
+          "occupiedRowsEquivalent": 10,
+          "mass": 100,
+          "sealed": 1,
+          "leftSealed": 0,
+          "parity": -2,
+          "regionalSupport": true,
+          "maintenanceScope": true
+        },
+        "peakHeight": 19,
+        "invalidRecommendations": 0,
+        "firstFoundationVacancy": 8,
+        "finalFoundation": {
+          "status": "unfinished-lower-foundation",
+          "vacancies": [
+            [
+              6,
+              35
+            ],
+            [
+              6,
+              36
+            ]
+          ],
+          "profile": [
+            15,
+            19,
+            19
+          ]
+        },
+        "maxLeftCovered": 9,
+        "common": {
+          "metrics": {
+            "lock": 25,
+            "lines": 0,
+            "tsds": 0,
+            "quads": 0,
+            "height": 19,
+            "meanSkylineHeight": 11.9,
+            "occupiedRowsEquivalent": 10,
+            "mass": 100,
+            "sealed": 1,
+            "leftSealed": 0,
+            "parity": -2,
+            "regionalSupport": true,
+            "maintenanceScope": true,
+            "centerDebt": 0,
+            "cavityDebt": 0
+          },
+          "foundation": {
+            "status": "unfinished-lower-foundation",
+            "vacancies": [
+              [
+                6,
+                35
+              ],
+              [
+                6,
+                36
+              ]
+            ],
+            "profile": [
+              15,
+              19,
+              19
+            ]
+          },
+          "leftCovered": 9
+        },
+        "visibleClosure": {
+          "reportedDecisions": 0,
+          "attempted": 0,
+          "verified": 0,
+          "nodes": 0,
+          "unknown": 0,
+          "selectedPathLocks": [],
+          "providedGoalLocks": [],
+          "retainedGoalLocks": [],
+          "goalPaidLocks": []
+        },
+        "foundationStageSelectedLocks": [],
+        "phaseBudgets": {
+          "opening": {
+            "decisions": 26,
+            "explicitLimit": 0,
+            "budgetAbstentions": 0
+          }
+        },
+        "terminalAdviceStatus": "no-supported-continuation-found"
+      },
+      "candidate": {
+        "locks": 25,
+        "handoff": null,
+        "jointAt": null,
+        "stop": "abstention",
+        "censored": false,
+        "lines": 0,
+        "postTsdLocks": [],
+        "postQuadLocks": [],
+        "final": {
+          "height": 19,
+          "meanSkylineHeight": 11.9,
+          "occupiedRowsEquivalent": 10,
+          "mass": 100,
+          "sealed": 1,
+          "leftSealed": 0,
+          "parity": -2,
+          "regionalSupport": true,
+          "maintenanceScope": true
+        },
+        "peakHeight": 19,
+        "invalidRecommendations": 0,
+        "firstFoundationVacancy": 8,
+        "finalFoundation": {
+          "status": "unfinished-lower-foundation",
+          "vacancies": [
+            [
+              6,
+              35
+            ],
+            [
+              6,
+              36
+            ]
+          ],
+          "profile": [
+            15,
+            19,
+            19
+          ]
+        },
+        "maxLeftCovered": 9,
+        "common": {
+          "metrics": {
+            "lock": 25,
+            "lines": 0,
+            "tsds": 0,
+            "quads": 0,
+            "height": 19,
+            "meanSkylineHeight": 11.9,
+            "occupiedRowsEquivalent": 10,
+            "mass": 100,
+            "sealed": 1,
+            "leftSealed": 0,
+            "parity": -2,
+            "regionalSupport": true,
+            "maintenanceScope": true,
+            "centerDebt": 0,
+            "cavityDebt": 0
+          },
+          "foundation": {
+            "status": "unfinished-lower-foundation",
+            "vacancies": [
+              [
+                6,
+                35
+              ],
+              [
+                6,
+                36
+              ]
+            ],
+            "profile": [
+              15,
+              19,
+              19
+            ]
+          },
+          "leftCovered": 9
+        },
+        "visibleClosure": {
+          "reportedDecisions": 6,
+          "attempted": 33,
+          "verified": 0,
+          "nodes": 560,
+          "unknown": 0,
+          "selectedPathLocks": [],
+          "providedGoalLocks": [],
+          "retainedGoalLocks": [],
+          "goalPaidLocks": []
+        },
+        "foundationStageSelectedLocks": [],
+        "phaseBudgets": {
+          "opening": {
+            "decisions": 26,
+            "explicitLimit": 0,
+            "budgetAbstentions": 0
+          }
+        },
+        "terminalAdviceStatus": "no-supported-continuation-found"
+      }
+    }
+  ],
+  "interpretation": "Development comparison only; selected path, retained goal and actual matching paid-goal event are separate. All original outcomes retained; no retries or fresh held-out acceptance. Whole-decision timing cannot be causally attributed to individual family counters.",
+  "inputHashes": [
+    {
+      "seed": 502609459,
+      "sha256": "9e52aec380f3fead94c9b2136bb2ef24845300851534141f49f4e32cee68fc4f"
+    },
+    {
+      "seed": 503237833,
+      "sha256": "e5a5d95621cd42590d23378c96f26ab500cc15928415ff219943c5188297d22f"
+    },
+    {
+      "seed": 502400001,
+      "sha256": "df132d74fafd600e870ad3e69abe8242f6d265bbd53b1729f622d57eb2d179b4"
+    },
+    {
+      "seed": 502923646,
+      "sha256": "f0af6cf938821d1fec42f45b8c3887866daf1a5698b59e956301b544c8612001"
+    }
+  ]
+}

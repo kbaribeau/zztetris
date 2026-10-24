@@ -138,7 +138,25 @@ function observe(input){
  const s=R.createState({rules:input.rules,board:input.board,active:input.active,hold:input.hold,canHold:input.canHold,queue:input.queue,revision:input.revision,streamCursor:input.streamCursor,topOut:input.topOut});
  if(input.bag)s.bag=clone(input.bag);return s;
 }
-function assess(board){
+// Opening-only cavity query. Keep the ordinary full assessment implementation
+// unchanged so this cost optimization does not retune maintenance search timing.
+// The independent reference tests bind both floods to the same sealed-air set.
+function cavityAssessment(board){
+ const air=new Uint8Array(400),todo=new Uint16Array(400);let tail=0;
+ for(let x=0;x<10;x++)if(board[0][x]==='.') {air[x]=1;todo[tail++]=x;}
+ // Enqueue each reachable cell once. This is the same top-connected air
+ // flood, not tetromino access; marking on enqueue avoids duplicate work.
+ for(let i=0;i<tail;i++){const key=todo[i],x=key%10,y=Math.floor(key/10);
+  if(x>0&&!air[key-1]&&board[y][x-1]==='.') {air[key-1]=1;todo[tail++]=key-1;}
+  if(x<9&&!air[key+1]&&board[y][x+1]==='.') {air[key+1]=1;todo[tail++]=key+1;}
+  if(y>0&&!air[key-10]&&board[y-1][x]==='.') {air[key-10]=1;todo[tail++]=key-10;}
+  if(y<39&&!air[key+10]&&board[y+1][x]==='.') {air[key+10]=1;todo[tail++]=key+10;}
+ }
+ const sealedCells=[];for(let x=0;x<10;x++)for(let y=0;y<40;y++)if(board[y][x]==='.'&&!air[y*10+x])sealedCells.push([x,y]);
+ return{sealedCells};
+}
+function assess(board,{cavitiesOnly=false}={}){
+ if(cavitiesOnly)return cavityAssessment(board);
  const heights=Array.from({length:10},(_,x)=>{const y=board.findIndex(r=>r[x]!=='.');return y<0?0:40-y;});
  // Air flood identifies sealed cavities, not every roofed cell. A T-slot under
  // an overhang can be accessible from the side and is not automatically bad.

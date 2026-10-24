@@ -1,0 +1,31 @@
+{
+  "sourceCommit": "266282c521252b91328b063e49bec0dab7f09569",
+  "root": {
+    "seed": 503552020,
+    "beforeLock": 24
+  },
+  "oneProfiledCall": true,
+  "timeMs": 750,
+  "maxNodes": 45000,
+  "samplingIntervalUs": 1000,
+  "sampledTotalMs": 802.882,
+  "observedStatus": "recommended-with-verified-prefix",
+  "observedElapsedMs": 777,
+  "observedNodes": 9386,
+  "observedCompleteDepth": 0,
+  "dominantInclusiveSamplesMs": {
+    "enumerate": 498.26,
+    "cleanupBeforeCapCallback": 335.53,
+    "S_transition": 357.62,
+    "S_geometry": 331.04,
+    "S_completions": 263.4,
+    "R_placements": 158.83,
+    "nodeFor": 203.44
+  },
+  "garbageCollectorSelfMs": 55.31,
+  "interpretation": [
+    "Inclusive call-stack times overlap and must not be added. One sampled request with profiler overhead is not a benchmark or a reconstruction of the original failure.",
+    "Most sampled root preprocessing occurs in cleanupBeforeCap transitions/geometry; actual activeL andheldZ cannot satisfy I-only quad-preparation allocation. A cheap type prerequisite is a future optimization lead,not an implemented change.",
+    "No previous advice or incoming commitment exists at this root. The recorded legalZcap is a separately verified prospective fallback,not a saved certificate already available to the original planner."
+  ]
+}

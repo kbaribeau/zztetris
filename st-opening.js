@@ -122,6 +122,62 @@ function foundationWitnesses(state,targets,{deadline,now,maxNodes}){
  }
  return{hits,visited,unknown};
 }
+// A closure is a bounded public construction, not a Reset: an observed
+// two-mino Left imbalance is paid by the actual penultimate T, then the exact
+// visible Center partner completes a reusable level endpoint. Its authority
+// is regenerated from all five real locks, never imported goal metadata.
+function closureCertificate(origin,path,initialNotches=S.notchPattern(origin.board),raw=null){
+ if(path?.length!==5||Math.abs(balance(origin.board))!==2)return null;
+ const fresh=S.notchPattern(origin.board),P=getPlanner();
+ if(initialNotches.status!=='established'||fresh.status!=='established'||fresh.anchorRow!==initialNotches.anchorRow||P.assess(origin.board).sealedCells.some(([x])=>x<7))return null;
+ let state=origin,notches=initialNotches,center=null;
+ for(let i=0;i<path.length;i++){
+  const step=path[i];if(!Array.isArray(step.witness)||step.witness.length>256||step.witness.at(-1)!=='HD')return null;
+  const r=R.replay(state,step.witness);if(!r.valid||r.events.length!==1||JSON.stringify(r.events[0])!==JSON.stringify(step.event)||r.events[0].lines)return null;
+  const e=r.events[0],g=S.geometry(state.board,{notches});
+  if(i===3){
+   if(balance(state.board)!==balance(origin.board)||e.type!=='T'||!e.cells.every(([x])=>x<4)||balance(r.state.board)!==0||features(state.board).leftCovered||features(r.state.board).leftCovered||g.center.patternSupport!=='reference-supported'||g.center.status==='unrecognized'||g.center.foundation.status!=='aligned'||g.right.shapeStatus!=='staggered-scoring-wall')return null;
+  }
+  if(i===4){
+   const c=g.center.completions.find(c=>c.resultStatus==='level'&&c.patternSupport==='reference-supported'&&c.piece===e.type&&sameCells(c.cells,e.cells));
+   if(!c||!e.cells.every(([x])=>x>=4&&x<7))return null;center={piece:e.type,cells:e.cells.map(c=>c.slice())};
+  }
+  const next=validStep(state.board,{state:r.state,event:e},notches,raw);if(!next)return null;notches=next;state=r.state;
+ }
+ const g=S.geometry(state.board,{notches}),f=features(state.board);
+ if(f.parity||f.leftCovered||g.center.status!=='level'||g.center.patternSupport!=='reference-supported'||g.center.foundation.status!=='aligned'||g.right.shapeStatus!=='staggered-scoring-wall'||P.assess(state.board).sealedCells.some(([x])=>x<7))return null;
+ return{kind:'visible-closure',origin:clone(origin),steps:clone(path),goal:{balance:true,center},consumed:0};
+}
+function closureWitness(origin,parent,{deadline,now,maxNodes,notches,raw}){
+ let visited=0,unknown=false;const candidates=[];
+ const g=S.geometry(parent.state.board,{notches:parent.notches});
+ if(Math.abs(balance(origin.board))!==2||balance(parent.state.board)!==balance(origin.board)||parent.path.length!==3||parent.path.some(p=>p.event.lines)||features(parent.state.board).leftCovered||g.center.patternSupport!=='reference-supported'||g.center.status==='unrecognized'||g.center.foundation.status!=='aligned'||g.right.shapeStatus!=='staggered-scoring-wall')return{candidates,visited,unknown};
+ if(now()>=deadline||maxNodes<=0)return{candidates,visited,unknown:true};
+ const e=X.stagePlacements(parent.state,{deadline:performance.now()+Math.max(0,deadline-now()),maxNodes});visited+=e.visited;unknown=!e.envelopeComplete;
+ for(const p of e.placements){
+  if(now()>=deadline||visited>=maxNodes){unknown=true;break;}
+  if(p.event.type!=='T'||p.event.lines||!p.event.cells.every(([x])=>x<4)||balance(p.state.board)!==0||features(p.state.board).leftCovered)continue;
+  const phase=validStep(parent.state.board,p,parent.notches,raw);if(!phase)continue;
+  for(const c of S.geometry(p.state.board,{notches:phase}).center.completions.filter(c=>c.resultStatus==='level'&&c.patternSupport==='reference-supported')){
+   const found=foundationWitnesses(p.state,c.cells,{deadline,now,maxNodes:Math.max(0,maxNodes-visited)});visited+=found.visited;unknown=unknown||found.unknown;
+   for(const q of found.hits){
+    if(q.event.type!==c.piece||!sameCells(q.event.cells,c.cells))continue;
+    const finalPhase=validStep(p.state.board,q,phase,raw);if(!finalPhase)continue;
+    const step=v=>({board:v.state.board,target:v.event.target,witness:v.witness,event:v.event,hold:v.witness.includes('HOLD'),holdCount:v.witness.filter(a=>a==='HOLD').length});
+    const path=[...parent.path,step(p),step(q)],cost=path.reduce((n,v)=>n+v.witness.length,0);
+    if(now()>=deadline||visited+cost>maxNodes){unknown=true;break;}visited+=cost;
+    const proof=closureCertificate(origin,path,notches,raw);if(!proof)continue;
+    const accessProof=getPlanner().checkAccessPrefix(origin,path,{notches,deadline,now,maxNodes:Math.max(0,maxNodes-visited)});visited+=accessProof.visited;if(accessProof.reachable!==true){if(accessProof.reachable===null)unknown=true;continue;}
+    const f=features(q.state.board),key=JSON.stringify([q.state.board,q.state.active,q.state.hold,q.state.queue,finalPhase]);
+    candidates.push({state:q.state,path,f,notches:finalPhase,key,rank:rank(f,q.event,path),closureProof:proof,accessProof});
+    // This is only an existential trigger. Ordinary deeper layers still
+    // compare every retained competitor; duplicate witnesses add no authority.
+    return{candidates,visited,unknown};
+   }
+  }
+ }
+ return{candidates,visited,unknown};
+}
 function remainingGoal(origin,path,goal){
  let state=origin,cells=goal.center?.cells.map(c=>c.slice()),centerPaid=!cells;
  for(const step of path){const r=R.replay(state,step.witness);if(!r.valid||r.events.length!==1)return null;const e=r.events[0];
@@ -158,11 +214,11 @@ function repairCertificate(origin,path,requiredGoal=null,initialNotches=S.notchP
  return null;
 }
 function checkedRepair(proof,current,depth=0){
- if(depth>=4||!proof||!Number.isInteger(proof.consumed)||proof.consumed<0)return null;
+ if(depth>=4||!proof||!Number.isInteger(proof.consumed)||proof.consumed<0||proof.kind&&proof.kind!=='visible-closure'||proof.kind==='visible-closure'&&proof.basis)return null;
  const P=getPlanner();let origin;try{origin=P.observe(proof.origin);}catch{return null;}
  if(R.validate(origin).length||origin.queue.length>6)return null;
  const basis=proof.basis?checkedRepair(proof.basis,origin,depth+1):null;if(proof.basis&&!basis)return null;
- const cert=repairCertificate(origin,proof.steps,basis?.goal);if(!cert||cert.steps.length!==proof.steps.length||proof.consumed>=cert.steps.length)return null;
+ const cert=proof.kind==='visible-closure'?closureCertificate(origin,proof.steps):repairCertificate(origin,proof.steps,basis?.goal);if(!cert||cert.steps.length!==proof.steps.length||proof.consumed>=cert.steps.length)return null;
  let expected=origin,consumedPattern=S.notchPattern(origin.board);for(const step of cert.steps.slice(0,proof.consumed)){const r=R.replay(expected,step.witness),n=S.advanceNotches(expected.board,{state:r.state,event:r.events[0]},consumedPattern);if(!n.valid)return null;consumedPattern=n.pattern;expected=r.state;}
  // Exact saved input prefixes permit following HOLD/rotations. A different
  // manual path may safely drop the proof rather than inventing a pose bridge.
@@ -226,20 +282,20 @@ function plan(raw,options={}){
  let saved=checkedRepair(options.openingRepair,state);
  const mayClear=initialFacts.notches.status==='established'&&[state.active.type,state.hold,...state.queue.slice(0,3)].some(t=>t==='T'||t==='I');
  const probeReserve=mayClear?Math.min(6000,Math.max(0,limit-reserved)):0,searchLimit=limit-probeReserve;
- const searchDeadline=mayClear&&Number.isFinite(deadline)?deadline-Math.min(120,Math.max(0,deadline-now())/4):deadline;
+ let searchDeadline=mayClear&&Number.isFinite(deadline)?deadline-Math.min(120,Math.max(0,deadline-now())/4):deadline;
  base.metrics.handoffProbeReservedNodes=probeReserve;
  // Rules transitions allocate new board arrays; within this synchronous search
  // they are immutable. Cache only raw read-only board facts here, never node
  // assessments that the maintenance planner decorates with proof authority.
  const featureCache=new WeakMap(),assessmentCache=new WeakMap();
- const rawFacts={usage,features:board=>{if(!featureCache.has(board))featureCache.set(board,features(board));return featureCache.get(board);},assess:board=>{if(!assessmentCache.has(board))assessmentCache.set(board,P.assess(board));return assessmentCache.get(board);}};
+ const rawFacts={usage,features:board=>{if(!featureCache.has(board))featureCache.set(board,features(board));return featureCache.get(board);},assess:board=>{if(!assessmentCache.has(board))assessmentCache.set(board,P.assess(board,{cavitiesOnly:true}));return assessmentCache.get(board);}};
  assessmentCache.set(state.board,initial);
- let beam=[{state,path:[],f:initialFacts,notches:initialFacts.notches,key:'',rank:[]}],best=null,stopped=false,stagedNext=[];const clearCandidates=[],repairCandidates=[];
+ let beam=[{state,path:[],f:initialFacts,notches:initialFacts.notches,key:'',rank:[]}],best=null,stopped=false,stagedNext=[],searchDepth=depth,closure=null;const clearCandidates=[],repairCandidates=[];
  const stageMetrics={examined:0,attempted:0,verified:0,queued:0,nodes:0,unknown:0};base.metrics.foundationStages=stageMetrics;if(usage)usage.families.foundationStage={...stageMetrics,selectedPath:0,retainedGoal:0};
  const accessSafe=(node,bounds={})=>{if(node.accessProof?.reachable===true||node.accessProof?.reachable===false){if(usage)usage.access.cacheHits++;return node.accessProof.reachable;}const proof=P.checkAccessPrefix(state,node.path,{notches:initialFacts.notches,deadline:Math.min(deadline,bounds.deadline??Infinity),now,maxNodes:Math.min(bounds.maxNodes??Infinity,Math.max(0,limit-reserved-base.metrics.nodes))});base.metrics.nodes+=proof.visited;base.metrics.gapAccessNodes=(base.metrics.gapAccessNodes||0)+proof.visited;node.accessProof=proof;if(usage){usage.access.checked++;usage.access[proof.reachable===true?'witnessed':proof.reachable===false?'rejected':'unknown']++;}return proof.reachable===true;};
  if(saved&&!accessSafe(saved))saved=null;if(usage)usage.families.retainedRepair.verified=Number(Boolean(saved));
- for(let d=0;d<depth;d++){
-  const nodes=stagedNext;stagedNext=[];
+ for(let d=0;d<searchDepth;d++){
+  const nodes=stagedNext;stagedNext=[];if(closure&&d===4)nodes.push(closure.node);
   for(const parent of beam){
    if(now()>=searchDeadline||base.metrics.nodes+reserved>=searchLimit){stopped=true;break;}
    const enumDeadline=performance.now()+Math.max(0,searchDeadline-now());
@@ -290,7 +346,31 @@ function plan(raw,options={}){
    }
    if(stages.length){stagedNext=[stages.sort(compare)[0]];stageMetrics.queued++;}
   }
+  // Optional closure extends all retained competitors at the same horizon.
+  // A cutoff never replaces the checked nominal result with a partial layer.
+  if(!options.disableOpeningClosure&&!saved&&!stopped&&depth===3&&d===2&&!clearCandidates.length&&Math.abs(initialFacts.parity)===2){
+   const metrics={attempted:0,verified:0,nodes:0,unknown:0,selected:false};base.metrics.visibleClosure=metrics;
+   const bounds=Math.min(2000,Math.max(0,searchLimit-reserved-base.metrics.nodes)),end=Number.isFinite(searchDeadline)?Math.min(searchDeadline,now()+50):Infinity,candidates=[];
+   for(const parent of chosen){
+    if(now()>=end||metrics.nodes>=bounds)break;metrics.attempted++;
+    const found=closureWitness(state,parent,{deadline:end,now,maxNodes:bounds-metrics.nodes,notches:initialFacts.notches,raw:rawFacts});metrics.nodes+=found.visited;base.metrics.nodes+=found.visited;if(found.unknown)metrics.unknown++;
+    for(const node of found.candidates){const beforeAccess=base.metrics.nodes,ok=accessSafe(node,{deadline:end,maxNodes:Math.max(0,bounds-metrics.nodes)});metrics.nodes+=base.metrics.nodes-beforeAccess;if(ok){metrics.verified++;candidates.push(node);}}
+    if(candidates.length)break;
+   }
+   if(candidates.length){closure={node:candidates.sort(compare)[0],nominal:best,clearCount:clearCandidates.length,repairCount:repairCandidates.length};searchDepth=5;
+    // No actual clear candidate used the speculative probe-time reserve. Reuse
+    // only that unspent window, preserving the absolute deadline and final
+    // validation margin; actual-clear handoff work is never reclaimed.
+    const extended=Number.isFinite(deadline)?Math.max(searchDeadline,deadline-30):searchDeadline;metrics.handoffReserveReleasedMs=Number.isFinite(deadline)?extended-searchDeadline:0;searchDeadline=extended;
+   }
+  }
   beam=chosen;if(stopped)break;
+ }
+ if(closure){
+  const cost=best?.path.reduce((n,p)=>n+p.witness.length,0)||0;
+  let proof=null;if(!stopped&&base.metrics.completeDepth===5&&now()<deadline&&base.metrics.nodes+reserved+cost<=limit){base.metrics.nodes+=cost;proof=closureCertificate(state,best.path,initialFacts.notches,rawFacts);}
+  if(proof){best.closureProof=proof;base.metrics.visibleClosure.selected=true;}
+  else{best=closure.nominal;clearCandidates.length=closure.clearCount;repairCandidates.length=closure.repairCount;}
  }
  // Probe only actual candidate post-clear public states, within this request's
  // remaining time/nodes. An unprobed or failed bounded search is not impossible.
@@ -317,11 +397,13 @@ function plan(raw,options={}){
    if(replacement&&proofDepth(saved.proof)<4&&betterRank(replacement,saved))best=replacement;else{best=saved;retained=true;}
   }
  }
+ if(base.metrics.visibleClosure)base.metrics.visibleClosure.selected=Boolean(best?.closureProof&&best!==verified&&!retained);
+ if(usage&&base.metrics.visibleClosure)usage.families.visibleClosure={...base.metrics.visibleClosure,selected:Number(base.metrics.visibleClosure.selected)};
  if(usage){usage.families.ordinary.budgetSkipped=usage.families.ordinary.enumerated-usage.families.ordinary.examined;Object.assign(usage.families.foundationStage,stageMetrics,{selectedPath:Number(Boolean(best?.path.some(p=>p.foundationStage))),retainedGoal:Number(retained&&saved?.goal.endpoint==='finite-foundation')});}
  base.metrics.elapsedMs=now()-started;base.metrics.repairRetained=retained;base.metrics.searchLimitReached=stopped;
  if(!best)return{...base,status:stopped?'budget-exhausted':base.status};
- if(usage){const path=retained?'retained-repair':best===verified?'verified-handoff':saved&&repairCandidates.includes(best)?'repair-replacement':'ordinary';usage.families.retainedRepair.selected=Number(retained);usage.families.handoff.selected=Number(best===verified);usage.families.ordinary.selected=Number(!retained&&best!==verified);usage.selected={path,locks:best.path.length,rank:best.rank.slice(),scoreComponents:rankComponents(best.f,best.path)};}
- const freshRepair=repairCertificate(state,best.path,saved&&!retained?saved.goal:null,initialFacts.notches);
+ if(usage){const path=retained?'retained-repair':best===verified?'verified-handoff':best.closureProof?'visible-closure':saved&&repairCandidates.includes(best)?'repair-replacement':'ordinary';usage.families.retainedRepair.selected=Number(retained);usage.families.handoff.selected=Number(best===verified);usage.families.ordinary.selected=Number(!retained&&best!==verified);usage.selected={path,locks:best.path.length,rank:best.rank.slice(),scoreComponents:rankComponents(best.f,best.path)};}
+ const freshRepair=best.closureProof||repairCertificate(state,best.path,saved&&!retained?saved.goal:null,initialFacts.notches);
  const repair=retained?saved.proof:freshRepair&&saved?{...freshRepair,basis:clone(saved.proof)}:freshRepair;
  const first=best.path[0],end=facts(best.state.board,best.notches),hold=first.holdCount===2?'Hold twice. ':first.holdCount?'Hold once. ':'';
  const region=first.event.cells.every(([x])=>x<4)?'Left':first.event.cells.every(([x])=>x>=4&&x<7)?'Center':first.event.cells.every(([x])=>x>=7)?'Right':'foundation';
@@ -331,5 +413,5 @@ function plan(raw,options={}){
  const sources=[{id:'SHOCKY-OPENING',label:"Shocky's ST Stacking Guide",url:'https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit',section:'Chapters 1–4: regions, construction and mino parity',scope:'Community background for opening construction. The coach checks this finite prefix; the guide does not certify this exact move or future availability.'}];
  return{...base,status:'recommended-with-verified-prefix',target:first.target,hold:first.hold,holdCount:first.holdCount,witness:first.witness,continuation:best.path,reason,sources,assessment:P.assess(best.state.board),evidence:{opening:{status:'partial-construction',initial:initialFacts,endpoint:end,unresolved:pending,repair,handoffCandidate:best.handoffContinuation?{status:'verified-public-post-clear-continuation',continuation:best.handoffContinuation}:null},knownPieceHorizon:state.queue.length+1}};
 }
-return Object.freeze({balance,features,facts,repairEndpoint,foundationTargets,foundationTransition,foundationWitnesses,handoffGeometry,handoff,plan,startSession,updateSession,acceptResult,repairCertificate,checkedRepair,goalPaid});
+return Object.freeze({balance,features,facts,repairEndpoint,foundationTargets,foundationTransition,foundationWitnesses,handoffGeometry,handoff,plan,startSession,updateSession,acceptResult,repairCertificate,closureCertificate,checkedRepair,goalPaid});
 });

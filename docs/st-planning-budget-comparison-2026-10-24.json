@@ -1,0 +1,542 @@
+{
+  "sourceCommit": "266282c521252b91328b063e49bec0dab7f09569",
+  "protocol": "Twelve fresh actual worker calls,ABBA per exact public root,only time allowance changes;45k nodes fixed. Not a policy or rollout comparison; original failed750ms trials remain unchanged. Original750ms remains performance restoration goal.",
+  "rootIdentities": [
+    {
+      "name": "opening-O6",
+      "seed": 502609459,
+      "beforeLock": 6
+    },
+    {
+      "name": "maintenance-24",
+      "seed": 503552020,
+      "beforeLock": 24
+    },
+    {
+      "name": "maintenance-41",
+      "seed": 502400001,
+      "beforeLock": 41
+    }
+  ],
+  "orderPerRoot": [
+    750,
+    1500,
+    1500,
+    750
+  ],
+  "maxNodes": 45000,
+  "complete": true,
+  "results": [
+    {
+      "index": 0,
+      "root": "opening-O6",
+      "timeMs": 750,
+      "status": "recommended-with-verified-prefix",
+      "wallMs": 687.6071989999999,
+      "error": null,
+      "witnessValid": true,
+      "event": {
+        "type": "O",
+        "target": {
+          "type": "O",
+          "x": 3,
+          "y": 35,
+          "rotation": 0
+        },
+        "cells": [
+          [
+            4,
+            36
+          ],
+          [
+            5,
+            36
+          ],
+          [
+            4,
+            37
+          ],
+          [
+            5,
+            37
+          ]
+        ],
+        "lines": 0,
+        "clearedRows": [],
+        "spin": "none",
+        "topOut": false
+      },
+      "nodes": 9471,
+      "depth": 5,
+      "completeDepth": 5,
+      "rootExpanded": null,
+      "elapsedMs": 672
+    },
+    {
+      "index": 1,
+      "root": "opening-O6",
+      "timeMs": 1500,
+      "status": "recommended-with-verified-prefix",
+      "wallMs": 625.9380800000001,
+      "error": null,
+      "witnessValid": true,
+      "event": {
+        "type": "O",
+        "target": {
+          "type": "O",
+          "x": 3,
+          "y": 35,
+          "rotation": 0
+        },
+        "cells": [
+          [
+            4,
+            36
+          ],
+          [
+            5,
+            36
+          ],
+          [
+            4,
+            37
+          ],
+          [
+            5,
+            37
+          ]
+        ],
+        "lines": 0,
+        "clearedRows": [],
+        "spin": "none",
+        "topOut": false
+      },
+      "nodes": 9471,
+      "depth": 5,
+      "completeDepth": 5,
+      "rootExpanded": null,
+      "elapsedMs": 620
+    },
+    {
+      "index": 2,
+      "root": "opening-O6",
+      "timeMs": 1500,
+      "status": "recommended-with-verified-prefix",
+      "wallMs": 757.5564810000001,
+      "error": null,
+      "witnessValid": true,
+      "event": {
+        "type": "O",
+        "target": {
+          "type": "O",
+          "x": 3,
+          "y": 35,
+          "rotation": 0
+        },
+        "cells": [
+          [
+            4,
+            36
+          ],
+          [
+            5,
+            36
+          ],
+          [
+            4,
+            37
+          ],
+          [
+            5,
+            37
+          ]
+        ],
+        "lines": 0,
+        "clearedRows": [],
+        "spin": "none",
+        "topOut": false
+      },
+      "nodes": 9471,
+      "depth": 5,
+      "completeDepth": 5,
+      "rootExpanded": null,
+      "elapsedMs": 752
+    },
+    {
+      "index": 3,
+      "root": "opening-O6",
+      "timeMs": 750,
+      "status": "recommended-with-verified-prefix",
+      "wallMs": 628.9152079999999,
+      "error": null,
+      "witnessValid": true,
+      "event": {
+        "type": "O",
+        "target": {
+          "type": "O",
+          "x": 3,
+          "y": 35,
+          "rotation": 0
+        },
+        "cells": [
+          [
+            4,
+            36
+          ],
+          [
+            5,
+            36
+          ],
+          [
+            4,
+            37
+          ],
+          [
+            5,
+            37
+          ]
+        ],
+        "lines": 0,
+        "clearedRows": [],
+        "spin": "none",
+        "topOut": false
+      },
+      "nodes": 9471,
+      "depth": 5,
+      "completeDepth": 5,
+      "rootExpanded": null,
+      "elapsedMs": 624
+    },
+    {
+      "index": 4,
+      "root": "maintenance-24",
+      "timeMs": 750,
+      "status": "budget-exhausted",
+      "wallMs": 790.9866959999999,
+      "error": null,
+      "witnessValid": null,
+      "event": null,
+      "nodes": 10743,
+      "depth": 0,
+      "completeDepth": 0,
+      "rootExpanded": 0,
+      "elapsedMs": 788
+    },
+    {
+      "index": 5,
+      "root": "maintenance-24",
+      "timeMs": 1500,
+      "status": "recommended-with-verified-prefix",
+      "wallMs": 1528.949913,
+      "error": null,
+      "witnessValid": true,
+      "event": {
+        "type": "Z",
+        "target": {
+          "type": "Z",
+          "x": 7,
+          "y": 34,
+          "rotation": 1
+        },
+        "cells": [
+          [
+            9,
+            35
+          ],
+          [
+            8,
+            36
+          ],
+          [
+            9,
+            36
+          ],
+          [
+            8,
+            37
+          ]
+        ],
+        "lines": 0,
+        "clearedRows": [],
+        "spin": "none",
+        "topOut": false
+      },
+      "nodes": 25900,
+      "depth": 3,
+      "completeDepth": 2,
+      "rootExpanded": 8,
+      "elapsedMs": 1523
+    },
+    {
+      "index": 6,
+      "root": "maintenance-24",
+      "timeMs": 1500,
+      "status": "recommended-with-verified-prefix",
+      "wallMs": 1506.0585599999995,
+      "error": null,
+      "witnessValid": true,
+      "event": {
+        "type": "Z",
+        "target": {
+          "type": "Z",
+          "x": 7,
+          "y": 34,
+          "rotation": 1
+        },
+        "cells": [
+          [
+            9,
+            35
+          ],
+          [
+            8,
+            36
+          ],
+          [
+            9,
+            36
+          ],
+          [
+            8,
+            37
+          ]
+        ],
+        "lines": 0,
+        "clearedRows": [],
+        "spin": "none",
+        "topOut": false
+      },
+      "nodes": 25900,
+      "depth": 3,
+      "completeDepth": 2,
+      "rootExpanded": 8,
+      "elapsedMs": 1502
+    },
+    {
+      "index": 7,
+      "root": "maintenance-24",
+      "timeMs": 750,
+      "status": "recommended-with-verified-prefix",
+      "wallMs": 774.8295109999999,
+      "error": null,
+      "witnessValid": true,
+      "event": {
+        "type": "Z",
+        "target": {
+          "type": "Z",
+          "x": 7,
+          "y": 34,
+          "rotation": 1
+        },
+        "cells": [
+          [
+            9,
+            35
+          ],
+          [
+            8,
+            36
+          ],
+          [
+            9,
+            36
+          ],
+          [
+            8,
+            37
+          ]
+        ],
+        "lines": 0,
+        "clearedRows": [],
+        "spin": "none",
+        "topOut": false
+      },
+      "nodes": 10558,
+      "depth": 1,
+      "completeDepth": 0,
+      "rootExpanded": 0,
+      "elapsedMs": 771
+    },
+    {
+      "index": 8,
+      "root": "maintenance-41",
+      "timeMs": 750,
+      "status": "recommended-with-verified-prefix",
+      "wallMs": 789.0029699999996,
+      "error": null,
+      "witnessValid": true,
+      "event": {
+        "type": "S",
+        "target": {
+          "type": "S",
+          "x": 2,
+          "y": 32,
+          "rotation": 3
+        },
+        "cells": [
+          [
+            2,
+            33
+          ],
+          [
+            2,
+            34
+          ],
+          [
+            3,
+            34
+          ],
+          [
+            3,
+            35
+          ]
+        ],
+        "lines": 0,
+        "clearedRows": [],
+        "spin": "none",
+        "topOut": false
+      },
+      "nodes": 12339,
+      "depth": 2,
+      "completeDepth": 2,
+      "rootExpanded": 8,
+      "elapsedMs": 785
+    },
+    {
+      "index": 9,
+      "root": "maintenance-41",
+      "timeMs": 1500,
+      "status": "recommended-with-verified-prefix",
+      "wallMs": 1253.595821,
+      "error": null,
+      "witnessValid": true,
+      "event": {
+        "type": "S",
+        "target": {
+          "type": "S",
+          "x": 2,
+          "y": 32,
+          "rotation": 3
+        },
+        "cells": [
+          [
+            2,
+            33
+          ],
+          [
+            2,
+            34
+          ],
+          [
+            3,
+            34
+          ],
+          [
+            3,
+            35
+          ]
+        ],
+        "lines": 0,
+        "clearedRows": [],
+        "spin": "none",
+        "topOut": false
+      },
+      "nodes": 20895,
+      "depth": 3,
+      "completeDepth": 3,
+      "rootExpanded": 8,
+      "elapsedMs": 1249
+    },
+    {
+      "index": 10,
+      "root": "maintenance-41",
+      "timeMs": 1500,
+      "status": "recommended-with-verified-prefix",
+      "wallMs": 1253.3637130000006,
+      "error": null,
+      "witnessValid": true,
+      "event": {
+        "type": "S",
+        "target": {
+          "type": "S",
+          "x": 2,
+          "y": 32,
+          "rotation": 3
+        },
+        "cells": [
+          [
+            2,
+            33
+          ],
+          [
+            2,
+            34
+          ],
+          [
+            3,
+            34
+          ],
+          [
+            3,
+            35
+          ]
+        ],
+        "lines": 0,
+        "clearedRows": [],
+        "spin": "none",
+        "topOut": false
+      },
+      "nodes": 20895,
+      "depth": 3,
+      "completeDepth": 3,
+      "rootExpanded": 8,
+      "elapsedMs": 1249
+    },
+    {
+      "index": 11,
+      "root": "maintenance-41",
+      "timeMs": 750,
+      "status": "recommended-with-verified-prefix",
+      "wallMs": 797.6199890000007,
+      "error": null,
+      "witnessValid": true,
+      "event": {
+        "type": "S",
+        "target": {
+          "type": "S",
+          "x": 2,
+          "y": 32,
+          "rotation": 3
+        },
+        "cells": [
+          [
+            2,
+            33
+          ],
+          [
+            2,
+            34
+          ],
+          [
+            3,
+            34
+          ],
+          [
+            3,
+            35
+          ]
+        ],
+        "lines": 0,
+        "clearedRows": [],
+        "spin": "none",
+        "topOut": false
+      },
+      "nodes": 12731,
+      "depth": 3,
+      "completeDepth": 2,
+      "rootExpanded": 8,
+      "elapsedMs": 793
+    }
+  ],
+  "interpretation": "One bounded12call comparison,not a long-run policy result. O6unchanged;extra allowance adds completed work to maintenance roots. One750ms root24 abstention is retained. Original750ms remains restoration target."
+}

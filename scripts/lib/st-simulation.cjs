@@ -17,7 +17,7 @@ const clone = x => JSON.parse(JSON.stringify(x));
 function publicObservation(state){const observation=P.observe(state);delete observation.lastEvent;return observation;}
 const digest = x => crypto.createHash('sha256').update(typeof x === 'string' ? x : JSON.stringify(x)).digest('hex');
 const SOURCE_FILES = ['st-rules.js', 'st-bag.js', 'st-structure.js', 'st-paired-repair.js', 'st-access.js', 'st-pattern-history.js', 'st-left-foundation.js', 'st-planner.js', 'st-opening.js', 'st-worker.js', 'st-lab.js', 'st-fixtures.js', 'scripts/lib/st-simulation.cjs', 'scripts/simulate-st.cjs'];
-const CONFIG = Object.freeze({depth:3, width:8, maxNodes:45000, timeMs:750});
+const CONFIG = Object.freeze({depth:3, width:8, maxNodes:45000, timeMs:1500});
 const PRESETS = Object.freeze({quick:{seeds:[10331, 20333], locks:24}, research:{seeds:Array.from({length:16}, (_,i) => 810001 + i * 997), locks:500}});
 const RNG_VERSION = 'mulberry32-seven-bag-v1';
 function random(seed) {

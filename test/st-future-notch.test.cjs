@@ -3,6 +3,9 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const R=require('../st-rules'),S=require('../st-structure'),P=require('../st-planner'),F=require('../st-fixtures');
 const snapshot=require('./support/st-user-future-notch.json');
 const config={depth:3,width:8,maxNodes:45000};
+const clone=x=>JSON.parse(JSON.stringify(x));let discoveredAdvice;
+// Reuse only identical positive setup, never the actual discovery or lifecycle checks.
+function positiveAdvice(){if(!discoveredAdvice){const a=P.plan(snapshot,config);assert.ok(a.target,a.reason);discoveredAdvice=clone(a);}return clone(discoveredAdvice);}
 const move=(state,witness)=>{const r=R.replay(state,witness);assert.ok(r.valid);assert.equal(r.events.length,1);return{state:r.state,event:r.events[0],witness};};
 test('user J snapshot reserves the future column-seven notch, not a score bonus',()=>{
  const phase=S.notchPattern(snapshot.board);assert.equal(phase.anchorRow,36);assert.ok(phase.protectedRows.includes(27));
@@ -15,7 +18,7 @@ for(const timed of [false,true])test(`user J recommendation protects the future 
  const a=P.plan(snapshot,{...config,...(timed?{timeMs:750}:{})});assert.ok(a.target,a.reason);assert.equal(a.target.type,'J');assert.ok(a.continuation[0].event.cells.every(([x])=>x<4));
  let state=R.createState(snapshot),phase=S.notchPattern(state.board);
  for(const step of a.continuation){const p=move(state,step.witness),check=S.advanceNotches(state.board,p,phase);assert.ok(check.valid);phase=check.pattern;state=p.state;}
- if(!timed){assert.equal(a.evidence.tsdAt,3);assert.equal(a.metrics.completeDepth,3);}
+ if(!timed){assert.equal(a.evidence.tsdAt,3);assert.equal(a.metrics.completeDepth,3);discoveredAdvice=clone(a);}
 });
 test('current TSD arm may fill and clear its notch while higher notches translate down two rows',()=>{
  const state=F.get('direct-double').observation,phase=S.notchPattern(state.board);
@@ -47,7 +50,7 @@ test('already damaged user position abstains honestly rather than claiming a rep
 });
 test('revalidation and in-flight advancement reject the old notch-blocking recommendation',()=>{
  const center=R.placements(snapshot).placements.find(p=>p.event.type==='J'&&p.event.cells.some(([x,y])=>x===6&&y===27));
- const good=P.plan(snapshot,config),stale={...good,target:center.target,hold:center.hold,holdCount:center.holdCount,witness:center.witness,continuation:[{target:center.target,hold:center.hold,holdCount:center.holdCount,witness:center.witness,event:center.event}],evidence:{...good.evidence,cycleDebt:0}};
+ const good=positiveAdvice(),stale={...good,target:center.target,hold:center.hold,holdCount:center.holdCount,witness:center.witness,continuation:[{target:center.target,hold:center.hold,holdCount:center.holdCount,witness:center.witness,event:center.event}],evidence:{...good.evidence,cycleDebt:0}};
  assert.equal(P.revalidate(snapshot,stale),null);
  stale.witness=['L','R',...center.witness];stale.continuation[0].witness=stale.witness;
  const action=stale.witness[0];assert.equal(P.advance(R.move(R.createState(snapshot),action),stale,action),null);

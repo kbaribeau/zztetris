@@ -123,7 +123,7 @@
         };
         activeWorker.postMessage({type:'plan',id,observation:observation(),previous:previous?clone(previous):null,
           commitment:commitment?clone(commitment):null,
-          options:{timeMs:750,depth:3,width:8,maxNodes:45000,patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null}});
+          options:{timeMs:1500,depth:3,width:8,maxNodes:45000,patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null}});
         watchdog=setTimeout(()=>{
           if(worker!==activeWorker)return;
           cancel();result=null;coachStatus='budget-exhausted';coachMessage='The coach timed out. A valid continuation may still exist.';render();
