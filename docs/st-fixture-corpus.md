@@ -42,7 +42,7 @@ Run: `node --test test/st-fixtures.test.cjs`.
 
 ## Reviewed scoring-cycle cases
 
-The added selectable starts use player-facing names, not reference page numbers:
+The internal regression fixtures use descriptive names, not reference page numbers. See [ST lab](../ST-LAB.md) for the selectable play modes.
 
 - **Restore the right cap**: sprint placement 83, a usable Z cap should precede optional filling.
 - **Center before quad cleanup**: sprint placement 92, center S instead of an ordinary single followed by a quad.
