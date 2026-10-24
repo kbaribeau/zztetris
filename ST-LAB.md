@@ -6,6 +6,9 @@ The last selected play mode is saved locally as `stLabMode`; unknown or retired 
 
 ## Play
 
+- **Undo last placement** (configured Undo key, default T) restores the start of the previous completed placement, before its holds, moves and rotations. It also discards any movement of the current piece. Undo is available after a top-out or finite-queue exhaustion. The last 500 placements are retained; restart, mode changes and imports clear this history. Redo is not currently offered in the ST Lab.
+- Undo preserves the same generated piece sequence using a private append-only tape and rewindable cursor. It restores public bag evidence, stream position, opening phase and any saved coaching commitment, then requests fresh validation. Private tape/history never enter advice requests or exported snapshots; already-seen future pieces are not treated as currently visible. Late worker replies are rejected with a new revision.
+
 - The gray outline is the ordinary hard-drop ghost. The amber outline is a separately checked coaching target. Follow the explanation, including HOLD when requested; no auto-play button executes the plan for you.
 - Keyboard bindings come from Game Settings; on-page buttons provide the same manual actions. Advice defaults to `KeyA` unless rebound. Display preferences persist without changing ordinary modes.
 - The lab has its own explicit `st-zero-v2` rules: 10×40 board, zero gravity, manual hard-drop lock, SRS+ kicks including 180°, and **unlimited hold swaps**. Ordinary practice is unchanged. Existing v1 fixtures and imports explicitly migrate to v2 in the lab; the kernel retains v1 for historical replay. Unlimited hold swaps the same two pieces, not the whole queue. See [rules contract](docs/st-rules-contract.md).

@@ -30,6 +30,8 @@
       <label for="st-fixture">Play mode</label>
       <select id="st-fixture"></select>
       <button id="st-reset" type="button">Restart current board</button>
+      <button id="st-undo" type="button" data-action="UNDO" disabled>Undo last placement</button>
+      <p class="lab-note">Undo restores the start of the previous placement, including hold. The piece sequence stays the same. Up to 500 placements are retained; restart, mode changes and imports clear undo history.</p>
       <p id="st-position-note" class="lab-note"></p>
     </section>
     <div class="lab-field-scroll"><div class="lab-field">
@@ -63,7 +65,7 @@
       <label for="st-snapshot">Snapshot JSON</label><textarea id="st-snapshot" rows="8" spellcheck="false"></textarea>
       <button id="st-import" type="button">Import snapshot</button><button id="st-export" type="button">Export visible snapshot</button>
       <p id="st-import-status" role="status"></p>
-      <p id="st-ordinary-practice-note">For legacy board drawing, Fumen tools, undo/redo, gravity and other kicksets, use <a href="index.html">ordinary practice</a>. Those modes are unchanged.</p>
+      <p id="st-ordinary-practice-note">For legacy board drawing, Fumen tools, redo, gravity and other kicksets, use <a href="index.html">ordinary practice</a>. Those modes are unchanged.</p>
     </details>
   </main>
   <footer><a href="ST-LAB.md">Rules and limitations</a> · <a href="controls.html">Game Settings</a> · <a href="LICENSE">MIT license</a></footer>

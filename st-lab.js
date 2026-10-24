@@ -8,14 +8,15 @@
   const defaults=['ArrowLeft','ArrowRight','ArrowDown','Space','ShiftLeft','KeyX','KeyZ','KeyC','KeyR','KeyT','KeyY','160','30','15','20','100'];
   let config;
   try { const saved=JSON.parse(localStorage.getItem('config')); config=Array.isArray(saved)&&saved.length>=16?saved:defaults; } catch { config=defaults; }
-  const actions=['L','R','SD','HD','HOLD','CW','CCW','R180','RESET'];
+  const actions=['L','R','SD','HD','HOLD','CW','CCW','R180','RESET','UNDO'];
   const keys=Object.fromEntries(actions.map((action,i)=>[config[i],action]));
   const number=(value,fallback,min,max)=>Number.isFinite(Number(value))?Math.min(max,Math.max(min,Number(value))):fallback;
   const das=number(config[11],160,0,1000),arr=number(config[12],30,0,1000),sdr=number(config[13],15,1,1000);
   window.DAS=das; // shared settings/navigation readback; not a second game engine.
   window.ctrlsPopup=()=>window.open('controls.html','popup','width=1200,height=800');
   const context=$('b').getContext('2d');
-  let state, origin, future=[], generated=false, observed=null, openingPhase=false, openingClear=null;
+  let state, origin, future=[], futureCursor=0, generated=false, observed=null, openingPhase=false, openingClear=null;
+  let undoHistory=[], turnStart=null;
   let worker=null, requestId=0, debounce=null, watchdog=null, revision=0;
   let result=null, previous=null, commitment=null, coachStatus='idle', coachMessage='';
   let selectedId=null, lockCount=0;
@@ -83,7 +84,7 @@
   function requestPlan({retain=false}={}) {
     cancel();if(!retain)result=null;
     if(!TrainingSettings.guideVisible){coachStatus='hidden';coachMessage='';render();return;}
-    if(state.topOut){coachStatus='top-out';coachMessage='This position has topped out. Reset to continue.';render();return;}
+    if(state.topOut){coachStatus='top-out';coachMessage='This position has topped out. Undo the placement or reset to continue.';render();return;}
     if(!state.active){coachStatus='insufficient-known-pieces';coachMessage='The supplied queue has ended. Import another snapshot or reset.';render();return;}
     if(typeof Worker!=='function'){result=null;coachStatus='worker-unavailable';coachMessage='Coaching is unavailable in this browser. You can still practice manually.';render();return;}
     if(!retain){coachStatus='thinking';coachMessage='Checking the next moves…';}render();
@@ -140,7 +141,7 @@
   function replenish() {
     const added=[];let frontier=state.bag;
     while(state.queue.length<6){
-      if(!future.length){
+      if(futureCursor>=future.length){
         if(!generated){
           // A unique observable remainder is knowledge, not hidden lookahead.
           const forced=frontier?STBag.forcedNext(frontier):null;
@@ -149,7 +150,7 @@
         }
         future.push(...bag());
       }
-      const type=future.shift();state={...state,queue:[...state.queue,type]};added.push(type);
+      const type=future[futureCursor++];state={...state,queue:[...state.queue,type]};added.push(type);
       if(frontier)frontier=STBag.consume(frontier,type);
     }
     if(observed){
@@ -161,7 +162,7 @@
     }
   }
   function resetState(input,{tail=[],random=false,history=null,note='',keepOrigin=false,opening=false}={}) {
-    cancel();stopRepeating();future=tail.slice();generated=random;observed=history?.slice() || null;openingPhase=opening;openingClear=null;
+    cancel();stopRepeating();future=tail.slice();futureCursor=0;undoHistory=[];turnStart=null;generated=random;observed=history?.slice() || null;openingPhase=opening;openingClear=null;
     state=STRules.migrateState({...clone(input),revision:++revision});
     const errors=STRules.validate(state);if(errors.length)throw new Error(errors.join('; '));
     if(state.queue.length>6){future.unshift(...state.queue.slice(6));state={...state,queue:state.queue.slice(0,6)};}
@@ -182,18 +183,38 @@
     resetState({rules:profile,board:STRules.emptyBoard(),active:{type:active,x:3,y:17,rotation:0,lastRotation:null},hold:null,canHold:true,queue:initial,streamCursor:1},
       {random:true,opening:true,history:[active,...initial],note:'Empty-board opening practice. The coach checks partial construction using visible pieces; completing the opening is not guaranteed.'});
   }
+  function checkpoint() {
+    return {state:clone(state),futureCursor,observed:observed?.slice()||null,
+      openingPhase,openingClear:openingClear?clone(openingClear):null,
+      commitment:commitment?clone(commitment):null,lockCount};
+  }
+  function undo() {
+    if(!undoHistory.length)return;
+    cancel();stopRepeating();
+    const saved=undoHistory.pop();
+    state={...clone(saved.state),revision:++revision};futureCursor=saved.futureCursor;
+    observed=saved.observed?.slice()||null;openingPhase=saved.openingPhase;openingClear=saved.openingClear?clone(saved.openingClear):null;
+    commitment=saved.commitment?clone(saved.commitment):null;lockCount=saved.lockCount;
+    // Never resurrect displayed advice or an old worker response. The saved
+    // proof is only a candidate for replay against this restored public state.
+    previous=null;result=null;turnStart=null;
+    setText($('st-game-status'),`Placement undone. ${lockCount} piece${lockCount===1?'':'s'} locked.`);
+    requestPlan();render();
+  }
   function act(action) {
+    if(action==='UNDO'){undo();return;}
     if(action==='RESET'){if(origin)resetState(origin.input,{...origin.options,keepOrigin:true});return;}
     if(!state.active)return;
     const beforeLock=action==='HD'?observation():null;
     const next=STRules.move(state,action);
     if(next===state)return;
+    if(!turnStart)turnStart=checkpoint();
     const displayed=result;
     const locked=action==='HD';
     state={...next,revision:++revision};
-    if(locked){lockCount++;previous=null;
+    if(locked){undoHistory.push(turnStart);if(undoHistory.length>500)undoHistory.shift();turnStart=null;lockCount++;previous=null;
       const event=state.lastEvent;
-      setText($('st-game-status'),event?.topOut?'Top out. Reset to try again.':`${event?.lines||0} lines cleared${event?.spin&&event.spin!=='none'?` · ${event.spin} T-spin`:''}. ${lockCount} piece${lockCount===1?'':'s'} locked.`);
+      setText($('st-game-status'),event?.topOut?'Top out. Undo the placement or reset to try again.':`${event?.lines||0} lines cleared${event?.spin&&event.spin!=='none'?` · ${event.spin} T-spin`:''}. ${lockCount} piece${lockCount===1?'':'s'} locked.`);
     }
     // Active movement does not expose pieces; only draws shorten the preview.
     replenish();
@@ -225,6 +246,7 @@
   function render() {
     if(!state)return;
     const visible=TrainingSettings.guideVisible;
+    $('st-undo').disabled=!undoHistory.length;
     const key=STBinding.resolve(localStorage,Object.keys(keys));
     setText($('st-toggle'),`Advice ${visible?'ON':'OFF'} · ${key||'rebind conflicting advice key'}`);
     $('st-toggle').setAttribute('aria-pressed',String(visible));
