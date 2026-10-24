@@ -248,6 +248,12 @@
   function render() {
     if(!state)return;
     const visible=TrainingSettings.guideVisible;
+    // This names the session's coaching path, not search success or a local
+    // scoring-wall phase. A finite repair is not a detected community Reset.
+    $('st-phase').dataset.phase=openingPhase?'opening':'maintenance';
+    setText($('st-phase-name'),openingPhase?'Opening':'Mid-game');
+    setText($('st-phase-symbol'),openingPhase?'◌':'▦');
+    $('st-phase-indicator').hidden=false;
     $('st-undo').disabled=!undoHistory.length;
     const key=STBinding.resolve(localStorage,Object.keys(keys));
     setText($('st-toggle'),`Advice ${visible?'ON':'OFF'} · ${key||'rebind conflicting advice key'}`);

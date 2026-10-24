@@ -64,9 +64,15 @@ test('undo: actual opening scoring clear and checked handoff can be undone back 
  g.window.Math.random=()=>{assert.ok(randomValues.length);return randomValues.shift();};select(g,'empty');
  for(const witness of f.witnesses)for(const action of witness)g.window.stLab.act(action);
  const after=request(g,all);assert.deepEqual(same(after.observation),same(f.afterClear));assert.equal(after.options.openingClear.event.lines,2);
+ assert.equal(g.element('#st-phase-name').textContent,'Opening','the actual clear alone does not finish the opening');
  const handoff=P.decide(after.observation,{...after.options,timeMs:undefined});assert.equal(handoff.phase,'maintenance');assert.equal(handoff.evidence.openingHandoff.status,'checked-after-actual-clear');all.at(-1).respond(handoff);
+ assert.equal(g.element('#st-fixture').value,'empty','coaching phase can change without changing play mode');
+ assert.equal(g.element('#st-phase').dataset.phase,'maintenance');assert.equal(g.element('#st-phase-name').textContent,'Mid-game');
  g.window.stLab.act('UNDO');const before=request(g,all);assert.deepEqual(same(before.observation),same(f.beforeClear));assert.equal(before.options.openingPhase,true);assert.equal(before.options.openingClear,null);assert.equal(before.commitment,null);
+ assert.equal(g.element('#st-phase').dataset.phase,'opening');assert.equal(g.element('#st-phase-name').textContent,'Opening');
  for(const action of f.witnesses.at(-1))g.window.stLab.act(action);const again=request(g,all);assert.deepEqual(same(again.observation),same(f.afterClear));assert.equal(again.options.openingClear.event.lines,2);
+ all.at(-1).respond(P.decide(again.observation,{...again.options,timeMs:undefined}));assert.equal(g.element('#st-phase-name').textContent,'Mid-game');
+ g.click('#st-reset');assert.equal(g.element('#st-phase-name').textContent,'Opening','restart restores the opening origin');
 }));
 
 test('undo: configured binding is honored and held movement timers are cancelled',()=>withPage('st-lab.html',{storage:{config:JSON.stringify(['ArrowLeft','ArrowRight','ArrowDown','Space','ShiftLeft','KeyX','KeyZ','KeyC','KeyR','KeyU','KeyY','160','30','15','20','100'])}},g=>{

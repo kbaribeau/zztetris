@@ -92,6 +92,8 @@ The old advisor and its implementation-specific gates remain removed. New pure s
 
 `st-lab.test.cjs` covers real page scripts with deterministic Worker protocol stubs, plus worker entry code, cancellation/revision races, withheld invalid witnesses, stable targets during exact execution, imports, hidden-future exclusion, hold/reset/manual play, and settings/input guards. This is not a real browser Worker/pixel test. The natural legacy replay now runs on ordinary practice, where its unlimited-hold contract belongs.
 
+`st-coaching-phase.test.cjs` exercises the actual page’s compact phase badge through saved modes, imports, manual play, restart, advice hiding, pending/stale/unsupported/error results, finite-queue exhaustion and top-out. The actual opening-clear/handoff/Undo route in `st-undo.test.cjs` also checks Opening → Mid-game → Opening without changing the selected Empty board start. The badge is session context, not a new Reset classifier; these DOM assertions do not prove rendered layout. Check the above-field badge, unchanged board/target alignment and wrapped toolbar at desktop and a verified narrow viewport.
+
 See [ST-LAB.md](ST-LAB.md), [corpus provenance](docs/st-fixture-corpus.md) and [measured evaluation](docs/st-evaluation.md). Real browser visual checks and subjective learning/playtest remain separate acceptance requirements. All unrelated behavioral suites remain active. Use each run manifest for the actual count.
 
 ## Training display settings coverage
