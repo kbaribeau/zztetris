@@ -8,7 +8,8 @@ function phase(g,value,label){
  assert.equal(g.element('#st-phase-indicator').hidden,false);
  assert.equal(g.element('#st-phase').dataset.phase,value);
  assert.equal(g.element('#st-phase-name').textContent,label);
- assert.equal(g.element('#st-phase-label').textContent,'Coaching phase');
+ assert.equal(g.window.document.querySelector('#st-phase-label'),null,'phase is the first equal badge, without a redundant caption');
+ assert.match(g.element('#st-phase-indicator').getAttribute('aria-label'),/Coaching phase and observed resources/);
  assert.equal(g.element('#st-phase-symbol').getAttribute('aria-hidden'),'true');
 }
 function workers(g){

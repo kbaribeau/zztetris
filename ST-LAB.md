@@ -136,9 +136,17 @@ The normal actual-clear maintenance handoff and resource diagnostics remain
 separate. Publication prioritizes valid source-guided openings; matched development runs
 show both improvements and later-play regressions. Sustained play is not certified.
 
-Observed Midgame resources are shown in the existing diagnostics details:
-exact Center partner debt, HOLD/draw identities, source-backed Hanging S,
-and Extra Z only after a verified source opening baseline. Unknown imports
+Above the field, three equal badges show the coaching phase, Hanging S and
+Extra Z. The S/Z silhouettes are grey outlines until a Hanging S is observed or
+Extra Z is actually used; then the silhouette fills and the badge gains a double
+contour. Eligibility alone does not highlight Extra Z. A **?** means unknown,
+not confirmed absent or unused; **≠** with a dashed edge means outside the
+reviewed source profile. Hover or keyboard-focus a badge for its description;
+Escape dismisses that detail until refocus or pointer re-entry. The badges stay
+visible with advice hidden. On game end, they describe historical facts only.
+
+The existing diagnostics retain exact Center partner debt, HOLD/draw identities,
+source-backed Hanging S, and Extra Z only after a verified source opening baseline. Unknown imports
 stay unknown; clears never renew the allowance. Planning now receives an
 observation-bound replay of this history, not trusted serialized status flags.
 Ordinary routes reject non-scoring T locks and a second non-Right Z; unknown

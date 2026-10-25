@@ -254,6 +254,17 @@
     }
     return resetDiagnosticCache.value;
   }
+  function renderResourceBadge(id,status,label,reason,observedStatus,terminal) {
+    const badge=$(id),unclassified=status==='unknown'||status==='out-of-profile';
+    if(badge.dataset.state!==status)badge.dataset.state=status;
+    const observed=String(status===observedStatus);
+    if(badge.dataset.observed!==observed)badge.dataset.observed=observed;
+    $(id+'-piece').hidden=unclassified;
+    setText($(id+'-symbol'),status==='unknown'?'?':status==='out-of-profile'?'≠':'');
+    const detail=`${terminal?'Game ended; historical facts only. ':''}${label}. ${reason} Actual observed allocation, not a planned continuation.`;
+    if(badge.getAttribute('aria-label')!==label)badge.setAttribute('aria-label',label);
+    setText($(id+'-detail'),detail);
+  }
   function render() {
     if(!state)return;
     const visible=TrainingSettings.guideVisible;
@@ -273,6 +284,9 @@
     const resources=STResourceHistory.resolve(observation(),resourceHistory);
     const sLabel={hanging:'observed surplus','none-observed':'none observed in the checked interval',unknown:'unknown history or allocation','out-of-profile':'outside the reviewed source profile'}[resources.hangingS.status];
     const zLabel={available:'unused in the verified interval',used:'used in the verified interval',unknown:'eligibility unknown','out-of-profile':'outside the reviewed source profile'}[resources.extraZ.status];
+    renderResourceBadge('st-hanging-s',resources.hangingS.status,`Hanging S: ${sLabel}`,resources.hangingS.reason||resources.coverage.reason,'hanging',resources.terminal);
+    renderResourceBadge('st-extra-z',resources.extraZ.status,`Extra Z: ${zLabel}`,resources.extraZ.reason||resources.coverage.reason,'used',resources.terminal);
+    $('st-resource-terminal').hidden=!resources.terminal;
     const centerLabel=resources.center?`${resources.center.pending.length} pending, ${resources.center.debt.length} diverted`:'unknown';
     setText($('st-resource-summary'),`${resources.terminal?'Game ended; historical facts only. ':''}Hanging S: ${sLabel}. Extra Z: ${zLabel}. Observed Center partners: ${centerLabel}. These are diagnostics, not placement instructions.`);
     const resetEvidence=resetDiagnostics();
@@ -313,7 +327,7 @@
   function stopRepeating(){for(const timer of repeating.values()){clearTimeout(timer.timeout);clearInterval(timer.interval);}repeating.clear();}
   function toggle(){TrainingSettings.setGuideVisible(!TrainingSettings.guideVisible);requestPlan();}
   document.addEventListener('keydown',event=>{
-    if(event.ctrlKey||event.metaKey||event.altKey||STBinding.textEntry(event.target)||event.target.closest?.('button,a,summary,[role="button"]'))return;
+    if(event.ctrlKey||event.metaKey||event.altKey||STBinding.textEntry(event.target)||event.target.closest?.('button,a,summary,[role="button"],.lab-phase'))return;
     const hintKey=STBinding.resolve(localStorage,Object.keys(keys));
     if(event.code===hintKey){event.preventDefault();if(!event.repeat)toggle();return;}
     const action=keys[event.code];if(!action)return;event.preventDefault();
@@ -339,6 +353,10 @@
   window.addEventListener('blur',stopRepeating);
   window.addEventListener('pagehide',()=>{stopRepeating();cancel();});
   window.addEventListener('storage',event=>{if(event.key==='stGuideVisible'||event.key===null)requestPlan();else if(event.key==='bagBoundaries')render();});
+  document.querySelectorAll('.lab-phase [tabindex]').forEach(badge=>{
+    for(const event of ['focus','mouseenter'])badge.addEventListener(event,()=>{delete badge.dataset.detailDismissed;});
+    badge.addEventListener('keydown',event=>{if(event.code==='Escape')badge.dataset.detailDismissed='true';});
+  });
   $('st-toggle').addEventListener('click',()=>{toggle();$('st-toggle').blur();});
   $('st-reset').addEventListener('click',()=>{act('RESET');$('st-reset').blur();});
   document.querySelectorAll('[data-action]').forEach(button=>button.addEventListener('click',()=>{act(button.dataset.action);button.blur();}));
