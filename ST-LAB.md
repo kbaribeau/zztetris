@@ -6,7 +6,7 @@ The last selected play mode is saved locally as `stLabMode`; unknown or retired 
 
 ## Play
 
-- The compact **Coaching phase** badge above the field names the current session: **Opening** for partial construction, or **Mid-game** for the existing maintenance coaching path. Mid-game is a display label, not a community-cycle classifier or a guarantee that advice is available. Only the checked opening handoff changes Opening to Mid-game; Undo and Restart restore the appropriate session. The badge remains visible when advice is hidden and does not change on a search miss, error or top-out. Explanations remain below the board. Community **Reset** detection is future work: finite repairs, quad cleanup and Restart are not labelled Reset. The same compact badge layout can accommodate that label when a real classifier is added.
+- The first badge above the field names the current session: **Opening** for partial construction, or **Mid-game** for the existing maintenance coaching path, without a visible “Coaching phase” caption. Mid-game is a display label, not a community-cycle classifier or a guarantee that advice is available. Only the checked opening handoff changes Opening to Mid-game; Undo and Restart restore the appropriate session. The phase does not change on a search miss, error or top-out. Placement explanations remain below the board. Community **Reset** detection is future work: finite repairs, quad cleanup and Restart are not labelled Reset.
 - **Undo last placement** (configured Undo key, default T) restores the start of the previous completed placement, before its holds, moves and rotations. It also discards any movement of the current piece. Undo is available after a top-out or finite-queue exhaustion. The last 500 placements are retained; restart, mode changes and imports clear this history. Redo is not currently offered in the ST Lab.
 - Undo preserves the same generated piece sequence using a private append-only tape and rewindable cursor. It restores public bag evidence, stream position, opening phase and any saved coaching commitment, then requests fresh validation. Private tape/history never enter advice requests or exported snapshots; already-seen future pieces are not treated as currently visible. Late worker replies are rejected with a new revision.
 
@@ -136,9 +136,20 @@ The normal actual-clear maintenance handoff and resource diagnostics remain
 separate. Publication prioritizes valid source-guided openings; matched development runs
 show both improvements and later-play regressions. Sustained play is not certified.
 
-Observed Midgame resources are shown in the existing diagnostics details:
-exact Center partner debt, HOLD/draw identities, source-backed Hanging S,
-and Extra Z only after a verified source opening baseline. Unknown imports
+Above the field, three equal badges show the current phase value, Hanging S and
+Extra Z, with no inline resource-status words. The S/Z silhouettes are grey
+outlines until a Hanging S is observed or Extra Z is actually used; then the
+silhouette fills and the badge gains a double
+contour. Eligibility alone does not highlight Extra Z. A separate **?** beside
+the grey outline means unknown history, not confirmed absent or unused;
+**≠** replaces the silhouette and a dashed edge marks evidence outside the
+reviewed source profile. Hover or keyboard-focus a badge for its description,
+including its observed interval and limitations. Escape dismisses that detail
+until refocus or pointer re-entry. The badges stay
+visible with advice hidden. On game end, they describe historical facts only.
+
+The existing diagnostics retain exact Center partner debt, HOLD/draw identities,
+source-backed Hanging S, and Extra Z only after a verified source opening baseline. Unknown imports
 stay unknown; clears never renew the allowance. Planning now receives an
 observation-bound replay of this history, not trusted serialized status flags.
 Ordinary routes reject non-scoring T locks and a second non-Right Z; unknown
