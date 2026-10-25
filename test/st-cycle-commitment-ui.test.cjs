@@ -79,11 +79,22 @@ test('st-cycle-ui/real mismatched manual lock discards the old scoring commitmen
  const actual=R.replay(request.observation,['HD']);assert.notDeepEqual(actual.events[0].target,plan.target);workers.at(-1).respond(plan);
  g.window.stLab.act('HD');g.advance(40);assert.equal(workers.at(-1).message.commitment,null);
 }));
-test('st-cycle-ui/real reserved I survives the double and fills the Pocket across fresh workers',()=>withPage('st-lab.html',{},g=>{
+test('st-cycle-ui/real reserved I requires credited spin and fills the Pocket across fresh workers',()=>withPage('st-lab.html',{},g=>{
  const P=require('../st-planner'),snapshot=require('./support/st-cycle-resources.json').holdI.snapshot,workers=setup(g),events=[];
  g.element('#st-snapshot').value=JSON.stringify(snapshot);g.click('#st-import');g.advance(40);
  for(let lock=0;lock<3;lock++){
   const request=workers.at(-1).message,plan=P.plan(request.observation,{depth:3,width:8,maxNodes:45000,commitment:request.commitment});assert.ok(plan.target,plan.reason);
+  if(lock===0){
+   // Reuse the original plan to check its retained scoring suffix before
+   // preview refill/replanning: board equality alone cannot pay a spin goal.
+   const first=R.replay(request.observation,plan.witness);assert.ok(first.valid);
+   const scoring=P.continueCommitment(request.observation,first.state,plan,first.events[0]);assert.ok(scoring);assert.equal(scoring.continuation[0].event.spin,'full');
+   const atTarget=R.replay(first.state,scoring.witness.slice(0,-1));assert.ok(atTarget.valid);
+   const noRotation=R.createState({...atTarget.state,active:{...atTarget.state.active,lastRotation:null}}),uncredited=R.move(noRotation,'HD'),scored=R.replay(first.state,scoring.witness);
+   assert.deepEqual(uncredited.board,scored.state.board);assert.deepEqual(uncredited.lastEvent.target,scored.events[0].target);assert.equal(uncredited.lastEvent.lines,2);assert.equal(uncredited.lastEvent.spin,'none');
+   assert.ok(P.continueCommitment(first.state,scored.state,scoring,scored.events[0]));
+   assert.equal(P.continueCommitment(first.state,uncredited,scoring,uncredited.lastEvent),null);
+  }
   events.push(R.replay(request.observation,plan.witness).events[0]);workers.at(-1).respond(plan);
   for(const action of plan.witness)g.window.stLab.act(action);g.advance(40);
   const next=workers.at(-1).message;
@@ -97,16 +108,6 @@ test('st-cycle-ui/goal-free filler advice never becomes a cycle commitment',()=>
  const workers=setup(g),plan=advice(workers.at(-1).message.observation);assert.equal(require('../st-planner').cycleResources(plan.continuation).tsds,0);
  workers.at(-1).respond(plan);g.window.stLab.act('L');g.advance(40);assert.equal(workers.at(-1).message.commitment,null);
 }));
-test('st-cycle-ui/identical locked board without the actual spin does not fulfil the scoring commitment',()=>{
- const P=require('../st-planner'),snapshot=require('./support/st-cycle-resources.json').holdI.snapshot;
- const plan=P.plan(snapshot,{depth:3,width:8,maxNodes:45000}),first=R.replay(snapshot,plan.witness);assert.ok(first.valid);
- const scoring=P.continueCommitment(snapshot,first.state,plan,first.events[0]);assert.ok(scoring);assert.equal(scoring.continuation[0].event.spin,'full');
- const atTarget=R.replay(first.state,scoring.witness.slice(0,-1));assert.ok(atTarget.valid);
- const noRotation=R.createState({...atTarget.state,active:{...atTarget.state.active,lastRotation:null}}),uncredited=R.move(noRotation,'HD'),scored=R.replay(first.state,scoring.witness);
- assert.deepEqual(uncredited.board,scored.state.board);assert.deepEqual(uncredited.lastEvent.target,scored.events[0].target);assert.equal(uncredited.lastEvent.lines,2);assert.equal(uncredited.lastEvent.spin,'none');
- assert.ok(P.continueCommitment(first.state,scored.state,scoring,scored.events[0]));
- assert.equal(P.continueCommitment(first.state,uncredited,scoring,uncredited.lastEvent),null);
-});
 test('st-cycle-ui/finite paired-T proof does not authorize an unready Reset through HOLD or import',()=>withPage('st-lab.html',{},g=>{
  const P=require('../st-planner'),X=require('../st-paired-repair'),fixture=require('./support/st-construction-recovery.json'),workers=setup(g);
  g.window.STFixtures={...g.window.STFixtures,get:()=>({observation:fixture.initial,future:['J','L','O'],label:'Synthetic public construction control'})};

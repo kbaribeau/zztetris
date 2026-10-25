@@ -4,11 +4,17 @@ const R=require('../st-rules'),P=require('../st-planner'),S=require('../st-struc
 const cases=require('./support/st-cycle-resources.json');
 const config={depth:3,width:8,maxNodes:45000,timeMs:750,now:()=>0};
 function follow(s,a){const r=R.replay(s,a.witness);assert.ok(r.valid);assert.equal(r.events.length,1);return r.state;}
-test('cycle resources reserve the held I through the visible T double until Pocket opens',()=>{
+test('cycle resources reserve held I through the double and Pocket, rejecting forged commitments',()=>{
  const s=P.observe(cases.holdI.snapshot),a=P.plan(s,config);assert.ok(a.target,a.reason);
  assert.equal(a.continuation[0].event.type,'L');assert.equal(a.hold,true);
  assert.deepEqual(a.continuation.map(p=>[p.event.type,p.event.lines]),[['L',0],['T',2],['I',0]]);
  assert.equal(a.evidence.cycleResources.pocket,1);assert.equal(a.evidence.cycleResources.iFillers,0);
+ // Reuse the checked held-I route for adversarial commitment controls.
+ const next=follow(s,a);assert.ok(P.continueCommitment(s,next,a));
+ const fake=JSON.parse(JSON.stringify(a));fake.continuation[1].witness=['HD'];assert.equal(P.continueCommitment(s,next,fake),null);
+ const changed={...next,hold:next.hold==='I'?'O':'I'};assert.equal(P.continueCommitment(s,changed,a),null);
+ const noGoal={...a,continuation:a.continuation.slice(0,1)};assert.equal(P.continueCommitment(s,next,noGoal),null);
+ const observed=P.observe({...s,cycleResources:{tsds:999},commitment:fake});assert.equal(observed.cycleResources,undefined);assert.equal(observed.commitment,undefined);
  let state=s,advice=a;for(let i=0;i<2;i++){const next=follow(state,advice),suffix=P.continueCommitment(state,next,advice);assert.ok(suffix);
   const fresh=P.plan(next,{...config,commitment:{observation:next,advice:suffix}});assert.ok(fresh.target);assert.equal(fresh.continuation[0].event.type,i===0?'T':'I');state=next;advice=fresh;}
  const end=follow(state,advice);assert.equal(P.continueCommitment(state,end,advice),null);
@@ -19,13 +25,6 @@ test('an older saved-T proof cannot retain a move that strands a center cell',()
  const old=R.replay(next,a.continuation[1].witness),proof=A.check(next,{state:old.state,event:old.events[0]});
  assert.equal(proof.reachable,false);assert.ok(proof.unreachable.some(([x,y])=>x===4&&y===26));
  const fresh=P.plan(next,config);if(fresh.target){const r=R.replay(next,fresh.witness);assert.equal(A.check(next,{state:r.state,event:r.events[0]}).reachable,true);}
-});
-test('commitments are replayed, not trusted goal metadata or arbitrary imported history',()=>{
- const s=P.observe(cases.holdI.snapshot),a=P.plan(s,{depth:3,width:8,maxNodes:45000}),next=follow(s,a);assert.ok(P.continueCommitment(s,next,a));
- const fake=JSON.parse(JSON.stringify(a));fake.continuation[1].witness=['HD'];assert.equal(P.continueCommitment(s,next,fake),null);
- const changed={...next,hold:next.hold==='I'?'O':'I'};assert.equal(P.continueCommitment(s,changed,a),null);
- const noGoal={...a,continuation:a.continuation.slice(0,1)};assert.equal(P.continueCommitment(s,next,noGoal),null);
- const observed=P.observe({...s,cycleResources:{tsds:999},commitment:fake});assert.equal(observed.cycleResources,undefined);assert.equal(observed.commitment,undefined);
 });
 test('resource accounting reports material and allows nonclearing Reset Ts without a quota',()=>{
  const events=[{type:'T',lines:0,cells:[[0,30]]},{type:'T',lines:0,cells:[[1,29]]},{type:'I',lines:4,cells:[[7,36]]}];
