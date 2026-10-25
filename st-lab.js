@@ -16,7 +16,7 @@
   window.ctrlsPopup=()=>window.open('controls.html','popup','width=1200,height=800');
   const context=$('b').getContext('2d');
   let state, origin, future=[], futureCursor=0, generated=false, observed=null, openingPhase=false, openingClear=null, openingRepair=null, openingSource=null, patternHistory=null, resourceHistory=null;
-  let undoHistory=[], turnStart=null;
+  let undoHistory=[], turnStart=null, resetDiagnosticCache=null;
   let worker=null, requestId=0, debounce=null, watchdog=null, revision=0;
   let result=null, previous=null, commitment=null, coachStatus='idle', coachMessage='';
   let selectedId=null, lockCount=0;
@@ -248,6 +248,12 @@
       STRules.cells({type,x:0,y:0,rotation:0}).forEach(([x,y])=>paintCell(ctx,x,y+index*4,type,15));
     });
   }
+  function resetDiagnostics() {
+    if(!resetDiagnosticCache||resetDiagnosticCache.state!==state||resetDiagnosticCache.history!==resourceHistory){
+      resetDiagnosticCache={state,history:resourceHistory,value:STResetDiagnostics.resolve(observation(),resourceHistory)};
+    }
+    return resetDiagnosticCache.value;
+  }
   function render() {
     if(!state)return;
     const visible=TrainingSettings.guideVisible;
@@ -269,7 +275,11 @@
     const zLabel={available:'unused in the verified interval',used:'used in the verified interval',unknown:'eligibility unknown','out-of-profile':'outside the reviewed source profile'}[resources.extraZ.status];
     const centerLabel=resources.center?`${resources.center.pending.length} pending, ${resources.center.debt.length} diverted`:'unknown';
     setText($('st-resource-summary'),`${resources.terminal?'Game ended; historical facts only. ':''}Hanging S: ${sLabel}. Extra Z: ${zLabel}. Observed Center partners: ${centerLabel}. These are diagnostics, not placement instructions.`);
-    setText($('st-diagnostic-text'),JSON.stringify({status:coachStatus,revision:state.revision,resources,
+    const resetEvidence=resetDiagnostics();
+    const resetCount=resetEvidence.pairs.filter(p=>p.status==='reset-like-candidate').length;
+    const resetLabel=resetCount?`${resetCount} Reset-like diversion pair(s) observed; exact phase boundaries remain uncertain.`:resetEvidence.status==='unknown'?'Earlier Reset history is unknown.':resetEvidence.status==='no-reset-evidence'?'No Reset evidence observed.':'Observed T diversions are insufficient to identify a Reset.';
+    setText($('st-reset-summary'),`Reset evidence: ${resetLabel} No allowance is renewed and recommendations are unchanged.`);
+    setText($('st-diagnostic-text'),JSON.stringify({status:coachStatus,revision:state.revision,resources,resetEvidence,
       ...(result?{metrics:result.metrics,evidence:result.evidence,horizon:result.horizon,continuation:result.continuation}:{}),
       note:'Only the shown sequence has been checked. Continued ST play is not guaranteed.'},null,2));
     context.clearRect(0,0,200,440);
@@ -345,7 +355,7 @@
   });
   for(const mode of playModes){const option=document.createElement('option');option.value=mode.id;option.textContent=mode.label;$('st-fixture').append(option);}
   setText($('st-key-help'),actions.map((action,i)=>`${config[i]}: ${action.toLowerCase()}`).join(' · ')+' · Set bindings in Game Settings.');
-  window.stLab=Object.freeze({render,act,loadFixture,snapshot:()=>clone(observation()),get resources(){return STResourceHistory.resolve(observation(),resourceHistory);},get result(){return result?clone(result):null;}});
+  window.stLab=Object.freeze({render,act,loadFixture,snapshot:()=>clone(observation()),get resources(){return STResourceHistory.resolve(observation(),resourceHistory);},get resetEvidence(){return clone(resetDiagnostics());},get result(){return result?clone(result):null;}});
   let savedMode;try{savedMode=localStorage.getItem(modeKey);}catch{ /* Fall back to the stable stack. */ }
   chooseMode(savedMode,{persist:false});
   if(savedMode && !playModes.some(m=>m.id===savedMode))rememberMode(stableId);

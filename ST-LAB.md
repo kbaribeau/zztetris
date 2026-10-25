@@ -113,3 +113,14 @@ can be checked offline with `node scripts/analyze-st-resources.cjs trace.jsonl`;
 add `--observed-empty-start` only for a recording known to begin at a fresh
 local empty seven-bag start. This is separate from generator-provenance mino
 accounting and does not certify an arbitrary imported history.
+
+The same details and offline sidecar also show **Reset evidence**, not a Reset
+coach: observed Left-T pairs, explicitly bounded Z-allocation windows, and later
+scoring markers. Imported histories and phase boundaries remain uncertain.
+Opposite T checkerboard contributions do not prove a safe rebuilt stack; the
+geometry summary describes the current board only. The observer never declares
+a completed Reset, renews Extra Z, cancels Center debt, or changes recommendations.
+Its source examples use [Shocky's guide](https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit)
+and [retained replay placements](https://jstris.jezevec10.com/replay/26536180).
+Replay test supply is synthetic; original HOLD, preview and bag history are not
+claimed. Center/cross-region T examples remain unclassified, not prohibited.
