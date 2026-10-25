@@ -51,3 +51,14 @@ test('opening clear: a checked hypothetical maintenance continuation ranks a cle
  assert.equal(O.acceptResult({active:true,clear:null,repair:null},a).active,true);
  assert.ok(a.metrics.nodes+a.metrics.handoffReservedNodes<=45000);assert.equal(a.metrics.handoffProbes.at(-1).status,'verified');
 });
+
+test('opening clear: hypothetical handoff projects public resource history without changing live authority',()=>{
+ const fs=require('node:fs'),vm=require('node:vm'),RH=require('../st-resource-history'),f=require('./support/st-opening-handoff.json');
+ const resourceContext=RH.exportContext(f.before,RH.start(f.before)),original=JSON.stringify(resourceContext),probes=[];
+ const planner={...P,plan(state,options){if(options.disableOpening){const h=RH.importContext(state,options.resourceContext),summary=RH.resolve(state,h);probes.push(summary);assert.equal(summary.coverage.status,'partial');assert.ok(summary.locks>0);assert.equal(summary.extraZ.status,'unknown');}return P.plan(state,options);}};
+ const sandbox={performance,module:{exports:{}},require:name=>name==='./st-planner'?planner:require('../'+name.replace(/^\.\//,''))};
+ vm.runInNewContext(fs.readFileSync(require.resolve('../st-opening'),'utf8'),sandbox);
+ const a=sandbox.module.exports.plan(f.before,{openingPhase:true,maxNodes:45000,deadline:Infinity,resourceContext});
+ assert.ok(a.target);assert.ok(probes.length);assert.equal(a.phase,'opening');assert.equal(JSON.stringify(resourceContext),original);
+ assert.equal(RH.resolve(f.before,RH.importContext(f.before,resourceContext)).locks,0);
+});

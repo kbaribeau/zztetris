@@ -4,7 +4,7 @@ const R=require('../st-rules'),S=require('../st-structure'),P=require('../st-pla
 const source=fs.readFileSync(require.resolve('../st-planner.js'),'utf8');
 // Expose private seams only in this test realm, as in st-maintenance-usage.
 // The assessment, reader and node bodies themselves are production code.
-function load({rules=R,onReader=null}={}){const module={exports:{}};let text=source.replace('return Object.freeze({observe,assess,','return Object.freeze({createAssessmentReader,nodeFor,observe,assess,');
+function load({rules=R,onReader=null}={}){const module={exports:{}};assert.equal(source.split('return Object.freeze({').length,2,'review the private export seam after a planner refactor');let text=source.replace('return Object.freeze({','return Object.freeze({createAssessmentReader,nodeFor,');
  if(onReader)text=text.replace('function createAssessmentReader(read=assess){const cache=new Map();','function createAssessmentReader(read=assess){const cache=new Map();onReader(cache);');
  vm.runInNewContext(text,{module,require:id=>id==='./st-rules.js'?rules:require(id.replace('./','../')),Date,performance,onReader});return module.exports;
 }

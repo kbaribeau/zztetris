@@ -2,7 +2,7 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const R=require('../st-rules'),P=require('../st-planner'),S=require('../st-structure');
 const cases=require('./support/st-cycle-resources.json');
-const config={depth:3,width:8,maxNodes:45000,timeMs:750};
+const config={depth:3,width:8,maxNodes:45000,timeMs:750,now:()=>0};
 function follow(s,a){const r=R.replay(s,a.witness);assert.ok(r.valid);assert.equal(r.events.length,1);return r.state;}
 test('cycle resources reserve the held I through the visible T double until Pocket opens',()=>{
  const s=P.observe(cases.holdI.snapshot),a=P.plan(s,config);assert.ok(a.target,a.reason);
@@ -60,18 +60,31 @@ test('goal comparison trims post-goal filler and only reserves relevant resource
  assert.equal(P.resourceGoalPrefix([i,q],[q,i]),null,'post-goal I waste cannot fund an earlier substitution');
 });
 
-for(const c of require('./support/st-commitment-comparison.json'))test('same-horizon commitment replacement: '+c.name,()=>{
+function comparisonControl(original){
+ if(original.name!=='quad goal before trailing filler')return original;
+ // Explicit public-supply control: finishing O is active after the quad,
+ // rather than blocked behind S,T while Z occupies HOLD.
+ const c=JSON.parse(JSON.stringify(original));c.before.queue=['Z','I','O','S','T','J'];c.snapshot.queue=['I','O','S','T','J','L'];delete c.before.bag;delete c.snapshot.bag;return c;
+}
+for(const original of require('./support/st-commitment-comparison.json')){const c=comparisonControl(original);test('same-horizon commitment replacement: '+c.name,()=>{
  const suffix=P.continueCommitment(c.before,c.snapshot,c.previous,c.event);assert.ok(suffix);
  // Fixed node budget removes host-timing noise from this policy regression.
  const a=P.plan(c.snapshot,{...config,now:()=>0,commitment:{observation:c.snapshot,advice:suffix}});
- assert.ok(a.target,a.reason);assert.deepEqual(a.target,c.expectedTarget);assert.equal(a.metrics.commitmentComparison.replacement,true);
+ assert.ok(a.target,a.reason);assert.deepEqual(a.target,c.name==='quad goal before trailing filler'?suffix.target:c.expectedTarget);assert.equal(a.metrics.commitmentComparison.replacement,c.name!=='quad goal before trailing filler');
  assert.equal(a.metrics.commitmentComparison.freshHorizon,a.metrics.commitmentComparison.savedHorizon);
  assert.equal(a.metrics.commitmentComparison.freshSettled,true);assert.equal(a.metrics.commitmentComparison.savedSettled,true);
  assert.ok(P.resourceGoalPrefix(a.continuation,suffix.continuation));
  let s=P.observe(c.snapshot);for(const step of a.continuation){const r=R.replay(s,step.witness);assert.ok(r.valid);assert.ok(S.canonicalClear(r.events[0]));s=r.state;}
+});}
+test('original quad suffix cannot promise an O hidden behind a T bottleneck',()=>{
+ const c=require('./support/st-commitment-comparison.json')[1];assert.equal(P.continueCommitment(c.before,c.snapshot,c.previous,c.event),null);
+ const control=comparisonControl(c),suffix=P.continueCommitment(control.before,control.snapshot,control.previous,control.event);assert.ok(suffix);
+ let state=control.snapshot;for(const p of suffix.continuation)state=R.replay(state,p.witness).state;
+ assert.equal(state.active.type,'O');const completion=S.geometry(state.board).center.completions.find(c=>c.piece==='O'&&c.patternSupport==='reference-supported');assert.ok(completion);
+ const finish=R.replay(state,completion.witness);assert.ok(finish.valid);assert.deepEqual(finish.events[0].cells,completion.cells);assert.equal(S.geometry(finish.state.board).center.status,'level');
 });
 test('interrupted fresh comparison keeps the executable saved resource proof',()=>{
- const c=require('./support/st-commitment-comparison.json')[1],suffix=P.continueCommitment(c.before,c.snapshot,c.previous,c.event);assert.ok(suffix);
- const a=P.plan(c.snapshot,{...config,timeMs:0,commitment:{observation:c.snapshot,advice:suffix}});
+ const c=require('./support/st-commitment-comparison.json')[0],suffix=P.continueCommitment(c.before,c.snapshot,c.previous,c.event);assert.ok(suffix);
+ const a=P.plan(c.snapshot,{...config,now:Date.now,timeMs:0,commitment:{observation:c.snapshot,advice:suffix}});
  assert.ok(a.target);assert.deepEqual(a.target,suffix.target);assert.equal(a.evidence.commitmentRetained,true);assert.equal(a.metrics.commitmentComparison.replacement,false);
 });

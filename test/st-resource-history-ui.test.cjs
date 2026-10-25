@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
 const { withPage } = require('./support/page.cjs');
 const R = require('../st-rules');
+const H = require('../st-resource-history');
 const clone = value => JSON.parse(JSON.stringify(value));
 const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const resources = g => clone(g.window.stLab.resources);
@@ -36,7 +37,8 @@ const allocationFacts = diagnostic => ({ locks: diagnostic.locks, center: diagno
 // Captured from the actual unmodified controller at local d836598 / public
 // 7401810 (tree 2edd62c6), seed 42, with the exact actions below. These are
 // observable worker-message hashes, not source-code snapshots. No planner is
-// mocked to change the message content and no resource state enters the oracle.
+// mocked to change the message content. The new replay context is checked
+// independently, while every pre-existing message field retains this oracle.
 const BASELINE_REQUESTS = [
   'f879a37bd203cac5f8e7ba4f1000d47616df377c95c79ed01dd6b0dfa8022c9e',
   '1e9afa3d8e835a04f60661abf25f6e6f9983bbdc3794f11040f41a2561695952',
@@ -56,9 +58,14 @@ const BASELINE_REQUESTS = [
   '9340dd798a2a444ef24ebd562ebc1c53ee005ea47f6848f6c3ba2245f3c2f3a7',
 ];
 
-test('resource history UI: worker messages remain byte-identical through HOLD, locks, Undo, branch, restarts and import', () => withPage('st-lab.html', { seed: 42 }, g => {
+test('resource history UI: replay context is validated while prior worker fields remain identical through HOLD, locks, Undo, branch, restarts and import', () => withPage('st-lab.html', { seed: 42 }, g => {
   const all = workers(g), actual = [];
-  const capture = () => actual.push(hash(request(g, all)));
+  const capture = () => {
+    const message=request(g,all),proof=message.options.resourceContext;
+    assert.ok(proof,'Every active observation carries its bounded replay context');
+    assert.deepEqual(H.resolve(message.observation,H.importContext(message.observation,proof)),resources(g));
+    const prior=clone(message);delete prior.options.resourceContext;actual.push(hash(prior));
+  };
   select(g, 'empty'); capture();
   for (const action of ['HOLD', 'L', 'CW', 'HD', 'HOLD', 'HOLD', 'R', 'HD', 'UNDO', 'R180', 'HD']) {
     g.window.stLab.act(action); capture();
@@ -71,7 +78,7 @@ test('resource history UI: worker messages remain byte-identical through HOLD, l
   const message = all.at(-1).message;
   for (const section of [message, message.observation, message.options]) {
     for (const key of ['resources', 'resourceHistory', 'hangingS', 'extraZ', 'pieceOrigins', 'future']) {
-      assert.equal(key in section, false, `Diagnostics must not enter the planner: ${key}`);
+      assert.equal(key in section, false, `Unvalidated diagnostic claims must not enter the planner: ${key}`);
     }
   }
 }));

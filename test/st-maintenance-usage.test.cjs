@@ -2,11 +2,12 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const R=require('../st-rules'),P=require('../st-planner'),S=require('../st-structure'),A=require('../st-access');
 const f=require('./support/st-early-cap-fallback.json');
+const fallback=require('./support/st-fallback-harness.cjs')();
 const normalize=a=>{const out=JSON.parse(JSON.stringify(a));delete out.metrics.elapsedMs;delete out.metrics.usage;return out;};
-test('maintenance usage reports actual preprocessing partitions without changing fixed-node fallback',()=>{
+test('maintenance usage branch coverage reports preprocessing partitions when optional result is withheld',()=>{
  const options={deadline:Infinity,maxNodes:1234,patternHistory:f.patternHistory};
- S.clearCache();A.clearCache();const plain=P.plan(f.observation,options);
- S.clearCache();A.clearCache();const measured=P.plan(f.observation,{...options,usageTelemetry:true});
+ S.clearCache();A.clearCache();const plain=fallback.plan(f.observation,options);
+ S.clearCache();A.clearCache();const measured=fallback.plan(f.observation,{...options,usageTelemetry:true});
  assert.ok(plain.target);assert.equal(plain.metrics.usage,undefined);assert.deepEqual(normalize(measured),normalize(plain));
  const u=measured.metrics.usage,c=u.families.cleanupBeforeCap;
  assert.equal(u.schemaVersion,1);assert.equal(u.scope,'maintenance');
@@ -52,7 +53,7 @@ test('construction metrics retain proof fields without discarding prior decision
  // Expose the private pure accounting helper, not a fabricated cap winner.
  // Actual certificate discovery and cap/ordinary comparison are covered by
  // st-construction-stages; no production winner is forced in this unit test.
- const module={exports:{}},source=fs.readFileSync(require.resolve('../st-planner'),'utf8').replace('return Object.freeze({observe,assess,','return Object.freeze({constructionMetrics,observe,assess,');
+ const module={exports:{}},source=fs.readFileSync(require.resolve('../st-planner'),'utf8').replace('return Object.freeze({','return Object.freeze({constructionMetrics,');
  vm.runInNewContext(source,{module,require:id=>require(id.replace('./','../')),Date,performance});
  const candidate=Object.freeze({metrics:Object.freeze({nodes:209,depth:3,completeDepth:3,endpointMass:44})});
  const spent=Object.freeze({nodes:11312,roots:72,rootExpanded:0,accessNodes:800,depth:1,completeDepth:0});
@@ -60,4 +61,15 @@ test('construction metrics retain proof fields without discarding prior decision
  assert.equal(result.nodes,11312);assert.equal(result.endpointMass,44);assert.equal(result.depth,3);assert.equal(result.accessNodes,800);
  assert.equal(result.elapsedMs,500);assert.equal(candidate.metrics.nodes,209);assert.equal(spent.nodes,11312);
  assert.equal(12000-result.nodes,688,'outer validation receives only the truly remaining decision allowance');
+});
+
+test('maintenance telemetry leaves unmodified ordinary selection unchanged at the historical fallback budget',()=>{
+ const options={deadline:Infinity,maxNodes:1234,patternHistory:f.patternHistory};
+ S.clearCache();A.clearCache();const plain=P.plan(f.observation,options);
+ S.clearCache();A.clearCache();const measured=P.plan(f.observation,{...options,usageTelemetry:true});
+ assert.ok(plain.target);assert.deepEqual(normalize(measured),normalize(plain));
+ assert.equal(measured.metrics.earlyCapFallback.selected,false);
+ assert.equal(measured.metrics.usage.families.earlyCapFallback.selected,0);
+ assert.notEqual(measured.metrics.usage.selected.path,'early-cap-fallback');
+ assert.equal(R.replay(f.observation,measured.witness).valid,true);
 });

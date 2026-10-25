@@ -6,7 +6,8 @@ test('actual movement rejects the flood-connected column-three gap',()=>{
  const s=F.gap.observation,p=placement(s,F.gap.witness),c=A.check(s,p);
  assert.deepEqual(c.cells,[[2,37]]);assert.equal(c.reachable,false);assert.equal(c.complete,true);
  assert.equal(A.access(s.board,[[2,37]]).reachable,true);
- const a=P.plan(s,{maxNodes:45000});assert.ok(a.target);const actual=placement(s,a.witness);assert.equal(A.check(s,actual).reachable,true);assert.notDeepEqual(a.target,p.event.target);
+ const a=P.plan(s,{maxNodes:45000});assert.equal(a.target,null,'The former alternative was a two non-scoring-T foundation, not ordinary midgame');assert.equal(a.status,'no-supported-continuation-found');
+ const Y=require('../st-left-foundation'),roots=R.placements(s),research=Y.search(s,roots.placements,{rootComplete:roots.complete,deadline:Infinity,maxNodes:12000});assert.ok(research.candidate);const proof=Y.validate(s,research.candidate.steps);assert.ok(proof.valid);assert.equal(A.prefix(s,proof.continuation).reachable,true,'Physical alternative access is retained as research evidence, not Reset eligibility');assert.ok(proof.continuation.every(p=>p.event.type==='T'&&!p.event.lines));
 });
 test('unknown access budget is not cached as safe or impossible',()=>{
  A.clearCache();const p=placement(F.gap.observation,F.gap.witness);

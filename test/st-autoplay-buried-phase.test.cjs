@@ -33,6 +33,14 @@ test('a placement cannot substitute a different recognized phase for an establis
  assert.ok(r.valid);assert.equal(phase.anchorRow,37);assert.equal(S.notchPattern(r.state.board).anchorRow,33);
  const check=S.advanceNotches(state.board,{state:r.state,event:r.events[0]},phase);
  assert.equal(check.valid,false);assert.equal(check.violation,'changed-established-scoring-phase');
- const a=P.plan(state,config);assert.ok(a.target,a.reason);const selected=R.replay(state,a.witness);
- assert.ok(S.advanceNotches(state.board,{state:selected.state,event:selected.events[0]},phase).valid);
+ // Original visible order has no certified resource-safe route within this
+ // bound; that is not evidence that its conflicting geometric phase is legal.
+ const original=P.plan(state,{...config,deadline:Infinity});assert.equal(original.target,null);assert.equal(original.status,'budget-exhausted');
+ // Separate positive control: make the actual Center partner available now,
+ // rather than silently changing the original queue or weakening its policy.
+ const available=R.createState({...state,active:'L'}),completion=S.geometry(available.board).center.completions.find(c=>c.piece==='L');assert.ok(completion);
+ const finished=R.replay(available,completion.witness);assert.ok(finished.valid);assert.deepEqual(finished.events[0].cells.slice().sort(),completion.cells.slice().sort());
+ const a=P.plan(available,{...config,deadline:Infinity});assert.ok(a.target,a.reason);const selected=R.replay(available,a.witness);assert.ok(selected.valid);
+ assert.equal(selected.events[0].type,'L');assert.deepEqual(selected.events[0].cells.slice().sort(),completion.cells.slice().sort());
+ assert.ok(S.advanceNotches(available.board,{state:selected.state,event:selected.events[0]},phase).valid);assert.ok(P.revalidate(available,a));
 });

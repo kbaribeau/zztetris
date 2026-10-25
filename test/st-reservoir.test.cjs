@@ -1,21 +1,33 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const R=require('../st-rules'),S=require('../st-structure'),P=require('../st-planner');
 const snapshot=require('./support/st-user-center-cap.json');
-// Kevin's supplied manual-playtest snapshot, not a new generalization fixture.
-// Isolate reservoir scoring from held-T continuation selection. The new hold
-// proof has separate default-planner coverage below; this no-hold ablation keeps
-// the original exact reservoir credit and counterfactual-arrival assertions.
-const result=P.plan(snapshot,{depth:3,width:8,maxNodes:45000,allowHold:false});
-function endpoint(){let state=R.createState(snapshot);for(const step of result.continuation){const replay=R.replay(state,step.witness);assert.equal(replay.valid,true);assert.deepEqual(replay.events[0],step.event);state=replay.state;}return state;}
-test('reservoir/user snapshot: full search completes the S/L center rather than penalizing the later Z cap',()=>{
- assert.equal(result.metrics.completeDepth,3);assert.equal(result.evidence.budgetExhausted,false);
- assert.deepEqual(result.target,{type:'L',x:4,y:25,rotation:2});assert.deepEqual(result.witness,['HD']);
- assert.equal(result.continuation[0].structuralEvidence.allocation,'center-completion');
+// Kevin's supplied manual snapshot remains the default-planner regression below.
+// The historical no-HOLD L/T/Z route sacrificed T and is no longer acceptable
+// ordinary advice. Reproduce its pre-cap geometry mechanically, explicitly as a
+// counterfactual shape fixture, to keep reservoir credit independent of that
+// now-forbidden policy. These two literals are not recommended by the coach.
+const historicalPrefix=[['HD'],['L','CCW','HD']];
+let reservoirOrigin=R.createState(snapshot);
+for(const witness of historicalPrefix){const r=R.replay(reservoirOrigin,witness);assert.ok(r.valid);reservoirOrigin=r.state;}
+const result=P.plan(reservoirOrigin,{depth:1,width:8,maxNodes:45000,allowHold:false});
+function endpoint(){let state=reservoirOrigin;for(const step of result.continuation){const replay=R.replay(state,step.witness);assert.equal(replay.valid,true);assert.deepEqual(replay.events[0],step.event);state=replay.state;}return state;}
+test('reservoir/counterfactual pre-cap geometry retains exact verified credit without recommending the historical T sacrifice',()=>{
+ assert.equal(result.metrics.completeDepth,1);assert.equal(result.evidence.budgetExhausted,false);
+ assert.deepEqual(result.target,{type:'Z',x:7,y:34,rotation:1});
+ assert.equal(result.continuation[0].structuralEvidence.allocation,'right-cap-preparation');
  const a=result.assessment;
  assert.deepEqual(a.intentionalReservoir.cells,[[9,37],[9,38],[9,39]]);
  assert.equal(a.intentionalReservoir.credit,9);assert.equal(a.sealed,3);assert.equal(a.damageSealed,0);
  assert.equal(a.covered,6);assert.equal(a.damageCovered,3,'unrelated roofed cells keep their original penalty');
- assert.equal(result.evidence.structuralScore,-11.3);assert.deepEqual(result.evidence.structuralRank,[1,1,0,-3,1,-10,0]);endpoint();
+ assert.equal(result.evidence.structuralScore,-11.3);assert.deepEqual(result.evidence.structuralRank,[1,1,0,-3,1,-6,0]);endpoint();
+});
+test('reservoir/ordinary advice cannot retain the historical non-scoring T prefix',()=>{
+ const ordinary=P.plan(snapshot,{depth:3,width:8,maxNodes:45000,allowHold:false});
+ assert.ok(ordinary.target);assert.ok(ordinary.continuation.every(p=>p.event.type!=='T'||p.event.spin==='full'&&p.event.lines===2));
+ let state=R.createState(snapshot);const steps=[];
+ for(const witness of [...historicalPrefix,result.witness]){const r=R.replay(state,witness);assert.ok(r.valid);steps.push({witness,event:r.events[0],target:r.events[0].target,hold:false,holdCount:0});state=r.state;}
+ assert.equal(steps[1].event.type,'T');assert.equal(steps[1].event.lines,0);
+ assert.equal(P.revalidate(snapshot,{...ordinary,continuation:steps}),null);
 });
 test('reservoir/proof: actual clear reopens exact shaft, without inventing T arrival',()=>{
  const state=endpoint(),cavity=result.assessment.structure.right.reservoir;
@@ -50,7 +62,7 @@ test('reservoir/budget interruption: optimistic eligibility cannot award an unve
  let calls=0;
  const rules={...R,tDoubleAccess:()=>{calls++;return{reachable:null,complete:false,visited:0};}};
  const module={exports:{}};
- vm.runInNewContext(fs.readFileSync(require.resolve('../st-planner.js'),'utf8'),{module,require:name=>name==='./st-rules.js'?rules:name==='./st-bag.js'?require('../st-bag'):name==='./st-access.js'?require('../st-access'):name==='./st-pattern-history.js'?require('../st-pattern-history'):name==='./st-left-foundation.js'?require('../st-left-foundation'):S});
+ vm.runInNewContext(fs.readFileSync(require.resolve('../st-planner.js'),'utf8'),{module,require:name=>name==='./st-resource-history.js'?require('../st-resource-history'):name==='./st-midgame-resources.js'?require('../st-midgame-resources'):name==='./st-rules.js'?rules:name==='./st-bag.js'?require('../st-bag'):name==='./st-access.js'?require('../st-access'):name==='./st-pattern-history.js'?require('../st-pattern-history'):name==='./st-left-foundation.js'?require('../st-left-foundation'):S});
  const p=module.exports.plan(snapshot,{depth:3,width:8,maxNodes:45000});
  assert.ok(calls>0);assert.equal(p.evidence.budgetExhausted,true);assert.equal(p.assessment.intentionalReservoir,undefined);
  assert.equal(p.assessment.damageSealed,p.assessment.sealed);assert.equal(p.assessment.damageCovered,p.assessment.covered);

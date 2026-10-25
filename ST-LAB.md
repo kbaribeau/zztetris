@@ -139,8 +139,17 @@ show both improvements and later-play regressions. Sustained play is not certifi
 Observed Midgame resources are shown in the existing diagnostics details:
 exact Center partner debt, HOLD/draw identities, source-backed Hanging S,
 and Extra Z only after a verified source opening baseline. Unknown imports
-stay unknown; clears never renew the allowance. These facts do not change
-planner requests, ranking, or Reset behavior. Public simulation recordings
+stay unknown; clears never renew the allowance. Planning now receives an
+observation-bound replay of this history, not trusted serialized status flags.
+Ordinary routes reject non-scoring T locks and a second non-Right Z; unknown
+imports cannot claim an unused Extra Z. Center choices must preserve their exact
+partner cells and a bounded actual completion route through
+HOLD and the visible queue. Tracked Hanging S requires a checked Left repair.
+The supplemental repair search is bounded to four visible locks and 4,000
+nodes. Requiring this certificate even without a currently visible T is a
+conservative engineering choice, not a source claim that unseen partners make
+a construction illegal. These proofs can cause honest abstention; they do not establish sustained
+play or a completed Reset. Public simulation recordings
 can be checked offline with `node scripts/analyze-st-resources.cjs trace.jsonl`;
 add `--observed-empty-start` only for a recording known to begin at a fresh
 local empty seven-bag start. This is separate from generator-provenance mino
@@ -155,4 +164,10 @@ a completed Reset, renews Extra Z, cancels Center debt, or changes recommendatio
 Its source examples use [Shocky's guide](https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit)
 and [retained replay placements](https://jstris.jezevec10.com/replay/26536180).
 Replay test supply is synthetic; original HOLD, preview and bag history are not
-claimed. Center/cross-region T examples remain unclassified, not prohibited.
+claimed. Center/cross-region T observations remain unclassified by the observer; ordinary
+planner routes still require scoring Ts. Reset readiness follows Shocky’s
+Right-catching-up distinction, not queue pressure. The current conservative
+engineering envelope requires both Left and Center at most two rows above
+Right, and at most three rows apart; these are fixture-tested operational bounds,
+not universal thresholds stated by Shocky. The old high-Left source366 recovery
+is no longer eligible. No new Reset allowance or general Reset coach is enabled.

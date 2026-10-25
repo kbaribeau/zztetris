@@ -1,7 +1,8 @@
-/* Public, observed resource diagnostics. Never a planner input or a Reset rule.
+/* Public, observed resource history. Planning context is accepted only by replay.
  * Histories are immutable local capabilities, not trusted imported JSON. */
 (function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-structure'),require('./st-opening-patterns')):factory(root.STRules,root.STStructure,root.STSourcePatterns);if(typeof module==='object'&&module.exports)module.exports=api;else root.STResourceHistory=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,S,Patterns){
 'use strict';
+const transport=new WeakMap(),exported=new WeakMap(),localContexts=new WeakMap(),validatedContexts=new WeakMap();
 const trusted=new WeakSet(),clone=x=>JSON.parse(JSON.stringify(x)),same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const MAX_ACTIONS=4096,MAX_LOCKS=512;
 const SOURCE='https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit';
@@ -27,7 +28,7 @@ function start(raw,{fresh=false}={}){
   if(o.active)h.active=addPiece(h,o.active.type,fresh);if(o.hold)h.hold=addPiece(h,o.hold,false);h.queue=o.queue.map(type=>addPiece(h,type,fresh));
   // Imported geometry is factual even though its producing piece identity is not.
   h.center.pending=initialPending(o.board);
-  return seal(h);
+  const result=seal(h);transport.set(result,{origin:o,fresh,parent:null,step:null,length:0,handoffAtAction:null});return result;
  }catch{return invalid(raw,'Could not validate public origin.');}
 }
 function completionList(board){return S.geometry(board).center.completions.filter(c=>c.resultStatus==='level'&&c.patternSupport==='reference-supported').map(c=>({piece:c.piece,cells:clone(c.cells)}));}
@@ -126,10 +127,52 @@ function applyAction(history,before,action,after){
   if(h.active!==null&&h.pieces[h.active].type!==av.active?.type||h.hold!==null&&h.pieces[h.hold].type!==av.hold||!same(h.queue.map(id=>h.pieces[id].type),av.queue))return invalid(after,'Observed identity continuity failed.');
   // Known bag grouping comes only from actual observed draw order, never locks/7.
   if(h.fresh&&added.length){const bags=new Map();for(const p of Object.values(h.pieces)){const set=bags.get(p.bag)||new Set();if(set.has(p.type))return invalid(after,'Observed stream contradicts the known seven-bag origin.');set.add(p.type);bags.set(p.bag,set);}}
-  h.observation=av;return seal(h);
+  h.observation=av;const result=seal(h),prior=transport.get(history);
+  if(prior)transport.set(result,{origin:prior.origin,fresh:prior.fresh,parent:prior,step:{action,revealed:added.slice()},length:prior.length+1,handoffAtAction:prior.handoffAtAction});
+  return result;
  }catch{return invalid(after,'Could not replay the observed resource event.');}
 }
-function markHandoff(history,raw){if(!bound(history,raw)||!history.pieces)return invalid(raw,'Untrusted maintenance handoff history.');if(history.milestones.maintenanceHandoff)return history;const h=clone(history);h.milestones.maintenanceHandoff={at:h.locks};return seal(h);}
+function markHandoff(history,raw){if(!bound(history,raw)||!history.pieces)return invalid(raw,'Untrusted maintenance handoff history.');if(history.milestones.maintenanceHandoff)return history;const h=clone(history);h.milestones.maintenanceHandoff={at:h.locks};const result=seal(h),prior=transport.get(history);if(prior)transport.set(result,{...prior,handoffAtAction:prior.length});return result;}
+// A cloneable proof consists only of the public origin, actual inputs and newly
+// revealed preview suffixes. Derived status flags never cross the trust boundary.
+// Keeping a linked private ledger avoids copying an ever-growing tape on movement.
+function exportContext(raw,history){
+ if(!bound(history,raw)||!history.pieces)return null;
+ const cached=exported.get(history);if(cached)return cached;
+ const tail=transport.get(history);if(!tail||tail.length>MAX_ACTIONS)return null;
+ const steps=[];for(let n=tail;n&&n.step;n=n.parent)steps.push(clone(n.step));steps.reverse();
+ const context=freeze({schemaVersion:1,origin:clone(tail.origin),fresh:tail.fresh,steps,handoffAtAction:tail.handoffAtAction});
+ exported.set(history,context);localContexts.set(context,history);return context;
+}
+function importContext(raw,context){
+ try{
+  const local=localContexts.get(context);if(local&&bound(local,raw))return local;
+  if(!context||context.schemaVersion!==1||!Array.isArray(context.steps)||context.steps.length>MAX_ACTIONS||typeof context.fresh!=='boolean')return invalid(raw,'Missing or invalid resource replay context.');
+  const marker=context.handoffAtAction;
+  if(marker!==null&&(!Number.isInteger(marker)||marker<0||marker>context.steps.length))return invalid(raw,'Invalid resource handoff marker.');
+  if(!context.origin||!Array.isArray(context.origin.queue)||context.origin.queue.length>6)return invalid(raw,'Resource origin exceeds the public preview.');
+  // One decide call can validate a root several times. Cache only after full
+  // replay, and recheck the complete proof bytes so later mutation cannot keep
+  // the authority of a previously valid clone. Observation binding still applies.
+  const signature=JSON.stringify([context.origin,context.fresh,context.steps,marker]),cached=validatedContexts.get(context);
+  if(cached&&cached.signature===signature&&bound(cached.history,raw))return cached.history;
+  let state=R.createState(context.origin),history=start(state,{fresh:context.fresh});
+  if(!history.pieces||context.fresh&&!history.fresh)return invalid(raw,'Resource origin cannot establish the claimed observed history.');
+  if(marker===0)history=markHandoff(history,state);
+  for(let i=0;i<context.steps.length;i++){
+   const step=context.steps[i];
+   if(!step||!['L','R','SD','HD','HOLD','CW','CCW','R180'].includes(step.action)||!Array.isArray(step.revealed)||step.revealed.length>6||step.revealed.some(p=>typeof p!=='string'||!['I','J','L','O','S','T','Z'].includes(p)))return invalid(raw,'Invalid resource replay input.');
+   const before=state,next=R.move(state,step.action);
+   if(next===state)return invalid(raw,'Resource replay contains a rejected input.');
+   state={...next,queue:[...next.queue,...step.revealed]};
+   history=applyAction(history,before,step.action,state);
+   if(!history.pieces)return invalid(raw,'Resource replay failed: '+history.coverage.reason);
+   if(marker===i+1)history=markHandoff(history,state);
+  }
+  if(!bound(history,raw))return invalid(raw,'Resource replay does not match the current public observation.');
+  validatedContexts.set(context,{signature,history});return history;
+ }catch{return invalid(raw,'Could not validate resource replay context.');}
+}
 function hanging(h){
  if(!h.fresh||!h.opening.quality)return{status:'unknown',evidence:[],reason:'No fully observed balanced flat-Center checkpoint; observed identities and geometry remain separate facts.'};
  const since=h.extraZ.baseline?.qualityAt??h.opening.quality.at,bags=new Map(),evidence=[],unclassified=[];
@@ -150,8 +193,9 @@ function resolve(raw,history){
  if(!bound(history,raw))return{coverage:{status:'invalid',reason:'Missing, forged, or stale local event history.'},hangingS:{status:'unknown',evidence:[]},extraZ:{status:'unknown',baseline:null,allocations:[]}};
  if(!history.pieces)return{coverage:clone(history.coverage),actions:history.actions,locks:history.locks,hangingS:{status:'unknown',evidence:[]},extraZ:{status:'unknown',baseline:null,allocations:[]}};
  const h=history,instance=id=>id===null?null:clone(h.pieces[id]);
+ const center=clone(h.center);for(const list of ['pending','debt'])for(const obligation of center[list])obligation.rootBag=h.pieces[obligation.rootId]?.bag??null;
  const extraStatus=!h.extraZ.baseline?'unknown':h.extraZ.departures.length||h.extraZ.allocations.length>1?'out-of-profile':h.extraZ.allocations.length?'used':'available';
- return{schemaVersion:1,terminal:Boolean(h.observation.topOut),coverage:clone(h.coverage),actions:h.actions,locks:h.locks,instances:{active:instance(h.active),hold:instance(h.hold),queue:h.queue.map(instance)},flow:{ageKnown:h.fresh,oldestFirst:[h.active,h.hold,...h.queue].filter(id=>id!==null).map(instance).sort((a,b)=>(a.observedOrder??Infinity)-(b.observedOrder??Infinity))},center:clone(h.center),hangingS:hanging(h),extraZ:{status:extraStatus,...clone(h.extraZ),reason:!h.extraZ.baseline?'First TSD and source pattern are not sufficient: the source allocation/quality baseline must be verified.':'One optional Left/Center Z per observed Midgame interval; clears never replenish it and no Reset is inferred.'},milestones:clone(h.milestones),allocations:clone(h.allocations),pairs:clone(h.pairs),source:{url:SOURCE,sections:['2','3.2','7','8','9']},note:'Observed diagnostics only. No recommendation ranking or planner inputs are changed.'};
+ return{schemaVersion:1,terminal:Boolean(h.observation.topOut),coverage:clone(h.coverage),actions:h.actions,locks:h.locks,instances:{active:instance(h.active),hold:instance(h.hold),queue:h.queue.map(instance)},flow:{ageKnown:h.fresh,oldestFirst:[h.active,h.hold,...h.queue].filter(id=>id!==null).map(instance).sort((a,b)=>(a.observedOrder??Infinity)-(b.observedOrder??Infinity))},center,hangingS:hanging(h),extraZ:{status:extraStatus,...clone(h.extraZ),reason:!h.extraZ.baseline?'First TSD and source pattern are not sufficient: the source allocation/quality baseline must be verified.':'One optional Left/Center Z per observed Midgame interval; clears never replenish it and no Reset is inferred.'},milestones:clone(h.milestones),allocations:clone(h.allocations),pairs:clone(h.pairs),source:{url:SOURCE,sections:['2','3.2','7','8','9']},note:'Observed resource evidence; planner validates replay context separately. No automatic Reset or allowance renewal.'};
 }
-return Object.freeze({start,applyAction,markHandoff,resolve,limits:Object.freeze({actions:MAX_ACTIONS,locks:MAX_LOCKS})});
+return Object.freeze({start,applyAction,markHandoff,resolve,exportContext,importContext,limits:Object.freeze({actions:MAX_ACTIONS,locks:MAX_LOCKS})});
 });

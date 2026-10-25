@@ -1,11 +1,28 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const R=require('../st-rules'),P=require('../st-planner'),S=require('../st-structure'),A=require('../st-access');
-const f=require('./support/st-level-base-reentry.json');
+const original=require('./support/st-level-base-reentry.json');
+// Positive control differs only in partner timing: L is immediately available
+// after S, rather than behind I/Z/J/O while T occupies HOLD.
+const f={...original,observation:{...original.observation,queue:['L',...original.observation.queue.slice(1)]}};
 const clone=x=>JSON.parse(JSON.stringify(x));
 const config={deadline:Infinity,maxNodes:45000,patternHistory:f.patternHistory};
 const saved=()=>({observation:clone(f.observation),advice:{target:f.event.target,witness:f.witness,continuation:[clone(f.savedStep)],evidence:clone(f.savedEvidence)}});
 function checked(a,s=f.observation){assert.ok(a.target,a.reason);const r=R.replay(s,a.witness);assert.ok(r.valid);assert.deepEqual(r.events,[a.continuation[0].event]);assert.equal(a.continuation.length,1);return r;}
+
+test('original delayed partner with held T is not a certified Center preparation',()=>{
+ const a=P.plan(original.observation,{deadline:Infinity,maxNodes:45000});
+ assert.equal(a.target,null);assert.equal(a.metrics.levelBaseReentry.selected,false);
+});
+
+test('immediate-partner control has an independently replayed actual Center completion',()=>{
+ const a=P.plan(f.observation,config),r=checked(a),before=S.geometry(r.state.board);
+ const completion=before.center.completions.find(c=>c.piece==='L');assert.ok(completion);
+ const done=R.replay(r.state,completion.witness);assert.ok(done.valid);assert.equal(done.events.length,1);
+ assert.deepEqual(done.events[0].cells.slice().sort(),completion.cells.slice().sort());
+ assert.ok(S.geometry(done.state.board).center.patternSupport==='reference-supported');
+ assert.equal(A.prefix(r.state,[{state:done.state,event:done.events[0],witness:completion.witness}],{deadline:Infinity,maxNodes:45000}).reachable,true);
+});
 
 test('level-two re-entry preserves the already committed actual S stage, not stale scoring claims',()=>{
  assert.equal(P.assess(f.observation.board).maintenanceScope,false);
@@ -19,7 +36,7 @@ test('level-two re-entry preserves the already committed actual S stage, not sta
  assert.equal(a.assessment.structure.center.foundation.status,'aligned');assert.equal(a.assessment.structure.center.patternSupport,'reference-supported');
  assert.deepEqual(a.continuation[0].structuralEvidence.cycleViolations,[]);assert.deepEqual(a.evidence.cavityRepair.outstandingCells,[]);
  assert.equal(a.evidence.gapAccess.reachable,true);assert.deepEqual(a.evidence.gapAccess.steps[0].cells,[]);
- assert.equal(r.state.hold,'T');assert.equal(r.state.active.type,'I');assert.deepEqual(r.state.queue,['Z','J','O','L','J']);
+ assert.equal(r.state.hold,'T');assert.equal(r.state.active.type,'L');assert.deepEqual(r.state.queue,['Z','J','O','L','J']);
  assert.equal(a.metrics.levelBaseReentry.selected,true);assert.equal(a.metrics.completeDepth,1);
  assert.match(a.reason,/does not repair existing Left gaps or prove the next score/);
 });
@@ -92,16 +109,17 @@ test('level-two final access rejection clears selection and counts all failed pr
   const module={exports:{}},realAccess={...A,prefix:(s,steps,options)=>({reachable,complete:reachable===false,visited:7,status:'controlled-final-access'})};
   vm.runInNewContext(fs.readFileSync(require.resolve('../st-planner'),'utf8'),{module,require:id=>id==='./st-access.js'?realAccess:require(id.replace('./','../')),Date,performance});
   const a=module.exports.plan(f.observation,config),enumeration=R.placements(f.observation);
-  assert.equal(a.target,null);assert.equal(a.metrics.levelBaseReentry.selected,false);assert.equal(a.metrics.nodes,enumeration.visited+7);
+  assert.equal(a.target,null);assert.equal(a.metrics.levelBaseReentry.selected,false);assert.equal(a.metrics.resourceProofNodes,1);assert.equal(a.metrics.nodes,enumeration.visited+7+a.metrics.resourceProofNodes);
  }
 });
 
-test('level-two re-entry reports a deadline crossed by its last candidate without inventing extra search',()=>{
+test('level-two re-entry cannot certify completion after its final candidate crosses the deadline',()=>{
  const module={exports:{}},root=R.placements(f.observation);let enumerated=false,calls=0;
  const rules={...R,placements:(state,options)=>{const r=R.placements(state,{...options,deadline:Infinity,now:()=>0});enumerated=true;return r;}};
  const now=()=>enumerated&&++calls>root.placements.length?100:0;
  vm.runInNewContext(fs.readFileSync(require.resolve('../st-planner'),'utf8'),{module,require:id=>id==='./st-rules.js'?rules:require(id.replace('./','../')),Date,performance});
- const a=module.exports.plan(f.observation,{...config,now,deadline:100});checked(clone(a));
+ const a=module.exports.plan(f.observation,{...config,now,deadline:100});assert.equal(a.target,null);assert.equal(a.metrics.levelBaseReentry.selected,false);
+ assert.equal(a.evidence.resourceObligations.reason,'resource-repair-budget');
  assert.equal(a.metrics.levelBaseReentry.candidateScanComplete,true);assert.equal(a.metrics.completeDepth,1);assert.equal(a.evidence.budgetExhausted,true);assert.equal(a.metrics.nodes,root.visited);
 });
 

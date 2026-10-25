@@ -51,7 +51,7 @@ async function main() {
     // Parent watchdog also bounds a child stuck in synchronous product code.
     // Regional-model regressions add real bounded searches; retain the tighter
     // per-file deadline below while allowing the larger serial suite to finish.
-    deadline = setTimeout(() => controller.abort(new Error('Suite exceeded 120 seconds')), 120000);
+    deadline = setTimeout(() => controller.abort(new Error('Suite exceeded 300 seconds')), 300000);
     const stream = run({ files: result.testFiles, concurrency: 1, timeout: 15000, signal: controller.signal });
     for (const outcome of ['pass', 'fail']) stream.on(`test:${outcome}`, data => {
       const file = path.relative(root, data.file || '');

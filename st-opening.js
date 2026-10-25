@@ -1,6 +1,6 @@
 /* Bounded opening construction, distinct from established-stack maintenance.
  * Only actual board, active/hold and six public previews enter this search. */
-(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-structure'),require('./st-paired-repair'),require('./st-opening-sources'),require('./st-bag'),require('./st-source-scoring'),()=>require('./st-planner')):factory(root.STRules,root.STStructure,root.STPairedRepair,root.STOpeningSources,root.STBag,root.STSourceScoring,()=>root.STPlanner);if(typeof module==='object'&&module.exports)module.exports=api;else root.STOpening=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,S,X,O,B,Q,getPlanner){
+(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-structure'),require('./st-paired-repair'),require('./st-opening-sources'),require('./st-bag'),require('./st-source-scoring'),require('./st-resource-history'),()=>require('./st-planner')):factory(root.STRules,root.STStructure,root.STPairedRepair,root.STOpeningSources,root.STBag,root.STSourceScoring,root.STResourceHistory,()=>root.STPlanner);if(typeof module==='object'&&module.exports)module.exports=api;else root.STOpening=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,S,X,O,B,Q,RH,getPlanner){
 'use strict';
 const clone=x=>JSON.parse(JSON.stringify(x));
 function balance(board){let n=0;for(let y=0;y<40;y++)for(let x=0;x<4;x++)if(board[y][x]!=='.')n+=(x+y)%2?1:-1;return n;}
@@ -733,8 +733,13 @@ function plan(raw,options={}){
   const key=JSON.stringify([node.state.board,node.state.active,node.state.hold,node.state.queue]);if(seen.has(key))continue;seen.add(key);
   if(probeResults.length>=2||now()>=deadline||base.metrics.nodes+reserved>=limit)break;
   const allowance=Math.min(6000-probeNodes,limit-reserved-base.metrics.nodes);if(allowance<=0)break;
-  let virtual=state,history=options.patternHistory||P.startPatternHistory(state);for(const step of node.path){const pre=R.replay(virtual,step.witness.slice(0,-1)).state,r=R.replay(pre,['HD']);history=P.updatePatternHistory(history,pre,r.state,r.events[0]);virtual=r.state;}
-  const result=P.plan(node.state,{...options,patternHistory:history,disableOpening:true,openingPhase:false,openingClear:null,openingRepair:null,previous:null,commitment:null,constructionPrevious:null,deadline,maxNodes:allowance});
+  // The hypothetical endpoint needs its own replay-bound history, not the
+  // root's now-stale worker context. Project only public actions; no draws are
+  // invented and this conditional proof never changes the live session.
+  let virtual=state,history=options.patternHistory||P.startPatternHistory(state),resources=options.resourceContext?RH.importContext(state,options.resourceContext):RH.start(state);
+  for(const step of node.path)for(const action of step.witness){const before=virtual,r=R.replay(before,[action]);virtual=r.state;resources=RH.applyAction(resources,before,action,virtual);if(action==='HD')history=P.updatePatternHistory(history,before,virtual,r.events[0]);}
+  const resourceContext=RH.exportContext(node.state,resources);
+  const result=P.plan(node.state,{...options,patternHistory:history,resourceContext,disableOpening:true,openingPhase:false,openingClear:null,openingRepair:null,previous:null,commitment:null,constructionPrevious:null,deadline,maxNodes:allowance});
   const spent=result.metrics?.nodes||0;probeNodes+=spent;base.metrics.nodes+=spent;
   probeResults.push({status:result.target?'verified':'unknown-bounded-search',locks:node.path.length,nodes:spent});
   if(result.target){node.handoffContinuation=result.continuation;verified=node;break;}

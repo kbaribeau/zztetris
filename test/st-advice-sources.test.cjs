@@ -10,25 +10,31 @@ test('actual center and right advice cites community concepts without universal 
  const center=actualCenterAdvice();sources(center);assert.ok(center.sources.some(s=>s.id==='SHOCKY-3.2'));assert.match(center.reason,/overhang/);
  const right=P.plan(F.get('cap-rebuild').observation,{maxNodes:45000});sources(right);assert.match(right.reason,/Pocket \(column 10\)/);assert.doesNotMatch(right.reason,/Keep the left region flat/);
 });
-test('paired repair wording follows actual remaining T and center stages through every lock',()=>{
- let state=P.observe(recovery.initial),advice=P.plan(state,{timeMs:750});assert.ok(advice.evidence.construction);let remainingTs=2;
- for(let i=0;i<7;i++){
-  sources(advice);const first=advice.continuation[0],holds=first.witness.filter(x=>x==='HOLD').length;
-  assert.equal(/^Hold once\./.test(advice.reason),holds===1);assert.equal(/^Hold twice\./.test(advice.reason),holds===2);
+test('research paired-repair wording follows actual remaining T and center stages without claiming policy eligibility',()=>{
+ const cert=X.search(recovery.initial,{timeMs:750});assert.ok(cert.valid,cert.reason);
+ let state=P.observe(recovery.initial),remainingTs=2;
+ for(let i=0;i<cert.continuation.length;i++){
+  const continuation=cert.continuation.slice(i),first=continuation[0],advice=P.advicePresentation(continuation,P.assess(cert.end.board),{}),holds=first.witness.filter(x=>x==='HOLD').length;
+  sources(advice);assert.equal(/^Hold once\./.test(advice.reason),holds===1);assert.equal(/^Hold twice\./.test(advice.reason),holds===2);
   if(first.event.type==='T'&&!first.event.lines){assert.match(advice.reason,remainingTs===2?/begin the checked paired-T mino-parity repair/:/balance the checked pair/);remainingTs--;}
   else assert.doesNotMatch(advice.reason,/begin the checked paired-T|balance the checked pair/);
   if(i===6){assert.match(advice.reason,/Take the checked T-spin double/);assert.doesNotMatch(advice.reason,/SHOCKY/);assert.equal(advice.sources.some(s=>s.id==='SHOCKY-4'),false);}
   assert.match(advice.reason,/not proof of a completed Reset/);
-  const r=R.replay(state,advice.witness);assert.ok(r.valid);const suffix=P.continueCommitment(state,r.state,advice,r.events[0]);state=r.state;if(i<6){assert.ok(suffix);advice=suffix;}else assert.equal(suffix,null);
+  const r=R.replay(state,first.witness);assert.ok(r.valid);assert.deepEqual(r.events,[first.event]);state=r.state;
  }
+ assert.equal(P.plan(recovery.initial,{timeMs:750}).target,null,'Presentation of a research proof does not make its high-Left start policy-eligible');
 });
-test('cap-deferral wording stops claiming a pending replacement after actual repayment',()=>{
+test('research cap-deferral wording stops claiming a pending replacement after actual repayment',()=>{
  const cert=X.search(cap.initial,{kind:'cap-deferral',timeMs:750});assert.ok(cert.valid);
- const construction={kind:'cap-deferral',origin:P.observe(cap.initial),steps:cert.continuation.map(p=>({witness:p.witness})),consumed:0};
- let state=P.observe(cap.initial),a=P.plan(state,{timeMs:750,commitment:{observation:state,advice:{evidence:{construction}}}});assert.ok(a.target);
- assert.match(a.reason,/restores the Z cap in 2 placements/);
- let r=R.replay(state,a.witness);a=P.continueCommitment(state,r.state,a,r.events[0]);state=r.state;assert.match(a.reason,/restore the cap over the Pocket/);
- r=R.replay(state,a.witness);a=P.continueCommitment(state,r.state,a,r.events[0]);assert.match(a.reason,/Take the checked T-spin double/);assert.doesNotMatch(a.reason,/restores the Z cap in|restore the cap over/);sources(a);
+ let state=P.observe(cap.initial);
+ for(let i=0;i<cert.continuation.length;i++){
+  const continuation=cert.continuation.slice(i),a=P.advicePresentation(continuation,P.assess(cert.end.board),{kind:'cap-deferral'});sources(a);
+  if(i===0)assert.match(a.reason,/restores the Z cap in 2 placements/);
+  if(i===1)assert.match(a.reason,/restore the cap over the Pocket/);
+  if(i===2){assert.match(a.reason,/Take the checked T-spin double/);assert.doesNotMatch(a.reason,/restores the Z cap in|restore the cap over/);}
+  const r=R.replay(state,continuation[0].witness);assert.ok(r.valid);assert.deepEqual(r.events,[continuation[0].event]);state=r.state;
+ }
+ const a=P.plan(cap.initial,{timeMs:750});if(a.target)assert.notEqual(a.evidence.strategy,'finite-cap-deferral','Unknown Extra-Z history must not authorize the research route');
 });
 test('ordinary revalidation regenerates stale HOLD text and arbitrary imported source descriptors',()=>{
  const state=F.get('center-j').observation,a=actualCenterAdvice();

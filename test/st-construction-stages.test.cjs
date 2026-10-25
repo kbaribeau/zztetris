@@ -3,31 +3,35 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const P=require('../st-planner'),R=require('../st-rules'),S=require('../st-structure'),X=require('../st-paired-repair');
 const fixture=require('./support/st-construction-recovery.json'),ordinary=require('./support/st-construction-ordinary-control.json');
 const clone=x=>JSON.parse(JSON.stringify(x));
-let recoveryAdvice;
-function actualRecoveryAdvice(){if(!recoveryAdvice){S.clearCache();recoveryAdvice=P.plan(fixture.initial,{timeMs:750});assert.ok(recoveryAdvice.target);}return clone(recoveryAdvice);}
-test('construction stage discovers a seven-lock public recovery without recorded witnesses',()=>{
- S.clearCache();const started=performance.now(),a=P.plan(fixture.initial,{timeMs:750});
- assert.ok(a.target,a.reason);assert.equal(a.evidence.strategy,'finite-regional-repair');assert.equal(a.continuation.length,7);assert.ok(performance.now()-started<850);
- assert.equal(a.evidence.cycleResources.tFillers,2);assert.equal(a.evidence.cycleResources.tsds,1);
- assert.ok(X.validateCertificate(fixture.initial,a.continuation).valid);assert.equal(a.metrics.search.depth,7);recoveryAdvice=clone(a);
+let recoveryCertificate;
+function actualRecoveryCertificate(){if(!recoveryCertificate){S.clearCache();recoveryCertificate=X.search(fixture.initial,{timeMs:750});assert.ok(recoveryCertificate.valid,recoveryCertificate.reason);}return clone(recoveryCertificate);}
+function researchAdvice(){const cert=actualRecoveryCertificate(),first=cert.continuation[0];return{target:first.event.target,witness:first.witness,continuation:cert.continuation,evidence:{construction:{origin:P.observe(fixture.initial),steps:cert.continuation.map(p=>({witness:p.witness})),consumed:0}}};}
+test('research search still discovers the seven-lock recovery while production declines its high-Left start',()=>{
+ S.clearCache();const started=performance.now(),cert=actualRecoveryCertificate();
+ assert.equal(cert.continuation.length,7);assert.ok(performance.now()-started<850);
+ assert.equal(cert.resources.tFillers,2);assert.equal(cert.resources.tsds,1);
+ assert.ok(X.validateCertificate(fixture.initial,cert.continuation).valid);assert.equal(cert.search.depth,7);
+ const a=P.plan(fixture.initial,{timeMs:750});assert.equal(a.target,null);assert.equal(a.evidence.resetSelection.status,'not-ready');
 });
-test('construction parity survives each real lock and retires only after the checked endpoint',()=>{
- let s=P.observe(fixture.initial),a=actualRecoveryAdvice();assert.ok(a.target);
- for(let i=0;i<7;i++){
-  const r=R.replay(s,a.witness);assert.ok(r.valid);const suffix=P.continueCommitment(s,r.state,a,r.events[0]);
-  if(i===0)assert.equal(Math.abs(suffix.evidence.constructionStage.parity),2);
-  if(i===1)assert.equal(suffix.evidence.constructionStage.parity,0);
-  if(i===6){assert.equal(suffix,null);assert.equal(r.events[0].spin,'full');assert.equal(r.events[0].lines,2);break;}
-  assert.ok(suffix);s=r.state;a=P.plan(s,{timeMs:750,commitment:{observation:s,advice:suffix}});assert.ok(a.target);
+test('research parity is measured through actual locks without promoting its prefix to an ordinary recommendation',()=>{
+ let state=P.observe(fixture.initial),parity=0;const cert=actualRecoveryCertificate();
+ for(let i=0;i<cert.continuation.length;i++){
+  const step=cert.continuation[i],r=R.replay(state,step.witness);assert.ok(r.valid);assert.deepEqual(r.events,[step.event]);const e=r.events[0];
+  if(e.type==='T'&&!e.lines)parity+=e.cells.reduce((n,[x,y])=>n+((x+y)%2?1:-1),0);
+  if(i===0)assert.equal(Math.abs(parity),2);if(i===1)assert.equal(parity,0);
+  if(i===6){assert.equal(e.spin,'full');assert.equal(e.lines,2);}state=r.state;
  }
+ assert.equal(parity,0);assert.ok(P.assess(state.board).maintenanceScope);
+ const advice=researchAdvice(),r=R.replay(fixture.initial,advice.witness);
+ assert.equal(P.continueCommitment(fixture.initial,r.state,advice,r.events[0]),null,'A safe finite prefix is not a policy-authorized Reset');
 });
 test('construction refuses forged progress, wrong actual lock and absent visible parity/scoring supply',()=>{
- const a=actualRecoveryAdvice(),r=R.replay(fixture.initial,a.witness);
+ const a=researchAdvice(),r=R.replay(fixture.initial,a.witness);
  const forged=clone(a);forged.evidence.construction.consumed=3;
  assert.equal(P.continueCommitment(fixture.initial,r.state,forged,r.events[0]),null);
  assert.equal(P.continueCommitment(fixture.initial,r.state,a,{...r.events[0],spin:'full'}),null);
  for(const queue of [['S','J','Z','I','O','L'],['T','S','J','Z','I']]){
-  const s={...fixture.initial,queue};const result=P.plan(s,{timeMs:750});assert.equal(result.target,null);
+  const s={...fixture.initial,queue};assert.equal(X.validateCertificate(s,a.continuation).valid,false);const result=P.plan(s,{timeMs:750});assert.equal(result.target,null);
  }
 });
 test('construction retains ordinary scoring instead of imposing a reference T diversion',()=>{
@@ -40,7 +44,7 @@ test('construction retains ordinary scoring instead of imposing a reference T di
 });
 
 test('construction obeys an already exhausted response budget even with an existing proof',()=>{
- const a=actualRecoveryAdvice();const start=performance.now();
+ const a=researchAdvice();const start=performance.now();
  const result=P.plan(fixture.initial,{timeMs:0,commitment:{observation:fixture.initial,advice:a}});
  assert.equal(result.target,null);assert.ok(performance.now()-start<100);
 });
@@ -52,7 +56,7 @@ test('visible replacement Z creates an executable exact-cap deferral certificate
  assert.equal(X.validateCertificate(zFixture.initial,a.continuation.slice(0,1),{kind:'cap-deferral'}).valid,false);
  assert.equal(X.validateCertificate(zFixture.initial,a.continuation.slice(0,2),{kind:'cap-deferral'}).valid,false);
 });
-test('ordinary cap-first and verified optional-Z orders are compared at a shared completed horizon',()=>{
+test('ordinary cap-first remains usable without granting an unknown optional-Z allowance',()=>{
  // Test endpoint comparison independently of a host-dependent wall-clock cut.
  // Production responsiveness remains covered by the timed tests and rollouts.
  const a=P.plan(zFixture.initial,{maxNodes:45000});assert.ok(a.target,a.reason);assert.ok(a.metrics.capStageCandidates>0);
@@ -65,12 +69,22 @@ test('ordinary cap-first and verified optional-Z orders are compared at a shared
  // so matching the old unknown-center height-9 endpoint is not required.
  assert.ok(a.continuation[0].event.cells.some(([x])=>x>=7));
 });
-test('cap deferral debt survives a real first Z and is discharged by the exact replacement',()=>{
+test('cap deferral exact debt remains verifiable but unknown history cannot authorize its optional Z',()=>{
  const cert=X.search(zFixture.initial,{kind:'cap-deferral'});assert.ok(cert.valid);
  const proof={kind:'cap-deferral',origin:P.observe(zFixture.initial),steps:cert.continuation.map(p=>({witness:p.witness})),consumed:0};
- let s=P.observe(zFixture.initial),a=P.plan(s,{timeMs:750,commitment:{observation:s,advice:{evidence:{construction:proof}}}});assert.ok(a.target);
- let r=R.replay(s,a.witness),suffix=P.continueCommitment(s,r.state,a,r.events[0]);assert.ok(suffix);assert.ok(suffix.evidence.constructionStage.capDebt.length);s=r.state;
- r=R.replay(s,suffix.witness);const next=P.continueCommitment(s,r.state,suffix,r.events[0]);assert.ok(next);assert.deepEqual(next.evidence.constructionStage.capDebt,[]);
+ let state=P.observe(zFixture.initial),capPaid=false;
+ for(const [index,step]of cert.continuation.entries()){
+  const r=R.replay(state,step.witness);assert.ok(r.valid);assert.deepEqual(r.events,[step.event]);
+  if(index===0){assert.ok(step.event.cells.every(([x])=>x<7));assert.equal(capPaid,false);}
+  if(index===cert.cap.paidAt){assert.ok(cert.cap.targets.some(c=>JSON.stringify(c.slice().sort())===JSON.stringify(step.event.cells.slice().sort())));capPaid=true;}
+  if(step.event.lines)assert.equal(capPaid,true,'Exact cap must be repaid before the score');state=r.state;
+ }
+ assert.equal(capPaid,true);assert.equal(state.lastEvent.spin,'full');assert.equal(state.lastEvent.lines,2);
+ const a=P.plan(zFixture.initial,{timeMs:750,commitment:{observation:zFixture.initial,advice:{evidence:{construction:proof}}}});
+ if(a.target){assert.notEqual(a.evidence.strategy,'finite-cap-deferral');assert.ok(a.continuation[0].event.type!=='Z'||a.continuation[0].event.cells.some(([x])=>x>=7));}
+ const first=cert.continuation[0],r=R.replay(zFixture.initial,first.witness),forged={target:first.event.target,witness:first.witness,continuation:cert.continuation,evidence:{construction:proof}};
+ const suffix=P.continueCommitment(zFixture.initial,r.state,forged,r.events[0]);
+ if(suffix){assert.ok(suffix.continuation.every(p=>p.event.type!=='Z'||p.event.cells.some(([x])=>x>=7)));assert.ok(suffix.continuation.every(p=>p.event.type!=='T'||p.event.spin==='full'&&p.event.lines===2));assert.notEqual(suffix.evidence.resetSelection?.resourceRenewal,true,'A manual diversion may be repaired but cannot restore a fresh allowance');}
 });
 test('recorded long-reference Z diversion also repays the exact cap and scores',()=>{
  const fs=require('fs'),vm=require('vm'),codec=vm.runInNewContext(fs.readFileSync(require.resolve('../tetris-fumen.js'),'utf8'),{window:{}})(2);
@@ -88,5 +102,5 @@ test('cap stage cannot bypass existing I cleanup or accept a forged construction
  assert.equal(S.geometry(s.board).right.cycle.prepareColumn,9);
  const p=R.placements(s).placements.find(p=>p.event.type==='Z'&&p.event.cells.every(([x])=>x<7));assert.ok(p);
  assert.equal(X.validateCertificate(s,[{witness:p.witness}],{kind:'cap-deferral'}).reason,'cap-deferral-cannot-bypass-cleanup-I');
- const pair=actualRecoveryAdvice();assert.equal(X.validateCertificate(fixture.initial,pair.continuation,{kind:'cap-deferral'}).valid,false);
+ const pair=actualRecoveryCertificate();assert.equal(X.validateCertificate(fixture.initial,pair.continuation,{kind:'cap-deferral'}).valid,false);
 });

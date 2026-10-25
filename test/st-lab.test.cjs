@@ -154,7 +154,7 @@ test('st-lab/import: longer preview rejected rather than using bag knowledge fro
 
 
 for(const hold of [false,true])test(`st-lab/stability: exact ${hold?'hold':'movement'} witness preserves visible target while revalidating`,()=>withPage('st-lab.html',{},g=>{
- const ws=workers(g),w=ws.at(-1),answer=legalResult(w.message.observation,p=>p.hold===hold&&p.witness.length>1&&require('../st-structure').advanceNotches(w.message.observation.board,p).valid&&!require('../st-planner').cavityRepairDebt(require('../st-planner').assess(w.message.observation.board),require('../st-planner').assess(p.state.board),p.event).length);
+ const ws=workers(g),w=ws.at(-1),answer=legalResult(w.message.observation,p=>p.hold===hold&&p.witness.length>1&&require('../st-midgame-resources').checkPath(w.message.observation,[p],require('../st-resource-history').resolve(w.message.observation,require('../st-resource-history').importContext(w.message.observation,w.message.options.resourceContext))).valid&&require('../st-structure').advanceNotches(w.message.observation.board,p).valid&&!require('../st-planner').cavityRepairDebt(require('../st-planner').assess(w.message.observation.board),require('../st-planner').assess(p.state.board),p.event).length);
  w.respond(answer);const target=g.element('#st-target').innerHTML;
  g.window.stLab.act(answer.witness[0]);
  assert.equal(g.element('#st-target').innerHTML,target,'no blank or moved target while worker is pending');
@@ -162,7 +162,7 @@ for(const hold of [false,true])test(`st-lab/stability: exact ${hold?'hold':'move
  assert.deepEqual(json(g.window.stLab.result.witness),answer.witness.slice(1));
  if(hold)assert.equal(g.window.stLab.result.hold,false);
  g.advance(40);const next=ws.at(-1);assert.equal(next.message.previous.retained,true);
- const P=require('../st-planner.js');const revalidated=P.revalidate(next.message.observation,next.message.previous,{maxNodes:8000});
+ const P=require('../st-planner.js');const revalidated=P.revalidate(next.message.observation,next.message.previous,{...next.message.options,maxNodes:8000});
  assert.ok(revalidated);next.respond(revalidated);assert.equal(g.element('#st-target').innerHTML,target);
 }));
 

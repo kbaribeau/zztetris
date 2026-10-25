@@ -25,6 +25,17 @@ Supported ordinary scoring positions do not automatically divert Ts. The 1000-li
 reference's page 366 geometry is now discoverable without injecting its moves;
 page 813 remains an ordinary-scoring control.
 
+The explicit `depleted-center-visible-pair-v1` selection policy prefers supported
+ordinary maintenance and one-lock Center re-entry. Only the existing depleted-
+Center case may request paired recovery; competing cap/I demands and fewer than
+three visible Ts decline initiation. A candidate is not selected until the full
+legal certificate passes. Diagnostics distinguish candidate, selected/continuing,
+missing supply, out-of-scope and inconclusive/disabled search. The numerical
+height cutoffs describe current coach coverage, not a community Reset formula.
+This prefers a checked recovery to unsupported ordinary-profile abstention; it
+never claims ordinary play is impossible, a complete Reset, or resource renewal.
+
+
 ## Persistent obligations and comparisons
 
 Advice retains the original public observation, complete legal input proof and a

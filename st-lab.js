@@ -125,7 +125,7 @@
         };
         activeWorker.postMessage({type:'plan',id,observation:observation(),previous:previous?clone(previous):null,
           commitment:commitment?clone(commitment):null,
-          options:{timeMs:1500,depth:3,width:8,maxNodes:45000,patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null}});
+          options:{resourceContext:STResourceHistory.exportContext(observation(),resourceHistory),timeMs:1500,depth:3,width:8,maxNodes:45000,patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null}});
         watchdog=setTimeout(()=>{
           if(worker!==activeWorker)return;
           cancel();result=null;coachStatus='budget-exhausted';coachMessage='The coach timed out. A valid continuation may still exist.';render();
@@ -229,10 +229,10 @@
       // guess. The planner checks that the actual lock matches its first step,
       // then replays the suffix using only the newly visible observation.
       const suffix=commitment&&typeof STPlanner.continueCommitment==='function'
-        ?STPlanner.continueCommitment(commitment.observation,observation(),commitment.advice,state.lastEvent,{patternHistory}):null;
+        ?STPlanner.continueCommitment(commitment.observation,observation(),commitment.advice,state.lastEvent,{patternHistory,resourceContext:STResourceHistory.exportContext(observation(),resourceHistory)}):null;
       commitment=suffix?{observation:clone(observation()),advice:clone(suffix)}:null;
     }
-    const advanced=!locked&&displayed?STPlanner.advance(observation(),displayed,action,{patternHistory,openingSource}):null;
+    const advanced=!locked&&displayed?STPlanner.advance(observation(),displayed,action,{patternHistory,openingSource,resourceContext:STResourceHistory.exportContext(observation(),resourceHistory)}):null;
     if(advanced){result=advanced;previous=advanced;coachMessage=advanced.reason;coachStatus=advanced.status;}
     requestPlan({retain:Boolean(advanced)});render();
   }

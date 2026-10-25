@@ -107,37 +107,34 @@ test('st-cycle-ui/identical locked board without the actual spin does not fulfil
  assert.ok(P.continueCommitment(first.state,scored.state,scoring,scored.events[0]));
  assert.equal(P.continueCommitment(first.state,uncredited,scoring,uncredited.lastEvent),null);
 });
-test('st-cycle-ui/construction proof survives hold, first T, refresh and reset without imported state',()=>withPage('st-lab.html',{},g=>{
- const P=require('../st-planner'),fixture=require('./support/st-construction-recovery.json'),workers=setup(g);
+test('st-cycle-ui/finite paired-T proof does not authorize an unready Reset through HOLD or import',()=>withPage('st-lab.html',{},g=>{
+ const P=require('../st-planner'),X=require('../st-paired-repair'),fixture=require('./support/st-construction-recovery.json'),workers=setup(g);
  g.window.STFixtures={...g.window.STFixtures,get:()=>({observation:fixture.initial,future:['J','L','O'],label:'Synthetic public construction control'})};
  g.window.stLab.loadFixture('synthetic-construction-control');g.advance(40);
- let request=workers.at(-1).message,plan=P.plan(request.observation,{timeMs:750});assert.ok(plan.target,plan.reason);workers.at(-1).respond(plan);
- // Deliver the refreshed result after HOLD as a real worker may do, then lock.
- const first=plan.witness[0];assert.equal(first,'HOLD');g.window.stLab.act(first);g.advance(40);
- request=workers.at(-1).message;
- const refreshed=P.plan(request.observation,{timeMs:750,commitment:request.commitment,constructionPrevious:request.previous});assert.ok(refreshed.target,refreshed.reason);workers.at(-1).respond(refreshed);
- for(const action of refreshed.witness)g.window.stLab.act(action);
- g.advance(40);request=workers.at(-1).message;
- assert.ok(request.commitment);assert.equal(Math.abs(request.commitment.advice.evidence.constructionStage.parity),2);
- plan=P.plan(request.observation,{timeMs:750,commitment:request.commitment});workers.at(-1).respond(plan);
- g.window.stLab.act('CW');g.window.stLab.act('CCW');
- for(const action of plan.witness)g.window.stLab.act(action);
- g.advance(40);request=workers.at(-1).message;assert.ok(request.commitment);assert.equal(request.commitment.advice.evidence.constructionStage.parity,0);
- const savedProof=json(request.commitment.advice.evidence.construction);
- plan=P.plan(request.observation,{timeMs:750,commitment:request.commitment});workers.at(-1).respond(plan);
- g.window.stLab.act('HD');g.advance(40);assert.equal(workers.at(-1).message.commitment,null,'a different manual lock retires the construction');
- const snap=g.snapshot();g.element('#st-snapshot').value=JSON.stringify({...snap,construction:savedProof});g.click('#st-import');g.advance(40);assert.equal(workers.at(-1).message.commitment,null);
+ let request=workers.at(-1).message;const certificate=X.search(request.observation,{timeMs:750});assert.ok(certificate.valid,'Low-level finite route remains mechanically verified');
+ assert.ok(X.validateCertificate(request.observation,certificate.continuation).valid);
+ const proof={origin:request.observation,steps:certificate.continuation.map(p=>({witness:p.witness})),consumed:0};
+ let plan=P.plan(request.observation,{...request.options,timeMs:750});assert.equal(plan.target,null,'High Left with depleted Center is not accepted as Reset readiness');workers.at(-1).respond(plan);
+ assert.equal(g.window.stLab.result.target,null);assert.equal(g.element('#st-phase-name').textContent,'Mid-game');assert.doesNotMatch(g.element('#st-status').textContent,/begin the checked paired-T|Use this recovery/);
+ g.window.stLab.act('HOLD');g.advance(40);request=workers.at(-1).message;assert.equal(request.commitment,null);
+ plan=P.plan(request.observation,{...request.options,timeMs:750});assert.equal(plan.target,null);workers.at(-1).respond(plan);
+ const snapshot=g.snapshot();g.element('#st-snapshot').value=JSON.stringify({...snapshot,construction:proof});g.click('#st-import');g.advance(40);assert.equal(workers.at(-1).message.commitment,null);
  g.click('#st-reset');g.advance(40);assert.equal(workers.at(-1).message.commitment,null);
 }));
-test('st-cycle-ui/exact replacement-Z debt crosses refreshed preview and rejects a different lock',()=>withPage('st-lab.html',{},g=>{
+test('st-cycle-ui/replacement-Z geometry does not invent an Extra-Z allowance in an imported position',()=>withPage('st-lab.html',{},g=>{
  const P=require('../st-planner'),X=require('../st-paired-repair'),fixture=require('./support/st-visible-z-deferral.json'),workers=setup(g);
  g.window.STFixtures={...g.window.STFixtures,get:()=>({observation:fixture.initial,future:['J','L','O'],label:'Synthetic public construction control'})};
  g.window.stLab.loadFixture('synthetic-construction-control');g.advance(40);
  const request=workers.at(-1).message,cert=X.search(request.observation,{kind:'cap-deferral'});assert.ok(cert.valid);
+ const checked=X.validateCertificate(request.observation,cert.continuation,{kind:'cap-deferral'});assert.ok(checked.valid);assert.ok(checked.cap.targets.length,'The exact replacement cells remain part of the low-level certificate');
+ let replay=request.observation;for(const step of cert.continuation){const r=R.replay(replay,step.witness);assert.ok(r.valid);assert.deepEqual(r.events[0],step.event);replay=r.state;}assert.equal(replay.lastEvent.spin,'full');assert.equal(replay.lastEvent.lines,2);
  const proof={kind:'cap-deferral',origin:request.observation,steps:cert.continuation.map(p=>({witness:p.witness})),consumed:0};
- const plan=P.plan(request.observation,{timeMs:750,commitment:{observation:request.observation,advice:{evidence:{construction:proof}}}});assert.equal(plan.evidence.strategy,'finite-cap-deferral');workers.at(-1).respond(plan);
- for(const a of plan.witness)g.window.stLab.act(a);g.advance(40);
- const next=workers.at(-1).message;assert.ok(next.commitment);assert.ok(next.commitment.advice.evidence.constructionStage.capDebt.length);assert.equal(next.observation.queue.length,6);
- const continuation=P.plan(next.observation,{timeMs:750,commitment:next.commitment});workers.at(-1).respond(continuation);
- g.window.stLab.act('HD');g.advance(40);assert.equal(workers.at(-1).message.commitment,null);
+ const plan=P.plan(request.observation,{...request.options,timeMs:750,commitment:{observation:request.observation,advice:{evidence:{construction:proof}}}});
+ assert.equal(plan.target,null,'A complete local cap proof cannot establish historical Extra-Z availability');assert.equal(plan.evidence.resourceObligations.reason,'extra-Z-not-available');workers.at(-1).respond(plan);
+ assert.equal(g.window.stLab.result.target,null);assert.equal(g.window.stLab.resources.extraZ.status,'unknown');assert.doesNotMatch(g.element('#st-status').textContent,/checked sequence restores/);
+ // Manual play is still legal, but does not turn the refused route into a
+ // retained commitment or reset the unknown historical allowance.
+ for(const a of cert.continuation[0].witness)g.window.stLab.act(a);g.advance(40);
+ const next=workers.at(-1).message;assert.equal(next.commitment,null);assert.equal(next.observation.queue.length,6);assert.equal(g.window.stLab.resources.extraZ.status,'unknown');
+ g.element('#st-snapshot').value=JSON.stringify({...g.snapshot(),construction:proof,extraZ:{status:'available'}});g.click('#st-import');g.advance(40);assert.equal(workers.at(-1).message.commitment,null);assert.equal(g.window.stLab.resources.extraZ.status,'unknown');
 }));

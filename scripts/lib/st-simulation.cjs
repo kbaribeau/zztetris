@@ -9,6 +9,7 @@ const R = require('../../st-rules');
 const B = require('../../st-bag');
 const P = require('../../st-planner');
 const S = require('../../st-structure');
+const H = require('../../st-resource-history');
 const F = require('../../st-fixtures');
 const root = path.resolve(__dirname, '../..');
 const clone = x => JSON.parse(JSON.stringify(x));
@@ -16,7 +17,7 @@ const clone = x => JSON.parse(JSON.stringify(x));
 // intentionally omits that field from its worker message. Match that boundary.
 function publicObservation(state){const observation=P.observe(state);delete observation.lastEvent;return observation;}
 const digest = x => crypto.createHash('sha256').update(typeof x === 'string' ? x : JSON.stringify(x)).digest('hex');
-const SOURCE_FILES = ['st-rules.js', 'st-bag.js', 'st-structure.js', 'st-paired-repair.js', 'st-access.js', 'st-pattern-history.js', 'st-left-foundation.js', 'st-planner.js', 'st-opening-patterns.js','st-opening-continuations.js','st-opening-sources.js','st-source-scoring.js', 'st-opening.js', 'st-worker.js', 'st-lab.js', 'st-fixtures.js', 'scripts/lib/st-simulation.cjs', 'scripts/simulate-st.cjs'];
+const SOURCE_FILES = ['st-rules.js', 'st-bag.js', 'st-structure.js', 'st-paired-repair.js', 'st-access.js', 'st-pattern-history.js', 'st-left-foundation.js', 'st-planner.js', 'st-opening-patterns.js','st-opening-continuations.js','st-opening-sources.js','st-source-scoring.js', 'st-opening.js', 'st-resource-history.js', 'st-midgame-resources.js', 'st-worker.js', 'st-lab.js', 'st-fixtures.js', 'scripts/lib/st-simulation.cjs', 'scripts/simulate-st.cjs'];
 const CONFIG = Object.freeze({depth:3, width:8, maxNodes:45000, timeMs:1500});
 const PRESETS = Object.freeze({quick:{seeds:[10331, 20333], locks:24}, research:{seeds:Array.from({length:16}, (_,i) => 810001 + i * 997), locks:500}});
 const RNG_VERSION = 'mulberry32-seven-bag-v1';
@@ -93,6 +94,7 @@ function createSession(input, api=P) {
   if(typeof api.startOpeningSession!=='function')throw Error('Shared opening session API is not available');
   let state=R.createState(clone(input.initial)), cursor=0, commitment=null, previous=null;
   let patternHistory=api.startPatternHistory(publicObservation(state));
+  let resourceHistory=H.start(publicObservation(state),{fresh:input.scenario==='empty'});
   let opening=api.startOpeningSession(publicObservation(state),{emptyMode:input.scenario==='empty'});
   function replenish() {
     while(state.queue.length<6) {
@@ -103,12 +105,13 @@ function createSession(input, api=P) {
   }
   return {
     get state(){return state;}, get cursor(){return cursor;}, get opening(){return clone(opening);},
-    request(id,options) { return {type:'plan',id,observation:publicObservation(state),previous:previous?clone(previous):null,commitment:commitment?clone(commitment):null,options:{...options,patternHistory:patternHistory?clone(patternHistory):null,openingPhase:opening.active,openingSource:opening.source?clone(opening.source):null,openingClear:opening.clear?clone(opening.clear):null,openingRepair:opening.repair?clone(opening.repair):null}}; },
+    request(id,options) { return {type:'plan',id,observation:publicObservation(state),previous:previous?clone(previous):null,commitment:commitment?clone(commitment):null,options:{...options,resourceContext:H.exportContext(publicObservation(state),resourceHistory),patternHistory:patternHistory?clone(patternHistory):null,openingPhase:opening.active,openingSource:opening.source?clone(opening.source):null,openingClear:opening.clear?clone(opening.clear):null,openingRepair:opening.repair?clone(opening.repair):null}}; },
     execute(advice) {
       const proof=validateAdvice(state,advice);
       const requiredDraws=state.queue.length-proof.state.queue.length;
       if(input.future.length-cursor<requiredDraws)throw Object.assign(Error('Private stream cannot replenish this witness; no actions applied'),{code:'INPUT_EXHAUSTED'});
-      opening=api.acceptOpeningResult(opening,advice);
+      const wasOpening=opening.active;opening=api.acceptOpeningResult(opening,advice);
+      if(wasOpening&&!opening.active)resourceHistory=H.markHandoff(resourceHistory,publicObservation(state));
       previous={...clone(advice),revision:state.revision};
 
       commitment=!advice.evidence?.opening && api.resourceGoal(advice.continuation||[]) ? {observation:clone(publicObservation(state)),advice:clone(advice)} : null;
@@ -119,15 +122,16 @@ function createSession(input, api=P) {
         if(next===state)throw Error('Witness action did not execute: '+action);
         state={...next,revision:state.revision+1};
         replenish();
+        resourceHistory=H.applyAction(resourceHistory,before,action,{...publicObservation(state),lastEvent:state.lastEvent});
         if(action==='HD') {
           event=clone(state.lastEvent); previous=null;
           patternHistory=api.updatePatternHistory(patternHistory,before,publicObservation(state),event);
           opening=api.updateOpeningSession(opening,before,publicObservation(state),event);
-          const suffix=commitment?api.continueCommitment(commitment.observation,publicObservation(state),commitment.advice,event,{patternHistory}):null;
+          const suffix=commitment?api.continueCommitment(commitment.observation,publicObservation(state),commitment.advice,event,{patternHistory,resourceContext:H.exportContext(publicObservation(state),resourceHistory)}):null;
           commitment=suffix?{observation:clone(publicObservation(state)),advice:clone(suffix)}:null;
           displayed=null;
         } else {
-          const advanced=displayed?api.advance(publicObservation(state),displayed,action,{patternHistory,openingSource:opening.source}):null;
+          const advanced=displayed?api.advance(publicObservation(state),displayed,action,{patternHistory,openingSource:opening.source,resourceContext:H.exportContext(publicObservation(state),resourceHistory)}):null;
           if(advanced){displayed=advanced;previous=advanced;}
           else displayed=null;
         }

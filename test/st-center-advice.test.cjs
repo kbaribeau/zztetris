@@ -56,7 +56,7 @@ test('st-advice/previous quad L/O continuation still names its executed pair pre
  const fs=require('node:fs'),vm=require('node:vm'),module={exports:{}};
  const targets=[{type:'L',x:3,y:28,rotation:1},{type:'O',x:4,y:28,rotation:0}];
  const rules={...R,placements:(state,options)=>{const r=R.placements(state,options);return{...r,placements:r.placements.filter(p=>targets.some(t=>JSON.stringify(t)===JSON.stringify(p.target)))};}};
- vm.runInNewContext(fs.readFileSync(require.resolve('../st-planner.js'),'utf8'),{module,require:name=>name==='./st-rules.js'?rules:name==='./st-bag.js'?require('../st-bag'):name==='./st-access.js'?require('../st-access'):name==='./st-pattern-history.js'?require('../st-pattern-history'):name==='./st-left-foundation.js'?require('../st-left-foundation'):require('../st-structure')});
+ vm.runInNewContext(fs.readFileSync(require.resolve('../st-planner.js'),'utf8'),{module,require:name=>name==='./st-resource-history.js'?require('../st-resource-history'):name==='./st-midgame-resources.js'?require('../st-midgame-resources'):name==='./st-rules.js'?rules:name==='./st-bag.js'?require('../st-bag'):name==='./st-access.js'?require('../st-access'):name==='./st-pattern-history.js'?require('../st-pattern-history'):name==='./st-left-foundation.js'?require('../st-left-foundation'):require('../st-structure')});
  const plan=module.exports.plan(F.get('after-quad').observation,{...opts,depth:2});
  assert.match(plan.reason,/Hold once\. Place L in the Center\. Then place O to complete the L\/O overhang\./);
  assert.equal(plan.continuation[0].structuralEvidence.pairProgress.status,'completed-in-checked-prefix');
