@@ -300,7 +300,15 @@
     if(event.code===hintKey){event.preventDefault();if(!event.repeat)toggle();return;}
     const action=keys[event.code];if(!action)return;event.preventDefault();
     if(event.repeat||repeating.has(event.code))return;
-    act(action);
+    if(action==='RESET'){
+      if(selectedId==='empty')empty();
+      else if(origin){
+        const initial=bag(),active=initial.shift();
+        const input={...clone(origin.input),active:{type:active,x:3,y:17,rotation:0,lastRotation:null},queue:initial,streamCursor:1,topOut:false};
+        delete input.bag;
+        resetState(input,{random:true,history:[active,...initial],opening:origin.options.opening,note:'Fresh random piece sequence from the starting position.'});
+      }
+    }else act(action);
     if(['L','R','SD'].includes(action)){
       const token={timeout:null,interval:null};repeating.set(event.code,token);
       const repeatStep=()=>{
