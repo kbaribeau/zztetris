@@ -120,3 +120,20 @@ test('simulation/replay ignores only regenerated commitment timing, never goals,
  const replay=E.replayRecords(input,records,api);assert.equal(replay.locks,2);assert.deepEqual(replay.ignoredVolatileRequestFields,['commitment.advice.metrics.elapsedMs']);
  for(const mutate of [r=>{r.request.commitment.advice.goal.kind='forged';},r=>{r.request.commitment.advice.continuation[0].event.lines=4;},r=>{r.request.commitment.observation.queue[0]='X';},r=>{r.request.commitment.advice.metrics.nodes=999;}]){const bad=E.clone(records);mutate(bad.find(r=>r.kind==='lock'&&r.lock===2));assert.throws(()=>E.replayRecords(input,bad,api),/Public decision state diverged/);}
 });
+
+test('simulation/replay reports timed display-retention drift without weakening game-state checks',()=>{
+ const input=E.makeInput('empty',13,2),records=[];
+ const live={...stub,advance:(_state,advice)=>advice};
+ E.runEpisode(input,{api:live,planner:req=>hd(req.observation,true),onRecord:r=>records.push(r)});
+ const replay=E.replayRecords(input,records,stub);
+ assert.equal(replay.verified,true);assert.equal(replay.locks,2);
+ assert.deepEqual(replay.ignoredVolatileActionFields,['adviceAdvanced']);
+ assert.deepEqual(replay.adviceAdvanceMismatches,[1,2].map(lock=>({lock,index:0,action:'HOLD',recorded:true,replayed:false})));
+ const unchanged=E.replayRecords(input,records,live);assert.deepEqual(unchanged.adviceAdvanceMismatches,[]);
+ for(const mutate of [
+  r=>{r.actions[0].action='L';},r=>{r.actions[0].draws++;},r=>{r.actions[0].observationHash='forged';},
+  r=>{r.event.type='X';},r=>{r.after.hold='X';},r=>{r.request.observation.queue[0]='X';},
+  r=>{r.actions[0].adviceAdvanced='true';},r=>{r.actions.at(-1).adviceAdvanced=false;},
+  r=>{r.advice.witness=['HD'];},r=>{r.advice.target.x=99;},
+ ]){const corrupt=E.clone(records);mutate(corrupt.find(r=>r.kind==='lock'));assert.throws(()=>E.replayRecords(input,corrupt,stub));}
+});

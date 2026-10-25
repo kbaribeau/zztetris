@@ -191,13 +191,21 @@ function runEpisode(input, {config=CONFIG, planner=workerPlanner(), onRecord=()=
 // regenerated. Exclude only that measurement, never goals, witnesses or supply.
 function replayRequest(request){const value=clone(request);if(value.commitment?.advice?.metrics)delete value.commitment.advice.metrics.elapsedMs;return value;}
 function replayRecords(input, records, api=P) {
-  const session=createSession(input,api);let locks=0;
+  const session=createSession(input,api);let locks=0;const adviceAdvanceMismatches=[];
+  // Per-input display retention has a real wall-clock budget. It does not
+  // change the recorded uninterrupted witness or the rules state. Keep every
+  // action/draw/public-state check strict, but report this timing diagnostic.
+  const replayActions=actions=>actions.map(({adviceAdvanced,...action})=>{
+    assert.equal(action.action==='HD'?adviceAdvanced===null:typeof adviceAdvanced==='boolean',true,'Malformed advice advancement diagnostic');
+    return action;
+  });
   for(const record of records)if(record.kind==='lock') {
     assert.deepEqual(replayRequest(session.request(record.lock,record.request.options)),replayRequest(record.request),'Public decision state diverged before lock '+record.lock);
     const actual=session.execute(record.advice);
-    assert.deepEqual(actual.event,record.event);assert.deepEqual(actual.actions,record.actions);
+    assert.deepEqual(actual.event,record.event);assert.deepEqual(replayActions(actual.actions),replayActions(record.actions));
+    actual.actions.forEach((action,index)=>{if(action.adviceAdvanced!==record.actions[index].adviceAdvanced)adviceAdvanceMismatches.push({lock:record.lock,index,action:action.action,recorded:record.actions[index].adviceAdvanced,replayed:action.adviceAdvanced});});
     assert.deepEqual(publicObservation(session.state),record.after);locks++;
   }
-  return {mode:'recorded-action-replay',locks,verified:true,finalObservation:publicObservation(session.state),ignoredVolatileRequestFields:['commitment.advice.metrics.elapsedMs'],note:'No search rerun; exact actions/events/public state and non-timing request data are checked. Only regenerated commitment certification duration is excluded.'};
+  return {mode:'recorded-action-replay',locks,verified:true,finalObservation:publicObservation(session.state),ignoredVolatileRequestFields:['commitment.advice.metrics.elapsedMs'],ignoredVolatileActionFields:['adviceAdvanced'],adviceAdvanceMismatches,note:'No planner search rerun; exact actions/events/draws/public state and non-timing request data are checked. Regenerated commitment duration and wall-clock display-retention flags are excluded from equality; every display-retention difference is reported. This verifies rapid uninterrupted recorded witnesses, not slower interactive replanning.'};
 }
 module.exports={publicObservation,CONFIG,PRESETS,RNG_VERSION,SOURCE_FILES,clone,digest,random,sourceHashes,makeInput,workerPlanner,validateAdvice,boardMetrics,createSession,runEpisode,replayRecords};

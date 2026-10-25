@@ -31,3 +31,20 @@ test('fresh-bag restart clears a source family while replay-current preserves it
  assert.deepEqual(req.options.openingSource,{pattern:null});assert.equal(req.options.openingPhase,true);assert.equal(req.options.openingRepair,null);assert.equal(req.previous,null);assert.equal(req.observation.hold,null);assert.equal(req.observation.streamCursor,1);assert.ok(req.observation.board.every(row=>row==='..........'));assert.equal(g.element('#st-undo').disabled,true);
  const fresh=clone(req.observation);g.window.Math.random=()=>{throw Error('Replay-current must not generate another bag');};g.click('#st-reset');req=request();assert.deepEqual([req.observation.active.type,...req.observation.queue],[fresh.active.type,...fresh.queue]);assert.deepEqual(req.options.openingSource,{pattern:null});
 }));
+
+test('source opening UI: timed retention expiry safely replans after a normal input pause',()=>withPage('st-lab.html',{seed:42},g=>{
+ const E=require('../scripts/lib/st-simulation.cjs'),R=require('../st-rules'),planner=E.workerPlanner(),workers=[];
+ g.window.Worker=class{constructor(){workers.push(this);}postMessage(m){this.message=clone(m);}terminate(){}respond(result){this.onmessage({data:{type:'result',id:this.message.id,revision:this.message.observation.revision,result}});}};
+ g.element('#st-fixture').value='empty';g.element('#st-fixture').dispatchEvent(new g.window.Event('change'));g.advance(40);
+ let request=workers.at(-1).message,advice=planner(request);assert.ok(advice.evidence.opening.sourcePlan);workers.at(-1).respond(advice);
+ const family=advice.evidence.opening.sourcePlan.id,action=advice.witness[0];assert.notEqual(action,'HD');
+ const normalNow=g.window.Date.now;let forced=normalNow();g.window.Date.now=()=>forced+=101;
+ try{g.window.stLab.act(action);}finally{g.window.Date.now=normalNow;}
+ assert.equal(g.window.stLab.result,null,'An expired retention proof must not leave a displayed target');
+ g.advance(40);request=workers.at(-1).message;assert.deepEqual(request.options.openingSource,{pattern:family});
+ const next=planner(request);workers.at(-1).respond(next);
+ assert.ok(next.target,'Replanning from the moved pose should recover legal source guidance');
+ assert.equal(next.evidence?.opening?.sourcePlan?.id,family,'The original source family must survive a human input pause');
+ const proof=R.replay(request.observation,next.witness);assert.equal(proof.valid,true);assert.equal(proof.events.length,1);assert.deepEqual(proof.events[0].target,next.target);
+ assert.deepEqual(clone(g.window.stLab.result.target),next.target);
+}));
