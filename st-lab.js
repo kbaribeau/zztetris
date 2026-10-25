@@ -232,7 +232,7 @@
         ?STPlanner.continueCommitment(commitment.observation,observation(),commitment.advice,state.lastEvent,{patternHistory}):null;
       commitment=suffix?{observation:clone(observation()),advice:clone(suffix)}:null;
     }
-    const advanced=!locked&&displayed?STPlanner.advance(observation(),displayed,action,{patternHistory}):null;
+    const advanced=!locked&&displayed?STPlanner.advance(observation(),displayed,action,{patternHistory,openingSource}):null;
     if(advanced){result=advanced;previous=advanced;coachMessage=advanced.reason;coachStatus=advanced.status;}
     requestPlan({retain:Boolean(advanced)});render();
   }

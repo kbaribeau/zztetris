@@ -104,6 +104,38 @@ simulation analysis, with verified original-bag identities through HOLD and
 explicit unknown imports. It does not change the live UI, planner observations,
 ranking or resource rules.
 
+### Experimental source-to-first-TSD continuation
+
+This experimental continuation may retain a finite scoring goal after an **actually executed**
+seven-lock source opening and its seven-lock conditional second-bag goal. It first
+computes ordinary advice with the unchanged normal budget. Only leftover budget
+can prove a first Right TSD with the required T/Z allocation, original cap-roof
+clear, S/L balance, level Center and the existing three-row regional-peak quality
+interpretation (not a numeric rule authored by the community source).
+
+A complete ordinary prefix meeting those checks is preserved; otherwise a bounded
+solid-Left, direct-drop filler corridor is searched with the existing comparator.
+That corridor is optional, not a universal hole/resource ban. An unsuccessful
+proof keeps the already-checked ordinary decision and does not invalidate the
+source opening. Exact root-visible inventory and connected executed history bind
+retained witnesses; later refills cannot create a previously unproved route.
+Imports, stale revisions and disconnected histories cannot grant this authority.
+At a new actual lock boundary, this experimental continuation can replace an unexecuted
+first-TSD suffix with a complete ordinary A-qualified alternative. It first
+revalidates the retained goal and its final access boundary, then spends only
+the remaining shared budget on ordinary exploration. The replacement must also
+replay from the unchanged original fourteen-lock root supply, with all consumed
+steps preserved and at most six total closure locks. Newly observed pieces are
+not retroactively added to that root; refill-only alternatives are deliberately
+unsupported. Movement/HOLD and repeated same-lock requests retain the precise
+target. Sequences end at the first TSD, never a forced post-clear instruction.
+If replacement fails or exhausts budget, the exact already-checked retained goal
+survives. This experimental continuation is not a sustained-play reliability claim.
+
+The normal actual-clear maintenance handoff and resource diagnostics remain
+separate. Publication prioritizes valid source-guided openings; matched development runs
+show both improvements and later-play regressions. Sustained play is not certified.
+
 Observed Midgame resources are shown in the existing diagnostics details:
 exact Center partner debt, HOLD/draw identities, source-backed Hanging S,
 and Extra Z only after a verified source opening baseline. Unknown imports

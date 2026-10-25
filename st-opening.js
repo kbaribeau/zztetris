@@ -1,6 +1,6 @@
 /* Bounded opening construction, distinct from established-stack maintenance.
  * Only actual board, active/hold and six public previews enter this search. */
-(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-structure'),require('./st-paired-repair'),require('./st-opening-sources'),require('./st-bag'),()=>require('./st-planner')):factory(root.STRules,root.STStructure,root.STPairedRepair,root.STOpeningSources,root.STBag,()=>root.STPlanner);if(typeof module==='object'&&module.exports)module.exports=api;else root.STOpening=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,S,X,O,B,getPlanner){
+(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-structure'),require('./st-paired-repair'),require('./st-opening-sources'),require('./st-bag'),require('./st-source-scoring'),()=>require('./st-planner')):factory(root.STRules,root.STStructure,root.STPairedRepair,root.STOpeningSources,root.STBag,root.STSourceScoring,()=>root.STPlanner);if(typeof module==='object'&&module.exports)module.exports=api;else root.STOpening=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,S,X,O,B,Q,getPlanner){
 'use strict';
 const clone=x=>JSON.parse(JSON.stringify(x));
 function balance(board){let n=0;for(let y=0;y<40;y++)for(let x=0;x<4;x++)if(board[y][x]!=='.')n+=(x+y)%2?1:-1;return n;}
@@ -245,24 +245,108 @@ function updateSession(session,before,after,event){
    const r=R.replay(before,['HD']);if(r.valid&&publicMatch(r.state,after)&&old.consumed+1<old.steps.length)repair={...checked.proof,consumed:old.consumed+1};
  }}
  const sourceReplay=session.source&&!event?.lines?R.replay(before,['HD']):null;
- const source=sourceReplay?.valid&&sourceReplay.events.length===1&&JSON.stringify(sourceReplay.events[0])===JSON.stringify(event)&&sourcePublicMatch(sourceReplay.state,after)&&O.compatible(after.board,session.source.pattern).some(p=>p.mask!==127)?clone(session.source):null;
+ let source=null;
+ if(sourceReplay?.valid&&sourceReplay.events.length===1&&JSON.stringify(sourceReplay.events[0])===JSON.stringify(event)&&sourcePublicMatch(sourceReplay.state,after)){
+  const oldSource=session.source,meta=O.pattern(oldSource.pattern),matches=O.compatible(after.board,oldSource.pattern);
+  if(oldSource.continuationSteps?.length===7){
+   const pending=oldSource.pending,prior=oldSource.scoringSteps?.at(-1)?.after||oldSource.continuationSteps.at(-1).after;
+   if(pending&&Array.isArray(oldSource.scoringSteps)&&oldSource.scoringSteps.length<6){
+    const prefix=R.replay(pending.origin,pending.witness.slice(0,-1)),full=R.replay(pending.origin,pending.witness);
+    if(sourcePublicMatch(prior,pending.origin)&&prefix.valid&&!prefix.events.length&&sourcePublicMatch(prefix.state,before)&&full.valid&&full.events.length===1&&JSON.stringify(full.events[0])===JSON.stringify(event)&&sourcePublicMatch(full.state,after)){
+     source={...clone(oldSource),scoringSteps:oldSource.scoringSteps.concat([{witness:pending.witness.slice(),event:clone(event),after:clone(after)}])};delete source.pending;
+    }
+   }
+   return{active:true,clear:null,repair:null,source};
+  }
+  if(matches.some(p=>p.mask!==127)||meta?.stage==='second-bag'&&matches.some(p=>p.mask===127))source=clone(oldSource);
+  // History is attached to accepted full witnesses, never inferred from seven
+  // unrelated HD poses or from an imported matching footprint.
+  if(meta?.stage==='first-bag'){
+   let history=null;const pending=oldSource.pending,h=oldSource.history;
+   if(h&&pending&&h.steps.length<7){
+    const origin=h.steps.at(-1)?.after||h.origin;
+    const prefix=R.replay(pending.origin,pending.witness.slice(0,-1)),full=R.replay(pending.origin,pending.witness);
+    if(sourcePublicMatch(origin,pending.origin)&&prefix.valid&&!prefix.events.length&&sourcePublicMatch(prefix.state,before)&&full.valid&&full.events.length===1&&JSON.stringify(full.events[0])===JSON.stringify(event)&&sourcePublicMatch(full.state,after))history={...clone(h),steps:h.steps.concat([{witness:pending.witness.slice(),event:clone(event),after:clone(after)}])};
+   }
+   if(source){source.history=history;delete source.pending;}
+   if(['buri-01','buri-02'].includes(meta.id)&&matches.some(p=>p.mask===127)&&history?.steps.length===7)source={pattern:null,continuationFrom:meta.id,history,continuationSteps:[]};
+  }else if(meta?.stage==='second-bag'&&source){
+   const pending=oldSource.pending,origin=oldSource.continuationSteps?.at(-1)?.after||oldSource.history?.steps?.at(-1)?.after;
+   if(!pending||!origin)source=null;
+   else{
+    const prefix=R.replay(pending.origin,pending.witness.slice(0,-1)),full=R.replay(pending.origin,pending.witness);
+    if(!sourcePublicMatch(origin,pending.origin)||!prefix.valid||prefix.events.length||!sourcePublicMatch(prefix.state,before)||!full.valid||full.events.length!==1||JSON.stringify(full.events[0])!==JSON.stringify(event)||!sourcePublicMatch(full.state,after))source=null;
+    else{source.continuationSteps=(oldSource.continuationSteps||[]).concat([{witness:pending.witness.slice(),event:clone(event),after:clone(after)}]);delete source.pending;if(source.continuationSteps.length===7)source.scoringSteps=[];}
+   }
+  }
+ }
+
  return{active:true,clear:event?.lines&&S.canonicalClear(event)?{before:clone(before),event:clone(event)}:null,repair,source};
 }
 function acceptResult(session,result){
  if(session?.active&&result?.phase==='maintenance'&&result?.evidence?.openingHandoff)return{active:false,clear:null,repair:null,source:null};
- if(session?.active&&result?.evidence?.opening)return{...session,repair:result.evidence.opening.repair?clone(result.evidence.opening.repair):null,source:result.evidence.opening.sourcePlan?{pattern:result.evidence.opening.sourcePlan.id}:session.source||null};
+ if(session?.active&&result?.evidence?.opening){
+  const proof=result.evidence.opening.sourcePlan,scoring=result.evidence.opening.scoringPlan;let source=session.source||null;
+  if(scoring){
+   // A replacement may change only the still-unexecuted suffix. Its complete
+   // original-root proof is regenerated before advice and on every retention.
+   const nextRoute=scoring.source.scoringRoute,oldRoute=source?.scoringRoute,n=source?.scoringSteps?.length;
+   const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+   const routeConnected=!oldRoute?n===0:same(oldRoute,nextRoute)||same(oldRoute.origin,nextRoute?.origin)&&same(oldRoute.steps.slice(0,n),nextRoute?.steps?.slice(0,n));
+   source=source&&routeConnected&&scoringSourceIdentity({...source,scoringRoute:nextRoute,scoringDecisionOffset:scoring.source.scoringDecisionOffset})===scoringSourceIdentity(scoring.source)?{...clone(source),scoringRoute:clone(nextRoute),scoringDecisionOffset:scoring.source.scoringDecisionOffset,pending:{origin:clone(scoring.origin),witness:scoring.steps[0].witness.slice()},scoringRemaining:clone(scoring.steps.slice(1)),scoringCorridor:scoring.corridor}:null;
+  }
+
+  if(proof){
+   const meta=O.pattern(proof.id);
+   if(meta?.stage==='second-bag')source=source?.history&&source.continuationFrom===meta.basePattern?{...clone(source),pattern:proof.id,pending:{origin:clone(proof.origin),witness:proof.steps[0].witness.slice()}}:null;
+   else{
+    const history=source?.history||(source&&O.eligible(proof.origin)?{origin:clone(proof.origin),steps:[]}:null);
+    source={pattern:proof.id,history,pending:history?{origin:clone(proof.origin),witness:proof.steps[0].witness.slice()}:null};
+   }
+  }
+  return{...session,repair:result.evidence.opening.repair?clone(result.evidence.opening.repair):null,source};
+ }
  return session;
 }
 function sourcePublicMatch(expected,actual){
+ if(!expected||!actual||!Array.isArray(expected.queue)||!Array.isArray(actual.queue))return false;
  const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
  if(!publicMatch(expected,actual)||expected.rules!==actual.rules||expected.revision!==actual.revision)return false;
  let bag=expected.bag;for(const t of actual.queue.slice(expected.queue.length)){if(!bag)return false;bag=B.consume(bag,t);if(B.validate(bag).length)return false;}
  return same(bag,actual.bag);
 }
+// Recheck the recorded actual seven-lock construction before allowing a second
+// goal. This certificate carries observations, not a generator or unseen queue.
+function checkedSourceHistory(history,baseId,spend){
+ if(!['buri-01','buri-02'].includes(baseId)||!history||!O.eligible(history.origin)||!Array.isArray(history.steps)||history.steps.length!==7)return false;
+ let current=history.origin,mask=0;
+ for(const step of history.steps){
+  if(!step||!step.after||R.validate(step.after).length||B.validate(step.after.bag).length||!Array.isArray(step.after.queue)||step.after.queue.length>6||!Array.isArray(step.witness)||!step.witness.length||step.witness.length>256||step.witness.at(-1)!=='HD'||!spend(step.witness.length))return false;
+  const r=R.replay(current,step.witness),next=O.compatible(step.after?.board,baseId)[0]?.mask;
+  if(!r.valid||r.events.length!==1||r.events[0].lines||JSON.stringify(r.events[0])!==JSON.stringify(step.event)||!sourcePublicMatch(r.state,step.after)||next===undefined||(next&mask)!==mask||next===mask||((next^mask)&((next^mask)-1)))return false;
+  current=step.after;mask=next;
+ }
+ return mask===127;
+}
+function checkedContinuationSource(source,origin,spend,complete=false){
+ const meta=O.pattern(source?.pattern),base=source?.continuationFrom;
+ if(meta&&meta.basePattern!==base||!checkedSourceHistory(source?.history,base,spend)||!Array.isArray(source.continuationSteps)||source.continuationSteps.length>(complete?7:6))return false;
+ let current=source.history.steps.at(-1).after,mask=0;
+ for(const step of source.continuationSteps){
+  if(!meta||!step||!step.after||R.validate(step.after).length||B.validate(step.after.bag).length||!Array.isArray(step.after.queue)||step.after.queue.length>6||!Array.isArray(step.witness)||!step.witness.length||step.witness.length>256||step.witness.at(-1)!=='HD'||!spend(step.witness.length))return false;
+  const r=R.replay(current,step.witness),next=O.compatible(step.after.board,meta.id)[0]?.mask;
+  if(!r.valid||r.events.length!==1||r.events[0].lines||JSON.stringify(r.events[0])!==JSON.stringify(step.event)||!sourcePublicMatch(r.state,step.after)||next===undefined||(next&mask)!==mask||next===mask||((next^mask)&((next^mask)-1)))return false;
+  current=step.after;mask=next;
+ }
+ return (!complete||source.continuationSteps.length===7&&mask===127)&&sourcePublicMatch(current,origin);
+}
 // Exact source patterns are finite construction goals, not permission to enter
 // maintenance. Only the actual visible inventory participates in the solver.
 function sourceConstruction(state,options,notches,deadline,now,maxNodes){
- const P=getPlanner(),found=O.solve(state,{preferredId:options.openingSource?.pattern,deadline,now,maxNodes});let visited=found.visited;
+ const P=getPlanner(),source=options.openingSource,selected=O.pattern(source?.pattern),second=selected?.stage==='second-bag'||Boolean(source?.continuationFrom);let visited=0,exhausted=false;
+ const spend=n=>{if(now()>=deadline||visited+n>maxNodes){exhausted=true;return false;}visited+=n;return true;};
+ if(second&&!checkedContinuationSource(source,state,spend))return{visited,unknown:exhausted};
+ const found=O.solve(state,{preferredId:source?.pattern,continuationFrom:second?source.continuationFrom:null,deadline,now,maxNodes:maxNodes-visited});visited+=found.visited;
  if(!found.candidate)return{visited,unknown:found.unknown};
  const route=found.candidate,path=[];let current=state,phase=notches;
  for(const step of route.steps){
@@ -279,11 +363,11 @@ function sourceConstruction(state,options,notches,deadline,now,maxNodes){
  const access=P.checkAccessPrefix(state,path,{notches,deadline,now,maxNodes:maxNodes-visited});visited+=access.visited;
  if(access.reachable!==true||now()>=deadline||visited>maxNodes)return{visited,unknown:access.reachable===null||now()>=deadline};
  const pattern=O.pattern(route.id),first=path[0],end=facts(current.board,phase),complete=O.compatible(current.board,route.id).some(p=>p.mask===127);
- const sourcePlan={schemaVersion:1,id:route.id,origin:clone(state),steps:clone(path),consumed:0,pending:route.pending?clone(route.pending):null};
+ const sourcePlan={schemaVersion:1,id:route.id,...(second?{stage:'second-bag',basePattern:source.continuationFrom,history:clone(source.history),continuationSteps:clone(source.continuationSteps),variant:pattern.variant}:{}),origin:clone(state),steps:clone(path),consumed:0,pending:route.pending?clone(route.pending):null};
  return{visited,unknown:false,advice:{status:'recommended-with-verified-prefix',revision:state.revision,phase:'opening',target:first.target,hold:first.hold,holdCount:first.holdCount,witness:first.witness,continuation:path,
-  reason:`Build ${pattern.label}, a verified community opening pattern. Checked ${path.length} legal placement${path.length===1?'':'s'} using only visible pieces. ${complete?'This visible prefix completes the source diagram.':'This is partial construction toward the full diagram; recheck after actual draws.'} A source-pattern milestone does not switch to mid-game; the normal handoff remains separate.`,
-  sources:[{id:route.id,label:pattern.label,url:pattern.url,section:'Section 2-1: normal-gravity 4n+2 opening templates',scope:'Exact full source diagram as a finite construction goal, not a scored handoff or a guarantee about unseen pieces.'}],assessment:P.assess(current.board),
-  evidence:{opening:{status:'partial-construction',initial:facts(state.board,notches),endpoint:end,repair:null,sourcePlan,sourceEndpoint:complete?'exact-full-pattern':'exact-source-subset',unresolved:complete?[]:['source diagram not yet complete in this visible prefix'],handoffCandidate:null},knownPieceHorizon:state.queue.length+1}}};
+  reason:`Build ${pattern.label}${second?', a conditional second-bag '+(pattern.variant==='derived-OJ-SL'?'derived target with swapped Center roofs':'community example target')+'. The source directs the second T to Left; the full layout is an example, not a universal recipe.':', a verified community opening pattern.'} Checked ${path.length} legal placement${path.length===1?'':'s'} using only visible pieces. ${complete?(second?'This visible prefix completes this conditional construction target.':'This visible prefix completes the source diagram.'):(second?'This is partial construction toward the conditional target; recheck after actual draws.':'This is partial construction toward the full diagram; recheck after actual draws.')} A source-pattern milestone does not switch to mid-game; the normal handoff remains separate.`,
+  sources:[{id:route.id,label:pattern.label,url:pattern.url,section:'Section 2-1: normal-gravity 4n+2 opening templates',scope:second?'Second T to Left is explicit source guidance; the complete layout is a conditional example. '+(pattern.variant==='derived-OJ-SL'?'The swapped Center roof order is derived, not literal source advice. ':'')+'No unseen-piece or handoff guarantee.':'Exact full source diagram as a finite construction goal, not a scored handoff or a guarantee about unseen pieces.',...(second?{stage:'second-bag',variant:pattern.variant,provenance:pattern.provenance}:{} )}],assessment:P.assess(current.board),
+  evidence:{opening:{status:'partial-construction',initial:facts(state.board,notches),endpoint:end,repair:null,sourcePlan,sourceEndpoint:complete?'exact-full-pattern':'exact-source-subset',unresolved:complete?[]:[second?'conditional target not yet complete in this visible prefix':'source diagram not yet complete in this visible prefix'],handoffCandidate:null},knownPieceHorizon:state.queue.length+1}}};
 }
 // Follow the original input prefix, including real HOLD/draw changes. No pose
 // bridge or source-family replacement is inferred from a moved observation.
@@ -291,6 +375,8 @@ function retainSource(raw,previous,options={},action=null){
  const proof=previous?.evidence?.opening?.sourcePlan,same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
  if(!proof||proof.schemaVersion!==1||!O.pattern(proof.id)||!Number.isInteger(proof.consumed)||proof.consumed<0||!Array.isArray(proof.steps)||!proof.steps.length||proof.steps.length>7)return null;
  if(options.openingSource?.pattern&&options.openingSource.pattern!==proof.id)return null;
+ const sourceMeta=O.pattern(proof.id),second=sourceMeta.stage==='second-bag';
+ if(second&&(proof.stage!=='second-bag'||proof.basePattern!==sourceMeta.basePattern||proof.variant!==sourceMeta.variant||options.openingSource?.pattern!==proof.id||options.openingSource.continuationFrom!==proof.basePattern||!same(options.openingSource.history,proof.history)||!same(options.openingSource.continuationSteps,proof.continuationSteps)))return null;
  const original=proof.steps[0];
  for(const step of proof.steps)if(!Array.isArray(step.witness)||step.witness.length>256||step.witness.at(-1)!=='HD'||!same(step.target,step.event?.target)||step.hold!==step.witness.includes('HOLD')||step.holdCount!==step.witness.filter(a=>a==='HOLD').length)return null;
  const expected=proof.steps.map((step,i)=>{const witness=i?step.witness:step.witness.slice(proof.consumed);return{...step,witness,hold:witness.includes('HOLD'),holdCount:witness.filter(a=>a==='HOLD').length};});
@@ -300,6 +386,7 @@ function retainSource(raw,previous,options={},action=null){
  const P=getPlanner(),now=options.now??(()=>Date.now()),deadline=options.deadline??now()+100,limit=options.maxNodes??12000;let origin,state,visited=0;
  const spend=n=>{if(now()>=deadline||visited+n>limit)return false;visited+=n;return true;};
  try{
+  if(second&&!checkedContinuationSource({pattern:proof.id,continuationFrom:proof.basePattern,history:proof.history,continuationSteps:proof.continuationSteps},proof.origin,spend))return null;
   try{origin=P.observe(proof.origin);state=P.observe(raw);}catch{return null;}
   if(origin.rules!==R.PROFILE.id||state.rules!==R.PROFILE.id||R.validate(origin).length||R.validate(state).length||B.validate(origin.bag).length||B.validate(state.bag).length||origin.queue.length>6||state.queue.length>6||now()>=deadline||limit<=0||!O.compatible(origin.board,proof.id).length)return null;
   if(!spend(consumed))return null;const prefix=R.replay(origin,original.witness.slice(0,consumed));if(!prefix.valid||prefix.events.length||!sourcePublicMatch(prefix.state,state))return null;
@@ -320,6 +407,159 @@ function retainSource(raw,previous,options={},action=null){
   const first=path[0];return{...previous,revision:state.revision,target:first.target,witness:first.witness,hold:first.hold,holdCount:first.holdCount,continuation:path,retained:true,metrics:{...previous.metrics,nodes:visited,revalidationNodes:visited},evidence:{...previous.evidence,opening:{...previous.evidence.opening,sourcePlan:{...clone(proof),consumed,pending:remaining.candidate.pending?clone(remaining.candidate.pending):null}},knownPieceHorizon:state.queue.length+1}};
  }finally{if(options.budgetTracker)options.budgetTracker.nodes+=visited;}
 }
+// Source scoring is a conditional finite proof after fourteen actual source
+// locks, not a new opener definition or a rule against optional Left holes.
+function scoringSourceIdentity(source){return JSON.stringify(source&&{pattern:source.pattern,continuationFrom:source.continuationFrom,history:source.history,continuationSteps:source.continuationSteps,scoringSteps:source.scoringSteps,scoringRoute:source.scoringRoute,scoringDecisionOffset:source.scoringDecisionOffset});}
+function checkedScoringSource(source,origin,spend,now,deadline,maxNodes,record){
+ if(!source||!Array.isArray(source.scoringSteps)||source.scoringSteps.length>5||source.continuationSteps?.length!==7)return null;
+ const root=source.continuationSteps.at(-1)?.after;if(!root)return null;
+ if(!spend(15)||!checkedContinuationSource(source,root,spend,true))return null;
+ let current=root,notches=S.notchPattern(root.board);const path=[];
+ for(const step of source.scoringSteps){
+  if(!step?.after||R.validate(step.after).length||B.validate(step.after.bag).length||step.after.queue.length>6||!Array.isArray(step.witness)||!step.witness.length||step.witness.length>256||step.witness.at(-1)!=='HD'||!spend(step.witness.length+1))return null;
+  const r=R.replay(current,step.witness);
+  if(!r.valid||r.events.length!==1||r.events[0].lines||JSON.stringify(r.events[0])!==JSON.stringify(step.event)||!sourcePublicMatch(r.state,step.after))return null;
+  const next=validStep(current.board,{state:r.state,event:r.events[0]},notches);if(!next)return null;notches=next;
+  path.push({board:r.state.board,event:r.events[0],witness:step.witness,target:r.events[0].target});current=step.after;
+ }
+ if(!sourcePublicMatch(current,origin))return null;
+ if(path.length){if(!spend(path.reduce((n,p)=>n+p.witness.length,0)))return null;const access=getPlanner().checkAccessPrefix(root,path,{notches:S.notchPattern(root.board),now,deadline,maxNodes:maxNodes()});if(!record(access.visited)||access.reachable!==true)return null;}
+ const route=source.scoringRoute;
+ if(source.scoringSteps.length&&!route)return null;
+ if(route){
+  if(!route.origin||JSON.stringify(getPlanner().observe(root))!==JSON.stringify(getPlanner().observe(route.origin))||typeof route.corridor!=='boolean'||!Array.isArray(route.steps)||!route.steps.length||route.steps.length>6||source.scoringSteps.length>=route.steps.length)return null;
+  for(let i=0;i<source.scoringSteps.length;i++){const actual=source.scoringSteps[i],expected=route.steps[i];if(JSON.stringify(actual.witness)!==JSON.stringify(expected.witness)||JSON.stringify(actual.event)!==JSON.stringify(expected.event)||JSON.stringify(actual.after.board)!==JSON.stringify(expected.board))return null;}
+  if(source.scoringSteps.length&&JSON.stringify(source.scoringRemaining)!==JSON.stringify(route.steps.slice(source.scoringSteps.length+(source.pending?1:0))))return null;
+  // Reprove the entire bound route using ONLY the original root14 supply.
+  // Actual later refills may validate a suffix, never create a new authority.
+  const baseSource={...source,scoringSteps:[]},baseRecords=[...source.history.steps,...source.continuationSteps],counts=Object.fromEntries([...'IJLOSTZ'].map(t=>[t,baseRecords.filter(s=>s.event.type===t).length]));
+  const proof=Q.validate(root,route.steps,scoringOptions(baseSource,root,S.notchPattern(root.board),counts,now,deadline,maxNodes(),route.corridor));
+  if(!record(proof.visited)||!proof.valid)return null;
+ }
+ const records=[...source.history.steps,...source.continuationSteps,...source.scoringSteps];
+ return{records,counts:Object.fromEntries([...'IJLOSTZ'].map(t=>[t,records.filter(s=>s.event.type===t).length]))};
+}
+function scoringRightCap(board){
+ const h=features(board).heights,wall=h[8],cap=h[9];
+ return h[7]===0&&wall>=2&&cap===wall+1&&board.slice(40-wall).every(r=>r[8]!=='.')&&board[40-cap][9]!=='.'&&board[41-cap][9]!=='.'&&board.slice(42-cap).every(r=>r[9]==='.');
+}
+// The three-row peak difference is the existing conservative engineering
+// interpretation of one overhang tier; the source gives no numeric tolerance.
+function scoringQuality(source,root,path){
+ const history=[...source.history.steps,...source.continuationSteps,...source.scoringSteps],all=[...history,...path];
+ let t=0,tn=0,zn=0,zr=0,s=0,l=0,cap=null;
+ for(let i=0;i<all.length;i++){
+  const step=all[i],e=step.event,board=step.after?.board||step.board,last=i===all.length-1;
+  if(!e||!S.canonicalClear(e)||e.topOut||e.lines&&!last)return false;
+  if(e.type==='S')s++;if(e.type==='L')l++;
+  if(e.type==='T'){
+   t++;if(!e.lines&&e.cells.every(([x])=>x<7))tn++;
+   else if(!(last&&e.lines===2&&e.spin==='full'&&e.cells.every(([x])=>x>=6)&&e.cells.some(([x])=>x>=7)))return false;
+  }
+  if(e.type==='Z'){
+   if(!e.lines&&e.cells.every(([x])=>x<7))zn++;
+   else if(!e.lines&&e.cells.every(([x])=>x>=8)&&scoringRightCap(board)){zr++;if(!cap)cap=e.cells.filter(([x])=>x===9);}
+   else return false;
+  }
+ }
+ const last=path.at(-1),e=last?.event,before=path.length>1?path.at(-2).board:root.board;
+ if(!last||e.type!=='T'||e.lines!==2||e.spin!=='full'||t!==3||tn!==2||zn!==1||zr!==1||s!==l||!cap||cap.length!==2||!scoringRightCap(before)||!cap.every(([x,y])=>before[y][x]==='Z'&&e.clearedRows.includes(y)))return false;
+ const f=features(last.board);return new Set(f.center).size===1&&Math.abs(Math.max(...f.left)-Math.max(...f.center))<=3;
+}
+function scoringOptions(source,state,notches,counts,now,deadline,maxNodes,corridor=true){return{notches,counts,now,deadline,maxNodes,corridor,callbacks:{validStep,facts,rank,compare,quality:(_end,path)=>scoringQuality(source,state,path),checkAccessPrefix:getPlanner().checkAccessPrefix}};}
+function scoringAdvice(state,source,candidate,corridor,visited,telemetry={}){
+ const path=clone(candidate.path),first=path[0],notches=candidate.notches,end=facts(candidate.state.board,notches);
+ const boundSource={...clone(source),scoringRoute:source.scoringRoute||{origin:clone(state),steps:clone(path),corridor}};
+ boundSource.scoringRemaining=clone(boundSource.scoringRoute.steps.slice(source.scoringSteps.length));
+ const proof={schemaVersion:1,kind:'source-first-tsd',source:boundSource,origin:clone(state),steps:clone(path),consumed:0,corridor};
+ delete proof.source.pending;delete proof.source.scoringCorridor;
+ return{status:'recommended-with-verified-prefix',revision:state.revision,phase:'opening',target:first.target,hold:first.hold,holdCount:first.holdCount,witness:first.witness,continuation:path,
+  reason:`${first.hold?'Hold once. ':''}${first.event.lines?'Take the checked T-spin double.':`Place ${first.event.type} as shown.`} This checked visible sequence reaches the first Right T-spin double with balanced S/L use and a level Center. The normal handoff is checked only after the actual clear.`,
+  sources:[{id:'SHOCKY-OPENING',label:"Shocky's ST Stacking Guide",url:'https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit',section:'Chapter 2: Opening',scope:'Required T/Z allocation and opening quality; the three-row peak tolerance is an engineering interpretation, not a numeric source rule. This finite proof does not guarantee later play.'}],
+  assessment:getPlanner().assess(candidate.state.board),metrics:{nodes:visited,depth:0,completeDepth:0,sourceScoring:telemetry},evidence:{opening:{status:'verified-source-first-tsd-prefix',initial:facts(state.board),endpoint:end,repair:null,scoringPlan:proof,unresolved:[],handoffCandidate:null},knownPieceHorizon:state.queue.length+1}};
+}
+function firstScoringPrefix(path){
+ if(!Array.isArray(path))return null;
+ const index=path.findIndex(p=>p.event?.type==='T'&&p.event.lines===2&&p.event.spin==='full'&&p.event.cells.every(([x])=>x>=6)&&p.event.cells.some(([x])=>x>=7));
+ return index<0?null:path.slice(0,index+1);
+}
+function sourceScoring(state,options,notches,deadline,now,limit){
+ const started=now(),source=options.openingSource;let visited=0;
+ const left=()=>Math.max(0,limit-visited),spend=n=>{if(now()>=deadline||visited+n>limit)return false;visited+=n;return true;},record=n=>{visited+=n;return now()<deadline&&visited<=limit;};
+ const telemetry={policy:'root-normal-ordinary-first-then-ranked-solid-Left; retained-goal-before-lock-boundary-ordinary-replan'};
+ const ordinaryPlan=(normal=false)=>{const result=normal&&options.normalOpeningDecision?options.normalOpeningDecision():getPlanner().plan(state,{...options,disableSourceScoring:true,openingSource:null,maxNodes:left(),deadline});visited+=result.metrics?.nodes||0;return result;};
+ // At the activation root, preserve the unchanged ordinary budget. Experimental
+ // proof work is permitted only from what that normal decision actually leaves.
+ let ordinary=source.scoringSteps?.length===0?ordinaryPlan(true):null;
+ const fallback=()=>{const result=ordinary||ordinaryPlan();result.metrics={...result.metrics,nodes:visited,elapsedMs:now()-started,sourceScoring:telemetry};return result;};
+ if(now()>=deadline||!left())return fallback();
+ const history=checkedScoringSource(source,state,spend,now,deadline,left,record);telemetry.historyVerified=Boolean(history);
+ if(!history)return fallback();
+ const opts=(nodes=left(),end=deadline,corridor=true)=>scoringOptions(source,state,notches,history.counts,now,end,nodes,corridor);
+ const advise=(candidate,corridor,extra,boundSource=source)=>{const result=scoringAdvice(state,boundSource,candidate,corridor,visited,{...telemetry,...extra});result.metrics.elapsedMs=now()-started;return result;};
+ if(source.scoringSteps.length){
+  const remaining=source.scoringRoute.steps.slice(source.scoringSteps.length);
+  if(!remaining.length)return fallback();
+  const saved=Q.validate(state,remaining,opts(left(),deadline,source.scoringRoute.corridor));visited+=saved.visited;
+  if(!saved.valid||now()>=deadline||visited>limit)return fallback();
+  const n=source.scoringSteps.length,marked={...source,scoringDecisionOffset:n};
+  let retained=advise(saved.candidate,source.scoringRoute.corridor,{retainedAfterLock:true},marked);
+  // Register only after the planner's normal final access boundary has checked
+  // this exact object. No serialized flag may bypass that boundary later.
+  if(typeof options.checkOpeningFallback!=='function')return retained;
+  const before=visited;retained=options.checkOpeningFallback(retained);visited+=Math.max(0,(retained?.metrics?.nodes??before)-before);
+  if(!retained?.target)return fallback();
+  const keep=extra=>{retained.metrics={...retained.metrics,nodes:visited,elapsedMs:now()-started,sourceScoring:{...retained.metrics.sourceScoring,...extra}};return retained;};
+  // One probe after an actual new lock only. Input movement/HOLD keeps the
+  // precise target; repeated requests at this same boundary do not replan.
+  if(source.scoringDecisionOffset===n||now()>=deadline||!left())return keep({ordinaryReplan:false});
+  ordinary=ordinaryPlan();telemetry.ordinaryNodes=ordinary.metrics?.nodes||0;
+  const prefix=firstScoringPrefix(ordinary.continuation);
+  if(!prefix||prefix.length+n>6||now()>=deadline||!left())return keep({ordinaryReplan:true,replacement:false});
+  const check=Q.validate(state,prefix,opts(left(),deadline,false));visited+=check.visited;
+  if(!check.valid||now()>=deadline||!left())return keep({ordinaryReplan:true,replacement:false});
+  // Conservative authority: even if an actual refill helped ordinary discovery,
+  // the alternative must still be provable from the unchanged root14 supply.
+  // Never splice newly revealed pieces into a historical observation.
+  const route={origin:clone(source.scoringRoute.origin),steps:[...clone(source.scoringRoute.steps.slice(0,n)),...clone(check.candidate.path)],corridor:false};
+  const replacement={...marked,scoringRoute:route,scoringRemaining:clone(check.candidate.path)};
+  const rebound=checkedScoringSource(replacement,state,spend,now,deadline,left,record);
+  if(!rebound||now()>=deadline||visited>limit)return keep({ordinaryReplan:true,replacement:false,rootSupplyRejected:!rebound});
+  return advise(check.candidate,false,{ordinaryReplan:true,replacement:true,selected:'ordinary-complete-A-root-reproved'},replacement);
+ }
+ telemetry.ordinaryNodes=ordinary.metrics?.nodes||0;
+ const prefix=firstScoringPrefix(ordinary.continuation);
+ if(prefix){
+  const check=Q.validate(state,prefix,opts(left(),deadline,false));visited+=check.visited;
+  if(check.valid&&now()<deadline&&visited<=limit)return advise(check.candidate,false,{selected:'ordinary-complete-A'});
+ }
+ const found=Q.search(state,opts());visited+=found.visited;telemetry.search=found.telemetry;telemetry.unknown=found.unknown;
+ if(found.candidate&&!found.unknown&&now()<deadline&&visited<=limit)return advise(found.candidate,true,{selected:'ranked-solid-Left-A'});
+ return fallback();
+}
+function retainScoring(raw,previous,options={},action=null){
+ if(options.disableOpeningSources||options.disableSourceScoring||options.disableOpening||options.openingPhase===false)return null;
+ const proof=previous?.evidence?.opening?.scoringPlan,same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+ if(!proof||proof.schemaVersion!==1||proof.kind!=='source-first-tsd'||typeof proof.corridor!=='boolean'||!Number.isInteger(proof.consumed)||proof.consumed<0||!Array.isArray(proof.steps)||!proof.steps.length||proof.steps.length>6||scoringSourceIdentity(options.openingSource)!==scoringSourceIdentity(proof.source))return null;
+ for(const step of proof.steps)if(!Array.isArray(step.witness)||!step.witness.length||step.witness.length>256||step.witness.at(-1)!=='HD'||!same(step.target,step.event?.target)||step.hold!==step.witness.includes('HOLD')||step.holdCount!==step.witness.filter(a=>a==='HOLD').length)return null;
+ const expected=proof.steps.map((step,i)=>{const witness=i?step.witness:step.witness.slice(proof.consumed);return{...step,witness,hold:witness.includes('HOLD'),holdCount:witness.filter(a=>a==='HOLD').length};});
+ if(!same(previous.continuation,expected)||!same(previous.witness,expected[0].witness)||!same(previous.target,expected[0].target)||previous.hold!==expected[0].hold||previous.holdCount!==expected[0].holdCount||action!==null&&(action==='HD'||previous.witness[0]!==action))return null;
+ const consumed=proof.consumed+(action!==null?1:0);if(consumed>=proof.steps[0].witness.length)return null;
+ const P=getPlanner(),now=options.now||(()=>Date.now()),deadline=options.deadline??now()+100,limit=options.maxNodes??12000;let visited=0;
+ const left=()=>Math.max(0,limit-visited),spend=n=>{if(now()>=deadline||visited+n>limit)return false;visited+=n;return true;},record=n=>{visited+=n;return now()<deadline&&visited<=limit;};
+ try{
+  let origin,state;try{origin=P.observe(proof.origin);state=P.observe(raw);}catch{return null;}
+  if(origin.rules!==R.PROFILE.id||state.rules!==R.PROFILE.id||R.validate(origin).length||R.validate(state).length||B.validate(origin.bag).length||B.validate(state.bag).length||origin.queue.length>6||state.queue.length>6)return null;
+  const history=checkedScoringSource(proof.source,origin,spend,now,deadline,left,record);if(!history||proof.source.scoringSteps.length+proof.steps.length>6||!proof.source.scoringRoute||!same(proof.steps,proof.source.scoringRoute.steps.slice(proof.source.scoringSteps.length))||proof.corridor!==proof.source.scoringRoute.corridor||!spend(consumed))return null;
+  const prefix=R.replay(origin,proof.steps[0].witness.slice(0,consumed));if(!prefix.valid||prefix.events.length||!sourcePublicMatch(prefix.state,state))return null;
+  const notches=P.resolvePatternHistory(state,options.patternHistory);if(notches.status!=='established')return null;
+  const path=proof.steps.map((step,i)=>{const witness=i?step.witness:step.witness.slice(consumed);return{...clone(step),witness,hold:witness.includes('HOLD'),holdCount:witness.filter(a=>a==='HOLD').length};});
+  const checked=Q.validate(state,path,scoringOptions(proof.source,state,notches,history.counts,now,deadline,left(),proof.corridor));visited+=checked.visited;
+  if(!checked.valid||now()>=deadline||visited>limit)return null;
+  const first=path[0];return{...previous,revision:state.revision,target:first.target,hold:first.hold,holdCount:first.holdCount,witness:first.witness,continuation:path,retained:true,metrics:{...previous.metrics,nodes:visited,revalidationNodes:visited},evidence:{...previous.evidence,opening:{...previous.evidence.opening,scoringPlan:{...clone(proof),consumed}},knownPieceHorizon:state.queue.length+1}};
+ }finally{if(options.budgetTracker)options.budgetTracker.nodes+=visited;}
+}
+
 function handoff(state,proof,options){
  const P=getPlanner();if(!proof?.before||!proof.event)return null;
  let before;try{before=P.observe(proof.before);}catch{return null;}
@@ -348,9 +588,13 @@ function plan(raw,options={}){
  const reserved=options.openingClear?Math.min(12000,limit):0;base.metrics.handoffReservedNodes=reserved;
  const initial=P.assess(state.board),initialFacts=facts(state.board,P.resolvePatternHistory(state,options.patternHistory));
  if(initial.maxHeight>=20||initialFacts.notches.status==='broken')return{...base,reason:'This opening needs a repair outside the supported construction search.'};
+ if(!options.disableOpeningSources&&!options.disableSourceScoring&&!options.openingClear&&!options.openingRepair&&!options.commitment&&options.openingSource?.continuationSteps?.length===7){
+  const scored=sourceScoring(state,options,initialFacts.notches,deadline,now,limit-reserved);
+  if(scored)return scored;
+ }
  // The session flag enables guidance, not an evaluator certificate. Every
  // source claim is still regenerated from literal geometry and public inputs.
- if(options.openingSource&&!O.compatible(state.board,options.openingSource.pattern).some(p=>p.mask===127)&&!options.disableOpeningSources&&!options.openingRepair&&!options.openingClear&&!options.commitment){
+ if(options.openingSource&&options.openingSource.continuationSteps?.length!==7&&(options.openingSource.continuationFrom&&!options.openingSource.pattern||!O.compatible(state.board,options.openingSource.pattern).some(p=>p.mask===127))&&!options.disableOpeningSources&&!options.openingRepair&&!options.openingClear&&!options.commitment){
   const source=sourceConstruction(state,options,initialFacts.notches,deadline,now,limit-reserved);base.metrics.nodes+=source.visited;base.metrics.sourceConstruction={nodes:source.visited,unknown:source.unknown,selected:Boolean(source.advice),verifiedLocks:source.advice?.continuation.length||0,endpointComplete:source.advice?.evidence.opening.sourceEndpoint==='exact-full-pattern'};
   if(source.advice){if(usage){usage.selected={path:'verified-source-pattern',locks:source.advice.continuation.length};usage.families.sourcePattern={selected:1,nodes:source.visited};}return{...base,...source.advice,metrics:{...base.metrics,depth:0,completeDepth:0,enumeration:'verified-source-subset-graph',elapsedMs:now()-started}};}
  }
@@ -528,5 +772,5 @@ function plan(raw,options={}){
  const sources=[{id:'SHOCKY-OPENING',label:"Shocky's ST Stacking Guide",url:'https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit',section:'Chapters 1–4: regions, construction and mino parity',scope:'Community background for opening construction. The coach checks this finite prefix; the guide does not certify this exact move or future availability.'}];
  return{...base,status:'recommended-with-verified-prefix',target:first.target,hold:first.hold,holdCount:first.holdCount,witness:first.witness,continuation:best.path,reason,sources,assessment:P.assess(best.state.board),evidence:{opening:{status:'partial-construction',initial:initialFacts,endpoint:end,unresolved:pending,repair,handoffCandidate:best.handoffContinuation?{status:'verified-public-post-clear-continuation',continuation:best.handoffContinuation}:null},knownPieceHorizon:state.queue.length+1}};
 }
-return Object.freeze({balance,features,facts,repairEndpoint,foundationTargets,foundationTransition,foundationWitnesses,handoffGeometry,handoff,plan,retainSource,startSession,updateSession,acceptResult,repairCertificate,closureCertificate,checkedRepair,goalPaid});
+return Object.freeze({retainScoring,balance,features,facts,repairEndpoint,foundationTargets,foundationTransition,foundationWitnesses,handoffGeometry,handoff,plan,retainSource,startSession,updateSession,acceptResult,repairCertificate,closureCertificate,checkedRepair,goalPaid});
 });

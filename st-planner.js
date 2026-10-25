@@ -945,11 +945,31 @@ function planCore(raw,options={}){
  evidence:{strategy:'canonical-right-ST',cycleResources:cycleResources(best.path),commitmentRetained:best===commitment,futureNotches:best.notches,preparationProof,cycleDebt:best.cycleDebt,cavityRepair:{status:'verified-prefix-repaired',outstandingCells:best.cavityDebt},clearPolicy:'right-region full T-spin doubles and I tetrises only',verifiedLocks:best.path.length,tsdAt:tsdAt>=0?tsdAt+1:null,knownPieceHorizon:s.queue.length+1,rootEnumerationComplete:root.complete,budgetExhausted:stopped,informationBoundary:!best.state.active,initialSealed:initial.sealed,endpointSealed:best.assessment.sealed,regionalSupport:best.assessment.regionalSupport,channel:best.assessment.channel,endpointTEntry:best.assessment.right.entry?.status??'not-established',unresolvedObligations:best.assessment.obligations,structuralScore:best.structuralScore,structuralRank:best.rank,structure:best.assessment.structure,dependencyDebt:best.dependencyDebt,claim:'Finite executable prefix; endpoint estimates are not a sustainability guarantee.'},assessment:best.assessment};
 }
 function plan(raw,options={}){
- const now=options.now||(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs),result=planCore(raw,{...options,deadline});
+ const now=options.now||(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs);
+ // Only this synchronous invocation can reuse its own fully checked ordinary
+ // fallback. Serialized evidence, caller callbacks and imported advice carry
+ // no authority. The exact returned object AND continuation remain bound.
+ let ordinaryFallback=null,ordinarySignature=null,retainedFallback=null,retainedSignature=null;
+ const normalOpeningDecision=()=>{const result=plan(raw,{...options,deadline,disableSourceScoring:true,openingSource:null});ordinaryFallback=result;ordinarySignature=JSON.stringify([observe(raw),{...result,metrics:undefined}]);return result;};
+ const sameOrdinary=()=>ordinaryFallback&&ordinarySignature===JSON.stringify([observe(raw),{...ordinaryFallback,metrics:undefined}]);
+ const sameRetained=()=>retainedFallback&&retainedSignature===JSON.stringify([observe(raw),{...retainedFallback,metrics:undefined}]);
+ // Only an internal producer can register a fallback, and registration itself
+ // performs the full final boundary check within this request's shared budget.
+ const checkOpeningFallback=candidate=>{const checked=finalCheck(candidate);if(checked?.target){retainedFallback=checked;retainedSignature=JSON.stringify([observe(raw),{...checked,metrics:undefined}]);}return checked;};
+ const result=planCore(raw,{...options,deadline,normalOpeningDecision,checkOpeningFallback});
+ if(result===ordinaryFallback&&sameOrdinary()||result===retainedFallback&&sameRetained())return result;
+ return finalCheck(result);
+ function finalCheck(result){
  if(!result?.target)return result;
- const state=observe(raw),check=A.prefix(state,result.continuation||[],{notches:H.resolve(state,options.patternHistory),deadline,now,maxNodes:Math.max(0,(options.maxNodes??45000)-(result.metrics?.nodes||0))});
- const finalMetrics={...result.metrics,nodes:(result.metrics?.nodes||0)+(check?.visited||0)};
- if(check?.reachable===true)return{...result,evidence:{...result.evidence,gapAccess:check},metrics:finalMetrics};
+ const state=observe(raw),scoring=Boolean(result.evidence?.opening?.scoringPlan),replayUnits=scoring?(result.continuation||[]).reduce((n,p)=>n+p.witness.length,0):0,used=result.metrics?.nodes||0,limit=options.maxNodes??45000;
+ const canCheck=!scoring||now()<deadline&&used+replayUnits<=limit;
+ const check=canCheck?A.prefix(state,result.continuation||[],{notches:H.resolve(state,options.patternHistory),deadline,now,maxNodes:Math.max(0,limit-used-replayUnits)}):{reachable:null,visited:0,status:'unknown-access-budget'};
+ const finalMetrics={...result.metrics,nodes:used+(canCheck?replayUnits:0)+(check?.visited||0)};
+ if(check?.reachable===true&&(!scoring||now()<deadline&&finalMetrics.nodes<=limit))return{...result,evidence:{...result.evidence,gapAccess:check},metrics:finalMetrics};
+ // Failed experimental final validation cannot erase the unchanged ordinary
+ // decision already proved in this exact invocation. Never trust copied flags.
+ const checkedFallback=sameRetained()?retainedFallback:sameOrdinary()?ordinaryFallback:null;
+ if(scoring&&checkedFallback){checkedFallback.metrics={...checkedFallback.metrics,nodes:finalMetrics.nodes,elapsedMs:finalMetrics.elapsedMs,sourceScoring:{...finalMetrics.sourceScoring,selected:null,finalValidationFallback:true}};return checkedFallback;}
  if(finalMetrics.sourceConstruction)finalMetrics.sourceConstruction.selected=false;
  if(finalMetrics.usage?.scope==='opening'&&finalMetrics.usage.selected?.path==='verified-source-pattern'){finalMetrics.usage.selected=null;if(finalMetrics.usage.families.sourcePattern)finalMetrics.usage.families.sourcePattern.selected=0;}
  if(finalMetrics.earlyCapFallback)finalMetrics.earlyCapFallback.selected=false;
@@ -958,10 +978,12 @@ function plan(raw,options={}){
  if(finalMetrics.usage?.scope==='maintenance'){finalMetrics.usage.selected=null;for(const family of Object.values(finalMetrics.usage.families))if('selected'in family)family.selected=0;}
  return{...result,metrics:finalMetrics,status:check?.reachable===false?'no-supported-continuation-found':'budget-exhausted',target:null,witness:[],continuation:[],reason:'No move with checked access to its newly covered construction cells was found. A different repair may exist.',evidence:{gapAccess:check}};
 }
+}
 // Keep a committed target through an exactly followed input, including HOLD.
 // The entire remaining prefix is replayed from the new observation, so a newly
 // revealed piece cannot silently preserve an obsolete proof.
 function advance(raw,previous,action,options={}){
+ if(previous?.evidence?.opening?.scoringPlan)return openingModule().retainScoring(raw,previous,options,action);
  if(previous?.evidence?.opening?.sourcePlan)return openingModule().retainSource(raw,previous,options,action);
  if(previous?.evidence?.opening)return null;
  if(previous?.evidence?.cycleDebt>0)return null;
@@ -983,6 +1005,7 @@ function advance(raw,previous,action,options={}){
 }
 function revalidate(raw,previous,options={}){
  const now=options.now||(()=>Date.now());options={...options,deadline:options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs),now};
+ if(previous?.evidence?.opening?.scoringPlan)return openingModule().retainScoring(raw,previous,options);
  if(previous?.evidence?.opening?.sourcePlan)return openingModule().retainSource(raw,previous,options);
  if(previous?.evidence?.opening)return null;
  let s;try{s=observe(raw);}catch{return null;}if(previous?.evidence?.cycleDebt>0||previous?.continuation?.some(p=>!S.canonicalClear(p.event)))return null;if(!previous?.target||context(s)!==previous.context||R.validate(s).length)return null;

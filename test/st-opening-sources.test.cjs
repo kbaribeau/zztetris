@@ -32,7 +32,7 @@ test('source opening: nine actual first bags reach full B at seven locks while p
    for(const step of a.continuation)assert.ok(R.replay(req.observation,a.continuation.slice(0,a.continuation.indexOf(step)+1).flatMap(p=>p.witness)).state.active,'no terminal prefix advertised');
    const actual=session.execute(a);assert.ok(actual.actions.filter(x=>x.action!=='HD').every(x=>x.adviceAdvanced),bag+' exact inputs retain their target');
   }
-  assert.equal(O.compatible(session.state.board,family)[0].mask,127,bag);assert.equal(session.opening.active,true);assert.equal(session.opening.source,null);assert.equal(session.opening.clear,null);
+  assert.equal(O.compatible(session.state.board,family)[0].mask,127,bag);assert.equal(session.opening.active,true);if(['buri-01','buri-02'].includes(family)){assert.equal(session.opening.source.continuationFrom,family);assert.equal(session.opening.source.history.steps.length,7);}else assert.equal(session.opening.source,null);assert.equal(session.opening.clear,null);
  }
 });
 test('source opening: exact source advice survives actual witnessed movement, HOLD, refill and worker revalidation',()=>{
