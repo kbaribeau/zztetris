@@ -23,7 +23,16 @@ function move(s,action){if(!s.active||s.topOut)return s;const a=s.active;let nex
  if(action==='HOLD'){if((s.rules===LEGACY_PROFILE.id&&!s.canHold)||(!s.hold&&!s.queue.length))return s;const type=s.hold||s.queue[0];next={...s,active:spawn(type),hold:a.type,canHold:s.rules===PROFILE.id,queue:s.hold?s.queue:s.queue.slice(1),streamCursor:s.streamCursor+(s.hold?0:1)};next.topOut=!fits(next.board,next.active);}
  else if(action==='L'||action==='R'||action==='SD'){const trial={...a,x:a.x+(action==='L'?-1:action==='R'?1:0),y:a.y+(action==='SD'?1:0),lastRotation:null};if(!fits(s.board,trial))return s;next={...s,active:trial};}
  else if(['CW','CCW','R180'].includes(action)){const r=(a.rotation+(action==='CW'?1:action==='CCW'?3:2))%4;const table=kicks[`${a.type==='I'?'I':'N'}${a.rotation}-${r}`];for(let i=0;i<table.length;i++){const [dx,dy]=table[i],trial={...a,x:a.x+dx,y:a.y-dy,rotation:r,lastRotation:{from:a.rotation,to:r,kickIndex:i}};if(fits(s.board,trial)){next={...s,active:trial};break;}}if(!next)return s;}
- else if(action==='HD'){let landing={...a};while(fits(s.board,{...landing,y:landing.y+1}))landing.y++;if(landing.y!==a.y)landing.lastRotation=null;const occupied=cells(landing),classification=spin(s.board,landing),board=s.board.map(r=>[...r]);for(const[x,y]of occupied)board[y][x]=a.type;const cleared=[];let rows=board.map(r=>r.join('')).filter((r,i)=>{if(!r.includes('.')){cleared.push(i);return false;}return true;});while(rows.length<40)rows.unshift('..........');const active=spawn(s.queue[0]);const topOut=occupied.every(([,y])=>y<20)||(active!==null&&!fits(rows,active));const event={type:a.type,target:{type:a.type,x:landing.x,y:landing.y,rotation:landing.rotation},cells:occupied,lines:cleared.length,clearedRows:cleared,spin:classification,topOut};next={...s,board:rows,active,canHold:true,queue:s.queue.slice(1),streamCursor:s.streamCursor+(active?1:0),topOut,lastEvent:event};}
+ else if(action==='HD'){let landing={...a};while(fits(s.board,{...landing,y:landing.y+1}))landing.y++;if(landing.y!==a.y)landing.lastRotation=null;const occupied=cells(landing),classification=spin(s.board,landing),board=s.board.slice();
+  // Cells are row-major: rebuild each touched string once, leaving all other
+  // immutable rows shared. The outer array and every edited row stay private.
+  for(let i=0;i<occupied.length;){const y=occupied[i][1],row=[...board[y]];
+   do{row[occupied[i][0]]=a.type;i++;}while(i<occupied.length&&occupied[i][1]===y);
+   board[y]=row.join('');
+  }
+  // Imported positions may already contain full rows outside the piece.
+  // Keep the complete scan and original pre-clear row indices/order.
+  const cleared=[];let rows=board.filter((r,i)=>{if(!r.includes('.')){cleared.push(i);return false;}return true;});while(rows.length<40)rows.unshift('..........');const active=spawn(s.queue[0]);const topOut=occupied.every(([,y])=>y<20)||(active!==null&&!fits(rows,active));const event={type:a.type,target:{type:a.type,x:landing.x,y:landing.y,rotation:landing.rotation},cells:occupied,lines:cleared.length,clearedRows:cleared,spin:classification,topOut};next={...s,board:rows,active,canHold:true,queue:s.queue.slice(1),streamCursor:s.streamCursor+(active?1:0),topOut,lastEvent:event};}
  else return s;
  return{...next,revision:s.revision+1,lastEvent:action==='HD'?next.lastEvent:null};
 }
