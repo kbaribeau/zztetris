@@ -8,7 +8,7 @@ const badge=(g,id,status,observed)=>{
  assert.equal(el.hidden,false);assert.equal(el.tabIndex,0);
  assert.equal(el.getAttribute('role'),'status');assert.equal(el.getAttribute('aria-live'),'polite');
  assert.equal(el.getAttribute('aria-describedby'),id+'-detail');
- assert.equal(g.element('#'+id+'-piece').hidden,['unknown','out-of-profile'].includes(status));
+ assert.equal(g.element('#'+id+'-piece').hidden,status==='out-of-profile');
  assert.equal(g.element('#'+id+'-symbol').textContent,status==='unknown'?'?':status==='out-of-profile'?'≠':'');
  assert.equal(g.element('#'+id+'-name').textContent,id==='st-hanging-s'?'Hanging S':'Extra Z');
  assert.ok(g.element('#'+id+'-detail').textContent.startsWith(el.getAttribute('aria-label'))||g.element('#'+id+'-detail').textContent.startsWith('Game ended; historical facts only.'));
@@ -25,6 +25,25 @@ function play(g,n,until){
 }
 function advance(g,run,until){for(;run.index<run.f.steps.length&&run.locks<until;run.index++){const s=run.f.steps[run.index];g.window.stLab.act(s.action);if(s.action==='HD')run.locks++;}}
 const hidden={storage:{stGuideVisible:'false'}};
+test('resource badges: unknown history retains dim outlined pieces beside separate accessible-detail markers',()=>withPage('st-lab.html',hidden,g=>{
+ const check=()=>{
+  for(const id of ['st-hanging-s','st-extra-z']){
+   badge(g,id,'unknown',false);
+   const piece=g.element('#'+id+'-piece'),symbol=g.element('#'+id+'-symbol');
+   assert.equal(piece.closest('[hidden]'),null);
+   assert.notEqual(g.window.getComputedStyle(piece).display,'none');
+   assert.ok(piece.querySelector('svg'));
+   assert.equal(g.window.getComputedStyle(g.element('#'+id)).color,'rgb(170, 170, 170)');
+   assert.notEqual(symbol.parentElement,piece.parentElement);
+   assert.equal(symbol.getAttribute('aria-hidden'),'true');
+   assert.notEqual(g.window.getComputedStyle(symbol).display,'none');
+   assert.match(g.element('#'+id+'-detail').textContent,/unknown/);
+  }
+ };
+ check();
+ imported(g,g.snapshot());
+ check();
+}));
 test('resource badges: initial, empty, and imported unknown are distinct from an observed negative',()=>withPage('st-lab.html',hidden,g=>{
  badge(g,'st-hanging-s','unknown',false);badge(g,'st-extra-z','unknown',false);
  select(g,'empty');badge(g,'st-hanging-s','unknown',false);badge(g,'st-extra-z','unknown',false);

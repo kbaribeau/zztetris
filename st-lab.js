@@ -255,11 +255,11 @@
     return resetDiagnosticCache.value;
   }
   function renderResourceBadge(id,status,label,reason,observedStatus,terminal) {
-    const badge=$(id),unclassified=status==='unknown'||status==='out-of-profile';
+    const badge=$(id);
     if(badge.dataset.state!==status)badge.dataset.state=status;
     const observed=String(status===observedStatus);
     if(badge.dataset.observed!==observed)badge.dataset.observed=observed;
-    $(id+'-piece').hidden=unclassified;
+    $(id+'-piece').hidden=status==='out-of-profile';
     setText($(id+'-symbol'),status==='unknown'?'?':status==='out-of-profile'?'≠':'');
     const detail=`${terminal?'Game ended; historical facts only. ':''}${label}. ${reason} Actual observed allocation, not a planned continuation.`;
     if(badge.getAttribute('aria-label')!==label)badge.setAttribute('aria-label',label);
