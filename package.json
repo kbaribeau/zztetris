@@ -4,7 +4,8 @@
   "description": "Browser-free behavioral checks for the static ZZTetris pages",
   "scripts": {
     "test": "node scripts/test.cjs",
-    "sim:st": "node scripts/simulate-st.cjs"
+    "sim:st": "node scripts/simulate-st.cjs",
+    "minos:st": "node scripts/analyze-st-minos.cjs"
   },
   "engines": {
     "node": "24.20.0"

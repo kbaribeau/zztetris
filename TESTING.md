@@ -139,3 +139,18 @@ The suite remains independently runnable with `npm test`. Repository-specific ga
 ## Closed-loop simulations
 
 Use the separate [ST simulation runner](docs/st-simulation.md) for bounded seeded play, replayable action traces, and matched comparisons. It is opt-in and is not part of `npm test`; a lock cap is censored evidence, not proof of indefinite play.
+
+
+### Serial-suite compilation cache
+
+The behavioral runner uses a new private temporary Node compilation cache for
+its child processes on each invocation. This saves repeated parsing/compilation
+of shared dependencies without sharing module instances, globals, jsdom realms
+or planner results. Every run begins cold; the runner verifies child enablement,
+records it in the manifest, and removes its cache afterward. The serial order,
+15-second file timeout and 120-second parent watchdog are unchanged.
+
+Set `NODE_DISABLE_COMPILE_CACHE=1` to opt out. The runner also disables compilation
+caching when `NODE_V8_COVERAGE` is set: Node warns that V8 coverage can be less
+precise for deserialized compiled code. These behavioral test counts are not a
+V8 coverage report. See [Node's compile-cache documentation](https://nodejs.org/download/release/v24.15.0/docs/api/module.html#module-compile-cache).

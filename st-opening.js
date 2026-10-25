@@ -281,7 +281,7 @@ function plan(raw,options={}){
  if(initial.maxHeight>=20||initialFacts.notches.status==='broken')return{...base,reason:'This opening needs a repair outside the supported construction search.'};
  let saved=checkedRepair(options.openingRepair,state);
  const mayClear=initialFacts.notches.status==='established'&&[state.active.type,state.hold,...state.queue.slice(0,3)].some(t=>t==='T'||t==='I');
- const probeReserve=mayClear?Math.min(6000,Math.max(0,limit-reserved)):0,searchLimit=limit-probeReserve;
+ const probeReserve=mayClear?Math.min(6000,Math.max(0,limit-reserved)):0;let searchLimit=limit-probeReserve;
  let searchDeadline=mayClear&&Number.isFinite(deadline)?deadline-Math.min(120,Math.max(0,deadline-now())/4):deadline;
  base.metrics.handoffProbeReservedNodes=probeReserve;
  // Rules transitions allocate new board arrays; within this synchronous search
@@ -290,7 +290,13 @@ function plan(raw,options={}){
  const featureCache=new WeakMap(),assessmentCache=new WeakMap();
  const rawFacts={usage,features:board=>{if(!featureCache.has(board))featureCache.set(board,features(board));return featureCache.get(board);},assess:board=>{if(!assessmentCache.has(board))assessmentCache.set(board,P.assess(board,{cavitiesOnly:true}));return assessmentCache.get(board);}};
  assessmentCache.set(state.board,initial);
- let beam=[{state,path:[],f:initialFacts,notches:initialFacts.notches,key:'',rank:[]}],best=null,stopped=false,stagedNext=[],searchDepth=depth,closure=null;const clearCandidates=[],repairCandidates=[];
+ let beam=[{state,path:[],f:initialFacts,notches:initialFacts.notches,key:'',rank:[]}],best=null,stopped=false,stagedNext=[],searchDepth=depth,closure=null,tieExtension=null;const extraRoots=new Set(),ambiguousRoots=new Set(),clearCandidates=[],repairCandidates=[];
+ // Early, open thin-base construction only. Do not mix a fresh geometric
+ // base-debt estimate with a different inherited scoring phase, or take
+ // over the existing parity-repair/visible-closure families. The uncapped
+ // floor must already have geometric partner-completion support; this is
+ // not generic construction under an existing cap or a partner-arrival claim.
+ const tieEligible=!options.disableOpeningRootTies&&!options.openingRepair&&!saved&&depth===3&&initialFacts.right==='cleared-base'&&initialFacts.centerStatus==='supported-partner-completion'&&initialFacts.notches.status==='established'&&S.notchPattern(state.board).status==='established'&&S.notchPattern(state.board).anchorRow===initialFacts.notches.anchorRow&&initialFacts.center.some(h=>h>0)&&initialFacts.baseDebt>0&&!initialFacts.buriedCenterVacancies.length&&!initialFacts.leftCovered&&initialFacts.parity===0;
  const stageMetrics={examined:0,attempted:0,verified:0,queued:0,nodes:0,unknown:0};base.metrics.foundationStages=stageMetrics;if(usage)usage.families.foundationStage={...stageMetrics,selectedPath:0,retainedGoal:0};
  const accessSafe=(node,bounds={})=>{if(node.accessProof?.reachable===true||node.accessProof?.reachable===false){if(usage)usage.access.cacheHits++;return node.accessProof.reachable;}const proof=P.checkAccessPrefix(state,node.path,{notches:initialFacts.notches,deadline:Math.min(deadline,bounds.deadline??Infinity),now,maxNodes:Math.min(bounds.maxNodes??Infinity,Math.max(0,limit-reserved-base.metrics.nodes))});base.metrics.nodes+=proof.visited;base.metrics.gapAccessNodes=(base.metrics.gapAccessNodes||0)+proof.visited;node.accessProof=proof;if(usage){usage.access.checked++;usage.access[proof.reachable===true?'witnessed':proof.reachable===false?'rejected':'unknown']++;}return proof.reachable===true;};
  if(saved&&!accessSafe(saved))saved=null;if(usage)usage.families.retainedRepair.verified=Number(Boolean(saved));
@@ -315,7 +321,7 @@ function plan(raw,options={}){
   const unique=[...new Map(nodes.sort(compare).reverse().map(n=>[n.key,n])).values()].sort(compare);
   if(usage)usage.families.ordinary.deduplicatedRanked+=unique.length;
   for(const node of unique){if(now()>=deadline){stopped=true;break;}if(node.path.at(-1).event.lines&&handoffGeometry(node.state))clearCandidates.push(node);if(saved&&node.path.length===saved.path.length&&goalPaid(state,node.path,saved.goal,initialFacts.notches))repairCandidates.push(node);}
-  best=unique.find(node=>now()<deadline&&accessSafe(node))||best;base.metrics.depth=d+1;if(!stopped)base.metrics.completeDepth=d+1;
+  best=unique.find(node=>now()<deadline&&accessSafe(node,tieExtension?{deadline:searchDeadline,maxNodes:Math.max(0,searchLimit-reserved-base.metrics.nodes)}:{}))||best;base.metrics.depth=d+1;if(!stopped)base.metrics.completeDepth=d+1;
   base.metrics.enumeration='reduced-stage-envelope-not-exhaustive';
   // Keep different first-piece/region/parity families alive, not just adjacent
   // poses of one greedy foundation. This does not make enumeration exhaustive.
@@ -325,6 +331,22 @@ function plan(raw,options={}){
   const expandable=unique.filter(n=>n.accessProof?.reachable!==false);base.metrics.accessPrunedPrefixes=(base.metrics.accessPrunedPrefixes||0)+unique.length-expandable.length;
   const chosen=[],groups=new Set();for(const n of expandable){const e=n.path[0].event,g=[e.type,Math.floor(e.cells.reduce((s,c)=>s+c[0],0)/4/4),Math.sign(n.f.parity)].join(':');if(!groups.has(g)){chosen.push(n);groups.add(g);if(chosen.length>=width)break;}}
   for(const n of expandable)if(chosen.length<width&&!chosen.includes(n))chosen.push(n);
+  if(tieEligible&&d===0){
+   // Input effort alone must not collapse strategically tied root shapes.
+   // Keep the original slots and at most two extra public first placements;
+   // no piece/column/seed receives a score bonus or reserved winning slot.
+   // Both sides belong to the ambiguity: movement can swap which witness
+   // is cheaper without changing the strategic choice under examination.
+   const original=chosen.slice(),family=n=>{const e=n.path[0].event;return[e.type,Math.floor(e.cells.reduce((s,c)=>s+c[0],0)/4/4),Math.sign(n.f.parity)].join(':');};
+   for(const n of expandable){
+    if(extraRoots.size>=2)break;if(chosen.includes(n))continue;
+    const tied=original.filter(c=>family(c)===family(n)&&c.rank.slice(0,-1).every((v,i)=>v===n.rank[i]));
+    if(tied.length){
+     chosen.push(n);extraRoots.add(n.path[0]);ambiguousRoots.add(n.path[0]);for(const c of tied)ambiguousRoots.add(c.path[0]);
+    }
+   }
+   base.metrics.rootTies={added:extraRoots.size,originalWidth:original.length,total:chosen.length};
+  }
   // Ordinary beam slots remain intact. A checked single-lock completion of
   // an excluded foundation intermediate may enter only the NEXT lock layer.
   // Its future rank never competes against shallower nodes.
@@ -364,7 +386,19 @@ function plan(raw,options={}){
     const extended=Number.isFinite(deadline)?Math.max(searchDeadline,deadline-30):searchDeadline;metrics.handoffReserveReleasedMs=Number.isFinite(deadline)?extended-searchDeadline:0;searchDeadline=extended;
    }
   }
+  if(tieEligible&&!options.disableOpeningTieExtension&&extraRoots.size&&d===2&&!stopped&&!closure&&!clearCandidates.length&&!saved&&best?.path.length===3&&base.metrics.completeDepth===3&&chosen.some(n=>ambiguousRoots.has(n.path[0]))){
+   // The tied coverage must still be alive. Compare every retained family
+   // at one extra completed lock, keeping the nominal result on any cutoff.
+   tieExtension={nominal:best,clearCount:clearCandidates.length,repairCount:repairCandidates.length,startNodes:base.metrics.nodes};searchDepth=4;
+   searchLimit=Math.min(searchLimit,base.metrics.nodes+reserved+6000);searchDeadline=Number.isFinite(searchDeadline)?Math.min(searchDeadline,now()+200):Infinity;
+   base.metrics.tieExtension={attempted:1,selected:false,nodes:0,complete:false};
+  }
   beam=chosen;if(stopped)break;
+ }
+ if(tieExtension){
+  const complete=!stopped&&base.metrics.completeDepth===4&&best?.path.length===4&&now()<searchDeadline&&base.metrics.nodes+reserved<=searchLimit&&best.accessProof?.reachable===true;
+  Object.assign(base.metrics.tieExtension,{nodes:base.metrics.nodes-tieExtension.startNodes,complete,selected:complete});
+  if(!complete){best=tieExtension.nominal;clearCandidates.length=tieExtension.clearCount;repairCandidates.length=tieExtension.repairCount;}
  }
  if(closure){
   const cost=best?.path.reduce((n,p)=>n+p.witness.length,0)||0;
@@ -388,6 +422,12 @@ function plan(raw,options={}){
  }
  base.metrics.handoffProbes=probeResults;if(usage){usage.families.handoff.probed=probeResults.length;usage.families.handoff.verified=probeResults.filter(p=>p.status==='verified').length;}
  if(verified)best=verified;
+ // An incidental deeper win outside the ambiguous group does not justify this
+ // coverage-specific extension. Check after normal handoff priority too;
+ // never filter or boost rivals to manufacture a tied-root winner.
+ if(tieExtension&&base.metrics.tieExtension.complete&&!ambiguousRoots.has(best?.path[0])){
+  best=tieExtension.nominal;verified=null;clearCandidates.length=tieExtension.clearCount;repairCandidates.length=tieExtension.repairCount;base.metrics.tieExtension.selected=false;base.metrics.tieExtension.nonAmbiguousRootWon=true;
+ }
  let retained=false;
  if(saved){
   // A checked complete handoff is a stronger fulfilled goal. Otherwise compare

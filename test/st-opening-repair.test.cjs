@@ -10,7 +10,7 @@ test('opening repair: frozen39 mechanical handoffs retain legal proofs; five inc
 });
 test('opening repair: actual lock preserves known cancelling T instead of losing finite construction at replan',()=>{
  const session=saved(),checked=O.checkedRepair(session.repair,c.afterLockObservation);assert.ok(checked);assert.equal(checked.proof.consumed,1);assert.equal(checked.path[0].event.type,'T');
- let state=c.afterLockObservation,sess=session;for(let i=0;i<2;i++){const a=P.plan(state,{openingPhase:true,openingRepair:sess.repair,maxNodes:45000});assert.ok(a.target,a.reason);sess=O.acceptResult(sess,a);const before=R.replay(state,a.witness.slice(0,-1)).state,r=R.replay(before,['HD']);assert.ok(r.valid);state=r.state;sess=O.updateSession(sess,before,state,r.events[0]);}
+ let state=c.afterLockObservation,sess=session;for(let i=0;i<2;i++){const a=P.plan(state,{openingPhase:true,openingRepair:sess.repair,maxNodes:45000});assert.ok(a.target,a.reason);assert.equal(a.metrics.rootTies,undefined);assert.equal(a.metrics.tieExtension,undefined);sess=O.acceptResult(sess,a);const before=R.replay(state,a.witness.slice(0,-1)).state,r=R.replay(before,['HD']);assert.ok(r.valid);state=r.state;sess=O.updateSession(sess,before,state,r.events[0]);}
  assert.equal(O.balance(state.board),0);assert.equal(S.geometry(state.board).center.patternSupport,'reference-supported');assert.notEqual(S.geometry(state.board).center.status,'unrecognized');assert.ok(P.assess(state.board).maxHeight<=10);assert.equal(sess.repair,null);
 });
 test('opening repair: visible witness prefixes survive HOLD/rotation; forged index, absent supply and wrong actual lock fail',()=>{

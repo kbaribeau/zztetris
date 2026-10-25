@@ -94,3 +94,16 @@ test('existing o-filler lock21 keeps its stronger equally long prefix without sp
  let state=R.createState(s);for(const p of a.continuation){const r=R.replay(state,p.witness);assert.ok(r.valid);assert.deepEqual(r.events,[p.event]);state=r.state;}
  assert.equal(state.hold,'T');assert.equal(a.evidence.preparationProof,null,'a different safe prefix must not inherit an unrelated proof');
 });
+
+test('cleanup prerequisite uses an actual empty-HOLD I, not just active or occupied hold',()=>{
+ const s=R.createState({board:input.board,active:'Z',hold:null,queue:['I','L','J','T','Z','O']});
+ const a=P.plan(s,{depth:1,width:8,maxNodes:8000});
+ assert.ok(a.target,a.reason);assert.equal(a.target.type,'I');assert.equal(a.witness[0],'HOLD');
+ const replay=R.replay(s,a.witness);assert.ok(replay.valid);assert.deepEqual(replay.events,[a.continuation[0].event]);
+ assert.equal(a.continuation[0].structuralEvidence.allocation,'quad-preparation');
+ assert.equal(S.geometry(replay.state.board).right.cycle.phase,'cap-rebuild-with-cleanup-prepared');
+ assert.equal(replay.state.hold,'Z');
+ const cap=S.geometry(replay.state.board).right.completions[0];assert.ok(cap);
+ const z=R.replay(replay.state,['HOLD',...cap.witness]);assert.ok(z.valid);assert.equal(z.events[0].type,'Z');
+ assert.equal(S.transition(replay.state,{state:z.state,event:z.events[0]}).allocation,'right-cap-preparation');
+});

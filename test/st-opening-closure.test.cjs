@@ -13,7 +13,7 @@ test('visible closure is a combined actual T-balance and Center-partner goal, no
 });
 test('bounded closure compares a complete five-lock horizon while incomplete extension retains nominal advice',()=>{
  clean();const before=P.decide(f.observation,{...config,disableOpeningClosure:true});assert.equal(before.target.x,2);assert.equal(before.continuation.length,3);
- clean();const a=P.decide(f.observation,config);assert.equal(a.target.type,'O');assert.equal(a.target.x,3);assert.equal(a.metrics.completeDepth,5);assert.equal(a.metrics.visibleClosure.selected,true);assert.equal(a.evidence.opening.repair.kind,'visible-closure');assert.equal(a.continuation.length,5);assert.equal(A.prefix(f.observation,a.continuation).reachable,true);
+ clean();const a=P.decide(f.observation,config);assert.equal(a.target.type,'O');assert.equal(a.metrics.rootTies,undefined);assert.equal(a.metrics.tieExtension,undefined);assert.equal(a.target.x,3);assert.equal(a.metrics.completeDepth,5);assert.equal(a.metrics.visibleClosure.selected,true);assert.equal(a.evidence.opening.repair.kind,'visible-closure');assert.equal(a.continuation.length,5);assert.equal(A.prefix(f.observation,a.continuation).reachable,true);
  const end=replay(a.continuation);assert.equal(O.balance(end.board),0);assert.equal(S.geometry(end.board).center.status,'level');assert.equal(S.geometry(end.board).center.foundation.status,'aligned');
  clean();const limited=P.decide(f.observation,{...config,maxNodes:14000});assert.equal(limited.metrics.visibleClosure.selected,false);assert.deepEqual(limited.target,before.target);assert.equal(limited.continuation.length,3);assert.equal(limited.evidence.opening.repair,null);
 });

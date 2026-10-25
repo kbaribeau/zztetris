@@ -1,0 +1,315 @@
+{
+  "date": "2026-10-24",
+  "baselineCommit": "e6af9c7539bbf04df46bff6a9bf23c8af9c03e20",
+  "candidateCommit": "8c5bbb9a1899c76b0123b6d690416ed1abf8e068",
+  "protocol": "Fresh serial alternating matched development runs, no retries;1500ms45000nodes2500ms worker watchdog. Exact-root pair replays98locks then138absolute cap; four full-stream pairs150cap. No private future crosses worker boundary.",
+  "config": {
+    "depth": 3,
+    "width": 8,
+    "maxNodes": 45000,
+    "timeMs": 1500
+  },
+  "totals": {
+    "baseline": {
+      "episodes": 4,
+      "locks": 397,
+      "handoffs": 4,
+      "joint": 3,
+      "invalidRecommendations": 0,
+      "stops": {
+        "abstention": 4
+      },
+      "censored": 0
+    },
+    "candidate": {
+      "episodes": 4,
+      "locks": 401,
+      "handoffs": 4,
+      "joint": 3,
+      "invalidRecommendations": 0,
+      "stops": {
+        "abstention": 4
+      },
+      "censored": 0
+    }
+  },
+  "pairs": [
+    {
+      "kind": "rooted",
+      "seed": 502400001,
+      "baseline": {
+        "locks": 98,
+        "lines": 36,
+        "handoff": 11,
+        "jointAt": 66,
+        "stop": "abstention",
+        "censored": false,
+        "final": {
+          "height": 7,
+          "meanSkylineHeight": 3.3,
+          "occupiedRowsEquivalent": 3.2,
+          "mass": 32,
+          "sealed": 0,
+          "leftSealed": 0,
+          "parity": 0,
+          "regionalSupport": false,
+          "maintenanceScope": false
+        },
+        "reentry": []
+      },
+      "candidate": {
+        "locks": 102,
+        "lines": 38,
+        "handoff": 11,
+        "jointAt": 66,
+        "stop": "abstention",
+        "censored": false,
+        "final": {
+          "height": 8,
+          "meanSkylineHeight": 2.9,
+          "occupiedRowsEquivalent": 2.8,
+          "mass": 28,
+          "sealed": 0,
+          "leftSealed": 0,
+          "parity": 0,
+          "regionalSupport": false,
+          "maintenanceScope": false
+        },
+        "reentry": [
+          {
+            "lock": 99,
+            "commitmentRetained": true
+          }
+        ]
+      },
+      "identicalEventsActionsStatesThroughCommonHorizon": true
+    },
+    {
+      "kind": "full-stream",
+      "seed": 503552020,
+      "baseline": {
+        "locks": 68,
+        "lines": 14,
+        "handoff": 10,
+        "jointAt": null,
+        "stop": "abstention",
+        "censored": false,
+        "final": {
+          "height": 19,
+          "meanSkylineHeight": 15.7,
+          "occupiedRowsEquivalent": 13.2,
+          "mass": 132,
+          "sealed": 2,
+          "leftSealed": 0,
+          "parity": 0,
+          "regionalSupport": true,
+          "maintenanceScope": true
+        },
+        "reentry": []
+      },
+      "candidate": {
+        "locks": 68,
+        "lines": 14,
+        "handoff": 10,
+        "jointAt": null,
+        "stop": "abstention",
+        "censored": false,
+        "final": {
+          "height": 19,
+          "meanSkylineHeight": 15.7,
+          "occupiedRowsEquivalent": 13.2,
+          "mass": 132,
+          "sealed": 2,
+          "leftSealed": 0,
+          "parity": 0,
+          "regionalSupport": true,
+          "maintenanceScope": true
+        },
+        "reentry": []
+      },
+      "identicalEventsActionsStatesThroughCommonHorizon": true
+    },
+    {
+      "kind": "full-stream",
+      "seed": 502609459,
+      "baseline": {
+        "locks": 125,
+        "lines": 36,
+        "handoff": 19,
+        "jointAt": 73,
+        "stop": "abstention",
+        "censored": false,
+        "final": {
+          "height": 19,
+          "meanSkylineHeight": 15.8,
+          "occupiedRowsEquivalent": 14,
+          "mass": 140,
+          "sealed": 2,
+          "leftSealed": 0,
+          "parity": -1,
+          "regionalSupport": true,
+          "maintenanceScope": true
+        },
+        "reentry": []
+      },
+      "candidate": {
+        "locks": 125,
+        "lines": 36,
+        "handoff": 19,
+        "jointAt": 73,
+        "stop": "abstention",
+        "censored": false,
+        "final": {
+          "height": 19,
+          "meanSkylineHeight": 15.8,
+          "occupiedRowsEquivalent": 14,
+          "mass": 140,
+          "sealed": 2,
+          "leftSealed": 0,
+          "parity": -1,
+          "regionalSupport": true,
+          "maintenanceScope": true
+        },
+        "reentry": []
+      },
+      "identicalEventsActionsStatesThroughCommonHorizon": true
+    },
+    {
+      "kind": "full-stream",
+      "seed": 502400001,
+      "baseline": {
+        "locks": 98,
+        "lines": 36,
+        "handoff": 11,
+        "jointAt": 66,
+        "stop": "abstention",
+        "censored": false,
+        "final": {
+          "height": 7,
+          "meanSkylineHeight": 3.3,
+          "occupiedRowsEquivalent": 3.2,
+          "mass": 32,
+          "sealed": 0,
+          "leftSealed": 0,
+          "parity": 0,
+          "regionalSupport": false,
+          "maintenanceScope": false
+        },
+        "reentry": []
+      },
+      "candidate": {
+        "locks": 102,
+        "lines": 38,
+        "handoff": 11,
+        "jointAt": 66,
+        "stop": "abstention",
+        "censored": false,
+        "final": {
+          "height": 8,
+          "meanSkylineHeight": 2.9,
+          "occupiedRowsEquivalent": 2.8,
+          "mass": 28,
+          "sealed": 0,
+          "leftSealed": 0,
+          "parity": 0,
+          "regionalSupport": false,
+          "maintenanceScope": false
+        },
+        "reentry": [
+          {
+            "lock": 99,
+            "commitmentRetained": true
+          }
+        ]
+      },
+      "identicalEventsActionsStatesThroughCommonHorizon": true
+    },
+    {
+      "kind": "full-stream",
+      "seed": 503237833,
+      "baseline": {
+        "locks": 106,
+        "lines": 28,
+        "handoff": 19,
+        "jointAt": 75,
+        "stop": "abstention",
+        "censored": false,
+        "final": {
+          "height": 19,
+          "meanSkylineHeight": 15.8,
+          "occupiedRowsEquivalent": 14.4,
+          "mass": 144,
+          "sealed": 3,
+          "leftSealed": 0,
+          "parity": 0,
+          "regionalSupport": true,
+          "maintenanceScope": true
+        },
+        "reentry": []
+      },
+      "candidate": {
+        "locks": 106,
+        "lines": 28,
+        "handoff": 19,
+        "jointAt": 75,
+        "stop": "abstention",
+        "censored": false,
+        "final": {
+          "height": 19,
+          "meanSkylineHeight": 15.8,
+          "occupiedRowsEquivalent": 14.4,
+          "mass": 144,
+          "sealed": 3,
+          "leftSealed": 0,
+          "parity": 0,
+          "regionalSupport": true,
+          "maintenanceScope": true
+        },
+        "reentry": []
+      },
+      "identicalEventsActionsStatesThroughCommonHorizon": true
+    }
+  ],
+  "verification": {
+    "replayedLocks": 998,
+    "sourceHashesUnchanged": true,
+    "inputHashesUnchanged": true,
+    "runnerHashUnchanged": true,
+    "allProcessesExit0": true
+  },
+  "timing": {
+    "baseline": {
+      "decisions": 401,
+      "maxNodes": 45000,
+      "maxMetricsElapsedMs": 1417,
+      "maxWorkerWallMs": 1421.085197999997,
+      "workerWallAbove1500": 0,
+      "plannerReportedAbove1500": 0,
+      "medianMs": 913.4309240000002,
+      "p95Ms": 1164.9696750000003
+    },
+    "candidate": {
+      "decisions": 405,
+      "maxNodes": 45000,
+      "maxMetricsElapsedMs": 1372,
+      "maxWorkerWallMs": 1376.4739789999949,
+      "workerWallAbove1500": 0,
+      "plannerReportedAbove1500": 0,
+      "medianMs": 904.8056050000014,
+      "p95Ms": 1184.022683999996
+    }
+  },
+  "interpretation": [
+    "Only target502400001 changes: same through98, then four locks and oneTSD before the unchanged[1,2,2] unsupported base. All four added events/states equal the earlier forced-S intervention.",
+    "Existing Left coverage remains. No newTetris, completed repair, Reset strategy or new joint milestone.",
+    "These selected development inputs are not a held-out reliability estimate. Timing is descriptive, not causal or permission to restore750ms."
+  ],
+  "cleanSuite": {
+    "commit": "8c5bbb9a1899c76b0123b6d690416ed1abf8e068",
+    "node": "v24.20.0",
+    "passed": 569,
+    "failed": 0,
+    "durationMs": 118208.235351,
+    "manifest": "test-results/2026-10-24T22-52-33.034Z-23/manifest.json"
+  }
+}

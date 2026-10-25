@@ -32,7 +32,7 @@ Portable results preserve every pair, equal-exposure structural metrics, distinc
 
 The phase-aligned level-base diagnostic is not a readiness certificate. Earlier I7 scoring/rebuild probes did not establish a clean recovery, and the unsuccessful completed-cycle comparator was reverted rather than retained for theoretical consistency. Legal access to individual cells is not a joint visible-supply repair promise. Unknown bounded searches remain unknown.
 
-The repeated 502923646 failure still has an early thin Center foundation and later buried cells; no cleaner complete same-board alternative has been proved. Further work should target exact visible-resource construction and distinguish ranking from completed-layer cutoff effects, not add arbitrary piece bonuses or loosen handoff recognition. The >99% objective has not been reached; a dedicated Reset coach remains deferred.
+At this review checkpoint, the repeated 502923646 failure had an early thin Center foundation and later buried cells, and no cleaner complete same-board alternative had been proved. Subsequent [root-ambiguity work](st-opening-root-ties.md) investigates that earlier construction choice with visible-resource interventions and separate coverage/depth controls. It does not make the historical cohorts above successful or add arbitrary piece bonuses or loosen handoff recognition. The >99% objective has not been reached; a dedicated Reset coach remains deferred.
 
 All three user-supplied Reset research positions are preserved separately, with their original metadata and unvalidated questions. They are not active engine rules, selectable scenarios, or expected planner winners. See [research index](../references/st-stacking/research/README.md).
 

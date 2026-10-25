@@ -68,3 +68,19 @@ The offline report keeps three different observations separate:
 A replacement can preserve and eventually pay a finite goal while omitting the original per-step stage marker. Such completion is deliberately not inferred from goal presence or a selected-path flag. Therefore marked completion counts are a lower bound on observed use, not an exhaustive count of all successful foundation repairs. A level surface alone also does not establish a recognized, reusable Center motif or maintenance handoff.
 
 When supplied under opt-in `metrics.usage.families.foundationStage`, the existing generic family collector records the explicit stage counters, including `selectedPath` and `retainedGoal`. Stage node counts are a reported subset of whole-decision nodes, not additive independent costs. Missing groups remain uninstrumented, never zero.
+
+## Opt-in maintenance preprocessing
+
+The same engine schema version 1 also accepts `scope: 'maintenance'`. Aggregates key and label every counter, selected path, score component and cost by both instrumentation scope and actual advice phase. An opening handoff reported in maintenance-phase advice therefore cannot collide with ordinary maintenance instrumentation. Old opening records continue to work; missing records and unsupported schemas remain explicitly distinct.
+
+Maintenance families are partial, site-specific observations:
+
+- `cleanupBeforeCap`: `attempted`, callback visits `examined`, actual `nonISkipped` and `iColumnSkipped`, `iTransitionChecked`, `verified` actual I-to-cap witnesses, and `unknown` incomplete enumerations without a witness. Visits are not the complete legal root set.
+- `earlyCapFallback`: `scanEligible` means the exact complete-root/no-incoming-proof scan prerequisites passed, not broad geometric eligibility. `attempted`, `verified`, `selected` and `nodes` retain their distinct meanings.
+- `visibleCyclePreparation`: `eligible`, `attempted`, `verified`, `selected`, `nodes` and `unknown` are explicit reported family counts. Missing fields remain uninstrumented.
+
+Dynamic numeric fields are retained, not guessed from prose. Counter sums count evaluations; `observations` count reporting decisions, including explicit zeros; `nonzero` counts decisions with a nonzero value. Followed and not-followed decisions remain separate. Early returns before the instrumented search may have no maintenance usage record.
+
+`costsMs` becomes `searchUsage.familyBoundaryCosts`: nonnegative finite millisecond measurements at opt-in preprocessing boundaries. These are **inclusive**, potentially overlapping timings. Do not sum them into total runtime or interpret them as causal/per-rule costs. Whole-decision nodes and elapsed time stay separate. Instrumentation is default-off and its overhead must not be silently mixed into timing comparisons.
+
+A raw `earlyCapFallback.selected === true` on a followed lock adds the selected-family marker `early-cap-fallback`. Verification alone, or selected metadata on a stop record, does not count as executing the backup. This marker proves neither a future T-spin Double nor a completed cycle. No heuristic or safety test should be removed from absence or low usage alone.

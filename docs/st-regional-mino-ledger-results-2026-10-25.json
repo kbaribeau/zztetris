@@ -1,0 +1,954 @@
+{
+  "schemaVersion": 1,
+  "kind": "regional-mino-ledger-validation",
+  "verifiedAt": "2026-10-25T00:33:04.194Z",
+  "validatedCodeCommit": "56810bb3d6a211e44f62750a2b1bbc82279415c4",
+  "workingTreeCleanAtValidation": true,
+  "codeHashes": {
+    "scripts/lib/st-mino-ledger.cjs": "ba70132b18e2d070e3829d367f54364cd9d06be59db73bde4f234aec20b727c4",
+    "scripts/lib/st-mino-origins.cjs": "082bc3eb86e74cc344b8ccca9f1df61a83450e351ae68d1f988f2f3cd21b47de",
+    "scripts/lib/st-simulation.cjs": "341c16d8f38c135a97f3777ba08c433dc7497a69985272b4e4157f1024bab5ee",
+    "st-rules.js": "6a1ec45c2e1640b3c7d487812a247cafa330702a95bf3de96a6791a7657c06e3",
+    "st-bag.js": "686013769b385a4e3778e234a6c92c118b6ec67d5b60805d18adb66927520547"
+  },
+  "policyRuntimeUnchangedFrom": "8c612346aead65febe183211d06a169f5edb1c28",
+  "scope": "Offline accounting, not a policy change or fresh simulation cohort. Generator verification calls observation normalization but never search or decision routines.",
+  "noPlannerSearchOrDecisionCalls": true,
+  "regions": {
+    "left": [
+      1,
+      4
+    ],
+    "center": [
+      5,
+      7
+    ],
+    "right": [
+      8,
+      10
+    ]
+  },
+  "replay": {
+    "evidenceBatch": "st-adaptive-opening-narrow-matched-20261024",
+    "episodes": 10,
+    "locks": 895,
+    "actions": 7723,
+    "holdActions": 187,
+    "clearingLocksWithOriginalBagAttribution": 104,
+    "rollingWindows": 2685,
+    "checks": [
+      "Every actual action, lock event and public state hash matches frozen rules",
+      "Per-lock placed/cleared/remaining counts use actual cells in fixed regions",
+      "Every cleared cell retains its original source-bag attribution",
+      "Held, active and preview tokens preserve identity, including same-type cross-bag HOLD",
+      "Original-bag completion is distinct from source coverage and board depletion",
+      "All7/14/28-lock rolling windows independently reconcile",
+      "Unknown-provenance mode keeps mass totals but makes no original-bag claims"
+    ],
+    "rows": [
+      {
+        "episode": "full-stream-baseline-502400001",
+        "seed": 502400001,
+        "locks": 102,
+        "stop": "abstention",
+        "censored": false,
+        "actionsVerified": 846,
+        "holdActionsVerified": 21,
+        "clearingLocksWithSourceAttribution": 16,
+        "knownAndUnknownViewsAgree": true,
+        "allRegionalAndOriginalBagFieldsMatch": true,
+        "rollingWindows": 306,
+        "sourceBags": 16,
+        "totals": {
+          "initial": [
+            0,
+            0,
+            0
+          ],
+          "placed": [
+            174,
+            119,
+            115
+          ],
+          "cleared": [
+            152,
+            114,
+            114
+          ],
+          "delta": [
+            22,
+            5,
+            1
+          ],
+          "remaining": [
+            22,
+            5,
+            1
+          ],
+          "massPerColumn": [
+            5.5,
+            1.6666666666666667,
+            0.3333333333333333
+          ]
+        },
+        "inputSha256": "df132d74fafd600e870ad3e69abe8242f6d265bbd53b1729f622d57eb2d179b4",
+        "traceSha256": "be236023d1e9f3a84aa55f326ca743552daeb2a473ebea991986f019f1c4ed7a"
+      },
+      {
+        "episode": "full-stream-baseline-502609459",
+        "seed": 502609459,
+        "locks": 125,
+        "stop": "abstention",
+        "censored": false,
+        "actionsVerified": 1012,
+        "holdActionsVerified": 24,
+        "clearingLocksWithSourceAttribution": 15,
+        "knownAndUnknownViewsAgree": true,
+        "allRegionalAndOriginalBagFieldsMatch": true,
+        "rollingWindows": 375,
+        "sourceBags": 19,
+        "totals": {
+          "initial": [
+            0,
+            0,
+            0
+          ],
+          "placed": [
+            209,
+            155,
+            136
+          ],
+          "cleared": [
+            144,
+            108,
+            108
+          ],
+          "delta": [
+            65,
+            47,
+            28
+          ],
+          "remaining": [
+            65,
+            47,
+            28
+          ],
+          "massPerColumn": [
+            16.25,
+            15.666666666666666,
+            9.333333333333334
+          ]
+        },
+        "inputSha256": "9e52aec380f3fead94c9b2136bb2ef24845300851534141f49f4e32cee68fc4f",
+        "traceSha256": "f6ecf2fd19f223a437edc41f313eb897e2310b5e4309de42f6d88ca0ad138267"
+      },
+      {
+        "episode": "full-stream-baseline-502923646",
+        "seed": 502923646,
+        "locks": 25,
+        "stop": "abstention",
+        "censored": false,
+        "actionsVerified": 405,
+        "holdActionsVerified": 4,
+        "clearingLocksWithSourceAttribution": 0,
+        "knownAndUnknownViewsAgree": true,
+        "allRegionalAndOriginalBagFieldsMatch": true,
+        "rollingWindows": 75,
+        "sourceBags": 5,
+        "totals": {
+          "initial": [
+            0,
+            0,
+            0
+          ],
+          "placed": [
+            52,
+            44,
+            4
+          ],
+          "cleared": [
+            0,
+            0,
+            0
+          ],
+          "delta": [
+            52,
+            44,
+            4
+          ],
+          "remaining": [
+            52,
+            44,
+            4
+          ],
+          "massPerColumn": [
+            13,
+            14.666666666666666,
+            1.3333333333333333
+          ]
+        },
+        "inputSha256": "f0af6cf938821d1fec42f45b8c3887866daf1a5698b59e956301b544c8612001",
+        "traceSha256": "4f82a180b0eb84f501b8fbef691b15aa7102391f893ea2b0b1ec127b16809193"
+      },
+      {
+        "episode": "full-stream-baseline-503237833",
+        "seed": 503237833,
+        "locks": 106,
+        "stop": "abstention",
+        "censored": false,
+        "actionsVerified": 916,
+        "holdActionsVerified": 27,
+        "clearingLocksWithSourceAttribution": 12,
+        "knownAndUnknownViewsAgree": true,
+        "allRegionalAndOriginalBagFieldsMatch": true,
+        "rollingWindows": 318,
+        "sourceBags": 17,
+        "totals": {
+          "initial": [
+            0,
+            0,
+            0
+          ],
+          "placed": [
+            184,
+            134,
+            106
+          ],
+          "cleared": [
+            112,
+            84,
+            84
+          ],
+          "delta": [
+            72,
+            50,
+            22
+          ],
+          "remaining": [
+            72,
+            50,
+            22
+          ],
+          "massPerColumn": [
+            18,
+            16.666666666666668,
+            7.333333333333333
+          ]
+        },
+        "inputSha256": "e5a5d95621cd42590d23378c96f26ab500cc15928415ff219943c5188297d22f",
+        "traceSha256": "281e0e3466cb6fc4057e7020e3de001e19c36267b3f1c6728aeac80c37dd473f"
+      },
+      {
+        "episode": "full-stream-baseline-503552020",
+        "seed": 503552020,
+        "locks": 68,
+        "stop": "abstention",
+        "censored": false,
+        "actionsVerified": 566,
+        "holdActionsVerified": 13,
+        "clearingLocksWithSourceAttribution": 6,
+        "knownAndUnknownViewsAgree": true,
+        "allRegionalAndOriginalBagFieldsMatch": true,
+        "rollingWindows": 204,
+        "sourceBags": 11,
+        "totals": {
+          "initial": [
+            0,
+            0,
+            0
+          ],
+          "placed": [
+            124,
+            81,
+            67
+          ],
+          "cleared": [
+            56,
+            42,
+            42
+          ],
+          "delta": [
+            68,
+            39,
+            25
+          ],
+          "remaining": [
+            68,
+            39,
+            25
+          ],
+          "massPerColumn": [
+            17,
+            13,
+            8.333333333333334
+          ]
+        },
+        "inputSha256": "53557f19787e6a370d6641dc8c9b924bd2b742b2722cf002f7550eb8142a13ce",
+        "traceSha256": "24ed8b8f66d62b7be55775a76be6afdc71e0d8aecf13bf478b7a571b1c459b9d"
+      },
+      {
+        "episode": "full-stream-candidate-502400001",
+        "seed": 502400001,
+        "locks": 102,
+        "stop": "abstention",
+        "censored": false,
+        "actionsVerified": 846,
+        "holdActionsVerified": 21,
+        "clearingLocksWithSourceAttribution": 16,
+        "knownAndUnknownViewsAgree": true,
+        "allRegionalAndOriginalBagFieldsMatch": true,
+        "rollingWindows": 306,
+        "sourceBags": 16,
+        "totals": {
+          "initial": [
+            0,
+            0,
+            0
+          ],
+          "placed": [
+            174,
+            119,
+            115
+          ],
+          "cleared": [
+            152,
+            114,
+            114
+          ],
+          "delta": [
+            22,
+            5,
+            1
+          ],
+          "remaining": [
+            22,
+            5,
+            1
+          ],
+          "massPerColumn": [
+            5.5,
+            1.6666666666666667,
+            0.3333333333333333
+          ]
+        },
+        "inputSha256": "df132d74fafd600e870ad3e69abe8242f6d265bbd53b1729f622d57eb2d179b4",
+        "traceSha256": "9552112aeb0e74c42ca89718359c2bf98a2b694b2323150aaa723f492c4d0eaf"
+      },
+      {
+        "episode": "full-stream-candidate-502609459",
+        "seed": 502609459,
+        "locks": 125,
+        "stop": "abstention",
+        "censored": false,
+        "actionsVerified": 1012,
+        "holdActionsVerified": 24,
+        "clearingLocksWithSourceAttribution": 15,
+        "knownAndUnknownViewsAgree": true,
+        "allRegionalAndOriginalBagFieldsMatch": true,
+        "rollingWindows": 375,
+        "sourceBags": 19,
+        "totals": {
+          "initial": [
+            0,
+            0,
+            0
+          ],
+          "placed": [
+            209,
+            155,
+            136
+          ],
+          "cleared": [
+            144,
+            108,
+            108
+          ],
+          "delta": [
+            65,
+            47,
+            28
+          ],
+          "remaining": [
+            65,
+            47,
+            28
+          ],
+          "massPerColumn": [
+            16.25,
+            15.666666666666666,
+            9.333333333333334
+          ]
+        },
+        "inputSha256": "9e52aec380f3fead94c9b2136bb2ef24845300851534141f49f4e32cee68fc4f",
+        "traceSha256": "71aa8a071a752ea3c1d6c843049581470607532d873ab3306e02aabbc23888db"
+      },
+      {
+        "episode": "full-stream-candidate-502923646",
+        "seed": 502923646,
+        "locks": 68,
+        "stop": "abstention",
+        "censored": false,
+        "actionsVerified": 638,
+        "holdActionsVerified": 13,
+        "clearingLocksWithSourceAttribution": 6,
+        "knownAndUnknownViewsAgree": true,
+        "allRegionalAndOriginalBagFieldsMatch": true,
+        "rollingWindows": 204,
+        "sourceBags": 11,
+        "totals": {
+          "initial": [
+            0,
+            0,
+            0
+          ],
+          "placed": [
+            106,
+            91,
+            75
+          ],
+          "cleared": [
+            56,
+            42,
+            42
+          ],
+          "delta": [
+            50,
+            49,
+            33
+          ],
+          "remaining": [
+            50,
+            49,
+            33
+          ],
+          "massPerColumn": [
+            12.5,
+            16.333333333333332,
+            11
+          ]
+        },
+        "inputSha256": "f0af6cf938821d1fec42f45b8c3887866daf1a5698b59e956301b544c8612001",
+        "traceSha256": "b52439c6cda263f5435cacc279b5d38e0b5490da0cac6b6b93990ac0e4c2d0d2"
+      },
+      {
+        "episode": "full-stream-candidate-503237833",
+        "seed": 503237833,
+        "locks": 106,
+        "stop": "abstention",
+        "censored": false,
+        "actionsVerified": 916,
+        "holdActionsVerified": 27,
+        "clearingLocksWithSourceAttribution": 12,
+        "knownAndUnknownViewsAgree": true,
+        "allRegionalAndOriginalBagFieldsMatch": true,
+        "rollingWindows": 318,
+        "sourceBags": 17,
+        "totals": {
+          "initial": [
+            0,
+            0,
+            0
+          ],
+          "placed": [
+            184,
+            134,
+            106
+          ],
+          "cleared": [
+            112,
+            84,
+            84
+          ],
+          "delta": [
+            72,
+            50,
+            22
+          ],
+          "remaining": [
+            72,
+            50,
+            22
+          ],
+          "massPerColumn": [
+            18,
+            16.666666666666668,
+            7.333333333333333
+          ]
+        },
+        "inputSha256": "e5a5d95621cd42590d23378c96f26ab500cc15928415ff219943c5188297d22f",
+        "traceSha256": "49b0924b1f8852a672c3c2f13bfd256c47c182a702eb35930b25a94ca2471354"
+      },
+      {
+        "episode": "full-stream-candidate-503552020",
+        "seed": 503552020,
+        "locks": 68,
+        "stop": "abstention",
+        "censored": false,
+        "actionsVerified": 566,
+        "holdActionsVerified": 13,
+        "clearingLocksWithSourceAttribution": 6,
+        "knownAndUnknownViewsAgree": true,
+        "allRegionalAndOriginalBagFieldsMatch": true,
+        "rollingWindows": 204,
+        "sourceBags": 11,
+        "totals": {
+          "initial": [
+            0,
+            0,
+            0
+          ],
+          "placed": [
+            124,
+            81,
+            67
+          ],
+          "cleared": [
+            56,
+            42,
+            42
+          ],
+          "delta": [
+            68,
+            39,
+            25
+          ],
+          "remaining": [
+            68,
+            39,
+            25
+          ],
+          "massPerColumn": [
+            17,
+            13,
+            8.333333333333334
+          ]
+        },
+        "inputSha256": "53557f19787e6a370d6641dc8c9b924bd2b742b2722cf002f7550eb8142a13ce",
+        "traceSha256": "fc7c5637487d06d2831143109fa8da72842a9807dc3f0ac3458bb4ce06ccea87"
+      }
+    ]
+  },
+  "examples": {
+    "baseline": {
+      "seed": 502923646,
+      "arm": "baseline",
+      "firstOriginalBag": {
+        "id": "bag-1",
+        "placed": [
+          13,
+          15,
+          0
+        ],
+        "completedAtLock": 11,
+        "locks": [
+          {
+            "lock": 1,
+            "sourceSlot": 1,
+            "placed": [
+              2,
+              2,
+              0
+            ]
+          },
+          {
+            "lock": 2,
+            "sourceSlot": 3,
+            "placed": [
+              0,
+              4,
+              0
+            ]
+          },
+          {
+            "lock": 3,
+            "sourceSlot": 4,
+            "placed": [
+              0,
+              4,
+              0
+            ]
+          },
+          {
+            "lock": 4,
+            "sourceSlot": 5,
+            "placed": [
+              4,
+              0,
+              0
+            ]
+          },
+          {
+            "lock": 5,
+            "sourceSlot": 6,
+            "placed": [
+              3,
+              1,
+              0
+            ]
+          },
+          {
+            "lock": 6,
+            "sourceSlot": 2,
+            "placed": [
+              4,
+              0,
+              0
+            ]
+          },
+          {
+            "lock": 11,
+            "sourceSlot": 7,
+            "placed": [
+              0,
+              4,
+              0
+            ]
+          }
+        ]
+      },
+      "afterLock6": {
+        "active": {
+          "id": "bag-2:piece-1",
+          "type": "J",
+          "bagId": "bag-2",
+          "sourceSlot": 1
+        },
+        "held": {
+          "id": "bag-1:piece-7",
+          "type": "J",
+          "bagId": "bag-1",
+          "sourceSlot": 7
+        }
+      },
+      "commonLock25": {
+        "placed": [
+          52,
+          44,
+          4
+        ],
+        "cleared": [
+          0,
+          0,
+          0
+        ],
+        "remaining": [
+          52,
+          44,
+          4
+        ]
+      }
+    },
+    "candidate": {
+      "seed": 502923646,
+      "arm": "candidate",
+      "firstOriginalBag": {
+        "id": "bag-1",
+        "placed": [
+          18,
+          10,
+          0
+        ],
+        "completedAtLock": 7,
+        "locks": [
+          {
+            "lock": 1,
+            "sourceSlot": 1,
+            "placed": [
+              2,
+              2,
+              0
+            ]
+          },
+          {
+            "lock": 2,
+            "sourceSlot": 3,
+            "placed": [
+              0,
+              4,
+              0
+            ]
+          },
+          {
+            "lock": 3,
+            "sourceSlot": 4,
+            "placed": [
+              4,
+              0,
+              0
+            ]
+          },
+          {
+            "lock": 4,
+            "sourceSlot": 5,
+            "placed": [
+              4,
+              0,
+              0
+            ]
+          },
+          {
+            "lock": 5,
+            "sourceSlot": 2,
+            "placed": [
+              4,
+              0,
+              0
+            ]
+          },
+          {
+            "lock": 6,
+            "sourceSlot": 7,
+            "placed": [
+              0,
+              4,
+              0
+            ]
+          },
+          {
+            "lock": 7,
+            "sourceSlot": 6,
+            "placed": [
+              4,
+              0,
+              0
+            ]
+          }
+        ]
+      },
+      "afterLock6": {
+        "active": {
+          "id": "bag-2:piece-1",
+          "type": "J",
+          "bagId": "bag-2",
+          "sourceSlot": 1
+        },
+        "held": {
+          "id": "bag-1:piece-6",
+          "type": "S",
+          "bagId": "bag-1",
+          "sourceSlot": 6
+        }
+      },
+      "commonLock25": {
+        "placed": [
+          46,
+          40,
+          14
+        ],
+        "cleared": [
+          16,
+          12,
+          12
+        ],
+        "remaining": [
+          30,
+          28,
+          2
+        ]
+      }
+    }
+  },
+  "inputContract": {
+    "cases": 42,
+    "sourceSha256": "341c16d8f38c135a97f3777ba08c433dc7497a69985272b4e4157f1024bab5ee",
+    "defaultInputsExactlyUnchanged": true,
+    "plannerRequestsExactlyUnchanged": true,
+    "tamperedSourceResolvesUnknown": true,
+    "seeds": [
+      0,
+      4294967295,
+      502923646,
+      503552020,
+      502609459,
+      502400001,
+      503237833
+    ],
+    "scenarios": [
+      "empty",
+      "stable"
+    ],
+    "generationCaps": [
+      2,
+      70,
+      150
+    ],
+    "raisedEvaluationCapChecked": 2000
+  },
+  "legacyStableCompatibility": {
+    "note": "Two saved four-lock artifacts of the same old stable input, not independent policy trials",
+    "totalLocks": 8,
+    "rows": [
+      {
+        "episodeId": "2026-10-23T23-20-48.781Z-18/stable-10331",
+        "sourceCommit": "3c17b997d9663268859b2f5d48dceb846f71c1e0",
+        "locks": 4,
+        "stop": "lock-cap",
+        "censored": true,
+        "allActionsAndOriginsMatched": true,
+        "initialOwnershipUnknown": true,
+        "firstFutureBagPartial": true,
+        "totals": {
+          "initial": [
+            32,
+            22,
+            0
+          ],
+          "placed": [
+            4,
+            8,
+            4
+          ],
+          "cleared": [
+            0,
+            0,
+            0
+          ],
+          "delta": [
+            4,
+            8,
+            4
+          ],
+          "remaining": [
+            36,
+            30,
+            4
+          ],
+          "massPerColumn": [
+            9,
+            10,
+            1.3333333333333333
+          ]
+        },
+        "partialFirstBag": {
+          "id": "bag-1",
+          "index": 0,
+          "unknown": false,
+          "initial": [
+            0,
+            0,
+            0
+          ],
+          "placed": [
+            0,
+            0,
+            0
+          ],
+          "cleared": [
+            0,
+            0,
+            0
+          ],
+          "remaining": [
+            0,
+            0,
+            0
+          ],
+          "priorUnattributedPieces": 1,
+          "observedTokens": 4,
+          "pendingAndLocked": {
+            "locked": 0,
+            "active": 0,
+            "held": 0,
+            "preview": 4
+          },
+          "unrevealedSourcePieces": 2,
+          "sourceCoverageComplete": false,
+          "allTokensLocked": false,
+          "boardDepleted": false,
+          "completedAtLock": null
+        },
+        "inputSha256": "7f4322282b7980fc690b9fa532edc3ff40e19b7129b83dd54b61d1d2ccf0d869",
+        "traceSha256": "00514b085635560d883385af2fb0aa59a0476670cc0267251e5a66db9f5d17fc"
+      },
+      {
+        "episodeId": "2026-10-23T23-21-14.132Z-18/stable-10331",
+        "sourceCommit": "3c17b997d9663268859b2f5d48dceb846f71c1e0",
+        "locks": 4,
+        "stop": "lock-cap",
+        "censored": true,
+        "allActionsAndOriginsMatched": true,
+        "initialOwnershipUnknown": true,
+        "firstFutureBagPartial": true,
+        "totals": {
+          "initial": [
+            32,
+            22,
+            0
+          ],
+          "placed": [
+            4,
+            8,
+            4
+          ],
+          "cleared": [
+            0,
+            0,
+            0
+          ],
+          "delta": [
+            4,
+            8,
+            4
+          ],
+          "remaining": [
+            36,
+            30,
+            4
+          ],
+          "massPerColumn": [
+            9,
+            10,
+            1.3333333333333333
+          ]
+        },
+        "partialFirstBag": {
+          "id": "bag-1",
+          "index": 0,
+          "unknown": false,
+          "initial": [
+            0,
+            0,
+            0
+          ],
+          "placed": [
+            0,
+            0,
+            0
+          ],
+          "cleared": [
+            0,
+            0,
+            0
+          ],
+          "remaining": [
+            0,
+            0,
+            0
+          ],
+          "priorUnattributedPieces": 1,
+          "observedTokens": 4,
+          "pendingAndLocked": {
+            "locked": 0,
+            "active": 0,
+            "held": 0,
+            "preview": 4
+          },
+          "unrevealedSourcePieces": 2,
+          "sourceCoverageComplete": false,
+          "allTokensLocked": false,
+          "boardDepleted": false,
+          "completedAtLock": null
+        },
+        "inputSha256": "7f4322282b7980fc690b9fa532edc3ff40e19b7129b83dd54b61d1d2ccf0d869",
+        "traceSha256": "a03cf05c5e0b6bab7eea9c8dbe0102ce41673f90457ecd91f7e37c14ae5366ee"
+      }
+    ]
+  },
+  "limits": [
+    "Known bag identity requires exact generator replay against initial state, full recorded source and input hash. Imports remain unknown.",
+    "Stable initial board and inventory remain unattributed; a partial first generated source bag is not a complete original allocation.",
+    "Seven consecutive locks are a rolling window, not necessarily one original source bag.",
+    "4:3:3 is line-clear conservation and a bounded-mass long-run constraint, not a per-bag quota or heuristic.",
+    "These are selected existing development traces, not population success-rate evidence."
+  ]
+}

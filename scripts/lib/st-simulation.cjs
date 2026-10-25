@@ -25,7 +25,7 @@ function random(seed) {
   return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t ^= t + Math.imul(t ^ t >>> 7, 61 | t); return ((t ^ t >>> 14) >>> 0) / 4294967296; };
 }
 function sourceHashes() { return Object.fromEntries(SOURCE_FILES.filter(f => fs.existsSync(path.join(root,f))).map(f => [f,digest(fs.readFileSync(path.join(root,f),'utf8'))])); }
-function makeInput(scenario, seed, locks) {
+function makeInput(scenario, seed, locks, {withOrigins=false}={}) {
   const rng = random(seed);
   const nextBag = () => { const bag = [...'IJLOSTZ']; for (let i=6;i>0;i--) { const j=Math.floor(rng()*(i+1)); [bag[i],bag[j]]=[bag[j],bag[i]]; } return bag; };
   let state;
@@ -40,6 +40,7 @@ function makeInput(scenario, seed, locks) {
   assert.deepEqual(R.validate(state), []);
   assert.deepEqual(B.validate(state.bag), []);
   let mask = state.bag.remaining[Math.floor(rng()*state.bag.remaining.length)];
+  const initialRemainder=[...'IJLOSTZ'].filter((_,i)=>mask & 1<<i).length;
   const future=[];
   for (let i=0;i<locks*7+14;i++) {
     if (!mask) mask=127;
@@ -49,7 +50,11 @@ function makeInput(scenario, seed, locks) {
   }
   let knowledge=state.bag;
   for (const piece of future) { knowledge=B.consume(knowledge,piece); assert.deepEqual(B.validate(knowledge),[]); }
-  return {schemaVersion:1, scenario, seed, rng:RNG_VERSION, locks, initial:publicObservation(state), future, inputHash:digest({scenario,initial:state,future})};
+  const input={schemaVersion:1, scenario, seed, rng:RNG_VERSION, locks, initial:publicObservation(state), future, inputHash:digest({scenario,initial:state,future})};
+  // Evaluator-only provenance. Default inputs, RNG draws and worker messages
+  // are unchanged; no unobserved piece types are added by this metadata.
+  if(withOrigins)input.pieceOrigins={schemaVersion:1,initialBagKnown:scenario==='empty',futureFirstBag:initialRemainder?0:1,futureFirstSlot:initialRemainder?7-initialRemainder:0};
+  return input;
 }
 function workerPlanner({timeoutMs=2500}={}) {
   const sources=Object.fromEntries(SOURCE_FILES.filter(f=>f.endsWith('.js')&&fs.existsSync(path.join(root,f))).map(f=>[f,new vm.Script(fs.readFileSync(path.join(root,f),'utf8'),{filename:f})]));

@@ -1,0 +1,451 @@
+{
+  "provenance": "Seed 502400001, actual maintenance stop after 98 locks at frozen e6af9c7. Recorded ordinary one-lock S stage was already committed, but maintenance height admission rejected it. Only fields used to bind its goal are retained; no hidden future or scoring promise is supplied.",
+  "observation": {
+    "rules": "st-zero-v2",
+    "board": [
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "OOS.......",
+      "OOSS......",
+      "OOJS......",
+      "OOJ.......",
+      "JJJI......",
+      "JJJILLL...",
+      "LLLILSS..."
+    ],
+    "active": {
+      "type": "S",
+      "x": 3,
+      "y": 17,
+      "rotation": 0,
+      "lastRotation": null
+    },
+    "hold": "T",
+    "canHold": true,
+    "queue": [
+      "I",
+      "Z",
+      "J",
+      "O",
+      "L",
+      "J"
+    ],
+    "revision": 811,
+    "streamCursor": 100,
+    "topOut": false,
+    "bag": {
+      "remaining": [
+        125
+      ],
+      "observedCount": 106,
+      "provenance": "known-phase"
+    }
+  },
+  "patternHistory": {
+    "origin": [
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "OOS.......",
+      "OOSS......",
+      "OOJS......",
+      "OOJ.......",
+      "JJJI......",
+      "JJJILLL...",
+      "LLLILSS..."
+    ],
+    "steps": []
+  },
+  "witness": [
+    "R",
+    "HD"
+  ],
+  "event": {
+    "type": "S",
+    "target": {
+      "type": "S",
+      "x": 4,
+      "y": 35,
+      "rotation": 0
+    },
+    "cells": [
+      [
+        5,
+        36
+      ],
+      [
+        6,
+        36
+      ],
+      [
+        4,
+        37
+      ],
+      [
+        5,
+        37
+      ]
+    ],
+    "lines": 0,
+    "clearedRows": [],
+    "spin": "none",
+    "topOut": false
+  },
+  "savedStep": {
+    "target": {
+      "type": "S",
+      "x": 4,
+      "y": 35,
+      "rotation": 0
+    },
+    "hold": false,
+    "holdCount": 0,
+    "witness": [
+      "R",
+      "HD"
+    ],
+    "event": {
+      "type": "S",
+      "target": {
+        "type": "S",
+        "x": 4,
+        "y": 35,
+        "rotation": 0
+      },
+      "cells": [
+        [
+          5,
+          36
+        ],
+        [
+          6,
+          36
+        ],
+        [
+          4,
+          37
+        ],
+        [
+          5,
+          37
+        ]
+      ],
+      "lines": 0,
+      "clearedRows": [],
+      "spin": "none",
+      "topOut": false
+    },
+    "resultContext": "[\"st-zero-v2\",[\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"OOS.......\",\"OOSS......\",\"OOJS......\",\"OOJ..SS...\",\"JJJISS....\",\"JJJILLL...\",\"LLLILSS...\"],\"T\",true,[\"Z\",\"J\",\"O\",\"L\",\"J\"],{\"remaining\":[125],\"observedCount\":106,\"provenance\":\"known-phase\"},\"I\"]",
+    "structuralEvidence": {
+      "pairProgress": {
+        "orderedPieces": [
+          "S",
+          "L"
+        ],
+        "step": 1,
+        "status": "partner-placement-checked",
+        "placedCells": [
+          [
+            5,
+            36
+          ],
+          [
+            6,
+            36
+          ],
+          [
+            4,
+            37
+          ],
+          [
+            5,
+            37
+          ]
+        ],
+        "completion": {
+          "piece": "L",
+          "family": null,
+          "target": {
+            "type": "L",
+            "x": 4,
+            "y": 33,
+            "rotation": 2
+          },
+          "cells": [
+            [
+              4,
+              35
+            ],
+            [
+              5,
+              35
+            ],
+            [
+              6,
+              35
+            ],
+            [
+              4,
+              36
+            ]
+          ],
+          "witness": [
+            "R180",
+            "R",
+            "HD"
+          ],
+          "access": "hypothetical-spawn-straight-drop",
+          "resultProfile": [
+            5,
+            5,
+            5
+          ],
+          "resultStatus": "level",
+          "patternSupport": "reference-supported",
+          "preserveCells": [
+            [
+              4,
+              35
+            ],
+            [
+              5,
+              35
+            ],
+            [
+              6,
+              35
+            ],
+            [
+              4,
+              36
+            ]
+          ]
+        }
+      },
+      "structure": {
+        "center": {
+          "foundation": {
+            "status": "aligned",
+            "vacancies": [],
+            "profile": [
+              3,
+              4,
+              4
+            ]
+          },
+          "profile": [
+            3,
+            4,
+            4
+          ],
+          "status": "supported-partner-completion",
+          "motif": ".##/##./###",
+          "patternSupport": "reference-supported",
+          "coveredInternal": 0,
+          "sealedVoids": 0,
+          "coveredCavities": 1,
+          "completionDebt": 0,
+          "completions": [
+            {
+              "piece": "L",
+              "family": null,
+              "target": {
+                "type": "L",
+                "x": 4,
+                "y": 33,
+                "rotation": 2
+              },
+              "cells": [
+                [
+                  4,
+                  35
+                ],
+                [
+                  5,
+                  35
+                ],
+                [
+                  6,
+                  35
+                ],
+                [
+                  4,
+                  36
+                ]
+              ],
+              "witness": [
+                "R180",
+                "R",
+                "HD"
+              ],
+              "access": "hypothetical-spawn-straight-drop",
+              "resultProfile": [
+                5,
+                5,
+                5
+              ],
+              "resultStatus": "level",
+              "patternSupport": "reference-supported",
+              "preserveCells": [
+                [
+                  4,
+                  35
+                ],
+                [
+                  5,
+                  35
+                ],
+                [
+                  6,
+                  35
+                ],
+                [
+                  4,
+                  36
+                ]
+              ]
+            }
+          ]
+        }
+      }
+    }
+  },
+  "savedEvidence": {
+    "strategy": "canonical-right-ST",
+    "verifiedLocks": 2,
+    "tsdAt": 1
+  },
+  "laterPartialBase": {
+    "rules": "st-zero-v2",
+    "board": [
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "...I......",
+      "...I......",
+      "...I......",
+      "OOSI......",
+      "OOSS......",
+      "OOJS......",
+      "OOJ..SS...",
+      "LLLILSS.Z."
+    ],
+    "active": {
+      "type": "O",
+      "x": 3,
+      "y": 17,
+      "rotation": 0,
+      "lastRotation": null
+    },
+    "hold": "J",
+    "canHold": true,
+    "queue": [
+      "L",
+      "J",
+      "L",
+      "I",
+      "O",
+      "Z"
+    ],
+    "revision": 847,
+    "streamCursor": 104,
+    "topOut": false,
+    "bag": {
+      "remaining": [
+        48
+      ],
+      "observedCount": 110,
+      "provenance": "known-phase"
+    }
+  }
+}

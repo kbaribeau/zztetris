@@ -85,3 +85,21 @@ This does not yet recognize the community Midgame/Reset cycle; the known Reset
 reference limitations are documented rather than hidden by a universal T rule.
 
 See [temporary planning budget and measured limits](docs/st-temporary-planning-budget.md). Historical 750 ms experiments remain recorded at their original budget; more compute is not itself better strategy.
+
+A [narrow one-lock level-base re-entry](docs/st-level-base-reentry.md) can restore
+a recognized Center from an exact phase-aligned level-two base. It preserves
+the same saved goal and strict endpoint checks; it does not broaden general
+maintenance readiness, erase existing damage or implement Reset coaching.
+
+[Bounded opening root ambiguity](docs/st-opening-root-ties.md) preserves a small
+number of strategically tied public root shapes and may compare one extra
+complete lock layer. It leaves ordinary rank, saved repairs and closure priority
+intact; incomplete optional work restores the checked nominal choice.
+
+See the [October 24–25 development block review](docs/st-work-block-review-2026-10-24.md)
+for retained changes, rejected variants, matched results and publication limits.
+
+[Regional mino accounting](docs/st-regional-mino-ledger.md) is available as offline
+simulation analysis, with verified original-bag identities through HOLD and
+explicit unknown imports. It does not change the live UI, planner observations,
+ranking or resource rules.

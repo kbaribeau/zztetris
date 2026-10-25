@@ -15,6 +15,7 @@ function classify(record){
  const add=(category,id)=>{if(safe(id))signals.push({category,id});};
  if(e.opening)add('selected-family','opening');
  if(e.strategy)add('selected-family',e.strategy);
+ if(record.kind==='lock'&&a.metrics?.earlyCapFallback?.selected===true)add('selected-family','early-cap-fallback');
  if(e.construction?.kind)add('selected-family','construction:'+e.construction.kind);
  if(e.preparationProof?.kind)add('supporting-certificate','preparation:'+e.preparationProof.kind);
  if(e.opening?.repair)add('supporting-certificate','opening-repair-present');
@@ -33,27 +34,28 @@ function classify(record){
  return [...new Map(signals.map(s=>[s.category+':'+s.id,s])).values()];
 }
 function createSearchCollector(){
- const counters=new Map(),scores=new Map(),paths=new Map(),costs=new Map();
+ const counters=new Map(),scores=new Map(),paths=new Map(),costs=new Map(),boundaryCosts=new Map(),scopes=new Set();
  const coverage={observedDecisions:0,missingDecisions:0,unsupportedSchemaDecisions:0,invalidNumericFields:0,overflowRows:0,selectedWithRank:0};
  const stats=()=>({observations:0,nonzero:0,sum:0,min:null,max:null});
  function addStat(s,value){s.observations++;s.nonzero+=Number(value!==0);s.sum+=value;s.min=s.min===null?value:Math.min(s.min,value);s.max=s.max===null?value:Math.max(s.max,value);}
  function row(map,key,make){if(!map.has(key)){if(map.size>=MAX_SIGNALS){coverage.overflowRows++;return null;}map.set(key,make());}return map.get(key);}
  function numeric(value,count=false){const ok=typeof value==='number'&&Number.isFinite(value)&&(!count||(Number.isSafeInteger(value)&&value>=0));if(!ok)coverage.invalidNumericFields++;return ok;}
- function counter(phase,outcome,group,family,field,value){if(!safe(family)||!safe(field)||!numeric(value,true))return;const key=[phase,group,family,field].join('|'),r=row(counters,key,()=>({phase,group,family,field,followed:stats(),notFollowed:stats()}));if(r)addStat(r[outcome],value);}
+ function counter(scope,phase,outcome,group,family,field,value){if(!safe(family)||!safe(field)||!numeric(value,true))return;const key=[scope,phase,group,family,field].join('|'),r=row(counters,key,()=>({scope,phase,group,family,field,followed:stats(),notFollowed:stats()}));if(r)addStat(r[outcome],value);}
  function observe(record,phase,followed){
   const u=record.advice?.metrics?.usage,outcome=followed?'followed':'notFollowed';
   if(!u){coverage.missingDecisions++;return;}
-  if(u.schemaVersion!==1||u.scope!=='opening'){coverage.unsupportedSchemaDecisions++;return;}
-  coverage.observedDecisions++;
-  if(u.families&&typeof u.families==='object')for(const [family,fields]of Object.entries(u.families)){if(!fields||typeof fields!=='object')continue;for(const [field,value]of Object.entries(fields))counter(phase,outcome,'families',family,field,value);}
-  if(u.access&&typeof u.access==='object')for(const [field,value]of Object.entries(u.access))counter(phase,outcome,'access','access',field,value);
-  if(u.rejections&&typeof u.rejections==='object')for(const [reason,value]of Object.entries(u.rejections))counter(phase,outcome,'first-rejection',reason,'rejected',value);
-  if(safe(u.selected?.path)){const key=phase+'|'+u.selected.path,r=row(paths,key,()=>({phase,path:u.selected.path,followed:0,notFollowed:0}));if(r)r[outcome]++;}
+  if(u.schemaVersion!==1||!['opening','maintenance'].includes(u.scope)){coverage.unsupportedSchemaDecisions++;return;}
+  coverage.observedDecisions++;const scope=u.scope;scopes.add(scope);
+  if(u.families&&typeof u.families==='object')for(const [family,fields]of Object.entries(u.families)){if(!fields||typeof fields!=='object')continue;for(const [field,value]of Object.entries(fields))counter(scope,phase,outcome,'families',family,field,value);}
+  if(u.access&&typeof u.access==='object')for(const [field,value]of Object.entries(u.access))counter(scope,phase,outcome,'access','access',field,value);
+  if(u.rejections&&typeof u.rejections==='object')for(const [reason,value]of Object.entries(u.rejections))counter(scope,phase,outcome,'first-rejection',reason,'rejected',value);
+  if(safe(u.selected?.path)){const key=scope+'|'+phase+'|'+u.selected.path,r=row(paths,key,()=>({scope,phase,path:u.selected.path,followed:0,notFollowed:0}));if(r)r[outcome]++;}
   if(Array.isArray(u.selected?.rank)&&u.selected.rank.length&&u.selected.rank.every(v=>typeof v==='number'&&Number.isFinite(v)))coverage.selectedWithRank++;
-  if(u.selected?.scoreComponents&&typeof u.selected.scoreComponents==='object')for(const [component,value]of Object.entries(u.selected.scoreComponents)){if(!safe(component)||!numeric(value))continue;const key=phase+'|'+component,r=row(scores,key,()=>({phase,component,followed:stats(),notFollowed:stats()}));if(r)addStat(r[outcome],value);}
-  for(const field of ['nodes','elapsedMs']){const value=record.advice.metrics[field];if(value===undefined)continue;if(!numeric(value,field==='nodes')||value<0)continue;const key=[phase,outcome,field].join('|'),r=row(costs,key,()=>({phase,outcome,field,...stats()}));if(r)addStat(r,value);}
+  if(u.selected?.scoreComponents&&typeof u.selected.scoreComponents==='object')for(const [component,value]of Object.entries(u.selected.scoreComponents)){if(!safe(component)||!numeric(value))continue;const key=scope+'|'+phase+'|'+component,r=row(scores,key,()=>({scope,phase,component,followed:stats(),notFollowed:stats()}));if(r)addStat(r[outcome],value);}
+  if(u.costsMs&&typeof u.costsMs==='object')for(const [family,value]of Object.entries(u.costsMs)){if(!safe(family))continue;if(!numeric(value)||value<0){if(typeof value==='number'&&Number.isFinite(value)&&value<0)coverage.invalidNumericFields++;continue;}const key=[scope,phase,outcome,family].join('|'),r=row(boundaryCosts,key,()=>({scope,phase,outcome,family,unit:'ms',inclusive:true,...stats()}));if(r)addStat(r,value);}
+  for(const field of ['nodes','elapsedMs']){const value=record.advice.metrics[field];if(value===undefined)continue;if(!numeric(value,field==='nodes')||value<0)continue;const key=[scope,phase,outcome,field].join('|'),r=row(costs,key,()=>({scope,phase,outcome,field,...stats()}));if(r)addStat(r,value);}
  }
- function snapshot(){const sorted=m=>[...m.values()].sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)));return JSON.parse(JSON.stringify({engineSchemaVersion:1,scope:'opening',coverage,counters:sorted(counters),selectedPaths:sorted(paths),selectedScoreComponents:sorted(scores),decisionCosts:sorted(costs),interpretation:['Counter sums are evaluations; observations count decisions reporting that field, including explicit zero. Missing fields are not zero.','Rejections identify only the first failing short-circuit gate among examined steps, not every applicable violation.','Selected signed score terms describe the evaluated winner, not causal feature importance or ablation. Full lexicographic ranks remain in original traces.','nodes and elapsedMs are whole-decision reported costs for instrumented decisions, not per-rule timing or additive family costs.']}));}
+ function snapshot(){const sorted=m=>[...m.values()].sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)));return JSON.parse(JSON.stringify({engineSchemaVersion:1,scope:scopes.size===1?[...scopes][0]:scopes.size?'mixed':null,scopes:[...scopes].sort(),coverage,counters:sorted(counters),selectedPaths:sorted(paths),selectedScoreComponents:sorted(scores),decisionCosts:sorted(costs),familyBoundaryCosts:sorted(boundaryCosts),interpretation:['Scope and runtime phase are distinct: opening handoff instrumentation may appear in maintenance-phase advice.', 'Family boundary costs are opt-in inclusive timings; nested boundaries overlap and must not be summed or treated as causal costs.', 'Counter sums are evaluations; observations count decisions reporting that field, including explicit zero. Missing fields are not zero.','Rejections identify only the first failing short-circuit gate among examined steps, not every applicable violation.','Selected signed score terms describe the evaluated winner, not causal feature importance or ablation. Full lexicographic ranks remain in original traces.','nodes and elapsedMs are whole-decision reported costs for instrumented decisions, not per-rule timing or additive family costs.']}));}
  return{observe,snapshot,hasScores:()=>scores.size>0,hasCounters:()=>counters.size>0,hasRejections:()=>[...counters.values()].some(r=>r.group==='first-rejection')};
 }
 

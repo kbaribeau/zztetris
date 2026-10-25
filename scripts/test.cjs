@@ -5,6 +5,7 @@ const { execFileSync } = require('node:child_process');
 const { createHash } = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
+const os = require('node:os');
 const { inspect } = require('node:util');
 const { SEED } = require('../test/support/pages.cjs');
 const { seed: naturalReplaySeed } = require('../test/support/st-natural.cjs');
@@ -22,7 +23,7 @@ const result = { schemaVersion: 1, id, command: 'npm test', startedAt: new Date(
 
 async function main() {
   const controller = new AbortController();
-  let deadline;
+  let deadline, compileCache;
   try {
     const git = (...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
     result.commit = git('rev-parse', 'HEAD');
@@ -31,6 +32,22 @@ async function main() {
     result.testFiles = fs.readdirSync('test').filter(file => file.endsWith('.test.cjs')).sort().map(file => `test/${file}`);
     if (process.version !== 'v24.20.0') throw new Error('Use the pinned Node version from .nvmrc (24.20.0)');
     if (!result.testFiles.length) throw new Error('No test files found');
+    // Cache compiled code only, never module instances: test children and
+    // jsdom realms retain their original isolation. Start cold on every run.
+    // V8 coverage must opt out because cached code can reduce its precision.
+    const coverage = Boolean(process.env.NODE_V8_COVERAGE);
+    if (coverage || process.env.NODE_DISABLE_COMPILE_CACHE === '1') {
+      process.env.NODE_DISABLE_COMPILE_CACHE = '1';
+      result.compileCache = { enabled: false, reason: coverage ? 'V8 coverage' : 'explicit opt-out' };
+    } else {
+      result.compileCache = { enabled: false, coldPerRun: true };
+      compileCache = fs.mkdtempSync(path.join(os.tmpdir(), 'zztetris-test-compile-'));
+      process.env.NODE_COMPILE_CACHE = compileCache;
+      const probe = JSON.parse(execFileSync(process.execPath, ['-e',
+        'const m=require("node:module");process.stdout.write(JSON.stringify({directory:m.getCompileCacheDir(),status:m.enableCompileCache().status}))'], { encoding: 'utf8', timeout: 3000 }));
+      result.compileCache = { enabled: Boolean(probe.directory), coldPerRun: true, childStatus: probe.status };
+      if (!probe.directory?.startsWith(compileCache + path.sep)) throw new Error('Child compile cache did not use the private run directory');
+    }
     // Parent watchdog also bounds a child stuck in synchronous product code.
     // Regional-model regressions add real bounded searches; retain the tighter
     // per-file deadline below while allowing the larger serial suite to finish.
@@ -58,6 +75,10 @@ async function main() {
     console.error(error);
   } finally {
     clearTimeout(deadline);
+    if (compileCache) {
+      try { fs.rmSync(compileCache, { recursive: true, force: true }); result.compileCache.cleaned = true; }
+      catch (error) { result.compileCache.cleanupError = String(error); }
+    }
     result.finishedAt = new Date().toISOString();
     fs.writeFileSync(path.join(directory, 'manifest.json'), JSON.stringify(result, null, 2) + '\n');
     console.log(`\nResults: ${directory}`);

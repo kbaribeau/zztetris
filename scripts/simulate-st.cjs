@@ -13,7 +13,7 @@ function parse(args) {
   for(let i=0;i<args.length;i++) {
     const key=args[i];
     if(key==='--help'){out.help=true;continue;}
-    if(key==='--usage-telemetry'){out['usage-telemetry']=true;continue;}
+    if(key==='--usage-telemetry'||key==='--mino-ledger'){out[key.slice(2)]=true;continue;}
     if(key==='--compare'){out.compare=[args[++i],args[++i]];if(out.compare.some(x=>!x||x.startsWith('--')))throw Error('--compare requires two run directories');continue;}
     if(!['--preset','--scenario','--seeds','--locks','--out','--replay','--rerun','--episode-ms','--lane','--child'].includes(key))throw Error('Unknown option '+key);
     const value=args[++i];if(!value||value.startsWith('--'))throw Error('Missing value for '+key);out[key.slice(2)]=value;
@@ -66,12 +66,18 @@ function fallback(directory,input,result) {
   const stop=result.error?.code==='ETIMEDOUT'?'wall-cap':detail.stop||'runner-error';
   return{schemaVersion:1,scenario:input.scenario,seed:input.seed,inputHash:input.inputHash,cap:input.locks,stop,censored:stop==='wall-cap',locks:steps.length,lines:last?.metrics.lines||0,tsds:last?.metrics.tsds||0,quads:last?.metrics.quads||0,profile:steps.map(s=>s.metrics),detail};
 }
+function exportMinoLedgers(directory,episodes){
+  // Deliberately after every timed episode, never between planning requests.
+  const {analyzeDirectory}=require('./analyze-st-minos.cjs');
+  return episodes.map(episode=>{const key=episode.scenario+'-'+episode.seed,dir=path.join(directory,key);try{return{key,...analyzeDirectory(dir,{out:path.join(dir,'mino-ledger')})};}catch(error){process.exitCode=1;return{key,error:error.message};}});
+}
 function main(args=process.argv.slice(2)) {
   const o=parse(args);
   if(o['usage-telemetry']&&(o.replay||o.compare))throw Error('--usage-telemetry instruments new decisions; use it with a run or --rerun, not replay/compare');
+  if(o['mino-ledger']&&(o.replay||o.compare||o.child))throw Error('--mino-ledger is post-processing for a run or --rerun; use minos:st for existing traces');
   const config=configuration(o);
   if(['compare','replay','rerun','child'].filter(key=>o[key]).length>1)throw Error('Choose one of --compare, --replay or --rerun');
-  if(o.help){console.log(`ST closed-loop evaluation (Node 24.20.0; no browser/dependencies)\n\nnpm run sim:st -- --preset quick [--scenario empty|stable|both]\nnpm run sim:st -- --preset research [--seeds 1,2] [--locks 500]\nnpm run sim:st -- --replay test-results/simulation/RUN/empty-1\nnpm run sim:st -- --rerun test-results/simulation/RUN/empty-1\nnpm run sim:st -- --compare BASELINE_RUN CANDIDATE_RUN\n\nOptions: --out parent-directory, --episode-ms wall-watchdog, --lane production, --usage-telemetry.\nUsage counters are opt-in and recorded in run configuration; measure overhead before timed comparisons.\nOnly production wall-clock lane is supported; fixed seeds are not deterministic search.\nQuick: 2 development seeds × 24 locks. Research: 16 seeds × 500 locks.\nDefaults start empty. Stable uses the public marathon-rebuild position with a seeded valid continuation, not its fixed demo tail.\nAbstention is a measured outcome, not a failing command or a top-out. Safety/runner failures exit nonzero.`);return;}
+  if(o.help){console.log(`ST closed-loop evaluation (Node 24.20.0; no browser/dependencies)\n\nnpm run sim:st -- --preset quick [--scenario empty|stable|both]\nnpm run sim:st -- --preset research [--seeds 1,2] [--locks 500]\nnpm run sim:st -- --replay test-results/simulation/RUN/empty-1\nnpm run sim:st -- --rerun test-results/simulation/RUN/empty-1\nnpm run sim:st -- --compare BASELINE_RUN CANDIDATE_RUN\n\nOptions: --out parent-directory, --episode-ms wall-watchdog, --lane production, --usage-telemetry, --mino-ledger.\nMino ledgers are offline exports after all timed episodes; use minos:st for existing traces.\nUsage counters are opt-in and recorded in run configuration; measure overhead before timed comparisons.\nOnly production wall-clock lane is supported; fixed seeds are not deterministic search.\nQuick: 2 development seeds × 24 locks. Research: 16 seeds × 500 locks.\nDefaults start empty. Stable uses the public marathon-rebuild position with a seeded valid continuation, not its fixed demo tail.\nAbstention is a measured outcome, not a failing command or a top-out. Safety/runner failures exit nonzero.`);return;}
   if(o.child){child(o.child);return;}
   if(process.version!=='v24.20.0')throw Error('Use Node 24.20.0 from .nvmrc; current '+process.version);
   if(o.compare){const report=compare(...o.compare.map(d=>json(path.join(d,'manifest.json'))));console.log(JSON.stringify(report,null,2));return report;}
@@ -106,7 +112,8 @@ function main(args=process.argv.slice(2)) {
   }
   manifest.finishedAt=new Date().toISOString();manifest.complete=manifest.episodes.length===inputs.length;manifest.exitCode=process.exitCode||0;write(manifestPath,manifest);
   const lines=['# ST simulation',`Revision: ${manifest.commit}${manifest.dirty?' (dirty; diagnostic only)':''}`,`Lane: ${manifest.lane}; fixed seeds do not imply deterministic search.`,...manifest.episodes.map(e=>`- ${e.scenario}, seed ${e.seed}: ${e.locks}/${e.cap} locks, ${e.lines} lines; ${e.stop}${e.censored?' (censored)':''}.`),'','No capped run certifies indefinite sustainability or a full Reset. Recorded-action replay verifies actions; rerun asks the current timed engine again.'];fs.writeFileSync(path.join(directory,'report.md'),lines.join('\n')+'\n');
+  if(o['mino-ledger']){manifest.regionalMinoAnalysis={mode:'offline-after-all-episodes',episodes:exportMinoLedgers(directory,manifest.episodes),finishedAt:new Date().toISOString()};manifest.exitCode=process.exitCode||0;write(manifestPath,manifest);}
   return manifest;
 }
 if(require.main===module){try{main();}catch(error){console.error(error.stack);process.exitCode=1;}}
-module.exports={parse,compare,main,failure,readTrace,configuration};
+module.exports={parse,compare,main,failure,readTrace,configuration,exportMinoLedgers};

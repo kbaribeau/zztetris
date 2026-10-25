@@ -132,6 +132,7 @@ function advicePresentation(path,assessment={},construction=null){
   }
   structural=[structural,tactical].filter(Boolean).join(' ');
  }
+ if(facts.levelBaseReentry)structural+=' This one placement restores a recognized Center pattern from the level-two base. It does not repair existing Left gaps or prove the next score.';
  return{reason:holdPrompt(first)+structural,sources:[...ids].map(id=>({...ADVICE_SOURCES[id]}))};
 }
 function observe(input){
@@ -320,6 +321,9 @@ function sameConstructionResult(expected,actual){
 // Construction history is an executable public proof, never an imported mode.
 // Recreate its complete route and bind the consumed prefix to the current board.
 function verifyConstruction(proof,options={}){return proof.kind==='left-foundation'?Y.validate(proof.origin,proof.steps,options):X.validateCertificate(proof.origin,proof.steps,{...options,kind:proof.kind});}
+// A chosen macro retains its proof-specific fields, but never discards work
+// already spent searching and certifying competing continuations.
+function constructionMetrics(candidate,spent,elapsedMs){return{...spent,...candidate.metrics,nodes:spent.nodes,elapsedMs};}
 function constructionAdvice(s,proof,deadline=Infinity,now=()=>Date.now(),maxNodes=12000,budgetTracker=null){
  if(!proof||!Number.isInteger(proof.consumed)||proof.consumed<0||proof.consumed>=proof.steps?.length)return null;
  let visited=0;const charge=n=>{visited+=n||0;if(budgetTracker)budgetTracker.nodes+=n||0;};
@@ -443,6 +447,58 @@ function diversify(nodes,width){const sorted=[...nodes].sort(compare),chosen=[],
  for(const n of sorted){const first=n.path[0],g=[first.target.type,holdCount(first),n.assessment.right.slots.length>0].join(':');if(!groups.has(g)){chosen.push(n);roots.add(n.rootIndex);groups.add(g);if(chosen.length===width)return chosen;}}
  for(const n of sorted)if(!roots.has(n.rootIndex)){chosen.push(n);roots.add(n.rootIndex);if(chosen.length===width)return chosen;}
  const keys=new Set(chosen.map(n=>nodeKey(n)));for(const n of sorted)if(!keys.has(nodeKey(n))){chosen.push(n);keys.add(nodeKey(n));if(chosen.length===width)break;}return chosen;}
+// An exact level-two Center is a construction state, not generic maintenance
+// readiness. Admit only a checked one-lock return to the existing strict shape
+// contract. Neither assess(), opening handoff nor the ordinary beam is widened.
+function levelBaseReentry(s,initial,base,options){
+ if(options.disableConstruction||options.constructionPrevious||initial.maintenanceScope||initial.left.height<2)return null;
+ const level=S.centerLevelBase(s.board,initial.notches),right=S.geometry(s.board,{notches:initial.notches}).right;
+ if(level.status!=='phase-aligned-level-base'||level.level!==2||right.shapeStatus!=='cleared-base')return null;
+ // A saved one-lock re-entry remains a Center resource goal through movement
+ // and HOLD. Other pending goals cannot be displaced by this shorter proof.
+ const saved=options.commitment;
+ if(saved&&saved.advice?.continuation?.length!==1)return null;
+ const now=options.now,deadline=options.deadline,limit=options.maxNodes??45000;
+ const metrics={attempted:1,examined:0,verified:0,selected:false,candidateScanComplete:false};
+ base.metrics.levelBaseReentry=metrics;
+ const root=R.placements(s,{allowHold:options.allowHold!==false,deadline,now,maxNodes:Math.max(0,limit-base.metrics.nodes)});
+ base.metrics.nodes+=root.visited;base.metrics.roots=root.placements.length;
+ const unavailable=()=>({...base,status:root.complete&&metrics.candidateScanComplete?'unsupported-position':'budget-exhausted',reason:'No checked one-placement return from this level-two Center base was found. Other continuations may exist.',assessment:initial});
+ if(!root.complete)return unavailable();
+ // A floor-based Right may not expose a geometric capDemand yet. Do not
+ // spend or postpone an actually playable Z cap to broaden this S-only fix.
+ // Availability comes from these real roots, including empty/double HOLD.
+ if(root.placements.some(p=>p.event.type==='Z'&&!p.event.lines&&p.event.cells.every(([x])=>x>=7)&&S.advanceNotches(s.board,p,initial.notches).valid&&S.transition(s,p,undefined,{notches:initial.notches}).allocation==='right-cap-preparation')){
+  metrics.blockedByAvailableCap=true;
+  return{...base,status:'no-supported-continuation-found',reason:'An executable Z cap takes priority over optional Center re-entry. No supported one-lock continuation was certified.',assessment:initial};
+ }
+ const candidates=[];
+ for(const [index,p]of root.placements.entries()){
+  if(now()>=deadline)break;
+  metrics.examined++;
+  if(p.event.lines||!S.canonicalClear(p.event)||p.event.type!=='S'||!p.event.cells.every(([x])=>x>=4&&x<7))continue;
+  const n=nodeFor({...p},null,initial,index);
+  if(n.cycleDebt||!n.notchValid||!certifiedCavities(n)||n.assessment.maxHeight>=20||!n.assessment.regionalSupport||!reusableCenter(n.assessment.structure.center)||n.assessment.right.slots.length)continue;
+  // Existing imported Left damage remains in the assessment. A reserved
+  // notch is not access debt, but any other newly roofed cell blocks this
+  // deliberately narrow admission rather than borrowing an unproved repair.
+  if(A.newlyCovered(s.board,p.state.board,p.event,n.notches).length)continue;
+  candidates.push(n);metrics.verified++;
+ }
+ metrics.candidateScanComplete=metrics.examined===root.placements.length;
+ let best=candidates.sort(compareConstruction)[0];
+ if(saved){
+  const committed=committedNode(s,saved,root.placements,initial);
+  best=committed&&candidates.find(n=>JSON.stringify(n.path[0].event)===JSON.stringify(committed.path[0].event)&&sameObservedResult(committed.state,n.state));
+ }
+ if(!best)return unavailable();
+ const first=best.path[0],proof={status:'checked-one-lock-return',level:level.level,anchorRow:level.anchorRow,existingLeftCovered:best.assessment.structure.left.covered};
+ first.structuralEvidence.levelBaseReentry=proof;
+ metrics.selected=true;base.metrics.depth=1;base.metrics.completeDepth=metrics.candidateScanComplete?1:0;
+ return{...base,status:'recommended-with-verified-prefix',target:first.target,hold:first.hold,holdCount:holdCount(first),witness:first.witness,...advicePresentation(best.path,best.assessment),
+  continuation:[{target:first.target,hold:first.hold,holdCount:holdCount(first),witness:first.witness,event:first.event,resultContext:context(first.state),structuralEvidence:first.structuralEvidence}],assessment:best.assessment,
+  evidence:{strategy:'canonical-right-ST',levelBaseReentry:proof,cycleResources:cycleResources(best.path),commitmentRetained:Boolean(saved),futureNotches:best.notches,cycleDebt:0,cavityRepair:{status:'verified-prefix-repaired',outstandingCells:[]},verifiedLocks:1,tsdAt:null,knownPieceHorizon:s.queue.length+1,rootEnumerationComplete:true,budgetExhausted:!metrics.candidateScanComplete||now()>=deadline,informationBoundary:!best.state.active,initialSealed:initial.sealed,endpointSealed:best.assessment.sealed,regionalSupport:true,channel:best.assessment.channel,endpointTEntry:'not-established',unresolvedObligations:best.assessment.obligations,structure:best.assessment.structure,claim:'One executable return to a recognized Center pattern; existing damage and future scoring remain unresolved.'}};
+}
 function planCore(raw,options={}){
  const started=Date.now(),now=options.now??(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs);
  let s;try{s=observe(raw);}catch(e){return{status:'invalid-input',revision:raw?.revision??0,target:null,reason:'This snapshot could not be read. Check its format and try again.',errors:[e.message]};}
@@ -475,6 +531,7 @@ function planCore(raw,options={}){
   }
  }
  if(initial.notches.status==='broken'||initial.notches.status==='invalid-history')return{...base,status:'no-supported-continuation-found',reason:'A recognized T-slot opening in column 7 is filled. The coach does not support repairing this pattern yet.',assessment:initial};
+ const reentry=levelBaseReentry(s,initial,base,{...options,now,deadline});if(reentry){reentry.metrics.elapsedMs=Date.now()-started;return reentry;}
  if(!options.disableConstruction&&!initial.maintenanceScope&&initial.center.height<3&&X&&initial.left.height>=2&&initial.notches.status==='established'&&S.geometry(s.board).right.shapeStatus==='staggered-scoring-wall'){
   const repair=X.search(s,{timeMs:Math.max(0,Math.min(680,deadline-now()-70)),maxNodes:Math.max(0,(options.maxNodes??45000)-base.metrics.nodes)});base.metrics.nodes+=repair.search?.visited||0;
   if(repair.valid){const tracker={nodes:0},advice=constructionAdvice(s,{origin:observe(s),steps:repair.continuation.map(p=>({witness:p.witness})),consumed:0},deadline,now,Math.max(0,(options.maxNodes??45000)-base.metrics.nodes),tracker);base.metrics.nodes+=tracker.nodes;if(advice){advice.metrics.search=repair.search;advice.metrics.nodes=base.metrics.nodes;advice.metrics.elapsedMs=now()-started;return advice;}}
@@ -482,6 +539,15 @@ function planCore(raw,options={}){
  if(!initial.maintenanceScope)return{...base,status:'unsupported-position',reason:initial.left.height<2||initial.center.height<3?'The stack is too low for the coach’s supported maintenance patterns. Rebuild manually or choose another position.':'This position is outside the supported right-side ST patterns. The coach expects established left and center stacks with a lower channel in column 8.',assessment:initial};
  const limit=options.maxNodes??45000,maxDepth=options.depth??3,width=options.width??8,expandedRoots=new Set(),accessCache=new Map();let stopped=false;
  base.metrics.accessNodes=0;let searchDeadline=deadline;
+ const usage=options.usageTelemetry?{schemaVersion:1,scope:'maintenance',families:{
+  cleanupBeforeCap:{attempted:0,examined:0,nonISkipped:0,iColumnSkipped:0,iTransitionChecked:0,verified:0,unknown:0},
+  earlyCapFallback:{scanEligible:0,attempted:0,verified:0,selected:0,nodes:0},
+  visibleCyclePreparation:{eligible:0,attempted:0,verified:0,selected:0,nodes:0,unknown:0}
+ },costsMs:{cleanupBeforeCap:0,earlyCapFallback:0,visibleCyclePreparation:0},selected:null}:null;
+ if(usage)base.metrics.usage=usage;
+ // Profiling uses a real clock, never the caller's injected deadline clock.
+ // Inclusive family boundaries overlap; they are not additive rule costs.
+ const usageNow=()=>typeof performance==='object'&&performance.now?performance.now():Date.now();
  const optimistic=n=>({...n,rank:n.rank.map((v,i)=>{
   if(n.qualified)return v;
   const cavity=n.assessment.structure.right.reservoir;
@@ -534,19 +600,56 @@ function planCore(raw,options={}){
   return selected;
  };
  s=extendForced(s);
- const enumerate=state=>{const remaining=limit-base.metrics.nodes;if(remaining<=0||now()>=searchDeadline){stopped=true;return{placements:[],complete:false};}const r=R.placements(state,{allowHold:options.allowHold!==false,maxNodes:remaining,deadline:searchDeadline,now});base.metrics.nodes+=r.visited;if(!r.complete)stopped=true;const caps=S.geometry(state.board).right.completions;const sameCells=(a,b)=>a.length===b.length&&a.every(([x,y])=>b.some(([u,v])=>x===u&&y===v));const availableCap=r.placements.some(p=>p.event.type==='Z'&&caps.some(c=>sameCells(p.event.cells,c.cells)));for(const p of r.placements)p.availableCap=availableCap;
+ const enumerate=state=>{const remaining=limit-base.metrics.nodes;if(remaining<=0||now()>=searchDeadline){stopped=true;return{placements:[],complete:false};}const r=R.placements(state,{allowHold:options.allowHold!==false,maxNodes:remaining,deadline:searchDeadline,now});base.metrics.nodes+=r.visited;if(!r.complete)stopped=true;const priorGeometry=S.geometry(state.board),caps=priorGeometry.right.completions;const sameCells=(a,b)=>a.length===b.length&&a.every(([x,y])=>b.some(([u,v])=>x===u&&y===v));const availableCap=r.placements.some(p=>p.event.type==='Z'&&caps.some(c=>sameCells(p.event.cells,c.cells)));for(const p of r.placements)p.availableCap=availableCap;
  // The cap must not seal a currently executable outer-I cleanup preparation.
  // Establish both placements from actual supply; a geometric I silhouette or
  // a hypothetical future Z is insufficient to constrain another root move.
+ const cleanupStarted=usage?usageNow():0;
+ if(usage)usage.families.cleanupBeforeCap.attempted++;
  const cleanupBeforeCap=r.placements.some(first=>{
+  if(usage)usage.families.cleanupBeforeCap.examined++;
+  // Only an actual I lock can prepare cleanup. Test the emitted event, not
+  // preview membership: empty HOLD may expose a currently executable I.
+  // The current preparation column is also a necessary condition, not a
+  // substitute for full scoring precedence and post-placement qualification.
+  if(first.event.type!=='I'){if(usage)usage.families.cleanupBeforeCap.nonISkipped++;return false;}
+  if(priorGeometry.right.cycle.prepareColumn===null||!first.event.cells.every(([x])=>x===priorGeometry.right.cycle.prepareColumn)){if(usage)usage.families.cleanupBeforeCap.iColumnSkipped++;return false;}
+  if(usage)usage.families.cleanupBeforeCap.iTransitionChecked++;
   if(S.transition(state,first).allocation!=='quad-preparation'||S.geometry(first.state.board).right.cycle.phase!=='cap-rebuild-with-cleanup-prepared')return false;
   let after=first.state,prefix=[];
   if(after.active?.type!=='Z'){if(options.allowHold===false||after.hold!=='Z')return false;const held=R.move(after,'HOLD');if(held===after||held.topOut)return false;after=held;prefix=['HOLD'];}
   return S.geometry(after.board).right.completions.some(cap=>{const r=R.replay(first.state,[...prefix,...cap.witness]);return r.valid&&r.events.length===1&&r.events[0].type==='Z'&&!r.events[0].lines&&!r.state.topOut;});
  });
+ if(usage){usage.families.cleanupBeforeCap.verified+=Number(cleanupBeforeCap);usage.families.cleanupBeforeCap.unknown+=Number(!r.complete&&!cleanupBeforeCap);usage.costsMs.cleanupBeforeCap+=usageNow()-cleanupStarted;}
  for(const p of r.placements)p.availableCleanupPreparation=cleanupBeforeCap;
  return r;};
  const root=enumerate(s);base.metrics.roots=root.placements.length;
+ // Save a fully checked one-lock cap before optional multi-lock preparation.
+ // This is a backup, never an early return or authority to skip a saved goal.
+ // Actual root enumeration establishes any competing executable cleanup I.
+ let earlyCapFallback=null;
+ const fallbackMetrics={attempted:0,verified:0,selected:false,nodes:0};
+ if(root.complete&&!options.commitment&&!options.constructionPrevious){
+  const fallbackStarted=usage?usageNow():0;if(usage)usage.families.earlyCapFallback.scanEligible=1;
+  const startNodes=base.metrics.nodes,caps=S.geometry(s.board).right.completions;
+  const sameCells=(a,b)=>a.length===b.length&&a.every(([x,y])=>b.some(([u,v])=>x===u&&y===v));
+  for(const [index,p]of root.placements.entries()){
+   if(now()>=deadline||base.metrics.nodes>=limit)break;
+   if(p.event.type!=='Z'||p.event.lines||!p.event.cells.every(([x])=>x>=7)||!caps.some(c=>sameCells(c.cells,p.event.cells)))continue;
+   fallbackMetrics.attempted++;
+   const n=nodeFor({...p},null,initial,index);
+   if(n.path[0].structuralEvidence.allocation!=='right-cap-preparation'||n.cycleDebt||!n.notchValid||!certifiedCavities(n)||n.assessment.maxHeight>=20||!n.assessment.regionalSupport)continue;
+   qualify([n]);
+   if(!n.qualified||n.assessment.right.entry?.status==='unresolved-budget')continue;
+   const proof=A.prefix(s,n.path,{notches:initial.notches,deadline,now,maxNodes:Math.max(0,limit-base.metrics.nodes)});
+   base.metrics.nodes+=proof.visited;base.metrics.gapAccessNodes=(base.metrics.gapAccessNodes||0)+proof.visited;
+   if(proof.reachable!==true)continue;
+   n.path[0].gapAccess=proof;earlyCapFallback=n;fallbackMetrics.verified=1;break;
+  }
+  fallbackMetrics.nodes=base.metrics.nodes-startNodes;
+  if(usage){Object.assign(usage.families.earlyCapFallback,{attempted:fallbackMetrics.attempted,verified:fallbackMetrics.verified,nodes:fallbackMetrics.nodes});usage.costsMs.earlyCapFallback+=usageNow()-fallbackStarted;}
+ }
+ base.metrics.earlyCapFallback=fallbackMetrics;
  let foundationStage=null;
  if(!options.disableConstruction&&!options.commitment&&Y){const stage=Y.search(initial.state,root.placements,{rootComplete:root.complete,deadline:Number.isFinite(deadline)?Math.min(deadline-25,now()+100):Infinity,now,maxNodes:Math.min(12000,Math.max(0,limit-base.metrics.nodes))});base.metrics.nodes+=stage.visited;if(stage.candidate){const tracker={nodes:0};foundationStage=constructionAdvice(s,stage.candidate,deadline,now,Math.max(0,limit-base.metrics.nodes),tracker);base.metrics.nodes+=tracker.nodes;}base.metrics.leftFoundationCandidate=Boolean(foundationStage);}
  // Reuse the already enumerated first moves. This short construction macro
@@ -656,6 +759,8 @@ function planCore(raw,options={}){
  const visible=[s.active.type,...s.queue],tIndex=s.hold==='T'?-1:visible.indexOf('T'),zIndex=s.hold==='Z'?-1:visible.indexOf('Z');
  const capPending=S.geometry(s.board).right.cycle.phase.startsWith('cap-rebuild')||S.geometry(s.board).right.cycle.phase==='post-clear-rebuild';
  if(!preparation&&!preparationUnresolved&&maxDepth>=3&&options.allowHold!==false&&capPending&&(tIndex>=0||s.hold==='T')&&(zIndex>tIndex||s.hold==='Z')&&zIndex<=5&&(zIndex<=3||tIndex===0||s.hold==='T'||s.hold==='Z')&&s.active.type!=='Z'){
+  const preparationStarted=usage?usageNow():0,preparationStartNodes=base.metrics.nodes;
+  if(usage){usage.families.visibleCyclePreparation.eligible=1;usage.families.visibleCyclePreparation.attempted=1;}
   const admissible=n=>n.cycleDebt===0&&n.notchValid&&n.assessment.maxHeight<20;
   let candidates=root.placements.filter(p=>p.event.type!=='T'&&S.canonicalClear(p.event)).map((p,i)=>nodeFor(p,null,initial,i)).filter(admissible);
   const rootBands=new Map(candidates.map(n=>[n.rootIndex,n.rank[3]]));
@@ -705,6 +810,7 @@ function planCore(raw,options={}){
    const unique=new Map();for(const n of next){const key=nodeKey(n),prior=unique.get(key);if(!prior||compare(n,prior)<0)unique.set(key,n);}beam=diversify([...unique.values()],4);
   }
   preparationUnresolved=proofStopped&&!preparation;
+  if(usage){Object.assign(usage.families.visibleCyclePreparation,{verified:Number(Boolean(preparation)),unknown:Number(preparationUnresolved),nodes:base.metrics.nodes-preparationStartNodes});usage.costsMs.visibleCyclePreparation+=usageNow()-preparationStarted;}
  }
  const spendsReservedT=(p,parent=null)=>(preparation||preparationUnresolved)&&p.event.type==='T'&&p.event.lines===0&&!parent?.path.some(step=>step.event.type==='T'&&step.event.lines===2&&step.event.spin==='full');
  let frontier=qualify(root.placements.filter(p=>S.canonicalClear(p.event)&&!spendsReservedT(p)).map((p,i)=>nodeFor(p,null,initial,i)).filter(n=>n.notchValid));
@@ -768,7 +874,7 @@ function planCore(raw,options={}){
   }
   if(!ordinary||ordinary.path.length!==candidate.continuation.length)continue;
   const mass=ordinary.state.board.reduce((n,row)=>n+[...row].filter(c=>c!=='.').length,0),cm=candidate.metrics.endpointMass;
-  if(candidate.assessment.maxHeight<=ordinary.assessment.maxHeight&&cm<=mass&&(candidate.assessment.maxHeight<ordinary.assessment.maxHeight||cm<mass)){candidate.metrics.elapsedMs=now()-started;return candidate;}
+  if(candidate.assessment.maxHeight<=ordinary.assessment.maxHeight&&cm<=mass&&(candidate.assessment.maxHeight<ordinary.assessment.maxHeight||cm<mass)){candidate.metrics=constructionMetrics(candidate,base.metrics,now()-started);if(usage){usage.selected={path:'cap-deferral',locks:candidate.continuation.length};candidate.metrics.usage=usage;}return candidate;}
  }
  if(foundationStage){
   // Admission is a complete finite alternative, not proof that an unknown
@@ -783,9 +889,10 @@ function planCore(raw,options={}){
     }
    }
   }
-  if(replace){foundationStage.metrics={...base.metrics,...foundationStage.metrics,nodes:base.metrics.nodes,depth:base.metrics.depth,completeDepth:base.metrics.completeDepth,stageProofLocks:2,elapsedMs:now()-started};return foundationStage;}
+  if(replace){if(usage)usage.selected={path:'left-foundation',locks:foundationStage.continuation.length};foundationStage.metrics={...constructionMetrics(foundationStage,base.metrics,now()-started),depth:base.metrics.depth,completeDepth:base.metrics.completeDepth,stageProofLocks:2};return foundationStage;}
  }
  if(best&&!accessSafe(best))best=cleanBest([...comparisonLayer,...frontier]);
+ if(!best&&earlyCapFallback&&!commitment&&!cleanupCommitment){best=earlyCapFallback;fallbackMetrics.selected=true;base.metrics.depth=Math.max(base.metrics.depth,1);}
  if(!best)return{...base,status:stopped?'budget-exhausted':'no-supported-continuation-found',reason:stopped?'The search limit was reached before finding a checked move. A valid continuation may still exist.':'No supported ST sequence was found within this search. Other continuations may exist.'};
  if(best.assessment.maxHeight>=20||!best.assessment.regionalSupport)return{...base,status:'no-supported-continuation-found',reason:'The checked sequences did not retain enough space and a supported stack shape. No move is recommended.',assessment:best.assessment};
  const first=best.path[0],verified=R.replay(s,first.witness);if(!verified.valid)return{...base,status:'invalid-witness',reason:'The suggested input sequence failed validation, so it is not shown.'};
@@ -812,17 +919,28 @@ function planCore(raw,options={}){
    }
   }
  }
+ const preparationProof=preparation&&preparation.path.every((p,i)=>best.path[i]&&p.event.type===best.path[i].event.type&&p.event.lines===best.path[i].event.lines&&p.event.spin===best.path[i].event.spin&&JSON.stringify(p.state.board)===JSON.stringify(best.path[i].state.board)&&p.state.hold===best.path[i].state.hold&&JSON.stringify(p.state.queue)===JSON.stringify(best.path[i].state.queue))?{kind:preparationKind,locks:preparation.path.length,claim:'Executed preparation preserves an available T for a checked double.'}:null;
+ if(usage){
+  usage.families.earlyCapFallback.selected=Number(fallbackMetrics.selected);
+  usage.families.visibleCyclePreparation.selected=Number(Boolean(preparationProof&&preparationKind!=='visible-I-Z-held-T'));
+  usage.selected={path:fallbackMetrics.selected?'early-cap-fallback':best===commitment?'retained-commitment':preparationProof?'preparation:'+preparationKind:'ordinary',locks:best.path.length,rank:best.rank.slice()};
+ }
  const presentation=advicePresentation(best.path,best.assessment);
  return{...base,status:'recommended-with-verified-prefix',target:first.target,hold:first.hold,holdCount:holdCount(first),witness:first.witness,...presentation,
  continuation:best.path.map(p=>({target:p.target,hold:p.hold,holdCount:holdCount(p),witness:p.witness,event:p.event,resultContext:context(p.state),structuralEvidence:p.structuralEvidence})),
- evidence:{strategy:'canonical-right-ST',cycleResources:cycleResources(best.path),commitmentRetained:best===commitment,futureNotches:best.notches,preparationProof:preparation&&preparation.path.every((p,i)=>best.path[i]&&p.event.type===best.path[i].event.type&&p.event.lines===best.path[i].event.lines&&p.event.spin===best.path[i].event.spin&&JSON.stringify(p.state.board)===JSON.stringify(best.path[i].state.board)&&p.state.hold===best.path[i].state.hold&&JSON.stringify(p.state.queue)===JSON.stringify(best.path[i].state.queue))?{kind:preparationKind,locks:preparation.path.length,claim:'Executed preparation preserves an available T for a checked double.'}:null,cycleDebt:best.cycleDebt,cavityRepair:{status:'verified-prefix-repaired',outstandingCells:best.cavityDebt},clearPolicy:'right-region full T-spin doubles and I tetrises only',verifiedLocks:best.path.length,tsdAt:tsdAt>=0?tsdAt+1:null,knownPieceHorizon:s.queue.length+1,rootEnumerationComplete:root.complete,budgetExhausted:stopped,informationBoundary:!best.state.active,initialSealed:initial.sealed,endpointSealed:best.assessment.sealed,regionalSupport:best.assessment.regionalSupport,channel:best.assessment.channel,endpointTEntry:best.assessment.right.entry?.status??'not-established',unresolvedObligations:best.assessment.obligations,structuralScore:best.structuralScore,structuralRank:best.rank,structure:best.assessment.structure,dependencyDebt:best.dependencyDebt,claim:'Finite executable prefix; endpoint estimates are not a sustainability guarantee.'},assessment:best.assessment};
+ evidence:{strategy:'canonical-right-ST',cycleResources:cycleResources(best.path),commitmentRetained:best===commitment,futureNotches:best.notches,preparationProof,cycleDebt:best.cycleDebt,cavityRepair:{status:'verified-prefix-repaired',outstandingCells:best.cavityDebt},clearPolicy:'right-region full T-spin doubles and I tetrises only',verifiedLocks:best.path.length,tsdAt:tsdAt>=0?tsdAt+1:null,knownPieceHorizon:s.queue.length+1,rootEnumerationComplete:root.complete,budgetExhausted:stopped,informationBoundary:!best.state.active,initialSealed:initial.sealed,endpointSealed:best.assessment.sealed,regionalSupport:best.assessment.regionalSupport,channel:best.assessment.channel,endpointTEntry:best.assessment.right.entry?.status??'not-established',unresolvedObligations:best.assessment.obligations,structuralScore:best.structuralScore,structuralRank:best.rank,structure:best.assessment.structure,dependencyDebt:best.dependencyDebt,claim:'Finite executable prefix; endpoint estimates are not a sustainability guarantee.'},assessment:best.assessment};
 }
 function plan(raw,options={}){
  const now=options.now||(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs),result=planCore(raw,{...options,deadline});
  if(!result?.target)return result;
  const state=observe(raw),check=A.prefix(state,result.continuation||[],{notches:H.resolve(state,options.patternHistory),deadline,now,maxNodes:Math.max(0,(options.maxNodes??45000)-(result.metrics?.nodes||0))});
- if(check?.reachable===true)return{...result,evidence:{...result.evidence,gapAccess:check},metrics:{...result.metrics,nodes:(result.metrics?.nodes||0)+check.visited}};
- return{...result,status:check?.reachable===false?'no-supported-continuation-found':'budget-exhausted',target:null,witness:[],continuation:[],reason:'No move with checked access to its newly covered construction cells was found. A different repair may exist.',evidence:{gapAccess:check}};
+ const finalMetrics={...result.metrics,nodes:(result.metrics?.nodes||0)+(check?.visited||0)};
+ if(check?.reachable===true)return{...result,evidence:{...result.evidence,gapAccess:check},metrics:finalMetrics};
+ if(finalMetrics.earlyCapFallback)finalMetrics.earlyCapFallback.selected=false;
+ if(finalMetrics.levelBaseReentry)finalMetrics.levelBaseReentry.selected=false;
+ if(finalMetrics.tieExtension)finalMetrics.tieExtension.selected=false;
+ if(finalMetrics.usage?.scope==='maintenance'){finalMetrics.usage.selected=null;for(const family of Object.values(finalMetrics.usage.families))if('selected'in family)family.selected=0;}
+ return{...result,metrics:finalMetrics,status:check?.reachable===false?'no-supported-continuation-found':'budget-exhausted',target:null,witness:[],continuation:[],reason:'No move with checked access to its newly covered construction cells was found. A different repair may exist.',evidence:{gapAccess:check}};
 }
 // Keep a committed target through an exactly followed input, including HOLD.
 // The entire remaining prefix is replayed from the new observation, so a newly

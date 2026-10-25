@@ -87,3 +87,12 @@ A historical example explains the need: a parity repair looked locally cleaner y
 ## Relationship to unit and browser tests
 
 `npm test` still runs the focused rules, hold, bag-information, certificates, regression, UI/worker races, settings and navigation suites. `test/st-simulation.test.cjs` checks the runner itself with cheap controlled advice and real rules; this does not launch the research workload. Simulations replace repeated ad hoc scratch scripts and manual strategy playthroughs, not these independent assertions. Minimize discovered failures into named regression fixtures. Keep change-triggered real-browser checks for visual/input/Worker fidelity.
+
+## Regional material and original-bag accounting
+
+Use `npm run minos:st -- --episode EPISODE_DIRECTORY` for offline replay/export,
+or append `--mino-ledger` to a new run to export after every timed episode has
+finished. This adds no planner metadata or scoring rule. The
+[regional mino ledger](st-regional-mino-ledger.md) documents cellwise 4/3/3 regions,
+original-bag HOLD identity where verified, honest unknown imports, rolling
+windows, conservation checks and JSON/CSV fields.

@@ -1,0 +1,1026 @@
+{
+  "complete": true,
+  "baselineCommit": "8c5bbb9a1899c76b0123b6d690416ed1abf8e068",
+  "candidateCommit": "8c612346aead65febe183211d06a169f5edb1c28",
+  "config": {
+    "depth": 3,
+    "width": 8,
+    "maxNodes": 45000,
+    "timeMs": 1500
+  },
+  "totals": {
+    "baseline": {
+      "episodes": 5,
+      "locks": 426,
+      "handoffs": 4,
+      "joint": 3,
+      "invalidRecommendations": 0,
+      "stops": {
+        "abstention": 5
+      },
+      "censored": 0
+    },
+    "candidate": {
+      "episodes": 5,
+      "locks": 469,
+      "handoffs": 5,
+      "joint": 3,
+      "invalidRecommendations": 0,
+      "stops": {
+        "abstention": 5
+      },
+      "censored": 0
+    }
+  },
+  "status": "retained narrowly scoped development feature; not an acceptance sample or general reliability claim",
+  "protocol": {
+    "seedsInOrder": [
+      502923646,
+      503552020,
+      502609459,
+      502400001,
+      503237833
+    ],
+    "cap": 150,
+    "vmWatchdogMs": 2500,
+    "freshProcesses": true,
+    "serialAlternatingArms": true,
+    "retries": 0,
+    "replayedRecordedLocks": 895,
+    "acceptanceSample": false
+  },
+  "timing": {
+    "baseline": {
+      "decisions": 431,
+      "maxNodes": 45000,
+      "maxMetricsElapsedMs": 1435,
+      "maxWorkerWallMs": 1438.7951209999992,
+      "workerWallAbove1500": 0,
+      "plannerReportedAbove1500": 0,
+      "medianMs": 874.9883330000011,
+      "p95Ms": 1147.9177839999993
+    },
+    "candidate": {
+      "decisions": 474,
+      "maxNodes": 45000,
+      "maxMetricsElapsedMs": 1545,
+      "maxWorkerWallMs": 1548.3204600000026,
+      "workerWallAbove1500": 3,
+      "plannerReportedAbove1500": 3,
+      "medianMs": 886.8403669999971,
+      "p95Ms": 1172.7509740000023
+    }
+  },
+  "pairs": [
+    {
+      "seed": 502923646,
+      "firstDifferingEvent": {
+        "lock": 3,
+        "baseline": {
+          "type": "I",
+          "target": {
+            "type": "I",
+            "x": 3,
+            "y": 35,
+            "rotation": 1
+          },
+          "cells": [
+            [
+              5,
+              35
+            ],
+            [
+              5,
+              36
+            ],
+            [
+              5,
+              37
+            ],
+            [
+              5,
+              38
+            ]
+          ],
+          "lines": 0,
+          "clearedRows": [],
+          "spin": "none",
+          "topOut": false
+        },
+        "candidate": {
+          "type": "I",
+          "target": {
+            "type": "I",
+            "x": -1,
+            "y": 36,
+            "rotation": 3
+          },
+          "cells": [
+            [
+              0,
+              36
+            ],
+            [
+              0,
+              37
+            ],
+            [
+              0,
+              38
+            ],
+            [
+              0,
+              39
+            ]
+          ],
+          "lines": 0,
+          "clearedRows": [],
+          "spin": "none",
+          "topOut": false
+        }
+      },
+      "commonHorizon": 25,
+      "differences": {
+        "firstEvent": 3,
+        "firstActions": 3,
+        "firstPublicState": 3,
+        "firstPhase": 18
+      },
+      "baseline": {
+        "locks": 25,
+        "lines": 0,
+        "stop": "abstention",
+        "censored": false,
+        "handoff": null,
+        "jointAt": null,
+        "invalidRecommendations": 0,
+        "phaseBudgets": {
+          "opening": {
+            "decisions": 26,
+            "explicitLimit": 0,
+            "budgetAbstentions": 0
+          }
+        },
+        "final": {
+          "height": 19,
+          "meanSkylineHeight": 11.9,
+          "occupiedRowsEquivalent": 10,
+          "mass": 100,
+          "sealed": 1,
+          "leftSealed": 0,
+          "parity": -2,
+          "regionalSupport": true,
+          "maintenanceScope": true
+        },
+        "firstFoundationVacancy": 8,
+        "maxLeftCovered": 9,
+        "finalLeftCovered": 9,
+        "common": {
+          "lock": 25,
+          "metrics": {
+            "lock": 25,
+            "lines": 0,
+            "tsds": 0,
+            "quads": 0,
+            "height": 19,
+            "meanSkylineHeight": 11.9,
+            "occupiedRowsEquivalent": 10,
+            "mass": 100,
+            "sealed": 1,
+            "leftSealed": 0,
+            "parity": -2,
+            "regionalSupport": true,
+            "maintenanceScope": true,
+            "centerDebt": 0,
+            "cavityDebt": 0
+          },
+          "leftCovered": 9,
+          "foundationStatus": "unfinished-lower-foundation",
+          "foundationVacancies": [
+            [
+              6,
+              35
+            ],
+            [
+              6,
+              36
+            ]
+          ]
+        },
+        "extensionCalls": [],
+        "firstMaintenanceAdvisedLock": null,
+        "softTimeOverruns": []
+      },
+      "candidate": {
+        "locks": 68,
+        "lines": 14,
+        "stop": "abstention",
+        "censored": false,
+        "handoff": 16,
+        "jointAt": null,
+        "invalidRecommendations": 0,
+        "phaseBudgets": {
+          "opening": {
+            "decisions": 16,
+            "explicitLimit": 0,
+            "budgetAbstentions": 0
+          },
+          "maintenance": {
+            "decisions": 53,
+            "explicitLimit": 4,
+            "budgetAbstentions": 0
+          }
+        },
+        "final": {
+          "height": 19,
+          "meanSkylineHeight": 14.2,
+          "occupiedRowsEquivalent": 13.2,
+          "mass": 132,
+          "sealed": 2,
+          "leftSealed": 0,
+          "parity": -2,
+          "regionalSupport": true,
+          "maintenanceScope": true
+        },
+        "firstFoundationVacancy": null,
+        "maxLeftCovered": 1,
+        "finalLeftCovered": 1,
+        "common": {
+          "lock": 25,
+          "metrics": {
+            "lock": 25,
+            "lines": 4,
+            "tsds": 2,
+            "quads": 0,
+            "height": 10,
+            "meanSkylineHeight": 6.2,
+            "occupiedRowsEquivalent": 6,
+            "mass": 60,
+            "sealed": 0,
+            "leftSealed": 0,
+            "parity": 0,
+            "regionalSupport": true,
+            "maintenanceScope": true,
+            "centerDebt": 0,
+            "cavityDebt": 0
+          },
+          "leftCovered": 0,
+          "foundationStatus": "aligned",
+          "foundationVacancies": []
+        },
+        "extensionCalls": [
+          {
+            "lockField": 3,
+            "target": {
+              "type": "I",
+              "x": -1,
+              "y": 36,
+              "rotation": 3
+            },
+            "rootTies": {
+              "added": 1,
+              "originalWidth": 6,
+              "total": 7
+            },
+            "extension": {
+              "attempted": 1,
+              "selected": true,
+              "nodes": 1922,
+              "complete": true
+            },
+            "totalNodes": 6981,
+            "wallMs": 492.98003000000006
+          }
+        ],
+        "firstMaintenanceAdvisedLock": 17,
+        "softTimeOverruns": [
+          {
+            "kind": "lock",
+            "lockField": 47,
+            "requestId": 47,
+            "phase": "maintenance",
+            "wallMs": 1548.3204600000026,
+            "metricsElapsedMs": 1545,
+            "nodes": 23452,
+            "extension": null
+          },
+          {
+            "kind": "lock",
+            "lockField": 48,
+            "requestId": 48,
+            "phase": "maintenance",
+            "wallMs": 1509.2120859999995,
+            "metricsElapsedMs": 1505,
+            "nodes": 22476,
+            "extension": null
+          },
+          {
+            "kind": "lock",
+            "lockField": 49,
+            "requestId": 49,
+            "phase": "maintenance",
+            "wallMs": 1534.640883999993,
+            "metricsElapsedMs": 1531,
+            "nodes": 20274,
+            "extension": null
+          }
+        ]
+      }
+    },
+    {
+      "seed": 503552020,
+      "firstDifferingEvent": null,
+      "commonHorizon": 68,
+      "differences": {
+        "firstEvent": null,
+        "firstActions": null,
+        "firstPublicState": null,
+        "firstPhase": null
+      },
+      "baseline": {
+        "locks": 68,
+        "lines": 14,
+        "stop": "abstention",
+        "censored": false,
+        "handoff": 10,
+        "jointAt": null,
+        "invalidRecommendations": 0,
+        "phaseBudgets": {
+          "opening": {
+            "decisions": 10,
+            "explicitLimit": 0,
+            "budgetAbstentions": 0
+          },
+          "maintenance": {
+            "decisions": 59,
+            "explicitLimit": 2,
+            "budgetAbstentions": 0
+          }
+        },
+        "final": {
+          "height": 19,
+          "meanSkylineHeight": 15.7,
+          "occupiedRowsEquivalent": 13.2,
+          "mass": 132,
+          "sealed": 2,
+          "leftSealed": 0,
+          "parity": 0,
+          "regionalSupport": true,
+          "maintenanceScope": true
+        },
+        "firstFoundationVacancy": 43,
+        "maxLeftCovered": 2,
+        "finalLeftCovered": 0,
+        "common": {
+          "lock": 68,
+          "metrics": {
+            "lock": 68,
+            "lines": 14,
+            "tsds": 5,
+            "quads": 1,
+            "height": 19,
+            "meanSkylineHeight": 15.7,
+            "occupiedRowsEquivalent": 13.2,
+            "mass": 132,
+            "sealed": 2,
+            "leftSealed": 0,
+            "parity": 0,
+            "regionalSupport": true,
+            "maintenanceScope": true,
+            "centerDebt": 0,
+            "cavityDebt": 0
+          },
+          "leftCovered": 0,
+          "foundationStatus": "unfinished-lower-foundation",
+          "foundationVacancies": [
+            [
+              6,
+              25
+            ],
+            [
+              4,
+              26
+            ],
+            [
+              6,
+              26
+            ],
+            [
+              4,
+              27
+            ],
+            [
+              6,
+              28
+            ],
+            [
+              5,
+              35
+            ],
+            [
+              5,
+              36
+            ],
+            [
+              4,
+              37
+            ],
+            [
+              5,
+              37
+            ],
+            [
+              6,
+              37
+            ],
+            [
+              4,
+              38
+            ]
+          ]
+        },
+        "extensionCalls": [],
+        "firstMaintenanceAdvisedLock": 11,
+        "softTimeOverruns": []
+      },
+      "candidate": {
+        "locks": 68,
+        "lines": 14,
+        "stop": "abstention",
+        "censored": false,
+        "handoff": 10,
+        "jointAt": null,
+        "invalidRecommendations": 0,
+        "phaseBudgets": {
+          "opening": {
+            "decisions": 10,
+            "explicitLimit": 0,
+            "budgetAbstentions": 0
+          },
+          "maintenance": {
+            "decisions": 59,
+            "explicitLimit": 2,
+            "budgetAbstentions": 0
+          }
+        },
+        "final": {
+          "height": 19,
+          "meanSkylineHeight": 15.7,
+          "occupiedRowsEquivalent": 13.2,
+          "mass": 132,
+          "sealed": 2,
+          "leftSealed": 0,
+          "parity": 0,
+          "regionalSupport": true,
+          "maintenanceScope": true
+        },
+        "firstFoundationVacancy": 43,
+        "maxLeftCovered": 2,
+        "finalLeftCovered": 0,
+        "common": {
+          "lock": 68,
+          "metrics": {
+            "lock": 68,
+            "lines": 14,
+            "tsds": 5,
+            "quads": 1,
+            "height": 19,
+            "meanSkylineHeight": 15.7,
+            "occupiedRowsEquivalent": 13.2,
+            "mass": 132,
+            "sealed": 2,
+            "leftSealed": 0,
+            "parity": 0,
+            "regionalSupport": true,
+            "maintenanceScope": true,
+            "centerDebt": 0,
+            "cavityDebt": 0
+          },
+          "leftCovered": 0,
+          "foundationStatus": "unfinished-lower-foundation",
+          "foundationVacancies": [
+            [
+              6,
+              25
+            ],
+            [
+              4,
+              26
+            ],
+            [
+              6,
+              26
+            ],
+            [
+              4,
+              27
+            ],
+            [
+              6,
+              28
+            ],
+            [
+              5,
+              35
+            ],
+            [
+              5,
+              36
+            ],
+            [
+              4,
+              37
+            ],
+            [
+              5,
+              37
+            ],
+            [
+              6,
+              37
+            ],
+            [
+              4,
+              38
+            ]
+          ]
+        },
+        "extensionCalls": [],
+        "firstMaintenanceAdvisedLock": 11,
+        "softTimeOverruns": []
+      }
+    },
+    {
+      "seed": 502609459,
+      "firstDifferingEvent": null,
+      "commonHorizon": 125,
+      "differences": {
+        "firstEvent": null,
+        "firstActions": null,
+        "firstPublicState": null,
+        "firstPhase": null
+      },
+      "baseline": {
+        "locks": 125,
+        "lines": 36,
+        "stop": "abstention",
+        "censored": false,
+        "handoff": 19,
+        "jointAt": 73,
+        "invalidRecommendations": 0,
+        "phaseBudgets": {
+          "opening": {
+            "decisions": 19,
+            "explicitLimit": 0,
+            "budgetAbstentions": 0
+          },
+          "maintenance": {
+            "decisions": 107,
+            "explicitLimit": 2,
+            "budgetAbstentions": 0
+          }
+        },
+        "final": {
+          "height": 19,
+          "meanSkylineHeight": 15.8,
+          "occupiedRowsEquivalent": 14,
+          "mass": 140,
+          "sealed": 2,
+          "leftSealed": 0,
+          "parity": -1,
+          "regionalSupport": true,
+          "maintenanceScope": true
+        },
+        "firstFoundationVacancy": 75,
+        "maxLeftCovered": 1,
+        "finalLeftCovered": 0,
+        "common": {
+          "lock": 125,
+          "metrics": {
+            "lock": 125,
+            "lines": 36,
+            "tsds": 12,
+            "quads": 3,
+            "height": 19,
+            "meanSkylineHeight": 15.8,
+            "occupiedRowsEquivalent": 14,
+            "mass": 140,
+            "sealed": 2,
+            "leftSealed": 0,
+            "parity": -1,
+            "regionalSupport": true,
+            "maintenanceScope": true,
+            "centerDebt": 0,
+            "cavityDebt": 0
+          },
+          "leftCovered": 0,
+          "foundationStatus": "unfinished-lower-foundation",
+          "foundationVacancies": [
+            [
+              5,
+              33
+            ],
+            [
+              5,
+              34
+            ],
+            [
+              6,
+              35
+            ],
+            [
+              6,
+              36
+            ]
+          ]
+        },
+        "extensionCalls": [],
+        "firstMaintenanceAdvisedLock": 20,
+        "softTimeOverruns": []
+      },
+      "candidate": {
+        "locks": 125,
+        "lines": 36,
+        "stop": "abstention",
+        "censored": false,
+        "handoff": 19,
+        "jointAt": 73,
+        "invalidRecommendations": 0,
+        "phaseBudgets": {
+          "opening": {
+            "decisions": 19,
+            "explicitLimit": 0,
+            "budgetAbstentions": 0
+          },
+          "maintenance": {
+            "decisions": 107,
+            "explicitLimit": 2,
+            "budgetAbstentions": 0
+          }
+        },
+        "final": {
+          "height": 19,
+          "meanSkylineHeight": 15.8,
+          "occupiedRowsEquivalent": 14,
+          "mass": 140,
+          "sealed": 2,
+          "leftSealed": 0,
+          "parity": -1,
+          "regionalSupport": true,
+          "maintenanceScope": true
+        },
+        "firstFoundationVacancy": 75,
+        "maxLeftCovered": 1,
+        "finalLeftCovered": 0,
+        "common": {
+          "lock": 125,
+          "metrics": {
+            "lock": 125,
+            "lines": 36,
+            "tsds": 12,
+            "quads": 3,
+            "height": 19,
+            "meanSkylineHeight": 15.8,
+            "occupiedRowsEquivalent": 14,
+            "mass": 140,
+            "sealed": 2,
+            "leftSealed": 0,
+            "parity": -1,
+            "regionalSupport": true,
+            "maintenanceScope": true,
+            "centerDebt": 0,
+            "cavityDebt": 0
+          },
+          "leftCovered": 0,
+          "foundationStatus": "unfinished-lower-foundation",
+          "foundationVacancies": [
+            [
+              5,
+              33
+            ],
+            [
+              5,
+              34
+            ],
+            [
+              6,
+              35
+            ],
+            [
+              6,
+              36
+            ]
+          ]
+        },
+        "extensionCalls": [],
+        "firstMaintenanceAdvisedLock": 20,
+        "softTimeOverruns": []
+      }
+    },
+    {
+      "seed": 502400001,
+      "firstDifferingEvent": null,
+      "commonHorizon": 102,
+      "differences": {
+        "firstEvent": null,
+        "firstActions": null,
+        "firstPublicState": null,
+        "firstPhase": null
+      },
+      "baseline": {
+        "locks": 102,
+        "lines": 38,
+        "stop": "abstention",
+        "censored": false,
+        "handoff": 11,
+        "jointAt": 66,
+        "invalidRecommendations": 0,
+        "phaseBudgets": {
+          "opening": {
+            "decisions": 11,
+            "explicitLimit": 0,
+            "budgetAbstentions": 0
+          },
+          "maintenance": {
+            "decisions": 92,
+            "explicitLimit": 2,
+            "budgetAbstentions": 0
+          }
+        },
+        "final": {
+          "height": 8,
+          "meanSkylineHeight": 2.9,
+          "occupiedRowsEquivalent": 2.8,
+          "mass": 28,
+          "sealed": 0,
+          "leftSealed": 0,
+          "parity": 0,
+          "regionalSupport": false,
+          "maintenanceScope": false
+        },
+        "firstFoundationVacancy": null,
+        "maxLeftCovered": 1,
+        "finalLeftCovered": 1,
+        "common": {
+          "lock": 102,
+          "metrics": {
+            "lock": 102,
+            "lines": 38,
+            "tsds": 13,
+            "quads": 3,
+            "height": 8,
+            "meanSkylineHeight": 2.9,
+            "occupiedRowsEquivalent": 2.8,
+            "mass": 28,
+            "sealed": 0,
+            "leftSealed": 0,
+            "parity": 0,
+            "regionalSupport": false,
+            "maintenanceScope": false,
+            "centerDebt": 0,
+            "cavityDebt": 0
+          },
+          "leftCovered": 1,
+          "foundationStatus": "aligned",
+          "foundationVacancies": []
+        },
+        "extensionCalls": [],
+        "firstMaintenanceAdvisedLock": 12,
+        "softTimeOverruns": []
+      },
+      "candidate": {
+        "locks": 102,
+        "lines": 38,
+        "stop": "abstention",
+        "censored": false,
+        "handoff": 11,
+        "jointAt": 66,
+        "invalidRecommendations": 0,
+        "phaseBudgets": {
+          "opening": {
+            "decisions": 11,
+            "explicitLimit": 0,
+            "budgetAbstentions": 0
+          },
+          "maintenance": {
+            "decisions": 92,
+            "explicitLimit": 2,
+            "budgetAbstentions": 0
+          }
+        },
+        "final": {
+          "height": 8,
+          "meanSkylineHeight": 2.9,
+          "occupiedRowsEquivalent": 2.8,
+          "mass": 28,
+          "sealed": 0,
+          "leftSealed": 0,
+          "parity": 0,
+          "regionalSupport": false,
+          "maintenanceScope": false
+        },
+        "firstFoundationVacancy": null,
+        "maxLeftCovered": 1,
+        "finalLeftCovered": 1,
+        "common": {
+          "lock": 102,
+          "metrics": {
+            "lock": 102,
+            "lines": 38,
+            "tsds": 13,
+            "quads": 3,
+            "height": 8,
+            "meanSkylineHeight": 2.9,
+            "occupiedRowsEquivalent": 2.8,
+            "mass": 28,
+            "sealed": 0,
+            "leftSealed": 0,
+            "parity": 0,
+            "regionalSupport": false,
+            "maintenanceScope": false,
+            "centerDebt": 0,
+            "cavityDebt": 0
+          },
+          "leftCovered": 1,
+          "foundationStatus": "aligned",
+          "foundationVacancies": []
+        },
+        "extensionCalls": [],
+        "firstMaintenanceAdvisedLock": 12,
+        "softTimeOverruns": []
+      }
+    },
+    {
+      "seed": 503237833,
+      "firstDifferingEvent": null,
+      "commonHorizon": 106,
+      "differences": {
+        "firstEvent": null,
+        "firstActions": null,
+        "firstPublicState": null,
+        "firstPhase": null
+      },
+      "baseline": {
+        "locks": 106,
+        "lines": 28,
+        "stop": "abstention",
+        "censored": false,
+        "handoff": 19,
+        "jointAt": 75,
+        "invalidRecommendations": 0,
+        "phaseBudgets": {
+          "opening": {
+            "decisions": 19,
+            "explicitLimit": 0,
+            "budgetAbstentions": 0
+          },
+          "maintenance": {
+            "decisions": 88,
+            "explicitLimit": 5,
+            "budgetAbstentions": 0
+          }
+        },
+        "final": {
+          "height": 19,
+          "meanSkylineHeight": 15.8,
+          "occupiedRowsEquivalent": 14.4,
+          "mass": 144,
+          "sealed": 3,
+          "leftSealed": 0,
+          "parity": 0,
+          "regionalSupport": true,
+          "maintenanceScope": true
+        },
+        "firstFoundationVacancy": 100,
+        "maxLeftCovered": 2,
+        "finalLeftCovered": 0,
+        "common": {
+          "lock": 106,
+          "metrics": {
+            "lock": 106,
+            "lines": 28,
+            "tsds": 10,
+            "quads": 2,
+            "height": 19,
+            "meanSkylineHeight": 15.8,
+            "occupiedRowsEquivalent": 14.4,
+            "mass": 144,
+            "sealed": 3,
+            "leftSealed": 0,
+            "parity": 0,
+            "regionalSupport": true,
+            "maintenanceScope": true,
+            "centerDebt": 0,
+            "cavityDebt": 0
+          },
+          "leftCovered": 0,
+          "foundationStatus": "unfinished-lower-foundation",
+          "foundationVacancies": [
+            [
+              6,
+              27
+            ],
+            [
+              6,
+              28
+            ]
+          ]
+        },
+        "extensionCalls": [],
+        "firstMaintenanceAdvisedLock": 20,
+        "softTimeOverruns": []
+      },
+      "candidate": {
+        "locks": 106,
+        "lines": 28,
+        "stop": "abstention",
+        "censored": false,
+        "handoff": 19,
+        "jointAt": 75,
+        "invalidRecommendations": 0,
+        "phaseBudgets": {
+          "opening": {
+            "decisions": 19,
+            "explicitLimit": 0,
+            "budgetAbstentions": 0
+          },
+          "maintenance": {
+            "decisions": 88,
+            "explicitLimit": 5,
+            "budgetAbstentions": 0
+          }
+        },
+        "final": {
+          "height": 19,
+          "meanSkylineHeight": 15.8,
+          "occupiedRowsEquivalent": 14.4,
+          "mass": 144,
+          "sealed": 3,
+          "leftSealed": 0,
+          "parity": 0,
+          "regionalSupport": true,
+          "maintenanceScope": true
+        },
+        "firstFoundationVacancy": 100,
+        "maxLeftCovered": 2,
+        "finalLeftCovered": 0,
+        "common": {
+          "lock": 106,
+          "metrics": {
+            "lock": 106,
+            "lines": 28,
+            "tsds": 10,
+            "quads": 2,
+            "height": 19,
+            "meanSkylineHeight": 15.8,
+            "occupiedRowsEquivalent": 14.4,
+            "mass": 144,
+            "sealed": 3,
+            "leftSealed": 0,
+            "parity": 0,
+            "regionalSupport": true,
+            "maintenanceScope": true,
+            "centerDebt": 0,
+            "cavityDebt": 0
+          },
+          "leftCovered": 0,
+          "foundationStatus": "unfinished-lower-foundation",
+          "foundationVacancies": [
+            [
+              6,
+              27
+            ],
+            [
+              6,
+              28
+            ]
+          ]
+        },
+        "extensionCalls": [],
+        "firstMaintenanceAdvisedLock": 20,
+        "softTimeOverruns": []
+      }
+    }
+  ],
+  "verification": {
+    "verifiedAt": "2026-10-25T00:04:05.872Z",
+    "sourceHashesUnchanged": true,
+    "inputHashesUnchanged": true,
+    "runnerHashUnchanged": true,
+    "allProcessesExit0": true,
+    "complete": true,
+    "scope": "Recorded-action replay, exact public state/events/requests; only regenerated commitment.advice.metrics.elapsedMs ignored. All fresh search arms retained, no retries."
+  },
+  "interpretation": [
+    "Only the thin-Center lock3 request attempts or selects this extension.",
+    "All four regression streams preserve every event, action and public state at68/125/102/106 locks, including level-base S at99.",
+    "The target has one Tetris but no joint milestone. It still stops at68 with an aligned lower Center; no Reset or indefinite-survival proof.",
+    "Three later maintenance requests exceed1500ms slightly; the opening extension does not explain them. The750ms restoration goal remains open.",
+    "The rejected generic cohort is preserved separately and is not replaced by this narrowed experiment."
+  ],
+  "sourceArtifactSha256": {
+    "portable-results.json": "18ce0392cd32f1491c89c02657e90232aa8b6caabe437a476d2a35da06709ee4",
+    "verification.json": "840eb8a9102c441c39a24aed2da898642849e035c8b4c53a270cdde3a613b220",
+    "extension-usage-and-divergence.json": "bf9d23bf6381cdaacaaa3e42773b3aa4e09efed128918a5ba9aa04fa9e366bed"
+  }
+}
