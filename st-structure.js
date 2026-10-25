@@ -5,23 +5,30 @@
 const cache=new Map(),substituteCache=new Map(),clone=x=>JSON.parse(JSON.stringify(x));
 const heights=board=>Array.from({length:10},(_,x)=>{const y=board.findIndex(r=>r[x]!=='.');return y<0?0:40-y;});
 const rough=p=>p.slice(1).reduce((n,h,i)=>n+Math.abs(h-p[i]),0);
+// Only immutable shape facts are shared. Board, phase, supply and witness
+// results remain in their existing calculation/cache scope.
+const COMPLETION_POSES=Object.freeze(Object.fromEntries([...'IJLOSTZ'].map(piece=>[piece,Object.freeze(Array.from({length:4},(_,rotation)=>{
+ const offsets=Object.freeze(R.cells({type:piece,x:0,y:0,rotation}).map(cell=>Object.freeze(cell)));
+ return Object.freeze({offsets,minX:Math.min(...offsets.map(c=>c[0])),maxX:Math.max(...offsets.map(c=>c[0]))});
+}))])));
 // Positive three-row center motifs observed in the two existing Fumen sources.
 // Local occupancy only: no board height, left/right state, fixture ID or move
 // sequence. Unknown motifs remain legal; this is a deliberately small grammar.
 const CENTER_MOTIFS=new Set(['###/###/##.','.##/##./###','#../###/##.','..#/.##/.#.','.#./.##/###','.##/.##/.#.','##./##./###','###/##./###','.##/###/###','#../#../##.','.#./.#./.##','.#./##./###','.#./###/###','.#./.##/.##','..#/..#/###','..#/###/###']);
 function centerMotif(board){const rows=board.map(r=>r.slice(4,7).replace(/[^.]/g,'#')),top=rows.findIndex(r=>r!=='...');return top<0?'empty':rows.slice(top,top+3).join('/');}
 
-function covered(board,cols){const h=heights(board);let n=0;for(const x of cols)for(let y=40-h[x];y<40;y++)if(board[y][x]==='.')n++;return n;}
+function covered(board,cols,h=heights(board)){let n=0;for(const x of cols)for(let y=40-h[x];y<40;y++)if(board[y][x]==='.')n++;return n;}
 // Count genuinely sealed voids separately from covered but side-accessible
 // scoring cavities. Air reachability is necessary, not sufficient, piece access.
-function sealed(board,cols){const top=Math.max(0,39-Math.max(...heights(board))),seen=new Uint8Array(400),q=[];for(let x=0;x<10;x++)if(board[top][x]==='.') {seen[top*10+x]=1;q.push(top*10+x);}
+function sealed(board,cols,h=heights(board)){const top=Math.max(0,39-Math.max(...h)),seen=new Uint8Array(400),q=[];for(let x=0;x<10;x++)if(board[top][x]==='.') {seen[top*10+x]=1;q.push(top*10+x);}
  for(let i=0;i<q.length;i++){const n=q[i],x=n%10,y=Math.floor(n/10);for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const xx=x+dx,yy=y+dy,k=yy*10+xx;if(xx>=0&&xx<10&&yy>=top&&yy<40&&!seen[k]&&board[yy][xx]==='.') {seen[k]=1;q.push(k);}}}
  let n=0;for(const x of cols)for(let y=top;y<40;y++)if(board[y][x]==='.'&&!seen[y*10+x])n++;return n;}
 // Straight-drop witnesses from a hypothetical fresh piece. The actual active
 // pose and the order in which this piece becomes available are checked by search.
-function completions(board,lo,hi,pieces,notches){const h0=heights(board),protectedCols=lo===4?[4,5]:[0,1,2,3],out=[],seen=new Set();
+function completions(board,lo,hi,pieces,notches,h0=heights(board)){const protectedCols=lo===4?[4,5]:[0,1,2,3],out=[],seen=new Set();
+ const oldProfile=h0.slice(lo,hi+1),oldPeak=Math.max(...oldProfile),oldRoughness=rough(oldProfile);let baselineSealed;
  for(const piece of pieces)for(let rotation=0;rotation<4;rotation++){
-  const offsets=R.cells({type:piece,x:0,y:0,rotation}),minX=Math.min(...offsets.map(c=>c[0])),maxX=Math.max(...offsets.map(c=>c[0]));
+  const {offsets,minX,maxX}=COMPLETION_POSES[piece][rotation];
   for(let x=lo-minX;x<=hi-maxX;x++){
    // A straight drop lands above the first occupied cell of each touched
    // column. Check inexpensive height/void invariants before executing a path.
@@ -32,12 +39,11 @@ function completions(board,lo,hi,pieces,notches){const h0=heights(board),protect
    // A non-level repair must fill an existing deep left deficit, not merely
    // add arbitrary surface filler. Keep every new cell below the old peak
    // and improve a column at least three rows below it without roofing holes.
-   const oldPeak=Math.max(...h0.slice(lo,hi+1));
    const partialRepair=lo===0&&!level&&cells.every(([,cy])=>40-cy<=oldPeak)&&
-    protectedCols.some(cx=>oldPeak-h0[cx]>=3&&h[cx]>h0[cx])&&rough(profile)<rough(h0.slice(lo,hi+1));
+    protectedCols.some(cx=>oldPeak-h0[cx]>=3&&h[cx]>h0[cx])&&rough(profile)<oldRoughness;
    if(!level&&!nextSL&&!partialRepair)continue;
    const addsCover=protectedCols.some(cx=>h[cx]-h0[cx]>cells.filter(c=>c[0]===cx).length);
-   if(addsCover){if(lo!==4)continue;const projected=board.map(r=>r.split(''));for(const[cx,cy]of cells)projected[cy][cx]=piece;if(sealed(projected.map(r=>r.join('')),[4,5,6])>sealed(board,[4,5,6]))continue;}
+   if(addsCover){if(lo!==4)continue;const projected=board.map(r=>r.split(''));for(const[cx,cy]of cells)projected[cy][cx]=piece;if(sealed(projected.map(r=>r.join('')),[4,5,6],h)>(baselineSealed??=sealed(board,[4,5,6],h0)))continue;}
    const key=cells.map(c=>c.join(',')).sort().join(';');if(seen.has(key))continue;
    let state=R.createState({board,active:piece,canHold:false});if(!R.fits(board,state.active))continue;const witness=[];
    const turn=rotation===1?'CW':rotation===2?'R180':rotation===3?'CCW':null;if(turn){const n=R.move(state,turn);if(n===state)continue;state=n;witness.push(turn);}
@@ -222,9 +228,9 @@ function geometry(board,options={}){const notches=options.notches??notchPattern(
  // reuse partner evidence from another phase (or from an unanchored board).
  const key=board.map(r=>r.replace(/[IJLOSTZX#]/g,'#')).join('')+JSON.stringify([notches.status,notches.anchorRow,notches.protectedRows,notches.blockedRows]);if(cache.has(key))return cache.get(key);
  const h=heights(board),left=h.slice(0,4),center=h.slice(4,7),right=h.slice(7),flatLeft=new Set(left).size===1,flatCenter=new Set(center).size===1;
- const centerCompletions=flatCenter?[]:completions(board,4,6,'SLOJZ',notches);
- const leftCompletions=flatLeft?[]:completions(board,0,3,'IJLOSTZ');
- const centerInternal=sealed(board,[4,5,6]);const leftInternal=covered(board,[0,1,2,3]);
+ const centerCompletions=flatCenter?[]:completions(board,4,6,'SLOJZ',notches,h);
+ const leftCompletions=flatLeft?[]:completions(board,0,3,'IJLOSTZ',undefined,h);
+ const centerInternal=sealed(board,[4,5,6],h);const leftInternal=covered(board,[0,1,2,3],h);
  const [channel,pedestal,cap]=right,cycle=rightCycle(board,h);
  const rightShape=cycle.shape;
  // Excess right-wall discontinuity creates an extra repair obligation. It is
@@ -236,7 +242,7 @@ function geometry(board,options={}){const notches=options.notches??notchPattern(
  // Permit a one-I-height offset; larger bottlenecks require concrete repair.
  const frontierDebt=Math.max(0,Math.max(...center)-Math.min(...left)-4);
  const scoringRowDebt=Math.max(0,Math.max(...right)-Math.min(...h.slice(0,7))-1);
- const g={frontierDebt,scoringRowDebt,left:{profile:left,flat:flatLeft,roughness:rough(left),covered:leftInternal,horizontalI:flatLeft?{status:'straight-drop-platform',columns:[1,2,3,4]}:null,completions:leftCompletions},center:{foundation:centerFoundation(board,notches),profile:center,status:centerStatus,motif,patternSupport:motifSupported?'reference-supported':'unrecognized',coveredInternal:centerInternal,sealedVoids:centerInternal,coveredCavities:covered(board,[4,5,6]),completionDebt:centerStatus==='unrecognized'?1:0,completions:centerCompletions},right:{profile:right,shapeStatus:rightShape,cycle,renewalDebt,reservoir:capReservoir(board,h),completions:rightShape==='cap-preparation'?capCompletions(board):[]},supportEstimate:(flatLeft?2:0)-rough(left)*1.5-leftInternal*8+(motifSupported?(flatCenter?4:2):centerCompletions.some(c=>c.patternSupport==='reference-supported')?0:-8)-centerInternal*6-renewalDebt*6-frontierDebt*4-scoringRowDebt*3,uncertainty:rightShape==='unrecognized'||centerStatus==='unrecognized'||!motifSupported};
+ const g={frontierDebt,scoringRowDebt,left:{profile:left,flat:flatLeft,roughness:rough(left),covered:leftInternal,horizontalI:flatLeft?{status:'straight-drop-platform',columns:[1,2,3,4]}:null,completions:leftCompletions},center:{foundation:centerFoundation(board,notches),profile:center,status:centerStatus,motif,patternSupport:motifSupported?'reference-supported':'unrecognized',coveredInternal:centerInternal,sealedVoids:centerInternal,coveredCavities:covered(board,[4,5,6],h),completionDebt:centerStatus==='unrecognized'?1:0,completions:centerCompletions},right:{profile:right,shapeStatus:rightShape,cycle,renewalDebt,reservoir:capReservoir(board,h),completions:rightShape==='cap-preparation'?capCompletions(board):[]},supportEstimate:(flatLeft?2:0)-rough(left)*1.5-leftInternal*8+(motifSupported?(flatCenter?4:2):centerCompletions.some(c=>c.patternSupport==='reference-supported')?0:-8)-centerInternal*6-renewalDebt*6-frontierDebt*4-scoringRowDebt*3,uncertainty:rightShape==='unrecognized'||centerStatus==='unrecognized'||!motifSupported};
  if(cache.size>=2048)cache.clear();cache.set(key,g);return g;
 }
 function instances(state){const out=[];if(state.active)out.push({id:'active',piece:state.active.type,source:'active',available:'now'});if(state.hold)out.push({id:'hold',piece:state.hold,source:'hold',available:state.canHold?'hold-now':'after-next-lock'});(state.queue||[]).forEach((piece,i)=>out.push({id:'queue:'+i,piece,source:'visible',drawOffset:i+1,available:'when-drawn'}));if(state.bag){const p=B.forcedNext(state.bag);if(p)out.push({id:'forced-next',piece:p,source:'forced-beyond-preview',available:'after-preview'});}return out;}
