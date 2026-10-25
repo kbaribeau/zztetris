@@ -1,6 +1,6 @@
 /* Bounded opening construction, distinct from established-stack maintenance.
  * Only actual board, active/hold and six public previews enter this search. */
-(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-structure'),require('./st-paired-repair'),()=>require('./st-planner')):factory(root.STRules,root.STStructure,root.STPairedRepair,()=>root.STPlanner);if(typeof module==='object'&&module.exports)module.exports=api;else root.STOpening=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,S,X,getPlanner){
+(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-structure'),require('./st-paired-repair'),require('./st-opening-sources'),require('./st-bag'),()=>require('./st-planner')):factory(root.STRules,root.STStructure,root.STPairedRepair,root.STOpeningSources,root.STBag,()=>root.STPlanner);if(typeof module==='object'&&module.exports)module.exports=api;else root.STOpening=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,S,X,O,B,getPlanner){
 'use strict';
 const clone=x=>JSON.parse(JSON.stringify(x));
 function balance(board){let n=0;for(let y=0;y<40;y++)for(let x=0;x<4;x++)if(board[y][x]!=='.')n+=(x+y)%2?1:-1;return n;}
@@ -236,20 +236,89 @@ function checkedRepair(proof,current,depth=0){
 }
 function startSession(raw,{emptyMode=false}={}){
  const a=getPlanner().assess(raw.board),empty=raw.board.every(r=>r==='..........');
- return{active:Boolean(emptyMode||empty||(!a.maintenanceScope&&a.maxHeight<=4&&a.left.height<2)),clear:null,repair:null};
+ return{active:Boolean(emptyMode||empty||(!a.maintenanceScope&&a.maxHeight<=4&&a.left.height<2)),clear:null,repair:null,source:emptyMode&&O.eligible(raw)?{pattern:null}:null};
 }
 function updateSession(session,before,after,event){
- if(!session?.active)return{active:false,clear:null,repair:null};
+ if(!session?.active)return{active:false,clear:null,repair:null,source:null};
  let repair=null;const old=session.repair;
  if(old){const checked=checkedRepair(old,before);if(checked&&JSON.stringify(checked.path[0].event)===JSON.stringify(event)){
    const r=R.replay(before,['HD']);if(r.valid&&publicMatch(r.state,after)&&old.consumed+1<old.steps.length)repair={...checked.proof,consumed:old.consumed+1};
  }}
- return{active:true,clear:event?.lines&&S.canonicalClear(event)?{before:clone(before),event:clone(event)}:null,repair};
+ const sourceReplay=session.source&&!event?.lines?R.replay(before,['HD']):null;
+ const source=sourceReplay?.valid&&sourceReplay.events.length===1&&JSON.stringify(sourceReplay.events[0])===JSON.stringify(event)&&sourcePublicMatch(sourceReplay.state,after)&&O.compatible(after.board,session.source.pattern).some(p=>p.mask!==127)?clone(session.source):null;
+ return{active:true,clear:event?.lines&&S.canonicalClear(event)?{before:clone(before),event:clone(event)}:null,repair,source};
 }
 function acceptResult(session,result){
- if(session?.active&&result?.phase==='maintenance'&&result?.evidence?.openingHandoff)return{active:false,clear:null,repair:null};
- if(session?.active&&result?.evidence?.opening)return{...session,repair:result.evidence.opening.repair?clone(result.evidence.opening.repair):null};
+ if(session?.active&&result?.phase==='maintenance'&&result?.evidence?.openingHandoff)return{active:false,clear:null,repair:null,source:null};
+ if(session?.active&&result?.evidence?.opening)return{...session,repair:result.evidence.opening.repair?clone(result.evidence.opening.repair):null,source:result.evidence.opening.sourcePlan?{pattern:result.evidence.opening.sourcePlan.id}:session.source||null};
  return session;
+}
+function sourcePublicMatch(expected,actual){
+ const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+ if(!publicMatch(expected,actual)||expected.rules!==actual.rules||expected.revision!==actual.revision)return false;
+ let bag=expected.bag;for(const t of actual.queue.slice(expected.queue.length)){if(!bag)return false;bag=B.consume(bag,t);if(B.validate(bag).length)return false;}
+ return same(bag,actual.bag);
+}
+// Exact source patterns are finite construction goals, not permission to enter
+// maintenance. Only the actual visible inventory participates in the solver.
+function sourceConstruction(state,options,notches,deadline,now,maxNodes){
+ const P=getPlanner(),found=O.solve(state,{preferredId:options.openingSource?.pattern,deadline,now,maxNodes});let visited=found.visited;
+ if(!found.candidate)return{visited,unknown:found.unknown};
+ const route=found.candidate,path=[];let current=state,phase=notches;
+ for(const step of route.steps){
+  if(now()>=deadline||visited+step.witness.length>maxNodes)return{visited,unknown:true};
+  visited+=step.witness.length;const replay=R.replay(current,step.witness);
+  if(!replay.valid||replay.events.length!==1||replay.events[0].lines||!O.compatible(replay.state.board,route.id).some(p=>p.mask===step.to))return{visited,unknown:false};
+  // Finite seven-piece discovery may consume the last known active. This is
+  // not executable advice until a real preview refill supplies its successor.
+  if(!replay.state.active)break;
+  const next=validStep(current.board,{state:replay.state,event:replay.events[0]},phase);if(!next)return{visited,unknown:false};phase=next;
+  const witness=step.witness.slice(),event=replay.events[0];path.push({board:replay.state.board,target:event.target,event,witness,hold:witness.includes('HOLD'),holdCount:witness.filter(a=>a==='HOLD').length});current=replay.state;
+ }
+ if(!path.length||now()>=deadline||visited>=maxNodes)return{visited,unknown:true};
+ const access=P.checkAccessPrefix(state,path,{notches,deadline,now,maxNodes:maxNodes-visited});visited+=access.visited;
+ if(access.reachable!==true||now()>=deadline||visited>maxNodes)return{visited,unknown:access.reachable===null||now()>=deadline};
+ const pattern=O.pattern(route.id),first=path[0],end=facts(current.board,phase),complete=O.compatible(current.board,route.id).some(p=>p.mask===127);
+ const sourcePlan={schemaVersion:1,id:route.id,origin:clone(state),steps:clone(path),consumed:0,pending:route.pending?clone(route.pending):null};
+ return{visited,unknown:false,advice:{status:'recommended-with-verified-prefix',revision:state.revision,phase:'opening',target:first.target,hold:first.hold,holdCount:first.holdCount,witness:first.witness,continuation:path,
+  reason:`Build ${pattern.label}, a verified community opening pattern. Checked ${path.length} legal placement${path.length===1?'':'s'} using only visible pieces. ${complete?'This visible prefix completes the source diagram.':'This is partial construction toward the full diagram; recheck after actual draws.'} A source-pattern milestone does not switch to mid-game; the normal handoff remains separate.`,
+  sources:[{id:route.id,label:pattern.label,url:pattern.url,section:'Section 2-1: normal-gravity 4n+2 opening templates',scope:'Exact full source diagram as a finite construction goal, not a scored handoff or a guarantee about unseen pieces.'}],assessment:P.assess(current.board),
+  evidence:{opening:{status:'partial-construction',initial:facts(state.board,notches),endpoint:end,repair:null,sourcePlan,sourceEndpoint:complete?'exact-full-pattern':'exact-source-subset',unresolved:complete?[]:['source diagram not yet complete in this visible prefix'],handoffCandidate:null},knownPieceHorizon:state.queue.length+1}}};
+}
+// Follow the original input prefix, including real HOLD/draw changes. No pose
+// bridge or source-family replacement is inferred from a moved observation.
+function retainSource(raw,previous,options={},action=null){
+ const proof=previous?.evidence?.opening?.sourcePlan,same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+ if(!proof||proof.schemaVersion!==1||!O.pattern(proof.id)||!Number.isInteger(proof.consumed)||proof.consumed<0||!Array.isArray(proof.steps)||!proof.steps.length||proof.steps.length>7)return null;
+ if(options.openingSource?.pattern&&options.openingSource.pattern!==proof.id)return null;
+ const original=proof.steps[0];
+ for(const step of proof.steps)if(!Array.isArray(step.witness)||step.witness.length>256||step.witness.at(-1)!=='HD'||!same(step.target,step.event?.target)||step.hold!==step.witness.includes('HOLD')||step.holdCount!==step.witness.filter(a=>a==='HOLD').length)return null;
+ const expected=proof.steps.map((step,i)=>{const witness=i?step.witness:step.witness.slice(proof.consumed);return{...step,witness,hold:witness.includes('HOLD'),holdCount:witness.filter(a=>a==='HOLD').length};});
+ if(!same(previous.continuation,expected)||!same(previous.witness,expected[0].witness)||!same(previous.target,original.target)||previous.hold!==expected[0].hold||previous.holdCount!==expected[0].holdCount)return null;
+ if(action!==null&&(action==='HD'||previous.witness[0]!==action))return null;
+ const consumed=proof.consumed+(action!==null?1:0);if(consumed>=original.witness.length)return null;
+ const P=getPlanner(),now=options.now??(()=>Date.now()),deadline=options.deadline??now()+100,limit=options.maxNodes??12000;let origin,state,visited=0;
+ const spend=n=>{if(now()>=deadline||visited+n>limit)return false;visited+=n;return true;};
+ try{
+  try{origin=P.observe(proof.origin);state=P.observe(raw);}catch{return null;}
+  if(origin.rules!==R.PROFILE.id||state.rules!==R.PROFILE.id||R.validate(origin).length||R.validate(state).length||B.validate(origin.bag).length||B.validate(state.bag).length||origin.queue.length>6||state.queue.length>6||now()>=deadline||limit<=0||!O.compatible(origin.board,proof.id).length)return null;
+  if(!spend(consumed))return null;const prefix=R.replay(origin,original.witness.slice(0,consumed));if(!prefix.valid||prefix.events.length||!sourcePublicMatch(prefix.state,state))return null;
+  const notches=P.resolvePatternHistory(state,options.patternHistory);if(notches.status==='invalid-history'||notches.status==='broken')return null;
+  let current=state,phase=notches;const path=[];
+  for(let i=0;i<proof.steps.length;i++){
+   const step=proof.steps[i],witness=i?step.witness.slice():step.witness.slice(consumed);if(!spend(witness.length))return null;
+   const replay=R.replay(current,witness);if(!replay.valid||replay.events.length!==1||!same(replay.events[0],step.event)||!same(replay.events[0].target,step.target)||!same(replay.state.board,step.board)||!O.compatible(replay.state.board,proof.id).length)return null;
+   const next=validStep(current.board,{state:replay.state,event:replay.events[0]},phase);if(!next)return null;phase=next;
+   path.push({...clone(step),witness,hold:witness.includes('HOLD'),holdCount:witness.filter(a=>a==='HOLD').length});current=replay.state;
+  }
+  // Reprove the unadvertised remainder too. A forged shortened prefix is not
+  // authority to retain a source goal that current visible supply cannot finish.
+  const remaining=O.solve(current,{preferredId:proof.id,now,deadline,maxNodes:Math.max(0,limit-visited)});visited+=remaining.visited;
+  if(!remaining.candidate||remaining.unknown||now()>=deadline||visited>limit)return null;
+  const access=P.checkAccessPrefix(state,path,{notches,now,deadline,maxNodes:Math.max(0,limit-visited)});visited+=access.visited;
+  if(access.reachable!==true||now()>=deadline||visited>limit)return null;
+  const first=path[0];return{...previous,revision:state.revision,target:first.target,witness:first.witness,hold:first.hold,holdCount:first.holdCount,continuation:path,retained:true,metrics:{...previous.metrics,nodes:visited,revalidationNodes:visited},evidence:{...previous.evidence,opening:{...previous.evidence.opening,sourcePlan:{...clone(proof),consumed,pending:remaining.candidate.pending?clone(remaining.candidate.pending):null}},knownPieceHorizon:state.queue.length+1}};
+ }finally{if(options.budgetTracker)options.budgetTracker.nodes+=visited;}
 }
 function handoff(state,proof,options){
  const P=getPlanner();if(!proof?.before||!proof.event)return null;
@@ -279,6 +348,12 @@ function plan(raw,options={}){
  const reserved=options.openingClear?Math.min(12000,limit):0;base.metrics.handoffReservedNodes=reserved;
  const initial=P.assess(state.board),initialFacts=facts(state.board,P.resolvePatternHistory(state,options.patternHistory));
  if(initial.maxHeight>=20||initialFacts.notches.status==='broken')return{...base,reason:'This opening needs a repair outside the supported construction search.'};
+ // The session flag enables guidance, not an evaluator certificate. Every
+ // source claim is still regenerated from literal geometry and public inputs.
+ if(options.openingSource&&!O.compatible(state.board,options.openingSource.pattern).some(p=>p.mask===127)&&!options.disableOpeningSources&&!options.openingRepair&&!options.openingClear&&!options.commitment){
+  const source=sourceConstruction(state,options,initialFacts.notches,deadline,now,limit-reserved);base.metrics.nodes+=source.visited;base.metrics.sourceConstruction={nodes:source.visited,unknown:source.unknown,selected:Boolean(source.advice),verifiedLocks:source.advice?.continuation.length||0,endpointComplete:source.advice?.evidence.opening.sourceEndpoint==='exact-full-pattern'};
+  if(source.advice){if(usage){usage.selected={path:'verified-source-pattern',locks:source.advice.continuation.length};usage.families.sourcePattern={selected:1,nodes:source.visited};}return{...base,...source.advice,metrics:{...base.metrics,depth:0,completeDepth:0,enumeration:'verified-source-subset-graph',elapsedMs:now()-started}};}
+ }
  let saved=checkedRepair(options.openingRepair,state);
  const mayClear=initialFacts.notches.status==='established'&&[state.active.type,state.hold,...state.queue.slice(0,3)].some(t=>t==='T'||t==='I');
  const probeReserve=mayClear?Math.min(6000,Math.max(0,limit-reserved)):0;let searchLimit=limit-probeReserve;
@@ -453,5 +528,5 @@ function plan(raw,options={}){
  const sources=[{id:'SHOCKY-OPENING',label:"Shocky's ST Stacking Guide",url:'https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit',section:'Chapters 1–4: regions, construction and mino parity',scope:'Community background for opening construction. The coach checks this finite prefix; the guide does not certify this exact move or future availability.'}];
  return{...base,status:'recommended-with-verified-prefix',target:first.target,hold:first.hold,holdCount:first.holdCount,witness:first.witness,continuation:best.path,reason,sources,assessment:P.assess(best.state.board),evidence:{opening:{status:'partial-construction',initial:initialFacts,endpoint:end,unresolved:pending,repair,handoffCandidate:best.handoffContinuation?{status:'verified-public-post-clear-continuation',continuation:best.handoffContinuation}:null},knownPieceHorizon:state.queue.length+1}};
 }
-return Object.freeze({balance,features,facts,repairEndpoint,foundationTargets,foundationTransition,foundationWitnesses,handoffGeometry,handoff,plan,startSession,updateSession,acceptResult,repairCertificate,closureCertificate,checkedRepair,goalPaid});
+return Object.freeze({balance,features,facts,repairEndpoint,foundationTargets,foundationTransition,foundationWitnesses,handoffGeometry,handoff,plan,retainSource,startSession,updateSession,acceptResult,repairCertificate,closureCertificate,checkedRepair,goalPaid});
 });

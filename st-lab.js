@@ -15,7 +15,7 @@
   window.DAS=das; // shared settings/navigation readback; not a second game engine.
   window.ctrlsPopup=()=>window.open('controls.html','popup','width=1200,height=800');
   const context=$('b').getContext('2d');
-  let state, origin, future=[], futureCursor=0, generated=false, observed=null, openingPhase=false, openingClear=null, openingRepair=null, patternHistory=null;
+  let state, origin, future=[], futureCursor=0, generated=false, observed=null, openingPhase=false, openingClear=null, openingRepair=null, openingSource=null, patternHistory=null;
   let undoHistory=[], turnStart=null;
   let worker=null, requestId=0, debounce=null, watchdog=null, revision=0;
   let result=null, previous=null, commitment=null, coachStatus='idle', coachMessage='';
@@ -37,7 +37,8 @@
   // Keep this exact allowlist independent of imported snapshots and planner data.
   const communitySourceURLs=new Set([
     'https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit',
-    'https://tl.net/forum/games/175252-10000-guide-tetris-ultra-st-stacking'
+    'https://tl.net/forum/games/175252-10000-guide-tetris-ultra-st-stacking',
+    'https://note.com/buri_daicon/n/n03a28dbfe045'
   ]);
   function renderSources(visible) {
     const container=$('st-sources'),list=$('st-source-list');
@@ -106,7 +107,7 @@
             coachStatus='invalid-witness';coachMessage='The suggested move failed validation, so it is not shown.';result=null;render();return;
           }
           result=candidate || null;
-          const phase=STPlanner.acceptOpeningResult({active:openingPhase,clear:openingClear,repair:openingRepair},result);openingPhase=phase.active;openingClear=phase.clear;openingRepair=phase.repair||null;
+          const phase=STPlanner.acceptOpeningResult({active:openingPhase,clear:openingClear,repair:openingRepair,source:openingSource},result);openingPhase=phase.active;openingClear=phase.clear;openingRepair=phase.repair||null;openingSource=phase.source||null;
           coachStatus=result?.status || 'no-supported-continuation-found';
           coachMessage=result?.reason || 'No supported ST sequence was found within this search.';
           if(result?.target){
@@ -123,7 +124,7 @@
         };
         activeWorker.postMessage({type:'plan',id,observation:observation(),previous:previous?clone(previous):null,
           commitment:commitment?clone(commitment):null,
-          options:{timeMs:1500,depth:3,width:8,maxNodes:45000,patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null}});
+          options:{timeMs:1500,depth:3,width:8,maxNodes:45000,patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null}});
         watchdog=setTimeout(()=>{
           if(worker!==activeWorker)return;
           cancel();result=null;coachStatus='budget-exhausted';coachMessage='The coach timed out. A valid continuation may still exist.';render();
@@ -166,7 +167,7 @@
     state=STRules.migrateState({...clone(input),revision:++revision});
     const errors=STRules.validate(state);if(errors.length)throw new Error(errors.join('; '));
     if(state.queue.length>6){future.unshift(...state.queue.slice(6));state={...state,queue:state.queue.slice(0,6)};}
-    replenish();patternHistory=STPlanner.startPatternHistory(observation());previous=null;result=null;commitment=null;lockCount=0;
+    replenish();openingSource=STPlanner.startOpeningSession(observation(),{emptyMode:random&&opening}).source;patternHistory=STPlanner.startPatternHistory(observation());previous=null;result=null;commitment=null;lockCount=0;
     if(!keepOrigin)origin={input:clone(input),options:{tail:tail.slice(),random,history:history?.slice()||null,note,opening}};
     setText($('st-position-note'),note);setText($('st-game-status'),'');requestPlan();render();
   }
@@ -185,7 +186,7 @@
   }
   function checkpoint() {
     return {state:clone(state),futureCursor,observed:observed?.slice()||null,
-      patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null,
+      patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null,
       commitment:commitment?clone(commitment):null,lockCount};
   }
   function undo() {
@@ -193,7 +194,7 @@
     cancel();stopRepeating();
     const saved=undoHistory.pop();
     state={...clone(saved.state),revision:++revision};futureCursor=saved.futureCursor;
-    observed=saved.observed?.slice()||null;openingPhase=saved.openingPhase;openingClear=saved.openingClear?clone(saved.openingClear):null;openingRepair=saved.openingRepair?clone(saved.openingRepair):null;
+    observed=saved.observed?.slice()||null;openingPhase=saved.openingPhase;openingSource=saved.openingSource?clone(saved.openingSource):null;openingClear=saved.openingClear?clone(saved.openingClear):null;openingRepair=saved.openingRepair?clone(saved.openingRepair):null;
     patternHistory=saved.patternHistory?clone(saved.patternHistory):null;
     commitment=saved.commitment?clone(saved.commitment):null;lockCount=saved.lockCount;
     // Never resurrect displayed advice or an old worker response. The saved
@@ -221,7 +222,7 @@
     replenish();
     if(locked){
       patternHistory=STPlanner.updatePatternHistory(patternHistory,beforeLock,observation(),state.lastEvent);
-      if(openingPhase){const phase=STPlanner.updateOpeningSession({active:openingPhase,clear:openingClear,repair:openingRepair},beforeLock,observation(),state.lastEvent);openingPhase=phase.active;openingClear=phase.clear;openingRepair=phase.repair||null;}
+      if(openingPhase){const phase=STPlanner.updateOpeningSession({active:openingPhase,clear:openingClear,repair:openingRepair,source:openingSource},beforeLock,observation(),state.lastEvent);openingPhase=phase.active;openingClear=phase.clear;openingRepair=phase.repair||null;openingSource=phase.source||null;}
       // Keep the proof's original public observation, not an input-history
       // guess. The planner checks that the actual lock matches its first step,
       // then replays the suffix using only the newly visible observation.

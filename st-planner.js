@@ -950,6 +950,8 @@ function plan(raw,options={}){
  const state=observe(raw),check=A.prefix(state,result.continuation||[],{notches:H.resolve(state,options.patternHistory),deadline,now,maxNodes:Math.max(0,(options.maxNodes??45000)-(result.metrics?.nodes||0))});
  const finalMetrics={...result.metrics,nodes:(result.metrics?.nodes||0)+(check?.visited||0)};
  if(check?.reachable===true)return{...result,evidence:{...result.evidence,gapAccess:check},metrics:finalMetrics};
+ if(finalMetrics.sourceConstruction)finalMetrics.sourceConstruction.selected=false;
+ if(finalMetrics.usage?.scope==='opening'&&finalMetrics.usage.selected?.path==='verified-source-pattern'){finalMetrics.usage.selected=null;if(finalMetrics.usage.families.sourcePattern)finalMetrics.usage.families.sourcePattern.selected=0;}
  if(finalMetrics.earlyCapFallback)finalMetrics.earlyCapFallback.selected=false;
  if(finalMetrics.levelBaseReentry)finalMetrics.levelBaseReentry.selected=false;
  if(finalMetrics.tieExtension)finalMetrics.tieExtension.selected=false;
@@ -960,6 +962,7 @@ function plan(raw,options={}){
 // The entire remaining prefix is replayed from the new observation, so a newly
 // revealed piece cannot silently preserve an obsolete proof.
 function advance(raw,previous,action,options={}){
+ if(previous?.evidence?.opening?.sourcePlan)return openingModule().retainSource(raw,previous,options,action);
  if(previous?.evidence?.opening)return null;
  if(previous?.evidence?.cycleDebt>0)return null;
  if(!previous?.target||action==='HD'||previous.witness?.[0]!==action)return null;
@@ -980,6 +983,7 @@ function advance(raw,previous,action,options={}){
 }
 function revalidate(raw,previous,options={}){
  const now=options.now||(()=>Date.now());options={...options,deadline:options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs),now};
+ if(previous?.evidence?.opening?.sourcePlan)return openingModule().retainSource(raw,previous,options);
  if(previous?.evidence?.opening)return null;
  let s;try{s=observe(raw);}catch{return null;}if(previous?.evidence?.cycleDebt>0||previous?.continuation?.some(p=>!S.canonicalClear(p.event)))return null;if(!previous?.target||context(s)!==previous.context||R.validate(s).length)return null;
  if(previous.evidence?.construction){

@@ -27,7 +27,10 @@ test('opening foundation goal survives real page preview refresh/HOLD/Undo and r
  const workers=[];g.window.Worker=class{constructor(){workers.push(this);}postMessage(m){this.message=clone(m);}terminate(){}respond(a){this.onmessage({data:{type:'result',id:this.message.id,revision:this.message.observation.revision,result:clone(a)}});}};
  const values=[];for(const desired of ['OILJTSZ','IJSZTLO','JLOTISZ']){const bag=[...'IJLOSTZ'];for(let i=6;i>0;i--){const j=bag.indexOf(desired[i]);values.push((j+.25)/(i+1));[bag[i],bag[j]]=[bag[j],bag[i]];}}g.window.Math.random=()=>values.shift();
  const select=g.element('#st-fixture');select.value='empty';select.dispatchEvent(new g.window.Event('change'));
- const req=()=>{g.advance(40);return workers.at(-1).message;};let q=req(),a=P.decide(q.observation,{...q.options,...options});assert.equal(a.evidence.opening.repair.goal.endpoint,'finite-foundation');workers.at(-1).respond(a);
+ // Seed the literal generic repair fixture, not today's empty-root ranking.
+ // All subsequent requests keep source guidance enabled: it must not take
+ // over this already-pending foundation goal through HOLD/refill/Undo.
+ const req=()=>{g.advance(40);return workers.at(-1).message;};let q=req(),a=P.decide(q.observation,{...q.options,...options,disableOpeningSources:true});assert.equal(a.evidence.opening.repair.goal.endpoint,'finite-foundation');workers.at(-1).respond(a);
  for(let i=0;i<2;i++){for(const action of a.witness)g.window.stLab.act(action);q=req();assert.equal(q.observation.queue.length,6);assert.equal(q.options.openingRepair.consumed,i+1);a=P.decide(q.observation,{...q.options,...options});workers.at(-1).respond(a);}
  assert.equal(a.target.type,'J');assert.equal(a.witness[0],'HOLD');g.window.stLab.act('HOLD');q=req();const checked=O.checkedRepair(q.options.openingRepair,q.observation);assert.ok(checked);assert.equal(checked.path[0].holdCount,0);
  a=P.decide(q.observation,{...q.options,...options});workers.at(-1).respond(a);for(const action of a.witness)g.window.stLab.act(action);q=req();assert.equal(q.options.openingRepair,null);assert.deepEqual(q.observation.board,f.endpointBoard);

@@ -16,7 +16,7 @@ const clone = x => JSON.parse(JSON.stringify(x));
 // intentionally omits that field from its worker message. Match that boundary.
 function publicObservation(state){const observation=P.observe(state);delete observation.lastEvent;return observation;}
 const digest = x => crypto.createHash('sha256').update(typeof x === 'string' ? x : JSON.stringify(x)).digest('hex');
-const SOURCE_FILES = ['st-rules.js', 'st-bag.js', 'st-structure.js', 'st-paired-repair.js', 'st-access.js', 'st-pattern-history.js', 'st-left-foundation.js', 'st-planner.js', 'st-opening.js', 'st-worker.js', 'st-lab.js', 'st-fixtures.js', 'scripts/lib/st-simulation.cjs', 'scripts/simulate-st.cjs'];
+const SOURCE_FILES = ['st-rules.js', 'st-bag.js', 'st-structure.js', 'st-paired-repair.js', 'st-access.js', 'st-pattern-history.js', 'st-left-foundation.js', 'st-planner.js', 'st-opening-patterns.js','st-opening-sources.js','st-opening.js', 'st-worker.js', 'st-lab.js', 'st-fixtures.js', 'scripts/lib/st-simulation.cjs', 'scripts/simulate-st.cjs'];
 const CONFIG = Object.freeze({depth:3, width:8, maxNodes:45000, timeMs:1500});
 const PRESETS = Object.freeze({quick:{seeds:[10331, 20333], locks:24}, research:{seeds:Array.from({length:16}, (_,i) => 810001 + i * 997), locks:500}});
 const RNG_VERSION = 'mulberry32-seven-bag-v1';
@@ -103,7 +103,7 @@ function createSession(input, api=P) {
   }
   return {
     get state(){return state;}, get cursor(){return cursor;}, get opening(){return clone(opening);},
-    request(id,options) { return {type:'plan',id,observation:publicObservation(state),previous:previous?clone(previous):null,commitment:commitment?clone(commitment):null,options:{...options,patternHistory:patternHistory?clone(patternHistory):null,openingPhase:opening.active,openingClear:opening.clear?clone(opening.clear):null,openingRepair:opening.repair?clone(opening.repair):null}}; },
+    request(id,options) { return {type:'plan',id,observation:publicObservation(state),previous:previous?clone(previous):null,commitment:commitment?clone(commitment):null,options:{...options,patternHistory:patternHistory?clone(patternHistory):null,openingPhase:opening.active,openingSource:opening.source?clone(opening.source):null,openingClear:opening.clear?clone(opening.clear):null,openingRepair:opening.repair?clone(opening.repair):null}}; },
     execute(advice) {
       const proof=validateAdvice(state,advice);
       const requiredDraws=state.queue.length-proof.state.queue.length;
