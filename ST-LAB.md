@@ -103,3 +103,13 @@ for retained changes, rejected variants, matched results and publication limits.
 simulation analysis, with verified original-bag identities through HOLD and
 explicit unknown imports. It does not change the live UI, planner observations,
 ranking or resource rules.
+
+Observed Midgame resources are shown in the existing diagnostics details:
+exact Center partner debt, HOLD/draw identities, source-backed Hanging S,
+and Extra Z only after a verified source opening baseline. Unknown imports
+stay unknown; clears never renew the allowance. These facts do not change
+planner requests, ranking, or Reset behavior. Public simulation recordings
+can be checked offline with `node scripts/analyze-st-resources.cjs trace.jsonl`;
+add `--observed-empty-start` only for a recording known to begin at a fresh
+local empty seven-bag start. This is separate from generator-provenance mino
+accounting and does not certify an arbitrary imported history.

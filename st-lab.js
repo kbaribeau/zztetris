@@ -15,7 +15,7 @@
   window.DAS=das; // shared settings/navigation readback; not a second game engine.
   window.ctrlsPopup=()=>window.open('controls.html','popup','width=1200,height=800');
   const context=$('b').getContext('2d');
-  let state, origin, future=[], futureCursor=0, generated=false, observed=null, openingPhase=false, openingClear=null, openingRepair=null, openingSource=null, patternHistory=null;
+  let state, origin, future=[], futureCursor=0, generated=false, observed=null, openingPhase=false, openingClear=null, openingRepair=null, openingSource=null, patternHistory=null, resourceHistory=null;
   let undoHistory=[], turnStart=null;
   let worker=null, requestId=0, debounce=null, watchdog=null, revision=0;
   let result=null, previous=null, commitment=null, coachStatus='idle', coachMessage='';
@@ -107,7 +107,8 @@
             coachStatus='invalid-witness';coachMessage='The suggested move failed validation, so it is not shown.';result=null;render();return;
           }
           result=candidate || null;
-          const phase=STPlanner.acceptOpeningResult({active:openingPhase,clear:openingClear,repair:openingRepair,source:openingSource},result);openingPhase=phase.active;openingClear=phase.clear;openingRepair=phase.repair||null;openingSource=phase.source||null;
+          const wasOpening=openingPhase;const phase=STPlanner.acceptOpeningResult({active:openingPhase,clear:openingClear,repair:openingRepair,source:openingSource},result);openingPhase=phase.active;openingClear=phase.clear;openingRepair=phase.repair||null;openingSource=phase.source||null;
+          if(wasOpening&&!openingPhase&&resourceHistory)resourceHistory=STResourceHistory.markHandoff(resourceHistory,observation());
           coachStatus=result?.status || 'no-supported-continuation-found';
           coachMessage=result?.reason || 'No supported ST sequence was found within this search.';
           if(result?.target){
@@ -167,7 +168,7 @@
     state=STRules.migrateState({...clone(input),revision:++revision});
     const errors=STRules.validate(state);if(errors.length)throw new Error(errors.join('; '));
     if(state.queue.length>6){future.unshift(...state.queue.slice(6));state={...state,queue:state.queue.slice(0,6)};}
-    replenish();openingSource=STPlanner.startOpeningSession(observation(),{emptyMode:random&&opening}).source;patternHistory=STPlanner.startPatternHistory(observation());previous=null;result=null;commitment=null;lockCount=0;
+    replenish();openingSource=STPlanner.startOpeningSession(observation(),{emptyMode:random&&opening}).source;patternHistory=STPlanner.startPatternHistory(observation());resourceHistory=STResourceHistory.start(observation(),{fresh:random&&opening});previous=null;result=null;commitment=null;lockCount=0;
     if(!keepOrigin)origin={input:clone(input),options:{tail:tail.slice(),random,history:history?.slice()||null,note,opening}};
     setText($('st-position-note'),note);setText($('st-game-status'),'');requestPlan();render();
   }
@@ -186,7 +187,7 @@
   }
   function checkpoint() {
     return {state:clone(state),futureCursor,observed:observed?.slice()||null,
-      patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null,
+      resourceHistory,patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null,
       commitment:commitment?clone(commitment):null,lockCount};
   }
   function undo() {
@@ -195,7 +196,7 @@
     const saved=undoHistory.pop();
     state={...clone(saved.state),revision:++revision};futureCursor=saved.futureCursor;
     observed=saved.observed?.slice()||null;openingPhase=saved.openingPhase;openingSource=saved.openingSource?clone(saved.openingSource):null;openingClear=saved.openingClear?clone(saved.openingClear):null;openingRepair=saved.openingRepair?clone(saved.openingRepair):null;
-    patternHistory=saved.patternHistory?clone(saved.patternHistory):null;
+    patternHistory=saved.patternHistory?clone(saved.patternHistory):null;resourceHistory=saved.resourceHistory;
     commitment=saved.commitment?clone(saved.commitment):null;lockCount=saved.lockCount;
     // Never resurrect displayed advice or an old worker response. The saved
     // proof is only a candidate for replay against this restored public state.
@@ -207,7 +208,7 @@
     if(action==='UNDO'){undo();return;}
     if(action==='RESET'){if(origin)resetState(origin.input,{...origin.options,keepOrigin:true});return;}
     if(!state.active)return;
-    const beforeLock=action==='HD'?observation():null;
+    const beforeAction=observation(),beforeLock=action==='HD'?beforeAction:null;
     const next=STRules.move(state,action);
     if(next===state)return;
     if(!turnStart)turnStart=checkpoint();
@@ -220,6 +221,7 @@
     }
     // Active movement does not expose pieces; only draws shorten the preview.
     replenish();
+    resourceHistory=STResourceHistory.applyAction(resourceHistory,beforeAction,action,{...observation(),lastEvent:state.lastEvent});
     if(locked){
       patternHistory=STPlanner.updatePatternHistory(patternHistory,beforeLock,observation(),state.lastEvent);
       if(openingPhase){const phase=STPlanner.updateOpeningSession({active:openingPhase,clear:openingClear,repair:openingRepair,source:openingSource},beforeLock,observation(),state.lastEvent);openingPhase=phase.active;openingClear=phase.clear;openingRepair=phase.repair||null;openingSource=phase.source||null;}
@@ -262,7 +264,12 @@
     $('st-status').hidden=!visible;$('st-diagnostics').hidden=!visible;
     if(visible){setText($('st-status'),`${coachMessage}`);$('st-status').dataset.result=coachStatus;}
     renderSources(visible);
-    setText($('st-diagnostic-text'),JSON.stringify({status:coachStatus,revision:state.revision,
+    const resources=STResourceHistory.resolve(observation(),resourceHistory);
+    const sLabel={hanging:'observed surplus','none-observed':'none observed in the checked interval',unknown:'unknown history or allocation','out-of-profile':'outside the reviewed source profile'}[resources.hangingS.status];
+    const zLabel={available:'unused in the verified interval',used:'used in the verified interval',unknown:'eligibility unknown','out-of-profile':'outside the reviewed source profile'}[resources.extraZ.status];
+    const centerLabel=resources.center?`${resources.center.pending.length} pending, ${resources.center.debt.length} diverted`:'unknown';
+    setText($('st-resource-summary'),`${resources.terminal?'Game ended; historical facts only. ':''}Hanging S: ${sLabel}. Extra Z: ${zLabel}. Observed Center partners: ${centerLabel}. These are diagnostics, not placement instructions.`);
+    setText($('st-diagnostic-text'),JSON.stringify({status:coachStatus,revision:state.revision,resources,
       ...(result?{metrics:result.metrics,evidence:result.evidence,horizon:result.horizon,continuation:result.continuation}:{}),
       note:'Only the shown sequence has been checked. Continued ST play is not guaranteed.'},null,2));
     context.clearRect(0,0,200,440);
@@ -338,7 +345,7 @@
   });
   for(const mode of playModes){const option=document.createElement('option');option.value=mode.id;option.textContent=mode.label;$('st-fixture').append(option);}
   setText($('st-key-help'),actions.map((action,i)=>`${config[i]}: ${action.toLowerCase()}`).join(' · ')+' · Set bindings in Game Settings.');
-  window.stLab=Object.freeze({render,act,loadFixture,snapshot:()=>clone(observation()),get result(){return result?clone(result):null;}});
+  window.stLab=Object.freeze({render,act,loadFixture,snapshot:()=>clone(observation()),get resources(){return STResourceHistory.resolve(observation(),resourceHistory);},get result(){return result?clone(result):null;}});
   let savedMode;try{savedMode=localStorage.getItem(modeKey);}catch{ /* Fall back to the stable stack. */ }
   chooseMode(savedMode,{persist:false});
   if(savedMode && !playModes.some(m=>m.id===savedMode))rememberMode(stableId);
