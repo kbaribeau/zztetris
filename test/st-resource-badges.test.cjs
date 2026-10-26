@@ -10,7 +10,7 @@ const badge=(g,id,status,observed)=>{
  assert.equal(el.getAttribute('aria-describedby'),id+'-detail');
  assert.equal(g.element('#'+id+'-piece').hidden,status==='out-of-profile');
  assert.equal(g.element('#'+id+'-symbol').textContent,status==='unknown'?'?':status==='out-of-profile'?'≠':'');
- assert.equal(g.element('#'+id+'-name').textContent,id==='st-hanging-s'?'Hanging S':'Extra Z');
+ assert.equal(g.element('#'+id+'-name').textContent,{'st-hanging-s':'Hanging S','st-hanging-l':'Hanging L','st-extra-z':'Extra Z'}[id]);
  assert.ok(g.element('#'+id+'-detail').textContent.startsWith(el.getAttribute('aria-label'))||g.element('#'+id+'-detail').textContent.startsWith('Game ended; historical facts only.'));
 };
 function select(g,value){g.element('#st-fixture').value=value;g.element('#st-fixture').dispatchEvent(new g.window.Event('change'));}
@@ -27,7 +27,7 @@ function advance(g,run,until){for(;run.index<run.f.steps.length&&run.locks<until
 const hidden={storage:{stGuideVisible:'false'}};
 test('resource badges: unknown history retains dim outlined pieces beside separate accessible-detail markers',()=>withPage('st-lab.html',hidden,g=>{
  const check=()=>{
-  for(const id of ['st-hanging-s','st-extra-z']){
+  for(const id of ['st-hanging-s','st-hanging-l','st-extra-z']){
    badge(g,id,'unknown',false);
    const piece=g.element('#'+id+'-piece'),symbol=g.element('#'+id+'-symbol');
    assert.equal(piece.closest('[hidden]'),null);
@@ -46,14 +46,16 @@ test('resource badges: unknown history retains dim outlined pieces beside separa
 }));
 test('resource badges: initial, empty, and imported unknown are distinct from an observed negative',()=>withPage('st-lab.html',hidden,g=>{
  badge(g,'st-hanging-s','unknown',false);badge(g,'st-extra-z','unknown',false);
- select(g,'empty');badge(g,'st-hanging-s','unknown',false);badge(g,'st-extra-z','unknown',false);
+ select(g,'empty');badge(g,'st-hanging-s','none-observed',false);badge(g,'st-hanging-l','none-observed',false);badge(g,'st-extra-z','unknown',false);
  assert.match(g.element('#st-extra-z').getAttribute('aria-label'),/eligibility unknown/);
- assert.match(g.element('#st-hanging-s-detail').textContent,/checkpoint/);
+ assert.match(g.element('#st-hanging-l-detail').textContent,/normal Center SL awaiting its L is separate; no L repair strategy is implied/);
  const run=play(g,2,23);assert.equal(run.locks,23);
  badge(g,'st-hanging-s','none-observed',false);badge(g,'st-extra-z','available',false);
  assert.match(g.element('#st-hanging-s').getAttribute('aria-label'),/none observed in the checked interval/);
  assert.match(g.element('#st-extra-z').getAttribute('aria-label'),/unused in the verified interval/);
  assert.ok(g.window.stLab.resources.center.pending.length,'ordinary SL debt is not itself Hanging S');
+ badge(g,'st-hanging-l','none-observed',false);
+ assert.match(g.element('#st-resource-summary').textContent,/Hanging L: none observed/);
 }));
 test('resource badges: actual Z use highlights, movement/HOLD does not spend, Undo restores pre-turn allocation',()=>withPage('st-lab.html',hidden,g=>{
  const run=play(g,1,20),before=g.snapshot();badge(g,'st-extra-z','available',false);
@@ -67,12 +69,25 @@ test('resource badges: observed S highlights until actual Left accommodation; Un
  advance(g,run,19);badge(g,'st-hanging-s','none-observed',false);
  g.window.stLab.act('UNDO');badge(g,'st-hanging-s','hanging',true);
 }));
+test('resource badges: observed opener L surplus survives HOLD and clears only on actual allocation; Undo restores it',()=>withPage('st-lab.html',hidden,g=>{
+ play(g,1,0);assert.equal(g.snapshot().active.type,'S');
+ for(const action of ['L','L','L','HD'])g.window.stLab.act(action);
+ badge(g,'st-hanging-l','hanging',true);badge(g,'st-extra-z','unknown',false);
+ assert.equal(g.window.stLab.resources.hangingL.evidence[0].lId,2);
+ assert.match(g.element('#st-hanging-l-detail').textContent,/no L repair strategy is implied/);
+ for(const action of ['HOLD','HOLD'])g.window.stLab.act(action);
+ badge(g,'st-hanging-l','hanging',true);
+ for(const action of ['L','L','L','HD'])g.window.stLab.act(action);
+ badge(g,'st-hanging-l','none-observed',false);
+ g.window.stLab.act('UNDO');badge(g,'st-hanging-l','hanging',true);
+ imported(g,g.snapshot());badge(g,'st-hanging-l','unknown',false);
+}));
 test('resource badges: an identical imported board loses history; restarts and mode changes do not invent allowance',()=>withPage('st-lab.html',hidden,g=>{
  play(g,1,24);badge(g,'st-hanging-s','hanging',true);badge(g,'st-extra-z','used',true);
  const s=g.snapshot();imported(g,{...s,resources:{extraZ:{status:'available'},hangingS:{status:'hanging'}}});
  assert.deepEqual(g.snapshot().board,s.board);badge(g,'st-hanging-s','unknown',false);badge(g,'st-extra-z','unknown',false);
- play(g,1,24);g.click('#st-reset');badge(g,'st-hanging-s','unknown',false);badge(g,'st-extra-z','unknown',false);
- play(g,1,24);g.tap('KeyR');badge(g,'st-hanging-s','unknown',false);badge(g,'st-extra-z','unknown',false);
+ play(g,1,24);g.click('#st-reset');badge(g,'st-hanging-s','none-observed',false);badge(g,'st-hanging-l','none-observed',false);badge(g,'st-extra-z','unknown',false);
+ play(g,1,24);g.tap('KeyR');badge(g,'st-hanging-s','none-observed',false);badge(g,'st-hanging-l','none-observed',false);badge(g,'st-extra-z','unknown',false);
  play(g,1,24);select(g,'marathon-rebuild');badge(g,'st-hanging-s','unknown',false);badge(g,'st-extra-z','unknown',false);
 }));
 test('resource badges: outside-profile uses a distinct mark and never implies confirmed absence',()=>withPage('st-lab.html',hidden,g=>{
@@ -88,9 +103,10 @@ test('resource badges: advice hidden, hypothetical worker allocations, stale/err
  g.click('#st-toggle');assert.equal(g.element('#st-status').hidden,true);
  badge(g,'st-hanging-s','hanging',true);badge(g,'st-extra-z','used',true);
  assert.deepEqual(g.snapshot().board,state.board);assert.equal(g.window.stLab.resources.extraZ.allocations.length,facts.extraZ.allocations.length);
+ assert.deepEqual(clone(g.window.stLab.resources.hangingL),facts.hangingL,'Hypothetical or stale worker results cannot replace actual L allocation facts');
 }));
 test('resource badges: keyboard focus exposes descriptions without gameplay, Escape dismisses until refocus',()=>withPage('st-lab.html',hidden,g=>{
- for(const id of ['st-phase','st-hanging-s','st-extra-z']){
+ for(const id of ['st-phase','st-hanging-s','st-hanging-l','st-extra-z']){
  const el=g.element('#'+id),before=g.snapshot();el.focus();
  const tap=code=>{for(const type of ['keydown','keyup'])el.dispatchEvent(new g.window.KeyboardEvent(type,{code,bubbles:true}));};
  assert.ok(g.element('#'+el.getAttribute('aria-describedby')).textContent);
@@ -102,7 +118,7 @@ test('resource badges: keyboard focus exposes descriptions without gameplay, Esc
 test('resource badges: top-out is explicitly historical even with advice hidden; Undo removes terminal qualifier',()=>withPage('st-lab.html',hidden,g=>{
  const board=R.emptyBoard();board[20]='XXXXXXXXX.';imported(g,R.createState({board,active:'O',queue:[]}));
  g.window.stLab.act('HD');assert.equal(g.element('#st-resource-terminal').hidden,false);
- assert.match(g.element('#st-extra-z-detail').textContent,/Game ended; historical facts only/);
+ for(const id of ['st-hanging-s','st-hanging-l','st-extra-z'])assert.match(g.element('#'+id+'-detail').textContent,/Game ended; historical facts only/);
  g.window.stLab.act('UNDO');assert.equal(g.element('#st-resource-terminal').hidden,true);
- assert.doesNotMatch(g.element('#st-extra-z-detail').textContent,/Game ended/);
+ for(const id of ['st-hanging-s','st-hanging-l','st-extra-z'])assert.doesNotMatch(g.element('#'+id+'-detail').textContent,/Game ended/);
 }));

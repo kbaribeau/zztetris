@@ -174,11 +174,17 @@ function importContext(raw,context){
  }catch{return invalid(raw,'Could not validate resource replay context.');}
 }
 function hanging(h){
- if(!h.fresh||!h.opening.quality)return{status:'unknown',evidence:[],reason:'No fully observed balanced flat-Center checkpoint; observed identities and geometry remain separate facts.'};
- const since=h.extraZ.baseline?.qualityAt??h.opening.quality.at,bags=new Map(),evidence=[],unclassified=[];
+ if(!h.fresh)return{status:'unknown',evidence:[],reason:'Earlier S/L allocations and identities are unknown; geometry alone cannot establish surplus.'};
+ const since=0,bags=new Map(),evidence=[],unclassified=[];
  for(const p of Object.values(h.pieces)){if(!'SL'.includes(p.type))continue;const b=bags.get(p.bag)||{};b[p.type]=p;bags.set(p.bag,b);}
  for(const [bag,{S:s,L:l}] of bags){
-  if(!l?.allocation||l.allocation.at<=since)continue;
+  if(!l?.allocation)continue;
+  const pending=s&&h.center.pending.some(p=>p.family==='SL'&&p.rootId===s.id);
+  // An opener foundation S already consumed before this L is not retroactive
+  // debt. A still-pending exact SL root, however, survives a diverted L.
+  const owedAtDiversion=pending||s&&h.center.closed.some(p=>p.family==='SL'&&p.rootId===s.id&&p.at>=l.allocation.at);
+  const foundationEnd=Math.min(h.milestones.sourcePattern?.at??Infinity,h.milestones.firstTsd?.at??Infinity,h.milestones.maintenanceHandoff?.at??Infinity);
+  if(s?.allocation?.region==='center'&&s.allocation.at<=foundationEnd&&s.allocation.at<l.allocation.at&&!owedAtDiversion&&!s.pair)continue;
   const disposed=s&&(s.allocation?.region==='left'||s.pair?.family==='SL');
   if(disposed)continue;
   // A consumed L is unavailable to its own S even when it crosses the
@@ -191,13 +197,34 @@ function hanging(h){
  const lostProfile=h.opening.violations.length||h.extraZ.departures.length||h.extraZ.allocations.length>1||(!h.milestones.firstTsd&&(h.opening.counts.TNonRight>2||h.opening.counts.ZNonRight>1));
  return{status:lostProfile||evidence.length>1?'out-of-profile':evidence.length?'hanging':unclassified.length?'unknown':'none-observed',evidence,unclassified,since,reason:evidence.length?'Source-backed observed surplus; exact Center completion debt is a separate fact.':'No supported Hanging-S event in the reviewed interval; this is not proof of globally balanced arbitrary play.'};
 }
+// L identification is deliberately not a mirrored repair strategy. A supported
+// pending SL is a construction awaiting L, not an extra L. Only actual disposal
+// of its own S (Left or an exact foreign-bag SL pair) establishes surplus.
+function hangingL(h){
+ if(!h.fresh)return{status:'unknown',evidence:[],reason:'Earlier S/L allocations and identities are unknown; geometry alone cannot establish surplus.'};
+ const bags=new Map(),evidence=[],unclassified=[];
+ for(const p of Object.values(h.pieces)){if(!'SL'.includes(p.type))continue;const b=bags.get(p.bag)||{};b[p.type]=p;bags.set(p.bag,b);}
+ for(const [bag,{S:s,L:l}] of bags){
+  if(!s?.allocation||!l)continue;
+  if(l.allocation?.region==='left'||['SL','LO'].includes(l.pair?.family))continue;
+  const paired=s.pair?.family==='SL',at=paired?s.pair.at:s.allocation.at;
+  if(l.allocation&&l.allocation.at<at)continue;
+  const diverted=s.allocation.region==='left'||paired&&s.pair.partnerId!==l.id;
+  if(!diverted)continue;
+  const pendingLO=h.center.pending.some(p=>p.family==='LO'&&p.rootId===l.id);
+  if(l.allocation&&!pendingLO){unclassified.push({bag,lId:l.id,sId:s.id,reason:'The previously surplus L was placed in an unreviewed accommodation; no L repair strategy is inferred.'});continue;}
+  evidence.push({bag,lId:l.id,sId:s.id,at,...(pendingLO?{pendingAccommodation:'LO'}:{}),reason:paired?'The S completed a pair with a different observed L.':'The S was accommodated on Left instead of using its observed L.'});
+ }
+ const lostProfile=h.opening.violations.length||h.extraZ.departures.length||h.extraZ.allocations.length>1||(!h.milestones.firstTsd&&(h.opening.counts.TNonRight>2||h.opening.counts.ZNonRight>1));
+ return{status:lostProfile||evidence.length>1?'out-of-profile':evidence.length?'hanging':unclassified.length?'unknown':'none-observed',evidence,unclassified,since:0,reason:evidence.length?'Observed surplus L identity; pending Center SL and repair capability are separate facts.':'No supported Hanging-L event in the observed interval; no symmetric L repair strategy is assumed.'};
+}
 function resolve(raw,history){
- if(!bound(history,raw))return{coverage:{status:'invalid',reason:'Missing, forged, or stale local event history.'},hangingS:{status:'unknown',evidence:[]},extraZ:{status:'unknown',baseline:null,allocations:[]}};
- if(!history.pieces)return{coverage:clone(history.coverage),actions:history.actions,locks:history.locks,hangingS:{status:'unknown',evidence:[]},extraZ:{status:'unknown',baseline:null,allocations:[]}};
+ if(!bound(history,raw))return{coverage:{status:'invalid',reason:'Missing, forged, or stale local event history.'},hangingS:{status:'unknown',evidence:[]},hangingL:{status:'unknown',evidence:[]},extraZ:{status:'unknown',baseline:null,allocations:[]}};
+ if(!history.pieces)return{coverage:clone(history.coverage),actions:history.actions,locks:history.locks,hangingS:{status:'unknown',evidence:[]},hangingL:{status:'unknown',evidence:[]},extraZ:{status:'unknown',baseline:null,allocations:[]}};
  const h=history,instance=id=>id===null?null:clone(h.pieces[id]);
  const center=clone(h.center);for(const list of ['pending','debt'])for(const obligation of center[list])obligation.rootBag=h.pieces[obligation.rootId]?.bag??null;
  const extraStatus=!h.extraZ.baseline?'unknown':h.extraZ.departures.length||h.extraZ.allocations.length>1?'out-of-profile':h.extraZ.allocations.length?'used':'available';
- return{schemaVersion:1,terminal:Boolean(h.observation.topOut),coverage:clone(h.coverage),actions:h.actions,locks:h.locks,instances:{active:instance(h.active),hold:instance(h.hold),queue:h.queue.map(instance)},flow:{ageKnown:h.fresh,oldestFirst:[h.active,h.hold,...h.queue].filter(id=>id!==null).map(instance).sort((a,b)=>(a.observedOrder??Infinity)-(b.observedOrder??Infinity))},center,hangingS:hanging(h),extraZ:{status:extraStatus,...clone(h.extraZ),reason:!h.extraZ.baseline?'First TSD and source pattern are not sufficient: the source allocation/quality baseline must be verified.':'One optional Left/Center Z per observed Midgame interval; clears never replenish it and no Reset is inferred.'},milestones:clone(h.milestones),allocations:clone(h.allocations),pairs:clone(h.pairs),source:{url:SOURCE,sections:['2','3.2','7','8','9']},note:'Observed resource evidence; planner validates replay context separately. No automatic Reset or allowance renewal.'};
+ return{schemaVersion:1,terminal:Boolean(h.observation.topOut),coverage:clone(h.coverage),actions:h.actions,locks:h.locks,instances:{active:instance(h.active),hold:instance(h.hold),queue:h.queue.map(instance)},flow:{ageKnown:h.fresh,oldestFirst:[h.active,h.hold,...h.queue].filter(id=>id!==null).map(instance).sort((a,b)=>(a.observedOrder??Infinity)-(b.observedOrder??Infinity))},center,hangingS:hanging(h),hangingL:hangingL(h),extraZ:{status:extraStatus,...clone(h.extraZ),reason:!h.extraZ.baseline?'First TSD and source pattern are not sufficient: the source allocation/quality baseline must be verified.':'One optional Left/Center Z per observed Midgame interval; clears never replenish it and no Reset is inferred.'},milestones:clone(h.milestones),allocations:clone(h.allocations),pairs:clone(h.pairs),source:{url:SOURCE,sections:['2','3.2','7','8','9','10']},note:'Observed resource evidence; planner validates replay context separately. No automatic Reset or allowance renewal.'};
 }
 return Object.freeze({start,applyAction,markHandoff,resolve,exportContext,importContext,limits:Object.freeze({actions:MAX_ACTIONS,locks:MAX_LOCKS})});
 });

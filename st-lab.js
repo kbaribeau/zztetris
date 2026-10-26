@@ -283,12 +283,14 @@
     renderSources(visible);
     const resources=STResourceHistory.resolve(observation(),resourceHistory);
     const sLabel={hanging:'observed surplus','none-observed':'none observed in the checked interval',unknown:'unknown history or allocation','out-of-profile':'outside the reviewed source profile'}[resources.hangingS.status];
+    const lLabel={hanging:'observed surplus','none-observed':'none observed in the checked interval',unknown:'unknown history or allocation','out-of-profile':'outside the reviewed source profile'}[resources.hangingL.status];
     const zLabel={available:'unused in the verified interval',used:'used in the verified interval',unknown:'eligibility unknown','out-of-profile':'outside the reviewed source profile'}[resources.extraZ.status];
     renderResourceBadge('st-hanging-s',resources.hangingS.status,`Hanging S: ${sLabel}`,resources.hangingS.reason||resources.coverage.reason,'hanging',resources.terminal);
+    renderResourceBadge('st-hanging-l',resources.hangingL.status,`Hanging L: ${lLabel}`,`${resources.hangingL.reason||resources.coverage.reason} A normal Center SL awaiting its L is separate; no L repair strategy is implied.`,'hanging',resources.terminal);
     renderResourceBadge('st-extra-z',resources.extraZ.status,`Extra Z: ${zLabel}`,resources.extraZ.reason||resources.coverage.reason,'used',resources.terminal);
     $('st-resource-terminal').hidden=!resources.terminal;
     const centerLabel=resources.center?`${resources.center.pending.length} pending, ${resources.center.debt.length} diverted`:'unknown';
-    setText($('st-resource-summary'),`${resources.terminal?'Game ended; historical facts only. ':''}Hanging S: ${sLabel}. Extra Z: ${zLabel}. Observed Center partners: ${centerLabel}. These are diagnostics, not placement instructions.`);
+    setText($('st-resource-summary'),`${resources.terminal?'Game ended; historical facts only. ':''}Hanging S: ${sLabel}. Hanging L: ${lLabel}. Extra Z: ${zLabel}. Observed Center partners: ${centerLabel}. These are diagnostics, not placement instructions.`);
     const resetEvidence=resetDiagnostics();
     const resetCount=resetEvidence.pairs.filter(p=>p.status==='reset-like-candidate').length;
     const resetLabel=resetCount?`${resetCount} Reset-like diversion pair(s) observed; exact phase boundaries remain uncertain.`:resetEvidence.status==='unknown'?'Earlier Reset history is unknown.':resetEvidence.status==='no-reset-evidence'?'No Reset evidence observed.':'Observed T diversions are insufficient to identify a Reset.';

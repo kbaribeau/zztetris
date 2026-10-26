@@ -136,9 +136,9 @@ The normal actual-clear maintenance handoff and resource diagnostics remain
 separate. Publication prioritizes valid source-guided openings; matched development runs
 show both improvements and later-play regressions. Sustained play is not certified.
 
-Above the field, three equal badges show the current phase value, Hanging S and
-Extra Z, with no inline resource-status words. The S/Z silhouettes are grey
-outlines until a Hanging S is observed or Extra Z is actually used; then the
+Above the field, four equal badges show the current phase value, Hanging S,
+Hanging L and Extra Z in two rows, with no inline resource-status words. The S/L/Z silhouettes are grey
+outlines until a Hanging S/L is observed or Extra Z is actually used; then the
 silhouette fills and the badge gains a double
 contour. Eligibility alone does not highlight Extra Z. A separate **?** beside
 the grey outline means unknown history, not confirmed absent or unused;
@@ -149,7 +149,7 @@ until refocus or pointer re-entry. The badges stay
 visible with advice hidden. On game end, they describe historical facts only.
 
 The existing diagnostics retain exact Center partner debt, HOLD/draw identities,
-source-backed Hanging S, and Extra Z only after a verified source opening baseline. Unknown imports
+source-backed Hanging S/L identities, and Extra Z only after a verified source opening baseline. Unknown imports
 stay unknown; clears never renew the allowance. Planning now receives an
 observation-bound replay of this history, not trusted serialized status flags.
 Ordinary routes reject non-scoring T locks and a second non-Right Z; unknown
@@ -190,3 +190,19 @@ Supported SL completion and Left accommodation discharge the exact S identity.
 Public snapshot bag phase alone does not reconstruct earlier allocations. An
 unreviewed crossing-S disposition remains uncertain; projected safety checks
 conservatively retain unresolved obligations rather than assume accommodation.
+
+S/L identity accounting begins at the fully observed empty seven-bag origin,
+independently of the opener quality checkpoint and Extra-Z baseline. Actual
+handoff carries unresolved identities; it does not reset or certify their
+allocation. A failed height, flat-Center, or T/Z criterion is not itself evidence
+of Hanging S. Already-consumed opener foundation pieces are not retroactive
+surplus. A pending exact SL remains construction debt, not Hanging L.
+
+Hanging L is identified when its observed S is accommodated on Left or completes
+an exact pair with another bag's L. Actual Left allocation, exact SL completion,
+or completed LO accommodation discharges that L identity; LO preparation alone
+is still pending. The LO option is described in Shocky's Chapter 10. Unreviewed
+accommodation stays uncertain. Hanging L is diagnostic only: it adds no mirrored
+repair search, placement prohibition, urgency, or Reset trigger. Newly recognized
+Hanging S can invoke the existing bounded repair check, so identification can
+affect later recommendations without changing ranking or opener A/B/C rules.
