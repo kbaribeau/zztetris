@@ -65,11 +65,16 @@
         <span id="st-extra-z-detail" class="lab-badge-detail" role="tooltip"></span>
       </span>
     </div>
-    <p id="st-lines" class="lab-line-counter" role="status" aria-live="polite" aria-atomic="true">Lines since start: 0</p>
     <p id="st-resource-terminal" class="lab-resource-terminal" hidden>Game ended · resource badges show historical facts only.</p>
     <div class="lab-field-scroll"><div class="lab-field">
       <div class="queue"><h2>HOLD</h2><canvas id="h" width="90" height="70" aria-label="Held piece"></canvas><p id="st-hold-state" class="lab-note"></p></div>
-      <div class="lab-board"><canvas id="b" width="200" height="440" aria-label="Tetris board"></canvas><svg id="st-target" width="200" height="440" viewBox="0 0 200 440" aria-hidden="true"></svg></div>
+      <div class="lab-board-stack">
+        <div class="lab-board"><canvas id="b" width="200" height="440" aria-label="Tetris board"></canvas><svg id="st-target" width="200" height="440" viewBox="0 0 200 440" aria-hidden="true"></svg></div>
+        <div id="st-lines" class="lab-line-counter" role="status" aria-live="polite" aria-atomic="true" aria-label="0 lines cleared since start">
+          <span class="lab-line-copy"><span id="st-lines-label">Lines cleared</span><span id="st-lines-scope">since start</span></span>
+          <span id="st-lines-value">0</span>
+        </div>
+      </div>
       <div class="queue"><h2>NEXT</h2><canvas id="n" width="90" height="360" aria-label="Six visible upcoming pieces"></canvas></div>
     </div></div>
     <section class="lab-advice" aria-label="Strategy advice">

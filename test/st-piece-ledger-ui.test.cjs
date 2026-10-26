@@ -17,7 +17,7 @@ test('shadow ledger UI: 100-lock Undo cap restores exact checkpoints and pruning
   square(g,i);snapshots.push(stable(g.snapshot()));ledgers.push(ledger(g));
   if(i>=98)assert.equal(ledger(g).inventory.O.locked,i+1,'99/100/101 placements retain cumulative counts');
  }
- assert.equal(g.snapshot().topOut,false);assert.equal(g.element('#st-lines').textContent,'Lines since start: 40');
+ assert.equal(g.snapshot().topOut,false);assert.equal(g.element('#st-lines').getAttribute('aria-label'),'40 lines cleared since start');
  for(let i=100;i>=1;i--){g.window.stLab.act('UNDO');assert.deepEqual(stable(g.snapshot()),snapshots[i]);assert.deepEqual(ledger(g),ledgers[i]);}
  assert.equal(g.element('#st-undo').disabled,true);g.window.stLab.act('UNDO');assert.deepEqual(stable(g.snapshot()),snapshots[1]);assert.equal(ledger(g).inventory.O.locked,1);
  square(g,1);assert.deepEqual(stable(g.snapshot()),snapshots[2]);assert.deepEqual(ledger(g),ledgers[2]);g.window.stLab.act('UNDO');assert.deepEqual(ledger(g),ledgers[1]);assert.equal(g.element('#st-undo').disabled,true);

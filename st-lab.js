@@ -278,7 +278,12 @@
     setText($('st-phase-symbol'),openingPhase?'◌':'▦');
     $('st-phase-indicator').hidden=false;
     $('st-undo').disabled=!undoHistory.length;
-    setText($('st-lines'),`${lineLabel}: ${clearedLines}`);
+    const lineScope=lineLabel==='Lines cleared'?'':lineLabel.replace('Lines ','');
+    const lineTotal=clearedLines.toLocaleString('en-US');
+    setText($('st-lines-value'),lineTotal);
+    setText($('st-lines-scope'),lineScope);$('st-lines-scope').hidden=!lineScope;
+    const lineAnnouncement=`${lineTotal} ${clearedLines===1?'line':'lines'} cleared${lineScope?' '+lineScope:''}`;
+    if($('st-lines').getAttribute('aria-label')!==lineAnnouncement)$('st-lines').setAttribute('aria-label',lineAnnouncement);
     const key=STBinding.resolve(localStorage,Object.keys(keys));
     setText($('st-toggle'),`Advice ${visible?'ON':'OFF'} · ${key||'rebind conflicting advice key'}`);
     $('st-toggle').setAttribute('aria-pressed',String(visible));
