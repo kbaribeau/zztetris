@@ -19,7 +19,7 @@ test('reservoir/counterfactual pre-cap geometry retains exact verified credit wi
  assert.deepEqual(a.intentionalReservoir.cells,[[9,37],[9,38],[9,39]]);
  assert.equal(a.intentionalReservoir.credit,9);assert.equal(a.sealed,3);assert.equal(a.damageSealed,0);
  assert.equal(a.covered,6);assert.equal(a.damageCovered,3,'unrelated roofed cells keep their original penalty');
- assert.equal(result.evidence.structuralScore,-11.3);assert.deepEqual(result.evidence.structuralRank,[1,1,0,-3,1,-6,0]);endpoint();
+ assert.equal(result.evidence.structuralScore,-11.3);assert.deepEqual(result.evidence.structuralRank,[1,1,0,-3,1,-6,0,0]);assert.equal(a.leftContext.score,0);endpoint();
 });
 test('reservoir/ordinary advice cannot retain the historical non-scoring T prefix',()=>{
  const ordinary=P.plan(snapshot,{depth:3,width:8,maxNodes:45000,allowHold:false});
@@ -62,7 +62,7 @@ test('reservoir/budget interruption: optimistic eligibility cannot award an unve
  let calls=0;
  const rules={...R,tDoubleAccess:()=>{calls++;return{reachable:null,complete:false,visited:0};}};
  const module={exports:{}};
- vm.runInNewContext(fs.readFileSync(require.resolve('../st-planner.js'),'utf8'),{module,require:name=>name==='./st-resource-history.js'?require('../st-resource-history'):name==='./st-midgame-resources.js'?require('../st-midgame-resources'):name==='./st-rules.js'?rules:name==='./st-bag.js'?require('../st-bag'):name==='./st-access.js'?require('../st-access'):name==='./st-pattern-history.js'?require('../st-pattern-history'):name==='./st-left-foundation.js'?require('../st-left-foundation'):S});
+ vm.runInNewContext(fs.readFileSync(require.resolve('../st-planner.js'),'utf8'),{module,require:name=>name==='./st-left-context.js'?require('../st-left-context'):name==='./st-resource-history.js'?require('../st-resource-history'):name==='./st-midgame-resources.js'?require('../st-midgame-resources'):name==='./st-rules.js'?rules:name==='./st-bag.js'?require('../st-bag'):name==='./st-access.js'?require('../st-access'):name==='./st-pattern-history.js'?require('../st-pattern-history'):name==='./st-left-foundation.js'?require('../st-left-foundation'):S});
  const p=module.exports.plan(snapshot,{depth:3,width:8,maxNodes:45000});
  assert.ok(calls>0);assert.equal(p.evidence.budgetExhausted,true);assert.equal(p.assessment.intentionalReservoir,undefined);
  assert.equal(p.assessment.damageSealed,p.assessment.sealed);assert.equal(p.assessment.damageCovered,p.assessment.covered);
