@@ -3,7 +3,22 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const R=require('../st-rules'),B=require('../st-bag'),P=require('../st-planner'),O=require('../st-opening-sources'),D=require('../st-opening-continuations'),Sim=require('../scripts/lib/st-simulation.cjs');
 const clone=x=>JSON.parse(JSON.stringify(x));
 const config={...Sim.CONFIG,timeMs:undefined};
-function firstBag(seed){const session=Sim.createSession(Sim.makeInput('empty',seed,150));for(let i=1;i<=7;i++){const q=session.request(i,config),a=P.decide(q.observation,q.options);assert.ok(a.evidence?.opening?.sourcePlan,'first-bag source lock '+i);session.execute(a);}return session;}
+// Discover each seed's opening once, but replay it into a fresh session per caller.
+// Live replay rebuilds observation authority; never clone/cache a mutable session
+// or deserialize trusted history. Later advice and refills remain independent.
+const firstBagCheckpoints=new Map();
+function freeze(x){if(x&&typeof x==='object'){Object.values(x).forEach(freeze);Object.freeze(x);}return x;}
+function firstBag(seed){
+ const session=Sim.createSession(Sim.makeInput('empty',seed,150)),cached=firstBagCheckpoints.get(seed),plans=[];
+ for(let i=1;i<=7;i++){
+  const q=cached?null:session.request(i,config),a=cached?clone(cached.plans[i-1]):P.decide(q.observation,q.options);
+  assert.ok(a.evidence?.opening?.sourcePlan,'first-bag source lock '+i);session.execute(a);
+  if(!cached)plans.push(clone(a));
+ }
+ if(cached)assert.deepEqual(session.request(8,config),cached.request,'replayed checkpoint preserves public state and live history');
+ else firstBagCheckpoints.set(seed,freeze({plans,request:session.request(8,config)}));
+ return session;
+}
 function advice(session){const q=session.request(8,config);return P.decide(q.observation,q.options);}
 function sourceOnly(state,source){return P.plan(state,{...config,openingPhase:true,openingSource:source,maxNodes:3000});}
 test('second-bag source: exact base colors and whole added pieces define separate conditional goals',()=>{
@@ -16,7 +31,10 @@ test('second-bag source: exact base colors and whole added pieces define separat
  assert.equal(O.compatible(D.patterns[0].baseBoard).length>0,true,'default compatibility remains first-bag only');
 });
 test('second-bag source: actual seventh lock qualifies history, imported matching footprint does not',()=>{
- const s=firstBag(2026103510),source=s.opening.source;assert.ok(source);assert.equal(source.history.steps.length,7);assert.ok(['buri-01','buri-02'].includes(source.continuationFrom));assert.equal(source.pattern,null);assert.equal(s.opening.active,true);
+ const s=firstBag(2026103510),peer=firstBag(2026103510),source=s.opening.source;
+ assert.notEqual(peer.state,s.state);assert.notEqual(peer.state.board,s.state.board);assert.notEqual(peer.state.queue,s.state.queue);
+ peer.state.board[0]='I.........';peer.state.queue[0]='T';
+ assert.equal(s.state.board[0],'..........');assert.deepEqual(firstBag(2026103510).request(8,config),s.request(8,config),'caller mutation cannot poison another session or the cached checkpoint');assert.ok(source);assert.equal(source.history.steps.length,7);assert.ok(['buri-01','buri-02'].includes(source.continuationFrom));assert.equal(source.pattern,null);assert.equal(s.opening.active,true);
  assert.equal(P.startOpeningSession(s.state,{emptyMode:true}).source,null);
  for(const bad of [null,{pattern:null,continuationFrom:source.continuationFrom},{pattern:D.patterns.find(p=>p.basePattern===source.continuationFrom).id}])assert.equal(sourceOnly(s.state,bad).evidence?.opening?.sourcePlan,undefined);
  const disconnected=clone(s.state);disconnected.hold=disconnected.hold==='T'?'I':'T';assert.equal(sourceOnly(disconnected,source).evidence?.opening?.sourcePlan,undefined);

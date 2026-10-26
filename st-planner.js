@@ -165,9 +165,8 @@ function observe(input){
  const s=R.createState({rules:input.rules,board:input.board,active:input.active,hold:input.hold,canHold:input.canHold,queue:input.queue,revision:input.revision,streamCursor:input.streamCursor,topOut:input.topOut});
  if(input.bag)s.bag=clone(input.bag);return s;
 }
-// Opening-only cavity query. Keep the ordinary full assessment implementation
-// unchanged so this cost optimization does not retune maintenance search timing.
-// The independent reference tests bind both floods to the same sealed-air set.
+// Opening-only cavity query; independent reference tests bind both assessment
+// modes to the same top-connected sealed-air set.
 function cavityAssessment(board){
  const air=new Uint8Array(400),todo=new Uint16Array(400);let tail=0;
  for(let x=0;x<10;x++)if(board[0][x]==='.') {air[x]=1;todo[tail++]=x;}
@@ -182,14 +181,34 @@ function cavityAssessment(board){
  const sealedCells=[];for(let x=0;x<10;x++)for(let y=0;y<40;y++)if(board[y][x]==='.'&&!air[y*10+x])sealedCells.push([x,y]);
  return{sealedCells};
 }
+// Scratch is private and leased per call: nested assessment (including a caller's
+// board getters) cannot overwrite an active flood. Only scalar/owned-array facts
+// escape, and a thrown read still releases the lease. No board identity is cached.
+const assessmentScratch=[];
+function fullCavityFacts(board,heights){
+ const scratch=assessmentScratch.pop()||{air:new Uint8Array(400),todo:new Uint16Array(400)};
+ const {air,todo}=scratch;air.fill(0);let tail=0;
+ try{
+  for(let x=0;x<10;x++)if(board[0][x]==='.') {air[x]=1;todo[tail++]=x;}
+  for(let i=0;i<tail;i++){const key=todo[i],x=key%10,y=Math.floor(key/10);
+   if(x<9&&!air[key+1]&&board[y][x+1]==='.') {air[key+1]=1;todo[tail++]=key+1;}
+   if(x>0&&!air[key-1]&&board[y][x-1]==='.') {air[key-1]=1;todo[tail++]=key-1;}
+   if(y<39&&!air[key+10]&&board[y+1][x]==='.') {air[key+10]=1;todo[tail++]=key+10;}
+   if(y>0&&!air[key-10]&&board[y-1][x]==='.') {air[key-10]=1;todo[tail++]=key-10;}
+  }
+  const sealedCells=[];let sealed=0,covered=0,leftSealed=0;
+  for(let x=0;x<10;x++)for(let y=40-heights[x];y<40;y++)if(board[y][x]==='.'){
+   covered++;if(!air[y*10+x]){sealed++;sealedCells.push([x,y]);if(x<7)leftSealed++;}
+  }
+  return{sealedCells,sealed,covered,leftSealed};
+ }finally{if(assessmentScratch.length<4)assessmentScratch.push(scratch);}
+}
 function assess(board,{cavitiesOnly=false}={}){
  if(cavitiesOnly)return cavityAssessment(board);
  const heights=Array.from({length:10},(_,x)=>{const y=board.findIndex(r=>r[x]!=='.');return y<0?0:40-y;});
  // Air flood identifies sealed cavities, not every roofed cell. A T-slot under
  // an overhang can be accessible from the side and is not automatically bad.
- const air=new Set(),todo=[];for(let x=0;x<10;x++)if(board[0][x]==='.')todo.push([x,0]);
- for(let i=0;i<todo.length;i++){const[x,y]=todo[i],key=y*10+x;if(air.has(key))continue;air.add(key);for(const[dx,dy]of [[1,0],[-1,0],[0,1],[0,-1]]){const a=x+dx,c=y+dy;if(a>=0&&a<10&&c>=0&&c<40&&board[c][a]==='.'&&!air.has(c*10+a))todo.push([a,c]);}}
- const sealedCells=[];let sealed=0,covered=0,leftSealed=0;for(let x=0;x<10;x++)for(let y=40-heights[x];y<40;y++)if(board[y][x]==='.'){covered++;if(!air.has(y*10+x)){sealed++;sealedCells.push([x,y]);if(x<7)leftSealed++;}}
+ const {sealedCells,sealed,covered,leftSealed}=fullCavityFacts(board,heights);
  const slots=[];for(let y=Math.max(17,40-Math.max(...heights)-4);y<39;y++)for(let x=5;x<9;x++)for(let rotation=0;rotation<4;rotation++){
   const a={type:'T',x,y,rotation,lastRotation:{from:(rotation+3)%4,to:rotation,kickIndex:0}};
   if(!R.fits(board,a)||R.fits(board,{...a,y:y+1})||R.spin(board,a)==='none')continue;

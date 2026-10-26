@@ -37,7 +37,10 @@ function move(s,action){if(!s.active||s.topOut)return s;const a=s.active;let nex
  return{...next,revision:s.revision+1,lastEvent:action==='HD'?next.lastEvent:null};
 }
 function replay(state,actions){let s=state;const events=[];for(let i=0;i<actions.length;i++){const n=move(s,actions[i]);if(n===s)return{state:s,events,valid:false,failedAt:i};s=n;if(s.lastEvent)events.push(s.lastEvent);}return{state:s,events,valid:true,failedAt:null};}
-function poseKey(a){const r=a.lastRotation;const semantic=a.type==='T'&&r?((r.to-r.from+4)%4!==2&&r.kickIndex===4?'upgrade':'rotation'):'none';return[a.type,a.x,a.y,a.rotation,semantic].join(':');}
+// Legal four-cell poses have origins in [-3,9] x [-3,39]. Keep the three
+// T-spin evidence classes distinct, exactly as the former textual key did.
+function poseKey(a){const r=a.lastRotation,semantic=a.type==='T'&&r?((r.to-r.from+4)%4!==2&&r.kickIndex===4?2:1):0;return(((TYPES.indexOf(a.type)*16+a.x+4)*64+a.y+4)*4+a.rotation)*3+semantic;}
+function witness(queue,index,prefix){const actions=[];for(let n=queue[index];n.parent>=0;n=queue[n.parent])actions.push(n.action);actions.reverse();return prefix.concat(actions,'HD');}
 function placements(s,options={}){
  const out=[],seenOut=new Map();let visited=0,complete=true;
  const maxNodes=options.maxNodes??16000,deadline=options.deadline??Infinity,now=options.now??(()=>Date.now()),stopWhen=typeof options.stopWhen==='function'?options.stopWhen:null;
@@ -57,29 +60,29 @@ function placements(s,options={}){
   }
  }
  // Interleave frontiers so a tight budget cannot starve hold.
- const queues=roots.map(r=>[{state:r.state,witness:r.witness}]),seen=roots.map(r=>new Set([poseKey(r.state.active)])),heads=roots.map(()=>0);
+ const queues=roots.map(r=>[{state:r.state,parent:-1,action:null,depth:r.witness.length}]),seen=roots.map(r=>new Set([poseKey(r.state.active)])),heads=roots.map(()=>0);
  outer:while(queues.some((q,i)=>heads[i]<q.length)){for(let k=0;k<queues.length;k++){
   if(heads[k]>=queues[k].length)continue;
   if(visited>=maxNodes||now()>=deadline){complete=false;break outer;}
-  const n=queues[k][heads[k]++];visited++;
+  const indexInQueue=heads[k]++,n=queues[k][indexInQueue];visited++;
   const locked=move(n.state,'HD'),event=locked.lastEvent;
   if(event&&!event.topOut){
    // In v2 deduplicate equivalent outcomes, not merely matching targets: an
    // empty-hold swap-back can have the same target but different held/next pieces.
    const id=unlimited?JSON.stringify([event,locked.active,locked.hold,locked.queue,locked.streamCursor]):[roots[k].hold,event.target.type,event.target.x,event.target.y,event.target.rotation,event.spin].join(':');
-   const placement={target:event.target,hold:roots[k].hold,holdCount:roots[k].holdCount,witness:[...n.witness,'HD'],state:locked,event};
    const index=seenOut.get(id);
-   if(index===undefined){seenOut.set(id,out.length);out.push(placement);
-    // Internal read-only predicate: a found witness can settle an existential
-    // query without claiming the remaining movement graph was enumerated.
-    if(stopWhen?.(placement)===true)return{placements:out,complete:false,visited,stopReason:'placement-predicate'};
+   if(index===undefined||n.depth+1<out[index].witness.length){
+    const placement={target:event.target,hold:roots[k].hold,holdCount:roots[k].holdCount,witness:witness(queues[k],indexInQueue,roots[k].witness),state:locked,event};
+    if(index===undefined){seenOut.set(id,out.length);out.push(placement);
+     // A new witness can settle an existential query, not complete enumeration.
+     if(stopWhen?.(placement)===true)return{placements:out,complete:false,visited,stopReason:'placement-predicate'};
+    }else out[index]=placement;
    }
-   else if(placement.witness.length<out[index].witness.length)out[index]=placement;
   }
   for(const action of ['L','R','CW','CCW','R180','SD']){
    const next=move(n.state,action);if(next===n.state)continue;
    const key=poseKey(next.active);if(seen[k].has(key))continue;seen[k].add(key);
-   queues[k].push({state:next,witness:[...n.witness,action]});
+   queues[k].push({state:next,parent:indexInQueue,action,depth:n.depth+1});
   }
  }}return{placements:out,complete,visited};
 }
@@ -96,16 +99,16 @@ function tDoubleAccess(board,options={}){
  // upward movement when the stack itself reaches the spawn region.
  const clipped=plane>PROFILE.spawn.y;
  while(state.active.y<plane){state=move(state,'SD');prefix.push('SD');}
- const queue=[{state,witness:prefix}],seen=new Set([poseKey(state.active)]);let head=0;
+ const queue=[{state,parent:-1,action:null}],seen=new Set([poseKey(state.active)]);let head=0;
  while(head<queue.length){
   if(visited>=maxNodes||now()>=deadline)return{reachable:null,witness:[],event:null,visited,complete:false};
-  const n=queue[head++],a=n.state.active;visited++;
+  const index=head++,n=queue[index],a=n.state.active;visited++;
   if(!fits(board,{...a,y:a.y+1})&&spin(board,a)==='full'){
    const occupied=cells(a),rows=new Set(occupied.map(c=>c[1]));let lines=existingFullRows;
    for(const y of rows)if([...board[y]].every((v,x)=>v!=='.'||occupied.some(([cx,cy])=>cx===x&&cy===y)))lines++;
-   if(lines===2){const locked=move(n.state,'HD');if(!locked.topOut)return{reachable:true,witness:[...n.witness,'HD'],event:locked.lastEvent,visited,complete:true};}
+   if(lines===2){const locked=move(n.state,'HD');if(!locked.topOut)return{reachable:true,witness:witness(queue,index,prefix),event:locked.lastEvent,visited,complete:true};}
   }
-  for(const action of ['L','R','CW','CCW','R180','SD']){const next=move(n.state,action);if(next===n.state||(clipped&&next.active.y<plane))continue;const key=poseKey(next.active);if(seen.has(key))continue;seen.add(key);queue.push({state:next,witness:[...n.witness,action]});}
+  for(const action of ['L','R','CW','CCW','R180','SD']){const next=move(n.state,action);if(next===n.state||(clipped&&next.active.y<plane))continue;const key=poseKey(next.active);if(seen.has(key))continue;seen.add(key);queue.push({state:next,parent:index,action});}
  }
  return{reachable:false,witness:[],event:null,visited,complete:true};
 }
