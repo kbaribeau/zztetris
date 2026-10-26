@@ -21,7 +21,7 @@ test('session/resource replay round-trips used Z, S/L identities, pending Center
 });
 test('session/bag frontier, versions, budgets, oversized and malformed evidence reject before use',()=>{
  const t=trace(require('./support/st-resource-trial-1.json'),3),saved=pack(t);
- for(const alter of [x=>x.schemaVersion++,x=>x.engineVersion='future',x=>x.search.timeMs=999999,x=>x.search.maxNodes=90000,x=>x.position.queue.push('I'),x=>x.coaching.resourceContext.steps.push({action:'NO',revealed:[]}),x=>x.coaching.patternHistory={origin:[],steps:[]}]){const bad=clone(saved);alter(bad);assert.throws(()=>Session.prepare(bad));}
+ for(const alter of [x=>x.schemaVersion++,x=>x.engineVersion={label:'malformed'},x=>x.search.timeMs=999999,x=>x.search.maxNodes=90000,x=>x.position.queue.push('I'),x=>x.coaching.resourceContext.steps.push({action:'NO',revealed:[]}),x=>x.coaching.patternHistory={origin:[],steps:[]}]){const bad=clone(saved);alter(bad);assert.throws(()=>Session.prepare(bad));}
  const bag=clone(saved);bag.position.bag.remaining=[1];assert.throws(()=>Session.prepare(bag),/bag/i);
  const origin=clone(saved);origin.coaching.resourceOriginBag.provenance='unknown-phase';assert.throws(()=>Session.prepare(origin),/first bag/i);
  assert.throws(()=>Session.parse(' '.repeat(Session.LIMITS.bytes+1)),/size limit/);
@@ -36,6 +36,7 @@ test('session/ordinary advice and retained resource commitment remain candidates
  const state=R.migrateState(require('../st-fixtures').get('o-before-double').observation),history=H.start(state),pattern=PH.start(state),options={...Session.defaults(),resourceContext:H.exportContext(state,history),patternHistory:pattern,openingPhase:false,deadline:Infinity};
  const advice=P.decide(state,options);assert.ok(advice.target);assert.ok(P.resourceGoal(advice.continuation));
  const saved=Session.create(state,{resourceHistory:history,resourceOriginBag:state.bag??null,patternHistory:pattern,previous:advice,commitment:{observation:state,advice}}),got=Session.prepare(saved);assert.deepEqual(got.previous,advice);assert.deepEqual(got.commitment,saved.coaching.commitment);
+ for(const engineVersion of ['st-coach-session-2026-10-26-v1','st-coach-session-2026-10-26-left-context-v2','future-readable-coach']){const migrated=Session.prepare({...saved,engineVersion});assert.equal(migrated.previous,null);assert.equal(migrated.commitment,null);assert.deepEqual(H.resolve(migrated.state,migrated.resourceHistory),H.resolve(state,history));}
  const a=P.decide(state,{...options,previous:advice,commitment:saved.coaching.commitment}),b=P.decide(got.state,{...options,resourceContext:H.exportContext(got.state,got.resourceHistory),previous:got.previous,commitment:got.commitment});assert.deepEqual(b.target,a.target);assert.deepEqual(b.continuation,a.continuation);
  const stale=clone(saved);stale.coaching.previous.witness=['BAD'];stale.coaching.commitment.advice.continuation[0].witness=['HD'];const rejected=Session.prepare(stale);assert.equal(rejected.previous,null);assert.equal(rejected.commitment,null);assert.equal(rejected.warnings.length,2);
 });
@@ -45,6 +46,7 @@ test('session/opener source progress, exact input prefix and pending repair surv
  for(let i=0;i<2;i++){const req=s.request(i,Sim.CONFIG),advice=P.decide(req.observation,{...req.options,deadline:Infinity});assert.ok(advice.evidence.opening.sourcePlan);s.execute(advice);}
  const req=s.request(3,Sim.CONFIG),ctx=req.options.resourceContext,h=H.importContext(req.observation,ctx),saved=Session.create(req.observation,{resourceHistory:h,resourceOriginBag:input.initial.bag,patternHistory:req.options.patternHistory,...req.options,previous:req.previous,commitment:req.commitment});
  const got=Session.prepare(saved);assert.deepEqual(got.openingSource,req.options.openingSource);assert.equal(got.openingPhase,true);assert.deepEqual(got.warnings,[]);
+ const migrated=Session.prepare({...saved,engineVersion:'st-coach-session-2026-10-26-v1'});assert.deepEqual(migrated.openingSource,got.openingSource);assert.equal(migrated.openingPhase,true);
  const forged=clone(saved);forged.coaching.openingSource.pattern='not-a-source';assert.equal(Session.prepare(forged).openingSource,null);
  const c=require('./support/st-opening-round1.json').repairControl,repair=O.repairCertificate(c.originObservation,c.continuation);assert.ok(repair);const hs=H.start(c.originObservation);
  const rp=Session.create(c.originObservation,{resourceHistory:hs,resourceOriginBag:c.originObservation.bag??null,openingPhase:true,openingRepair:repair});assert.deepEqual(Session.prepare(rp).openingRepair,repair);
@@ -87,3 +89,49 @@ test('session/source second bag, scoring route, movement prefix and clear eviden
  const final=s.request(21,config),saved=fromRequest(final),got=Session.prepare(saved);assert.equal(got.openingClear.event.lines,2);assert.deepEqual(got.openingClear,final.options.openingClear);
  const tampered=clone(saved);tampered.coaching.openingClear.event.lines=4;assert.equal(Session.prepare(tampered).openingClear,null);
 });
+
+const olderEngines=['st-coach-session-2026-10-26-v1','st-coach-session-2026-10-26-left-context-v2','future-readable-coach'];
+for(const engineVersion of olderEngines)test('session/older '+engineVersion+' preserves full history and settings with or without cached advice',()=>{
+ const t=trace(require('./support/st-resource-trial-1.json'),24),saved=pack(t);saved.engineVersion=engineVersion;
+ for(const cached of [false,true]){
+  const old=clone(saved);if(cached){old.coaching.previous={target:'obsolete'};old.coaching.commitment={observation:'obsolete'};}
+  const got=Session.parse(JSON.stringify(old));
+  assert.deepEqual(got.state,saved.position);assert.deepEqual(got.search,saved.search);
+  assert.deepEqual(H.resolve(got.state,got.resourceHistory),H.resolve(t.state,t.history));
+  assert.deepEqual(got.patternHistory,t.pattern);assert.deepEqual(got.resourceOriginBag,t.originBag);
+  assert.equal(got.previous,null);assert.equal(got.commitment,null);assert.match(got.warnings.join(),/history and settings are preserved/);
+  const normalized=Session.create(got.state,got);assert.equal(normalized.engineVersion,Session.ENGINE);
+  assert.deepEqual(Session.create(Session.prepare(normalized).state,Session.prepare(normalized)),normalized);
+ }
+});
+test('session/older regression exports use current live accounting without losing the supplied tape',()=>{
+ const M=require('../st-midgame-resources');
+ for(const f of require('./fixtures/deferred-sl-reveals.json').cases){
+  const history=H.importContext(f.before,f.beforeContext),origin=f.beforeContext.origin;
+  const saved=Session.create(f.before,{resourceHistory:history,resourceOriginBag:B.fromObserved({observed:[origin.active.type,...origin.queue],startPhase:0})});
+  saved.engineVersion=olderEngines[1];const got=Session.prepare(saved),d=H.resolve(got.state,got.resourceHistory);
+  assert.deepEqual(H.exportContext(got.state,got.resourceHistory),f.beforeContext);
+  const proof=M.checkPath(got.state,f.path,d);assert.equal(proof.valid,true);
+  assert.deepEqual(proof.resource.hangingS.filter(x=>x.bag===f.bag),[{id:null,bag:f.bag,known:true}]);
+  const before=got.state,next=R.move(before,f.path[0].witness[0]);assert.notEqual(next,before);
+  assert.equal(H.resolve(next,H.applyAction(got.resourceHistory,before,f.path[0].witness[0],next)).coverage.status,'complete');
+ }
+});
+test('session/older unknown provenance remains unknown and malformed full history never downgrades',()=>{
+ const state=R.migrateState(require('../st-fixtures').get('o-before-double').observation);
+ const saved=Session.create(state,{resourceHistory:H.start(state),resourceOriginBag:state.bag??null});saved.engineVersion=olderEngines[0];
+ const got=Session.prepare(saved);assert.equal(H.resolve(got.state,got.resourceHistory).coverage.status,'partial');assert.equal(H.resolve(got.state,got.resourceHistory).extraZ.status,'unknown');
+ for(const alter of [x=>x.schemaVersion=99,x=>x.coaching.resourceContext.steps.push({action:'INVALID',revealed:[]}),x=>x.search.timeMs=999999,x=>x.coaching.patternHistory={origin:[],steps:[]}]){
+  const bad=clone(saved);alter(bad);assert.throws(()=>Session.prepare(bad));
+ }
+});
+test('session/older page import preserves accounting, drops cached targets, normalizes Reset and rejects atomically',()=>withPage('st-lab.html',{},g=>{
+ const ws=worker(g),t=trace(require('./support/st-resource-trial-1.json'),24),saved=pack(t);saved.engineVersion=olderEngines[1];saved.coaching.previous={target:'OLD'};
+ importText(g,saved);assert.match(g.element('#st-import-status').textContent,/Session imported/);assert.equal(g.window.stLab.result,null);g.advance(40);
+ const first=ws.at(-1).message;assert.equal(first.previous,null);assert.equal(first.commitment,null);assert.deepEqual(first.options.resourceContext,saved.coaching.resourceContext);
+ const fresh=P.decide(first.observation,{...first.options,deadline:Infinity});ws.at(-1).respond(fresh);
+ g.click('#st-export-session');const normalized=JSON.parse(g.element('#st-snapshot').value);assert.equal(normalized.engineVersion,Session.ENGINE);assert.deepEqual(normalized.coaching.resourceContext,saved.coaching.resourceContext);const roundTrip=Session.prepare(normalized);assert.deepEqual(H.resolve(roundTrip.state,roundTrip.resourceHistory),H.resolve(t.state,t.history));
+ g.window.stLab.act('RESET');g.advance(40);assert.deepEqual(inputs(ws.at(-1).message),inputs(first));assert.doesNotMatch(g.element('#st-import-status').textContent,/different coach version/);
+ const before=g.snapshot(),current=ws.at(-1),bad=clone(saved);bad.coaching.resourceContext.steps[0].action='INVALID';importText(g,bad);
+ assert.match(g.element('#st-import-status').textContent,/rejected/);assert.deepEqual(g.snapshot(),before);assert.equal(current.terminated,undefined);
+}));

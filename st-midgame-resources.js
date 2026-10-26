@@ -10,11 +10,14 @@ function start(raw,summary={}){
  let next=-1;const instance=(p,type)=>p&&p.type===type?{id:p.id,type,bag:p.bag??null}:{id:next--,type,bag:null};
  const live=summary.instances||{},a=raw.active?instance(live.active,raw.active.type):null,h=raw.hold?instance(live.hold,raw.hold):null,q=raw.queue.map((t,i)=>instance(live.queue?.[i],t));
  const all=[a,h,...q].filter(Boolean),byId=id=>all.find(p=>p.id===id);
- return{active:a,hold:h,queue:q,nextId:next,extraZ:summary.extraZ?.status==='available'?'available':summary.extraZ?.status||'unknown',
+ // The observed inventory includes already consumed S/L pieces. Absence from
+ // the live queue alone must never fabricate a deferred counterpart.
+ const observedSL=summary.coverage?.status==='complete'&&Array.isArray(summary.observedSL)?clone(summary.observedSL):null;
+ return{active:a,hold:h,queue:q,nextId:next,observedSL,extraZ:summary.extraZ?.status==='available'?'available':summary.extraZ?.status||'unknown',
   pendingCenter:(summary.center?.pending||[]).map(p=>({rootId:p.rootId,bag:p.rootBag??byId(p.rootId)?.bag??null,family:p.family,alternatives:clone(p.alternatives),created:false})),
   hangingS:(summary.hangingS?.evidence||[]).map(e=>({id:e.sId,bag:e.bag,known:true})),
   hangingL:(summary.hangingL?.evidence||[]).map(e=>({id:e.lId,bag:e.bag,known:true})),unclassifiedL:clone(summary.hangingL?.unclassified||[]),violations:[],scoredTs:[],
-  originKey:JSON.stringify([summary.coverage?.status,all,summary.center?.pending,summary.center?.debt,summary.hangingS?.evidence,summary.hangingL?.evidence,summary.hangingL?.unclassified,summary.extraZ?.status,summary.extraZ?.allocations?.map(a=>[a.at,a.pieceId]),summary.milestones?.maintenanceHandoff])};
+  originKey:JSON.stringify([summary.coverage?.status,observedSL,all,summary.center?.pending,summary.center?.debt,summary.hangingS?.evidence,summary.hangingL?.evidence,summary.hangingL?.unclassified,summary.extraZ?.status,summary.extraZ?.allocations?.map(a=>[a.at,a.pieceId]),summary.milestones?.maintenanceHandoff])};
 }
 // Necessary piece-flow test, not a geometric placement proof. Enumerate HOLD
 // choices without spending a T; a partner behind two pending Ts is inaccessible.
@@ -62,7 +65,11 @@ function step(before,p,prior){
   if(nonRight(e)&&(!paired||paired.bag!==piece.bag)){
    const pending=n.pendingCenter.find(p=>p.family==='SL'&&p.bag===piece.bag&&!p.lost);
    const s=[n.active,n.hold,...n.queue].find(p=>p?.type==='S'&&p.bag===piece.bag)||(pending&&{id:pending.rootId,bag:pending.bag});
+   // A known seven-bag counterpart still exists beyond this prefix.
+   // Null is an unresolved identity, not a guessed piece or queue position.
    if(s&&!n.hangingS.some(h=>h.id===s.id))n.hangingS.push({id:s.id,bag:s.bag,known:true});
+   else if(!s&&n.observedSL&&!n.observedSL.some(p=>p.type==='S'&&p.bag===piece.bag)&&!n.hangingS.some(h=>h.bag===piece.bag))
+    n.hangingS.push({id:null,bag:piece.bag,known:true});
   }
  }
  // L bookkeeping is diagnostic only: it never enters repair(), its search
@@ -77,6 +84,8 @@ function step(before,p,prior){
   if(bag===null)continue;
   const l=[n.active,n.hold,...n.queue].find(p=>p?.type==='L'&&p.bag===bag&&p.id!==piece.id);
   if(l&&!n.hangingL.some(h=>h.id===l.id))n.hangingL.push({id:l.id,bag:l.bag,known:true});
+  else if(!l&&n.observedSL&&!n.observedSL.some(p=>p.type==='L'&&p.bag===bag)&&!n.hangingL.some(h=>h.bag===bag))
+   n.hangingL.push({id:null,bag,known:true});
  }
  for(const l of n.hangingL.slice()){
   const consumed=e.type==='L'&&l.id===piece.id,wasPending=prior.pendingCenter.some(p=>p.family==='LO'&&p.rootId===l.id);
@@ -101,7 +110,7 @@ function checkPath(raw,path,summary={}){if(!Array.isArray(path)||path.length>7)r
 // A local landing is positive evidence only. It must be reached from the real
 // observed inventory through a checked finite prefix before it can be promised.
 function repairGoal(event,instance,resource){return event.type==='S'&&left(event)&&resource.hangingS.some(h=>h.id===instance?.id);}
-function binding(resource){return JSON.stringify([resource.active,resource.hold,resource.queue,resource.extraZ,resource.pendingCenter,resource.hangingS,resource.hangingL,resource.unclassifiedL,resource.violations,resource.scoredTs]);}
+function binding(resource){return JSON.stringify([resource.active,resource.hold,resource.queue,resource.observedSL,resource.extraZ,resource.pendingCenter,resource.hangingS,resource.hangingL,resource.unclassifiedL,resource.violations,resource.scoredTs]);}
 function repair(raw,resource,{maxNodes=4000,deadline=Infinity,now=()=>Date.now(),depth=4,notches=S.notchPattern(raw.board),centerCompletions=true}={}){
  const centerIds=centerCompletions?resource.pendingCenter.map(p=>p.rootId):[];
  const done=r=>!r.hangingS.length&&!r.pendingCenter.some(p=>centerIds.includes(p.rootId))&&!r.centerBlocked&&!r.tCollision;

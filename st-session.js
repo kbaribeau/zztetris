@@ -2,7 +2,7 @@
  * restored. This format stores visible inputs, not hidden RNG or future bags. */
 (function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-bag'),require('./st-resource-history'),require('./st-pattern-history'),require('./st-planner'),require('./st-opening'),()=>require('./st-coach-config')):factory(root.STRules,root.STBag,root.STResourceHistory,root.STPatternHistory,root.STPlanner,root.STOpening,()=>root.STCoachConfig);if(typeof module==='object'&&module.exports)module.exports=api;else root.STSession=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,B,H,PH,P,O,C){
 'use strict';
-const FORMAT='zztetris-st-session',VERSION=1,ENGINE='st-coach-session-2026-10-26-left-context-v2';
+const FORMAT='zztetris-st-session',VERSION=1,ENGINE='st-coach-session-2026-10-26-deferred-sl-v1';
 const LIMITS=Object.freeze({bytes:4*1024*1024,depth:64,nodes:150000,witness:256,continuation:16});
 const clone=x=>JSON.parse(JSON.stringify(x)),same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const defaults=()=>({timeMs:C().SEARCH_TIME_MS,depth:3,width:8,maxNodes:45000});
@@ -32,10 +32,10 @@ function create(state,{resourceHistory,resourceOriginBag=null,patternHistory=nul
  bounded(result);return result;
 }
 function prepare(input){
- bounded(input);if(input?.format!==FORMAT||input.schemaVersion!==VERSION)throw Error('Unsupported session format version.');if(input.engineVersion!==ENGINE)throw Error('Unsupported coach version; import its position without session context instead.');
+ bounded(input);if(input?.format!==FORMAT||input.schemaVersion!==VERSION)throw Error('Unsupported session format version.');if(typeof input.engineVersion!=='string'||!input.engineVersion.trim())throw Error('Invalid coach provenance.');const differentCoach=input.engineVersion!==ENGINE;
  const state=position(input.position),search=settings(input.search),c=input.coaching;
  if(!c||typeof c!=='object'||typeof c.openingPhase!=='boolean')throw Error('Missing session coaching state.');
- const warnings=[];let resourceHistory,resourceOriginBag=null;
+ const warnings=differentCoach?['Imported a session from a different coach version. Validated history and settings are preserved; advice will be recomputed.']:[];let resourceHistory,resourceOriginBag=null;
  if(c.resourceContext){resourceHistory=H.importContext(state,c.resourceContext);const coverage=H.resolve(state,resourceHistory).coverage;if(!['complete','partial'].includes(coverage.status))throw Error('Invalid resource replay: '+coverage.reason);validateBag(c.resourceContext,c.resourceOriginBag,state);resourceOriginBag=clone(c.resourceOriginBag);}
  else{resourceHistory=H.start(state);resourceOriginBag=state.bag?clone(state.bag):null;warnings.push('Resource history is unavailable; prior S/L/Z allocations remain unknown.');}
  const patternHistory=c.patternHistory?clone(c.patternHistory):null;
@@ -43,8 +43,9 @@ function prepare(input){
  const opening=O.validateSessionState(state,{active:c.openingPhase,source:c.openingSource??null,clear:c.openingClear??null,repair:c.openingRepair??null},search);warnings.push(...opening.warnings);
  if(c.resourceContext&&H.resolve(state,resourceHistory).milestones?.maintenanceHandoff&&opening.session.active)throw Error('Opening phase contradicts the recorded maintenance handoff.');
  let previous=null,commitment=null;
- if(c.previous){try{if(candidateShape(c.previous))previous=clone(c.previous);}catch{}if(!previous)warnings.push('Stale or invalid previous advice was discarded.');}
- if(c.commitment){try{const origin=position(c.commitment.observation);if(candidate(origin,c.commitment.advice)&&P.resourceGoal(c.commitment.advice.continuation))commitment=clone(c.commitment);}catch{}if(!commitment)warnings.push('Stale or invalid construction commitment was discarded.');}
+ if(differentCoach&&(c.previous||c.commitment))warnings.push('Saved coach advice and construction commitments were discarded for fresh planning.');
+ if(!differentCoach&&c.previous){try{if(candidateShape(c.previous))previous=clone(c.previous);}catch{}if(!previous)warnings.push('Stale or invalid previous advice was discarded.');}
+ if(!differentCoach&&c.commitment){try{const origin=position(c.commitment.observation);if(candidate(origin,c.commitment.advice)&&P.resourceGoal(c.commitment.advice.continuation))commitment=clone(c.commitment);}catch{}if(!commitment)warnings.push('Stale or invalid construction commitment was discarded.');}
  // Candidates remain subject to the normal planner's resource, access, source
  // and construction revalidation. Import never displays them as advice.
  return{state,search,resourceHistory,resourceOriginBag,patternHistory,...{openingPhase:opening.session.active,openingSource:opening.session.source,openingClear:opening.session.clear,openingRepair:opening.session.repair},previous,commitment,warnings};

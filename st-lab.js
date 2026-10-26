@@ -207,7 +207,7 @@
   }
   function act(action) {
     if(action==='UNDO'){undo();return;}
-    if(action==='RESET'){if(origin?.session){const saved=clone(origin.session);installSession(STSession.prepare(saved),saved);}else if(origin)resetState(origin.input,{...origin.options,keepOrigin:true});return;}
+    if(action==='RESET'){if(origin?.session){const saved=clone(origin.session);installSession(STSession.prepare(saved));}else if(origin)resetState(origin.input,{...origin.options,keepOrigin:true});return;}
     if(!state.active)return;
     const beforeAction=observation(),beforeLock=action==='HD'?beforeAction:null;
     const next=STRules.move(state,action);
@@ -376,7 +376,10 @@
   function exportSession() {
     return STSession.create(observation(),{resourceHistory,resourceOriginBag,patternHistory,openingPhase,openingSource,openingClear,openingRepair,previous,commitment,search:searchSettings});
   }
-  function installSession(prepared,envelope) {
+  function installSession(prepared) {
+    // Normalize before mutation: Reset must replay current, validated evidence,
+    // not an older envelope or discarded executable certificates.
+    const envelope=STSession.create(prepared.state,prepared);
     // All untrusted parsing/proof checks have completed before touching the live
     // controller. Worker identity guards, not revision uniqueness, reject old replies.
     cancel();stopRepeating();
@@ -398,7 +401,7 @@
   });
   $('st-export').addEventListener('click',()=>{$('st-snapshot').value=JSON.stringify(observation(),null,2);setText($('st-import-status'),'Exported visible state only; hidden future was excluded.');});
   $('st-import').addEventListener('click',()=>{
-    try{if($('st-snapshot').value.length>STSession.LIMITS.bytes)throw new Error('Import exceeds size limit.');const input=JSON.parse($('st-snapshot').value);if(input?.format===STSession.FORMAT){const prepared=STSession.prepare(input);installSession(prepared,input);return;}const errors=STRules.validate(input);if(errors.length)throw new Error(errors.join('; '));
+    try{if($('st-snapshot').value.length>STSession.LIMITS.bytes)throw new Error('Import exceeds size limit.');const input=JSON.parse($('st-snapshot').value);if(input?.format===STSession.FORMAT){const prepared=STSession.prepare(input);installSession(prepared);return;}const errors=STRules.validate(input);if(errors.length)throw new Error(errors.join('; '));
       if(input.queue.length>6)throw new Error('Only six visible preview pieces may be imported; bag knowledge must refer to that frontier.');
       // Explicit whitelist prevents an import from injecting a hidden queue/seed.
       const clean={rules:input.rules,board:input.board,active:input.active,hold:input.hold,canHold:input.canHold,queue:input.queue.slice(0,6),streamCursor:input.streamCursor||0,topOut:Boolean(input.topOut)};

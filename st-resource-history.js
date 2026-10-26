@@ -191,7 +191,7 @@ function hanging(h){
   // Left/Center boundary. Region classification is not piece accounting.
   const diverted=l.allocation.cells.every(([x])=>x<7)&&!(l.pair?.family==='SL'&&l.pair.rootId===s?.id);
   if(diverted&&s?.allocation&&!h.center.pending.some(p=>p.family==='SL'&&p.rootId===s.id)){unclassified.push({bag,sId:s.id,lId:l.id,reason:'The previously surplus S was placed in an unreviewed allocation; whether it was accommodated is unknown.'});continue;}
-  if(diverted)evidence.push({bag,sId:s?.id??null,lId:l.id,at:l.allocation.at,reason:l.pair?.family==='SL'?'The L completed a different observed S.':'The L was allocated outside its observed S/L pair.'});
+  if(diverted)evidence.push({bag,sId:s?.id??null,lId:l.id,at:l.allocation.at,...(!s?{deferred:true}:{}),reason:l.pair?.family==='SL'?'The L completed a different observed S.':'The L was allocated outside its observed S/L pair.'});
   else if(l.allocation.region!=='center'||l.pair?.family!=='SL')unclassified.push({bag,lId:l.id,reason:'The L allocation has no reviewed S/L role.'});
  }
  const lostProfile=h.opening.violations.length||h.extraZ.departures.length||h.extraZ.allocations.length>1||(!h.milestones.firstTsd&&(h.opening.counts.TNonRight>2||h.opening.counts.ZNonRight>1));
@@ -205,15 +205,15 @@ function hangingL(h){
  const bags=new Map(),evidence=[],unclassified=[];
  for(const p of Object.values(h.pieces)){if(!'SL'.includes(p.type))continue;const b=bags.get(p.bag)||{};b[p.type]=p;bags.set(p.bag,b);}
  for(const [bag,{S:s,L:l}] of bags){
-  if(!s?.allocation||!l)continue;
-  if(l.allocation?.region==='left'||['SL','LO'].includes(l.pair?.family))continue;
+  if(!s?.allocation)continue;
+  if(l?.allocation?.region==='left'||['SL','LO'].includes(l?.pair?.family))continue;
   const paired=s.pair?.family==='SL',at=paired?s.pair.at:s.allocation.at;
-  if(l.allocation&&l.allocation.at<at)continue;
-  const diverted=s.allocation.region==='left'||paired&&s.pair.partnerId!==l.id;
+  if(l?.allocation&&l.allocation.at<at)continue;
+  const diverted=s.allocation.region==='left'||paired&&s.pair.partnerId!==l?.id;
   if(!diverted)continue;
-  const pendingLO=h.center.pending.some(p=>p.family==='LO'&&p.rootId===l.id);
-  if(l.allocation&&!pendingLO){unclassified.push({bag,lId:l.id,sId:s.id,reason:'The previously surplus L was placed in an unreviewed accommodation; no L repair strategy is inferred.'});continue;}
-  evidence.push({bag,lId:l.id,sId:s.id,at,...(pendingLO?{pendingAccommodation:'LO'}:{}),reason:paired?'The S completed a pair with a different observed L.':'The S was accommodated on Left instead of using its observed L.'});
+  const pendingLO=h.center.pending.some(p=>p.family==='LO'&&p.rootId===l?.id);
+  if(l?.allocation&&!pendingLO){unclassified.push({bag,lId:l.id,sId:s.id,reason:'The previously surplus L was placed in an unreviewed accommodation; no L repair strategy is inferred.'});continue;}
+  evidence.push({bag,lId:l?.id??null,sId:s.id,at,...(!l?{deferred:true}:{}),...(pendingLO?{pendingAccommodation:'LO'}:{}),reason:paired?'The S completed a pair with a different observed L.':'The S was accommodated on Left instead of using its observed L.'});
  }
  const lostProfile=h.opening.violations.length||h.extraZ.departures.length||h.extraZ.allocations.length>1||(!h.milestones.firstTsd&&(h.opening.counts.TNonRight>2||h.opening.counts.ZNonRight>1));
  return{status:lostProfile||evidence.length>1?'out-of-profile':evidence.length?'hanging':unclassified.length?'unknown':'none-observed',evidence,unclassified,since:0,reason:evidence.length?'Observed surplus L identity; pending Center SL and repair capability are separate facts.':'No supported Hanging-L event in the observed interval; no symmetric L repair strategy is assumed.'};
@@ -224,7 +224,7 @@ function resolve(raw,history){
  const h=history,instance=id=>id===null?null:clone(h.pieces[id]);
  const center=clone(h.center);for(const list of ['pending','debt'])for(const obligation of center[list])obligation.rootBag=h.pieces[obligation.rootId]?.bag??null;
  const extraStatus=!h.extraZ.baseline?'unknown':h.extraZ.departures.length||h.extraZ.allocations.length>1?'out-of-profile':h.extraZ.allocations.length?'used':'available';
- return{schemaVersion:1,terminal:Boolean(h.observation.topOut),coverage:clone(h.coverage),actions:h.actions,locks:h.locks,instances:{active:instance(h.active),hold:instance(h.hold),queue:h.queue.map(instance)},flow:{ageKnown:h.fresh,oldestFirst:[h.active,h.hold,...h.queue].filter(id=>id!==null).map(instance).sort((a,b)=>(a.observedOrder??Infinity)-(b.observedOrder??Infinity))},center,hangingS:hanging(h),hangingL:hangingL(h),extraZ:{status:extraStatus,...clone(h.extraZ),reason:!h.extraZ.baseline?'First TSD and source pattern are not sufficient: the source allocation/quality baseline must be verified.':'One optional Left/Center Z per observed Midgame interval; clears never replenish it and no Reset is inferred.'},milestones:clone(h.milestones),allocations:clone(h.allocations),pairs:clone(h.pairs),source:{url:SOURCE,sections:['2','3.2','7','8','9','10']},note:'Observed resource evidence; planner validates replay context separately. No automatic Reset or allowance renewal.'};
+ return{schemaVersion:1,terminal:Boolean(h.observation.topOut),coverage:clone(h.coverage),actions:h.actions,locks:h.locks,instances:{active:instance(h.active),hold:instance(h.hold),queue:h.queue.map(instance)},observedSL:h.fresh?Object.values(h.pieces).filter(p=>'SL'.includes(p.type)).map(p=>({id:p.id,type:p.type,bag:p.bag})):[],flow:{ageKnown:h.fresh,oldestFirst:[h.active,h.hold,...h.queue].filter(id=>id!==null).map(instance).sort((a,b)=>(a.observedOrder??Infinity)-(b.observedOrder??Infinity))},center,hangingS:hanging(h),hangingL:hangingL(h),extraZ:{status:extraStatus,...clone(h.extraZ),reason:!h.extraZ.baseline?'First TSD and source pattern are not sufficient: the source allocation/quality baseline must be verified.':'One optional Left/Center Z per observed Midgame interval; clears never replenish it and no Reset is inferred.'},milestones:clone(h.milestones),allocations:clone(h.allocations),pairs:clone(h.pairs),source:{url:SOURCE,sections:['2','3.2','7','8','9','10']},note:'Observed resource evidence; planner validates replay context separately. No automatic Reset or allowance renewal.'};
 }
 return Object.freeze({start,applyAction,markHandoff,resolve,exportContext,importContext,limits:Object.freeze({actions:MAX_ACTIONS,locks:MAX_LOCKS})});
 });
