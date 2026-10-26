@@ -3,12 +3,12 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const {withPage}=require('./support/page.cjs'),R=require('../st-rules'),F=require('../st-fixtures');
 function importState(g,s){g.element('#st-snapshot').value=JSON.stringify(s);g.click('#st-import');}
 function count(g,n,label='Lines since import'){
- const scope=label==='Lines cleared'?'':label.replace('Lines ','');
+ const scope=label.replace('Lines ','');
  const counter=g.element('#st-lines'),formatted=n.toLocaleString('en-US');
  assert.equal(g.element('#st-lines-label').textContent,'Lines cleared');
  assert.equal(g.element('#st-lines-value').textContent,formatted);
  assert.equal(g.element('#st-lines-scope').textContent,scope);
- assert.equal(g.element('#st-lines-scope').hidden,!scope);
+ assert.equal(g.element('#st-lines-scope').hidden,false);
  assert.equal(counter.getAttribute('aria-label'),`${formatted} ${n===1?'line':'lines'} cleared${scope?' '+scope:''}`);
  assert.equal(counter.hidden,false);
 }
@@ -38,7 +38,11 @@ test('line counter: restart, random reset, modes and imports establish explicit 
  g.click('#st-export');const exported=JSON.parse(g.element('#st-snapshot').value);assert.deepEqual(exported,g.snapshot());assert.equal('clearedLines' in exported,false);
  importState(g,{...exported,clearedLines:999});count(g,0,'Lines since import');
  importState(g,well(4));g.window.stLab.act('HD');count(g,4);
- select(g,'empty');count(g,0,'Lines cleared');g.window.stLab.act('HD');g.tap('KeyR');count(g,0,'Lines cleared');
+ select(g,'empty');count(g,0,'Lines since start');
+ for(const reset of [()=>g.click('#st-reset'),()=>g.tap('KeyR')]){
+  g.window.stLab.act('HD');count(g,0,'Lines since start');assert.equal(g.element('#st-undo').disabled,false);
+  reset();count(g,0,'Lines since start');assert.equal(g.element('#st-undo').disabled,true);
+ }
  select(g,'marathon-rebuild');count(g,0,'Lines since start');
 }));
 test('line counter: footer stays attached to the board, outside the collision/target layer and resource badges',()=>withPage('st-lab.html',{storage:{stGuideVisible:'false'}},g=>{
