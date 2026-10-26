@@ -19,7 +19,7 @@
   let undoHistory=[], turnStart=null, resetDiagnosticCache=null;
   let worker=null, requestId=0, debounce=null, watchdog=null, revision=0;
   let result=null, previous=null, commitment=null, coachStatus='idle', coachMessage='';
-  let selectedId=null, lockCount=0;
+  let selectedId=null, lockCount=0, clearedLines=0, lineLabel='Lines since start';
   const repeating=new Map();
   const fixtures=STFixtures.list || [];
   const modeKey='stLabMode',stableId='marathon-rebuild';
@@ -163,13 +163,13 @@
       state={...state,bag:knowledge};
     }
   }
-  function resetState(input,{tail=[],random=false,history=null,note='',keepOrigin=false,opening=false}={}) {
+  function resetState(input,{tail=[],random=false,history=null,note='',keepOrigin=false,opening=false,counterLabel='Lines since start'}={}) {
     cancel();stopRepeating();future=tail.slice();futureCursor=0;undoHistory=[];turnStart=null;generated=random;observed=history?.slice() || null;openingPhase=opening;openingClear=null;openingRepair=null;
     state=STRules.migrateState({...clone(input),revision:++revision});
     const errors=STRules.validate(state);if(errors.length)throw new Error(errors.join('; '));
     if(state.queue.length>6){future.unshift(...state.queue.slice(6));state={...state,queue:state.queue.slice(0,6)};}
-    replenish();openingSource=STPlanner.startOpeningSession(observation(),{emptyMode:random&&opening}).source;patternHistory=STPlanner.startPatternHistory(observation());resourceHistory=STResourceHistory.start(observation(),{fresh:random&&opening});previous=null;result=null;commitment=null;lockCount=0;
-    if(!keepOrigin)origin={input:clone(input),options:{tail:tail.slice(),random,history:history?.slice()||null,note,opening}};
+    replenish();openingSource=STPlanner.startOpeningSession(observation(),{emptyMode:random&&opening}).source;patternHistory=STPlanner.startPatternHistory(observation());resourceHistory=STResourceHistory.start(observation(),{fresh:random&&opening});previous=null;result=null;commitment=null;lockCount=0;clearedLines=0;lineLabel=counterLabel;
+    if(!keepOrigin)origin={input:clone(input),options:{tail:tail.slice(),random,history:history?.slice()||null,note,opening,counterLabel}};
     setText($('st-position-note'),note);setText($('st-game-status'),'');requestPlan();render();
   }
   function loadFixture(id) {
@@ -183,12 +183,12 @@
     const initial=bag();selectedId='empty';$('st-fixture').value='empty';
     const active=initial.shift();
     resetState({rules:profile,board:STRules.emptyBoard(),active:{type:active,x:3,y:17,rotation:0,lastRotation:null},hold:null,canHold:true,queue:initial,streamCursor:1},
-      {random:true,opening:true,history:[active,...initial],note:'Empty-board opening practice. The coach checks partial construction using visible pieces; completing the opening is not guaranteed.'});
+      {random:true,opening:true,counterLabel:'Lines cleared',history:[active,...initial],note:'Empty-board opening practice. The coach checks partial construction using visible pieces; completing the opening is not guaranteed.'});
   }
   function checkpoint() {
     return {state:clone(state),futureCursor,observed:observed?.slice()||null,
       resourceHistory,patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null,
-      commitment:commitment?clone(commitment):null,lockCount};
+      commitment:commitment?clone(commitment):null,lockCount,clearedLines};
   }
   function undo() {
     if(!undoHistory.length)return;
@@ -197,7 +197,7 @@
     state={...clone(saved.state),revision:++revision};futureCursor=saved.futureCursor;
     observed=saved.observed?.slice()||null;openingPhase=saved.openingPhase;openingSource=saved.openingSource?clone(saved.openingSource):null;openingClear=saved.openingClear?clone(saved.openingClear):null;openingRepair=saved.openingRepair?clone(saved.openingRepair):null;
     patternHistory=saved.patternHistory?clone(saved.patternHistory):null;resourceHistory=saved.resourceHistory;
-    commitment=saved.commitment?clone(saved.commitment):null;lockCount=saved.lockCount;
+    commitment=saved.commitment?clone(saved.commitment):null;lockCount=saved.lockCount;clearedLines=saved.clearedLines;
     // Never resurrect displayed advice or an old worker response. The saved
     // proof is only a candidate for replay against this restored public state.
     previous=null;result=null;turnStart=null;
@@ -217,6 +217,7 @@
     state={...next,revision:++revision};
     if(locked){undoHistory.push(turnStart);if(undoHistory.length>500)undoHistory.shift();turnStart=null;lockCount++;previous=null;
       const event=state.lastEvent;
+      clearedLines+=event?.lines||0;
       setText($('st-game-status'),event?.topOut?'Top out. Undo the placement or reset to try again.':`${event?.lines||0} lines cleared${event?.spin&&event.spin!=='none'?` · ${event.spin} T-spin`:''}. ${lockCount} piece${lockCount===1?'':'s'} locked.`);
     }
     // Active movement does not expose pieces; only draws shorten the preview.
@@ -275,6 +276,7 @@
     setText($('st-phase-symbol'),openingPhase?'◌':'▦');
     $('st-phase-indicator').hidden=false;
     $('st-undo').disabled=!undoHistory.length;
+    setText($('st-lines'),`${lineLabel}: ${clearedLines}`);
     const key=STBinding.resolve(localStorage,Object.keys(keys));
     setText($('st-toggle'),`Advice ${visible?'ON':'OFF'} · ${key||'rebind conflicting advice key'}`);
     $('st-toggle').setAttribute('aria-pressed',String(visible));
@@ -340,7 +342,7 @@
         const initial=bag(),active=initial.shift();
         const input={...clone(origin.input),active:{type:active,x:3,y:17,rotation:0,lastRotation:null},queue:initial,streamCursor:1,topOut:false};
         delete input.bag;
-        resetState(input,{random:true,history:[active,...initial],opening:origin.options.opening,note:'Fresh random piece sequence from the starting position.'});
+        resetState(input,{random:true,history:[active,...initial],opening:origin.options.opening,counterLabel:origin.options.counterLabel,note:'Fresh random piece sequence from the starting position.'});
       }
     }else act(action);
     if(['L','R','SD'].includes(action)){
@@ -370,7 +372,7 @@
       // Explicit whitelist prevents an import from injecting a hidden queue/seed.
       const clean={rules:input.rules,board:input.board,active:input.active,hold:input.hold,canHold:input.canHold,queue:input.queue.slice(0,6),streamCursor:input.streamCursor||0,topOut:Boolean(input.topOut)};
       if(input.bag){const bagErrors=STBag.validate(input.bag);if(bagErrors.length)throw new Error(bagErrors.join('; '));clean.bag=input.bag;}
-      resetState(clean,{opening:STPlanner.startOpeningSession(clean).active,note:'Imported visible snapshot. Missing bag history remains unknown; preview is finite.'});selectedId=null;$('st-fixture').value='';setText($('st-import-status'),input.rules===STRules.LEGACY_PROFILE.id?'Snapshot imported and migrated from v1 to unlimited-hold v2.':'Snapshot imported.');
+      resetState(clean,{counterLabel:'Lines since import',opening:STPlanner.startOpeningSession(clean).active,note:'Imported visible snapshot. Missing bag history remains unknown; preview is finite.'});selectedId=null;$('st-fixture').value='';setText($('st-import-status'),input.rules===STRules.LEGACY_PROFILE.id?'Snapshot imported and migrated from v1 to unlimited-hold v2.':'Snapshot imported.');
     }catch(error){setText($('st-import-status'),`Import rejected: ${error.message}`);}
   });
   for(const mode of playModes){const option=document.createElement('option');option.value=mode.id;option.textContent=mode.label;$('st-fixture').append(option);}
