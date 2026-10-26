@@ -1,0 +1,341 @@
+{
+  "source": "Fresh resource audit, published e1a665d, seed 2718284037, first 9 locks; public actions and revealed preview only.",
+  "initial": {
+    "rules": "st-zero-v2",
+    "board": [
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      ".........."
+    ],
+    "active": {
+      "type": "Z",
+      "x": 3,
+      "y": 17,
+      "rotation": 0,
+      "lastRotation": null
+    },
+    "hold": null,
+    "canHold": true,
+    "queue": [
+      "I",
+      "S",
+      "J",
+      "O",
+      "T",
+      "L"
+    ],
+    "revision": 1,
+    "streamCursor": 1,
+    "topOut": false,
+    "bag": {
+      "remaining": [
+        0
+      ],
+      "observedCount": 7,
+      "provenance": "known-phase"
+    }
+  },
+  "steps": [
+    {
+      "action": "R",
+      "revealed": []
+    },
+    {
+      "action": "R",
+      "revealed": []
+    },
+    {
+      "action": "R",
+      "revealed": []
+    },
+    {
+      "action": "R",
+      "revealed": []
+    },
+    {
+      "action": "CW",
+      "revealed": []
+    },
+    {
+      "action": "HD",
+      "revealed": [
+        "L"
+      ]
+    },
+    {
+      "action": "L",
+      "revealed": []
+    },
+    {
+      "action": "L",
+      "revealed": []
+    },
+    {
+      "action": "L",
+      "revealed": []
+    },
+    {
+      "action": "HD",
+      "revealed": [
+        "S"
+      ]
+    },
+    {
+      "action": "HOLD",
+      "revealed": [
+        "J"
+      ]
+    },
+    {
+      "action": "L",
+      "revealed": []
+    },
+    {
+      "action": "R180",
+      "revealed": []
+    },
+    {
+      "action": "HD",
+      "revealed": [
+        "I"
+      ]
+    },
+    {
+      "action": "R",
+      "revealed": []
+    },
+    {
+      "action": "HD",
+      "revealed": [
+        "Z"
+      ]
+    },
+    {
+      "action": "L",
+      "revealed": []
+    },
+    {
+      "action": "L",
+      "revealed": []
+    },
+    {
+      "action": "L",
+      "revealed": []
+    },
+    {
+      "action": "CW",
+      "revealed": []
+    },
+    {
+      "action": "HD",
+      "revealed": [
+        "O"
+      ]
+    },
+    {
+      "action": "HOLD",
+      "revealed": []
+    },
+    {
+      "action": "R",
+      "revealed": []
+    },
+    {
+      "action": "HD",
+      "revealed": [
+        "T"
+      ]
+    },
+    {
+      "action": "R",
+      "revealed": []
+    },
+    {
+      "action": "R180",
+      "revealed": []
+    },
+    {
+      "action": "HD",
+      "revealed": [
+        "I"
+      ]
+    },
+    {
+      "action": "R",
+      "revealed": []
+    },
+    {
+      "action": "SD",
+      "revealed": []
+    },
+    {
+      "action": "SD",
+      "revealed": []
+    },
+    {
+      "action": "SD",
+      "revealed": []
+    },
+    {
+      "action": "SD",
+      "revealed": []
+    },
+    {
+      "action": "SD",
+      "revealed": []
+    },
+    {
+      "action": "SD",
+      "revealed": []
+    },
+    {
+      "action": "SD",
+      "revealed": []
+    },
+    {
+      "action": "SD",
+      "revealed": []
+    },
+    {
+      "action": "SD",
+      "revealed": []
+    },
+    {
+      "action": "SD",
+      "revealed": []
+    },
+    {
+      "action": "SD",
+      "revealed": []
+    },
+    {
+      "action": "SD",
+      "revealed": []
+    },
+    {
+      "action": "SD",
+      "revealed": []
+    },
+    {
+      "action": "SD",
+      "revealed": []
+    },
+    {
+      "action": "SD",
+      "revealed": []
+    },
+    {
+      "action": "HD",
+      "revealed": [
+        "Z"
+      ]
+    },
+    {
+      "action": "HOLD",
+      "revealed": []
+    },
+    {
+      "action": "R",
+      "revealed": []
+    },
+    {
+      "action": "R180",
+      "revealed": []
+    },
+    {
+      "action": "SD",
+      "revealed": []
+    },
+    {
+      "action": "SD",
+      "revealed": []
+    },
+    {
+      "action": "SD",
+      "revealed": []
+    },
+    {
+      "action": "SD",
+      "revealed": []
+    },
+    {
+      "action": "SD",
+      "revealed": []
+    },
+    {
+      "action": "SD",
+      "revealed": []
+    },
+    {
+      "action": "SD",
+      "revealed": []
+    },
+    {
+      "action": "SD",
+      "revealed": []
+    },
+    {
+      "action": "SD",
+      "revealed": []
+    },
+    {
+      "action": "SD",
+      "revealed": []
+    },
+    {
+      "action": "SD",
+      "revealed": []
+    },
+    {
+      "action": "SD",
+      "revealed": []
+    },
+    {
+      "action": "SD",
+      "revealed": []
+    },
+    {
+      "action": "HD",
+      "revealed": [
+        "L"
+      ]
+    }
+  ]
+}

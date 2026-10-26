@@ -1,9 +1,10 @@
 'use strict';
+const {SEARCH_TIME_MS}=require('../st-coach-config');
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const R=require('../st-rules'),B=require('../st-bag'),P=require('../st-planner'),O=require('../st-opening-sources'),D=require('../st-opening-patterns'),Sim=require('../scripts/lib/st-simulation.cjs');
 const clone=x=>JSON.parse(JSON.stringify(x));
 function initial(bag){return R.createState({active:bag[0],queue:[...bag.slice(1)],streamCursor:1,revision:1,bag:B.fromObserved({observed:[...bag],startPhase:0})});}
-function options(state,extra={}){const opening=P.startOpeningSession(state,{emptyMode:true});return{openingPhase:true,openingSource:opening.source,maxNodes:45000,timeMs:1500,...extra};}
+function options(state,extra={}){const opening=P.startOpeningSession(state,{emptyMode:true});return{openingPhase:true,openingSource:opening.source,maxNodes:45000,timeMs:SEARCH_TIME_MS,...extra};}
 function input(bag,seed=1){const base=Sim.makeInput('empty',seed,32);return{...base,initial:Sim.publicObservation(initial(bag)),future:[...'IJLOSTZ'.repeat(40)]};}
 function literalBoard(rows){return Array(40-rows.length).fill('..........').concat(rows);}
 const buri01=literalBoard(['....LLL...','.T..LSS...','.TT.SS...Z','.TJJJOO.ZZ','IIIIJOO.Z.']);
@@ -39,7 +40,7 @@ test('source opening: exact source advice survives actual witnessed movement, HO
  const session=Sim.createSession(input('ZOTLJSI')),req=session.request(1,Sim.CONFIG),a=P.decide(req.observation,req.options);assert.ok(a.evidence.opening.sourcePlan);
  let state=R.createState(req.observation),shown=a,future=[...'IJLOSTZ'];
  for(const action of a.witness.slice(0,-1)){state=R.move(state,action);while(state.queue.length<6){const type=future.shift();state={...state,queue:[...state.queue,type],bag:B.consume(state.bag,type)};}const next=P.advance(state,shown,action);assert.ok(next,action);assert.deepEqual(next.target,a.target);assert.equal(next.evidence.opening.sourcePlan.id,a.evidence.opening.sourcePlan.id);shown=next;}
- const retained=P.revalidate(state,shown,{maxNodes:45000,timeMs:1500});assert.ok(retained);assert.deepEqual(retained.target,a.target);
+ const retained=P.revalidate(state,shown,{maxNodes:45000,timeMs:SEARCH_TIME_MS});assert.ok(retained);assert.deepEqual(retained.target,a.target);
 });
 test('source opening: wrong input, stale inventory, altered board, goal and forged proof fail retention',()=>{
  const s=initial('IJLOSTZ'),a=P.plan(s,options(s));assert.ok(a.evidence.opening.sourcePlan);
@@ -58,7 +59,7 @@ test('source opening: wrong input, stale inventory, altered board, goal and forg
 });
 test('source opening: held same-letter actual pieces and manual HOLD do not imply an identity swap',()=>{
  const board=buri01.map(row=>row.replaceAll('T','.')),s=R.createState({board,active:'T',hold:'T',queue:[...'IJLOSZ'],streamCursor:8,bag:B.fromObserved({observed:[...'IJLOSTZT'],startPhase:0})});
- const opts={openingPhase:true,openingSource:{pattern:'buri-01'},maxNodes:45000,timeMs:1500};
+ const opts={openingPhase:true,openingSource:{pattern:'buri-01'},maxNodes:45000,timeMs:SEARCH_TIME_MS};
  const a=P.plan(s,opts),held=R.move(s,'HOLD'),b=P.plan(held,opts);assert.ok(a.evidence.opening.sourcePlan);assert.ok(b.evidence.opening.sourcePlan);assert.deepEqual(a.target,b.target);assert.equal(held.streamCursor,s.streamCursor);assert.equal(held.revision,s.revision+1);
  assert.deepEqual(R.replay(s,a.witness).state.board,buri01);assert.deepEqual(R.replay(held,b.witness).state.board,buri01);
 });
@@ -89,7 +90,7 @@ test('source opening: retention rederives remaining inventory feasibility and re
  starved.queue=Array(6).fill('I');short.evidence.opening.sourcePlan.origin=clone(starved);short.evidence.opening.sourcePlan.steps=short.evidence.opening.sourcePlan.steps.slice(0,1);short.continuation=short.continuation.slice(0,1);
  const budgetTracker={nodes:0};assert.equal(P.revalidate(starved,short,{budgetTracker,maxNodes:45000}),null);assert.ok(budgetTracker.nodes>short.witness.length);
  const stale=clone(a);stale.evidence.opening.sourcePlan.pending={kind:'invented-future',type:'X',spawnWitness:['HD']};
- const retained=P.revalidate(s,stale,{maxNodes:45000,timeMs:1500});assert.ok(retained);assert.notEqual(retained.evidence.opening.sourcePlan.pending?.kind,'invented-future');assert.notEqual(retained.evidence.opening.sourcePlan.pending?.type,'X');assert.deepEqual(retained.target,a.target);
+ const retained=P.revalidate(s,stale,{maxNodes:45000,timeMs:SEARCH_TIME_MS});assert.ok(retained);assert.notEqual(retained.evidence.opening.sourcePlan.pending?.kind,'invented-future');assert.notEqual(retained.evidence.opening.sourcePlan.pending?.type,'X');assert.deepEqual(retained.target,a.target);
 });
 
 test('source opening: final access rejection clears source selection without erasing attempted work',()=>{

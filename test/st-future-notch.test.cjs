@@ -1,4 +1,5 @@
 'use strict';
+const {SEARCH_TIME_MS}=require('../st-coach-config');
 const test=require('node:test'),assert=require('node:assert/strict');
 const R=require('../st-rules'),S=require('../st-structure'),P=require('../st-planner'),F=require('../st-fixtures');
 const snapshot=require('./support/st-user-future-notch.json');
@@ -14,8 +15,8 @@ test('user J snapshot reserves the future column-seven notch, not a score bonus'
  const rejected=S.advanceNotches(snapshot.board,center,phase);assert.equal(rejected.valid,false);assert.deepEqual(rejected.blockedCells,[[6,27]]);
  const left=placements.find(p=>p.event.type==='J'&&p.target.rotation===3&&p.event.cells.every(([x])=>x<4));assert.ok(left);assert.equal(S.advanceNotches(snapshot.board,left,phase).valid,true);
 });
-for(const timed of [false,true])test(`user J recommendation protects the future notch (${timed?'750ms':'full'})`,()=>{
- const a=P.plan(snapshot,{...config,...(timed?{timeMs:750}:{})});assert.ok(a.target,a.reason);assert.equal(a.target.type,'J');assert.ok(a.continuation[0].event.cells.every(([x])=>x<4));
+for(const timed of [false,true])test(`user J recommendation protects the future notch (${timed?`${SEARCH_TIME_MS}ms`:'full'})`,()=>{
+ const a=P.plan(snapshot,{...config,...(timed?{timeMs:SEARCH_TIME_MS}:{})});assert.ok(a.target,a.reason);assert.equal(a.target.type,'J');assert.ok(a.continuation[0].event.cells.every(([x])=>x<4));
  let state=R.createState(snapshot),phase=S.notchPattern(state.board);
  for(const step of a.continuation){const p=move(state,step.witness),check=S.advanceNotches(state.board,p,phase);assert.ok(check.valid);phase=check.pattern;state=p.state;}
  if(!timed){assert.equal(a.evidence.tsdAt,3);assert.equal(a.metrics.completeDepth,3);discoveredAdvice=clone(a);}

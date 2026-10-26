@@ -118,6 +118,7 @@ test('st-worker/protocol: real worker code imports pure modules and returns revi
  context.importScripts=(...files)=>{for(const file of files)vm.runInContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),context,{filename:file});};
  vm.createContext(context);vm.runInContext(fs.readFileSync(path.join(__dirname,'../st-worker.js'),'utf8'),context);
  const observation=json(F.list[0].observation);
+ // Deliberately tiny protocol probe; success may be a bounded abstention.
  context.self.onmessage({data:{type:'plan',id:3,observation,options:{timeMs:20,maxNodes:1500,depth:1}}});
  assert.equal(messages.length,1);assert.equal(messages[0].id,3);assert.equal(messages[0].revision,observation.revision);assert.equal(messages[0].type,'result');
  assert.ok(messages[0].result.status);if(messages[0].result.target)assert.ok(R.replay(observation,messages[0].result.witness).valid);

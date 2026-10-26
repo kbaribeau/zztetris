@@ -1,4 +1,5 @@
 'use strict';
+const {SEARCH_TIME_MS}=require('../st-coach-config');
 const test=require('node:test'),assert=require('node:assert/strict');
 const R=require('../st-rules'),P=require('../st-planner'),S=require('../st-structure'),O=require('../st-opening'),F=require('../st-fixtures');
 const controls=require('./support/st-opening-geometry.json');
@@ -39,7 +40,7 @@ test('opening: established fixtures and existing low-center repair are not recla
 });
 test('opening: actual canonical clear plus fresh supported maintenance proof permits handoff; fabricated event does not',()=>{
  const f=require('./support/st-opening-handoff.json'),session=P.updateOpeningSession({active:true,clear:null},f.before,f.after,f.event);
- const a=P.plan(f.after,{...options,openingPhase:true,openingClear:session.clear,timeMs:750});
+ const a=P.plan(f.after,{...options,openingPhase:true,openingClear:session.clear,timeMs:SEARCH_TIME_MS});
  assert.equal(a.phase,'maintenance');assert.equal(a.evidence.openingHandoff.status,'checked-after-actual-clear');replay(f.after,a);
  assert.equal(P.acceptOpeningResult(session,a).active,false);
  assert.equal(O.handoff(f.after,{...session.clear,event:{...f.event,spin:'none'}},options),null);

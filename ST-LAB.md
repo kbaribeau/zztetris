@@ -7,8 +7,8 @@ The last selected play mode is saved locally as `stLabMode`; unknown or retired 
 ## Play
 
 - The first badge above the field names the current session: **Opening** for partial construction, or **Mid-game** for the existing maintenance coaching path, without a visible “Coaching phase” caption. Mid-game is a display label, not a community-cycle classifier or a guarantee that advice is available. Only the checked opening handoff changes Opening to Mid-game; Undo and Restart restore the appropriate session. The phase does not change on a search miss, error or top-out. Placement explanations remain below the board. Community **Reset** detection is future work: finite repairs, quad cleanup and Restart are not labelled Reset.
-- **Undo last placement** (configured Undo key, default T) restores the start of the previous completed placement, before its holds, moves and rotations. It also discards any movement of the current piece. Undo is available after a top-out or finite-queue exhaustion. The last 500 placements are retained; restart, mode changes and imports clear this history. Redo is not currently offered in the ST Lab.
-- Undo preserves the same generated piece sequence using a private append-only tape and rewindable cursor. It restores public bag evidence, stream position, opening phase and any saved coaching commitment, then requests fresh validation. Private tape/history never enter advice requests or exported snapshots; already-seen future pieces are not treated as currently visible. Late worker replies are rejected with a new revision.
+- **Undo last placement** (configured Undo key, default T) restores the start of the previous completed placement, before its holds, moves and rotations. It also discards any movement of the current piece. Undo is available after a top-out or finite-queue exhaustion. The last 100 placements are retained; restart, mode changes and imports clear this history. Redo is not currently offered in the ST Lab.
+- Undo preserves the same generated piece sequence using a private append-only tape and rewindable cursor. It restores public bag evidence, stream position, opening phase and any saved coaching commitment, then requests fresh validation. Private tape/history never enter advice requests or exported snapshots; already-seen future pieces are not treated as currently visible. Late worker replies are rejected by worker identity and request/revision checks; a session import may preserve its saved revision for source-proof replay.
 
 - The gray outline is the ordinary hard-drop ghost. The amber outline is a separately checked coaching target. Follow the explanation, including HOLD when requested; no auto-play button executes the plan for you.
 - Keyboard bindings come from Game Settings; on-page buttons provide the same manual actions. Advice defaults to `KeyA` unless rebound. Display preferences persist without changing ordinary modes.
@@ -207,3 +207,94 @@ accommodation stays uncertain. Hanging L is diagnostic only: it adds no mirrored
 repair search, placement prohibition, urgency, or Reset trigger. Newly recognized
 Hanging S can invoke the existing bounded repair check, so identification can
 affect later recommendations without changing ranking or opener A/B/C rules.
+
+### Internal piece ledger (observation only)
+
+`st-piece-ledger.js` is an additive local observer, exposed for diagnostics by
+`window.stLab.pieceLedger`. It does not feed recommendations, worker messages,
+resource bindings, public snapshots, badges, or scoring. The existing resource
+tracker and its limitations are unchanged.
+
+For each piece type, `entered` increments only when an identity first enters
+active/held inventory, `locked` increments on its actual lock, and `outstanding`
+is their difference. Preview revelation alone is not entry. Repeated HOLD swaps
+never recount an identity; a bag boundary never erases held inventory. Imports
+start a `since-observation` baseline with currently active/held inventory counted,
+not a claim about earlier play. Only a locally witnessed empty seven-bag start
+establishes bag ages.
+
+The compact structural ledger records Left S/L allocations, exact completed
+Center pairs, current Center commitments, and unresolved accommodation counts.
+Up to 64 unresolved identity examples are retained; any overflow is explicit and
+its count is never discarded. Unknown accommodation is not a confirmed repair or
+a confirmed hanging piece. `pairingCandidates` can associate a held L and active S
+across bags, or an available L with a pending Center S. These are inventory/geometry
+facts, explicitly **not** reachability proofs, reservations, or hanging-status
+verdicts. Extra-Z entries are factual Left/Center diversion counts before/after an
+observed first canonical TSD, not a new allowance or eligibility rule. No boundary
+renews those counts.
+
+Immutable local checkpoints retain counters without an action tape or lifetime
+lock cap. Restart, new mode and import establish a new ledger; Undo restores its
+saved pre-placement checkpoint. Undo retains at most the latest **100 locked
+placements**, not 100 key inputs. Pruning old Undo entries does not reset current
+counters. Imported/injected diagnostic JSON cannot restore prior provenance.
+
+The live coach's timed search allowance comes from
+`STCoachConfig.SEARCH_TIME_MS` in `st-coach-config.js` (1500 ms). The worker's default,
+simulations and corresponding timed regression tests share that constant. Worker
+and whole-suite watchdogs are separate safeguards; explicit constrained research
+probes and internal sub-search ceilings retain their own limits.
+
+## Versioned coaching-session export
+
+The import box accepts either the existing lightweight position JSON or a
+`zztetris-st-session` envelope (`schemaVersion: 1`). **Export coaching session**
+adds the current recommendation inputs to the visible position; **Export visible
+snapshot** is unchanged. Neither exports hidden future bags/RNG, Undo history,
+cleared-line totals, or the diagnostic shadow piece ledger. Imported play has a
+finite visible queue (plus the existing logically forced bag remainder).
+
+The session contains:
+
+- `engineVersion`: an explicit coach compatibility identifier. Bump this when a
+  behavior/proof-contract change makes old contextual sessions incompatible.
+  It is a compatibility version, not a Git SHA or a signature.
+- `position`: rules, board, exact active pose/rotation evidence, HOLD, six-piece
+  preview, bag frontier, stream cursor, top-out and revision.
+- `search`: current shared search time plus depth/width/node settings. Only the
+  currently supported production configuration is accepted; imports cannot
+  enlarge budgets or install clock/deadline callbacks.
+- `coaching`: replay-backed resource context and its original bag frontier,
+  pattern history, opener phase/source/clear/repair, previous advice and retained
+  construction commitment. Hanging S/L and Extra Z are reconstructed from replay,
+  not restored from editable status flags.
+
+`st-session.js` checks input size/depth, versions, the complete resource replay,
+its bag frontier, pattern history and bounded opener certificates before the
+controller changes state. Imported previous advice is only a bounded candidate;
+its old witness can be stale after movement, and the existing planner performs
+normal retention/resource/access validation before any target is displayed.
+Commitment witnesses are checked at their recorded origin, preserving legal
+mid-piece target re-enumeration. Invalid/stale opener metadata or malformed
+candidates are discarded with a visible warning. Invalid position, resource or
+pattern evidence rejects the import without changing the current game/worker.
+
+Unknown or truncated resource history remains unknown. The existing resource
+replay limits (4,096 actions / 512 locks) still apply; this feature does **not**
+replace them with a trusted compact checkpoint. A valid replay proves a coherent
+constructed history, not who played it. There are no imported capability tokens,
+no authenticity claims from hashes, and no inferred Extra-Z allowance.
+
+Session install is atomic after validation, cancels the old worker and preserves
+its exported revision because opener certificates bind exact revisions. Worker
+identity prevents a late response from an earlier session with the same revision
+being accepted. Restart restores that imported session; Undo begins empty.
+Plain position imports retain their existing rules migration and unknown-history
+behavior. Selecting a play mode replaces the imported session origin.
+
+Tests in `test/st-session.test.cjs` exercise actual-page request round-trips,
+source progress through the second bag and first TSD, repair/commitment evidence,
+mid-piece movement, stale same-revision replies, rejection atomicity and limits.
+Deterministic node-budget comparisons cover recommendation equivalence; ordinary
+wall-clock-limited planning may still differ with scheduling and hardware.

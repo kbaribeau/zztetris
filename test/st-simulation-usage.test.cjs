@@ -12,5 +12,6 @@ test('simulation usage: replay/compare cannot retroactively instrument recorded 
 test('simulation usage: paired comparison refuses to mix instrumented and ordinary configurations',()=>{
  const episode={scenario:'empty',seed:1,inputHash:'same',locks:1,stop:'lock-cap',censored:true,profile:[{lines:0,height:1}]},base={schemaVersion:1,complete:true,config:CLI.configuration(),locks:1,rng:E.RNG_VERSION,lane:'production-wall-clock',execution:'rapid-uninterrupted-actual-witness-v1',episodes:[episode]};
  assert.throws(()=>CLI.compare(base,{...base,config:CLI.configuration({'usage-telemetry':true})}),/Incompatible budgets/);
+ // Deliberately different historical budget: this comparison must reject it.
  assert.throws(()=>CLI.compare(base,{...base,config:{...base.config,timeMs:750}}),/Incompatible budgets/);
 });

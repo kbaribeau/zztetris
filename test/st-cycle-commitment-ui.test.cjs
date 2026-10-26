@@ -1,4 +1,6 @@
 'use strict';
+const {SEARCH_TIME_MS}=require('../st-coach-config');
+// X.search research certificates retain their separate 750 ms sub-search ceiling.
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 const {withPage}=require('./support/page.cjs');
 const R=require('../st-rules');
@@ -42,7 +44,7 @@ test('st-cycle-ui/hidden guidance still advances proof on a manual lock',()=>wit
 test('st-worker/forwards previous advice and cycle commitment to the shared decision entry',()=>{
  const calls=[],messages=[],commitment={observation:{board:['public']},advice:{witness:['HD']}},context={Date,self:{postMessage:x=>messages.push(x)},importScripts(){},STPlanner:{revalidate(){throw Error('worker must not bypass shared decision');},plan(){throw Error('worker must not bypass shared decision');},decide(observation,options){calls.push({observation,options});return {status:'fresh-comparison'};}}};
  vm.createContext(context);vm.runInContext(fs.readFileSync(path.join(__dirname,'../st-worker.js'),'utf8'),context);
- context.self.onmessage({data:{type:'plan',id:4,observation:{revision:7},previous:{target:{}},commitment,options:{timeMs:750}}});
+ context.self.onmessage({data:{type:'plan',id:4,observation:{revision:7},previous:{target:{}},commitment,options:{timeMs:SEARCH_TIME_MS}}});
  assert.equal(calls.length,1);assert.deepEqual(calls[0].options.commitment,commitment);assert.deepEqual(calls[0].options.previous,{target:{}});assert.equal(messages[0].result.status,'fresh-comparison');
 });
 test('st-cycle-ui/stale worker cannot replace a newer cycle proof',()=>withPage('st-lab.html',{},g=>{
@@ -115,10 +117,10 @@ test('st-cycle-ui/finite paired-T proof does not authorize an unready Reset thro
  let request=workers.at(-1).message;const certificate=X.search(request.observation,{timeMs:750});assert.ok(certificate.valid,'Low-level finite route remains mechanically verified');
  assert.ok(X.validateCertificate(request.observation,certificate.continuation).valid);
  const proof={origin:request.observation,steps:certificate.continuation.map(p=>({witness:p.witness})),consumed:0};
- let plan=P.plan(request.observation,{...request.options,timeMs:750});assert.equal(plan.target,null,'High Left with depleted Center is not accepted as Reset readiness');workers.at(-1).respond(plan);
+ let plan=P.plan(request.observation,{...request.options,timeMs:SEARCH_TIME_MS});assert.equal(plan.target,null,'High Left with depleted Center is not accepted as Reset readiness');workers.at(-1).respond(plan);
  assert.equal(g.window.stLab.result.target,null);assert.equal(g.element('#st-phase-name').textContent,'Mid-game');assert.doesNotMatch(g.element('#st-status').textContent,/begin the checked paired-T|Use this recovery/);
  g.window.stLab.act('HOLD');g.advance(40);request=workers.at(-1).message;assert.equal(request.commitment,null);
- plan=P.plan(request.observation,{...request.options,timeMs:750});assert.equal(plan.target,null);workers.at(-1).respond(plan);
+ plan=P.plan(request.observation,{...request.options,timeMs:SEARCH_TIME_MS});assert.equal(plan.target,null);workers.at(-1).respond(plan);
  const snapshot=g.snapshot();g.element('#st-snapshot').value=JSON.stringify({...snapshot,construction:proof});g.click('#st-import');g.advance(40);assert.equal(workers.at(-1).message.commitment,null);
  g.click('#st-reset');g.advance(40);assert.equal(workers.at(-1).message.commitment,null);
 }));
@@ -130,7 +132,7 @@ test('st-cycle-ui/replacement-Z geometry does not invent an Extra-Z allowance in
  const checked=X.validateCertificate(request.observation,cert.continuation,{kind:'cap-deferral'});assert.ok(checked.valid);assert.ok(checked.cap.targets.length,'The exact replacement cells remain part of the low-level certificate');
  let replay=request.observation;for(const step of cert.continuation){const r=R.replay(replay,step.witness);assert.ok(r.valid);assert.deepEqual(r.events[0],step.event);replay=r.state;}assert.equal(replay.lastEvent.spin,'full');assert.equal(replay.lastEvent.lines,2);
  const proof={kind:'cap-deferral',origin:request.observation,steps:cert.continuation.map(p=>({witness:p.witness})),consumed:0};
- const plan=P.plan(request.observation,{...request.options,timeMs:750,commitment:{observation:request.observation,advice:{evidence:{construction:proof}}}});
+ const plan=P.plan(request.observation,{...request.options,timeMs:SEARCH_TIME_MS,commitment:{observation:request.observation,advice:{evidence:{construction:proof}}}});
  assert.equal(plan.target,null,'A complete local cap proof cannot establish historical Extra-Z availability');assert.equal(plan.evidence.resourceObligations.reason,'extra-Z-not-available');workers.at(-1).respond(plan);
  assert.equal(g.window.stLab.result.target,null);assert.equal(g.window.stLab.resources.extraZ.status,'unknown');assert.doesNotMatch(g.element('#st-status').textContent,/checked sequence restores/);
  // Manual play is still legal, but does not turn the refused route into a

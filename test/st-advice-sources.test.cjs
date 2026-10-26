@@ -1,4 +1,6 @@
 'use strict';
+const {SEARCH_TIME_MS}=require('../st-coach-config');
+// X.search research certificates retain their separate 750 ms sub-search ceiling.
 const test=require('node:test'),assert=require('node:assert/strict');
 const P=require('../st-planner'),R=require('../st-rules'),F=require('../st-fixtures'),X=require('../st-paired-repair');
 const recovery=require('./support/st-construction-recovery.json'),cap=require('./support/st-visible-z-deferral.json');
@@ -22,7 +24,7 @@ test('research paired-repair wording follows actual remaining T and center stage
   assert.match(advice.reason,/not proof of a completed Reset/);
   const r=R.replay(state,first.witness);assert.ok(r.valid);assert.deepEqual(r.events,[first.event]);state=r.state;
  }
- assert.equal(P.plan(recovery.initial,{timeMs:750}).target,null,'Presentation of a research proof does not make its high-Left start policy-eligible');
+ assert.equal(P.plan(recovery.initial,{timeMs:SEARCH_TIME_MS}).target,null,'Presentation of a research proof does not make its high-Left start policy-eligible');
 });
 test('research cap-deferral wording stops claiming a pending replacement after actual repayment',()=>{
  const cert=X.search(cap.initial,{kind:'cap-deferral',timeMs:750});assert.ok(cert.valid);
@@ -34,7 +36,7 @@ test('research cap-deferral wording stops claiming a pending replacement after a
   if(i===2){assert.match(a.reason,/Take the checked T-spin double/);assert.doesNotMatch(a.reason,/restores the Z cap in|restore the cap over/);}
   const r=R.replay(state,continuation[0].witness);assert.ok(r.valid);assert.deepEqual(r.events,[continuation[0].event]);state=r.state;
  }
- const a=P.plan(cap.initial,{timeMs:750});if(a.target)assert.notEqual(a.evidence.strategy,'finite-cap-deferral','Unknown Extra-Z history must not authorize the research route');
+ const a=P.plan(cap.initial,{timeMs:SEARCH_TIME_MS});if(a.target)assert.notEqual(a.evidence.strategy,'finite-cap-deferral','Unknown Extra-Z history must not authorize the research route');
 });
 test('ordinary revalidation regenerates stale HOLD text and arbitrary imported source descriptors',()=>{
  const state=F.get('center-j').observation,a=actualCenterAdvice();

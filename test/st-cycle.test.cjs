@@ -1,12 +1,13 @@
 'use strict';
+const {SEARCH_TIME_MS}=require('../st-coach-config');
 const test=require('node:test'),assert=require('node:assert/strict');
 const R=require('../st-rules'),S=require('../st-structure'),P=require('../st-planner'),F=require('../st-fixtures');
 const I=require('./support/st-user-cleanup-i.json');
 const alternatives=require('./support/st-accepted-cycle-alternatives.json');
 const config={depth:3,width:8,maxNodes:45000};
 function replay(s,a){assert.ok(a.target,a.reason);for(const p of a.continuation){assert.equal(S.canonicalClear(p.event),true,'normal advice admits only right TSD/quad clears');const r=R.replay(s,p.witness);assert.equal(r.valid,true);assert.deepEqual(r.events[0],p.event);s=r.state;}return s;}
-for(const id of ['restore-the-right-cap','center-before-quad-cleanup','double-above-the-cleanup-i'])for(const timed of [false,true])test(`cycle regression: ${id}, ${timed?'production 750ms':'full bounded search'}`,()=>{
- const f=F.get(id),a=P.plan(f.observation,{...config,...(timed?{timeMs:750}:{})});
+for(const id of ['restore-the-right-cap','center-before-quad-cleanup','double-above-the-cleanup-i'])for(const timed of [false,true])test(`cycle regression: ${id}, ${timed?`production ${SEARCH_TIME_MS}ms`:'full bounded search'}`,()=>{
+ const f=F.get(id),a=P.plan(f.observation,{...config,...(timed?{timeMs:SEARCH_TIME_MS}:{})});
  replay(R.createState(f.observation),a);
  assert.deepEqual(a.target,R.replay(R.createState(f.observation),f.expectations.referenceWitness).events[0].target);
  assert.equal(a.hold,f.expectations.referenceWitness.includes('HOLD'));
@@ -24,7 +25,7 @@ test('cycle: raised cleanup I is a legitimate scoring phase and its double is no
  const t=S.transition(s,{state:r.state,event:r.events[0]});assert.equal(t.regionalRepair,0);assert.equal(t.allocation,'scoring-double');
 });
 for(const timed of [false,true])test(`cycle: supplied I prepares column ten with column eight and Z access preserved (${timed?'timed':'full'})`,()=>{
- const a=P.plan(I,{...config,...(timed?{timeMs:750}:{})});replay(R.createState(I),a);
+ const a=P.plan(I,{...config,...(timed?{timeMs:SEARCH_TIME_MS}:{})});replay(R.createState(I),a);
  assert.equal(a.target.type,'I');assert.ok(a.continuation[0].event.cells.every(([x])=>x===9));
  assert.equal(a.continuation[0].structuralEvidence.allocation,'quad-preparation');
  const after=R.replay(R.createState(I),a.witness).state;

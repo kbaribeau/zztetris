@@ -1,8 +1,9 @@
 'use strict';
+const {SEARCH_TIME_MS}=require('../st-coach-config');
 const test=require('node:test'),assert=require('node:assert/strict');
 const R=require('../st-rules'),S=require('../st-structure'),P=require('../st-planner'),F=require('../st-fixtures');
 const {cases}=require('./support/st-autoplay-lost-phase.json');
-const config={depth:3,width:8,maxNodes:45000,timeMs:750};
+const config={depth:3,width:8,maxNodes:45000,timeMs:SEARCH_TIME_MS};
 for(const c of cases){
  test(`observed ${c.id} move ${c.move} cannot erase an established scoring phase`,()=>{
   const state=P.observe(c.snapshot),phase=S.notchPattern(state.board),replay=R.replay(state,c.advice.witness);

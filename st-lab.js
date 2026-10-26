@@ -15,10 +15,11 @@
   window.DAS=das; // shared settings/navigation readback; not a second game engine.
   window.ctrlsPopup=()=>window.open('controls.html','popup','width=1200,height=800');
   const context=$('b').getContext('2d');
-  let state, origin, future=[], futureCursor=0, generated=false, observed=null, openingPhase=false, openingClear=null, openingRepair=null, openingSource=null, patternHistory=null, resourceHistory=null;
+  let state, origin, future=[], futureCursor=0, generated=false, observed=null, openingPhase=false, openingClear=null, openingRepair=null, openingSource=null, patternHistory=null, resourceHistory=null, resourceOriginBag=null, pieceLedger=null;
   let undoHistory=[], turnStart=null, resetDiagnosticCache=null;
   let worker=null, requestId=0, debounce=null, watchdog=null, revision=0;
   let result=null, previous=null, commitment=null, coachStatus='idle', coachMessage='';
+  let searchSettings=STSession.defaults();
   let selectedId=null, lockCount=0, clearedLines=0, lineLabel='Lines since start';
   const repeating=new Map();
   const fixtures=STFixtures.list || [];
@@ -125,7 +126,7 @@
         };
         activeWorker.postMessage({type:'plan',id,observation:observation(),previous:previous?clone(previous):null,
           commitment:commitment?clone(commitment):null,
-          options:{resourceContext:STResourceHistory.exportContext(observation(),resourceHistory),timeMs:1500,depth:3,width:8,maxNodes:45000,patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null}});
+          options:{resourceContext:STResourceHistory.exportContext(observation(),resourceHistory),...searchSettings,patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null}});
         watchdog=setTimeout(()=>{
           if(worker!==activeWorker)return;
           cancel();result=null;coachStatus='budget-exhausted';coachMessage='The coach timed out. A valid continuation may still exist.';render();
@@ -168,7 +169,7 @@
     state=STRules.migrateState({...clone(input),revision:++revision});
     const errors=STRules.validate(state);if(errors.length)throw new Error(errors.join('; '));
     if(state.queue.length>6){future.unshift(...state.queue.slice(6));state={...state,queue:state.queue.slice(0,6)};}
-    replenish();openingSource=STPlanner.startOpeningSession(observation(),{emptyMode:random&&opening}).source;patternHistory=STPlanner.startPatternHistory(observation());resourceHistory=STResourceHistory.start(observation(),{fresh:random&&opening});previous=null;result=null;commitment=null;lockCount=0;clearedLines=0;lineLabel=counterLabel;
+    replenish();searchSettings=STSession.defaults();resourceOriginBag=state.bag?clone(state.bag):null;openingSource=STPlanner.startOpeningSession(observation(),{emptyMode:random&&opening}).source;patternHistory=STPlanner.startPatternHistory(observation());resourceHistory=STResourceHistory.start(observation(),{fresh:random&&opening});pieceLedger=STPieceLedger.start(observation(),{fresh:random&&opening});previous=null;result=null;commitment=null;lockCount=0;clearedLines=0;lineLabel=counterLabel;
     if(!keepOrigin)origin={input:clone(input),options:{tail:tail.slice(),random,history:history?.slice()||null,note,opening,counterLabel}};
     setText($('st-position-note'),note);setText($('st-game-status'),'');requestPlan();render();
   }
@@ -187,7 +188,7 @@
   }
   function checkpoint() {
     return {state:clone(state),futureCursor,observed:observed?.slice()||null,
-      resourceHistory,patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null,
+      resourceHistory,resourceOriginBag,pieceLedger,patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null,
       commitment:commitment?clone(commitment):null,lockCount,clearedLines};
   }
   function undo() {
@@ -196,7 +197,7 @@
     const saved=undoHistory.pop();
     state={...clone(saved.state),revision:++revision};futureCursor=saved.futureCursor;
     observed=saved.observed?.slice()||null;openingPhase=saved.openingPhase;openingSource=saved.openingSource?clone(saved.openingSource):null;openingClear=saved.openingClear?clone(saved.openingClear):null;openingRepair=saved.openingRepair?clone(saved.openingRepair):null;
-    patternHistory=saved.patternHistory?clone(saved.patternHistory):null;resourceHistory=saved.resourceHistory;
+    patternHistory=saved.patternHistory?clone(saved.patternHistory):null;resourceHistory=saved.resourceHistory;resourceOriginBag=saved.resourceOriginBag;pieceLedger=saved.pieceLedger;
     commitment=saved.commitment?clone(saved.commitment):null;lockCount=saved.lockCount;clearedLines=saved.clearedLines;
     // Never resurrect displayed advice or an old worker response. The saved
     // proof is only a candidate for replay against this restored public state.
@@ -206,7 +207,7 @@
   }
   function act(action) {
     if(action==='UNDO'){undo();return;}
-    if(action==='RESET'){if(origin)resetState(origin.input,{...origin.options,keepOrigin:true});return;}
+    if(action==='RESET'){if(origin?.session){const saved=clone(origin.session);installSession(STSession.prepare(saved),saved);}else if(origin)resetState(origin.input,{...origin.options,keepOrigin:true});return;}
     if(!state.active)return;
     const beforeAction=observation(),beforeLock=action==='HD'?beforeAction:null;
     const next=STRules.move(state,action);
@@ -215,7 +216,7 @@
     const displayed=result;
     const locked=action==='HD';
     state={...next,revision:++revision};
-    if(locked){undoHistory.push(turnStart);if(undoHistory.length>500)undoHistory.shift();turnStart=null;lockCount++;previous=null;
+    if(locked){undoHistory.push(turnStart);if(undoHistory.length>100)undoHistory.shift();turnStart=null;lockCount++;previous=null;
       const event=state.lastEvent;
       clearedLines+=event?.lines||0;
       setText($('st-game-status'),event?.topOut?'Top out. Undo the placement or reset to try again.':`${event?.lines||0} lines cleared${event?.spin&&event.spin!=='none'?` · ${event.spin} T-spin`:''}. ${lockCount} piece${lockCount===1?'':'s'} locked.`);
@@ -223,6 +224,7 @@
     // Active movement does not expose pieces; only draws shorten the preview.
     replenish();
     resourceHistory=STResourceHistory.applyAction(resourceHistory,beforeAction,action,{...observation(),lastEvent:state.lastEvent});
+    pieceLedger=STPieceLedger.applyAction(pieceLedger,beforeAction,action,{...observation(),lastEvent:state.lastEvent});
     if(locked){
       patternHistory=STPlanner.updatePatternHistory(patternHistory,beforeLock,observation(),state.lastEvent);
       if(openingPhase){const phase=STPlanner.updateOpeningSession({active:openingPhase,clear:openingClear,repair:openingRepair,source:openingSource},beforeLock,observation(),state.lastEvent);openingPhase=phase.active;openingClear=phase.clear;openingRepair=phase.repair||null;openingSource=phase.source||null;}
@@ -338,6 +340,7 @@
     if(event.repeat||repeating.has(event.code))return;
     if(action==='RESET'){
       if(selectedId==='empty')empty();
+      else if(origin?.session){act('RESET');return;}
       else if(origin){
         const initial=bag(),active=initial.shift();
         const input={...clone(origin.input),active:{type:active,x:3,y:17,rotation:0,lastRotation:null},queue:initial,streamCursor:1,topOut:false};
@@ -365,9 +368,32 @@
   $('st-reset').addEventListener('click',()=>{act('RESET');$('st-reset').blur();});
   document.querySelectorAll('[data-action]').forEach(button=>button.addEventListener('click',()=>{act(button.dataset.action);button.blur();}));
   $('st-fixture').addEventListener('change',()=>{chooseMode($('st-fixture').value);$('st-fixture').blur();});
+  function exportSession() {
+    return STSession.create(observation(),{resourceHistory,resourceOriginBag,patternHistory,openingPhase,openingSource,openingClear,openingRepair,previous,commitment,search:searchSettings});
+  }
+  function installSession(prepared,envelope) {
+    // All untrusted parsing/proof checks have completed before touching the live
+    // controller. Worker identity guards, not revision uniqueness, reject old replies.
+    cancel();stopRepeating();
+    state=STRules.createState(prepared.state);revision=state.revision;
+    future=[];futureCursor=0;generated=false;observed=null;undoHistory=[];turnStart=null;
+    resourceHistory=prepared.resourceHistory;resourceOriginBag=prepared.resourceOriginBag;
+    pieceLedger=STPieceLedger.start(observation());patternHistory=prepared.patternHistory;
+    openingPhase=prepared.openingPhase;openingSource=prepared.openingSource;openingClear=prepared.openingClear;openingRepair=prepared.openingRepair;
+    previous=prepared.previous;commitment=prepared.commitment;searchSettings=prepared.search;
+    result=null;lockCount=0;clearedLines=0;lineLabel='Lines since import';selectedId=null;$('st-fixture').value='';
+    origin={session:clone(envelope)};
+    setText($('st-position-note'),'Imported coaching session. Only visible supply is restored; hidden future and Undo history are excluded.');
+    setText($('st-game-status'),'');requestPlan();render();
+    setText($('st-import-status'),'Session imported. Advice will be revalidated.'+(prepared.warnings.length?' '+prepared.warnings.join(' '):''));
+  }
+  $('st-export-session').addEventListener('click',()=>{
+    try{$('st-snapshot').value=JSON.stringify(exportSession(),null,2);setText($('st-import-status'),'Exported visible position and coaching evidence; hidden future, Undo and diagnostic counters were excluded.');}
+    catch(error){setText($('st-import-status'),`Session export unavailable: ${error.message}`);}
+  });
   $('st-export').addEventListener('click',()=>{$('st-snapshot').value=JSON.stringify(observation(),null,2);setText($('st-import-status'),'Exported visible state only; hidden future was excluded.');});
   $('st-import').addEventListener('click',()=>{
-    try{const input=JSON.parse($('st-snapshot').value);const errors=STRules.validate(input);if(errors.length)throw new Error(errors.join('; '));
+    try{if($('st-snapshot').value.length>STSession.LIMITS.bytes)throw new Error('Import exceeds size limit.');const input=JSON.parse($('st-snapshot').value);if(input?.format===STSession.FORMAT){const prepared=STSession.prepare(input);installSession(prepared,input);return;}const errors=STRules.validate(input);if(errors.length)throw new Error(errors.join('; '));
       if(input.queue.length>6)throw new Error('Only six visible preview pieces may be imported; bag knowledge must refer to that frontier.');
       // Explicit whitelist prevents an import from injecting a hidden queue/seed.
       const clean={rules:input.rules,board:input.board,active:input.active,hold:input.hold,canHold:input.canHold,queue:input.queue.slice(0,6),streamCursor:input.streamCursor||0,topOut:Boolean(input.topOut)};
@@ -377,7 +403,7 @@
   });
   for(const mode of playModes){const option=document.createElement('option');option.value=mode.id;option.textContent=mode.label;$('st-fixture').append(option);}
   setText($('st-key-help'),actions.map((action,i)=>`${config[i]}: ${action.toLowerCase()}`).join(' · ')+' · Set bindings in Game Settings.');
-  window.stLab=Object.freeze({render,act,loadFixture,snapshot:()=>clone(observation()),get resources(){return STResourceHistory.resolve(observation(),resourceHistory);},get resetEvidence(){return clone(resetDiagnostics());},get result(){return result?clone(result):null;}});
+  window.stLab=Object.freeze({render,act,loadFixture,snapshot:()=>clone(observation()),exportSession:()=>clone(exportSession()),get resources(){return STResourceHistory.resolve(observation(),resourceHistory);},get pieceLedger(){return STPieceLedger.resolve(observation(),pieceLedger);},get resetEvidence(){return clone(resetDiagnostics());},get result(){return result?clone(result):null;}});
   let savedMode;try{savedMode=localStorage.getItem(modeKey);}catch{ /* Fall back to the stable stack. */ }
   chooseMode(savedMode,{persist:false});
   if(savedMode && !playModes.some(m=>m.id===savedMode))rememberMode(stableId);

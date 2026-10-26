@@ -156,3 +156,29 @@ Set `NODE_DISABLE_COMPILE_CACHE=1` to opt out. The runner also disables compilat
 caching when `NODE_V8_COVERAGE` is set: Node warns that V8 coverage can be less
 precise for deserialized compiled code. These behavioral test counts are not a
 V8 coverage report. See [Node's compile-cache documentation](https://nodejs.org/download/release/v24.15.0/docs/api/module.html#module-compile-cache).
+
+`st-piece-ledger.test.cjs` checks the observation-only compact ledger: entered versus
+preview supply, unlimited HOLD identity, cross-bag SL candidate/completion,
+unresolved accommodation, source/import provenance, ZJ counts, 4,100 movement
+inputs and 600 locks without cumulative truncation. `st-piece-ledger-ui.test.cjs`
+checks controller integration, diagnostic isolation, lifecycle resets and exact
+100-lock Undo retention/restoration/branching. Existing resource-history UI request
+oracles remain unchanged. These tests do not claim the shadow facts influence
+recommendations or repair the existing planner tracker.
+
+### Shared timed-coach allowance
+
+`st-coach-config.js` exports the frozen `SEARCH_TIME_MS` constant (currently
+1500 ms) to CommonJS and classic browser/worker scripts. The live page, worker
+fallback, simulation configuration, timed evaluation loop and normal timed
+planner regression tests consume it. `st-coach-config.test.cjs` verifies the real
+page request and worker deadline/default plumbing, including an injected alternate
+configuration to detect copied literals; explicit zero/tiny overrides remain exact.
+
+This is not the 2500 ms worker watchdog or the 300-second suite watchdog. Deliberate
+zero/tiny-budget safety and protocol probes, historical manifest fixtures,
+incompatible-budget comparisons, fixed-node/no-wall-clock tests and internal
+sub-search ceilings remain separate. Do not replace those values as if they were
+production defaults. The worker's omitted-time fallback now matches the live
+coach, rather than its previous independent 200 ms default. No search depth,
+width, node limit or strategy was changed.

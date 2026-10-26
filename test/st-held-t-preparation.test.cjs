@@ -1,10 +1,11 @@
 'use strict';
+const {SEARCH_TIME_MS}=require('../st-coach-config');
 const test=require('node:test'),assert=require('node:assert/strict');
 const R=require('../st-rules'),P=require('../st-planner'),S=require('../st-structure');
 const input=require('./support/st-user-held-t-preparation.json');
-for(const version of ['legacy','practice'])for(const timed of [false,true])test(`held T preparation: actual visible I/Z/T witnesses ${version} (${timed?'750ms':'full'})`,()=>{
+for(const version of ['legacy','practice'])for(const timed of [false,true])test(`held T preparation: actual visible I/Z/T witnesses ${version} (${timed?`${SEARCH_TIME_MS}ms`:'full'})`,()=>{
  const source=version==='practice'?R.migrateState(input):input;
- const a=P.plan(source,timed?{timeMs:750}:{});assert.ok(a.target,a.reason);
+ const a=P.plan(source,timed?{timeMs:SEARCH_TIME_MS}:{});assert.ok(a.target,a.reason);
  assert.equal(a.target.type,'I');assert.equal(a.hold,true);assert.equal(a.evidence.preparationProof.kind,'visible-I-Z-held-T');
  let state=R.createState(source);
  for(const step of a.continuation){const r=R.replay(state,step.witness);assert.equal(r.valid,true);assert.deepEqual(r.events[0],step.event);state=r.state;}
@@ -56,8 +57,8 @@ test('old broken marathon rollout retains cleanup-order mechanics but no longer 
 });
 
 const delayed=require('./support/st-user-delayed-cap-t.json');
-for(const timed of [false,true])test(`visible filler prefix preserves a real T until the Z cap (${timed?'750ms':'full'})`,()=>{
- const a=P.plan(delayed,timed?{timeMs:750}:{});
+for(const timed of [false,true])test(`visible filler prefix preserves a real T until the Z cap (${timed?`${SEARCH_TIME_MS}ms`:'full'})`,()=>{
+ const a=P.plan(delayed,timed?{timeMs:SEARCH_TIME_MS}:{});
  assert.ok(a.target,a.reason);assert.equal(a.evidence.preparationProof.kind,'visible-prefix-Z-saved-T');
  assert.equal(a.evidence.preparationProof.locks,5);assert.equal(a.continuation.length,5);
  let state=R.createState(delayed),notches=S.notchPattern(state.board);

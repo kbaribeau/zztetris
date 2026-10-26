@@ -18,7 +18,9 @@
   <script defer src="st-pattern-history.js"></script>
   <script defer src="st-left-foundation.js"></script>
   <script defer src="st-opening-patterns.js"></script>
+  <script defer src="st-coach-config.js"></script>
   <script defer src="st-resource-history.js"></script>
+  <script defer src="st-piece-ledger.js"></script>
   <script defer src="st-midgame-resources.js"></script>
   <script defer src="st-planner.js"></script>
   <script defer src="st-opening-continuations.js"></script>
@@ -26,6 +28,7 @@
   <script defer src="st-source-scoring.js"></script>
   <script defer src="st-opening.js"></script>
   <script defer src="st-reset-diagnostics.js"></script>
+  <script defer src="st-session.js"></script>
   <script defer src="st-lab.js"></script>
   <script defer src="navigation.js"></script>
 </head>
@@ -41,7 +44,7 @@
       <select id="st-fixture"></select>
       <button id="st-reset" type="button">Restart current board</button>
       <button id="st-undo" type="button" data-action="UNDO" disabled>Undo last placement</button>
-      <p class="lab-note">Undo restores the start of the previous placement, including hold. The piece sequence stays the same. Up to 500 placements are retained; restart, mode changes and imports clear undo history.</p>
+      <p class="lab-note">Undo restores the start of the previous placement, including hold. The piece sequence stays the same. Up to 100 placements are retained; restart, mode changes and imports clear undo history.</p>
       <p id="st-position-note" class="lab-note"></p>
     </section>
     <div id="st-phase-indicator" class="lab-phase" role="group" aria-label="Coaching phase and observed resources" hidden>
@@ -89,11 +92,11 @@
       </div>
       <p id="st-game-status" role="status" aria-live="polite"></p>
     </section>
-    <details class="lab-options"><summary>Snapshot import / export</summary>
-      <p>JSON snapshots contain the current board, pose, hold, visible queue and optional observed bag evidence. They do not export hidden future pieces. Imported snapshots have a finite queue; no future order is invented when it ends.</p>
+    <details class="lab-options"><summary>Position and session import / export</summary>
+      <p>JSON snapshots contain the current board, pose, hold, visible queue and optional observed bag evidence. They do not export hidden future pieces. Coaching sessions additionally preserve versioned, validated resource and construction evidence. They exclude Undo history and diagnostic counters. Imported snapshots and sessions have a finite queue; no future order is invented when it ends.</p>
       <p id="st-legacy-rules-note">Legacy st-zero-v1 uses one hold per lock for historical replay. Importing a v1 snapshot into this lab migrates it to unlimited-hold st-zero-v2.</p>
       <label for="st-snapshot">Snapshot JSON</label><textarea id="st-snapshot" rows="8" spellcheck="false"></textarea>
-      <button id="st-import" type="button">Import snapshot</button><button id="st-export" type="button">Export visible snapshot</button>
+      <button id="st-import" type="button">Import position or session</button><button id="st-export" type="button">Export visible snapshot</button><button id="st-export-session" type="button">Export coaching session</button>
       <p id="st-import-status" role="status"></p>
       <p id="st-ordinary-practice-note">For legacy board drawing, Fumen tools, redo, gravity and other kicksets, use <a href="index.html">ordinary practice</a>. Those modes are unchanged.</p>
     </details>

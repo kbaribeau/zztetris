@@ -1,4 +1,5 @@
 'use strict';
+const {SEARCH_TIME_MS}=require('../st-coach-config');
 const test=require('node:test'),assert=require('node:assert/strict');
 const P=require('../st-planner'),R=require('../st-rules'),X=require('../st-paired-repair');
 const recovery=require('./support/st-construction-recovery.json').initial;
@@ -13,22 +14,22 @@ test('Reset entry declines the old high-Left case despite a legal paired-T resea
  const a=P.assess(recovery.board);assert.deepEqual(a.heights,[10,8,8,8,1,1,1,0,1,2]);
  const cert=X.validateCertificate(recovery,steps);assert.ok(cert.valid,cert.reason);assert.equal(cert.continuation.at(-1).event.spin,'full');assert.equal(cert.continuation.at(-1).event.lines,2);
  const gate=P.resetSelection(recovery);assert.equal(gate.status,'not-ready');assert.equal(gate.ordinaryComparison,'ordinary-profile-unsupported');assert.equal(gate.resourceRenewal,false);
- const advice=P.plan(recovery,{timeMs:750});assert.equal(advice.target,null);assert.equal(advice.evidence.resetSelection.status,'not-ready');
+ const advice=P.plan(recovery,{timeMs:SEARCH_TIME_MS});assert.equal(advice.target,null);assert.equal(advice.evidence.resetSelection.status,'not-ready');
 });
 test('Reset entry keeps source ordinary-scoring and cap-first controls ordinary without claiming executable support',()=>{
  for(const state of [ordinary,cap]){
   const gate=P.resetSelection(state);assert.equal(gate.status,'ordinary-preferred');assert.equal(gate.ordinaryComparison,'ordinary-geometric-profile');assert.match(gate.reason,/not proof of an executable/);
-  const a=P.plan(state,{timeMs:750});assert.notEqual(a.evidence?.resetSelection?.status,'selected');assert.notEqual(a.evidence?.strategy,'finite-regional-repair');
+  const a=P.plan(state,{timeMs:SEARCH_TIME_MS});assert.notEqual(a.evidence?.resetSelection?.status,'selected');assert.notEqual(a.evidence?.strategy,'finite-regional-repair');
  }
 });
 test('Reset entry does not turn extra Z or T congestion into geometric readiness',()=>{
  for(const queue of [['Z','Z','T','T','T','Z'],['T','T','T','T','T','T']]){
   const s={...clone(recovery),queue,resetSelection:{status:'selected',resourceRenewal:true}};
-  assert.equal(P.resetSelection(s).status,'not-ready');const a=P.plan(s,{timeMs:750});assert.equal(a.target,null);assert.equal(a.evidence.resetSelection.resourceRenewal,false);
+  assert.equal(P.resetSelection(s).status,'not-ready');const a=P.plan(s,{timeMs:SEARCH_TIME_MS});assert.equal(a.target,null);assert.equal(a.evidence.resetSelection.resourceRenewal,false);
  }
 });
 test('Reset entry remains declined with disabled construction or exhausted search',()=>{
- for(const options of [{timeMs:0},{timeMs:750,maxNodes:0},{timeMs:750,disableConstruction:true}]){
+ for(const options of [{timeMs:0},{timeMs:SEARCH_TIME_MS,maxNodes:0},{timeMs:SEARCH_TIME_MS,disableConstruction:true}]){
   const a=P.plan(recovery,options);assert.equal(a.target,null);assert.equal(a.evidence.resetSelection.resourceRenewal,false);assert.notEqual(a.evidence.resetSelection.status,'selected');
  }
 });

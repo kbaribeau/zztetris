@@ -777,5 +777,43 @@ function plan(raw,options={}){
  const sources=[{id:'SHOCKY-OPENING',label:"Shocky's ST Stacking Guide",url:'https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit',section:'Chapters 1–4: regions, construction and mino parity',scope:'Community background for opening construction. The coach checks this finite prefix; the guide does not certify this exact move or future availability.'}];
  return{...base,status:'recommended-with-verified-prefix',target:first.target,hold:first.hold,holdCount:first.holdCount,witness:first.witness,continuation:best.path,reason,sources,assessment:P.assess(best.state.board),evidence:{opening:{status:'partial-construction',initial:initialFacts,endpoint:end,unresolved:pending,repair,handoffCandidate:best.handoffContinuation?{status:'verified-public-post-clear-continuation',continuation:best.handoffContinuation}:null},knownPieceHorizon:state.queue.length+1}};
 }
-return Object.freeze({retainScoring,balance,features,facts,repairEndpoint,foundationTargets,foundationTransition,foundationWitnesses,handoffGeometry,handoff,plan,retainSource,startSession,updateSession,acceptResult,repairCertificate,closureCertificate,checkedRepair,goalPaid});
+
+// Session imports carry evidence, never a trusted source-family flag. Reuse the
+// live proof checks, with a bounded replay budget, before restoring metadata.
+function validateSessionState(raw,session,{maxNodes=45000,timeMs=1500,now=()=>Date.now()}={}){
+ const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b),warnings=[];
+ if(!session||typeof session.active!=='boolean')throw Error('Invalid opening phase.');
+ if(!session.active){if(session.clear||session.repair||session.source)throw Error('Inactive opening has contradictory coaching metadata.');return{session:{active:false,clear:null,repair:null,source:null},warnings};}
+ const result={active:true,clear:null,repair:null,source:null},deadline=now()+timeMs;let visited=0;
+ const spend=n=>{visited+=n;return visited<=maxNodes&&now()<deadline;},record=spend,left=()=>Math.max(0,maxNodes-visited);
+ if(session.clear){try{const c=session.clear;if(R.validate(c.before).length||c.before.queue.length>6)throw Error('Invalid clear origin.');const r=R.replay(c.before,['HD']);if(r.valid&&r.events.length===1&&same(r.events[0],c.event)&&c.event.lines&&S.canonicalClear(c.event)&&same(r.state.board,raw.board)&&r.state.active?.type===raw.active?.type&&r.state.hold===raw.hold&&r.state.queue.every((t,i)=>raw.queue[i]===t))result.clear=clone(c);}catch{}if(!result.clear)warnings.push('Stale or invalid opening clear was discarded.');}
+ if(session.repair){try{if(checkedRepair(session.repair,raw))result.repair=clone(session.repair);}catch{}if(!result.repair)warnings.push('Stale or invalid opening repair was discarded.');}
+ if(session.source){try{
+  const src=session.source,meta=O.pattern(src.pattern);let origin=src.pending?.origin||raw,valid=false;
+  if(src.pending){
+   const w=src.pending.witness;if(!Array.isArray(w)||!w.length||w.length>256||w.at(-1)!=='HD'||!spend(w.length))throw Error('Invalid source pending witness.');
+   const full=R.replay(origin,w);if(!full.valid||full.events.length!==1)throw Error('Invalid pending source placement.');
+   let current=R.createState(origin),found=sourcePublicMatch(current,raw);
+   for(const action of w.slice(0,-1)){current=R.move(current,action);if(sourcePublicMatch(current,raw))found=true;}
+   if(!found)throw Error('Source pending input prefix does not match position.');
+  }
+  if(src.continuationSteps?.length===7)valid=Boolean(checkedScoringSource(src,origin,spend,now,deadline,left,record));
+  else if(src.continuationFrom)valid=checkedContinuationSource(src,origin,spend);
+  else if(src.pattern===null&&!src.history&&!src.pending)valid=O.eligible(raw);
+  else if(meta?.stage==='first-bag'&&src.history&&O.eligible(src.history.origin)&&Array.isArray(src.history.steps)&&src.history.steps.length<=7){
+   let current=src.history.origin,mask=0;valid=true;
+   for(const step of src.history.steps){
+    if(!step?.after||R.validate(step.after).length||B.validate(step.after.bag).length||step.after.queue.length>6||!Array.isArray(step.witness)||!step.witness.length||step.witness.length>256||step.witness.at(-1)!=='HD'||!spend(step.witness.length)){valid=false;break;}
+    const r=R.replay(current,step.witness),next=O.compatible(step.after.board,meta.id)[0]?.mask;
+    if(!r.valid||r.events.length!==1||r.events[0].lines||!same(r.events[0],step.event)||!sourcePublicMatch(r.state,step.after)||next===undefined||(next&mask)!==mask||next===mask||((next^mask)&((next^mask)-1))){valid=false;break;}
+    current=step.after;mask=next;
+   }
+   valid=valid&&sourcePublicMatch(current,origin)&&O.compatible(raw.board,meta.id).length>0;
+  }
+  if(valid&&visited<=maxNodes&&now()<deadline)result.source=clone(src);
+ }catch{}if(!result.source)warnings.push('Stale, unsupported or invalid opening source progress was discarded.');}
+ return{session:result,warnings};
+}
+
+return Object.freeze({retainScoring,validateSessionState,balance,features,facts,repairEndpoint,foundationTargets,foundationTransition,foundationWitnesses,handoffGeometry,handoff,plan,retainSource,startSession,updateSession,acceptResult,repairCertificate,closureCertificate,checkedRepair,goalPaid});
 });

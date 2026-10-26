@@ -1,4 +1,5 @@
 'use strict';
+const {SEARCH_TIME_MS}=require('../st-coach-config');
 const test=require('node:test'),assert=require('node:assert/strict');
 const P=require('../st-planner'),Y=require('../st-left-foundation'),R=require('../st-rules'),S=require('../st-structure'),A=require('../st-access');
 const initial=require('./support/st-gap-phase.json').gap.observation,score=require('./support/st-left-foundation-score-control.json');
@@ -35,7 +36,7 @@ test('research foundation retains exact parity after actual first T, without gra
 test('real page refuses a non-scoring foundation recommendation and keeps Undo/reset/import histories independent',()=>require('./support/page.cjs').withPage('st-lab.html',{},g=>{
  const workers=[];g.window.Worker=class{constructor(){workers.push(this);}postMessage(m){this.message=clone(m);}terminate(){}respond(result){this.onmessage({data:{type:'result',id:this.message.id,revision:this.message.observation.revision,result:clone(result)}});}};
  g.window.STFixtures={...g.window.STFixtures,get:()=>({observation:initial,future:['Z','I','J'],label:'Public foundation control'})};g.window.stLab.loadFixture('internal-control');
- const request=()=>{g.advance(40);return workers.at(-1).message;};let req=request(),a=P.decide(req.observation,{...config,...req.options,timeMs:750,commitment:req.commitment});assert.equal(a.target,null);workers.at(-1).respond(a);assert.equal(req.commitment,null);assert.deepEqual(req.observation.board,initial.board);
+ const request=()=>{g.advance(40);return workers.at(-1).message;};let req=request(),a=P.decide(req.observation,{...config,...req.options,timeMs:SEARCH_TIME_MS,commitment:req.commitment});assert.equal(a.target,null);workers.at(-1).respond(a);assert.equal(req.commitment,null);assert.deepEqual(req.observation.board,initial.board);
  // Manual inputs remain allowed; they do not fabricate advice authority.
  const research=researchAdvice();for(const action of research.witness)g.window.stLab.act(action);req=request();assert.equal(req.observation.queue.length,6);assert.equal(req.commitment,null);assert.equal(Math.abs(Y.parity(req.observation.board)),2);
  g.click('#st-undo');req=request();assert.equal(req.commitment,null);assert.deepEqual(req.observation.board,initial.board);
@@ -55,8 +56,9 @@ test('occupied HOLD preserves research mate identity but cannot authorize an ord
  assert.equal(Y.parity(mate.state.board),0);assert.equal(mate.state.hold,'S');
  const twice=R.move(swapped,'HOLD'),again=R.replay(twice,cert.continuation[1].witness);assert.ok(again.valid);assert.equal(Y.parity(again.state.board),0);
  const commitment={observation:first.state,advice:{...a,continuation:cert.continuation.slice(1),evidence:{construction:{...a.evidence.construction,consumed:1}}}};
- const tiny=P.plan(swapped,{maxNodes:1,timeMs:750,commitment});assert.equal(tiny.target,null);assert.ok(tiny.metrics.nodes<=1);
+ const tiny=P.plan(swapped,{maxNodes:1,timeMs:SEARCH_TIME_MS,commitment});assert.equal(tiny.target,null);assert.ok(tiny.metrics.nodes<=1);
  for(const changed of [swapped,twice,{...first.state,hold:'I'},{...first.state,queue:['Z',...first.state.queue.slice(1)]}]){
+  // Deliberately constrained stale-proof safety probe, not a live-coach success budget.
   const r=P.plan(changed,{maxNodes:8000,timeMs:150,commitment});
   if(r.target){assert.notEqual(r.evidence?.construction?.kind,'left-foundation');assert.ok(r.continuation.every(p=>p.event.type!=='T'||p.event.spin==='full'&&p.event.lines===2));}
  }

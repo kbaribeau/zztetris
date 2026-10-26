@@ -1,4 +1,5 @@
 'use strict';
+const {SEARCH_TIME_MS}=require('../st-coach-config');
 const test=require('node:test'),assert=require('node:assert/strict');
 const R=require('../st-rules'),S=require('../st-structure'),P=require('../st-planner'),A=require('../st-access'),H=require('../st-pattern-history'),F=require('./support/st-gap-phase.json');
 function placement(s,w){const r=R.replay(s,w);assert.ok(r.valid);return{state:r.state,event:r.events[0]};}
@@ -45,7 +46,7 @@ test('reference temporary pockets remain physically accessible rather than blank
 });
 test('fresh production worker cannot recommend S13 with a cold access cache',()=>{
  const run=require('../scripts/lib/st-simulation.cjs').workerPlanner(),s=F.gap.observation;
- const a=run({type:'plan',id:1,observation:s,previous:null,commitment:null,options:{timeMs:750,maxNodes:45000}});
+ const a=run({type:'plan',id:1,observation:s,previous:null,commitment:null,options:{timeMs:SEARCH_TIME_MS,maxNodes:45000}});
  if(a.target){const p=placement(s,a.witness);assert.equal(A.check(s,p).reachable,true);assert.notDeepEqual(a.target,placement(s,F.gap.witness).event.target);}
  else assert.ok(['budget-exhausted','no-supported-continuation-found'].includes(a.status));
 });

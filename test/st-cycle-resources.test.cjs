@@ -1,8 +1,9 @@
 'use strict';
+const {SEARCH_TIME_MS}=require('../st-coach-config');
 const test=require('node:test'),assert=require('node:assert/strict');
 const R=require('../st-rules'),P=require('../st-planner'),S=require('../st-structure');
 const cases=require('./support/st-cycle-resources.json');
-const config={depth:3,width:8,maxNodes:45000,timeMs:750,now:()=>0};
+const config={depth:3,width:8,maxNodes:45000,timeMs:SEARCH_TIME_MS,now:()=>0};
 function follow(s,a){const r=R.replay(s,a.witness);assert.ok(r.valid);assert.equal(r.events.length,1);return r.state;}
 test('cycle resources reserve held I through the double and Pocket, rejecting forged commitments',()=>{
  const s=P.observe(cases.holdI.snapshot),a=P.plan(s,config);assert.ok(a.target,a.reason);

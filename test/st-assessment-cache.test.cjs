@@ -1,4 +1,5 @@
 'use strict';
+const {SEARCH_TIME_MS}=require('../st-coach-config');
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const R=require('../st-rules'),S=require('../st-structure'),P=require('../st-planner'),F=require('../st-fixtures');
 const source=fs.readFileSync(require.resolve('../st-planner.js'),'utf8');
@@ -62,7 +63,7 @@ test('st-assessment-cache/same-board candidates retain independent phase and sup
 
 test('st-assessment-cache/actual nested and later plans construct separate private readers',()=>{
  const readers=[];let api,nested=false;
- const options={depth:3,width:8,maxNodes:45000,timeMs:1500};
+ const options={depth:3,width:8,maxNodes:45000,timeMs:SEARCH_TIME_MS};
  const rules={...R,placements:(state,settings)=>{if(!nested){nested=true;api.plan(F.get('direct-double').observation,options);}return R.placements(state,settings);}};
  api=load({rules,onReader:reader=>readers.push(reader)});
  api.plan(F.get('center-j').observation,options);const firstCount=readers.length;

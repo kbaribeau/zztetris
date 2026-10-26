@@ -1,8 +1,9 @@
 'use strict';
+const {SEARCH_TIME_MS}=require('../st-coach-config');
 const test=require('node:test'),assert=require('node:assert/strict');
 const R=require('../st-rules'),S=require('../st-structure'),P=require('../st-planner');
 const {cases}=require('./support/st-autoplay-buried-phase.json');
-const config={depth:3,width:8,maxNodes:45000,timeMs:750};
+const config={depth:3,width:8,maxNodes:45000,timeMs:SEARCH_TIME_MS};
 for(const c of cases)test(`observed filler preserves the buried cycle through fresh replan (seed ${c.seed})`,()=>{
  const before=P.observe(c.snapshot),phase=S.notchPattern(before.board);
  assert.equal(phase.status,'established');
