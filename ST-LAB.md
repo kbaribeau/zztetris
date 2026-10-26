@@ -182,3 +182,11 @@ engineering envelope requires both Left and Center at most two rows above
 Right, and at most three rows apart; these are fixture-tested operational bounds,
 not universal thresholds stated by Shocky. The old high-Left source366 recovery
 is no longer eligible. No new Reset allowance or general Reset coach is enabled.
+
+Hanging-S identification accounts for each observed L's consumption independently
+of its regional label, including Left/Center crossings. If its same-bag S is still
+live, the S is unaccompanied; this does not itself prove a geometric repair.
+Supported SL completion and Left accommodation discharge the exact S identity.
+Public snapshot bag phase alone does not reconstruct earlier allocations. An
+unreviewed crossing-S disposition remains uncertain; projected safety checks
+conservatively retain unresolved obligations rather than assume accommodation.

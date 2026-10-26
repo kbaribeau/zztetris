@@ -37,18 +37,15 @@ function step(before,p,prior){
  if(e.type==='T'){if(tsd(e))n.scoredTs.push(piece.id);else reject('ordinary-T-must-score');}
  if(e.type==='Z'){if(nonRight(e)){if(n.extraZ!=='available')reject('extra-Z-not-available');n.extraZ='used';}else if(!e.cells.every(([x])=>x>=8))reject('ordinary-Z-outside-reviewed-Right-role');}
  const available=completions(before.board),matches=c=>c.piece===e.type&&key(c.cells)===key(e.cells);
- const finished=n.pendingCenter.filter(p=>p.alternatives.some(matches));
- const leftS=left(e)&&e.type==='S';if(leftS)n.hangingS=n.hangingS.filter(s=>s.id!==piece.id&&(s.bag===null||s.bag!==piece.bag));
- if(e.type==='L'&&piece.bag!==null){
-  const paired=finished.find(p=>p.family==='SL');
-  if(left(e)||center(e)&&(!paired||paired.bag!==piece.bag)){
-   const s=[n.active,n.hold,...n.queue].find(p=>p?.type==='S'&&p.bag===piece.bag);
-   if(s&&!n.hangingS.some(h=>h.id===s.id))n.hangingS.push({id:s.id,bag:s.bag,known:true});
-  }
- }
+ const finished=n.pendingCenter.filter(p=>p.alternatives.some(c=>matches(c)&&available.some(a=>a.piece===c.piece&&key(a.cells)===key(c.cells))));
+ const leftS=left(e)&&e.type==='S';
+ // Only actual consumption of the identified S, or its exact supported SL
+ // completion, discharges that identity. A same-bag label alone is not enough.
+ const completedS=finished.filter(p=>p.family==='SL').map(p=>p.rootId);
+ n.hangingS=n.hangingS.filter(s=>!(leftS&&s.id===piece.id)&&!completedS.includes(s.id));
  const cleared=e.clearedRows||[],translate=cells=>cells.map(([x,y])=>[x,cleared.includes(y)?-1:y+cleared.filter(r=>r>y).length]);
  const after=completions(p.state.board);
- n.pendingCenter=n.pendingCenter.filter(p=>!p.alternatives.some(matches)).map(p=>{
+ n.pendingCenter=n.pendingCenter.filter(p=>!finished.includes(p)).map(p=>{
   const alternatives=p.alternatives.map(c=>({...c,cells:translate(c.cells)}));
   // Losing a supported partner is debt, not completion. Keep its exact cells
   // until filled by that partner or removed entirely by an actual clear.
@@ -58,6 +55,14 @@ function step(before,p,prior){
  if(center(e)&&!e.lines&&S.CENTER_PAIRS[e.type]){
   const alternatives=after.filter(c=>c.piece===S.CENTER_PAIRS[e.type]);
   if(alternatives.length&&!n.pendingCenter.some(p=>key(p.alternatives[0].cells)===key(alternatives[0].cells)))n.pendingCenter.push({rootId:piece.id,bag:piece.bag,family:e.type+S.CENTER_PAIRS[e.type],alternatives,created:true});
+ }
+ if(e.type==='L'&&piece.bag!==null){
+  const paired=finished.find(p=>p.family==='SL');
+  if(nonRight(e)&&(!paired||paired.bag!==piece.bag)){
+   const pending=n.pendingCenter.find(p=>p.family==='SL'&&p.bag===piece.bag&&!p.lost);
+   const s=[n.active,n.hold,...n.queue].find(p=>p?.type==='S'&&p.bag===piece.bag)||(pending&&{id:pending.rootId,bag:pending.bag});
+   if(s&&!n.hangingS.some(h=>h.id===s.id))n.hangingS.push({id:s.id,bag:s.bag,known:true});
+  }
  }
  n.active=n.queue.shift()??null;
  // Only a deduced final bag member can be appended by the existing planner.

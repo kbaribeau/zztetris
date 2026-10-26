@@ -181,7 +181,9 @@ function hanging(h){
   if(!l?.allocation||l.allocation.at<=since)continue;
   const disposed=s&&(s.allocation?.region==='left'||s.pair?.family==='SL');
   if(disposed)continue;
-  const diverted=l.allocation.region==='left'||l.pair?.family==='LO'||l.pair?.family==='SL'&&l.pair.rootId!==s?.id;
+  // A consumed L is unavailable to its own S even when it crosses the
+  // Left/Center boundary. Region classification is not piece accounting.
+  const diverted=l.allocation.cells.every(([x])=>x<7)&&!(l.pair?.family==='SL'&&l.pair.rootId===s?.id);
   if(diverted&&s?.allocation&&!h.center.pending.some(p=>p.family==='SL'&&p.rootId===s.id)){unclassified.push({bag,sId:s.id,lId:l.id,reason:'The previously surplus S was placed in an unreviewed allocation; whether it was accommodated is unknown.'});continue;}
   if(diverted)evidence.push({bag,sId:s?.id??null,lId:l.id,at:l.allocation.at,reason:l.pair?.family==='SL'?'The L completed a different observed S.':'The L was allocated outside its observed S/L pair.'});
   else if(l.allocation.region!=='center'||l.pair?.family!=='SL')unclassified.push({bag,lId:l.id,reason:'The L allocation has no reviewed S/L role.'});
