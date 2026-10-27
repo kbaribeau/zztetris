@@ -807,13 +807,26 @@ function planCore(raw,options={}){
   }
   return n.centerDebt.length?null:n;
  };
+ let preparation=null,preparationUnresolved=false,cleanupCommitment=null,preparationKind='visible-I-Z-held-T';
+ let admittedNode=null;
+ const remember=n=>{
+  if(!n||options.commitment&&n!==commitment||options.constructionPrevious||cleanupCommitment&&n!==cleanupCommitment||!options.admitMaintenance)return;
+  if(n.assessment.maxHeight>=20||!n.assessment.regionalSupport||now()>=deadline||base.metrics.nodes>=limit)return;
+  if(admittedNode&&n.path.length<admittedNode.path.length)return;
+  if(admittedNode&&n.path.length===admittedNode.path.length&&compareConstruction(n,admittedNode)>=0)return;
+  const checked=options.admitMaintenance(describeNode(clone(n),n===commitment));
+  base.metrics.nodes=checked.metrics?.nodes??base.metrics.nodes;
+  base.metrics.admissionAttempts=(base.metrics.admissionAttempts||0)+1;
+  if(checked.target){admittedNode=n;base.metrics.firstCertified??={nodes:base.metrics.nodes,...(options.usageTelemetry?{elapsedMs:now()-started}:{}),locks:n.path.length};}
+  else base.metrics.admissionFailures=(base.metrics.admissionFailures||0)+1;
+ };
  const commitment=committedNode(s,options.commitment,root.placements,initial,readAssessment);
+ remember(commitment);
  // A narrow constructive obligation, not a blanket ban on pre-cap T filler.
  // Prove the available I -> Z -> saved T route before beam pruning can discard
  // its unfinished cap. Every action uses the real observation and visible queue.
  // An interrupted proof earns no credit; conflicting T advice is withheld.
  // A completed failed proof does not reserve the T.
- let preparation=null,preparationUnresolved=false;
  if(maxDepth>=3&&options.allowHold!==false&&s.active.type==='T'&&s.hold==='I'&&S.geometry(s.board).right.cycle.prepareColumn!==null){
   preparationUnresolved=!root.complete;
   for(let i=0;i<root.placements.length&&!preparation;i++){
@@ -843,7 +856,6 @@ function planCore(raw,options={}){
  // is a constructive search, not a global T penalty: only a replayed Z cap and
  // the actual saved T double create an obligation. The small beam may miss a
  // route; a failed search is never evidence that no route exists.
- let cleanupCommitment=null;
  // Reserve an available I across an actual upcoming double when that clear
  // opens the Pocket. This proof uses the real held I, not a later copy in bag.
  if(maxDepth>=3&&options.allowHold!==false&&(s.active.type==='I'||s.hold==='I')){
@@ -862,7 +874,7 @@ function planCore(raw,options={}){
    if(end.cycleDebt===0&&end.notchValid&&certifiedCavities(end)&&end.assessment.maxHeight<20&&end.assessment.regionalSupport&&end.path.at(-1).structuralEvidence.allocation==='quad-preparation'&&(!cleanupCommitment||compare(end,cleanupCommitment)<0))cleanupCommitment=end;
   }
  }
- let preparationKind='visible-I-Z-held-T';
+ remember(cleanupCommitment);
  const visible=[s.active.type,...s.queue],tIndex=s.hold==='T'?-1:visible.indexOf('T'),zIndex=s.hold==='Z'?-1:visible.indexOf('Z');
  const capPending=S.geometry(s.board).right.cycle.phase.startsWith('cap-rebuild')||S.geometry(s.board).right.cycle.phase==='post-clear-rebuild';
  if(!preparation&&!preparationUnresolved&&maxDepth>=3&&options.allowHold!==false&&capPending&&(tIndex>=0||s.hold==='T')&&(zIndex>tIndex||s.hold==='Z')&&zIndex<=5&&(zIndex<=3||tIndex===0||s.hold==='T'||s.hold==='Z')&&s.active.type!=='Z'){
@@ -929,12 +941,13 @@ function planCore(raw,options={}){
   if(n.resources?.centerBlocked||n.resources?.unclassifiedS?.some(s=>s.invalidated))return false;
   if(n.resources?.tCollision&&n.assessment.right.entry?.status!=='reachable-if-T-available')return false;
   if(!n.resources?.hangingS.length&&!n.resources?.pendingCenter.length)return true;
-  const key=n.state.board.join('')+M.binding(n.resources);let proof=repairCache.get(key);
-  if(!proof){proof=resourceRepair(n.state,n.resources,{...options,notches:n.notches,maxNodes:Math.min(4000,Math.max(0,limit-base.metrics.nodes)),deadline,now});base.metrics.nodes+=proof.visited;repairCache.set(key,proof);}
+  const key=JSON.stringify([observe(n.state),M.binding(n.resources),n.notches]);let proof=repairCache.get(key);
+  if(!proof){proof=resourceRepair(n.state,n.resources,{...options,notches:n.notches,maxNodes:Math.min(4000,Math.max(0,limit-base.metrics.nodes)),deadline,now});base.metrics.nodes+=proof.visited;if(proof.valid!==null)repairCache.set(key,proof);}
   n.resourceRepair=proof;return proof.valid===true;
  };
  const cleanBest=nodes=>nodes.filter(n=>n.cycleDebt===0&&certifiedCavities(n)).sort(compareConstruction).find(n=>accessSafe(n)&&resourceSafe(n))??null;
  let best=preparation&&resourceSafe(preparation)?preparation:cleanBest(frontier);base.metrics.depth=best?best.path.length:0;base.metrics.completeDepth=root.complete&&best&&!stopped?1:0;
+ remember(best);
  let layer=diversify(frontier,width),comparisonLayer=frontier;
  for(let depth=2;depth<=maxDepth&&!stopped&&layer.length;depth++){
   const next=[],seen=new Map();let complete=true;
@@ -942,7 +955,7 @@ function planCore(raw,options={}){
    for(const p of e.placements){if(!S.canonicalClear(p.event)||spendsReservedT(p,n))continue;const child=nodeFor(p,n,initial,n.rootIndex,readAssessment);if(!child.notchValid||child.cycleDebt)continue;const key=nodeKey(child),prior=seen.get(key);if(!prior||compare(child,prior)<0)seen.set(key,child);}
    if(stopped)break;
   }
-  next.push(...qualify([...seen.values()]));if(stopped)complete=false;if(next.length){const candidate=cleanBest(next);base.metrics.depth=Math.max(base.metrics.depth,depth);if(complete&&candidate){best=preparation&&depth<preparation.path.length?preparation:candidate;base.metrics.completeDepth=depth;comparisonLayer=next;}}
+  next.push(...qualify([...seen.values()]));if(stopped)complete=false;if(next.length){const candidate=cleanBest(next);remember(candidate);base.metrics.depth=Math.max(base.metrics.depth,depth);if(complete&&candidate){best=preparation&&depth<preparation.path.length?preparation:candidate;base.metrics.completeDepth=depth;comparisonLayer=next;}}
   layer=diversify(next,width);
  }
  if(cleanupCommitment&&(!best||!coversResourceGoal(best,cleanupCommitment)))best=cleanupCommitment;
@@ -1011,6 +1024,8 @@ function planCore(raw,options={}){
  if(!best&&earlyCapFallback&&!commitment&&!cleanupCommitment&&resourceSafe(earlyCapFallback)){best=earlyCapFallback;fallbackMetrics.selected=true;base.metrics.depth=Math.max(base.metrics.depth,1);}
  if(!best)return{...base,status:stopped?'budget-exhausted':'no-supported-continuation-found',reason:stopped?'The search limit was reached before finding a checked move. A valid continuation may still exist.':'No supported ST sequence was found within this search. Other continuations may exist.'};
  if(best.assessment.maxHeight>=20||!best.assessment.regionalSupport)return{...base,status:'no-supported-continuation-found',reason:'The checked sequences did not retain enough space and a supported stack shape. No move is recommended.',assessment:best.assessment};
+ return describeNode(best);
+ function describeNode(best,retained=best===commitment){
  const first=best.path[0],verified=R.replay(s,first.witness);if(!verified.valid)return{...base,status:'invalid-witness',reason:'The suggested input sequence failed validation, so it is not shown.'};
  const tsdAt=best.path.findIndex(p=>p.event.spin==='full'&&p.event.lines===2);
  const facts=first.structuralEvidence;
@@ -1039,29 +1054,41 @@ function planCore(raw,options={}){
  if(usage){
   usage.families.earlyCapFallback.selected=Number(fallbackMetrics.selected);
   usage.families.visibleCyclePreparation.selected=Number(Boolean(preparationProof&&preparationKind!=='visible-I-Z-held-T'));
-  usage.selected={path:fallbackMetrics.selected?'early-cap-fallback':best===commitment?'retained-commitment':preparationProof?'preparation:'+preparationKind:'ordinary',locks:best.path.length,rank:best.rank.slice()};
+  usage.selected={path:fallbackMetrics.selected?'early-cap-fallback':retained?'retained-commitment':preparationProof?'preparation:'+preparationKind:'ordinary',locks:best.path.length,rank:best.rank.slice()};
  }
  const presentation=advicePresentation(best.path,best.assessment);
  return{...base,status:'recommended-with-verified-prefix',target:first.target,hold:first.hold,holdCount:holdCount(first),witness:first.witness,...presentation,
  continuation:best.path.map(p=>({target:p.target,hold:p.hold,holdCount:holdCount(p),witness:p.witness,event:p.event,resultContext:context(p.state),structuralEvidence:p.structuralEvidence})),
- evidence:{resetSelection:resetDecision,strategy:'canonical-right-ST',cycleResources:cycleResources(best.path),commitmentRetained:best===commitment,futureNotches:best.notches,preparationProof,cycleDebt:best.cycleDebt,cavityRepair:{status:'verified-prefix-repaired',outstandingCells:best.cavityDebt},clearPolicy:'right-region full T-spin doubles and I tetrises only',verifiedLocks:best.path.length,tsdAt:tsdAt>=0?tsdAt+1:null,knownPieceHorizon:s.queue.length+1,rootEnumerationComplete:root.complete,budgetExhausted:stopped,informationBoundary:!best.state.active,initialSealed:initial.sealed,endpointSealed:best.assessment.sealed,regionalSupport:best.assessment.regionalSupport,channel:best.assessment.channel,endpointTEntry:best.assessment.right.entry?.status??'not-established',unresolvedObligations:best.assessment.obligations,structuralScore:best.structuralScore,structuralRank:best.rank,structure:best.assessment.structure,dependencyDebt:best.dependencyDebt,claim:'Finite executable prefix; endpoint estimates are not a sustainability guarantee.'},assessment:best.assessment};
+ evidence:{resetSelection:resetDecision,strategy:'canonical-right-ST',cycleResources:cycleResources(best.path),commitmentRetained:retained,futureNotches:best.notches,preparationProof,cycleDebt:best.cycleDebt,cavityRepair:{status:'verified-prefix-repaired',outstandingCells:best.cavityDebt},clearPolicy:'right-region full T-spin doubles and I tetrises only',verifiedLocks:best.path.length,tsdAt:tsdAt>=0?tsdAt+1:null,knownPieceHorizon:s.queue.length+1,rootEnumerationComplete:root.complete,budgetExhausted:stopped,informationBoundary:!best.state.active,initialSealed:initial.sealed,endpointSealed:best.assessment.sealed,regionalSupport:best.assessment.regionalSupport,channel:best.assessment.channel,endpointTEntry:best.assessment.right.entry?.status??'not-established',unresolvedObligations:best.assessment.obligations,structuralScore:best.structuralScore,structuralRank:best.rank,structure:best.assessment.structure,dependencyDebt:best.dependencyDebt,claim:'Finite executable prefix; endpoint estimates are not a sustainability guarantee.'},assessment:best.assessment};
 }
-function plan(raw,options={}){
+}
+function plan(raw,options={}){return queryRequest(()=>planRequest(raw,options));}
+function queryRequest(run){if(!R.withQueries)return run();return R.withQueries(()=>{const result=run();result.metrics={...result.metrics,queries:R.queryMetrics()};return result;});}
+function planRequest(raw,options={}){
  options={...options,[resourceRepairCache]:new Map()};
  const now=options.now||(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs);
  // Only this synchronous invocation can reuse its own fully checked ordinary
  // fallback. Serialized evidence, caller callbacks and imported advice carry
  // no authority. The exact returned object AND continuation remain bound.
- let ordinaryFallback=null,ordinarySignature=null,retainedFallback=null,retainedSignature=null;
+ let ordinaryFallback=null,ordinarySignature=null,retainedFallback=null,retainedSignature=null,maintenanceFallback=null,maintenanceSignature=null;
+ const signature=r=>JSON.stringify([observe(raw),{...r,metrics:undefined}]);
+ const admitMaintenance=candidate=>{const checked=finalCheck(candidate);if(checked?.target){maintenanceFallback=clone(checked);maintenanceSignature=signature(maintenanceFallback);}return checked;};
  const normalOpeningDecision=()=>{const result=plan(raw,{...options,deadline,disableSourceScoring:true,openingSource:null});ordinaryFallback=result;ordinarySignature=JSON.stringify([observe(raw),{...result,metrics:undefined}]);return result;};
  const sameOrdinary=()=>ordinaryFallback&&ordinarySignature===JSON.stringify([observe(raw),{...ordinaryFallback,metrics:undefined}]);
  const sameRetained=()=>retainedFallback&&retainedSignature===JSON.stringify([observe(raw),{...retainedFallback,metrics:undefined}]);
  // Only an internal producer can register a fallback, and registration itself
  // performs the full final boundary check within this request's shared budget.
  const checkOpeningFallback=candidate=>{const checked=finalCheck(candidate);if(checked?.target){retainedFallback=checked;retainedSignature=JSON.stringify([observe(raw),{...checked,metrics:undefined}]);}return checked;};
- const result=planCore(raw,{...options,deadline,normalOpeningDecision,checkOpeningFallback});
+ const result=planCore(raw,{...options,deadline,normalOpeningDecision,checkOpeningFallback,admitMaintenance});
  if(result===ordinaryFallback&&sameOrdinary()||result===retainedFallback&&sameRetained())return result;
- return finalCheck(result);
+ const checked=finalCheck(result);
+ if(!checked?.target&&maintenanceFallback&&signature(maintenanceFallback)===maintenanceSignature){
+  // Only this invocation's admitted clone can survive later interrupted work.
+  // Preserve actual spent nodes and search-depth completeness, not the old
+  // incumbent's cheaper metrics. No imported certificate supplies authority.
+  return{...maintenanceFallback,metrics:{...checked.metrics,...(checked.metrics?.usage?{usage:{...checked.metrics.usage,selected:maintenanceFallback.metrics.usage?.selected??null}}:{}),firstCertified:result.metrics?.firstCertified,admissionAttempts:result.metrics?.admissionAttempts,admissionFailures:result.metrics?.admissionFailures,certifiedFallback:{selected:true,locks:maintenanceFallback.continuation.length}},evidence:{...maintenanceFallback.evidence,budgetExhausted:checked.status==='budget-exhausted'||Boolean(result.evidence?.budgetExhausted),searchIncomplete:true}};
+ }
+ return checked;
  function finalCheck(result){
  if(!result?.target)return result;
  if(!result.evidence?.opening){
@@ -1148,7 +1175,8 @@ function openingModule(){return typeof module==='object'&&module.exports?require
 function startOpeningSession(raw,options){return openingModule().startSession(raw,options);}
 function updateOpeningSession(session,before,after,event){return openingModule().updateSession(session,before,after,event);}
 function acceptOpeningResult(session,result){return openingModule().acceptResult(session,result);}
-function decide(raw,options={}){
+function decide(raw,options={}){return queryRequest(()=>decideRequest(raw,options));}
+function decideRequest(raw,options={}){
  const now=options.now||(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs),budgetTracker={nodes:0},limit=options.maxNodes??45000;
  options={...options,now,deadline};const previous=options.previous;
  if(previous?.evidence?.construction)options={...options,constructionPrevious:previous};

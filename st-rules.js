@@ -41,7 +41,40 @@ function replay(state,actions){let s=state;const events=[];for(let i=0;i<actions
 // T-spin evidence classes distinct, exactly as the former textual key did.
 function poseKey(a){const r=a.lastRotation,semantic=a.type==='T'&&r?((r.to-r.from+4)%4!==2&&r.kickIndex===4?2:1):0;return(((TYPES.indexOf(a.type)*16+a.x+4)*64+a.y+4)*4+a.rotation)*3+semantic;}
 function witness(queue,index,prefix){const actions=[];for(let n=queue[index];n.parent>=0;n=queue[n.parent])actions.push(n.action);actions.reverse();return prefix.concat(actions,'HD');}
-function placements(s,options={}){
+// Completed geometry queries are reusable only within one synchronous request.
+// Full states are keys (including pose, HOLD, bag and draw cursor); arbitrary
+// stop predicates are deliberately excluded. Cached values never share mutable
+// placement/evidence objects with callers. Limits bound retained serialized data.
+let queryContext=null;
+function withQueries(run){
+ if(queryContext)return run();
+ queryContext={cache:new Map(),bytes:0,metrics:{hits:0,avoidedNodes:0,proven:0,failedWithinScope:0,unfinished:0,evictions:0,peakBytes:0,peakEntries:0}};
+ try{return run();}finally{queryContext=null;}
+}
+function queryMetrics(){return queryContext?{...queryContext.metrics,entries:queryContext.cache.size,bytes:queryContext.bytes,maxBytes:8*1024*1024,maxEntries:64}:null;}
+function query(kind,input,options,run){
+ const ctx=queryContext;if(!ctx)return run();
+ const cacheable=typeof options.stopWhen!=='function';
+ const id=cacheable?JSON.stringify([kind,input,kind==='placements'?options.allowHold!==false:null]):null;
+ const saved=id&&ctx.cache.get(id);
+ if(saved){ctx.metrics.hits++;ctx.metrics.avoidedNodes+=saved.visited;return{...JSON.parse(saved.json),visited:0,queryCached:true};}
+ const result=run(),status=result.complete?(kind==='tDoubleAccess'?result.reachable===true:result.placements.length>0)?'proven':'failed-within-scope':'unfinished';
+ ctx.metrics[status==='proven'?'proven':status==='unfinished'?'unfinished':'failedWithinScope']++;
+ const value={...result,queryStatus:status};
+ if(id&&result.complete){
+  const json=JSON.stringify(value),bytes=(id.length+json.length)*2;
+  if(bytes<=8*1024*1024){
+   while(ctx.cache.size&&(ctx.cache.size>=64||ctx.bytes+bytes>8*1024*1024)){const first=ctx.cache.keys().next().value;ctx.bytes-=ctx.cache.get(first).bytes;ctx.cache.delete(first);ctx.metrics.evictions++;}
+   ctx.cache.set(id,{json,bytes,visited:result.visited});ctx.bytes+=bytes;
+   ctx.metrics.peakBytes=Math.max(ctx.metrics.peakBytes,ctx.bytes);ctx.metrics.peakEntries=Math.max(ctx.metrics.peakEntries,ctx.cache.size);
+  }
+ }
+ return value;
+}
+function placements(s,options={}){return query('placements',s,options,()=>placementsCore(s,options));}
+function tDoubleAccess(board,options={}){return query('tDoubleAccess',board,options,()=>tDoubleAccessCore(board,options));}
+
+function placementsCore(s,options={}){
  const out=[],seenOut=new Map();let visited=0,complete=true;
  const maxNodes=options.maxNodes??16000,deadline=options.deadline??Infinity,now=options.now??(()=>Date.now()),stopWhen=typeof options.stopWhen==='function'?options.stopWhen:null;
  if(validate(s).length||!s.active||s.topOut)return{placements:out,visited,complete:true};
@@ -87,7 +120,7 @@ function placements(s,options={}){
  }}return{placements:out,complete,visited};
 }
 // Hypothetical fresh T access, not a claim that a T is currently available.
-function tDoubleAccess(board,options={}){
+function tDoubleAccessCore(board,options={}){
  const maxNodes=options.maxNodes??16000,deadline=options.deadline??Infinity,now=options.now??(()=>Date.now());
  if(!Array.isArray(board)||board.length!==40||board.some(r=>typeof r!=='string'||r.length!==10||/[^.X#IJLOSTZ]/.test(r)))return{reachable:null,witness:[],event:null,visited:0,complete:false,reason:'invalid-board'};
  let state=createState({board,active:'T',canHold:false}),visited=0;
@@ -112,5 +145,5 @@ function tDoubleAccess(board,options={}){
  }
  return{reachable:false,witness:[],event:null,visited,complete:true};
 }
-return Object.freeze({PROFILE,LEGACY_PROFILE,migrateState,pieces,kicks,cells,emptyBoard,spawn,fits,createState,validate,move,replay,placements,spin,tDoubleAccess});
+return Object.freeze({withQueries,queryMetrics,PROFILE,LEGACY_PROFILE,migrateState,pieces,kicks,cells,emptyBoard,spawn,fits,createState,validate,move,replay,placements,spin,tDoubleAccess});
 });

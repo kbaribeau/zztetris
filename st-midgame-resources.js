@@ -130,7 +130,8 @@ function checkPath(raw,path,summary={}){if(!Array.isArray(path)||path.length>7)r
 // observed inventory through a checked finite prefix before it can be promised.
 function repairGoal(event,instance,resource){return event.type==='S'&&left(event)&&resource.hangingS.some(h=>h.id===instance?.id);}
 function binding(resource){return JSON.stringify([resource.active,resource.hold,resource.queue,resource.observedSL,resource.extraZ,resource.pendingCenter,resource.hangingS,resource.unclassifiedS,resource.hangingL,resource.unclassifiedL,resource.violations,resource.scoredTs]);}
-function repair(raw,resource,{maxNodes=4000,deadline=Infinity,now=()=>Date.now(),depth=4,notches=S.notchPattern(raw.board),centerCompletions=true}={}){
+function repair(raw,resource,options={}){const result=repairCore(raw,resource,options);return{...result,queryStatus:result.valid===true?'proven':result.valid===false?'failed-within-scope':'unfinished',scope:{kind:'visible-resource-repair',grammar:'left-center-v1',beamWidth:4,depth:options.depth??4,centerCompletions:options.centerCompletions!==false}};}
+function repairCore(raw,resource,{maxNodes=4000,deadline=Infinity,now=()=>Date.now(),depth=4,notches=S.notchPattern(raw.board),centerCompletions=true}={}){
  // This finite repair grammar cannot establish how an already consumed,
  // unclassified S was accommodated. Keep uncertainty separate from false
  // (a completed bounded search), and never manufacture a replay target.
