@@ -16,8 +16,9 @@ function start(raw,summary={}){
  return{active:a,hold:h,queue:q,nextId:next,observedSL,extraZ:summary.extraZ?.status==='available'?'available':summary.extraZ?.status||'unknown',
   pendingCenter:(summary.center?.pending||[]).map(p=>({rootId:p.rootId,bag:p.rootBag??byId(p.rootId)?.bag??null,family:p.family,alternatives:clone(p.alternatives),created:false})),
   hangingS:(summary.hangingS?.evidence||[]).map(e=>({id:e.sId,bag:e.bag,known:true})),
+  unclassifiedS:(summary.hangingS?.unclassified||[]).map(s=>({...clone(s),...(summary.center?.closed?.some(p=>p.family==='SL'&&p.rootId===s.sId&&p.status==='invalidated')?{invalidated:true}:{})})),
   hangingL:(summary.hangingL?.evidence||[]).map(e=>({id:e.lId,bag:e.bag,known:true})),unclassifiedL:clone(summary.hangingL?.unclassified||[]),violations:[],scoredTs:[],
-  originKey:JSON.stringify([summary.coverage?.status,observedSL,all,summary.center?.pending,summary.center?.debt,summary.hangingS?.evidence,summary.hangingL?.evidence,summary.hangingL?.unclassified,summary.extraZ?.status,summary.extraZ?.allocations?.map(a=>[a.at,a.pieceId]),summary.milestones?.maintenanceHandoff])};
+  originKey:JSON.stringify([summary.coverage?.status,observedSL,all,summary.center?.pending,summary.center?.debt,summary.hangingS?.evidence,summary.hangingS?.unclassified,summary.center?.closed?.filter(p=>p.status==='invalidated'),summary.hangingL?.evidence,summary.hangingL?.unclassified,summary.extraZ?.status,summary.extraZ?.allocations?.map(a=>[a.at,a.pieceId]),summary.milestones?.maintenanceHandoff])};
 }
 // Necessary piece-flow test, not a geometric placement proof. Enumerate HOLD
 // choices without spending a T; a partner behind two pending Ts is inaccessible.
@@ -33,10 +34,19 @@ function partnerAccessible(state,pieces){
  return false;
 }
 function step(before,p,prior){
- const n={...prior,queue:prior.queue.slice(),pendingCenter:clone(prior.pendingCenter),hangingS:clone(prior.hangingS),hangingL:clone(prior.hangingL||[]),unclassifiedL:clone(prior.unclassifiedL||[]),violations:prior.violations.slice(),scoredTs:prior.scoredTs.slice()};
+ const n={...prior,queue:prior.queue.slice(),pendingCenter:clone(prior.pendingCenter),hangingS:clone(prior.hangingS),unclassifiedS:clone(prior.unclassifiedS||[]),hangingL:clone(prior.hangingL||[]),unclassifiedL:clone(prior.unclassifiedL||[]),violations:prior.violations.slice(),scoredTs:prior.scoredTs.slice()};
  const reject=reason=>{if(!n.violations.includes(reason))n.violations.push(reason);};
  while(n.queue.length<before.queue.length)n.queue.push({id:n.nextId--,type:before.queue[n.queue.length],bag:null});
- for(const action of p.witness||[]){if(action==='HOLD'){if(n.hold){const a=n.active;n.active=n.hold;n.hold=a;}else{n.hold=n.active;n.active=n.queue.shift()??null;}}}
+ for(const action of p.witness||[]){if(action==='HOLD'){if(n.hold){const a=n.active;n.active=n.hold;n.hold=a;}else{n.hold=n.active;// An observed S whose supported accommodation disappears is uncertain,
+ // not a live token to spend again and not a silently completed obligation.
+ for(const s of n.hangingS.slice()){
+  const consumed=e.type==='S'&&s.id===piece.id,wasPending=prior.pendingCenter.some(p=>p.family==='SL'&&p.rootId===s.id);
+  if((consumed||wasPending)&&!n.pendingCenter.some(p=>p.family==='SL'&&p.rootId===s.id&&!p.lost)){
+   n.hangingS=n.hangingS.filter(h=>h.id!==s.id);
+   if(!n.unclassifiedS.some(h=>h.sId===s.id&&h.bag===s.bag))n.unclassifiedS.push({sId:s.id,bag:s.bag,...(wasPending?{invalidated:true}:{}),reason:'Unreviewed accommodation of an observed surplus S.'});
+  }
+ }
+ n.active=n.queue.shift()??null;}}}
  const piece=n.active,e=p.event;if(!piece||piece.type!==e.type){reject('piece-identity-mismatch');return n;}
  if(e.type==='T'){if(tsd(e))n.scoredTs.push(piece.id);else reject('ordinary-T-must-score');}
  if(e.type==='Z'){if(nonRight(e)){if(n.extraZ!=='available')reject('extra-Z-not-available');n.extraZ='used';}else if(!e.cells.every(([x])=>x>=8))reject('ordinary-Z-outside-reviewed-Right-role');}
@@ -93,6 +103,15 @@ function step(before,p,prior){
    n.hangingL=n.hangingL.filter(h=>h.id!==l.id);n.unclassifiedL.push({lId:l.id,bag:l.bag,reason:'Unreviewed accommodation of an observed surplus L.'});
   }
  }
+ // An observed S whose supported accommodation disappears is uncertain,
+ // not a live token to spend again and not a silently completed obligation.
+ for(const s of n.hangingS.slice()){
+  const consumed=e.type==='S'&&s.id===piece.id,wasPending=prior.pendingCenter.some(p=>p.family==='SL'&&p.rootId===s.id);
+  if((consumed||wasPending)&&!n.pendingCenter.some(p=>p.family==='SL'&&p.rootId===s.id&&!p.lost)){
+   n.hangingS=n.hangingS.filter(h=>h.id!==s.id);
+   if(!n.unclassifiedS.some(h=>h.sId===s.id&&h.bag===s.bag))n.unclassifiedS.push({sId:s.id,bag:s.bag,...(wasPending?{invalidated:true}:{}),reason:'Unreviewed accommodation of an observed surplus S.'});
+  }
+ }
  n.active=n.queue.shift()??null;
  // Only a deduced final bag member can be appended by the existing planner.
  // It carries no invented bag identity or allowance.
@@ -110,11 +129,15 @@ function checkPath(raw,path,summary={}){if(!Array.isArray(path)||path.length>7)r
 // A local landing is positive evidence only. It must be reached from the real
 // observed inventory through a checked finite prefix before it can be promised.
 function repairGoal(event,instance,resource){return event.type==='S'&&left(event)&&resource.hangingS.some(h=>h.id===instance?.id);}
-function binding(resource){return JSON.stringify([resource.active,resource.hold,resource.queue,resource.observedSL,resource.extraZ,resource.pendingCenter,resource.hangingS,resource.hangingL,resource.unclassifiedL,resource.violations,resource.scoredTs]);}
+function binding(resource){return JSON.stringify([resource.active,resource.hold,resource.queue,resource.observedSL,resource.extraZ,resource.pendingCenter,resource.hangingS,resource.unclassifiedS,resource.hangingL,resource.unclassifiedL,resource.violations,resource.scoredTs]);}
 function repair(raw,resource,{maxNodes=4000,deadline=Infinity,now=()=>Date.now(),depth=4,notches=S.notchPattern(raw.board),centerCompletions=true}={}){
+ // This finite repair grammar cannot establish how an already consumed,
+ // unclassified S was accommodated. Keep uncertainty separate from false
+ // (a completed bounded search), and never manufacture a replay target.
+ if(resource.unclassifiedS?.some(s=>s.invalidated))return{valid:null,visited:0,status:'unclassified-S-accommodation',unclassifiedS:clone(resource.unclassifiedS)};
  const centerIds=centerCompletions?resource.pendingCenter.map(p=>p.rootId):[];
  const done=r=>!r.hangingS.length&&!r.pendingCenter.some(p=>centerIds.includes(p.rootId))&&!r.centerBlocked&&!r.tCollision;
- if(!resource.hangingS.length&&!centerIds.length)return{valid:true,visited:0,status:'no-new-resource-repair-needed'};
+ if(!resource.hangingS.length&&!centerIds.length)return{valid:true,visited:0,status:resource.unclassifiedS?.length?'no-confirmed-resource-repair-needed':'no-new-resource-repair-needed',unclassifiedS:clone(resource.unclassifiedS||[])};
  let visited=0,complete=true,layer=[{state:R.createState(raw),resource,path:[],notches}];
  const leftCovered=board=>S.geometry(board).left.covered,rootCovered=leftCovered(raw.board);
  for(let d=0;d<depth&&layer.length;d++){

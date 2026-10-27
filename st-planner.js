@@ -926,7 +926,7 @@ function planCore(raw,options={}){
  const accessSafe=n=>{const proof=A.prefix(s,n.path,{notches:initial.notches,deadline,now,maxNodes:Math.max(0,limit-base.metrics.nodes)});base.metrics.nodes+=proof.visited;base.metrics.gapAccessNodes=(base.metrics.gapAccessNodes||0)+proof.visited;n.path[0].gapAccess=proof;return proof.reachable===true;};
  const repairCache=new Map();
  const resourceSafe=n=>{
-  if(n.resources?.centerBlocked)return false;
+  if(n.resources?.centerBlocked||n.resources?.unclassifiedS?.some(s=>s.invalidated))return false;
   if(n.resources?.tCollision&&n.assessment.right.entry?.status!=='reachable-if-T-available')return false;
   if(!n.resources?.hangingS.length&&!n.resources?.pendingCenter.length)return true;
   const key=n.state.board.join('')+M.binding(n.resources);let proof=repairCache.get(key);
@@ -1072,7 +1072,7 @@ function plan(raw,options={}){
    if(result.metrics.usage?.scope==='maintenance')result.metrics.usage={...result.metrics.usage,selected:null,families:Object.fromEntries(Object.entries(result.metrics.usage.families).map(([name,family])=>[name,'selected'in family?{...family,selected:0}:family]))};
    return{...result,status:'no-supported-continuation-found',target:null,witness:[],continuation:[],reason:'No ordinary-midgame route preserving the observed T, Z and Center obligations was verified.',evidence:{...result.evidence,resourceObligations:{status:'rejected',reason:resource.reason}}};
   }
-  result={...result,evidence:{...result.evidence,resourceObligations:{status:'checked',binding:resource.resource.originKey,extraZ:resource.resource.extraZ,pendingCenter:resource.resource.pendingCenter,hangingS:resource.resource.hangingS,hangingL:resource.resource.hangingL}}};
+  result={...result,evidence:{...result.evidence,resourceObligations:{status:'checked',binding:resource.resource.originKey,extraZ:resource.resource.extraZ,pendingCenter:resource.resource.pendingCenter,hangingS:resource.resource.hangingS,unclassifiedS:resource.resource.unclassifiedS,hangingL:resource.resource.hangingL}}};
  }
  const state=observe(raw),scoring=Boolean(result.evidence?.opening?.scoringPlan),replayUnits=scoring?(result.continuation||[]).reduce((n,p)=>n+p.witness.length,0):0,used=result.metrics?.nodes||0,limit=options.maxNodes??45000;
  const canCheck=!scoring||now()<deadline&&used+replayUnits<=limit;
