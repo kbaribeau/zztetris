@@ -3,7 +3,11 @@
 (function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules.js'),require('./st-bag.js')):factory(root.STRules,root.STBag);if(typeof module==='object'&&module.exports)module.exports=api;else root.STStructure=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,B){
 'use strict';
 const cache=new Map(),substituteCache=new Map(),clone=x=>JSON.parse(JSON.stringify(x));
-const heights=board=>Array.from({length:10},(_,x)=>{const y=board.findIndex(r=>r[x]!=='.');return y<0?0:40-y;});
+function heights(board){const out=new Array(10);
+ // Preserve column/read order without allocating a callback for every scan.
+ for(let x=0;x<10;x++){const length=board.length;let y=0;while(y<length&&board[y][x]==='.')y++;out[x]=y<length?40-y:0;}
+ return out;
+}
 const rough=p=>p.slice(1).reduce((n,h,i)=>n+Math.abs(h-p[i]),0);
 // Only immutable shape facts are shared. Board, phase, supply and witness
 // results remain in their existing calculation/cache scope.
@@ -54,7 +58,13 @@ function covered(board,cols,h=heights(board)){let n=0;for(const x of cols)for(le
 // Count genuinely sealed voids separately from covered but side-accessible
 // scoring cavities. Air reachability is necessary, not sufficient, piece access.
 function sealed(board,cols,h=heights(board)){const top=Math.max(0,39-Math.max(...h)),seen=new Uint8Array(400),q=[];for(let x=0;x<10;x++)if(board[top][x]==='.') {seen[top*10+x]=1;q.push(top*10+x);}
- for(let i=0;i<q.length;i++){const n=q[i],x=n%10,y=Math.floor(n/10);for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const xx=x+dx,yy=y+dy,k=yy*10+xx;if(xx>=0&&xx<10&&yy>=top&&yy<40&&!seen[k]&&board[yy][xx]==='.') {seen[k]=1;q.push(k);}}}
+ // Keep right/left/down/up discovery order, without per-cell neighbor arrays.
+ for(let i=0;i<q.length;i++){const n=q[i],x=n%10,y=Math.floor(n/10);
+  if(x<9&&!seen[n+1]&&board[y][x+1]==='.') {seen[n+1]=1;q.push(n+1);}
+  if(x>0&&!seen[n-1]&&board[y][x-1]==='.') {seen[n-1]=1;q.push(n-1);}
+  if(y<39&&!seen[n+10]&&board[y+1][x]==='.') {seen[n+10]=1;q.push(n+10);}
+  if(y>top&&!seen[n-10]&&board[y-1][x]==='.') {seen[n-10]=1;q.push(n-10);}
+ }
  let n=0;for(const x of cols)for(let y=top;y<40;y++)if(board[y][x]==='.'&&!seen[y*10+x])n++;return n;}
 // Straight-drop witnesses from a hypothetical fresh piece. The actual active
 // pose and the order in which this piece becomes available are checked by search.
