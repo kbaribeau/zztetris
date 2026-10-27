@@ -29,11 +29,29 @@
   function chooseMode(id,{persist=true}={}){
     const mode=playModes.some(m=>m.id===id)?id:stableId;
     if(mode==='empty')empty();else loadFixture(stableId);
-    setText($('st-import-status'),'');
+    importStatus('');
     if(persist)rememberMode(mode);
   }
   const profile=STRules.PROFILE.id || 'st-zero-v1';
   const setText=(node,text)=>{if(node.textContent!==text)node.textContent=text;};
+  function importStatus(text,{rejected=false}={}) {
+    const status=$('st-import-status'),input=$('st-snapshot');
+    $('st-import-result').dataset.result=rejected?'rejected':'notice';
+    for(const id of ['st-import-error-title','st-import-error-note','st-import-error-indicator'])$(id).hidden=!rejected;
+    if(rejected)setText($('st-import-error-note'),'Your input and current game are unchanged.');
+    status.setAttribute('role',rejected?'alert':'status');
+    status.setAttribute('aria-live',rejected?'assertive':'polite');
+    if(rejected){
+      $('st-import-options').open=true;
+      input.setAttribute('aria-invalid','true');input.setAttribute('aria-describedby','st-import-status');
+      // Replace even identical text so a repeated failed attempt updates the live
+      // region. Never interpret parser/validator messages as HTML or move focus.
+      status.replaceChildren(document.createTextNode(text));
+    }else{
+      input.removeAttribute('aria-invalid');input.removeAttribute('aria-describedby');
+      setText(status,text);
+    }
+  }
   // Worker metadata is not markup or an unrestricted navigation destination.
   // Keep this exact allowlist independent of imported snapshots and planner data.
   const communitySourceURLs=new Set([
@@ -393,21 +411,24 @@
     origin={session:clone(envelope)};
     setText($('st-position-note'),'Imported coaching session. Only visible supply is restored; hidden future and Undo history are excluded.');
     setText($('st-game-status'),'');requestPlan();render();
-    setText($('st-import-status'),'Session imported. Advice will be revalidated.'+(prepared.warnings.length?' '+prepared.warnings.join(' '):''));
+    importStatus('Session imported. Advice will be revalidated.'+(prepared.warnings.length?' '+prepared.warnings.join(' '):''));
   }
   $('st-export-session').addEventListener('click',()=>{
-    try{$('st-snapshot').value=JSON.stringify(exportSession(),null,2);setText($('st-import-status'),'Exported visible position and coaching evidence; hidden future, Undo and diagnostic counters were excluded.');}
-    catch(error){setText($('st-import-status'),`Session export unavailable: ${error.message}`);}
+    try{$('st-snapshot').value=JSON.stringify(exportSession(),null,2);importStatus('Exported visible position and coaching evidence; hidden future, Undo and diagnostic counters were excluded.');}
+    catch(error){importStatus(`Session export unavailable: ${error.message}`);}
   });
-  $('st-export').addEventListener('click',()=>{$('st-snapshot').value=JSON.stringify(observation(),null,2);setText($('st-import-status'),'Exported visible state only; hidden future was excluded.');});
+  $('st-export').addEventListener('click',()=>{$('st-snapshot').value=JSON.stringify(observation(),null,2);importStatus('Exported visible state only; hidden future was excluded.');});
+  $('st-snapshot').addEventListener('input',()=>{
+    if($('st-import-result').dataset.result==='rejected')setText($('st-import-error-note'),'Previous import attempt was rejected. Your edits have not been revalidated; the current game is unchanged.');
+  });
   $('st-import').addEventListener('click',()=>{
     try{if($('st-snapshot').value.length>STSession.LIMITS.bytes)throw new Error('Import exceeds size limit.');const input=JSON.parse($('st-snapshot').value);if(input?.format===STSession.FORMAT){const prepared=STSession.prepare(input);installSession(prepared);return;}const errors=STRules.validate(input);if(errors.length)throw new Error(errors.join('; '));
       if(input.queue.length>6)throw new Error('Only six visible preview pieces may be imported; bag knowledge must refer to that frontier.');
       // Explicit whitelist prevents an import from injecting a hidden queue/seed.
       const clean={rules:input.rules,board:input.board,active:input.active,hold:input.hold,canHold:input.canHold,queue:input.queue.slice(0,6),streamCursor:input.streamCursor||0,topOut:Boolean(input.topOut)};
       if(input.bag){const bagErrors=STBag.validate(input.bag);if(bagErrors.length)throw new Error(bagErrors.join('; '));clean.bag=input.bag;}
-      resetState(clean,{counterLabel:'Lines since import',opening:STPlanner.startOpeningSession(clean).active,note:'Imported visible snapshot. Missing bag history remains unknown; preview is finite.'});selectedId=null;$('st-fixture').value='';setText($('st-import-status'),input.rules===STRules.LEGACY_PROFILE.id?'Snapshot imported and migrated from v1 to unlimited-hold v2.':'Snapshot imported.');
-    }catch(error){setText($('st-import-status'),`Import rejected: ${error.message}`);}
+      resetState(clean,{counterLabel:'Lines since import',opening:STPlanner.startOpeningSession(clean).active,note:'Imported visible snapshot. Missing bag history remains unknown; preview is finite.'});selectedId=null;$('st-fixture').value='';importStatus(input.rules===STRules.LEGACY_PROFILE.id?'Snapshot imported and migrated from v1 to unlimited-hold v2.':'Snapshot imported.');
+    }catch(error){importStatus(`Import rejected: ${error.message}`,{rejected:true});}
   });
   for(const mode of playModes){const option=document.createElement('option');option.value=mode.id;option.textContent=mode.label;$('st-fixture').append(option);}
   setText($('st-key-help'),actions.map((action,i)=>`${config[i]}: ${action.toLowerCase()}`).join(' · ')+' · Set bindings in Game Settings.');
