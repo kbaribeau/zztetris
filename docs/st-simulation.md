@@ -1,6 +1,6 @@
 # ST closed-loop simulation
 
-Run from the repository root with the pinned Node 24.20.0 and existing npm installation. No browser, server, new npm dependencies or schedule is required.
+Run from the repository root with the pinned Node 24.22.0 and existing npm installation. No browser, server, new npm dependencies or schedule is required.
 
 ```sh
 npm run sim:st -- --preset quick

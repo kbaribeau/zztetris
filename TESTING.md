@@ -1,8 +1,9 @@
 # Browser-free regression tests
 
-Use Node **24.20.0** (`.nvmrc`) and npm **11.19.0**. With nvm, run `nvm install && nvm use` first.
+Use Node **24.22.0** (`.nvmrc`) and npm **11.19.0**. With nvm, run `nvm install && nvm use` first. Node 24.22.0 bundles npm 11.19.1; this repository intentionally keeps npm 11.19.0. Select the repository npm version from the official registry before installing dependencies:
 
 ```sh
+npm install --global npm@11.19.0 --registry=https://registry.npmjs.org
 npm ci && npm test
 ```
 
@@ -182,3 +183,19 @@ sub-search ceilings remain separate. Do not replace those values as if they were
 production defaults. The worker's omitted-time fallback now matches the live
 coach, rather than its previous independent 200 ms default. No search depth,
 width, node limit or strategy was changed.
+
+## Node runtime stability
+
+Node 24.22.0 includes the V8 GC correction linked to
+[Node issue 62393](https://github.com/nodejs/node/issues/62393) and
+[backport fb0d0ca289](https://github.com/nodejs/node/commit/fb0d0ca289).
+The previous 24.20.0 runtime intermittently crashed on macOS ARM64 during fresh
+simulation-worker VM execution. Keep fresh contexts, shared live planner limits,
+watchdogs and validators unchanged; disabling checks or forcing GC is not the
+fix. See the [official 24.22.0 release](https://nodejs.org/en/blog/release/v24.22.0).
+
+When comparing engine revisions, run both under this same pinned runtime.
+Historical 24.20.0 timing and crash records remain historical evidence, not a
+comparable performance baseline for 24.22.0 runs. A clean finite experiment does
+not prove the runtime can never crash. The npm pin and dependency versions are
+unchanged by this runtime update.

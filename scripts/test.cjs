@@ -30,7 +30,7 @@ async function main() {
     result.dirty = git('status', '--porcelain').length > 0;
     result.lockSha256 = createHash('sha256').update(fs.readFileSync('package-lock.json')).digest('hex');
     result.testFiles = fs.readdirSync('test').filter(file => file.endsWith('.test.cjs')).sort().map(file => `test/${file}`);
-    if (process.version !== 'v24.20.0') throw new Error('Use the pinned Node version from .nvmrc (24.20.0)');
+    if (process.version !== 'v24.22.0') throw new Error('Use the pinned Node version from .nvmrc (24.22.0)');
     if (!result.testFiles.length) throw new Error('No test files found');
     // Cache compiled code only, never module instances: test children and
     // jsdom realms retain their original isolation. Start cold on every run.

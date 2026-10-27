@@ -8,7 +8,7 @@ added. The planner receives no source-token or original-bag IDs.
 
 ## Run it
 
-Use pinned Node 24.20.0 from the repository root:
+Use pinned Node 24.22.0 from the repository root:
 
 ```sh
 # Analyze an existing episode without running the planner.

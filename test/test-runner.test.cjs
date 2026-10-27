@@ -3,7 +3,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 
 test('runner keeps a durable failed manifest when its bounded compile-cache probe fails',async()=>{
  const temp=fs.mkdtempSync(path.join(os.tmpdir(),'zztetris-runner-control-')),script=require.resolve('../scripts/test.cjs');
- let cache,probe=false;const process={env:{ZZTETRIS_TEST_RESULTS_DIR:temp},pid:17,version:'v24.20.0',platform:'test',execPath:'controlled-node',chdir(){},stdout:{write(){}},exitCode:undefined};
+ let cache,probe=false;const process={env:{ZZTETRIS_TEST_RESULTS_DIR:temp},pid:17,version:'v24.22.0',platform:'test',execPath:'controlled-node',chdir(){},stdout:{write(){}},exitCode:undefined};
  const child={execFileSync:(command,args,opts)=>{if(command==='git')return args[0]==='status'?'':'controlled-git';assert.equal(command,process.execPath);assert.equal(opts.timeout,3000);probe=true;throw new Error('controlled compile probe failure');}};
  const mocks={'node:test':{run:()=>{throw new Error('Tests must not start after failed probe');}},'node:test/reporters':{tap:null},'node:child_process':child,'node:fs':{...fs,mkdtempSync:prefix=>{cache=fs.mkdtempSync(prefix);return cache;}},'../test/support/pages.cjs':{SEED:1},'../test/support/st-natural.cjs':{seed:2}};
  try{
