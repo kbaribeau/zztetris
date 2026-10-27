@@ -40,3 +40,26 @@ test('unclassified S: session replay and real UI Undo restore the correct bounda
  g.window.stLab.act('UNDO');g.click('#st-export-session');const restored=Session.prepare(JSON.parse(g.element('#st-snapshot').value));
  const r=M.start(restored.state,H.resolve(restored.state,restored.resourceHistory));assert.ok(r.pendingCenter.some(x=>x.rootId===14));assert.ok(!r.unclassifiedS.some(x=>x.sId===14));
 }));
+for(const deferred of [false,true])test(`unclassified S: empty HOLD with ${deferred?'deferred':'observed'} surplus uses only post-lock placement facts`,()=>{
+ let state=R.createState({active:'L',queue:['I','S','J','O','T','Z'],streamCursor:1}),history=H.start(state,{fresh:true});
+ const act=(action,revealed=[])=>{const before=state;state=R.move(state,action);state={...state,queue:[...state.queue,...revealed]};history=H.applyAction(history,before,action,state);};
+ if(!deferred)for(const action of ['L','L','L','HD'])act(action);
+ else{
+  // A finite public prefix, as in projected search: observe early next-bag
+  // L/I/J, then make no further reveals. Its S has never been observed.
+  state=R.createState({active:'I',queue:['O','T','S','Z','J','L'],streamCursor:1});history=H.start(state,{fresh:true});
+  for(let lock=0;lock<8;lock++){
+   const choices=R.placements(state,{allowHold:false}).placements.filter(p=>p.event.cells.every(([x])=>x<4));
+   const height=p=>40-p.state.board.findIndex(r=>r!=='..........');choices.sort((a,b)=>height(a)-height(b));assert.ok(choices[0]);
+   for(const action of choices[0].witness)act(action,action==='HD'&&lock<3?[['L','I','J'][lock]]:[]);
+  }
+ }
+ const summary=H.resolve(state,history);assert.equal(state.hold,null);assert.equal(summary.hangingS.evidence.length,1);assert.equal(summary.hangingS.evidence[0].sId,deferred?null:3);
+ for(const witness of [['HOLD','HD'],['HOLD','HOLD','HD']]){
+  const replay=R.replay(state,witness);assert.equal(replay.valid,true);
+  const got=M.checkPath(state,[{witness,event:replay.events[0]}],summary);assert.deepEqual(got.resource.violations,[]);assert.equal(got.resource.hold.type,replay.state.hold);
+  if(deferred){assert.deepEqual(got.resource.hangingS,[{id:null,bag:1,known:true}]);assert.deepEqual(got.resource.unclassifiedS,[]);}
+  else if(witness.length===2){assert.equal(got.resource.hangingS.length,0);assert.ok(got.resource.unclassifiedS.some(s=>s.sId===3),'Only the actual unreviewed S lock changes its classification');}
+  else assert.ok(got.resource.hangingS.some(s=>s.id===3),'Swapping the S into HOLD does not consume or reclassify it');
+ }
+});

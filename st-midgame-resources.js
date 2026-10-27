@@ -37,16 +37,7 @@ function step(before,p,prior){
  const n={...prior,queue:prior.queue.slice(),pendingCenter:clone(prior.pendingCenter),hangingS:clone(prior.hangingS),unclassifiedS:clone(prior.unclassifiedS||[]),hangingL:clone(prior.hangingL||[]),unclassifiedL:clone(prior.unclassifiedL||[]),violations:prior.violations.slice(),scoredTs:prior.scoredTs.slice()};
  const reject=reason=>{if(!n.violations.includes(reason))n.violations.push(reason);};
  while(n.queue.length<before.queue.length)n.queue.push({id:n.nextId--,type:before.queue[n.queue.length],bag:null});
- for(const action of p.witness||[]){if(action==='HOLD'){if(n.hold){const a=n.active;n.active=n.hold;n.hold=a;}else{n.hold=n.active;// An observed S whose supported accommodation disappears is uncertain,
- // not a live token to spend again and not a silently completed obligation.
- for(const s of n.hangingS.slice()){
-  const consumed=e.type==='S'&&s.id===piece.id,wasPending=prior.pendingCenter.some(p=>p.family==='SL'&&p.rootId===s.id);
-  if((consumed||wasPending)&&!n.pendingCenter.some(p=>p.family==='SL'&&p.rootId===s.id&&!p.lost)){
-   n.hangingS=n.hangingS.filter(h=>h.id!==s.id);
-   if(!n.unclassifiedS.some(h=>h.sId===s.id&&h.bag===s.bag))n.unclassifiedS.push({sId:s.id,bag:s.bag,...(wasPending?{invalidated:true}:{}),reason:'Unreviewed accommodation of an observed surplus S.'});
-  }
- }
- n.active=n.queue.shift()??null;}}}
+ for(const action of p.witness||[]){if(action==='HOLD'){if(n.hold){const a=n.active;n.active=n.hold;n.hold=a;}else{n.hold=n.active;n.active=n.queue.shift()??null;}}}
  const piece=n.active,e=p.event;if(!piece||piece.type!==e.type){reject('piece-identity-mismatch');return n;}
  if(e.type==='T'){if(tsd(e))n.scoredTs.push(piece.id);else reject('ordinary-T-must-score');}
  if(e.type==='Z'){if(nonRight(e)){if(n.extraZ!=='available')reject('extra-Z-not-available');n.extraZ='used';}else if(!e.cells.every(([x])=>x>=8))reject('ordinary-Z-outside-reviewed-Right-role');}
