@@ -24,7 +24,7 @@ function start(raw,{fresh=false}={}){
   // Only the caller's actual new empty session may establish observed bag zero.
   // Imported snapshots, including forged flags, use the default unknown origin.
   fresh=Boolean(fresh&&o.board.every(r=>r==='..........')&&o.active&&o.hold===null&&o.streamCursor===1&&o.queue.length===6&&new Set([o.active.type,...o.queue]).size===7);
-  const h={schemaVersion:1,coverage:{status:fresh?'complete':'partial',reason:fresh?'Observed from a local empty seven-bag start.':'Earlier placements and held-piece age are unknown.'},observation:o,fresh,nextId:1,observedCount:0,pieces:{},active:null,hold:null,queue:[],actions:0,locks:0,allocations:[],pairs:[],center:{pending:[],debt:[],closed:[]},milestones:{sourcePattern:null,firstTsd:null,maintenanceHandoff:null},opening:{counts:{S:0,L:0,T:0,Z:0,TNonRight:0,ZNonRight:0,ZRight:0},violations:[],cap:null,quality:null},extraZ:{baseline:null,allocations:[],departures:[]}};
+  const h={schemaVersion:1,coverage:{status:fresh?'complete':'partial',reason:fresh?'Observed from a local empty seven-bag start.':'Earlier placements and held-piece age are unknown.'},observation:o,fresh,nextId:1,observedCount:0,pieces:{},active:null,hold:null,queue:[],actions:0,locks:0,allocations:[],pairs:[],center:{pending:[],debt:[],closed:[]},milestones:{sourcePattern:null,firstTsd:null,maintenanceHandoff:null},opening:{counts:{S:0,L:0,T:0,Z:0,TNonRight:0,ZNonRight:0,ZRight:0},violations:[],cap:null,quality:null,allocation:null,completedAt:null},extraZ:{baseline:null,allocations:[],departures:[]}};
   if(o.active)h.active=addPiece(h,o.active.type,fresh);if(o.hold)h.hold=addPiece(h,o.hold,false);h.queue=o.queue.map(type=>addPiece(h,type,fresh));
   // Imported geometry is factual even though its producing piece identity is not.
   h.center.pending=initialPending(o.board);
@@ -87,7 +87,11 @@ function observeOpening(h,before,after,e){
  if(tsd(e)&&!h.milestones.firstTsd){
   h.milestones.firstTsd={at:h.locks};
   const roof=o.cap?.roof||[],exactCap=roof.length===2&&cap(before.board)&&roof.every(([x,y])=>before.board[y]?.[x]==='Z'&&e.clearedRows.includes(y));
-  if(h.fresh&&!o.violations.length&&o.quality&&o.quality.at<h.locks&&c.T===3&&c.TNonRight===2&&c.ZNonRight===1&&c.ZRight===1&&exactCap){
+  // Verify the actual third-T score and original Right cap separately from
+  // the mandatory non-Right Z. The Z may still be owed after this clear;
+  // a forecast or the clear alone never pays it or grants an Extra Z.
+  if(h.fresh&&h.coverage.status==='complete'&&!o.violations.length&&c.T===3&&c.TNonRight===2&&c.ZNonRight<=1&&c.ZRight===1&&exactCap){o.allocation={at:h.locks,capAt:o.cap.at,counts:clone(c)};if(c.ZNonRight===1)o.completedAt=h.locks;}
+  if(o.completedAt!==null&&o.quality&&o.quality.at<h.locks){
    h.extraZ.baseline={at:h.locks,qualityAt:o.quality.at,capAt:o.cap.at,counts:clone(c),source:SOURCE,scope:'Observed source Chapter 2 allocation and balanced flat-Center checkpoint; three-row height tolerance is an engineering interpretation.'};
   }
  }
@@ -95,8 +99,22 @@ function observeOpening(h,before,after,e){
  if(!h.milestones.sourcePattern){const match=Patterns?.patterns?.find(p=>same(after.board,Array(40-p.rows.length).fill('..........').concat(p.rows)));if(match)h.milestones.sourcePattern={at:h.locks,id:match.id};}
  // First-TSD is a diagnostic boundary even when baseline eligibility is unknown.
  if(h.milestones.firstTsd&&h.locks>h.milestones.firstTsd.at){
-  if(e.type==='Z'&&nonRight)h.extraZ.allocations.push({at:h.locks,pieceId:h.active,type:'Z',region,cells:clone(e.cells)});
+  if(e.type==='Z'&&nonRight){
+   // The first observed non-Right Z pays a known opening debt, even when it
+   // follows the first TSD. Only subsequent Zs consume optional allocations.
+   if(o.allocation&&o.completedAt===null&&c.ZNonRight===1)o.completedAt=h.locks;
+   else h.extraZ.allocations.push({at:h.locks,pieceId:h.active,type:'Z',region,cells:clone(e.cells)});
+  }
   if(!canonical(e)||(region==='right'&&!'ZIT'.includes(e.type))||(region==='cross-right'&&!tsd(e))||(e.type==='T'&&!tsd(e))||(e.type==='Z'&&!nonRight&&!e.cells.every(([x])=>x>=8))||e.topOut)h.extraZ.departures.push({at:h.locks,reason:'Observed departure from the ordinary Midgame profile; no Reset inferred.'});
+ }
+ // Good-opener quality is additional to both the first TSD and mandatory Z.
+ // It may be completed by observed early-midgame locks, never by a forecast or
+ // an imported status. Later canonical TSDs do not erase a still-owed Z.
+ // Keep this narrow: no optional Z, non-scoring T diversion, departure,
+ // unresolved Center debt or S/L identity may be laundered into a new baseline.
+ if(!h.extraZ.baseline&&o.allocation&&o.completedAt!==null&&c.TNonRight===2&&c.ZNonRight===1&&!o.violations.length&&!h.extraZ.allocations.length&&!h.extraZ.departures.length&&!h.center.pending.length&&!h.center.debt.length&&!h.center.closed.some(p=>p.status==='debt-invalidated'&&p.at>=o.allocation.at)&&quality(after.board,c)&&hanging(h).status==='none-observed'&&hangingL(h).status==='none-observed'){
+  o.quality={at:h.locks,counts:clone(c),maxHeightDifference:3};
+  h.extraZ.baseline={at:h.locks,firstTsdAt:o.allocation.at,allocationCompletedAt:o.completedAt,qualityAt:h.locks,capAt:o.allocation.capAt,counts:clone(c),source:SOURCE,scope:'Observed third-T first TSD, mandatory non-Right opening Z and balanced flat-Center checkpoint; the Z may precede or follow that clear, and later canonical TSDs do not erase the debt. No optional Z allocation, non-scoring T diversion, profile departure or invalidated Center debt intervenes, and no unresolved Center or S/L obligation remains. Three-row height tolerance is an engineering interpretation.'};
  }
 }
 function applyAction(history,before,action,after){
@@ -224,13 +242,23 @@ function hangingL(h){
  const lostProfile=h.opening.violations.length||h.extraZ.departures.length||h.extraZ.allocations.length>1||(!h.milestones.firstTsd&&(h.opening.counts.TNonRight>2||h.opening.counts.ZNonRight>1));
  return{status:lostProfile||evidence.length>1?'out-of-profile':evidence.length?'hanging':unclassified.length?'unknown':'none-observed',evidence,unclassified,since:0,reason:evidence.length?'Observed surplus L identity; pending Center SL and repair capability are separate facts.':'No supported Hanging-L event in the observed interval; no symmetric L repair strategy is assumed.'};
 }
+function openingAllocation(h){
+ const unknown={status:'unknown',counts:null,requiredNonRightZ:null,requiredNonRightT:null,firstTsdAt:null,completedAt:null,qualityAt:null,checkpoint:null};
+ if(!h?.pieces||!h.fresh||h.coverage.status!=='complete')return unknown;
+ const o=h.opening,c=o.counts,first=h.milestones.firstTsd;
+ const departed=o.violations.length||c.TNonRight>2||c.ZNonRight>1||c.ZRight>1||c.T>2;
+ const pendingZ=o.allocation&&o.completedAt===null&&c.TNonRight===2&&c.ZNonRight===0&&!o.violations.length&&!h.extraZ.departures.length;
+ const status=first?(o.allocation?(o.completedAt!==null?'verified-first-tsd':pendingZ?'pending-opening-z':'out-of-profile'):'out-of-profile'):departed?'out-of-profile':c.TNonRight===2&&c.ZNonRight===1&&c.ZRight===1&&cap(h.observation.board)?'ready-for-first-tsd':'pending';
+ const before=!first&&!departed;
+ return{status,counts:clone(c),requiredNonRightZ:before?1-c.ZNonRight:pendingZ?1:o.completedAt!==null?0:null,requiredNonRightT:before?2-c.TNonRight:null,firstTsdAt:first?.at??null,completedAt:o.completedAt,qualityAt:o.quality?.at??null,checkpoint:clone(o.allocation)};
+}
 function resolve(raw,history){
- if(!bound(history,raw))return{coverage:{status:'invalid',reason:'Missing, forged, or stale local event history.'},hangingS:{status:'unknown',evidence:[]},hangingL:{status:'unknown',evidence:[]},extraZ:{status:'unknown',baseline:null,allocations:[]}};
- if(!history.pieces)return{coverage:clone(history.coverage),actions:history.actions,locks:history.locks,hangingS:{status:'unknown',evidence:[]},hangingL:{status:'unknown',evidence:[]},extraZ:{status:'unknown',baseline:null,allocations:[]}};
+ if(!bound(history,raw))return{coverage:{status:'invalid',reason:'Missing, forged, or stale local event history.'},openingAllocation:openingAllocation(),hangingS:{status:'unknown',evidence:[]},hangingL:{status:'unknown',evidence:[]},extraZ:{status:'unknown',baseline:null,allocations:[]}};
+ if(!history.pieces)return{coverage:clone(history.coverage),actions:history.actions,locks:history.locks,openingAllocation:openingAllocation(),hangingS:{status:'unknown',evidence:[]},hangingL:{status:'unknown',evidence:[]},extraZ:{status:'unknown',baseline:null,allocations:[]}};
  const h=history,instance=id=>id===null?null:clone(h.pieces[id]);
  const center=clone(h.center);for(const list of ['pending','debt'])for(const obligation of center[list])obligation.rootBag=h.pieces[obligation.rootId]?.bag??null;
  const extraStatus=!h.extraZ.baseline?'unknown':h.extraZ.departures.length||h.extraZ.allocations.length>1?'out-of-profile':h.extraZ.allocations.length?'used':'available';
- return{schemaVersion:1,terminal:Boolean(h.observation.topOut),coverage:clone(h.coverage),actions:h.actions,locks:h.locks,instances:{active:instance(h.active),hold:instance(h.hold),queue:h.queue.map(instance)},observedSL:h.fresh?Object.values(h.pieces).filter(p=>'SL'.includes(p.type)).map(p=>({id:p.id,type:p.type,bag:p.bag})):[],flow:{ageKnown:h.fresh,oldestFirst:[h.active,h.hold,...h.queue].filter(id=>id!==null).map(instance).sort((a,b)=>(a.observedOrder??Infinity)-(b.observedOrder??Infinity))},center,hangingS:hanging(h),hangingL:hangingL(h),extraZ:{status:extraStatus,...clone(h.extraZ),reason:!h.extraZ.baseline?'First TSD and source pattern are not sufficient: the source allocation/quality baseline must be verified.':'One optional Left/Center Z per observed Midgame interval; clears never replenish it and no Reset is inferred.'},milestones:clone(h.milestones),allocations:clone(h.allocations),pairs:clone(h.pairs),source:{url:SOURCE,sections:['2','3.2','7','8','9','10']},note:'Observed resource evidence; planner validates replay context separately. No automatic Reset or allowance renewal.'};
+ return{schemaVersion:1,terminal:Boolean(h.observation.topOut),coverage:clone(h.coverage),actions:h.actions,locks:h.locks,openingAllocation:openingAllocation(h),instances:{active:instance(h.active),hold:instance(h.hold),queue:h.queue.map(instance)},observedSL:h.fresh?Object.values(h.pieces).filter(p=>'SL'.includes(p.type)).map(p=>({id:p.id,type:p.type,bag:p.bag})):[],flow:{ageKnown:h.fresh,oldestFirst:[h.active,h.hold,...h.queue].filter(id=>id!==null).map(instance).sort((a,b)=>(a.observedOrder??Infinity)-(b.observedOrder??Infinity))},center,hangingS:hanging(h),hangingL:hangingL(h),extraZ:{status:extraStatus,...clone(h.extraZ),reason:!h.extraZ.baseline?'First TSD and source pattern are not sufficient: the source allocation/quality baseline must be verified.':'One optional Left/Center Z per observed Midgame interval; clears never replenish it and no Reset is inferred.'},milestones:clone(h.milestones),allocations:clone(h.allocations),pairs:clone(h.pairs),source:{url:SOURCE,sections:['2','3.2','7','8','9','10']},note:'Observed resource evidence; planner validates replay context separately. No automatic Reset or allowance renewal.'};
 }
 return Object.freeze({start,applyAction,markHandoff,resolve,exportContext,importContext,limits:Object.freeze({actions:MAX_ACTIONS,locks:MAX_LOCKS})});
 });

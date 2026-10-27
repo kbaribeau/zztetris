@@ -453,7 +453,15 @@ function context(s){return JSON.stringify([s.rules,s.board,s.hold,s.canHold,s.qu
 function stateKey(s){return JSON.stringify([s.rules,s.board,s.active,s.hold,s.canHold,s.queue,s.bag??null]);}
 function nodeKey(n){return stateKey(n.state)+':notches:'+n.notches.status+':'+n.notches.anchorRow+':cavities:'+JSON.stringify(n.cavityDebt.slice().sort(([ax,ay],[bx,by])=>ax-bx||ay-by))+':center:'+JSON.stringify(n.centerDebt)+':centerContinuity:'+Boolean(n.centerContinuityDebt)+':rootSeal:'+Boolean(n.path[0].structuralEvidence.cavityRepair.cells.length)+':resources:'+(n.resources?M.binding(n.resources):'none');}
 function extendForced(state){if(!state.bag)return state;const t=B.forcedNext(state.bag);if(!t)return state;return {...state,queue:[...state.queue,t],bag:B.consume(state.bag,t)};}
-function compare(a,b){for(let i=0;i<a.rank.length;i++)if(a.rank[i]!==b.rank[i])return b.rank[i]-a.rank[i];return a.key.localeCompare(b.key);}
+// Only an actually verified first-TSD allocation can leave this narrow quality
+// obligation pending. Projected progress is a preference, never an allowance or
+// a replacement for the existing access, cycle, notch and resource certificates.
+function openingQualityOrder(a,b){
+ if(a.openingQualityProgress==null||b.openingQualityProgress==null)return 0;
+ const center=(b.centerContinuity??0)-(a.centerContinuity??0);
+ return center||b.openingQualityProgress-a.openingQualityProgress;
+}
+function compare(a,b){for(let i=0;i<a.rank.length;i++){if(i===3){const quality=openingQualityOrder(a,b);if(quality)return quality;}if(a.rank[i]!==b.rank[i])return b.rank[i]-a.rank[i];}return a.key.localeCompare(b.key);}
 // A three-row motif cannot certify a deeper missing column beneath it.
 // Ordered center partners fit within a tetromino-height (three-step) envelope;
 // taller open deficits remain legal, but require an actually completed repair.
@@ -466,6 +474,7 @@ function compareConstruction(a,b){for(let i=0;i<a.rank.length;i++){
  // merely to improve an endpoint score or cash a nearby double. Temporary
  // departures remain legal and regain this preference after actual repair.
  if(i===3&&(a.centerContinuity??0)!==(b.centerContinuity??0))return (b.centerContinuity??0)-(a.centerContinuity??0);
+ if(i===3){const quality=openingQualityOrder(a,b);if(quality)return quality;}
  if(a.rank[i]!==b.rank[i])return b.rank[i]-a.rank[i];}return a.key.localeCompare(b.key);}
 function nodeFor(p,parent,initial,rootIndex,readAssessment=assess){
  const assessment=readAssessment(p.state.board),path=[...(parent?.path??[]),p];
@@ -498,8 +507,10 @@ function nodeFor(p,parent,initial,rootIndex,readAssessment=assess){
  assessment.structure.headroomRisk=headroomRisk;
  const tsds=path.filter(v=>v.event.spin==='full'&&v.event.lines===2).length;
  p.structuralEvidence={...transition,centerPartnerDeficitBefore:(parent?.assessment??initial).center.partnerDeficit,centerPartnerDeficitAfter:assessment.center.partnerDeficit,placedPiece:p.event.type,structure,dependencyDebt,entryDebt,nonclearScoringGeometryLost:losesEntry,centerReservation,cavityRepair:{status:cavityDebt.length?'requires-executed-repair':'no-outstanding-new-internal-cavity',cells:cavityDebt}};
- // Source/queue preferences only break ties after every existing numeric
- // priority, including executed TSD, verified entry and input effort.
+ // General source/queue preferences only break ties after the numeric
+ // priorities, including executed TSD, verified entry and input effort. The
+ // replay-bound pending-opening quality preference is compared separately,
+ // after safety/cycle/Center continuity and before optional structural growth.
  // Nearby structural estimates are deliberately comparable. The finite
  // executable TSD then breaks ties; it cannot buy a poorer structural band.
  const cycleDebt=(parent?.cycleDebt??0)+transition.cycleViolations.length+(notchCheck.valid?0:1)+(resources?.violations.length||0);
@@ -509,7 +520,12 @@ function nodeFor(p,parent,initial,rootIndex,readAssessment=assess){
  const centerContinuityDebt=centerContinuityStep(priorCenter,structure.center,p.event,parent?.centerContinuityDebt);
  const centerContinuity=centerContinuityDebt?-1:0;
  assessment.structure.centerContinuity={disruptedWithoutClear:centerDisrupted,unresolved:centerContinuityDebt,endpointReusable:reusableCenter(structure.center),preference:centerContinuity};
- return{resources,centerContinuity,centerContinuityDebt,state:p.state,path,notches:notchCheck.pattern,notchValid:notchCheck.valid,assessment,rank,structuralScore,dependencyDebt,entryDebt,cycleDebt,cavityDebt,centerDebt,baseEstimateRank:rank[4],qualified:!assessment.right.slots.length,rootIndex,key:JSON.stringify(path[0].target)+':'+holdCount(path[0])};
+ // Keep unclassified dispositions unresolved: dropping an identity from the
+ // live list is not evidence that it was accommodated. No projected endpoint
+ // updates the real replay ledger or manufactures Extra-Z eligibility.
+ const openingQualityProgress=initial.openingQualityPending&&resources?-(resources.hangingS.length+resources.pendingCenter.length+resources.hangingL.length+(resources.unclassifiedS?.length||0)+(resources.unclassifiedL?.length||0)):null;
+ if(openingQualityProgress!==null)assessment.structure.openingQuality={status:'pending-observed-quality',projectedUnresolved:-openingQualityProgress,baselineGranted:false};
+ return{resources,openingQualityProgress,centerContinuity,centerContinuityDebt,state:p.state,path,notches:notchCheck.pattern,notchValid:notchCheck.valid,assessment,rank,structuralScore,dependencyDebt,entryDebt,cycleDebt,cavityDebt,centerDebt,baseEstimateRank:rank[4],qualified:!assessment.right.slots.length,rootIndex,key:JSON.stringify(path[0].target)+':'+holdCount(path[0])};
 }
 function diversify(nodes,width){const sorted=[...nodes].sort(compare),chosen=[],roots=new Set(),groups=new Set();
  // Protect meaningfully different construction families, not just top-scoring
@@ -582,6 +598,7 @@ function planCore(raw,options={}){
  if(options.resourceContext&&resourceSummary(s,options).coverage.status==='invalid')return{...base,status:'no-supported-continuation-found',reason:'The observed resource history could not be verified for this position.'};
  const summary=resourceSummary(s,options);s=extendForced(s);
  const readAssessment=createAssessmentReader(),initial=readAssessment(s.board);initial.state=s;initial.notches=H.resolve(s,options.patternHistory);initial.resources=M.start(s,summary);
+ initial.openingQualityPending=summary.coverage?.status==='complete'&&summary.openingAllocation?.status==='verified-first-tsd'&&summary.extraZ?.status==='unknown'&&summary.extraZ.baseline===null&&!summary.extraZ.allocations.length&&!summary.extraZ.departures.length&&!summary.center.closed.some(p=>p.status==='debt-invalidated'&&p.at>=summary.openingAllocation.firstTsdAt);
  if(!options.disableConstruction&&options.constructionPrevious?.evidence?.construction){const tracker={nodes:0},retained=revalidate(s,options.constructionPrevious,{...options,deadline,budgetTracker:tracker,maxNodes:Math.min(8000,Math.max(0,(options.maxNodes??45000)-base.metrics.nodes))});base.metrics.nodes+=tracker.nodes;if(retained){retained.metrics.nodes=base.metrics.nodes;return retained;}}
 
  if(!options.disableConstruction&&options.commitment?.advice?.evidence?.construction){
@@ -1022,7 +1039,14 @@ function planCore(raw,options={}){
   }
   if(replace){if(usage)usage.selected={path:'left-foundation',locks:foundationStage.continuation.length};foundationStage.metrics={...constructionMetrics(foundationStage,base.metrics,now()-started),depth:base.metrics.depth,completeDepth:base.metrics.completeDepth,stageProofLocks:2};return foundationStage;}
  }
- if(best&&(!accessSafe(best)||!resourceSafe(best)))best=cleanBest([...comparisonLayer,...frontier]);
+ if(best&&(!accessSafe(best)||!resourceSafe(best))){
+  // Final screening may exhaust its budget after the saved-goal comparison.
+  // A shorter legal fallback is not a replacement for that protected goal.
+  // Recheck alternatives at the selected horizon with every goal preserved;
+  // if none can be certified, abstain rather than silently dropping the proof.
+  const horizon=best.path.length,alternatives=[...comparisonLayer,...frontier].filter(n=>(!commitment||n.path.length===horizon&&coversResourceGoal(n,commitment))&&(!cleanupCommitment||n.path.length===horizon&&coversResourceGoal(n,cleanupCommitment)));
+  best=cleanBest(alternatives);
+ }
  if(!best&&earlyCapFallback&&!commitment&&!cleanupCommitment&&resourceSafe(earlyCapFallback)){best=earlyCapFallback;fallbackMetrics.selected=true;base.metrics.depth=Math.max(base.metrics.depth,1);}
  if(!best)return{...base,status:stopped||screening.unfinished||screening.budgetStops?'budget-exhausted':'no-supported-continuation-found',reason:stopped||screening.unfinished||screening.budgetStops?'The search limit was reached before finding a checked move. A valid continuation may still exist.':'No supported ST sequence was found within this search. Other continuations may exist.'};
  if(best.assessment.maxHeight>=20||!best.assessment.regionalSupport)return{...base,status:'no-supported-continuation-found',reason:'The checked sequences did not retain enough space and a supported stack shape. No move is recommended.',assessment:best.assessment};

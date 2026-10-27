@@ -48,7 +48,23 @@ test('opener SL: actual first-clear handoff carries cross-bag S debt despite no 
  assert.equal(a.history.opening.quality,null);assert.equal(d.extraZ.status,'unknown');assert.equal(d.milestones.sourcePattern.id,'buri-04');assert.equal(d.milestones.firstTsd.at,16);assert.deepEqual(ids(d,'S'),[18]);assert.ok(d.pairs.some(p=>p.family==='SL'&&p.rootId===11&&p.partnerId===15),'Actual foreign-bag completion transfers S11 debt to S18');
  const O=require('../st-opening'),resourceContext=H.exportContext(a.state,a.history);
  const result=O.handoff(a.state,{before,event:a.state.lastEvent},{maxNodes:12000,deadline:Infinity,now:()=>0,resourceContext});
- assert.ok(result?.target,'Current handoff requires an actual clear and a fresh checked maintenance continuation');assert.equal(result.evidence.openingHandoff.status,'checked-after-actual-clear');assert.deepEqual(result.evidence.resourceObligations.hangingS.map(x=>x.id),[18]);
+ assert.ok(result?.target,'Current handoff requires an actual clear and a fresh checked maintenance continuation');assert.equal(result.evidence.openingHandoff.status,'checked-after-actual-clear');
+ // The projected endpoint may legitimately pay S18. Independently execute the
+ // returned inputs into a separate ledger; a smaller debt list must be caused
+ // by an actual identity-specific Left allocation or exact supported SL pair.
+ let virtual=a.state,virtualHistory=a.history;
+ for(const step of result.continuation){const checked=R.replay(virtual,step.witness);assert.equal(checked.valid,true);assert.equal(checked.events.length,1);assert.deepEqual(checked.events[0],step.event);
+  for(const action of step.witness){const next=R.move(virtual,action);assert.notEqual(next,virtual);virtualHistory=H.applyAction(virtualHistory,virtual,action,next);virtual=next;assert.equal(H.resolve(virtual,virtualHistory).coverage.status,'complete');}
+ }
+ const endpoint=H.resolve(virtual,virtualHistory);
+ assert.deepEqual(result.evidence.resourceObligations.hangingS.map(x=>x.id),ids(endpoint,'S'));
+ for(const id of ids(d,'S').filter(id=>!ids(endpoint,'S').includes(id))){
+  const leftPaid=endpoint.allocations.some(p=>p.pieceId===id&&p.type==='S'&&p.region==='left'&&p.at>d.locks);
+  const pairPaid=endpoint.pairs.some(p=>p.family==='SL'&&p.rootId===id&&p.at>d.locks);
+  assert.ok(leftPaid||pairPaid,'A removed S identity must actually be accommodated in the checked prefix');
+  assert.ok(!endpoint.hangingS.unclassified.some(p=>p.sId===id),'Unclassified disposal is not repayment');
+ }
+ assert.deepEqual(a.summary,d,'Planning and hypothetical replay do not mutate the live observed ledger');assert.deepEqual(ids(a.summary,'S'),[18]);
  a.handoff();const restored=H.resolve(a.state,H.importContext(a.state,clone(H.exportContext(a.state,a.history))));assert.equal(restored.milestones.maintenanceHandoff.at,16);assert.deepEqual(ids(restored,'S'),[18]);assert.equal(restored.extraZ.status,'unknown');
 });
 

@@ -32,7 +32,38 @@ function foundationAccess(board,f){
  return -1;
 }
 function facts(board,notches=S.notchPattern(board)){const f=features(board),g=S.geometry(board,{notches}),foundation=S.centerFoundation(board,notches);return{...f,notches,buriedCenterVacancies:foundation.vacancies,centerFoundationStatus:foundation.status,centerBaseStatus:S.centerLevelBase(board,notches).status,centerStatus:g.center.status,centerPartners:g.center.completions.filter(c=>c.resultStatus==='level').map(c=>({piece:c.piece,cells:c.cells})),right:g.right.shapeStatus};}
-function compare(a,b){for(let i=0;i<a.rank.length;i++){if(a.rank[i]!==b.rank[i])return b.rank[i]-a.rank[i];}return a.key.localeCompare(b.key);}
+function rankOrder(a,b){for(let i=0;i<a.rank.length;i++){if(i===5){const ar=a.allocationRank||[0,0,0,0],br=b.allocationRank||[0,0,0,0];for(let j=0;j<ar.length;j++)if(ar[j]!==br[j])return br[j]-ar[j];}if(a.rank[i]!==b.rank[i])return b.rank[i]-a.rank[i];}return 0;}
+function compare(a,b){return rankOrder(a,b)||a.key.localeCompare(b.key);}
+// Source Chapter 2 allocation is a history fact, not something inferred from
+// occupancy. Once the two non-Right Ts are observed, prefer a checked opening
+// Z allocation over optional growth. Safety/parity bands remain ahead of it.
+// A scoring T may precede the Z when the same checked prefix pays both duties.
+// This is completion priority, not a hard first-TSD ordering rule, and does
+// not claim that the whole opening or a future partner is certified.
+function allocationRank(path,required,pending=[]){
+ let placed=0,invalid=false;
+ if(required)for(const step of path){const e=step.event,nonRight=e.cells.every(([x])=>x<7);
+  if(e.type==='T'&&!e.lines&&nonRight)invalid=true;
+  if(e.type==='Z'&&!e.lines&&nonRight)placed++;
+ }
+ const allocation=!required?0:invalid||placed>1?-1:placed===1?1:0;
+ // Once the mandatory allocation is observed, preserve its exact live Center
+ // partner before optional growth. This is a preference over executed cells,
+ // not a projected quality baseline or a guessed future piece identity.
+ let obligations=clone(pending),diverted=0;
+ for(const step of path){const e=step.event,remaining=[];
+  for(const debt of obligations){
+   if(debt.alternatives.some(c=>c.piece===e.type&&sameCells(c.cells,e.cells)))continue;
+   if(!e.lines&&debt.alternatives.some(c=>c.piece===e.type))diverted++;
+   const cleared=e.clearedRows||[],alternatives=debt.alternatives.map(c=>({...c,cells:c.cells.map(([x,y])=>[x,cleared.includes(y)?-1:y+cleared.filter(r=>r>y).length])}));
+   // A completely cleared debt is no longer a live partner; partial removal
+   // stays unresolved and cannot masquerade as an exact accommodation.
+   if(!alternatives.every(c=>c.cells.every(([,y])=>y<0)))remaining.push({...debt,alternatives});
+  }
+  obligations=remaining;
+ }
+ return [allocation,0,-diverted,-obligations.length];
+}
 function rank(f,event,path){
  const low=Math.min(...f.heights.slice(0,7)),high=Math.max(...f.heights.slice(0,7));
  const centerSpan=Math.max(...f.center)-Math.min(...f.center),gap=Math.abs(Math.max(...f.left)-Math.max(...f.center));
@@ -188,7 +219,7 @@ function remainingGoal(origin,path,goal){
  return{balance:goal.balance,center:centerPaid?null:{piece:goal.center.piece,cells},...(goal.endpoint==='finite-foundation'?{endpoint:'finite-foundation'}:{})};
 }
 function goalPaid(origin,path,goal,notches=S.notchPattern(origin.board)){const remaining=remainingGoal(origin,path,goal);if(!remaining||remaining.center)return false;let state=origin;for(const step of path){const r=R.replay(state,step.witness);if(!r.valid||r.events.length!==1)return false;const n=S.advanceNotches(state.board,{state:r.state,event:r.events[0]},notches);if(!n.valid)return false;notches=n.pattern;state=r.state;}return(!remaining.balance||balance(state.board)===0)&&(goal.endpoint==='finite-foundation'?foundationEndpoint(state.board,notches):repairEndpoint(state.board,notches));}
-function betterRank(a,b){for(let i=0;i<a.rank.length;i++)if(a.rank[i]!==b.rank[i])return a.rank[i]>b.rank[i];return false;}
+function betterRank(a,b){return rankOrder(a,b)<0;}
 function proofDepth(proof){let n=0;for(;proof;proof=proof.basis)if(++n>4)break;return n;}
 // A repair is an actual finite construction improvement, not a quota of Ts or
 // a promise that an unseen partner will arrive. Center identity is exact.
@@ -561,18 +592,25 @@ function retainScoring(raw,previous,options={},action=null){
 }
 
 function handoff(state,proof,options){
- const P=getPlanner();if(!proof?.before||!proof.event)return null;
- let before;try{before=P.observe(proof.before);}catch{return null;}
- if(R.validate(before).length)return null;
- const r=R.replay(before,['HD']),event=r.events[0];
- if(!r.valid||r.events.length!==1||JSON.stringify(event)!==JSON.stringify(proof.event)||!event.lines||!S.canonicalClear(event))return null;
- if(JSON.stringify(r.state.board)!==JSON.stringify(state.board)||r.state.active?.type!==state.active?.type||r.state.hold!==state.hold||r.state.canHold!==state.canHold||r.state.queue.some((t,i)=>state.queue[i]!==t))return null;
+ const P=getPlanner(),summary=options.resourceContext?RH.resolve(state,RH.importContext(state,options.resourceContext)):null;
+ // A first double does not erase an observed opening-Z obligation. Unknown
+ // imported history retains the legacy actual-clear/geometry handoff path.
+ if(summary?.openingAllocation?.requiredNonRightZ===1)return null;
+ const historical=summary?.coverage?.status==='complete'&&summary.openingAllocation?.status==='verified-first-tsd'&&summary.extraZ?.baseline&&['available','used'].includes(summary.extraZ.status);
+ let event=null;
+ if(proof?.before&&proof.event){try{
+  const before=P.observe(proof.before);if(!R.validate(before).length){const r=R.replay(before,['HD']),e=r.events[0];
+   if(r.valid&&r.events.length===1&&JSON.stringify(e)===JSON.stringify(proof.event)&&e.lines&&S.canonicalClear(e)&&JSON.stringify(r.state.board)===JSON.stringify(state.board)&&r.state.active?.type===state.active?.type&&r.state.hold===state.hold&&r.state.canHold===state.canHold&&r.state.queue.every((t,i)=>state.queue[i]===t))event=e;
+  }
+ }catch{}}
+ if(!event&&!historical)return null;
  const f=facts(state.board);if(!handoffGeometry(state))return null;
  const now=options.now??(()=>Date.now()),deadline=options.deadline??Infinity;
  if(now()>=deadline)return null;
  const result=P.plan(state,{...options,disableOpening:true,openingPhase:false,openingClear:null,previous:null,commitment:null,constructionPrevious:null,maxNodes:Math.min(12000,options.maxNodes??45000),deadline:Math.min(deadline,now()+200)});
  if(!result?.target)return null;
- return{...result,phase:'maintenance',evidence:{...result.evidence,openingHandoff:{status:'checked-after-actual-clear',event:clone(event),balance:f.parity}},reason:'Opening handoff checked after the clear. '+result.reason};
+ const evidence=event?{status:'checked-after-actual-clear',event:clone(event),balance:f.parity}:{status:'checked-after-observed-opening-quality',firstTsdAt:summary.openingAllocation.firstTsdAt,qualityAt:summary.extraZ.baseline.qualityAt,balance:f.parity};
+ return{...result,phase:'maintenance',evidence:{...result.evidence,openingHandoff:evidence},reason:(event?'Opening handoff checked after the clear. ':'Opening handoff checked after observed allocation and quality completion. ')+result.reason};
 }
 function plan(raw,options={}){
  const P=getPlanner(),now=options.now??(()=>Date.now()),started=now(),deadline=options.deadline??started+(options.timeMs??750);
@@ -583,10 +621,17 @@ function plan(raw,options={}){
  if(now()>=deadline||!limit)return{...base,status:'budget-exhausted'};
  const usage=options.usageTelemetry?{schemaVersion:1,scope:'opening',families:{ordinary:{enumerated:0,examined:0,admitted:0,ranked:0,deduplicatedRanked:0,budgetSkipped:0,selected:0},retainedRepair:{provided:Number(Boolean(options.openingRepair)),verified:0,selected:0},handoff:{actualClearProvided:Number(Boolean(options.openingClear)),probed:0,verified:0,selected:0}},rejections:{},access:{checked:0,witnessed:0,rejected:0,unknown:0,cacheHits:0},selected:null}:null;
  if(usage)base.metrics.usage=usage;
- const accepted=handoff(state,options.openingClear,{...options,deadline});if(accepted){if(usage){usage.families.handoff.verified=1;usage.families.handoff.selected=1;usage.selected={path:'actual-clear-handoff',locks:accepted.continuation?.length||0};accepted.metrics={...accepted.metrics,usage};}return accepted;}
+ const observedSummary=options.resourceContext?RH.resolve(state,RH.importContext(state,options.resourceContext)):null;
+ const historicalHandoff=observedSummary?.coverage?.status==='complete'&&observedSummary.openingAllocation?.status==='verified-first-tsd'&&observedSummary.extraZ?.baseline&&['available','used'].includes(observedSummary.extraZ.status);
+ const accepted=handoff(state,options.openingClear,{...options,deadline});if(accepted){if(usage){usage.families.handoff.verified=1;usage.families.handoff.selected=1;usage.selected={path:accepted.evidence.openingHandoff.status==='checked-after-actual-clear'?'actual-clear-handoff':'observed-quality-handoff',locks:accepted.continuation?.length||0};accepted.metrics={...accepted.metrics,usage};}return accepted;}
  // Reserve the complete handoff allowance even when an attempt abstains.
- const reserved=options.openingClear?Math.min(12000,limit):0;base.metrics.handoffReservedNodes=reserved;
+ const reserved=options.openingClear||historicalHandoff?Math.min(12000,limit):0;base.metrics.handoffReservedNodes=reserved;
  const initial=P.assess(state.board),initialFacts=facts(state.board,P.resolvePatternHistory(state,options.patternHistory));
+ const observed=observedSummary?.openingAllocation;
+ const allocationRequired=!options.disableOpeningAllocation&&observed?.requiredNonRightZ===1&&(observed.requiredNonRightT===0||observed.firstTsdAt!==null&&observed.counts.TNonRight===2)&&['pending','pending-opening-z'].includes(observed.status)&&observed.counts.T>=2&&['staggered-scoring-wall','cap-preparation'].includes(initialFacts.right);
+ const qualityPending=observedSummary?.coverage?.status==='complete'&&observed?.status==='verified-first-tsd'&&observedSummary.extraZ?.status==='unknown'&&!observedSummary.extraZ.baseline&&!observedSummary.extraZ.allocations.length&&!observedSummary.extraZ.departures.length&&!observedSummary.center.closed.some(p=>p.status==='debt-invalidated'&&p.at>=observed.firstTsdAt)?observedSummary.center.pending:[];
+ base.metrics.openingAllocation={requiredNonRightZ:allocationRequired?1:null};
+ base.metrics.openingAllocation.pendingCenterPartners=qualityPending.length;
  if(initial.maxHeight>=20||initialFacts.notches.status==='broken')return{...base,reason:'This opening needs a repair outside the supported construction search.'};
  if(!options.disableOpeningSources&&!options.disableSourceScoring&&!options.openingClear&&!options.openingRepair&&!options.commitment&&options.openingSource?.continuationSteps?.length===7){
   const scored=sourceScoring(state,options,initialFacts.notches,deadline,now,limit-reserved);
@@ -599,6 +644,7 @@ function plan(raw,options={}){
   if(source.advice){if(usage){usage.selected={path:'verified-source-pattern',locks:source.advice.continuation.length};usage.families.sourcePattern={selected:1,nodes:source.visited};}return{...base,...source.advice,metrics:{...base.metrics,depth:0,completeDepth:0,enumeration:'verified-source-subset-graph',elapsedMs:now()-started}};}
  }
  let saved=checkedRepair(options.openingRepair,state);
+ if(saved)saved.allocationRank=allocationRank(saved.path,allocationRequired,qualityPending);
  const mayClear=initialFacts.notches.status==='established'&&[state.active.type,state.hold,...state.queue.slice(0,3)].some(t=>t==='T'||t==='I');
  const probeReserve=mayClear?Math.min(6000,Math.max(0,limit-reserved)):0;let searchLimit=limit-probeReserve;
  let searchDeadline=mayClear&&Number.isFinite(deadline)?deadline-Math.min(120,Math.max(0,deadline-now())/4):deadline;
@@ -609,7 +655,7 @@ function plan(raw,options={}){
  const featureCache=new WeakMap(),assessmentCache=new WeakMap();
  const rawFacts={usage,features:board=>{if(!featureCache.has(board))featureCache.set(board,features(board));return featureCache.get(board);},assess:board=>{if(!assessmentCache.has(board))assessmentCache.set(board,P.assess(board,{cavitiesOnly:true}));return assessmentCache.get(board);}};
  assessmentCache.set(state.board,initial);
- let beam=[{state,path:[],f:initialFacts,notches:initialFacts.notches,key:'',rank:[]}],best=null,stopped=false,stagedNext=[],searchDepth=depth,closure=null,tieExtension=null;const extraRoots=new Set(),ambiguousRoots=new Set(),clearCandidates=[],repairCandidates=[];
+ let beam=[{state,path:[],f:initialFacts,notches:initialFacts.notches,key:'',rank:[]}],best=null,stopped=false,stagedNext=[],searchDepth=depth,closure=null,tieExtension=null,allocationExtension=null;const extraRoots=new Set(),ambiguousRoots=new Set(),clearCandidates=[],repairCandidates=[];
  // Early, open thin-base construction only. Do not mix a fresh geometric
  // base-debt estimate with a different inherited scoring phase, or take
  // over the existing parity-repair/visible-closure families. The uncapped
@@ -633,13 +679,16 @@ function plan(raw,options={}){
     const step={board:p.state.board,target:p.event.target,witness:p.witness,event:p.event,hold:p.witness.includes('HOLD'),holdCount:p.witness.filter(a=>a==='HOLD').length};
     if(usage){usage.families.ordinary.admitted++;usage.families.ordinary.ranked++;}
     const path=[...parent.path,step],key=JSON.stringify([p.state.board.map(r=>r.replace(/[IJLOSTZX#]/g,'#')),p.state.active?.type,p.state.hold,p.state.queue,notch.pattern]);
-    nodes.push({state:p.state,path,f,notches:notch.pattern,key,rank:rank(f,p.event,path)});
+    nodes.push({state:p.state,path,f,notches:notch.pattern,key,rank:rank(f,p.event,path),allocationRank:allocationRank(path,allocationRequired,qualityPending)});
    }
   }
   if(!nodes.length)break;
+  // Staged/closure and retained families use the same authenticated root
+  // obligation as ordinary nodes; no family silently receives a neutral rank.
+  for(const node of nodes)node.allocationRank=allocationRank(node.path,allocationRequired,qualityPending);
   const unique=[...new Map(nodes.sort(compare).reverse().map(n=>[n.key,n])).values()].sort(compare);
   if(usage)usage.families.ordinary.deduplicatedRanked+=unique.length;
-  for(const node of unique){if(now()>=deadline){stopped=true;break;}if(node.path.at(-1).event.lines&&handoffGeometry(node.state))clearCandidates.push(node);if(saved&&node.path.length===saved.path.length&&goalPaid(state,node.path,saved.goal,initialFacts.notches))repairCandidates.push(node);}
+  for(const node of unique){if(now()>=deadline){stopped=true;break;}if(node.path.at(-1).event.lines&&handoffGeometry(node.state)&&(!allocationRequired||node.allocationRank[0]===1))clearCandidates.push(node);if(saved&&node.path.length===saved.path.length&&goalPaid(state,node.path,saved.goal,initialFacts.notches))repairCandidates.push(node);}
   best=unique.find(node=>now()<deadline&&accessSafe(node,tieExtension?{deadline:searchDeadline,maxNodes:Math.max(0,searchLimit-reserved-base.metrics.nodes)}:{}))||best;base.metrics.depth=d+1;if(!stopped)base.metrics.completeDepth=d+1;
   base.metrics.enumeration='reduced-stage-envelope-not-exhaustive';
   // Keep different first-piece/region/parity families alive, not just adjacent
@@ -650,6 +699,14 @@ function plan(raw,options={}){
   const expandable=unique.filter(n=>n.accessProof?.reachable!==false);base.metrics.accessPrunedPrefixes=(base.metrics.accessPrunedPrefixes||0)+unique.length-expandable.length;
   const chosen=[],groups=new Set();for(const n of expandable){const e=n.path[0].event,g=[e.type,Math.floor(e.cells.reduce((s,c)=>s+c[0],0)/4/4),Math.sign(n.f.parity)].join(':');if(!groups.has(g)){chosen.push(n);groups.add(g);if(chosen.length>=width)break;}}
   for(const n of expandable)if(chosen.length<width&&!chosen.includes(n))chosen.push(n);
+  // Completion priority must not prune every scoring-first ordering before its
+  // already-visible Z can be examined. Preserve one such competitor inside the
+  // SAME beam width; it earns no completed-allocation rank until an actual
+  // subsequent placement pays the Z. Final selection still needs checked access.
+  if(allocationRequired&&observed.firstTsdAt===null&&d+1<searchDepth){
+   const scoringFirst=expandable.find(n=>n.allocationRank?.[0]===0&&n.path.some(p=>p.event.type==='T'&&p.event.spin==='full'&&p.event.lines===2)&&[n.state.active?.type,n.state.hold].includes('Z'));
+   if(scoringFirst&&!chosen.includes(scoringFirst)){if(chosen.length>=width)chosen.pop();chosen.push(scoringFirst);base.metrics.openingAllocation.scoringFirstRetained=(base.metrics.openingAllocation.scoringFirstRetained||0)+1;}
+  }
   if(tieEligible&&d===0){
    // Input effort alone must not collapse strategically tied root shapes.
    // Keep the original slots and at most two extra public first placements;
@@ -682,7 +739,7 @@ function plan(raw,options={}){
      if(now()>=stageDeadline||base.metrics.nodes+reserved>=searchLimit)break;
      const pattern=validStep(parent.state.board,p,parent.notches,stageFacts),stage=pattern&&foundationTransition(parent.state.board,p,parent.notches);if(!stage)continue;
      const step={board:p.state.board,target:p.event.target,witness:p.witness,event:p.event,hold:p.witness.includes('HOLD'),holdCount:p.witness.filter(a=>a==='HOLD').length,foundationStage:stage},path=[...parent.path,step],f=rawFacts.features(p.state.board),key=JSON.stringify([p.state.board.map(r=>r.replace(/[IJLOSTZX#]/g,'#')),p.state.active?.type,p.state.hold,p.state.queue,pattern]);
-     const node={state:p.state,path,f,notches:pattern,key,rank:rank(f,p.event,path)},beforeAccess=base.metrics.nodes,access=accessSafe(node,{deadline:stageDeadline,maxNodes:Math.max(0,2000-stageMetrics.nodes)});stageMetrics.nodes+=base.metrics.nodes-beforeAccess;if(!access){if(node.accessProof?.reachable===null)stageMetrics.unknown++;continue;}stageMetrics.verified++;stages.push(node);
+     const node={state:p.state,path,f,notches:pattern,key,rank:rank(f,p.event,path),allocationRank:allocationRank(path,allocationRequired,qualityPending)},beforeAccess=base.metrics.nodes,access=accessSafe(node,{deadline:stageDeadline,maxNodes:Math.max(0,2000-stageMetrics.nodes)});stageMetrics.nodes+=base.metrics.nodes-beforeAccess;if(!access){if(node.accessProof?.reachable===null)stageMetrics.unknown++;continue;}stageMetrics.verified++;stages.push(node);
     }
    }
    if(stages.length){stagedNext=[stages.sort(compare)[0]];stageMetrics.queued++;}
@@ -695,7 +752,7 @@ function plan(raw,options={}){
    for(const parent of chosen){
     if(now()>=end||metrics.nodes>=bounds)break;metrics.attempted++;
     const found=closureWitness(state,parent,{deadline:end,now,maxNodes:bounds-metrics.nodes,notches:initialFacts.notches,raw:rawFacts});metrics.nodes+=found.visited;base.metrics.nodes+=found.visited;if(found.unknown)metrics.unknown++;
-    for(const node of found.candidates){const beforeAccess=base.metrics.nodes,ok=accessSafe(node,{deadline:end,maxNodes:Math.max(0,bounds-metrics.nodes)});metrics.nodes+=base.metrics.nodes-beforeAccess;if(ok){metrics.verified++;candidates.push(node);}}
+    for(const node of found.candidates){node.allocationRank=allocationRank(node.path,allocationRequired,qualityPending);const beforeAccess=base.metrics.nodes,ok=accessSafe(node,{deadline:end,maxNodes:Math.max(0,bounds-metrics.nodes)});metrics.nodes+=base.metrics.nodes-beforeAccess;if(ok){metrics.verified++;candidates.push(node);}}
     if(candidates.length)break;
    }
    if(candidates.length){closure={node:candidates.sort(compare)[0],nominal:best,clearCount:clearCandidates.length,repairCount:repairCandidates.length};searchDepth=5;
@@ -712,7 +769,22 @@ function plan(raw,options={}){
    searchLimit=Math.min(searchLimit,base.metrics.nodes+reserved+6000);searchDeadline=Number.isFinite(searchDeadline)?Math.min(searchDeadline,now()+200):Infinity;
    base.metrics.tieExtension={attempted:1,selected:false,nodes:0,complete:false};
   }
+  // A known opening-Z obligation can leave its reviewed Center partner just
+  // one lock beyond the nominal horizon (for example around a scoring clear).
+  // Compare every retained competitor at that same extra lock, without new
+  // beam slots, hidden supply or a larger request allowance. The indicated
+  // partner is only a reason to search; the next layer must replay its pose.
+  if(allocationRequired&&!options.disableOpeningAllocationCompletion&&!saved&&!closure&&!tieExtension&&!stopped&&depth===3&&d===2&&base.metrics.completeDepth===3&&best?.path.length===3&&chosen.some(n=>n.allocationRank?.[0]===1&&n.path.some(p=>p.event.type==='Z'&&p.event.cells.every(([x])=>x>=4&&x<7))&&S.geometry(n.state.board).center.completions.some(c=>c.resultStatus==='level'&&c.patternSupport==='reference-supported'&&[n.state.active?.type,n.state.hold].includes(c.piece)))){
+   allocationExtension={nominal:best,clearCount:clearCandidates.length,repairCount:repairCandidates.length,startNodes:base.metrics.nodes};searchDepth=4;
+   base.metrics.allocationCompletion={attempted:1,nominalDepth:depth,comparisonDepth:4,beamWidth:chosen.length,complete:false,selected:false,nodes:0};
+  }
   beam=chosen;if(stopped)break;
+ }
+ if(allocationExtension){
+  const complete=!stopped&&base.metrics.completeDepth===4&&best?.path.length===4&&now()<searchDeadline&&base.metrics.nodes+reserved<=searchLimit&&best.accessProof?.reachable===true;
+  Object.assign(base.metrics.allocationCompletion,{nodes:base.metrics.nodes-allocationExtension.startNodes,complete,selected:complete});
+  allocationExtension.candidate=complete?best:null;
+  if(!complete){best=allocationExtension.nominal;clearCandidates.length=allocationExtension.clearCount;repairCandidates.length=allocationExtension.repairCount;}
  }
  if(tieExtension){
   const complete=!stopped&&base.metrics.completeDepth===4&&best?.path.length===4&&now()<searchDeadline&&base.metrics.nodes+reserved<=searchLimit&&best.accessProof?.reachable===true;
@@ -762,17 +834,20 @@ function plan(raw,options={}){
   }
  }
  if(base.metrics.visibleClosure)base.metrics.visibleClosure.selected=Boolean(best?.closureProof&&best!==verified&&!retained);
+ if(base.metrics.allocationCompletion)base.metrics.allocationCompletion.selected=Boolean(allocationExtension.candidate&&best===allocationExtension.candidate);
  if(usage&&base.metrics.visibleClosure)usage.families.visibleClosure={...base.metrics.visibleClosure,selected:Number(base.metrics.visibleClosure.selected)};
  if(usage){usage.families.ordinary.budgetSkipped=usage.families.ordinary.enumerated-usage.families.ordinary.examined;Object.assign(usage.families.foundationStage,stageMetrics,{selectedPath:Number(Boolean(best?.path.some(p=>p.foundationStage))),retainedGoal:Number(retained&&saved?.goal.endpoint==='finite-foundation')});}
  base.metrics.elapsedMs=now()-started;base.metrics.repairRetained=retained;base.metrics.searchLimitReached=stopped;
  if(!best)return{...base,status:stopped?'budget-exhausted':base.status};
+ base.metrics.openingAllocation.selectedRank=best.allocationRank||[0,0];
  if(usage){const path=retained?'retained-repair':best===verified?'verified-handoff':best.closureProof?'visible-closure':saved&&repairCandidates.includes(best)?'repair-replacement':'ordinary';usage.families.retainedRepair.selected=Number(retained);usage.families.handoff.selected=Number(best===verified);usage.families.ordinary.selected=Number(!retained&&best!==verified);usage.selected={path,locks:best.path.length,rank:best.rank.slice(),scoreComponents:rankComponents(best.f,best.path)};}
  const freshRepair=best.closureProof||repairCertificate(state,best.path,saved&&!retained?saved.goal:null,initialFacts.notches);
  const repair=retained?saved.proof:freshRepair&&saved?{...freshRepair,basis:clone(saved.proof)}:freshRepair;
  const first=best.path[0],end=facts(best.state.board,best.notches),hold=first.holdCount===2?'Hold twice. ':first.holdCount?'Hold once. ':'';
  const region=first.event.cells.every(([x])=>x<4)?'Left':first.event.cells.every(([x])=>x>=4&&x<7)?'Center':first.event.cells.every(([x])=>x>=7)?'Right':'foundation';
  const pending=[];if(end.parity)pending.push(`Left mino balance is ${end.parity>0?'+':''}${end.parity}; its repair is not yet proved`);if(end.centerStatus!=='level')pending.push('the Center top pattern is still under construction');if(end.centerFoundationStatus==='unfinished-lower-foundation')pending.push('the lower Center still has unfilled cells outside the intended notches');else if(end.centerFoundationStatus==='unknown-phase')pending.push('the lower Center foundation is not yet phase-verified');
- const reason=hold+(retained?'Continue the checked construction repair. ':'')+(first.event.lines?`Take the checked ${first.event.lines===4?'Tetris':'T-spin double'} while building the opening.`:`Place ${first.event.type} in the ${region} to build the ST opening.`)+` Checked ${best.path.length} legal placement${best.path.length===1?'':'s'} using only visible pieces. `+(pending.length?pending.join('; ').replace(/^./,c=>c.toUpperCase())+'. ':'This prefix has balanced Left minos and a level Center. ')+ (best.handoffContinuation?'This prefix reaches a checked maintenance continuation; the handoff will be rechecked after the actual clear. ':'')+'This is partial construction, not a completed opening or proof of future piece availability.';
+ const allocationReason=allocationRequired&&best.allocationRank?.[0]===1?'This checked prefix pays the still-required opening Z outside the Right; scoring may come before or after it. ':'';
+ const reason=hold+(retained?'Continue the checked construction repair. ':'')+allocationReason+(first.event.lines?`Take the checked ${first.event.lines===4?'Tetris':'T-spin double'} while building the opening.`:`Place ${first.event.type} in the ${region} to build the ST opening.`)+` Checked ${best.path.length} legal placement${best.path.length===1?'':'s'} using only visible pieces. `+(pending.length?pending.join('; ').replace(/^./,c=>c.toUpperCase())+'. ':'This prefix has balanced Left minos and a level Center. ')+ (best.handoffContinuation?'This prefix reaches a checked maintenance continuation; the handoff will be rechecked after the actual clear. ':'')+'This is partial construction, not a completed opening or proof of future piece availability.';
  if(best.path.some(p=>p.foundationStage))base.metrics.foundationStageSelected=true;
  const sources=[{id:'SHOCKY-OPENING',label:"Shocky's ST Stacking Guide",url:'https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit',section:'Chapters 1–4: regions, construction and mino parity',scope:'Community background for opening construction. The coach checks this finite prefix; the guide does not certify this exact move or future availability.'}];
  return{...base,status:'recommended-with-verified-prefix',target:first.target,hold:first.hold,holdCount:first.holdCount,witness:first.witness,continuation:best.path,reason,sources,assessment:P.assess(best.state.board),evidence:{opening:{status:'partial-construction',initial:initialFacts,endpoint:end,unresolved:pending,repair,handoffCandidate:best.handoffContinuation?{status:'verified-public-post-clear-continuation',continuation:best.handoffContinuation}:null},knownPieceHorizon:state.queue.length+1}};

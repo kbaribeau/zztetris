@@ -2,6 +2,8 @@
 
 The lab offers separate bounded opening and maintenance coaching for a **right-hand ST stack**, without guaranteeing indefinite survival. The screen offers exactly two play modes: **Empty board** (partial construction using visible pieces) and **Stable ST stack** (the existing Independent rebuild position, the default). The other development fixtures remain internal regression inputs, not selectable starts.
 
+Replay-verified [opening allocation and delayed quality](docs/st-opening-allocation.md) keep a known missing opening Z and early Center/S/L obligations distinct from optional stack growth. Imported geometry alone does not invent this history or an Extra-Z allowance.
+
 The last selected play mode is saved locally as `stLabMode`; unknown or retired values fall back to Stable ST stack. **Restart current board** restores the current starting board, including an imported snapshot. Snapshot import/export remains a diagnostic tool, not a third preset, and an import does not overwrite the saved mode. Choosing a mode replaces the imported origin. The rules, unlimited hold swaps, and coaching engine are unchanged.
 
 ## Play
