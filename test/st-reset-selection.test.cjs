@@ -55,7 +55,7 @@ test('source134 near-catch-up geometry alone is not an automatic Reset or a fres
  const gate=P.resetSelection(s);assert.equal(gate.status,'ordinary-preferred');assert.equal(gate.resourceRenewal,false,'Near-catch-up geometry does not certify a full recovery or reset allowance');
 });
 test('Reset policy preserves one-lock Center rebuild precedence without inventing a proof on timeout',()=>{
- const f=require('./support/st-level-base-reentry.json');
+ const f=require('./support/st-level-base-reentry-positive.cjs');
  const timely={...f.observation,queue:['L','Z','J','O','I','J']};
  const good=P.plan(timely,{maxNodes:45000,deadline:Infinity});assert.ok(good.target);assert.equal(good.evidence.resetSelection.status,'ordinary-rebuild-preferred');assert.equal(good.continuation.length,1);
  const timed=P.plan(f.observation,{timeMs:0});assert.equal(timed.target,null);assert.equal(timed.evidence.resetSelection.status,'uncertified');assert.match(timed.evidence.resetSelection.reason,/not certified/);

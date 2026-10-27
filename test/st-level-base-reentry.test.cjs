@@ -2,9 +2,9 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const R=require('../st-rules'),P=require('../st-planner'),S=require('../st-structure'),A=require('../st-access');
 const original=require('./support/st-level-base-reentry.json');
-// Positive control differs only in partner timing: L is immediately available
-// after S, rather than behind I/Z/J/O while T occupies HOLD.
-const f={...original,observation:{...original.observation,queue:['L',...original.observation.queue.slice(1)]}};
+// Keep the established Left damage, but remove the boundary void that the
+// promised L would newly seal. The original board remains a negative control.
+const f=require('./support/st-level-base-reentry-positive.cjs');
 const clone=x=>JSON.parse(JSON.stringify(x));
 const config={deadline:Infinity,maxNodes:45000,patternHistory:f.patternHistory};
 const saved=()=>({observation:clone(f.observation),advice:{target:f.event.target,witness:f.witness,continuation:[clone(f.savedStep)],evidence:clone(f.savedEvidence)}});
@@ -15,12 +15,22 @@ test('original delayed partner with held T is not a certified Center preparation
  assert.equal(a.target,null);assert.equal(a.metrics.levelBaseReentry.selected,false);
 });
 
+test('immediate Center partner is not a proof when it newly seals the Left boundary',()=>{
+ const s={...original.observation,queue:['L',...original.observation.queue.slice(1)]};
+ const stage=R.replay(s,original.witness);assert.equal(stage.valid,true);
+ const c=S.geometry(stage.state.board).center.completions.find(c=>c.piece==='L');assert.ok(c);
+ const end=R.replay(stage.state,c.witness);assert.equal(end.valid,true);
+ assert.deepEqual(P.cavityRepairDebt(P.assess(stage.state.board),P.assess(end.state.board),end.events[0]),[[3,36]]);
+ const a=P.plan(s,{deadline:Infinity,maxNodes:45000});assert.equal(a.target,null);
+});
+
 test('immediate-partner control has an independently replayed actual Center completion',()=>{
  const a=P.plan(f.observation,config),r=checked(a),before=S.geometry(r.state.board);
  const completion=before.center.completions.find(c=>c.piece==='L');assert.ok(completion);
  const done=R.replay(r.state,completion.witness);assert.ok(done.valid);assert.equal(done.events.length,1);
  assert.deepEqual(done.events[0].cells.slice().sort(),completion.cells.slice().sort());
  assert.ok(S.geometry(done.state.board).center.patternSupport==='reference-supported');
+ assert.deepEqual(P.cavityRepairDebt(P.assess(r.state.board),P.assess(done.state.board),done.events[0]),[]);
  assert.equal(A.prefix(r.state,[{state:done.state,event:done.events[0],witness:completion.witness}],{deadline:Infinity,maxNodes:45000}).reachable,true);
 });
 

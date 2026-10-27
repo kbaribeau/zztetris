@@ -17,6 +17,39 @@ const COMPLETION_POSES=Object.freeze(Object.fromEntries([...'IJLOSTZ'].map(piece
 const CENTER_MOTIFS=new Set(['###/###/##.','.##/##./###','#../###/##.','..#/.##/.#.','.#./.##/###','.##/.##/.#.','##./##./###','###/##./###','.##/###/###','#../#../##.','.#./.#./.##','.#./##./###','.#./###/###','.#./.##/.##','..#/..#/###','..#/###/###']);
 function centerMotif(board){const rows=board.map(r=>r.slice(4,7).replace(/[^.]/g,'#')),top=rows.findIndex(r=>r!=='...');return top<0?'empty':rows.slice(top,top+3).join('/');}
 
+// Scratch is private and leased per call: nested assessment (including a caller's
+// board getters) cannot overwrite an active flood. Only scalar/owned-array facts
+// escape, and a thrown read still releases the lease. No board identity is cached.
+const assessmentScratch=[];
+function cavityFacts(board,columnHeights=heights(board)){
+ const scratch=assessmentScratch.pop()||{air:new Uint8Array(400),todo:new Uint16Array(400)};
+ const {air,todo}=scratch;air.fill(0);let tail=0;
+ try{
+  for(let x=0;x<10;x++)if(board[0][x]==='.') {air[x]=1;todo[tail++]=x;}
+  for(let i=0;i<tail;i++){const key=todo[i],x=key%10,y=Math.floor(key/10);
+   if(x<9&&!air[key+1]&&board[y][x+1]==='.') {air[key+1]=1;todo[tail++]=key+1;}
+   if(x>0&&!air[key-1]&&board[y][x-1]==='.') {air[key-1]=1;todo[tail++]=key-1;}
+   if(y<39&&!air[key+10]&&board[y+1][x]==='.') {air[key+10]=1;todo[tail++]=key+10;}
+   if(y>0&&!air[key-10]&&board[y-1][x]==='.') {air[key-10]=1;todo[tail++]=key-10;}
+  }
+  const sealedCells=[];let sealed=0,covered=0,leftSealed=0;
+  for(let x=0;x<10;x++)for(let y=40-columnHeights[x];y<40;y++)if(board[y][x]==='.'){
+   covered++;if(!air[y*10+x]){sealed++;sealedCells.push([x,y]);if(x<7)leftSealed++;}
+  }
+  return{sealedCells,sealed,covered,leftSealed};
+ }finally{if(assessmentScratch.length<4)assessmentScratch.push(scratch);}
+}
+// Only newly sealed internal construction cells create repair debt. Existing
+// imported damage is not silently reclassified, and intentional right-region
+// reservoirs are governed by their separate cap/T-double proofs.
+function cavityRepairDebt(before,after,event,debt=[]){
+ const cleared=event.clearedRows||[];
+ const translate=cells=>cells.filter(([,y])=>!cleared.includes(y)).map(([x,y])=>[x,y+cleared.filter(r=>r>y).length]);
+ const key=([x,y])=>x+','+y;
+ const old=new Set(translate(before.sealedCells.filter(([x])=>x<7)).map(key));
+ const current=after.sealedCells.filter(([x])=>x<7),sealed=new Set(current.map(key));
+ return [...new Map([...translate(debt),...current.filter(c=>!old.has(key(c)))].filter(c=>sealed.has(key(c))).map(c=>[key(c),c])).values()];
+}
 function covered(board,cols,h=heights(board)){let n=0;for(const x of cols)for(let y=40-h[x];y<40;y++)if(board[y][x]==='.')n++;return n;}
 // Count genuinely sealed voids separately from covered but side-accessible
 // scoring cavities. Air reachability is necessary, not sufficient, piece access.
@@ -312,5 +345,5 @@ function transition(before,p,afterStructure,options={}){const beforeNotches=opti
  const reason=allocation==='horizontal-left-I'?'Keep the left region flat.':allocation==='center-partner-preparation'?partner?'Start the ordered '+type+'/'+partner.piece+' center pair.':'Prepare the center; no ordered level-finishing pair has been established.':allocation==='center-completion'?'Complete the center pattern.':allocation==='scoring-double'?'Take the T-spin double and assess its rebuild.':allocation==='scoring-T-diversion'?'Diverts a T from the scoring role; another T may remain, but its timely use is not established.':allocation==='quad-preparation'?'Prepare the right-side I cleanup while keeping column eight open.':allocation==='quad-cleanup'?'Clear the scoring channel with a quad.':allocation==='unrecognized-role'?'This allocation needs additional regional repair evidence.':allocation==='right-cap-extension'?'Extends an existing cap; renewed entry still needs checking.':'Preserve a supported regional piece role.';
  return{reason,cycleViolations,pairFamily,pairProgress,pairEvidence:pairFamily?'ordered actual preparation plus checked level-finishing placement':null,opportunityCost,leftSubstitutes:substitutes,regions,crossRegion:regions.length>1,allocation,status:['unrecognized-role','scoring-T-diversion','right-cap-extension'].includes(allocation)?'requires-repair-evidence':'supported-local-role',dependencyDebt:debt,newlyCovered,regionalRepair,repairCredit:Math.min(8,repaired*2),note:'Crossing a boundary is not forbidden. Debt measures unsupported allocation and new structural repair burden; a later checked repair may repay it.'};
 }
-return Object.freeze({assess,transition,geometry,instances,allocate,canonicalClear,centerFoundation,centerLevelBase,notchPattern,advanceNotches,CENTER_PAIRS,leftSubstitutes,clearCache:()=>{cache.clear();substituteCache.clear();}});
+return Object.freeze({assess,transition,geometry,cavityFacts,cavityRepairDebt,instances,allocate,canonicalClear,centerFoundation,centerLevelBase,notchPattern,advanceNotches,CENTER_PAIRS,leftSubstitutes,clearCache:()=>{cache.clear();substituteCache.clear();}});
 });

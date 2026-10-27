@@ -136,11 +136,15 @@ function repairCore(raw,resource,{maxNodes=4000,deadline=Infinity,now=()=>Date.n
   const next=[];
   for(const n of layer){
    if(now()>=deadline||visited>=maxNodes)return{valid:null,visited,status:'resource-repair-budget'};
+   const beforeCavities=S.cavityFacts(n.state.board);
    const inspect=p=>{
     if(!S.canonicalClear(p.event)||p.event.topOut)return null;
     const phase=S.advanceNotches(n.state.board,p,n.notches);if(!phase.valid)return null;
     if(S.transition(n.state,p,undefined,{notches:n.notches}).cycleViolations.length)return null;
     const r=step(n.state,p,n.resource);if(r.violations.length||leftCovered(p.state.board)>rootCovered)return null;
+    // This witness must remain admissible when each future lock becomes the
+    // next real move. Covered-cell counts cannot detect newly sealed pockets.
+    if(S.cavityRepairDebt(beforeCavities,S.cavityFacts(p.state.board),p.event).length)return null;
     const path=[...n.path,p];
     if(done(r)){
      const access=A.prefix(raw,path,{notches,deadline,now,maxNodes:Math.max(0,maxNodes-visited)});visited+=access.visited;

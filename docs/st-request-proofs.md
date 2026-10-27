@@ -40,3 +40,14 @@ firstCertified node count and (when usageTelemetry is enabled) elapsed time. A
 selected fallback is identified explicitly and reports incomplete search. Proof
 reuse can reduce nodes without reducing wall time because keying, serialization
 and cloning cost time. Benchmark both, at the unchanged 1500 ms / 45000-node limits.
+
+### Repair witnesses and ordinary cavity admission
+
+A visible resource-repair witness must remain usable when each of its future
+locks becomes the next actual move. Resource repair therefore applies the same
+translated, exact-cell newly sealed construction-cavity predicate as ordinary
+admission, at every proposed repair step. A covered-cell count alone is not a
+substitute: a placement can reduce that count while sealing a previously
+side-accessible cell. Existing cavities and intentional Right reservoirs retain
+their existing treatment. The shared geometry predicate does not replace
+identity, phase, access, scoring, or other resource checks.

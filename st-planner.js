@@ -181,34 +181,12 @@ function cavityAssessment(board){
  const sealedCells=[];for(let x=0;x<10;x++)for(let y=0;y<40;y++)if(board[y][x]==='.'&&!air[y*10+x])sealedCells.push([x,y]);
  return{sealedCells};
 }
-// Scratch is private and leased per call: nested assessment (including a caller's
-// board getters) cannot overwrite an active flood. Only scalar/owned-array facts
-// escape, and a thrown read still releases the lease. No board identity is cached.
-const assessmentScratch=[];
-function fullCavityFacts(board,heights){
- const scratch=assessmentScratch.pop()||{air:new Uint8Array(400),todo:new Uint16Array(400)};
- const {air,todo}=scratch;air.fill(0);let tail=0;
- try{
-  for(let x=0;x<10;x++)if(board[0][x]==='.') {air[x]=1;todo[tail++]=x;}
-  for(let i=0;i<tail;i++){const key=todo[i],x=key%10,y=Math.floor(key/10);
-   if(x<9&&!air[key+1]&&board[y][x+1]==='.') {air[key+1]=1;todo[tail++]=key+1;}
-   if(x>0&&!air[key-1]&&board[y][x-1]==='.') {air[key-1]=1;todo[tail++]=key-1;}
-   if(y<39&&!air[key+10]&&board[y+1][x]==='.') {air[key+10]=1;todo[tail++]=key+10;}
-   if(y>0&&!air[key-10]&&board[y-1][x]==='.') {air[key-10]=1;todo[tail++]=key-10;}
-  }
-  const sealedCells=[];let sealed=0,covered=0,leftSealed=0;
-  for(let x=0;x<10;x++)for(let y=40-heights[x];y<40;y++)if(board[y][x]==='.'){
-   covered++;if(!air[y*10+x]){sealed++;sealedCells.push([x,y]);if(x<7)leftSealed++;}
-  }
-  return{sealedCells,sealed,covered,leftSealed};
- }finally{if(assessmentScratch.length<4)assessmentScratch.push(scratch);}
-}
 function assess(board,{cavitiesOnly=false}={}){
  if(cavitiesOnly)return cavityAssessment(board);
  const heights=Array.from({length:10},(_,x)=>{const y=board.findIndex(r=>r[x]!=='.');return y<0?0:40-y;});
  // Air flood identifies sealed cavities, not every roofed cell. A T-slot under
  // an overhang can be accessible from the side and is not automatically bad.
- const {sealedCells,sealed,covered,leftSealed}=fullCavityFacts(board,heights);
+ const {sealedCells,sealed,covered,leftSealed}=S.cavityFacts(board,heights);
  const slots=[];for(let y=Math.max(17,40-Math.max(...heights)-4);y<39;y++)for(let x=5;x<9;x++)for(let rotation=0;rotation<4;rotation++){
   const a={type:'T',x,y,rotation,lastRotation:{from:(rotation+3)%4,to:rotation,kickIndex:0}};
   if(!R.fits(board,a)||R.fits(board,{...a,y:y+1})||R.spin(board,a)==='none')continue;
@@ -248,17 +226,7 @@ function createAssessmentReader(read=assess){const cache=new Map();
   return copy(base);
  };
 }
-// Only newly sealed internal construction cells create repair debt. Existing
-// imported damage is not silently reclassified, and intentional right-region
-// reservoirs are governed by their separate cap/T-double proofs.
-function cavityRepairDebt(before,after,event,debt=[]){
- const cleared=event.clearedRows||[];
- const translate=cells=>cells.filter(([,y])=>!cleared.includes(y)).map(([x,y])=>[x,y+cleared.filter(r=>r>y).length]);
- const key=([x,y])=>x+','+y;
- const old=new Set(translate(before.sealedCells.filter(([x])=>x<7)).map(key));
- const current=after.sealedCells.filter(([x])=>x<7),sealed=new Set(current.map(key));
- return [...new Map([...translate(debt),...current.filter(c=>!old.has(key(c)))].filter(c=>sealed.has(key(c))).map(c=>[key(c),c])).values()];
-}
+const cavityRepairDebt=S.cavityRepairDebt;
 const centerCellsKey=cells=>JSON.stringify(cells.slice().sort(([ax,ay],[bx,by])=>ax-bx||ay-by));
 function centerReservationStep(before,p,inherited=[],notches){
  // Reserve only known finishing placements, not every hypothetical preparatory
