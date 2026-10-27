@@ -65,9 +65,10 @@ Every tested planner start now scores at least one TSD by lock 12; three of five
 
 The development demo now begins O nonclear, I nonclear, T full double, J nonclear rebuild. The held-out higher-cap demo begins Z nonclear, I single, T full double, L nonclear rebuild. Both complete the strict cycle in four locks and a second TSD by lock 8.
 
-## Production deadline
+## Historical production deadline
 
-With the shipped 750 ms deadline, the demo completed 12 locks, 2 TSDs and the ordered cycle. Requests measured 469–608 ms; deadline exhaustion occurred on 0/12 requests. Deadline checks bound search work, not all finalization/transport overhead; earlier completed prefixes may be returned. Deadline exhaustion is not a proof of impossibility.
+See the [planning allowance](st-temporary-planning-budget.md) for the current budget.
+With the then-shipped 750 ms deadline, the demo completed 12 locks, 2 TSDs and the ordered cycle. Requests measured 469–608 ms; deadline exhaustion occurred on 0/12 requests. Deadline checks bound search work, not all finalization/transport overhead; earlier completed prefixes may be returned. Deadline exhaustion is not a proof of impossibility.
 
 ## Diagnostic ablations
 

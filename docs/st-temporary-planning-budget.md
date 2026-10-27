@@ -2,6 +2,11 @@
 
 On 2026-10-24 the user explicitly authorized temporarily relaxing the planning deadline while opening development continues. The page and simulation production configuration now use **1500 ms**, with the existing **45,000-node cap**, depth 3/width 8 maintenance settings and **2.5-second worker watchdog** unchanged. These are soft planning/operational limits, not guaranteed end-to-end latency. The original **750 ms goal remains the restoration target**, not a deleted requirement.
 
+The shared runtime allowance is `STCoachConfig.SEARCH_TIME_MS` in
+`st-coach-config.js`; the worker, simulations and timed regressions use that
+constant. The [test-suite watchdog](../TESTING.md#results-and-failures) is separate,
+and constrained research probes and internal sub-searches retain their own limits.
+
 ## Evidence and limits
 
 The [predeclared twelve-call comparison](st-planning-budget-comparison-2026-10-24.json) used three exact public roots on frozen 266282c, fresh actual workers, ABBA 750/1500/1500/750 order and the same node cap. The O6 opening closure completed identically under either allowance. Maintenance24 produced one budget abstention and one verified prefix at 750 ms, versus two valid caps with two completed layers at 1500 ms. Maintenance41 chose the same S but completed an additional layer with the larger allowance. Observed 1500 ms decisions could finish just beyond their soft deadline. More search completion is not a demonstrated long-run strategic improvement.

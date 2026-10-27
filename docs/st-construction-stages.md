@@ -53,9 +53,9 @@ re-certify the original construction, and improve occupied material or maximum
 height without worsening the other. This is a conservative dominance rule, not
 a universal ranking of unlike Reset and scoring horizons.
 
-The worker's existing 750 ms response budget remains. Discovery reserves time for
-validation and shares a fixed node bound; recursive comparison uses the same
-absolute deadline. No unlimited search or hidden future is introduced.
+Discovery shares the [current planning allowance](st-temporary-planning-budget.md),
+reserves time for validation and shares a fixed node bound; recursive comparison
+uses the same absolute deadline. No unlimited search or hidden future is introduced.
 
 ## Remaining limits
 

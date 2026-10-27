@@ -19,14 +19,15 @@ The JSON records the raw file's SHA-256, including its final newline.
 Use this as an inspectable reference for recurring stack shapes, filler
 allocation, clear sequences and possible future regression examples. Compare
 specific positions with the source before turning them into independently
-reviewed fixtures or general advice. The current lab recognizes a narrower,
-right-sided set of immediate mechanisms; this replay includes other geometry
-and a triple. Mirroring a picture or reproducing a board does not establish
-reachable input paths, strategic usefulness or a correct advice rule.
+reviewed fixtures or general advice. See the [current lab scope](../../ST-LAB.md)
+for supported coaching; this replay also includes left-side geometry and a triple.
+Mirroring a picture or reproducing a board does not establish reachable input
+paths, strategic usefulness or a correct advice rule.
 
-This data is not loaded by the runtime, a scripted lesson, an authored gameplay
-start, or a normative `STCore.advise()` oracle. It does not supply the lab's
-piece-instance IDs, hold state or ordered preview contract.
+The raw reference files are not loaded by the runtime or used as a move oracle.
+Derived playable fixtures and their synthetic input/hold/preview context are
+documented in the [corpus provenance](../../docs/st-fixture-corpus.md). The
+references themselves do not establish that context.
 
 ## Reconstruction and validation
 
