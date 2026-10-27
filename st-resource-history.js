@@ -193,7 +193,10 @@ function hanging(h){
   // A consumed L is unavailable to its own S even when it crosses the
   // Left/Center boundary. Region classification is not piece accounting.
   const diverted=l.allocation.cells.every(([x])=>x<7)&&!(l.pair?.family==='SL'&&l.pair.rootId===s?.id);
-  if(diverted&&s?.allocation&&!h.center.pending.some(p=>p.family==='SL'&&p.rootId===s.id)){unclassified.push({bag,sId:s.id,lId:l.id,...(s.allocation.requiresAccommodation?{requiresAccommodation:true}:{}),reason:'The previously surplus S was placed in an unreviewed allocation; whether it was accommodated is unknown.'});continue;}
+  // A positively recognized first-bag source foundation retains its existing
+  // opening allocation policy; it is not a maintenance disposal certificate.
+  const reviewedFoundation=bag===0&&h.milestones.sourcePattern?.at===7&&s?.allocation?.at<=7;
+  if(diverted&&s?.allocation&&!h.center.pending.some(p=>p.family==='SL'&&p.rootId===s.id)){unclassified.push({bag,sId:s.id,lId:l.id,...(s.allocation.requiresAccommodation&&!reviewedFoundation?{requiresAccommodation:true}:{}),reason:'The previously surplus S was placed in an unreviewed allocation; whether it was accommodated is unknown.'});continue;}
   if(diverted)evidence.push({bag,sId:s?.id??null,lId:l.id,at:l.allocation.at,...(!s?{deferred:true}:{}),reason:l.pair?.family==='SL'?'The L completed a different observed S.':'The L was allocated outside its observed S/L pair.'});
   else if(l.allocation.region!=='center'||l.pair?.family!=='SL')unclassified.push({bag,lId:l.id,reason:'The L allocation has no reviewed S/L role.'});
  }

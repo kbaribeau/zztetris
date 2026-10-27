@@ -106,3 +106,11 @@ test('unclassified S: replay does not promote a pre-existing unclassified alloca
  assert.equal(M.repair(state,resource).valid,true,'No known-to-unreviewed transition occurred; do not invent confirmed historical debt');
  const imported=H.importContext(state,clone(H.exportContext(state,history)));assert.deepEqual(M.start(state,H.resolve(state,imported)).unclassifiedS,resource.unclassifiedS);
 });
+
+test('unclassified S: verified first-bag source foundation keeps existing opening allocation policy',()=>{
+ const Sim=require('../scripts/lib/st-simulation.cjs'),session=Sim.createSession(Sim.makeInput('empty',2026103510,24));
+ for(let lock=1;lock<=7;lock++){const q=session.request(lock,Sim.CONFIG);session.execute(P.decide(q.observation,q.options));}
+ const q=session.request(8,Sim.CONFIG),summary=H.resolve(q.observation,H.importContext(q.observation,q.options.resourceContext));
+ assert.equal(summary.milestones.sourcePattern.at,7);assert.equal(summary.milestones.sourcePattern.id,'buri-02');
+ assert.ok(summary.hangingS.unclassified.some(x=>x.sId===5));assert.ok(summary.hangingS.unclassified.every(x=>!x.requiresAccommodation));
+});

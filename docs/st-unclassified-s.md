@@ -41,3 +41,10 @@ confirmed debt. It is a guard against creating acceptable uncertainty from a
 replay-proven known obligation, both within a projected prefix and across actual
 locks. A historical unclassified allocation without that proven transition does
 not acquire the flag.
+
+A positively recognized source foundation at the end of the first seven locks
+retains the existing opening allocation policy for its first-bag S. Its generic
+unclassified record is preserved without upgrading that foundation allocation
+into maintenance disposal debt. This exception requires the actual replayed
+first-bag source pattern; a later pattern resemblance or arbitrary import does
+not qualify. Independently invalidated Center-target evidence remains checked.
