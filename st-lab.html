@@ -98,12 +98,16 @@
       </div>
       <p id="st-game-status" role="status" aria-live="polite"></p>
     </section>
-    <details class="lab-options"><summary>Position and session import / export</summary>
+    <details id="st-import-options" class="lab-options"><summary>Position and session import / export<span id="st-import-error-indicator" hidden> · Import rejected</span></summary>
       <p>JSON snapshots contain the current board, pose, hold, visible queue and optional observed bag evidence. They do not export hidden future pieces. Coaching sessions additionally preserve versioned, validated resource and construction evidence. They exclude Undo history and diagnostic counters. Imported snapshots and sessions have a finite queue; no future order is invented when it ends.</p>
       <p id="st-legacy-rules-note">Legacy st-zero-v1 uses one hold per lock for historical replay. Importing a v1 snapshot into this lab migrates it to unlimited-hold st-zero-v2.</p>
       <label for="st-snapshot">Snapshot JSON</label><textarea id="st-snapshot" rows="8" spellcheck="false"></textarea>
+      <div id="st-import-result">
+        <h2 id="st-import-error-title" hidden><span class="lab-error-symbol" aria-hidden="true">!</span> Import rejected</h2>
+        <p id="st-import-status" role="status" aria-live="polite" aria-atomic="true"></p>
+        <p id="st-import-error-note" class="lab-note" hidden>Your input and current game are unchanged.</p>
+      </div>
       <button id="st-import" type="button">Import position or session</button><button id="st-export" type="button">Export visible snapshot</button><button id="st-export-session" type="button">Export coaching session</button>
-      <p id="st-import-status" role="status"></p>
       <p id="st-ordinary-practice-note">For legacy board drawing, Fumen tools, redo, gravity and other kicksets, use <a href="index.html">ordinary practice</a>. Those modes are unchanged.</p>
     </details>
   </main>
