@@ -429,7 +429,7 @@ function continueCommitment(before,after,advice,actualEvent=after?.lastEvent,opt
   const now=options.now||(()=>Date.now()),deadline=options.deadline??now()+150,maxNodes=options.maxNodes??12000,suffix=continueConstruction(before,after,advice,actualEvent,{...options,now,deadline,maxNodes});if(!suffix)return null;
   const resources=checkedResourceEndpoint(after,suffix.continuation,{...options,now,deadline,maxNodes:Math.max(0,maxNodes-suffix.metrics.nodes)});suffix.metrics.nodes+=resources.visited||0;if(!resources.valid)return null;
   const access=A.prefix(observe(after),suffix.continuation,{notches:H.resolve(after,options.patternHistory),deadline,now,maxNodes:Math.max(0,maxNodes-suffix.metrics.nodes)});suffix.metrics.nodes+=access.visited;if(access.reachable!==true)return null;
-  return{...suffix,evidence:{...suffix.evidence,resourceObligations:{status:'checked',binding:resources.resource.originKey}}};
+  return{...suffix,metrics:{...suffix.metrics,certifiedHorizon:suffix.continuation.length},evidence:{...suffix.evidence,resourceObligations:{status:'checked',binding:resources.resource.originKey}}};
  }
  if(!advice?.continuation?.length||advice.continuation.length<2)return null;
  let origin,s;try{origin=observe(before);s=observe(after);}catch{return null;}if(R.validate(origin).length||R.validate(s).length)return null;
@@ -446,7 +446,7 @@ function continueCommitment(before,after,advice,actualEvent=after?.lastEvent,opt
  }
  const bounds={...options,maxNodes:options.maxNodes??12000,deadline:options.deadline??Date.now()+150},resources=checkedResourceEndpoint(s,continuation,bounds);if(!resources.valid)return null;
  if(debt.length||centerDebt.length||!prior.regionalSupport||!resourceGoal(continuation))return null;
- const head=continuation[0],access=A.prefix(s,continuation,{...bounds,notches:H.resolve(s,options.patternHistory),maxNodes:Math.max(0,bounds.maxNodes-resources.visited)});if(access.reachable!==true)return null;return {...advice,target:head.target,witness:head.witness,hold:head.witness.includes('HOLD'),holdCount:holdCount(head),continuation,context:context(s),revision:s.revision,metrics:{...advice.metrics,revalidationNodes:resources.visited+access.visited},
+ const head=continuation[0],access=A.prefix(s,continuation,{...bounds,notches:H.resolve(s,options.patternHistory),maxNodes:Math.max(0,bounds.maxNodes-resources.visited)});if(access.reachable!==true)return null;return {...advice,target:head.target,witness:head.witness,hold:head.witness.includes('HOLD'),holdCount:holdCount(head),continuation,context:context(s),revision:s.revision,metrics:{...advice.metrics,certifiedHorizon:continuation.length,revalidationNodes:resources.visited+access.visited},
   ...advicePresentation(continuation,prior),evidence:{...advice.evidence,cycleResources:cycleResources(continuation),commitmentRetained:true,resourceObligations:{status:'checked',binding:resourceBinding(s,options)}}};
 }
 function context(s){return JSON.stringify([s.rules,s.board,s.hold,s.canHold,s.queue,s.bag??null,s.active?.type]);}
@@ -903,18 +903,38 @@ function planCore(raw,options={}){
  let frontier=qualify(root.placements.filter(p=>S.canonicalClear(p.event)&&!spendsReservedT(p)).map((p,i)=>nodeFor(p,null,initial,i,readAssessment)).filter(n=>n.notchValid&&n.cycleDebt===0));
  if(preparation){preparation=qualify([preparation])[0]??preparation;base.metrics.preparationProofLocks=preparation.path.length;}
 
- const accessSafe=n=>{const proof=A.prefix(s,n.path,{notches:initial.notches,deadline,now,maxNodes:Math.max(0,limit-base.metrics.nodes)});base.metrics.nodes+=proof.visited;base.metrics.gapAccessNodes=(base.metrics.gapAccessNodes||0)+proof.visited;n.path[0].gapAccess=proof;return proof.reachable===true;};
+ let screeningLimit=limit;
+ const screeningAllowance=limit>=20000&&!options.disableOpening&&!options.disableConstruction?Math.min(6000,Math.floor(limit/5)):Infinity;
+ const screening=base.metrics.proofScheduling={enabled:Number.isFinite(screeningAllowance),allowance:Number.isFinite(screeningAllowance)?screeningAllowance:null,calls:0,nodes:0,unfinished:0,budgetStops:0};
+ const accessSafe=n=>{const proof=A.prefix(s,n.path,{notches:initial.notches,deadline,now,maxNodes:Math.max(0,Math.min(limit,screeningLimit)-base.metrics.nodes)});base.metrics.nodes+=proof.visited;if(proof.reachable===null)screening.unfinished++;base.metrics.gapAccessNodes=(base.metrics.gapAccessNodes||0)+proof.visited;n.path[0].gapAccess=proof;return proof.reachable===true;};
  const repairCache=new Map();
  const resourceSafe=n=>{
   if(n.resources?.centerBlocked||n.resources?.unclassifiedS?.some(s=>s.invalidated||s.requiresAccommodation))return false;
   if(n.resources?.tCollision&&n.assessment.right.entry?.status!=='reachable-if-T-available')return false;
   if(!n.resources?.hangingS.length&&!n.resources?.pendingCenter.length)return true;
   const key=JSON.stringify([observe(n.state),M.binding(n.resources),n.notches]);let proof=repairCache.get(key);
-  if(!proof){proof=resourceRepair(n.state,n.resources,{...options,notches:n.notches,maxNodes:Math.min(4000,Math.max(0,limit-base.metrics.nodes)),deadline,now});base.metrics.nodes+=proof.visited;if(proof.valid!==null)repairCache.set(key,proof);}
-  n.resourceRepair=proof;return proof.valid===true;
+  if(!proof){proof=resourceRepair(n.state,n.resources,{...options,notches:n.notches,maxNodes:Math.min(4000,Math.max(0,Math.min(limit,screeningLimit)-base.metrics.nodes)),deadline,now});base.metrics.nodes+=proof.visited;if(proof.valid!==null)repairCache.set(key,proof);}
+  n.resourceRepair=proof;if(proof.valid===null)screening.unfinished++;return proof.valid===true;
  };
- const cleanBest=nodes=>nodes.filter(n=>n.cycleDebt===0&&certifiedCavities(n)).sort(compareConstruction).find(n=>accessSafe(n)&&resourceSafe(n))??null;
- let best=preparation&&resourceSafe(preparation)?preparation:cleanBest(frontier);base.metrics.depth=best?best.path.length:0;base.metrics.completeDepth=root.complete&&best&&!stopped?1:0;
+ // Early endpoint screening must leave work for the next beam layer. A
+ // bounded unfinished proof stays unknown and is never cached as rejection.
+ // Ranking and all acceptance checks are unchanged; final-layer screening
+ // and final admission may use the rest of the shared request budget.
+ const cleanBest=(nodes,allowance=Infinity)=>{
+  const start=base.metrics.nodes,prior=screeningLimit;screening.calls++;
+  screeningLimit=Math.min(prior,start+allowance);
+  try{for(const n of nodes.filter(n=>n.cycleDebt===0&&certifiedCavities(n)).sort(compareConstruction)){
+   if(now()>=deadline){screening.budgetStops++;return null;}
+   const beforeUnknown=screening.unfinished;
+   if(accessSafe(n)&&resourceSafe(n))return n;
+   // Completed cached/no-work proofs remain usable at zero remaining nodes.
+   // A zero allowance cannot turn an unfinished query into negative evidence.
+   if(base.metrics.nodes>=screeningLimit&&screening.unfinished>beforeUnknown)screening.budgetStops++;
+  }return null;}finally{screening.nodes+=base.metrics.nodes-start;screeningLimit=prior;}
+ };
+ const rootScreenIncomplete=screening.unfinished+screening.budgetStops;
+ let best=preparation&&resourceSafe(preparation)?preparation:cleanBest(frontier,screeningAllowance);base.metrics.depth=best?best.path.length:0;base.metrics.completeDepth=root.complete&&best&&!stopped&&screening.unfinished+screening.budgetStops===rootScreenIncomplete?1:0;
+ base.metrics.completedBeamDepth=root.complete?1:0;
  remember(best);
  let layer=diversify(frontier,width),comparisonLayer=frontier;
  for(let depth=2;depth<=maxDepth&&!stopped&&layer.length;depth++){
@@ -923,7 +943,21 @@ function planCore(raw,options={}){
    for(const p of e.placements){if(!S.canonicalClear(p.event)||spendsReservedT(p,n))continue;const child=nodeFor(p,n,initial,n.rootIndex,readAssessment);if(!child.notchValid||child.cycleDebt)continue;const key=nodeKey(child),prior=seen.get(key);if(!prior||compare(child,prior)<0)seen.set(key,child);}
    if(stopped)break;
   }
-  next.push(...qualify([...seen.values()]));if(stopped)complete=false;if(next.length){const candidate=cleanBest(next);remember(candidate);base.metrics.depth=Math.max(base.metrics.depth,depth);if(complete&&candidate){best=preparation&&depth<preparation.path.length?preparation:candidate;base.metrics.completeDepth=depth;comparisonLayer=next;}}
+  next.push(...qualify([...seen.values()]));if(stopped)complete=false;
+  if(complete)base.metrics.completedBeamDepth=depth;
+  if(next.length){
+   const beforeIncomplete=screening.unfinished+screening.budgetStops;
+   const candidate=cleanBest(next,depth<maxDepth?screeningAllowance:Infinity);
+   const screeningComplete=screening.unfinished+screening.budgetStops===beforeIncomplete;
+   remember(candidate);base.metrics.depth=Math.max(base.metrics.depth,depth);
+   // Unknown competing endpoint proofs limit coverage, not this candidate's
+   // own positive certificate. Preserve the completed expansion-layer choice;
+   // report screening completeness separately and still require final admission.
+   if(complete&&candidate){
+    best=preparation&&depth<preparation.path.length?preparation:candidate;comparisonLayer=next;
+    if(screeningComplete)base.metrics.completeDepth=depth;
+   }
+  }
   layer=diversify(next,width);
  }
  if(cleanupCommitment&&(!best||!coversResourceGoal(best,cleanupCommitment)))best=cleanupCommitment;
@@ -990,7 +1024,7 @@ function planCore(raw,options={}){
  }
  if(best&&(!accessSafe(best)||!resourceSafe(best)))best=cleanBest([...comparisonLayer,...frontier]);
  if(!best&&earlyCapFallback&&!commitment&&!cleanupCommitment&&resourceSafe(earlyCapFallback)){best=earlyCapFallback;fallbackMetrics.selected=true;base.metrics.depth=Math.max(base.metrics.depth,1);}
- if(!best)return{...base,status:stopped?'budget-exhausted':'no-supported-continuation-found',reason:stopped?'The search limit was reached before finding a checked move. A valid continuation may still exist.':'No supported ST sequence was found within this search. Other continuations may exist.'};
+ if(!best)return{...base,status:stopped||screening.unfinished||screening.budgetStops?'budget-exhausted':'no-supported-continuation-found',reason:stopped||screening.unfinished||screening.budgetStops?'The search limit was reached before finding a checked move. A valid continuation may still exist.':'No supported ST sequence was found within this search. Other continuations may exist.'};
  if(best.assessment.maxHeight>=20||!best.assessment.regionalSupport)return{...base,status:'no-supported-continuation-found',reason:'The checked sequences did not retain enough space and a supported stack shape. No move is recommended.',assessment:best.assessment};
  return describeNode(best);
  function describeNode(best,retained=best===commitment){
@@ -1027,7 +1061,7 @@ function planCore(raw,options={}){
  const presentation=advicePresentation(best.path,best.assessment);
  return{...base,status:'recommended-with-verified-prefix',target:first.target,hold:first.hold,holdCount:holdCount(first),witness:first.witness,...presentation,
  continuation:best.path.map(p=>({target:p.target,hold:p.hold,holdCount:holdCount(p),witness:p.witness,event:p.event,resultContext:context(p.state),structuralEvidence:p.structuralEvidence})),
- evidence:{resetSelection:resetDecision,strategy:'canonical-right-ST',cycleResources:cycleResources(best.path),commitmentRetained:retained,futureNotches:best.notches,preparationProof,cycleDebt:best.cycleDebt,cavityRepair:{status:'verified-prefix-repaired',outstandingCells:best.cavityDebt},clearPolicy:'right-region full T-spin doubles and I tetrises only',verifiedLocks:best.path.length,tsdAt:tsdAt>=0?tsdAt+1:null,knownPieceHorizon:s.queue.length+1,rootEnumerationComplete:root.complete,budgetExhausted:stopped,informationBoundary:!best.state.active,initialSealed:initial.sealed,endpointSealed:best.assessment.sealed,regionalSupport:best.assessment.regionalSupport,channel:best.assessment.channel,endpointTEntry:best.assessment.right.entry?.status??'not-established',unresolvedObligations:best.assessment.obligations,structuralScore:best.structuralScore,structuralRank:best.rank,structure:best.assessment.structure,dependencyDebt:best.dependencyDebt,claim:'Finite executable prefix; endpoint estimates are not a sustainability guarantee.'},assessment:best.assessment};
+ evidence:{resetSelection:resetDecision,strategy:'canonical-right-ST',cycleResources:cycleResources(best.path),commitmentRetained:retained,futureNotches:best.notches,preparationProof,cycleDebt:best.cycleDebt,cavityRepair:{status:'verified-prefix-repaired',outstandingCells:best.cavityDebt},clearPolicy:'right-region full T-spin doubles and I tetrises only',verifiedLocks:best.path.length,tsdAt:tsdAt>=0?tsdAt+1:null,knownPieceHorizon:s.queue.length+1,rootEnumerationComplete:root.complete,budgetExhausted:stopped||Boolean(base.metrics.proofScheduling?.unfinished||base.metrics.proofScheduling?.budgetStops),searchIncomplete:Boolean(base.metrics.proofScheduling?.unfinished||base.metrics.proofScheduling?.budgetStops),informationBoundary:!best.state.active,initialSealed:initial.sealed,endpointSealed:best.assessment.sealed,regionalSupport:best.assessment.regionalSupport,channel:best.assessment.channel,endpointTEntry:best.assessment.right.entry?.status??'not-established',unresolvedObligations:best.assessment.obligations,structuralScore:best.structuralScore,structuralRank:best.rank,structure:best.assessment.structure,dependencyDebt:best.dependencyDebt,claim:'Finite executable prefix; endpoint estimates are not a sustainability guarantee.'},assessment:best.assessment};
 }
 }
 function plan(raw,options={}){return queryRequest(()=>planRequest(raw,options));}
@@ -1054,7 +1088,7 @@ function planRequest(raw,options={}){
   // Only this invocation's admitted clone can survive later interrupted work.
   // Preserve actual spent nodes and search-depth completeness, not the old
   // incumbent's cheaper metrics. No imported certificate supplies authority.
-  return{...maintenanceFallback,metrics:{...checked.metrics,...(checked.metrics?.usage?{usage:{...checked.metrics.usage,selected:maintenanceFallback.metrics.usage?.selected??null}}:{}),firstCertified:result.metrics?.firstCertified,admissionAttempts:result.metrics?.admissionAttempts,admissionFailures:result.metrics?.admissionFailures,certifiedFallback:{selected:true,locks:maintenanceFallback.continuation.length}},evidence:{...maintenanceFallback.evidence,budgetExhausted:checked.status==='budget-exhausted'||Boolean(result.evidence?.budgetExhausted),searchIncomplete:true}};
+  return{...maintenanceFallback,metrics:{...checked.metrics,...(checked.metrics?.usage?{usage:{...checked.metrics.usage,selected:maintenanceFallback.metrics.usage?.selected??null}}:{}),firstCertified:result.metrics?.firstCertified,admissionAttempts:result.metrics?.admissionAttempts,admissionFailures:result.metrics?.admissionFailures,certifiedHorizon:maintenanceFallback.continuation.length,certifiedFallback:{selected:true,locks:maintenanceFallback.continuation.length}},evidence:{...maintenanceFallback.evidence,budgetExhausted:checked.status==='budget-exhausted'||Boolean(result.evidence?.budgetExhausted),searchIncomplete:true}};
  }
  return checked;
  function finalCheck(result){
@@ -1065,15 +1099,15 @@ function planRequest(raw,options={}){
   if(!resource.valid){
    for(const name of ['sourceConstruction','earlyCapFallback','levelBaseReentry','tieExtension'])if(result.metrics[name])result.metrics[name]={...result.metrics[name],selected:false};
    if(result.metrics.usage?.scope==='maintenance')result.metrics.usage={...result.metrics.usage,selected:null,families:Object.fromEntries(Object.entries(result.metrics.usage.families).map(([name,family])=>[name,'selected'in family?{...family,selected:0}:family]))};
-   return{...result,status:'no-supported-continuation-found',target:null,witness:[],continuation:[],reason:'No ordinary-midgame route preserving the observed T, Z and Center obligations was verified.',evidence:{...result.evidence,resourceObligations:{status:'rejected',reason:resource.reason}}};
+   return{...result,status:'no-supported-continuation-found',metrics:{...result.metrics,certifiedHorizon:0},target:null,witness:[],continuation:[],reason:'No ordinary-midgame route preserving the observed T, Z and Center obligations was verified.',evidence:{...result.evidence,resourceObligations:{status:'rejected',reason:resource.reason}}};
   }
   result={...result,evidence:{...result.evidence,resourceObligations:{status:'checked',binding:resource.resource.originKey,extraZ:resource.resource.extraZ,pendingCenter:resource.resource.pendingCenter,hangingS:resource.resource.hangingS,unclassifiedS:resource.resource.unclassifiedS,hangingL:resource.resource.hangingL}}};
  }
  const state=observe(raw),scoring=Boolean(result.evidence?.opening?.scoringPlan),replayUnits=scoring?(result.continuation||[]).reduce((n,p)=>n+p.witness.length,0):0,used=result.metrics?.nodes||0,limit=options.maxNodes??45000;
  const canCheck=!scoring||now()<deadline&&used+replayUnits<=limit;
  const check=canCheck?A.prefix(state,result.continuation||[],{notches:H.resolve(state,options.patternHistory),deadline,now,maxNodes:Math.max(0,limit-used-replayUnits)}):{reachable:null,visited:0,status:'unknown-access-budget'};
- const finalMetrics={...result.metrics,nodes:used+(canCheck?replayUnits:0)+(check?.visited||0)};
- if(check?.reachable===true&&(!scoring||now()<deadline&&finalMetrics.nodes<=limit))return{...result,evidence:{...result.evidence,gapAccess:check},metrics:finalMetrics};
+ const finalMetrics={...result.metrics,certifiedHorizon:0,nodes:used+(canCheck?replayUnits:0)+(check?.visited||0)};
+ if(check?.reachable===true&&(!scoring||now()<deadline&&finalMetrics.nodes<=limit))return{...result,evidence:{...result.evidence,gapAccess:check},metrics:{...finalMetrics,certifiedHorizon:result.continuation.length}};
  // Failed experimental final validation cannot erase the unchanged ordinary
  // decision already proved in this exact invocation. Never trust copied flags.
  const checkedFallback=sameRetained()?retainedFallback:sameOrdinary()?ordinaryFallback:null;
@@ -1109,7 +1143,7 @@ function advance(raw,previous,action,options={}){
  if(!repairedPrefix(state,steps))return null;
  const access=A.prefix(state,steps,{...bounds,maxNodes:Math.max(0,bounds.maxNodes-resources.visited),notches:H.resolve(state,options.patternHistory)});if(access.reachable!==true)return null;
  return{...previous,revision:state.revision,context:context(state),witness,hold:witness.includes('HOLD'),holdCount:witness.filter(a=>a==='HOLD').length,continuation:steps,
-  ...advicePresentation(steps,previous.assessment,previous.evidence?.construction),retained:true,metrics:{...previous.metrics,revalidationNodes:resources.visited+access.visited},
+  ...advicePresentation(steps,previous.assessment,previous.evidence?.construction),retained:true,metrics:{...previous.metrics,certifiedHorizon:steps.length,revalidationNodes:resources.visited+access.visited},
   evidence:{...previous.evidence,knownPieceHorizon:state.queue.length+1,resourceObligations:{status:'checked',binding:resourceBinding(state,options)}}};
 }
 function revalidate(raw,previous,options={}){
@@ -1125,7 +1159,7 @@ function revalidate(raw,previous,options={}){
   if(!refreshed||JSON.stringify(refreshed.continuation.map(p=>p.event))!==JSON.stringify(previous.continuation.map(p=>p.event)))return null;
   const resource=checkedResourceEndpoint(s,refreshed.continuation,{...options,maxNodes:Math.max(0,(options.maxNodes??8000)-tracker.nodes)});tracker.nodes+=resource.visited||0;if(!resource.valid)return null;
   const access=A.prefix(s,refreshed.continuation,{...options,notches:H.resolve(s,options.patternHistory),maxNodes:Math.max(0,(options.maxNodes??8000)-tracker.nodes)});if(options.budgetTracker)options.budgetTracker.nodes+=access.visited;
-  return access.reachable===true?{...refreshed,retained:true,metrics:{...refreshed.metrics,nodes:tracker.nodes+access.visited,revalidationNodes:tracker.nodes,gapAccessNodes:access.visited}}:null;
+  return access.reachable===true?{...refreshed,retained:true,metrics:{...refreshed.metrics,certifiedHorizon:refreshed.continuation.length,nodes:tracker.nodes+access.visited,revalidationNodes:tracker.nodes,gapAccessNodes:access.visited}}:null;
  }
 
  const enumeration=R.placements(s,{maxNodes:options.maxNodes??8000,deadline:options.deadline,now:options.now});
@@ -1137,7 +1171,7 @@ function revalidate(raw,previous,options={}){
  const resources=checkedResourceEndpoint(s,continuation,{...options,maxNodes:Math.max(0,(options.maxNodes??8000)-enumeration.visited)});if(!resources.valid)return null;
  if(!repairedPrefix(s,continuation))return null;
  const access=A.prefix(s,continuation,{...options,notches:H.resolve(s,options.patternHistory),maxNodes:Math.max(0,(options.maxNodes??8000)-enumeration.visited-resources.visited)});if(options.budgetTracker)options.budgetTracker.nodes+=access.visited;if(access.reachable!==true)return null;
- return{...previous,revision:s.revision,hold:p.hold,holdCount:holdCount(p),witness:p.witness,continuation,...advicePresentation(continuation,previous.assessment,previous.evidence?.construction),metrics:{...previous.metrics,nodes:enumeration.visited+resources.visited+access.visited,revalidationNodes:enumeration.visited+resources.visited,gapAccessNodes:access.visited},retained:true};
+ return{...previous,revision:s.revision,hold:p.hold,holdCount:holdCount(p),witness:p.witness,continuation,...advicePresentation(continuation,previous.assessment,previous.evidence?.construction),metrics:{...previous.metrics,certifiedHorizon:continuation.length,nodes:enumeration.visited+resources.visited+access.visited,revalidationNodes:enumeration.visited+resources.visited,gapAccessNodes:access.visited},retained:true};
 }
 function openingModule(){return typeof module==='object'&&module.exports?require('./st-opening.js'):globalThis.STOpening;}
 function startOpeningSession(raw,options){return openingModule().startSession(raw,options);}

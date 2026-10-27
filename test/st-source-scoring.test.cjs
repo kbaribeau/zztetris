@@ -99,7 +99,7 @@ test('source scoring: hidden future fields cannot change source-qualified discov
  const {request,advice,options}=base(),secret={...clone(request.observation),future:['Z','Z','Z'],hiddenQueue:['I'],seed:17};
  const plain=P.decide(request.observation,request.options),hidden=P.decide(secret,{...request.options,future:['S'],privateSeed:999});
  assert.ok(plain.evidence?.opening?.scoringPlan);assert.deepEqual(hidden.target,plain.target);assert.deepEqual(hidden.continuation,plain.continuation);assert.deepEqual(hidden.evidence,plain.evidence);assert.equal(hidden.metrics.nodes,plain.metrics.nodes);
- const retained=P.revalidate(secret,advice,options);assert.ok(retained);assert.deepEqual(retained.target,advice.target);
+ const retained=P.revalidate(secret,{...advice,metrics:{...advice.metrics,certifiedHorizon:99}},options);assert.ok(retained);assert.deepEqual(retained.target,advice.target);assert.equal(retained.metrics.certifiedHorizon,retained.continuation.length);
  for(const flag of ['disableOpeningSources','disableSourceScoring']){const result=P.decide(request.observation,{...request.options,[flag]:true});assert.equal(result.evidence?.opening?.scoringPlan,undefined);}
 });
 

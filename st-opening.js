@@ -404,7 +404,7 @@ function retainSource(raw,previous,options={},action=null){
   if(!remaining.candidate||remaining.unknown||now()>=deadline||visited>limit)return null;
   const access=P.checkAccessPrefix(state,path,{notches,now,deadline,maxNodes:Math.max(0,limit-visited)});visited+=access.visited;
   if(access.reachable!==true||now()>=deadline||visited>limit)return null;
-  const first=path[0];return{...previous,revision:state.revision,target:first.target,witness:first.witness,hold:first.hold,holdCount:first.holdCount,continuation:path,retained:true,metrics:{...previous.metrics,nodes:visited,revalidationNodes:visited},evidence:{...previous.evidence,opening:{...previous.evidence.opening,sourcePlan:{...clone(proof),consumed,pending:remaining.candidate.pending?clone(remaining.candidate.pending):null}},knownPieceHorizon:state.queue.length+1}};
+  const first=path[0];return{...previous,revision:state.revision,target:first.target,witness:first.witness,hold:first.hold,holdCount:first.holdCount,continuation:path,retained:true,metrics:{...previous.metrics,certifiedHorizon:path.length,nodes:visited,revalidationNodes:visited},evidence:{...previous.evidence,opening:{...previous.evidence.opening,sourcePlan:{...clone(proof),consumed,pending:remaining.candidate.pending?clone(remaining.candidate.pending):null}},knownPieceHorizon:state.queue.length+1}};
  }finally{if(options.budgetTracker)options.budgetTracker.nodes+=visited;}
 }
 // Source scoring is a conditional finite proof after fourteen actual source
@@ -556,7 +556,7 @@ function retainScoring(raw,previous,options={},action=null){
   const path=proof.steps.map((step,i)=>{const witness=i?step.witness:step.witness.slice(consumed);return{...clone(step),witness,hold:witness.includes('HOLD'),holdCount:witness.filter(a=>a==='HOLD').length};});
   const checked=Q.validate(state,path,scoringOptions(proof.source,state,notches,history.counts,now,deadline,left(),proof.corridor));visited+=checked.visited;
   if(!checked.valid||now()>=deadline||visited>limit)return null;
-  const first=path[0];return{...previous,revision:state.revision,target:first.target,hold:first.hold,holdCount:first.holdCount,witness:first.witness,continuation:path,retained:true,metrics:{...previous.metrics,nodes:visited,revalidationNodes:visited},evidence:{...previous.evidence,opening:{...previous.evidence.opening,scoringPlan:{...clone(proof),consumed}},knownPieceHorizon:state.queue.length+1}};
+  const first=path[0];return{...previous,revision:state.revision,target:first.target,hold:first.hold,holdCount:first.holdCount,witness:first.witness,continuation:path,retained:true,metrics:{...previous.metrics,certifiedHorizon:path.length,nodes:visited,revalidationNodes:visited},evidence:{...previous.evidence,opening:{...previous.evidence.opening,scoringPlan:{...clone(proof),consumed}},knownPieceHorizon:state.queue.length+1}};
  }finally{if(options.budgetTracker)options.budgetTracker.nodes+=visited;}
 }
 

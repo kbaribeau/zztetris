@@ -25,7 +25,7 @@ test('center foundation distinguishes a supported top from its unfinished lower 
  const recolored=f.distorted.board.map(r=>r.replace(/[^.]/g,'X'));assert.deepEqual(S.centerFoundation(recolored),b.foundation);
 });
 test('checked finite center preparation with a timely visible partner survives replanning and retires after actual placement',()=>{
- const c=timelyControl(),saved=suffix();assert.ok(saved);assert.equal(P.cycleResources(saved.continuation).centerPreparations,1);
+ const c=timelyControl(),saved=suffix();assert.ok(saved);assert.equal(saved.metrics.certifiedHorizon,saved.continuation.length);assert.equal(P.cycleResources(saved.continuation).centerPreparations,1);
  const advice=P.plan(c.after,{maxNodes:45000,commitment:{observation:c.after,advice:saved}});
  assert.deepEqual(advice.target,{type:'S',x:4,y:27,rotation:0});
  const r=R.replay(P.observe(c.after),advice.witness);assert.ok(r.valid);assert.equal(S.geometry(r.state.board).center.foundation.status,'aligned');

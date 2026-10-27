@@ -40,7 +40,7 @@ test('source opening: exact source advice survives actual witnessed movement, HO
  const session=Sim.createSession(input('ZOTLJSI')),req=session.request(1,Sim.CONFIG),a=P.decide(req.observation,req.options);assert.ok(a.evidence.opening.sourcePlan);
  let state=R.createState(req.observation),shown=a,future=[...'IJLOSTZ'];
  for(const action of a.witness.slice(0,-1)){state=R.move(state,action);while(state.queue.length<6){const type=future.shift();state={...state,queue:[...state.queue,type],bag:B.consume(state.bag,type)};}const next=P.advance(state,shown,action);assert.ok(next,action);assert.deepEqual(next.target,a.target);assert.equal(next.evidence.opening.sourcePlan.id,a.evidence.opening.sourcePlan.id);shown=next;}
- const retained=P.revalidate(state,shown,{maxNodes:45000,timeMs:SEARCH_TIME_MS});assert.ok(retained);assert.deepEqual(retained.target,a.target);
+ const retained=P.revalidate(state,{...shown,metrics:{...shown.metrics,certifiedHorizon:99}},{maxNodes:45000,timeMs:SEARCH_TIME_MS});assert.ok(retained);assert.deepEqual(retained.target,a.target);assert.equal(retained.metrics.certifiedHorizon,retained.continuation.length);
 });
 test('source opening: wrong input, stale inventory, altered board, goal and forged proof fail retention',()=>{
  const s=initial('IJLOSTZ'),a=P.plan(s,options(s));assert.ok(a.evidence.opening.sourcePlan);

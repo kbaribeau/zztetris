@@ -28,7 +28,7 @@ for(const c of cases){
  test(`fresh advice avoids the observed ${c.id} phase-losing placement`,()=>{
   let state=P.observe(c.snapshot),phase=S.notchPattern(state.board);const advice=P.plan(state,config);
   assert.notDeepEqual(advice.target,c.advice.target);
-  if(!advice.target){assert.equal(advice.status,'no-supported-continuation-found');return;}
+  if(!advice.target){const incomplete=advice.metrics.proofScheduling?.unfinished||advice.metrics.proofScheduling?.budgetStops;assert.equal(advice.status,incomplete?'budget-exhausted':'no-supported-continuation-found');return;}
   for(const step of advice.continuation){const replay=R.replay(state,step.witness);assert.ok(replay.valid);
    const check=S.advanceNotches(state.board,{state:replay.state,event:replay.events[0]},phase);assert.ok(check.valid,check.violation);
    const fresh=S.notchPattern(P.observe(replay.state).board);

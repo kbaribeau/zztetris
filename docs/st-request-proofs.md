@@ -51,3 +51,35 @@ substitute: a placement can reduce that count while sealing a previously
 side-accessible cell. Existing cavities and intentional Right reservoirs retain
 their existing treatment. The shared geometry predicate does not replace
 identity, phase, access, scoring, or other resource checks.
+
+### Early-layer endpoint screening
+
+Ordinary maintenance screening is scheduled separately from expansion. Bounded
+internal opening/construction probes and requests below20000nodes keep their
+existing allocation. For eligible ordinary requests, at the
+root and nonfinal beam layers, access/resource screening may spend at most
+`min(6000, floor(requestNodeLimit / 5))` newly visited nodes. It still examines
+candidates in the existing rank order and admits only completed positive proofs.
+The final beam layer and final admission can use the remaining shared budget.
+This is an allocation of the existing live limit, not an additional allowance.
+
+An unfinished access or repair result stays unknown; it is never cached as a
+negative fact. A layer with interrupted endpoint screening does not advance
+`completeDepth`. That field describes a completed expansion layer whose ranked
+endpoint scan reached a checked candidate without unfinished competing proofs;
+it does not assert exhaustive coverage beyond the beam or beyond the selected
+candidate in rank order. `completedBeamDepth` separately records completed
+placement expansion within the retained beam. An individually checked candidate
+from that expansion may still be selected despite an unknown competitor. This
+preserves the existing completed-expansion selection rule without treating an
+unknown proof as a rejection or claiming the entire screening scope finished.
+`certifiedHorizon` is set only after final resource/access admission, to the
+selected continuation length (zero on failed final admission). Successful input
+advancement, ordinary/construction commitment suffixes, revalidation and source
+opening/scoring retention recompute it from the returned validated continuation;
+serialized or older metric values carry no authority. A retained fully
+admitted fallback reports its own length. None of these fields certifies
+sustainability beyond the finite prefix. Metrics expose screening calls, actual nodes, unfinished
+queries and budget stops. Completed query reuse and all state/history/HOLD/queue
+bindings are unchanged. `searchIncomplete` also covers a local screening stop,
+including when the overall request still had nodes available for later work.
