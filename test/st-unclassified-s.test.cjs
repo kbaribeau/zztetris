@@ -79,3 +79,30 @@ test('unclassified S: disposing known S55 cannot be certified by completing diff
  const raw=R.createState({active:'S',queue:['L','I','O','J','T','Z']}),other=M.start(raw),p=R.placements(raw,{allowHold:false}).placements.find(p=>p.event.cells.every(([x])=>x<4));
  other.unclassifiedS=clone(checked.resource.unclassifiedS);assert.deepEqual(M.step(raw,p,other).unclassifiedS,other.unclassifiedS);
 });
+
+test('unclassified S: actual disposal survives next initialization, session replay and Undo',()=>withPage('st-lab.html',{},g=>{
+ const f=require('./fixtures/unreviewed-s-disposal.json'),before=Session.prepare(clone(pack(f,false)));
+ let state=before.state,history=before.resourceHistory;
+ for(const action of f.advice.witness){const next=R.move(state,action);history=H.applyAction(history,state,action,next);state=next;}
+ const check=(s,h)=>{const summary=H.resolve(s,h),resource=M.start(s,summary);assert.ok(resource.unclassifiedS.some(x=>x.sId===55&&x.requiresAccommodation));assert.ok(!resource.hangingS.some(x=>x.id===55));assert.equal(M.repair(s,resource,{maxNodes:45000}).valid,null);};
+ check(state,history);
+ const saved=Session.create(state,{resourceHistory:history,resourceOriginBag:before.resourceOriginBag}),after=Session.prepare(clone(saved));check(after.state,after.resourceHistory);
+ // Imported derived flags have no authority: replay must reconstruct the fact.
+ const transport=clone(H.exportContext(state,history));transport.hangingS={unclassified:[]};check(state,H.importContext(state,transport));
+ g.element('#st-snapshot').value=JSON.stringify(pack(f,false));g.click('#st-import');
+ for(const action of f.advice.witness)g.window.stLab.act(action);
+ g.click('#st-export-session');const actual=Session.prepare(JSON.parse(g.element('#st-snapshot').value));check(actual.state,actual.resourceHistory);
+ g.window.stLab.act('UNDO');g.click('#st-export-session');const undo=Session.prepare(JSON.parse(g.element('#st-snapshot').value)),old=M.start(undo.state,H.resolve(undo.state,undo.resourceHistory));
+ assert.ok(old.hangingS.some(x=>x.id===55));assert.ok(!old.unclassifiedS.some(x=>x.sId===55));
+}));
+
+test('unclassified S: replay does not promote a pre-existing unclassified allocation into known disposal',()=>{
+ let state=R.createState({active:'S',queue:['L','I','O','J','T','Z'],streamCursor:1}),history=H.start(state,{fresh:true});
+ for(const region of ['right','left']){
+  const p=R.placements(state,{allowHold:false}).placements.find(p=>p.event.cells.every(([x])=>region==='right'?x>=8:x<4));assert.ok(p);
+  for(const action of p.witness){const next=R.move(state,action);history=H.applyAction(history,state,action,next);state=next;}
+ }
+ const resource=M.start(state,H.resolve(state,history));assert.ok(resource.unclassifiedS.some(x=>x.sId===1));assert.ok(resource.unclassifiedS.every(x=>!x.requiresAccommodation));
+ assert.equal(M.repair(state,resource).valid,true,'No known-to-unreviewed transition occurred; do not invent confirmed historical debt');
+ const imported=H.importContext(state,clone(H.exportContext(state,history)));assert.deepEqual(M.start(state,H.resolve(state,imported)).unclassifiedS,resource.unclassifiedS);
+});

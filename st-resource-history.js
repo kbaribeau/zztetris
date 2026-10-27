@@ -117,10 +117,13 @@ function applyAction(history,before,action,after){
   if(action==='HOLD'){
    if(h.hold!==null){const held=h.hold;h.hold=h.active;h.active=held;}else{h.hold=h.active;h.active=draw();}
   }else if(action==='HD'){
-   const e=expected.lastEvent;h.locks++;
+   const e=expected.lastEvent,knownSurplus=e.type==='S'&&hanging(history).evidence.some(s=>s.sId===lockedId);h.locks++;
    const allocation={at:h.locks,pieceId:lockedId,type:e.type,region:whole(e),cells:clone(e.cells),lines:e.lines,spin:e.spin,clearedRows:e.clearedRows.slice()};
    h.allocations.push(allocation);h.pieces[lockedId].allocation=allocation;
    updateCenter(h,before,after,e,lockedId);observeOpening(h,before,after,e);
+   // Reconstruct only an observed known-to-unreviewed transition. This flag
+   // is derived from replay, never accepted from a serialized summary.
+   if(knownSurplus&&allocation.region!=='left'&&h.pieces[lockedId].pair?.family!=='SL'&&!h.center.pending.some(p=>p.family==='SL'&&p.rootId===lockedId))allocation.requiresAccommodation=true;
    h.active=expected.active?draw():null;
   }
   const added=av.queue.slice(ev.queue.length);if(added.length){if(action!=='HD')h.pieces={...h.pieces};h.queue.push(...added.map(type=>addPiece(h,type,h.fresh)));}
@@ -190,7 +193,7 @@ function hanging(h){
   // A consumed L is unavailable to its own S even when it crosses the
   // Left/Center boundary. Region classification is not piece accounting.
   const diverted=l.allocation.cells.every(([x])=>x<7)&&!(l.pair?.family==='SL'&&l.pair.rootId===s?.id);
-  if(diverted&&s?.allocation&&!h.center.pending.some(p=>p.family==='SL'&&p.rootId===s.id)){unclassified.push({bag,sId:s.id,lId:l.id,reason:'The previously surplus S was placed in an unreviewed allocation; whether it was accommodated is unknown.'});continue;}
+  if(diverted&&s?.allocation&&!h.center.pending.some(p=>p.family==='SL'&&p.rootId===s.id)){unclassified.push({bag,sId:s.id,lId:l.id,...(s.allocation.requiresAccommodation?{requiresAccommodation:true}:{}),reason:'The previously surplus S was placed in an unreviewed allocation; whether it was accommodated is unknown.'});continue;}
   if(diverted)evidence.push({bag,sId:s?.id??null,lId:l.id,at:l.allocation.at,...(!s?{deferred:true}:{}),reason:l.pair?.family==='SL'?'The L completed a different observed S.':'The L was allocated outside its observed S/L pair.'});
   else if(l.allocation.region!=='center'||l.pair?.family!=='SL')unclassified.push({bag,lId:l.id,reason:'The L allocation has no reviewed S/L role.'});
  }

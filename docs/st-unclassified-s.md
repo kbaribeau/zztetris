@@ -31,9 +31,13 @@ is neither a live piece nor a new confirmed placement target. It prevents loss
 of an unmet obligation from turning a previously rejected prefix into a proven
 repair. Completing another Center root cannot discharge it. Repair goals,
 ordinary admission and revalidation all retain this guard, including uncertainty
-created during the repair search itself. Public-history session replay before
-the disposal reconstructs the known identity and repeats the same check.
+created during the repair search itself. Actual lock replay also records whether the S was a confirmed surplus immediately
+before disposal. History resolution carries that derived fact into the next
+maintenance initialization and post-disposal session replay; Undo restores the
+pre-disposal identity. Serialized summary flags are never trusted.
 
 This does not reinterpret all already-unclassified imported/opening history as
 confirmed debt. It is a guard against creating acceptable uncertainty from a
-known obligation inside the currently certified prefix.
+replay-proven known obligation, both within a projected prefix and across actual
+locks. A historical unclassified allocation without that proven transition does
+not acquire the flag.
