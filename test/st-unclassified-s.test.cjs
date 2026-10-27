@@ -3,7 +3,7 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const R=require('../st-rules'),H=require('../st-resource-history'),M=require('../st-midgame-resources'),B=require('../st-bag'),P=require('../st-planner'),Session=require('../st-session');
 const {withPage}=require('./support/page.cjs'),cases=require('./fixtures/unclassified-s.json').cases,clone=x=>JSON.parse(JSON.stringify(x));
 function data(f){const s=f.request.observation,h=H.importContext(s,f.request.options.resourceContext);return{s,h,summary:H.resolve(s,h)};}
-function pack(f){const {s,h}=data(f),ctx=f.request.options.resourceContext;return Session.create(s,{resourceHistory:h,resourceOriginBag:B.fromObserved({observed:[ctx.origin.active.type,...ctx.origin.queue],startPhase:0}),patternHistory:f.request.options.patternHistory,openingPhase:true});}
+function pack(f,openingPhase=true){const {s,h}=data(f),ctx=f.request.options.resourceContext;return Session.create(s,{resourceHistory:h,resourceOriginBag:B.fromObserved({observed:[ctx.origin.active.type,...ctx.origin.queue],startPhase:0}),patternHistory:f.request.options.patternHistory,openingPhase});}
 test('unclassified S: real I17 invalidation survives initialization without resurrecting SL target',()=>{
  const before=data(cases[0]),after=data(cases[1]),a=M.start(before.s,before.summary),b=M.start(after.s,after.summary);
  assert.ok(a.pendingCenter.some(p=>p.rootId===14));assert.ok(a.hangingS.some(p=>p.id===14));
@@ -62,4 +62,20 @@ for(const deferred of [false,true])test(`unclassified S: empty HOLD with ${defer
   else if(witness.length===2){assert.equal(got.resource.hangingS.length,0);assert.ok(got.resource.unclassifiedS.some(s=>s.sId===3),'Only the actual unreviewed S lock changes its classification');}
   else assert.ok(got.resource.hangingS.some(s=>s.id===3),'Swapping the S into HOLD does not consume or reclassify it');
  }
+});
+
+test('unclassified S: disposing known S55 cannot be certified by completing different S57',()=>{
+ const f=require('./fixtures/unreviewed-s-disposal.json'),{s,summary}=data(f),initial=M.start(s,summary);
+ assert.ok(initial.hangingS.some(x=>x.id===55));assert.ok(initial.pendingCenter.some(x=>x.rootId===57));
+ const checked=M.checkPath(s,f.advice.continuation,summary);assert.equal(checked.valid,true);
+ assert.ok(!checked.resource.hangingS.some(x=>x.id===55),'Consumed S is not resurrected as a live repair token');
+ const repair=M.repair(checked.state,checked.resource,{maxNodes:45000,notches:f.advice.evidence.futureNotches});
+ assert.equal(repair.valid,null);assert.equal(repair.queryStatus,'unfinished');
+ const prepared=Session.prepare(clone(pack(f,false))),history=H.resolve(prepared.state,prepared.resourceHistory),roundtrip=M.checkPath(prepared.state,f.advice.continuation,history);
+ assert.equal(M.repair(roundtrip.state,roundtrip.resource).valid,null,'Replay of imported public history preserves the same known-to-unknown boundary');
+ assert.equal(P.revalidate(s,f.advice,{...f.request.options,maxNodes:45000,timeMs:1500}),null,'Previously accepted serialized advice must fail current validation');
+ assert.notEqual(M.binding(checked.resource),M.binding({...checked.resource,unclassifiedS:checked.resource.unclassifiedS.map(x=>({...x,requiresAccommodation:false}))}));
+ // A later unrelated Left S must not erase the uncertain consumed identity.
+ const raw=R.createState({active:'S',queue:['L','I','O','J','T','Z']}),other=M.start(raw),p=R.placements(raw,{allowHold:false}).placements.find(p=>p.event.cells.every(([x])=>x<4));
+ other.unclassifiedS=clone(checked.resource.unclassifiedS);assert.deepEqual(M.step(raw,p,other).unclassifiedS,other.unclassifiedS);
 });

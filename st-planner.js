@@ -938,7 +938,7 @@ function planCore(raw,options={}){
  const accessSafe=n=>{const proof=A.prefix(s,n.path,{notches:initial.notches,deadline,now,maxNodes:Math.max(0,limit-base.metrics.nodes)});base.metrics.nodes+=proof.visited;base.metrics.gapAccessNodes=(base.metrics.gapAccessNodes||0)+proof.visited;n.path[0].gapAccess=proof;return proof.reachable===true;};
  const repairCache=new Map();
  const resourceSafe=n=>{
-  if(n.resources?.centerBlocked||n.resources?.unclassifiedS?.some(s=>s.invalidated))return false;
+  if(n.resources?.centerBlocked||n.resources?.unclassifiedS?.some(s=>s.invalidated||s.requiresAccommodation))return false;
   if(n.resources?.tCollision&&n.assessment.right.entry?.status!=='reachable-if-T-available')return false;
   if(!n.resources?.hangingS.length&&!n.resources?.pendingCenter.length)return true;
   const key=JSON.stringify([observe(n.state),M.binding(n.resources),n.notches]);let proof=repairCache.get(key);

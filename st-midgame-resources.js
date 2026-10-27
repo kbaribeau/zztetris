@@ -100,7 +100,7 @@ function step(before,p,prior){
   const consumed=e.type==='S'&&s.id===piece.id,wasPending=prior.pendingCenter.some(p=>p.family==='SL'&&p.rootId===s.id);
   if((consumed||wasPending)&&!n.pendingCenter.some(p=>p.family==='SL'&&p.rootId===s.id&&!p.lost)){
    n.hangingS=n.hangingS.filter(h=>h.id!==s.id);
-   if(!n.unclassifiedS.some(h=>h.sId===s.id&&h.bag===s.bag))n.unclassifiedS.push({sId:s.id,bag:s.bag,...(wasPending?{invalidated:true}:{}),reason:'Unreviewed accommodation of an observed surplus S.'});
+   if(!n.unclassifiedS.some(h=>h.sId===s.id&&h.bag===s.bag))n.unclassifiedS.push({sId:s.id,bag:s.bag,requiresAccommodation:true,...(wasPending?{invalidated:true}:{}),reason:'Unreviewed accommodation of an observed surplus S.'});
   }
  }
  n.active=n.queue.shift()??null;
@@ -126,9 +126,9 @@ function repairCore(raw,resource,{maxNodes=4000,deadline=Infinity,now=()=>Date.n
  // This finite repair grammar cannot establish how an already consumed,
  // unclassified S was accommodated. Keep uncertainty separate from false
  // (a completed bounded search), and never manufacture a replay target.
- if(resource.unclassifiedS?.some(s=>s.invalidated))return{valid:null,visited:0,status:'unclassified-S-accommodation',unclassifiedS:clone(resource.unclassifiedS)};
+ if(resource.unclassifiedS?.some(s=>s.invalidated||s.requiresAccommodation))return{valid:null,visited:0,status:'unclassified-S-accommodation',unclassifiedS:clone(resource.unclassifiedS)};
  const centerIds=centerCompletions?resource.pendingCenter.map(p=>p.rootId):[];
- const done=r=>!r.hangingS.length&&!r.pendingCenter.some(p=>centerIds.includes(p.rootId))&&!r.centerBlocked&&!r.tCollision;
+ const done=r=>!r.unclassifiedS?.some(s=>s.invalidated||s.requiresAccommodation)&&!r.hangingS.length&&!r.pendingCenter.some(p=>centerIds.includes(p.rootId))&&!r.centerBlocked&&!r.tCollision;
  if(!resource.hangingS.length&&!centerIds.length)return{valid:true,visited:0,status:resource.unclassifiedS?.length?'no-confirmed-resource-repair-needed':'no-new-resource-repair-needed',unclassifiedS:clone(resource.unclassifiedS||[])};
  let visited=0,complete=true,layer=[{state:R.createState(raw),resource,path:[],notches}];
  const leftCovered=board=>S.geometry(board).left.covered,rootCovered=leftCovered(raw.board);

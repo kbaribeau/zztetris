@@ -1,0 +1,3995 @@
+{
+  "description": "Public request and previously accepted advice before seed1618039280 lock57; known S55 disposed on Right while S57 Center completion remains. No private generator stream.",
+  "request": {
+    "type": "plan",
+    "id": 57,
+    "observation": {
+      "rules": "st-zero-v2",
+      "board": [
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..OO......",
+        "..OO.SS...",
+        "JJSSSS....",
+        "JSSLLOO...",
+        "JLLLLOO...",
+        "IIIILL...Z",
+        "OOIJJ...ZZ",
+        "OOIJLLL.Z.",
+        "JSSLSSS.Z.",
+        "IIJJLSS.Z."
+      ],
+      "active": {
+        "type": "Z",
+        "x": 3,
+        "y": 17,
+        "rotation": 0,
+        "lastRotation": null
+      },
+      "hold": "S",
+      "canHold": true,
+      "queue": [
+        "T",
+        "J",
+        "L",
+        "I",
+        "O",
+        "S"
+      ],
+      "revision": 407,
+      "streamCursor": 58,
+      "topOut": false,
+      "bag": {
+        "remaining": [
+          111
+        ],
+        "observedCount": 64,
+        "provenance": "known-phase"
+      }
+    },
+    "previous": null,
+    "commitment": null,
+    "options": {
+      "depth": 3,
+      "width": 8,
+      "maxNodes": 45000,
+      "timeMs": 1500,
+      "resourceContext": {
+        "schemaVersion": 1,
+        "origin": {
+          "rules": "st-zero-v2",
+          "board": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            ".........."
+          ],
+          "active": {
+            "type": "S",
+            "x": 3,
+            "y": 17,
+            "rotation": 0,
+            "lastRotation": null
+          },
+          "hold": null,
+          "canHold": true,
+          "queue": [
+            "I",
+            "Z",
+            "J",
+            "T",
+            "O",
+            "L"
+          ],
+          "streamCursor": 1,
+          "topOut": false
+        },
+        "fresh": true,
+        "steps": [
+          {
+            "action": "HOLD",
+            "revealed": [
+              "L"
+            ]
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "S"
+            ]
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "I"
+            ]
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "R180",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "J"
+            ]
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "O"
+            ]
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "T"
+            ]
+          },
+          {
+            "action": "HOLD",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "Z"
+            ]
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R180",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "L"
+            ]
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "J"
+            ]
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "CCW",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "O"
+            ]
+          },
+          {
+            "action": "HOLD",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R180",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "Z"
+            ]
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "T"
+            ]
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "CCW",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "S"
+            ]
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "I"
+            ]
+          },
+          {
+            "action": "HOLD",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R180",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "O"
+            ]
+          },
+          {
+            "action": "HOLD",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "I"
+            ]
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "Z"
+            ]
+          },
+          {
+            "action": "HOLD",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "L"
+            ]
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "S"
+            ]
+          },
+          {
+            "action": "HOLD",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "J"
+            ]
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "CCW",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "T"
+            ]
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "O"
+            ]
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "CCW",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "Z"
+            ]
+          },
+          {
+            "action": "HOLD",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "S"
+            ]
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R180",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "L"
+            ]
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "J"
+            ]
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "CCW",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "T"
+            ]
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "I"
+            ]
+          },
+          {
+            "action": "HOLD",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "S"
+            ]
+          },
+          {
+            "action": "HOLD",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "T"
+            ]
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "L"
+            ]
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R180",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "J"
+            ]
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "I"
+            ]
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "Z"
+            ]
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "O"
+            ]
+          },
+          {
+            "action": "HOLD",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "T"
+            ]
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "I"
+            ]
+          },
+          {
+            "action": "HOLD",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "CCW",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "Z"
+            ]
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "J"
+            ]
+          },
+          {
+            "action": "HOLD",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "CCW",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "R180",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "O"
+            ]
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "L"
+            ]
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "S"
+            ]
+          },
+          {
+            "action": "HOLD",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "I"
+            ]
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "CCW",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "T"
+            ]
+          },
+          {
+            "action": "HOLD",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "Z"
+            ]
+          },
+          {
+            "action": "HOLD",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "L"
+            ]
+          },
+          {
+            "action": "HOLD",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "J"
+            ]
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "S"
+            ]
+          },
+          {
+            "action": "HOLD",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "O"
+            ]
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "S"
+            ]
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "Z"
+            ]
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "T"
+            ]
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "J"
+            ]
+          },
+          {
+            "action": "HOLD",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "L"
+            ]
+          },
+          {
+            "action": "HOLD",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "I"
+            ]
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "O"
+            ]
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "S"
+            ]
+          }
+        ],
+        "handoffAtAction": 130
+      },
+      "patternHistory": {
+        "origin": [
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..OO......",
+          "..OO.SS...",
+          "JJSSSS....",
+          "JSSLLOO...",
+          "JLLLLOO...",
+          "IIIILL...Z",
+          "OOIJJ...ZZ",
+          "OOIJLLL.Z.",
+          "JSSLSSS.Z.",
+          "IIJJLSS.Z."
+        ],
+        "steps": []
+      },
+      "openingPhase": false,
+      "openingSource": null,
+      "openingClear": null,
+      "openingRepair": null
+    }
+  },
+  "advice": {
+    "revision": 407,
+    "target": {
+      "type": "S",
+      "x": 7,
+      "y": 31,
+      "rotation": 1
+    },
+    "hold": true,
+    "holdCount": 1,
+    "witness": [
+      "HOLD",
+      "R",
+      "R",
+      "R",
+      "R",
+      "CW",
+      "HD"
+    ],
+    "continuation": [
+      {
+        "target": {
+          "type": "S",
+          "x": 7,
+          "y": 31,
+          "rotation": 1
+        },
+        "hold": true,
+        "holdCount": 1,
+        "witness": [
+          "HOLD",
+          "R",
+          "R",
+          "R",
+          "R",
+          "CW",
+          "HD"
+        ],
+        "event": {
+          "type": "S",
+          "target": {
+            "type": "S",
+            "x": 7,
+            "y": 31,
+            "rotation": 1
+          },
+          "cells": [
+            [
+              8,
+              32
+            ],
+            [
+              8,
+              33
+            ],
+            [
+              9,
+              33
+            ],
+            [
+              9,
+              34
+            ]
+          ],
+          "lines": 0,
+          "clearedRows": [],
+          "spin": "none",
+          "topOut": false
+        },
+        "resultContext": "[\"st-zero-v2\",[\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..OO......\",\"..OO.SS...\",\"JJSSSS..S.\",\"JSSLLOO.SS\",\"JLLLLOO..S\",\"IIIILL...Z\",\"OOIJJ...ZZ\",\"OOIJLLL.Z.\",\"JSSLSSS.Z.\",\"IIJJLSS.Z.\"],\"Z\",true,[\"J\",\"L\",\"I\",\"O\",\"S\"],{\"remaining\":[111],\"observedCount\":64,\"provenance\":\"known-phase\"},\"T\"]",
+        "structuralEvidence": {
+          "reason": "This allocation needs additional regional repair evidence.",
+          "cycleViolations": [],
+          "pairFamily": null,
+          "pairProgress": null,
+          "pairEvidence": null,
+          "opportunityCost": 0,
+          "leftSubstitutes": [],
+          "regions": [
+            "right"
+          ],
+          "crossRegion": false,
+          "allocation": "unrecognized-role",
+          "status": "requires-repair-evidence",
+          "dependencyDebt": 9,
+          "newlyCovered": 0,
+          "regionalRepair": 2,
+          "repairCredit": 0,
+          "note": "Crossing a boundary is not forbidden. Debt measures unsupported allocation and new structural repair burden; a later checked repair may repay it.",
+          "futureNotches": {
+            "valid": true,
+            "violation": null,
+            "pattern": {
+              "status": "established",
+              "anchorRow": 35,
+              "protectedRows": [
+                35,
+                32,
+                29,
+                26,
+                23,
+                20,
+                17,
+                14,
+                11,
+                8,
+                5,
+                2
+              ],
+              "blockedRows": [],
+              "source": "translated-established-cycle"
+            },
+            "blockedCells": []
+          },
+          "centerPartnerDeficitBefore": 1,
+          "centerPartnerDeficitAfter": 1,
+          "placedPiece": "S",
+          "structure": {
+            "frontierDebt": 0,
+            "scoringRowDebt": 0,
+            "left": {
+              "profile": [
+                8,
+                8,
+                10,
+                10
+              ],
+              "flat": false,
+              "roughness": 2,
+              "covered": 0,
+              "horizontalI": null,
+              "completions": [
+                {
+                  "piece": "O",
+                  "family": null,
+                  "target": {
+                    "type": "O",
+                    "x": -1,
+                    "y": 29,
+                    "rotation": 0
+                  },
+                  "cells": [
+                    [
+                      0,
+                      30
+                    ],
+                    [
+                      1,
+                      30
+                    ],
+                    [
+                      0,
+                      31
+                    ],
+                    [
+                      1,
+                      31
+                    ]
+                  ],
+                  "witness": [
+                    "L",
+                    "L",
+                    "L",
+                    "L",
+                    "HD"
+                  ],
+                  "access": "hypothetical-spawn-straight-drop",
+                  "resultProfile": [
+                    10,
+                    10,
+                    10,
+                    10
+                  ],
+                  "resultStatus": "level",
+                  "patternSupport": null,
+                  "preserveCells": [
+                    [
+                      0,
+                      30
+                    ],
+                    [
+                      1,
+                      30
+                    ],
+                    [
+                      0,
+                      31
+                    ],
+                    [
+                      1,
+                      31
+                    ]
+                  ]
+                }
+              ]
+            },
+            "center": {
+              "foundation": {
+                "status": "unfinished-lower-foundation",
+                "vacancies": [
+                  [
+                    5,
+                    36
+                  ],
+                  [
+                    6,
+                    36
+                  ]
+                ],
+                "profile": [
+                  8,
+                  9,
+                  9
+                ]
+              },
+              "profile": [
+                8,
+                9,
+                9
+              ],
+              "status": "supported-partner-completion",
+              "motif": ".##/##./###",
+              "patternSupport": "reference-supported",
+              "coveredInternal": 0,
+              "sealedVoids": 0,
+              "coveredCavities": 4,
+              "completionDebt": 0,
+              "completions": [
+                {
+                  "piece": "L",
+                  "family": null,
+                  "target": {
+                    "type": "L",
+                    "x": 4,
+                    "y": 28,
+                    "rotation": 2
+                  },
+                  "cells": [
+                    [
+                      4,
+                      30
+                    ],
+                    [
+                      5,
+                      30
+                    ],
+                    [
+                      6,
+                      30
+                    ],
+                    [
+                      4,
+                      31
+                    ]
+                  ],
+                  "witness": [
+                    "R180",
+                    "R",
+                    "HD"
+                  ],
+                  "access": "hypothetical-spawn-straight-drop",
+                  "resultProfile": [
+                    10,
+                    10,
+                    10
+                  ],
+                  "resultStatus": "level",
+                  "patternSupport": "reference-supported",
+                  "preserveCells": [
+                    [
+                      4,
+                      30
+                    ],
+                    [
+                      5,
+                      30
+                    ],
+                    [
+                      6,
+                      30
+                    ],
+                    [
+                      4,
+                      31
+                    ]
+                  ]
+                }
+              ]
+            },
+            "right": {
+              "profile": [
+                0,
+                8,
+                7
+              ],
+              "shapeStatus": "unrecognized",
+              "cycle": {
+                "shape": "unrecognized",
+                "phase": "unrecognized",
+                "cleanupColumns": [],
+                "prepareColumn": null,
+                "wallSolid": false,
+                "channelBase": true
+              },
+              "renewalDebt": 2,
+              "reservoir": null,
+              "completions": []
+            },
+            "supportEstimate": -13.5,
+            "uncertainty": true,
+            "capSupplyBurden": 0,
+            "centerCompletionDebt": 0,
+            "supplyBurden": 0.5,
+            "obligations": [
+              {
+                "kind": "center-partner",
+                "alternatives": [
+                  "L"
+                ],
+                "completions": [
+                  {
+                    "piece": "L",
+                    "family": null,
+                    "target": {
+                      "type": "L",
+                      "x": 4,
+                      "y": 28,
+                      "rotation": 2
+                    },
+                    "cells": [
+                      [
+                        4,
+                        30
+                      ],
+                      [
+                        5,
+                        30
+                      ],
+                      [
+                        6,
+                        30
+                      ],
+                      [
+                        4,
+                        31
+                      ]
+                    ],
+                    "witness": [
+                      "R180",
+                      "R",
+                      "HD"
+                    ],
+                    "access": "hypothetical-spawn-straight-drop",
+                    "resultProfile": [
+                      10,
+                      10,
+                      10
+                    ],
+                    "resultStatus": "level",
+                    "patternSupport": "reference-supported",
+                    "preserveCells": [
+                      [
+                        4,
+                        30
+                      ],
+                      [
+                        5,
+                        30
+                      ],
+                      [
+                        6,
+                        30
+                      ],
+                      [
+                        4,
+                        31
+                      ]
+                    ]
+                  }
+                ],
+                "note": "Exact straight-drop completion of the current center surface; keep completion cells free.",
+                "supply": [
+                  {
+                    "id": "queue:1",
+                    "piece": "L",
+                    "source": "visible",
+                    "drawOffset": 2,
+                    "available": "when-drawn"
+                  }
+                ],
+                "status": "known-piece-identity"
+              },
+              {
+                "kind": "left-surface",
+                "alternatives": [
+                  "O"
+                ],
+                "completions": [
+                  {
+                    "piece": "O",
+                    "family": null,
+                    "target": {
+                      "type": "O",
+                      "x": -1,
+                      "y": 29,
+                      "rotation": 0
+                    },
+                    "cells": [
+                      [
+                        0,
+                        30
+                      ],
+                      [
+                        1,
+                        30
+                      ],
+                      [
+                        0,
+                        31
+                      ],
+                      [
+                        1,
+                        31
+                      ]
+                    ],
+                    "witness": [
+                      "L",
+                      "L",
+                      "L",
+                      "L",
+                      "HD"
+                    ],
+                    "access": "hypothetical-spawn-straight-drop",
+                    "resultProfile": [
+                      10,
+                      10,
+                      10,
+                      10
+                    ],
+                    "resultStatus": "level",
+                    "patternSupport": null,
+                    "preserveCells": [
+                      [
+                        0,
+                        30
+                      ],
+                      [
+                        1,
+                        30
+                      ],
+                      [
+                        0,
+                        31
+                      ],
+                      [
+                        1,
+                        31
+                      ]
+                    ]
+                  }
+                ],
+                "note": "Optional left-surface improvement, not a mandatory immediate fill.",
+                "supply": [
+                  {
+                    "id": "queue:3",
+                    "piece": "O",
+                    "source": "visible",
+                    "drawOffset": 4,
+                    "available": "when-drawn"
+                  }
+                ],
+                "status": "known-piece-identity"
+              }
+            ],
+            "supply": {
+              "instances": [
+                {
+                  "id": "active",
+                  "piece": "T",
+                  "source": "active",
+                  "available": "now"
+                },
+                {
+                  "id": "hold",
+                  "piece": "Z",
+                  "source": "hold",
+                  "available": "hold-now"
+                },
+                {
+                  "id": "queue:0",
+                  "piece": "J",
+                  "source": "visible",
+                  "drawOffset": 1,
+                  "available": "when-drawn"
+                },
+                {
+                  "id": "queue:1",
+                  "piece": "L",
+                  "source": "visible",
+                  "drawOffset": 2,
+                  "available": "when-drawn"
+                },
+                {
+                  "id": "queue:2",
+                  "piece": "I",
+                  "source": "visible",
+                  "drawOffset": 3,
+                  "available": "when-drawn"
+                },
+                {
+                  "id": "queue:3",
+                  "piece": "O",
+                  "source": "visible",
+                  "drawOffset": 4,
+                  "available": "when-drawn"
+                },
+                {
+                  "id": "queue:4",
+                  "piece": "S",
+                  "source": "visible",
+                  "drawOffset": 5,
+                  "available": "when-drawn"
+                }
+              ],
+              "assignments": [
+                {
+                  "obligation": "center-partner",
+                  "instance": "queue:1",
+                  "piece": "L",
+                  "priority": "normal",
+                  "arrival": "when-drawn"
+                },
+                {
+                  "obligation": "left-surface",
+                  "instance": "queue:3",
+                  "piece": "O",
+                  "priority": "normal",
+                  "arrival": "when-drawn"
+                }
+              ],
+              "conflicts": [],
+              "matched": 2,
+              "priorityScore": 11,
+              "arrivalEstimate": 6,
+              "timing": "Distinct instances, essential-role priority and arrival estimates; execution still requires search.",
+              "conflictCount": 0
+            },
+            "claim": "Local regional support estimate, not a sustainability guarantee.",
+            "headroomRisk": 0,
+            "centerContinuity": {
+              "disruptedWithoutClear": false,
+              "unresolved": false,
+              "endpointReusable": false,
+              "preference": 0
+            }
+          },
+          "entryDebt": 0,
+          "nonclearScoringGeometryLost": false,
+          "centerReservation": {
+            "debt": [],
+            "completed": []
+          },
+          "cavityRepair": {
+            "status": "no-outstanding-new-internal-cavity",
+            "cells": []
+          }
+        }
+      }
+    ],
+    "reason": "Hold once. Place here without clearing a line. At the end of this sequence, the Well (column 8) stays below the Left and Center stacks.",
+    "metrics": {
+      "nodes": 16475,
+      "roots": 80,
+      "rootExpanded": 8,
+      "depth": 1,
+      "completeDepth": 1,
+      "elapsedMs": 248,
+      "accessNodes": 0,
+      "earlyCapFallback": {
+        "attempted": 0,
+        "verified": 0,
+        "selected": false,
+        "nodes": 0
+      },
+      "leftFoundationCandidate": false,
+      "gapAccessNodes": 2188,
+      "admissionAttempts": 1,
+      "firstCertified": {
+        "nodes": 7445,
+        "locks": 1
+      },
+      "capStageCandidates": 0,
+      "resourceProofNodes": 0,
+      "queries": {
+        "hits": 0,
+        "avoidedNodes": 0,
+        "proven": 16,
+        "failedWithinScope": 0,
+        "unfinished": 3,
+        "evictions": 0,
+        "peakBytes": 2691968,
+        "peakEntries": 13,
+        "entries": 13,
+        "bytes": 2691968,
+        "maxBytes": 8388608,
+        "maxEntries": 64
+      }
+    },
+    "context": "[\"st-zero-v2\",[\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..OO......\",\"..OO.SS...\",\"JJSSSS....\",\"JSSLLOO...\",\"JLLLLOO...\",\"IIIILL...Z\",\"OOIJJ...ZZ\",\"OOIJLLL.Z.\",\"JSSLSSS.Z.\",\"IIJJLSS.Z.\"],\"S\",true,[\"T\",\"J\",\"L\",\"I\",\"O\",\"S\"],{\"remaining\":[111],\"observedCount\":64,\"provenance\":\"known-phase\"},\"Z\"]",
+    "evidence": {
+      "resetSelection": {
+        "policy": "joint-low-visible-pair-v2",
+        "status": "ordinary-preferred",
+        "reason": "Ordinary geometric profile is present; this is not proof of an executable maintenance continuation.",
+        "ordinaryComparison": "ordinary-geometric-profile",
+        "source": "SHOCKY-4",
+        "claim": "Finite recovery preference within coach coverage; not proof that ordinary play is impossible or a complete Reset.",
+        "resourceRenewal": false
+      },
+      "strategy": "canonical-right-ST",
+      "cycleResources": {
+        "leftFoundations": 0,
+        "centerPreparations": 0,
+        "centerCompletions": 0,
+        "locks": 1,
+        "lines": 0,
+        "materialDelta": 4,
+        "tsds": 0,
+        "quads": 0,
+        "pocket": 0,
+        "outstandingPocket": 0,
+        "tFillers": 0,
+        "iFillers": 0
+      },
+      "commitmentRetained": false,
+      "futureNotches": {
+        "status": "established",
+        "anchorRow": 35,
+        "protectedRows": [
+          35,
+          32,
+          29,
+          26,
+          23,
+          20,
+          17,
+          14,
+          11,
+          8,
+          5,
+          2
+        ],
+        "blockedRows": [],
+        "source": "translated-established-cycle"
+      },
+      "preparationProof": null,
+      "cycleDebt": 0,
+      "cavityRepair": {
+        "status": "verified-prefix-repaired",
+        "outstandingCells": []
+      },
+      "clearPolicy": "right-region full T-spin doubles and I tetrises only",
+      "verifiedLocks": 1,
+      "tsdAt": null,
+      "knownPieceHorizon": 7,
+      "rootEnumerationComplete": true,
+      "budgetExhausted": false,
+      "informationBoundary": false,
+      "initialSealed": 3,
+      "endpointSealed": 3,
+      "regionalSupport": true,
+      "channel": {
+        "column": 7,
+        "height": 0,
+        "openBelowStack": true
+      },
+      "endpointTEntry": "not-established",
+      "unresolvedObligations": [
+        {
+          "kind": "center-partner",
+          "alternatives": [
+            "L"
+          ],
+          "completions": [
+            {
+              "piece": "L",
+              "family": null,
+              "target": {
+                "type": "L",
+                "x": 4,
+                "y": 28,
+                "rotation": 2
+              },
+              "cells": [
+                [
+                  4,
+                  30
+                ],
+                [
+                  5,
+                  30
+                ],
+                [
+                  6,
+                  30
+                ],
+                [
+                  4,
+                  31
+                ]
+              ],
+              "witness": [
+                "R180",
+                "R",
+                "HD"
+              ],
+              "access": "hypothetical-spawn-straight-drop",
+              "resultProfile": [
+                10,
+                10,
+                10
+              ],
+              "resultStatus": "level",
+              "patternSupport": "reference-supported",
+              "preserveCells": [
+                [
+                  4,
+                  30
+                ],
+                [
+                  5,
+                  30
+                ],
+                [
+                  6,
+                  30
+                ],
+                [
+                  4,
+                  31
+                ]
+              ]
+            }
+          ],
+          "note": "Exact straight-drop completion of the current center surface; keep completion cells free.",
+          "supply": [
+            {
+              "id": "queue:1",
+              "piece": "L",
+              "source": "visible",
+              "drawOffset": 2,
+              "available": "when-drawn"
+            }
+          ],
+          "status": "known-piece-identity"
+        },
+        {
+          "kind": "left-surface",
+          "alternatives": [
+            "O"
+          ],
+          "completions": [
+            {
+              "piece": "O",
+              "family": null,
+              "target": {
+                "type": "O",
+                "x": -1,
+                "y": 29,
+                "rotation": 0
+              },
+              "cells": [
+                [
+                  0,
+                  30
+                ],
+                [
+                  1,
+                  30
+                ],
+                [
+                  0,
+                  31
+                ],
+                [
+                  1,
+                  31
+                ]
+              ],
+              "witness": [
+                "L",
+                "L",
+                "L",
+                "L",
+                "HD"
+              ],
+              "access": "hypothetical-spawn-straight-drop",
+              "resultProfile": [
+                10,
+                10,
+                10,
+                10
+              ],
+              "resultStatus": "level",
+              "patternSupport": null,
+              "preserveCells": [
+                [
+                  0,
+                  30
+                ],
+                [
+                  1,
+                  30
+                ],
+                [
+                  0,
+                  31
+                ],
+                [
+                  1,
+                  31
+                ]
+              ]
+            }
+          ],
+          "note": "Optional left-surface improvement, not a mandatory immediate fill.",
+          "supply": [
+            {
+              "id": "queue:3",
+              "piece": "O",
+              "source": "visible",
+              "drawOffset": 4,
+              "available": "when-drawn"
+            }
+          ],
+          "status": "known-piece-identity"
+        }
+      ],
+      "structuralScore": -65.1,
+      "structuralRank": [
+        1,
+        1,
+        0,
+        -17,
+        0,
+        -9,
+        0,
+        0
+      ],
+      "structure": {
+        "frontierDebt": 0,
+        "scoringRowDebt": 0,
+        "left": {
+          "profile": [
+            8,
+            8,
+            10,
+            10
+          ],
+          "flat": false,
+          "roughness": 2,
+          "covered": 0,
+          "horizontalI": null,
+          "completions": [
+            {
+              "piece": "O",
+              "family": null,
+              "target": {
+                "type": "O",
+                "x": -1,
+                "y": 29,
+                "rotation": 0
+              },
+              "cells": [
+                [
+                  0,
+                  30
+                ],
+                [
+                  1,
+                  30
+                ],
+                [
+                  0,
+                  31
+                ],
+                [
+                  1,
+                  31
+                ]
+              ],
+              "witness": [
+                "L",
+                "L",
+                "L",
+                "L",
+                "HD"
+              ],
+              "access": "hypothetical-spawn-straight-drop",
+              "resultProfile": [
+                10,
+                10,
+                10,
+                10
+              ],
+              "resultStatus": "level",
+              "patternSupport": null,
+              "preserveCells": [
+                [
+                  0,
+                  30
+                ],
+                [
+                  1,
+                  30
+                ],
+                [
+                  0,
+                  31
+                ],
+                [
+                  1,
+                  31
+                ]
+              ]
+            }
+          ]
+        },
+        "center": {
+          "foundation": {
+            "status": "unfinished-lower-foundation",
+            "vacancies": [
+              [
+                5,
+                36
+              ],
+              [
+                6,
+                36
+              ]
+            ],
+            "profile": [
+              8,
+              9,
+              9
+            ]
+          },
+          "profile": [
+            8,
+            9,
+            9
+          ],
+          "status": "supported-partner-completion",
+          "motif": ".##/##./###",
+          "patternSupport": "reference-supported",
+          "coveredInternal": 0,
+          "sealedVoids": 0,
+          "coveredCavities": 4,
+          "completionDebt": 0,
+          "completions": [
+            {
+              "piece": "L",
+              "family": null,
+              "target": {
+                "type": "L",
+                "x": 4,
+                "y": 28,
+                "rotation": 2
+              },
+              "cells": [
+                [
+                  4,
+                  30
+                ],
+                [
+                  5,
+                  30
+                ],
+                [
+                  6,
+                  30
+                ],
+                [
+                  4,
+                  31
+                ]
+              ],
+              "witness": [
+                "R180",
+                "R",
+                "HD"
+              ],
+              "access": "hypothetical-spawn-straight-drop",
+              "resultProfile": [
+                10,
+                10,
+                10
+              ],
+              "resultStatus": "level",
+              "patternSupport": "reference-supported",
+              "preserveCells": [
+                [
+                  4,
+                  30
+                ],
+                [
+                  5,
+                  30
+                ],
+                [
+                  6,
+                  30
+                ],
+                [
+                  4,
+                  31
+                ]
+              ]
+            }
+          ]
+        },
+        "right": {
+          "profile": [
+            0,
+            8,
+            7
+          ],
+          "shapeStatus": "unrecognized",
+          "cycle": {
+            "shape": "unrecognized",
+            "phase": "unrecognized",
+            "cleanupColumns": [],
+            "prepareColumn": null,
+            "wallSolid": false,
+            "channelBase": true
+          },
+          "renewalDebt": 2,
+          "reservoir": null,
+          "completions": []
+        },
+        "supportEstimate": -13.5,
+        "uncertainty": true,
+        "capSupplyBurden": 0,
+        "centerCompletionDebt": 0,
+        "supplyBurden": 0.5,
+        "obligations": [
+          {
+            "kind": "center-partner",
+            "alternatives": [
+              "L"
+            ],
+            "completions": [
+              {
+                "piece": "L",
+                "family": null,
+                "target": {
+                  "type": "L",
+                  "x": 4,
+                  "y": 28,
+                  "rotation": 2
+                },
+                "cells": [
+                  [
+                    4,
+                    30
+                  ],
+                  [
+                    5,
+                    30
+                  ],
+                  [
+                    6,
+                    30
+                  ],
+                  [
+                    4,
+                    31
+                  ]
+                ],
+                "witness": [
+                  "R180",
+                  "R",
+                  "HD"
+                ],
+                "access": "hypothetical-spawn-straight-drop",
+                "resultProfile": [
+                  10,
+                  10,
+                  10
+                ],
+                "resultStatus": "level",
+                "patternSupport": "reference-supported",
+                "preserveCells": [
+                  [
+                    4,
+                    30
+                  ],
+                  [
+                    5,
+                    30
+                  ],
+                  [
+                    6,
+                    30
+                  ],
+                  [
+                    4,
+                    31
+                  ]
+                ]
+              }
+            ],
+            "note": "Exact straight-drop completion of the current center surface; keep completion cells free.",
+            "supply": [
+              {
+                "id": "queue:1",
+                "piece": "L",
+                "source": "visible",
+                "drawOffset": 2,
+                "available": "when-drawn"
+              }
+            ],
+            "status": "known-piece-identity"
+          },
+          {
+            "kind": "left-surface",
+            "alternatives": [
+              "O"
+            ],
+            "completions": [
+              {
+                "piece": "O",
+                "family": null,
+                "target": {
+                  "type": "O",
+                  "x": -1,
+                  "y": 29,
+                  "rotation": 0
+                },
+                "cells": [
+                  [
+                    0,
+                    30
+                  ],
+                  [
+                    1,
+                    30
+                  ],
+                  [
+                    0,
+                    31
+                  ],
+                  [
+                    1,
+                    31
+                  ]
+                ],
+                "witness": [
+                  "L",
+                  "L",
+                  "L",
+                  "L",
+                  "HD"
+                ],
+                "access": "hypothetical-spawn-straight-drop",
+                "resultProfile": [
+                  10,
+                  10,
+                  10,
+                  10
+                ],
+                "resultStatus": "level",
+                "patternSupport": null,
+                "preserveCells": [
+                  [
+                    0,
+                    30
+                  ],
+                  [
+                    1,
+                    30
+                  ],
+                  [
+                    0,
+                    31
+                  ],
+                  [
+                    1,
+                    31
+                  ]
+                ]
+              }
+            ],
+            "note": "Optional left-surface improvement, not a mandatory immediate fill.",
+            "supply": [
+              {
+                "id": "queue:3",
+                "piece": "O",
+                "source": "visible",
+                "drawOffset": 4,
+                "available": "when-drawn"
+              }
+            ],
+            "status": "known-piece-identity"
+          }
+        ],
+        "supply": {
+          "instances": [
+            {
+              "id": "active",
+              "piece": "T",
+              "source": "active",
+              "available": "now"
+            },
+            {
+              "id": "hold",
+              "piece": "Z",
+              "source": "hold",
+              "available": "hold-now"
+            },
+            {
+              "id": "queue:0",
+              "piece": "J",
+              "source": "visible",
+              "drawOffset": 1,
+              "available": "when-drawn"
+            },
+            {
+              "id": "queue:1",
+              "piece": "L",
+              "source": "visible",
+              "drawOffset": 2,
+              "available": "when-drawn"
+            },
+            {
+              "id": "queue:2",
+              "piece": "I",
+              "source": "visible",
+              "drawOffset": 3,
+              "available": "when-drawn"
+            },
+            {
+              "id": "queue:3",
+              "piece": "O",
+              "source": "visible",
+              "drawOffset": 4,
+              "available": "when-drawn"
+            },
+            {
+              "id": "queue:4",
+              "piece": "S",
+              "source": "visible",
+              "drawOffset": 5,
+              "available": "when-drawn"
+            }
+          ],
+          "assignments": [
+            {
+              "obligation": "center-partner",
+              "instance": "queue:1",
+              "piece": "L",
+              "priority": "normal",
+              "arrival": "when-drawn"
+            },
+            {
+              "obligation": "left-surface",
+              "instance": "queue:3",
+              "piece": "O",
+              "priority": "normal",
+              "arrival": "when-drawn"
+            }
+          ],
+          "conflicts": [],
+          "matched": 2,
+          "priorityScore": 11,
+          "arrivalEstimate": 6,
+          "timing": "Distinct instances, essential-role priority and arrival estimates; execution still requires search.",
+          "conflictCount": 0
+        },
+        "claim": "Local regional support estimate, not a sustainability guarantee.",
+        "headroomRisk": 0,
+        "centerContinuity": {
+          "disruptedWithoutClear": false,
+          "unresolved": false,
+          "endpointReusable": false,
+          "preference": 0
+        }
+      },
+      "dependencyDebt": 9,
+      "claim": "Finite executable prefix; endpoint estimates are not a sustainability guarantee.",
+      "resourceObligations": {
+        "status": "checked",
+        "binding": "[\"complete\",[{\"id\":1,\"type\":\"S\",\"bag\":0},{\"id\":7,\"type\":\"L\",\"bag\":0},{\"id\":8,\"type\":\"L\",\"bag\":1},{\"id\":9,\"type\":\"S\",\"bag\":1},{\"id\":15,\"type\":\"L\",\"bag\":2},{\"id\":20,\"type\":\"S\",\"bag\":2},{\"id\":25,\"type\":\"L\",\"bag\":3},{\"id\":26,\"type\":\"S\",\"bag\":3},{\"id\":31,\"type\":\"S\",\"bag\":4},{\"id\":32,\"type\":\"L\",\"bag\":4},{\"id\":36,\"type\":\"S\",\"bag\":5},{\"id\":38,\"type\":\"L\",\"bag\":5},{\"id\":48,\"type\":\"L\",\"bag\":6},{\"id\":49,\"type\":\"S\",\"bag\":6},{\"id\":53,\"type\":\"L\",\"bag\":7},{\"id\":55,\"type\":\"S\",\"bag\":7},{\"id\":57,\"type\":\"S\",\"bag\":8},{\"id\":61,\"type\":\"L\",\"bag\":8},{\"id\":64,\"type\":\"S\",\"bag\":9}],[{\"id\":58,\"type\":\"Z\",\"bag\":8},{\"id\":55,\"type\":\"S\",\"bag\":7},{\"id\":59,\"type\":\"T\",\"bag\":8},{\"id\":60,\"type\":\"J\",\"bag\":8},{\"id\":61,\"type\":\"L\",\"bag\":8},{\"id\":62,\"type\":\"I\",\"bag\":8},{\"id\":63,\"type\":\"O\",\"bag\":8},{\"id\":64,\"type\":\"S\",\"bag\":9}],[{\"id\":\"piece-57\",\"rootId\":57,\"family\":\"SL\",\"createdAt\":56,\"alternatives\":[{\"piece\":\"L\",\"cells\":[[4,30],[5,30],[6,30],[4,31]]}],\"rootBag\":8}],[],[{\"bag\":7,\"sId\":55,\"lId\":53,\"at\":52,\"reason\":\"The L was allocated outside its observed S/L pair.\"}],[{\"bag\":3,\"sId\":26,\"lId\":25,\"reason\":\"The previously surplus S was placed in an unreviewed allocation; whether it was accommodated is unknown.\"}],[],[],[{\"bag\":5,\"lId\":38,\"sId\":36,\"reason\":\"The previously surplus L was placed in an unreviewed accommodation; no L repair strategy is inferred.\"}],\"unknown\",[],{\"at\":18}]",
+        "extraZ": "unknown",
+        "pendingCenter": [
+          {
+            "rootId": 57,
+            "bag": 8,
+            "family": "SL",
+            "alternatives": [
+              {
+                "piece": "L",
+                "cells": [
+                  [
+                    4,
+                    30
+                  ],
+                  [
+                    5,
+                    30
+                  ],
+                  [
+                    6,
+                    30
+                  ],
+                  [
+                    4,
+                    31
+                  ]
+                ]
+              }
+            ],
+            "created": false,
+            "lost": false
+          }
+        ],
+        "hangingS": [],
+        "unclassifiedS": [
+          {
+            "bag": 3,
+            "sId": 26,
+            "lId": 25,
+            "reason": "The previously surplus S was placed in an unreviewed allocation; whether it was accommodated is unknown."
+          },
+          {
+            "sId": 55,
+            "bag": 7,
+            "reason": "Unreviewed accommodation of an observed surplus S."
+          }
+        ],
+        "hangingL": []
+      },
+      "gapAccess": {
+        "reachable": true,
+        "complete": true,
+        "visited": 0,
+        "status": "prefix-movement-access-witnessed",
+        "steps": [
+          {
+            "status": "no-new-roofed-cells",
+            "complete": true,
+            "reachable": true,
+            "cells": [],
+            "visited": 0
+          }
+        ]
+      }
+    },
+    "status": "recommended-with-verified-prefix",
+    "sources": [
+      {
+        "url": "https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit",
+        "section": "Chapter 1: The ST Stacking Timeline and Anatomy",
+        "id": "SHOCKY-1",
+        "label": "Shocky's ST Stacking Guide",
+        "scope": "Defines Left as columns 1\u20134, Center as 5\u20137, Right as 8\u201310, Pocket as column 10, Well as column 8, and a Z covering the Pocket as capped. Supports terminology, not this checked cap-replacement sequence."
+      }
+    ],
+    "assessment": {
+      "maintenanceScope": true,
+      "regionalSupport": true,
+      "regionImbalance": 0,
+      "channel": {
+        "column": 7,
+        "height": 0,
+        "openBelowStack": true
+      },
+      "heights": [
+        8,
+        8,
+        10,
+        10,
+        8,
+        9,
+        9,
+        0,
+        8,
+        7
+      ],
+      "maxHeight": 10,
+      "headroom": 10,
+      "sealed": 3,
+      "sealedCells": [
+        [
+          9,
+          37
+        ],
+        [
+          9,
+          38
+        ],
+        [
+          9,
+          39
+        ]
+      ],
+      "leftSealed": 0,
+      "covered": 9,
+      "damageSealed": 3,
+      "damageCovered": 9,
+      "left": {
+        "height": 10,
+        "roughness": 2
+      },
+      "center": {
+        "height": 9,
+        "profile": [
+          8,
+          9,
+          9
+        ],
+        "partnerDeficit": 1,
+        "partnerStatus": "unfinished-open-surface"
+      },
+      "right": {
+        "height": 8,
+        "slots": []
+      },
+      "obligations": [
+        {
+          "kind": "center-partner",
+          "alternatives": [
+            "L"
+          ],
+          "completions": [
+            {
+              "piece": "L",
+              "family": null,
+              "target": {
+                "type": "L",
+                "x": 4,
+                "y": 28,
+                "rotation": 2
+              },
+              "cells": [
+                [
+                  4,
+                  30
+                ],
+                [
+                  5,
+                  30
+                ],
+                [
+                  6,
+                  30
+                ],
+                [
+                  4,
+                  31
+                ]
+              ],
+              "witness": [
+                "R180",
+                "R",
+                "HD"
+              ],
+              "access": "hypothetical-spawn-straight-drop",
+              "resultProfile": [
+                10,
+                10,
+                10
+              ],
+              "resultStatus": "level",
+              "patternSupport": "reference-supported",
+              "preserveCells": [
+                [
+                  4,
+                  30
+                ],
+                [
+                  5,
+                  30
+                ],
+                [
+                  6,
+                  30
+                ],
+                [
+                  4,
+                  31
+                ]
+              ]
+            }
+          ],
+          "note": "Exact straight-drop completion of the current center surface; keep completion cells free.",
+          "supply": [
+            {
+              "id": "queue:1",
+              "piece": "L",
+              "source": "visible",
+              "drawOffset": 2,
+              "available": "when-drawn"
+            }
+          ],
+          "status": "known-piece-identity"
+        },
+        {
+          "kind": "left-surface",
+          "alternatives": [
+            "O"
+          ],
+          "completions": [
+            {
+              "piece": "O",
+              "family": null,
+              "target": {
+                "type": "O",
+                "x": -1,
+                "y": 29,
+                "rotation": 0
+              },
+              "cells": [
+                [
+                  0,
+                  30
+                ],
+                [
+                  1,
+                  30
+                ],
+                [
+                  0,
+                  31
+                ],
+                [
+                  1,
+                  31
+                ]
+              ],
+              "witness": [
+                "L",
+                "L",
+                "L",
+                "L",
+                "HD"
+              ],
+              "access": "hypothetical-spawn-straight-drop",
+              "resultProfile": [
+                10,
+                10,
+                10,
+                10
+              ],
+              "resultStatus": "level",
+              "patternSupport": null,
+              "preserveCells": [
+                [
+                  0,
+                  30
+                ],
+                [
+                  1,
+                  30
+                ],
+                [
+                  0,
+                  31
+                ],
+                [
+                  1,
+                  31
+                ]
+              ]
+            }
+          ],
+          "note": "Optional left-surface improvement, not a mandatory immediate fill.",
+          "supply": [
+            {
+              "id": "queue:3",
+              "piece": "O",
+              "source": "visible",
+              "drawOffset": 4,
+              "available": "when-drawn"
+            }
+          ],
+          "status": "known-piece-identity"
+        }
+      ],
+      "estimate": -24.6,
+      "assumptions": [
+        "Structural estimates are heuristic; only the returned input prefix is verified."
+      ],
+      "structure": {
+        "frontierDebt": 0,
+        "scoringRowDebt": 0,
+        "left": {
+          "profile": [
+            8,
+            8,
+            10,
+            10
+          ],
+          "flat": false,
+          "roughness": 2,
+          "covered": 0,
+          "horizontalI": null,
+          "completions": [
+            {
+              "piece": "O",
+              "family": null,
+              "target": {
+                "type": "O",
+                "x": -1,
+                "y": 29,
+                "rotation": 0
+              },
+              "cells": [
+                [
+                  0,
+                  30
+                ],
+                [
+                  1,
+                  30
+                ],
+                [
+                  0,
+                  31
+                ],
+                [
+                  1,
+                  31
+                ]
+              ],
+              "witness": [
+                "L",
+                "L",
+                "L",
+                "L",
+                "HD"
+              ],
+              "access": "hypothetical-spawn-straight-drop",
+              "resultProfile": [
+                10,
+                10,
+                10,
+                10
+              ],
+              "resultStatus": "level",
+              "patternSupport": null,
+              "preserveCells": [
+                [
+                  0,
+                  30
+                ],
+                [
+                  1,
+                  30
+                ],
+                [
+                  0,
+                  31
+                ],
+                [
+                  1,
+                  31
+                ]
+              ]
+            }
+          ]
+        },
+        "center": {
+          "foundation": {
+            "status": "unfinished-lower-foundation",
+            "vacancies": [
+              [
+                5,
+                36
+              ],
+              [
+                6,
+                36
+              ]
+            ],
+            "profile": [
+              8,
+              9,
+              9
+            ]
+          },
+          "profile": [
+            8,
+            9,
+            9
+          ],
+          "status": "supported-partner-completion",
+          "motif": ".##/##./###",
+          "patternSupport": "reference-supported",
+          "coveredInternal": 0,
+          "sealedVoids": 0,
+          "coveredCavities": 4,
+          "completionDebt": 0,
+          "completions": [
+            {
+              "piece": "L",
+              "family": null,
+              "target": {
+                "type": "L",
+                "x": 4,
+                "y": 28,
+                "rotation": 2
+              },
+              "cells": [
+                [
+                  4,
+                  30
+                ],
+                [
+                  5,
+                  30
+                ],
+                [
+                  6,
+                  30
+                ],
+                [
+                  4,
+                  31
+                ]
+              ],
+              "witness": [
+                "R180",
+                "R",
+                "HD"
+              ],
+              "access": "hypothetical-spawn-straight-drop",
+              "resultProfile": [
+                10,
+                10,
+                10
+              ],
+              "resultStatus": "level",
+              "patternSupport": "reference-supported",
+              "preserveCells": [
+                [
+                  4,
+                  30
+                ],
+                [
+                  5,
+                  30
+                ],
+                [
+                  6,
+                  30
+                ],
+                [
+                  4,
+                  31
+                ]
+              ]
+            }
+          ]
+        },
+        "right": {
+          "profile": [
+            0,
+            8,
+            7
+          ],
+          "shapeStatus": "unrecognized",
+          "cycle": {
+            "shape": "unrecognized",
+            "phase": "unrecognized",
+            "cleanupColumns": [],
+            "prepareColumn": null,
+            "wallSolid": false,
+            "channelBase": true
+          },
+          "renewalDebt": 2,
+          "reservoir": null,
+          "completions": []
+        },
+        "supportEstimate": -13.5,
+        "uncertainty": true,
+        "capSupplyBurden": 0,
+        "centerCompletionDebt": 0,
+        "supplyBurden": 0.5,
+        "obligations": [
+          {
+            "kind": "center-partner",
+            "alternatives": [
+              "L"
+            ],
+            "completions": [
+              {
+                "piece": "L",
+                "family": null,
+                "target": {
+                  "type": "L",
+                  "x": 4,
+                  "y": 28,
+                  "rotation": 2
+                },
+                "cells": [
+                  [
+                    4,
+                    30
+                  ],
+                  [
+                    5,
+                    30
+                  ],
+                  [
+                    6,
+                    30
+                  ],
+                  [
+                    4,
+                    31
+                  ]
+                ],
+                "witness": [
+                  "R180",
+                  "R",
+                  "HD"
+                ],
+                "access": "hypothetical-spawn-straight-drop",
+                "resultProfile": [
+                  10,
+                  10,
+                  10
+                ],
+                "resultStatus": "level",
+                "patternSupport": "reference-supported",
+                "preserveCells": [
+                  [
+                    4,
+                    30
+                  ],
+                  [
+                    5,
+                    30
+                  ],
+                  [
+                    6,
+                    30
+                  ],
+                  [
+                    4,
+                    31
+                  ]
+                ]
+              }
+            ],
+            "note": "Exact straight-drop completion of the current center surface; keep completion cells free.",
+            "supply": [
+              {
+                "id": "queue:1",
+                "piece": "L",
+                "source": "visible",
+                "drawOffset": 2,
+                "available": "when-drawn"
+              }
+            ],
+            "status": "known-piece-identity"
+          },
+          {
+            "kind": "left-surface",
+            "alternatives": [
+              "O"
+            ],
+            "completions": [
+              {
+                "piece": "O",
+                "family": null,
+                "target": {
+                  "type": "O",
+                  "x": -1,
+                  "y": 29,
+                  "rotation": 0
+                },
+                "cells": [
+                  [
+                    0,
+                    30
+                  ],
+                  [
+                    1,
+                    30
+                  ],
+                  [
+                    0,
+                    31
+                  ],
+                  [
+                    1,
+                    31
+                  ]
+                ],
+                "witness": [
+                  "L",
+                  "L",
+                  "L",
+                  "L",
+                  "HD"
+                ],
+                "access": "hypothetical-spawn-straight-drop",
+                "resultProfile": [
+                  10,
+                  10,
+                  10,
+                  10
+                ],
+                "resultStatus": "level",
+                "patternSupport": null,
+                "preserveCells": [
+                  [
+                    0,
+                    30
+                  ],
+                  [
+                    1,
+                    30
+                  ],
+                  [
+                    0,
+                    31
+                  ],
+                  [
+                    1,
+                    31
+                  ]
+                ]
+              }
+            ],
+            "note": "Optional left-surface improvement, not a mandatory immediate fill.",
+            "supply": [
+              {
+                "id": "queue:3",
+                "piece": "O",
+                "source": "visible",
+                "drawOffset": 4,
+                "available": "when-drawn"
+              }
+            ],
+            "status": "known-piece-identity"
+          }
+        ],
+        "supply": {
+          "instances": [
+            {
+              "id": "active",
+              "piece": "T",
+              "source": "active",
+              "available": "now"
+            },
+            {
+              "id": "hold",
+              "piece": "Z",
+              "source": "hold",
+              "available": "hold-now"
+            },
+            {
+              "id": "queue:0",
+              "piece": "J",
+              "source": "visible",
+              "drawOffset": 1,
+              "available": "when-drawn"
+            },
+            {
+              "id": "queue:1",
+              "piece": "L",
+              "source": "visible",
+              "drawOffset": 2,
+              "available": "when-drawn"
+            },
+            {
+              "id": "queue:2",
+              "piece": "I",
+              "source": "visible",
+              "drawOffset": 3,
+              "available": "when-drawn"
+            },
+            {
+              "id": "queue:3",
+              "piece": "O",
+              "source": "visible",
+              "drawOffset": 4,
+              "available": "when-drawn"
+            },
+            {
+              "id": "queue:4",
+              "piece": "S",
+              "source": "visible",
+              "drawOffset": 5,
+              "available": "when-drawn"
+            }
+          ],
+          "assignments": [
+            {
+              "obligation": "center-partner",
+              "instance": "queue:1",
+              "piece": "L",
+              "priority": "normal",
+              "arrival": "when-drawn"
+            },
+            {
+              "obligation": "left-surface",
+              "instance": "queue:3",
+              "piece": "O",
+              "priority": "normal",
+              "arrival": "when-drawn"
+            }
+          ],
+          "conflicts": [],
+          "matched": 2,
+          "priorityScore": 11,
+          "arrivalEstimate": 6,
+          "timing": "Distinct instances, essential-role priority and arrival estimates; execution still requires search.",
+          "conflictCount": 0
+        },
+        "claim": "Local regional support estimate, not a sustainability guarantee.",
+        "headroomRisk": 0,
+        "centerContinuity": {
+          "disruptedWithoutClear": false,
+          "unresolved": false,
+          "endpointReusable": false,
+          "preference": 0
+        }
+      },
+      "leftContext": {
+        "source": "https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit",
+        "shape": null,
+        "tier": null,
+        "profile": [
+          0,
+          0,
+          2,
+          2
+        ],
+        "score": 0,
+        "adjustment": 0,
+        "context": "unlisted-neutral",
+        "horizon": 2,
+        "executionVerified": false
+      }
+    }
+  }
+}

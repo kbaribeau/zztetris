@@ -24,3 +24,16 @@ resolve invalidations; this change does not invent one or implement Reset.
 The regression fixture contains public observations and replay context at seed
 4242428105 before locks 17 and 18. I17 invalidates SL root14; history retains its
 unclassified S, which previously disappeared in maintenance initialization.
+
+Within a projected prefix, consuming a confirmed hanging S in an unreviewed
+allocation records `requiresAccommodation:true` on its unclassified record. This
+is neither a live piece nor a new confirmed placement target. It prevents loss
+of an unmet obligation from turning a previously rejected prefix into a proven
+repair. Completing another Center root cannot discharge it. Repair goals,
+ordinary admission and revalidation all retain this guard, including uncertainty
+created during the repair search itself. Public-history session replay before
+the disposal reconstructs the known identity and repeats the same check.
+
+This does not reinterpret all already-unclassified imported/opening history as
+confirmed debt. It is a guard against creating acceptable uncertainty from a
+known obligation inside the currently certified prefix.
