@@ -92,6 +92,15 @@ function placementsCore(s,options={}){
    roots.push({state:current,witness:Array(count).fill('HOLD'),hold:true,holdCount:count});
   }
  }
+ // One enumeration has one board. Landing type/pose/spin determines the
+ // event; held piece, pre-lock queue and cursor determine post-lock supply.
+ // Intern supply only among these at-most-three roots. Equivalent swap-back
+ // roots still compete for the original shortest witness.
+ const supplyKeys=unlimited?roots.map(r=>JSON.stringify([r.state.hold,r.state.queue,r.state.streamCursor])):null;
+ const outcomeRoots=unlimited?roots.map((r,i)=>supplyKeys.indexOf(supplyKeys[i])*7+TYPES.indexOf(r.state.active.type)):null;
+ // Mixed-radix identity: root/type<21, x+4<16, y+4<64, rotation<4,
+ // spin<3. Legal origins are x[-3,9], y[-3,39]; the key is below258048.
+ // Plain Number arithmetic is exact here; no signed32-bit bitwise packing.
  // Interleave frontiers so a tight budget cannot starve hold.
  const queues=roots.map(r=>[{state:r.state,parent:-1,action:null,depth:r.witness.length}]),seen=roots.map(r=>new Set([poseKey(r.state.active)])),heads=roots.map(()=>0);
  outer:while(queues.some((q,i)=>heads[i]<q.length)){for(let k=0;k<queues.length;k++){
@@ -102,7 +111,7 @@ function placementsCore(s,options={}){
   if(event&&!event.topOut){
    // In v2 deduplicate equivalent outcomes, not merely matching targets: an
    // empty-hold swap-back can have the same target but different held/next pieces.
-   const id=unlimited?JSON.stringify([event,locked.active,locked.hold,locked.queue,locked.streamCursor]):[roots[k].hold,event.target.type,event.target.x,event.target.y,event.target.rotation,event.spin].join(':');
+   const id=unlimited?(((outcomeRoots[k]*16+event.target.x+4)*64+event.target.y+4)*4+event.target.rotation)*3+(event.spin==='full'?2:event.spin==='mini'?1:0):[roots[k].hold,event.target.type,event.target.x,event.target.y,event.target.rotation,event.spin].join(':');
    const index=seenOut.get(id);
    if(index===undefined||n.depth+1<out[index].witness.length){
     const placement={target:event.target,hold:roots[k].hold,holdCount:roots[k].holdCount,witness:witness(queues[k],indexInQueue,roots[k].witness),state:locked,event};
