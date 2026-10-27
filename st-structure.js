@@ -13,7 +13,9 @@ const rough=p=>p.slice(1).reduce((n,h,i)=>n+Math.abs(h-p[i]),0);
 // results remain in their existing calculation/cache scope.
 const COMPLETION_POSES=Object.freeze(Object.fromEntries([...'IJLOSTZ'].map(piece=>[piece,Object.freeze(Array.from({length:4},(_,rotation)=>{
  const offsets=Object.freeze(R.cells({type:piece,x:0,y:0,rotation}).map(cell=>Object.freeze(cell)));
- return Object.freeze({offsets,minX:Math.min(...offsets.map(c=>c[0])),maxX:Math.max(...offsets.map(c=>c[0]))});
+ const columns=[];for(let dx=0;dx<4;dx++){const ys=offsets.filter(c=>c[0]===dx).map(c=>c[1]);if(ys.length)columns.push(Object.freeze({dx,top:Math.min(...ys),bottom:Math.max(...ys),count:ys.length}));}
+ const counts=Object.freeze(Array.from({length:4},(_,dx)=>offsets.filter(c=>c[0]===dx).length));
+ return Object.freeze({offsets,columns:Object.freeze(columns),counts,minY:Math.min(...offsets.map(c=>c[1])),minX:Math.min(...offsets.map(c=>c[0])),maxX:Math.max(...offsets.map(c=>c[0]))});
 }))])));
 // Positive three-row center motifs observed in the two existing Fumen sources.
 // Local occupancy only: no board height, left/right state, fixture ID or move
@@ -71,22 +73,27 @@ function sealed(board,cols,h=heights(board)){const top=Math.max(0,39-Math.max(..
 function completions(board,lo,hi,pieces,notches,h0=heights(board)){const protectedCols=lo===4?[4,5]:[0,1,2,3],out=[],seen=new Set();
  const oldProfile=h0.slice(lo,hi+1),oldPeak=Math.max(...oldProfile),oldRoughness=rough(oldProfile);let baselineSealed;
  for(const piece of pieces)for(let rotation=0;rotation<4;rotation++){
-  const {offsets,minX,maxX}=COMPLETION_POSES[piece][rotation];
+  const {offsets,columns,counts,minY,minX,maxX}=COMPLETION_POSES[piece][rotation];
   for(let x=lo-minX;x<=hi-maxX;x++){
    // A straight drop lands above the first occupied cell of each touched
    // column. Check inexpensive height/void invariants before executing a path.
-   const y=Math.min(...offsets.map(([dx,dy])=>40-h0[x+dx]-dy-1)),cells=offsets.map(([dx,dy])=>[x+dx,y+dy]);
-   if(y<0)continue;const h=h0.slice();for(const[cx,cy]of cells)h[cx]=Math.max(h[cx],40-cy);
-   const profile=h.slice(lo,hi+1),level=new Set(profile).size===1;
+   // Lowest cell per touched column determines landing; highest determines
+   // the new profile. Reject geometry before allocating four cell pairs.
+   let y=Infinity;for(const c of columns)y=Math.min(y,39-h0[x+c.dx]-c.bottom);
+   if(y<0)continue;const profile=oldProfile.slice();
+   for(const c of columns){const i=x+c.dx-lo;profile[i]=Math.max(profile[i],40-y-c.top);}
+   let level=true;for(let i=1;i<profile.length;i++)if(profile[i]!==profile[0]){level=false;break;}
    const nextSL=lo===4&&profile[0]+1===profile[1]&&profile[1]===profile[2];
    // A non-level repair must fill an existing deep left deficit, not merely
    // add arbitrary surface filler. Keep every new cell below the old peak
    // and improve a column at least three rows below it without roofing holes.
-   const partialRepair=lo===0&&!level&&cells.every(([,cy])=>40-cy<=oldPeak)&&
-    protectedCols.some(cx=>oldPeak-h0[cx]>=3&&h[cx]>h0[cx])&&rough(profile)<oldRoughness;
+   const partialRepair=lo===0&&!level&&40-y-minY<=oldPeak&&
+    protectedCols.some(cx=>oldPeak-h0[cx]>=3&&profile[cx-lo]>h0[cx])&&rough(profile)<oldRoughness;
    if(!level&&!nextSL&&!partialRepair)continue;
-   const addsCover=protectedCols.some(cx=>h[cx]-h0[cx]>cells.filter(c=>c[0]===cx).length);
-   if(addsCover){if(lo!==4)continue;const projected=board.map(r=>r.split(''));for(const[cx,cy]of cells)projected[cy][cx]=piece;if(sealed(projected.map(r=>r.join('')),[4,5,6],h)>(baselineSealed??=sealed(board,[4,5,6],h0)))continue;}
+   const addsCover=protectedCols.some(cx=>profile[cx-lo]-h0[cx]>(counts[cx-x]??0));
+   if(addsCover&&lo!==4)continue;
+   const cells=offsets.map(([dx,dy])=>[x+dx,y+dy]);
+   if(addsCover){const h=h0.slice();for(let i=0;i<profile.length;i++)h[lo+i]=profile[i];const projected=board.map(r=>r.split(''));for(const[cx,cy]of cells)projected[cy][cx]=piece;if(sealed(projected.map(r=>r.join('')),[4,5,6],h)>(baselineSealed??=sealed(board,[4,5,6],h0)))continue;}
    const key=cells.map(c=>c.join(',')).sort().join(';');if(seen.has(key))continue;
    let state=R.createState({board,active:piece,canHold:false});if(!R.fits(board,state.active))continue;const witness=[];
    const turn=rotation===1?'CW':rotation===2?'R180':rotation===3?'CCW':null;if(turn){const n=R.move(state,turn);if(n===state)continue;state=n;witness.push(turn);}
@@ -97,7 +104,7 @@ function completions(board,lo,hi,pieces,notches,h0=heights(board)){const protect
    // notch. Execute the advertised witness and inherit the caller's cycle phase.
    if(lo===4){const replay=R.replay(R.createState({board,active:piece,canHold:false}),[...witness,'HD']);
     if(!replay.valid||replay.events.length!==1||!canonicalClear(replay.events[0])||!advanceNotches(board,{event:replay.events[0],state:replay.state},notches).valid)continue;}
-   seen.add(key);out.push({piece,family:null,target:e.target,cells:e.cells,witness:[...witness,'HD'],access:'hypothetical-spawn-straight-drop',resultProfile:h.slice(lo,hi+1),resultStatus:level?'level':partialRepair?'partial-repair':'SL-preparation-surface',patternSupport:lo!==4?null:CENTER_MOTIFS.has(centerMotif(n.board))?'reference-supported':'unrecognized',preserveCells:e.cells.map(c=>c.slice())});
+   seen.add(key);out.push({piece,family:null,target:e.target,cells:e.cells,witness:[...witness,'HD'],access:'hypothetical-spawn-straight-drop',resultProfile:profile,resultStatus:level?'level':partialRepair?'partial-repair':'SL-preparation-surface',patternSupport:lo!==4?null:CENTER_MOTIFS.has(centerMotif(n.board))?'reference-supported':'unrecognized',preserveCells:e.cells.map(c=>c.slice())});
   }
  }return out;
 }

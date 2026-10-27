@@ -36,3 +36,20 @@ test('st-completions/facts: board-dependent heights and sealed baselines do not 
  assert.deepEqual(unknown.supply.instances,[],'piece supply is not memoized with shape facts');
  assert.ok(expected.supply.instances.length>0);
 });
+
+test('st-completions/facts: shifted stacks retain exact executable profiles and independent output cells',()=>{
+ let checked=0;const height=(board,x)=>{for(let y=0;y<40;y++)if(board[y][x]!=='.')return 40-y;return 0;};
+ for(const fixture of F.list)for(const shift of [0,4,12]){
+  const board=fixture.observation.board.slice(shift).concat(Array(shift).fill('..........'));
+  const state=R.createState({board,active:'T',hold:'I',queue:['S','L','O','J','Z']});S.clearCache();const assessment=S.assess(state);
+  for(const [region,lo,hi]of [['left',0,3],['center',4,6]]){
+   const seen=new Set();for(const c of assessment[region].completions){
+    const replay=R.replay(R.createState({board,active:c.piece,canHold:false}),c.witness);assert.equal(replay.valid,true);assert.equal(replay.events.length,1);assert.equal(replay.events[0].lines,0);assert.equal(replay.events[0].topOut,false);
+    assert.deepEqual(c.cells,replay.events[0].cells);assert.deepEqual(c.resultProfile,Array.from({length:hi-lo+1},(_,i)=>height(replay.state.board,lo+i)));
+    const key=c.cells.map(([x,y])=>x+','+y).sort().join(';');assert.equal(seen.has(key),false);seen.add(key);
+    assert.notEqual(c.cells,c.preserveCells);assert.notEqual(c.cells[0],c.preserveCells[0]);checked++;
+   }
+  }
+ }
+ assert.ok(checked>20,'exercise multiple piece columns, rotations and surface heights');
+});
