@@ -48,10 +48,22 @@ test('st-center-phase/quad translation preserves valid original partner evidence
 test('st-center-phase/recommendation preserves cleanup without demanding immediate pair completion',()=>{
  const plan=P.plan(state(),{depth:3,width:8,maxNodes:45000});
  assert.equal(plan.status,'recommended-with-verified-prefix');assert.equal(plan.target.type,'O');
- assert.ok(plan.continuation[0].event.cells.every(([x])=>x===2||x===3));
+ // Cleanup may use any safe Left O placement, not one ranking-specific column.
+ assert.equal(plan.continuation[0].event.type,'O');
+ assert.ok(plan.continuation[0].event.cells.every(([x])=>x>=0&&x<4));
  assert.equal(plan.continuation[1].event.type,'I');assert.equal(plan.continuation[1].event.lines,4);
  let s=state(),notches=S.notchPattern(s.board);
- for(const step of plan.continuation){const r=R.replay(s,step.witness);assert.equal(r.valid,true);const check=S.advanceNotches(s.board,{event:r.events[0],state:r.state},notches);assert.equal(check.valid,true);notches=check.pattern;s=r.state;}
+ for(const [i,step] of plan.continuation.entries()){
+  const r=R.replay(s,step.witness);assert.equal(r.valid,true);assert.deepEqual(r.events,[step.event]);
+  const check=S.advanceNotches(s.board,{event:r.events[0],state:r.state},notches);assert.equal(check.valid,true);notches=check.pattern;s=r.state;
+  const center=S.geometry(s.board,{notches}).center;
+  assert.equal(center.foundation.status,'aligned');assert.equal(center.patternSupport,'reference-supported');
+  if(i===1){
+   assert.equal(notches.anchorRow,36,'The actual quad translates the inherited scoring phase');
+   const j=center.completions.find(c=>c.piece==='J');assert.ok(j,'Cleanup preserves the existing Center partner');
+   assert.equal(replayPartner(s.board,j,notches).valid,true);
+  }
+ }
 });
 test('st-center-phase/existing incomplete center constructions retain replayable compatible partners',()=>{
  for(const id of ['empty-hold','after-quad','center-j']){

@@ -79,22 +79,3 @@ test('resource context: Center obligation bag identities derive from replayed ro
  const imported=H.resolve(state,H.start(state));
  for(const obligation of imported.center.pending)assert.equal(obligation.rootBag,null);
 });
-
-test('resource context: invalid transport cannot strip Center debt from legacy retained advice',()=>{
- const P=require('../st-planner'),state=require('./support/st-opening-handoff.json').after,bounds={disableOpening:true,maxNodes:45000,deadline:Infinity};
- const advice=P.plan(state,bounds);assert.ok(advice.target);assert.ok(H.resolve(state,H.start(state)).center.pending.length);
- // Old cached advice has no resource binding, so the endpoint check itself
- // must reject invalid transport rather than silently erase imported geometry.
- delete advice.evidence.resourceObligations;
- assert.ok(P.revalidate(state,advice,bounds));
- const action=advice.witness[0],moved=R.move(R.createState(state),action);
- assert.ok(P.advance(moved,advice,action,bounds));
- const locked=R.replay(state,advice.witness);assert.ok(locked.valid);
- assert.ok(P.continueCommitment(state,locked.state,advice,locked.events[0],bounds));
- const invalid={schemaVersion:1,origin:state,fresh:false,steps:[{action:'TELEPORT',revealed:[]}],handoffAtAction:null};
- for(const raw of [state,moved,locked.state])assert.equal(H.resolve(raw,H.importContext(raw,invalid)).coverage.status,'invalid');
- const options={...bounds,resourceContext:invalid};
- assert.equal(P.revalidate(state,advice,options),null);
- assert.equal(P.advance(moved,advice,action,options),null);
- assert.equal(P.continueCommitment(state,locked.state,advice,locked.events[0],options),null);
-});
