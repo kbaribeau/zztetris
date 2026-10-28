@@ -295,3 +295,43 @@ source progress through the second bag and first TSD, repair/commitment evidence
 mid-piece movement, stale same-revision replies, rejection atomicity and limits.
 Deterministic node-budget comparisons cover recommendation equivalence; ordinary
 wall-clock-limited planning may still differ with scheduling and hardware.
+
+## Forced-supply proof retention
+
+See [the forced-bag binding contract](docs/st-forced-bag-binding.md) for consistent
+normalization of a publicly deduced piece without weakening history/identity
+guards. No handoff budget or placement policy is changed by this correction.
+
+### Experimental finite Left-support priority
+
+A separate optional `left-support` construction can fill an open four-cell Left
+support deficit with the current I before covering it, but only when a distinct
+already visible I is actually replayed to the original Right preparation column.
+All intervening locks are nonclearing Left-only placements with no covered Left
+vacancies; Center and Right stay unchanged until that final payment. The route
+ends at the replacement I, uses at most seven public locks, and is neither a
+scoring proof nor a Reset. This is an engineered supported subset, not a ban on
+legitimate accessible overhangs or a general preference for I on the Left.
+
+The ordinary coach decision is fully certified first. This finite alternative
+uses only remaining request nodes/time, retaining the exact private incumbent
+on failure or unknown proof. The ordinary cleanup-I reservation and resource-goal
+comparator are unchanged. A dedicated validator replays the complete original
+visible route on admission, HOLD/movement, and every retained lock; copied kind,
+consumed or completion flags grant no authority. No Center classifier, S/L weight,
+opening allocation or Right-filler policy changes are included.
+
+The generic certificate establishes a useful support fill and finite Right
+repayment; it does not prove that every alternative ordering would cover those
+cells or be irreparable. The demonstrated no-fill J/L seal is a separate test
+case, not a theorem inferred from every selected route. Confirmed Center and
+Hanging-S obligations and T collisions must be paid at the certificate endpoint;
+old unclassified allocations and deferred Hanging-L diagnostics remain explicit.
+Original visibility is bound to the connected actual resource-history prefix,
+including draws. A deduced forced-bag search copy is not substituted for that
+actual observation during retention.
+The dedicated exception waives only the first I's cleanup diversion. Actual cap
+availability is independently replayed from the current pose and up to two legal
+HOLDs before every step; an available Z cap still forbids optional Left work.
+Those finite checks share the original node/deadline budget, and unknown proof
+rejects the construction. T and Z are excluded from intermediate fillers.

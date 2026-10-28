@@ -66,7 +66,22 @@ function comparisonControl(original){
  // rather than blocked behind S,T while Z occupies HOLD.
  const c=JSON.parse(JSON.stringify(original));c.before.queue=['Z','I','O','S','T','J'];c.snapshot.queue=['I','O','S','T','J','L'];delete c.before.bag;delete c.snapshot.bag;return c;
 }
-for(const original of require('./support/st-commitment-comparison.json')){const c=comparisonControl(original);test('same-horizon commitment replacement: '+c.name,()=>{
+for(const original of require('./support/st-commitment-comparison.json')){const c=comparisonControl(original);
+ if(c.name==='incidental I repair before a T goal'){
+  test('milestone scope: inherited off-pattern column-seven vacancy is not a required I-recovery admission',()=>{
+   const state=R.createState(c.snapshot),phase=S.notchPattern(state.board),i=R.replay(state,['CCW','HD']);
+   assert.ok(i.valid);assert.deepEqual(i.events[0].target,c.expectedTarget);
+   assert.deepEqual(S.centerFoundation(state.board,phase).vacancies,[[6,28]]);
+   const next=S.advanceNotches(state.board,{state:i.state,event:i.events[0]},phase);assert.ok(next.valid);
+   assert.deepEqual(S.centerFoundation(i.state.board,next.pattern).vacancies,[[6,28]]);
+   assert.equal(S.geometry(i.state.board,{notches:next.pattern}).center.patternSupport,'reference-supported');
+   assert.equal(P.ordinaryCenterEligible(state,{state:i.state,event:i.events[0]},phase),false);
+   const goal=c.previous.continuation.find(p=>p.event.type==='T'&&p.event.lines===2),t=R.replay(i.state,goal.witness);
+   assert.ok(t.valid);assert.equal(t.events[0].spin,'full');assert.equal(t.events[0].lines,2);
+   assert.ok(S.advanceNotches(i.state.board,{state:t.state,event:t.events[0]},next.pattern).valid);
+  });continue;
+ }
+ test('same-horizon commitment replacement: '+c.name,()=>{
  const suffix=P.continueCommitment(c.before,c.snapshot,c.previous,c.event);assert.ok(suffix);
  // Fixed node budget removes host-timing noise from this policy regression.
  const a=P.plan(c.snapshot,{...config,now:()=>0,commitment:{observation:c.snapshot,advice:suffix}});

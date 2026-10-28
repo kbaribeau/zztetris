@@ -2,9 +2,12 @@
  * restored. This format stores visible inputs, not hidden RNG or future bags. */
 (function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-bag'),require('./st-resource-history'),require('./st-pattern-history'),require('./st-planner'),require('./st-opening'),()=>require('./st-coach-config')):factory(root.STRules,root.STBag,root.STResourceHistory,root.STPatternHistory,root.STPlanner,root.STOpening,()=>root.STCoachConfig);if(typeof module==='object'&&module.exports)module.exports=api;else root.STSession=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,B,H,PH,P,O,C){
 'use strict';
-const FORMAT='zztetris-st-session',VERSION=1,ENGINE='st-coach-session-2026-10-27-opening-allocation-v1';
+const FORMAT='zztetris-st-session',VERSION=1,ENGINE='st-coach-session-2026-10-28-left-support-experiment-v1';
 const LIMITS=Object.freeze({bytes:4*1024*1024,depth:64,nodes:150000,witness:256,continuation:16});
 const clone=x=>JSON.parse(JSON.stringify(x)),same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+// Transient next-lock routing is not portable certificate authority.
+function portableAdvice(value){const result=clone(value);if(result.evidence?.openingHandoff)delete result.evidence.openingHandoff.recovery;return result;}
+function portableCommitment(value){const result=clone(value);if(result.advice)result.advice=portableAdvice(result.advice);return result;}
 const defaults=()=>({timeMs:C().SEARCH_TIME_MS,depth:3,width:8,maxNodes:45000});
 function bounded(value){let nodes=0;const seen=new Set();function visit(x,d){if(++nodes>LIMITS.nodes||d>LIMITS.depth)throw Error('Session exceeds structural limits.');if(!x||typeof x!=='object')return;if(seen.has(x))throw Error('Session contains cycles.');seen.add(x);for(const [key,v] of Object.entries(x)){if(['__proto__','constructor','prototype'].includes(key))throw Error('Unsupported session property.');visit(v,d+1);}seen.delete(x);}visit(value,0);if(JSON.stringify(value).length>LIMITS.bytes)throw Error('Session exceeds size limit.');}
 function position(raw){if(!raw||R.validate(raw).length)throw Error('Invalid session position.');if(raw.rules!==R.PROFILE.id)throw Error('Session rules version is unsupported; import a position instead.');if(raw.queue.length>6)throw Error('Session may contain only six visible preview pieces.');if(raw.bag&&(B.validate(raw.bag).length||!Number.isInteger(raw.bag.observedCount)||raw.bag.observedCount<0||typeof raw.bag.provenance!=='string'))throw Error('Invalid session bag evidence.');const result=P.observe(raw);delete result.lastEvent;return result;}
@@ -28,7 +31,7 @@ function validateBag(context,originBag,current){
 }
 function create(state,{resourceHistory,resourceOriginBag=null,patternHistory=null,openingPhase=false,openingSource=null,openingClear=null,openingRepair=null,previous=null,commitment=null,search=defaults()}={}){
  const observation=position(state),resourceContext=H.exportContext(observation,resourceHistory),coverage=H.resolve(observation,resourceHistory).coverage;
- const result={format:FORMAT,schemaVersion:VERSION,engineVersion:ENGINE,position:observation,search:settings(search),coaching:{resourceContext:resourceContext?clone(resourceContext):null,resourceOriginBag:resourceContext?clone(resourceOriginBag):null,resourceCoverage:clone(coverage),patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null,previous:previous?clone(previous):null,commitment:commitment?clone(commitment):null}};
+ const result={format:FORMAT,schemaVersion:VERSION,engineVersion:ENGINE,position:observation,search:settings(search),coaching:{resourceContext:resourceContext?clone(resourceContext):null,resourceOriginBag:resourceContext?clone(resourceOriginBag):null,resourceCoverage:clone(coverage),patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null,previous:previous?portableAdvice(previous):null,commitment:commitment?portableCommitment(commitment):null}};
  bounded(result);return result;
 }
 function prepare(input){
@@ -43,9 +46,10 @@ function prepare(input){
  const opening=O.validateSessionState(state,{active:c.openingPhase,source:c.openingSource??null,clear:c.openingClear??null,repair:c.openingRepair??null},search);warnings.push(...opening.warnings);
  if(c.resourceContext&&H.resolve(state,resourceHistory).milestones?.maintenanceHandoff&&opening.session.active)throw Error('Opening phase contradicts the recorded maintenance handoff.');
  let previous=null,commitment=null;
+ if(c.handoffRecovery||c.previous?.evidence?.openingHandoff?.recovery||c.commitment?.advice?.evidence?.openingHandoff?.recovery)warnings.push('Transient handoff routing was discarded; advice remains subject to fresh validation.');
  if(differentCoach&&(c.previous||c.commitment))warnings.push('Saved coach advice and construction commitments were discarded for fresh planning.');
- if(!differentCoach&&c.previous){try{if(candidateShape(c.previous))previous=clone(c.previous);}catch{}if(!previous)warnings.push('Stale or invalid previous advice was discarded.');}
- if(!differentCoach&&c.commitment){try{const origin=position(c.commitment.observation);if(candidate(origin,c.commitment.advice)&&P.resourceGoal(c.commitment.advice.continuation))commitment=clone(c.commitment);}catch{}if(!commitment)warnings.push('Stale or invalid construction commitment was discarded.');}
+ if(!differentCoach&&c.previous){try{if(candidateShape(c.previous))previous=portableAdvice(c.previous);}catch{}if(!previous)warnings.push('Stale or invalid previous advice was discarded.');}
+ if(!differentCoach&&c.commitment){try{const origin=position(c.commitment.observation);if(candidate(origin,c.commitment.advice)&&P.resourceGoal(c.commitment.advice.continuation))commitment=portableCommitment(c.commitment);}catch{}if(!commitment)warnings.push('Stale or invalid construction commitment was discarded.');}
  // Candidates remain subject to the normal planner's resource, access, source
  // and construction revalidation. Import never displays them as advice.
  return{state,search,resourceHistory,resourceOriginBag,patternHistory,...{openingPhase:opening.session.active,openingSource:opening.session.source,openingClear:opening.session.clear,openingRepair:opening.session.repair},previous,commitment,warnings};
