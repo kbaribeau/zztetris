@@ -112,11 +112,14 @@ classifier is not a complete grammar of good ST play; use the existing
 [community source index](st-community-advice.md). Advanced constructions and
 freestyling preclude treating an unrecognized motif as geometric impossibility.
 
-### Deferred bug: incomplete search reported as completed abstention
+### Resolved bug: incomplete search reported as completed abstention
 
-**Disposition:** user explicitly requested logging this for a later fix while
-focusing on Center eligibility. No status fix or validator relaxation is part
-of this documentation update.
+**Disposition:** initially deferred at the user's request during Center
+eligibility acceptance, then explicitly authorized for a reporting-only fix.
+The adjacent no-best and unsuitable-best abstention paths now share the
+existing incomplete-search criterion. Safety checks, search budgets/order and
+certified recommendation handling are unchanged. The original regression is
+active again (no TODO), and the full suite passed before this resolution update.
 
 - **Reproduction target:** `fresh advice avoids the observed marathon-preparation
   phase-losing placement` in
@@ -146,10 +149,12 @@ of this documentation update.
   (unfinished versus completed) while retaining safety abstention. Do not
   delete or weaken the current expectation merely to hide the failure.
 
-Keep case 127 visible as a known failure until fixed. A decision to accept a
-change with this explicitly deferred defect must name it; neither that decision
-nor the accepted performance result means “all tests pass” or an invented CI
-waiver. Exact source comparison and receipts are in the optional local locator
+The eligibility commit kept case 127 visible as an executed TODO under an
+explicit user exception, not an all-pass claim or CI waiver. The subsequent
+status fix removes that pending marker without changing the assertion. New
+controls cover unfinished internal/global budgets, completed unsuitable
+endpoints and invalid-history precedence; existing certified-prefix tests
+continue to check that unrelated unfinished work cannot erase valid advice. Exact source comparison and receipts are in the optional local locator
 `center-eligibility-revalidation-evidence/post-performance-acceptance/STATUS-CAUSALITY.md`.
 The original historical reports remain unchanged.
 

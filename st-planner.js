@@ -1095,8 +1095,13 @@ function planCore(raw,options={}){
   best=cleanBest(alternatives);
  }
  if(!best&&earlyCapFallback&&!commitment&&!cleanupCommitment&&resourceSafe(earlyCapFallback)){best=earlyCapFallback;fallbackMetrics.selected=true;base.metrics.depth=Math.max(base.metrics.depth,1);}
- if(!best)return{...base,status:stopped||screening.unfinished||screening.budgetStops?'budget-exhausted':'no-supported-continuation-found',reason:stopped||screening.unfinished||screening.budgetStops?'The search limit was reached before finding a checked move. A valid continuation may still exist.':'No supported ST sequence was found within this search. Other continuations may exist.'};
- if(best.assessment.maxHeight>=20||!best.assessment.regionalSupport)return{...base,status:'no-supported-continuation-found',reason:'The checked sequences did not retain enough space and a supported stack shape. No move is recommended.',assessment:best.assessment};
+ // A rejected endpoint does not complete other budget-truncated proofs.
+ // Classify abstention only; a certified best move below remains unchanged.
+ const searchIncomplete=Boolean(stopped||screening.unfinished||screening.budgetStops);
+ const abstentionStatus=searchIncomplete?'budget-exhausted':'no-supported-continuation-found';
+ const incompleteReason='The search limit was reached before finding a checked move. A valid continuation may still exist.';
+ if(!best)return{...base,status:abstentionStatus,reason:searchIncomplete?incompleteReason:'No supported ST sequence was found within this search. Other continuations may exist.'};
+ if(best.assessment.maxHeight>=20||!best.assessment.regionalSupport)return{...base,status:abstentionStatus,reason:searchIncomplete?incompleteReason:'The checked sequences did not retain enough space and a supported stack shape. No move is recommended.',assessment:best.assessment};
  return describeNode(best);
  function describeNode(best,retained=best===commitment){
  const first=best.path[0],verified=R.replay(s,first.witness);if(!verified.valid)return{...base,status:'invalid-witness',reason:'The suggested input sequence failed validation, so it is not shown.'};

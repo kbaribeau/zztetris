@@ -25,12 +25,7 @@ for(const c of cases){
   assert.equal(inherited.valid,false);assert.equal(inherited.violation,'filled-protected-column-seven-notch');
   assert.deepEqual(inherited.blockedCells,c.firstNotchBreach.blockedCells);
  });
- // Deferred pre-existing status bug: unsuitable-best rejection omits unfinished
- // proof status (e3499165). User-approved pending case; keep its body/assertions.
- // See docs/st-center-eligibility-scope.md, 'Deferred search-status regression'.
- test(`fresh advice avoids the observed ${c.id} phase-losing placement`,{
-  todo:c.id==='marathon-preparation'?'Deferred incomplete-search status reporting; see st-center-eligibility-scope.md':false
- },()=>{
+ test(`fresh advice avoids the observed ${c.id} phase-losing placement`,()=>{
   let state=P.observe(c.snapshot),phase=S.notchPattern(state.board);const advice=P.plan(state,config);
   assert.notDeepEqual(advice.target,c.advice.target);
   if(!advice.target){const incomplete=advice.metrics.proofScheduling?.unfinished||advice.metrics.proofScheduling?.budgetStops;assert.equal(advice.status,incomplete?'budget-exhausted':'no-supported-continuation-found');return;}
