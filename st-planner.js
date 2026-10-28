@@ -545,6 +545,47 @@ function compareConstruction(a,b){for(let i=0;i<a.rank.length;i++){
  if(i===3&&(a.centerContinuity??0)!==(b.centerContinuity??0))return (b.centerContinuity??0)-(a.centerContinuity??0);
  if(i===3){const quality=openingQualityOrder(a,b);if(quality)return quality;}
  if(a.rank[i]!==b.rank[i])return b.rank[i]-a.rank[i];}return a.key.localeCompare(b.key);}
+// Keep the legacy comparator (and its deterministic fallback) unchanged.
+// Reorder only slots belonging to the SAME complete continuation equivalence
+// class. A pairwise "same horizon" comparator would not be transitive when a
+// third, unequal-horizon candidate is interleaved by its target key.
+function extraZTieClass(n){
+ const r=n.resources,a=n.assessment;
+ if(!n.extraZPreservable||!r||!['available','used'].includes(r.extraZ)||!n.path.length||
+    !n.qualified||!n.notchValid||n.cycleDebt||!certifiedCavities(n)||a.maxHeight>=20||!a.regionalSupport||
+    a.right.entry?.status==='unresolved-budget'||r.violations.length||r.centerBlocked||r.tCollision||
+    r.pendingCenter.length||r.hangingS.length||r.hangingL.length||r.unclassifiedS?.length||r.unclassifiedL?.length)return null;
+ // Exact existing quality values, horizon, debt and live identity supply must
+ // match. Neither a structural-band tie alone nor an unused physical Z is
+ // equivalent. No arbitrary ordering is introduced between different classes.
+ return JSON.stringify([n.path.length,n.path.map((_,i)=>cycleResources(n.path.slice(0,i+1))),n.rank,n.structuralScore,n.centerContinuity,n.openingQualityProgress,
+  n.dependencyDebt,n.entryDebt,a.maxHeight,a.sealed,a.covered,a.estimate,
+  r.originKey,r.active,r.hold,r.queue,r.scoredTs]);
+}
+function orderContinuations(nodes){
+ const ordered=[...nodes].sort(compareConstruction),groups=new Map();
+ for(let i=0;i<ordered.length;i++){
+  const key=ordered[i].continuationChecked===true?extraZTieClass(ordered[i]):null;if(key===null)continue;
+  if(!groups.has(key))groups.set(key,[]);groups.get(key).push(i);
+ }
+ for(const slots of groups.values()){
+  const members=slots.map(i=>ordered[i]);
+  if(!members.some(n=>n.resources.extraZ==='available')||!members.some(n=>n.resources.extraZ==='used'))continue;
+  const preferred=members.filter(n=>n.resources.extraZ==='available').concat(members.filter(n=>n.resources.extraZ==='used'));
+  slots.forEach((slot,i)=>{ordered[slot]=preferred[i];});
+ }
+ return ordered;
+}
+// Certify the legacy winner first. A speculative preserving challenger may
+// exhaust a proof budget, but cannot take away an already executable route.
+function preserveExtraZ(baseline,nodes,{protect,certify}){
+ const key=baseline&&extraZTieClass(baseline);
+ if(key==null||baseline.resources.extraZ!=='used')return baseline;
+ const challengers=nodes.filter(n=>n!==baseline&&n.resources?.extraZ==='available'&&extraZTieClass(n)===key).sort(compareConstruction);
+ if(!challengers.length||!protect(baseline))return baseline;
+ for(const n of challengers)if(certify(n))return n;
+ return baseline;
+}
 function nodeFor(p,parent,initial,rootIndex,readAssessment=assess){
  const assessment=readAssessment(p.state.board),path=[...(parent?.path??[]),p];
  const before=parent?.state??initial.state,priorNotches=parent?.notches??initial.notches;
@@ -594,7 +635,7 @@ function nodeFor(p,parent,initial,rootIndex,readAssessment=assess){
  // updates the real replay ledger or manufactures Extra-Z eligibility.
  const openingQualityProgress=initial.openingQualityPending&&resources?-(resources.hangingS.length+resources.pendingCenter.length+resources.hangingL.length+(resources.unclassifiedS?.length||0)+(resources.unclassifiedL?.length||0)):null;
  if(openingQualityProgress!==null)assessment.structure.openingQuality={status:'pending-observed-quality',projectedUnresolved:-openingQualityProgress,baselineGranted:false};
- return{resources,openingQualityProgress,centerContinuity,centerContinuityDebt,state:p.state,path,notches:notchCheck.pattern,notchValid:notchCheck.valid,assessment,rank,structuralScore,dependencyDebt,entryDebt,cycleDebt,cavityDebt,centerDebt,baseEstimateRank:rank[4],qualified:!assessment.right.slots.length,rootIndex,key:JSON.stringify(path[0].target)+':'+holdCount(path[0])};
+ return{resources,extraZPreservable:initial.extraZPreservable===true,openingQualityProgress,centerContinuity,centerContinuityDebt,state:p.state,path,notches:notchCheck.pattern,notchValid:notchCheck.valid,assessment,rank,structuralScore,dependencyDebt,entryDebt,cycleDebt,cavityDebt,centerDebt,baseEstimateRank:rank[4],qualified:!assessment.right.slots.length,rootIndex,key:JSON.stringify(path[0].target)+':'+holdCount(path[0])};
 }
 function diversify(nodes,width){const sorted=[...nodes].sort(compare),chosen=[],roots=new Set(),groups=new Set();
  // Protect meaningfully different construction families, not just top-scoring
@@ -667,6 +708,7 @@ function planCore(raw,options={}){
  if(options.resourceContext&&resourceSummary(s,options).coverage.status==='invalid')return{...base,status:'no-supported-continuation-found',reason:'The observed resource history could not be verified for this position.'};
  const summary=resourceSummary(s,options);s=extendForced(s);
  const readAssessment=createAssessmentReader(),initial=readAssessment(s.board);initial.state=s;initial.notches=H.resolve(s,options.patternHistory);initial.resources=M.start(s,summary);
+ initial.extraZPreservable=summary.coverage?.status==='complete'&&summary.extraZ?.status==='available'&&Boolean(summary.extraZ.baseline);
  initial.openingQualityPending=summary.coverage?.status==='complete'&&summary.openingAllocation?.status==='verified-first-tsd'&&summary.extraZ?.status==='unknown'&&summary.extraZ.baseline===null&&!summary.extraZ.allocations.length&&!summary.extraZ.departures.length&&!summary.center.closed.some(p=>p.status==='debt-invalidated'&&p.at>=summary.openingAllocation.firstTsdAt);
  if(!options.disableConstruction&&options.constructionPrevious?.evidence?.construction){const tracker={nodes:0},retained=revalidate(options.constructionPrevious.evidence.construction.kind==='left-support'?observe(raw):s,options.constructionPrevious,{...options,deadline,budgetTracker:tracker,maxNodes:Math.min(8000,Math.max(0,(options.maxNodes??45000)-base.metrics.nodes))});base.metrics.nodes+=tracker.nodes;if(retained){retained.metrics.nodes=base.metrics.nodes;return retained;}}
 
@@ -867,7 +909,7 @@ function planCore(raw,options={}){
   if(!n||options.commitment&&n!==commitment||options.constructionPrevious||cleanupCommitment&&n!==cleanupCommitment||!options.admitMaintenance)return;
   if(n.assessment.maxHeight>=20||!n.assessment.regionalSupport||now()>=deadline||base.metrics.nodes>=limit)return;
   if(admittedNode&&n.path.length<admittedNode.path.length)return;
-  if(admittedNode&&n.path.length===admittedNode.path.length&&compareConstruction(n,admittedNode)>=0)return;
+  if(admittedNode&&n.path.length===admittedNode.path.length&&(n===admittedNode||orderContinuations([admittedNode,n])[0]!==n))return;
   const checked=options.admitMaintenance(describeNode(clone(n),n===commitment));
   base.metrics.nodes=checked.metrics?.nodes??base.metrics.nodes;
   base.metrics.admissionAttempts=(base.metrics.admissionAttempts||0)+1;
@@ -1006,13 +1048,17 @@ function planCore(raw,options={}){
  // bounded unfinished proof stays unknown and is never cached as rejection.
  // Ranking and all acceptance checks are unchanged; final-layer screening
  // and final admission may use the rest of the shared request budget.
+ const certifyContinuation=n=>{
+  if(!accessSafe(n)||!resourceSafe(n))return false;
+  n.continuationChecked=true;return true;
+ };
  const cleanBest=(nodes,allowance=Infinity)=>{
   const start=base.metrics.nodes,prior=screeningLimit;screening.calls++;
   screeningLimit=Math.min(prior,start+allowance);
-  try{for(const n of nodes.filter(n=>n.cycleDebt===0&&certifiedCavities(n)).sort(compareConstruction)){
+  try{const ordered=nodes.filter(n=>n.cycleDebt===0&&certifiedCavities(n)).sort(compareConstruction);for(const n of ordered){
    if(now()>=deadline){screening.budgetStops++;return null;}
    const beforeUnknown=screening.unfinished;
-   if(accessSafe(n)&&resourceSafe(n))return n;
+   if(certifyContinuation(n))return preserveExtraZ(n,ordered,{protect:incumbent=>{remember(incumbent);return admittedNode===incumbent;},certify:candidate=>now()<deadline&&base.metrics.nodes<limit&&certifyContinuation(candidate)});
    // Completed cached/no-work proofs remain usable at zero remaining nodes.
    // A zero allowance cannot turn an unfinished query into negative evidence.
    if(base.metrics.nodes>=screeningLimit&&screening.unfinished>beforeUnknown)screening.budgetStops++;
@@ -1072,12 +1118,12 @@ function planCore(raw,options={}){
   if(fresh&&coversResourceGoal(fresh,commitment)&&fresh.path.length>saved.path.length){
    const candidates=comparisonLayer.filter(n=>n.path.length===fresh.path.length&&matchesSaved(n)&&n.cycleDebt===0&&n.notchValid&&certifiedCavities(n)&&n.assessment.maxHeight<20&&n.assessment.regionalSupport);
    const qualified=qualify(candidates).filter(n=>n.qualified&&n.assessment.right.entry?.status!=='unresolved-budget');
-   saved=qualified.sort(compareConstruction)[0]??saved;
+   saved=orderContinuations(qualified)[0]??saved;
   }
   if(fresh&&coversResourceGoal(fresh,commitment)&&fresh.path.length===saved.path.length&&fresh.assessment.maxHeight<20&&fresh.assessment.regionalSupport){
    qualify([fresh,saved]);
    const settled=n=>n.qualified&&n.assessment.right.entry?.status!=='unresolved-budget';
-   rankingPreferred=settled(fresh)&&settled(saved)&&compareConstruction(fresh,saved)<0;
+   rankingPreferred=fresh!==saved&&settled(fresh)&&settled(saved)&&orderContinuations([saved,fresh])[0]===fresh;
    replacement=rankingPreferred&&timelyReplacement(fresh,saved);
   }
   comparisonSaved=saved;
@@ -1437,5 +1483,5 @@ function decideRequest(raw,options={}){
  return budgetTracker.nodes||recovery?{...result,metrics:{...result.metrics,nodes:(result.metrics?.nodes||0)+budgetTracker.nodes,revalidationNodes:budgetTracker.nodes,...(recovery?{handoffRecovery:recovery}:{})}}:result;
 }
 
-return Object.freeze({advicePresentation,observe,assess,plan,decide,captureHandoffRecovery,resetSelection,startPatternHistory:H.start,updatePatternHistory:H.update,resolvePatternHistory:H.resolve,gapAccess:A.check,checkAccessPrefix:A.prefix,startOpeningSession,updateOpeningSession,acceptOpeningResult,revalidate,advance,cavityRepairDebt,continueCommitment,cycleResources,resourceGoal,resourceGoalPrefix,scoringSchedule,scoringReplacement,centerReservationStep,centerContinuityStep,ordinaryCenterEligible});
+return Object.freeze({preserveExtraZ,orderContinuations,advicePresentation,observe,assess,plan,decide,captureHandoffRecovery,resetSelection,startPatternHistory:H.start,updatePatternHistory:H.update,resolvePatternHistory:H.resolve,gapAccess:A.check,checkAccessPrefix:A.prefix,startOpeningSession,updateOpeningSession,acceptOpeningResult,revalidate,advance,cavityRepairDebt,continueCommitment,cycleResources,resourceGoal,resourceGoalPrefix,scoringSchedule,scoringReplacement,centerReservationStep,centerContinuityStep,ordinaryCenterEligible});
 });

@@ -386,3 +386,22 @@ export actions remain visible-only and deliberately omit the tail; retain the
 original package to share the same exercise. Saved advice from another coach
 version remains subject to the usual discard-and-recompute policy, not a
 promise that this coach will repeat the recorded continuation.
+
+### Extra-Z continuation ties
+
+Ordinary final continuation selection preserves a known available Extra-Z
+allowance only within an otherwise-equivalent group. The root permission must
+come from complete, replay-validated history with an established baseline;
+unknown history and a physical Z in HOLD/NEXT do not qualify. No clear or planner
+projection renews the allowance.
+
+Equivalence requires equal executed lock horizons and scoring/cleanup schedules, every existing numeric and
+Center/opening-quality priority, exact structural score and endpoint damage
+metrics, the same history origin and live piece/bag identities, and settled
+cavity, Center, access and resource obligations. The preference does not replace
+access/resource admission, required repairs, scoring goals or cleanup protections.
+It applies after existing ordering, only by exchanging members of the same
+eligible group; unrelated slots, unequal horizons and deterministic ties retain
+the existing ordering. Beam expansion/pruning receives no Extra-Z bonus. Before optional challenger
+checks, the ordinary incumbent must pass full outer admission and be registered
+as the invocation-local fallback. Unfinished optional work cannot revoke it.
