@@ -88,6 +88,21 @@ T-scoring and I-Pocket routes across actual locks and fresh worker requests.
 This does not yet recognize the community Midgame/Reset cycle; the known Reset
 reference limitations are documented rather than hidden by a universal T rule.
 
+Ordinary replacement of an executable scoring commitment also preserves the
+lock timing of each required TSD and I-quad. A later score needs a fully checked,
+equal-horizon comparison with the original saved route: maximum height and
+occupied mass must both be no worse and at least one must improve, without
+increasing sealed cells, covered Left cells or unresolved Center continuity.
+A better blended estimate or cheaper inputs alone does not justify delay.
+This conservative endpoint-dominance exception uses the existing shared request
+budget and exact certified fallback; an unfinished comparison does not invalidate
+the saved goal. It is not an unconditional immediate-score rule, a physical-T
+identity reservation, or a promise of better long-term survival. Separately
+verified construction contracts and all existing resource/cleanup obligations
+remain in force. `disableTimelyScoring` is a diagnostic control, not session
+permission or an imported proof. Timing telemetry is descriptive and replayed
+witnesses remain the authority.
+
 See [temporary planning budget and measured limits](docs/st-temporary-planning-budget.md). Historical 750 ms experiments remain recorded at their original budget; more compute is not itself better strategy.
 
 A [narrow one-lock level-base re-entry](docs/st-level-base-reentry.md) can restore

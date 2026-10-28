@@ -330,6 +330,28 @@ function resourceGoalPrefix(path,goal){
  }
  return null;
 }
+// A saved executable score has a timing promise as well as a count. Compare
+// each required TSD/quad separately: a later mixed Center/Pocket goal must not
+// hide delaying an earlier score. This is a replacement rule, not a global
+// preference to score immediately or authority supplied by imported telemetry.
+function scoringSchedule(path){
+ const schedule={tsds:[],quads:[]};path.forEach((p,i)=>{if(p.event.type==='T'&&p.event.spin==='full'&&p.event.lines===2)schedule.tsds.push(i+1);if(p.event.type==='I'&&p.event.lines===4)schedule.quads.push(i+1);});return schedule;
+}
+function scoringReplacement(candidate,saved,goal){
+ const required=scoringSchedule(goal.path),fresh=scoringSchedule(candidate.path),delayed=[];
+ for(const kind of ['tsds','quads'])for(let i=0;i<required[kind].length;i++)if(fresh[kind][i]===undefined||fresh[kind][i]>required[kind][i])delayed.push({kind,index:i+1,savedLock:required[kind][i],freshLock:fresh[kind][i]??null});
+ if(!delayed.length)return{allowed:true,reason:'no-protected-score-delay',required,fresh,delayed};
+ if(delayed.some(p=>p.freshLock===null))return{allowed:false,reason:'missing-protected-score',required,fresh,delayed};
+ if(candidate.path.length!==saved.path.length)return{allowed:false,reason:'no-equal-horizon-benefit-proof',required,fresh,delayed};
+ const a=candidate.assessment,b=saved.assessment,mass=n=>n.state.board.reduce((sum,row)=>sum+[...row].filter(c=>c!=='.').length,0),am=mass(candidate),bm=mass(saved);
+ // Reuse the conservative construction dominance precedent. A blended
+ // structural estimate, more Center height, or fewer inputs alone is not
+ // concrete evidence for delaying the score. Final admission still proves
+ // all actual movement, resource, cavity and notch obligations.
+ const noRegression=a.maxHeight<=b.maxHeight&&am<=bm&&a.sealed<=b.sealed&&a.structure.left.covered<=b.structure.left.covered&&(candidate.centerContinuity??0)>=(saved.centerContinuity??0);
+ const benefit=noRegression&&(a.maxHeight<b.maxHeight||am<bm);
+ return{allowed:benefit,reason:benefit?'endpoint-dominance':'delay-without-concrete-benefit',required,fresh,delayed,endpoint:{fresh:{maxHeight:a.maxHeight,mass:am,sealed:a.sealed,leftCovered:a.structure.left.covered,centerContinuity:candidate.centerContinuity??0},saved:{maxHeight:b.maxHeight,mass:bm,sealed:b.sealed,leftCovered:b.structure.left.covered,centerContinuity:saved.centerContinuity??0}}};
+}
 function coversResourceGoal(candidate,committed){return resourceGoalPrefix(candidate.path,committed.path)!==null;}
 function sameObservedResult(expected,actual){return expected.rules===actual.rules&&JSON.stringify(expected.board)===JSON.stringify(actual.board)&&expected.hold===actual.hold&&expected.active?.type===actual.active?.type&&expected.canHold===actual.canHold&&expected.topOut===actual.topOut&&expected.queue.every((t,i)=>actual.queue[i]===t);}
 function committedNode(s,proof,roots,initial,readAssessment=assess){
@@ -1025,13 +1047,28 @@ function planCore(raw,options={}){
   layer=diversify(next,width);
  }
  if(cleanupCommitment&&(!best||!coversResourceGoal(best,cleanupCommitment)))best=cleanupCommitment;
+ let comparisonSaved=commitment;
+ const comparisonProofs=new Map(),timingDecisions=new Map();
+ const recordTiming=(candidate,saved,result)=>{if(!timingDecisions.has(candidate))timingDecisions.set(candidate,new Map());timingDecisions.get(candidate).set(saved,result);return result;};
+ const timingDecision=(candidate,saved=comparisonSaved)=>{
+  const result=scoringReplacement(candidate,saved,commitment);
+  if(!result.allowed||!result.delayed.length)return recordTiming(candidate,saved,result);
+  // A favorable number on a speculative descendant is not a proved benefit.
+  // Certify the equal-horizon original-goal route once, charging the same
+  // shared budget. Unknown rejects this exception, never the saved goal.
+  if(!comparisonProofs.has(saved))comparisonProofs.set(saved,Boolean(saved.qualified&&saved.assessment.right.entry?.status!=='unresolved-budget'&&accessSafe(saved)&&resourceSafe(saved)));
+  const referenceCertified=comparisonProofs.get(saved);
+  return recordTiming(candidate,saved,{...result,allowed:referenceCertified,referenceCertified,reason:referenceCertified?'certified-endpoint-dominance':'unproved-equal-horizon-reference',referencePrefix:saved.path.map(p=>({witness:p.witness,event:p.event}))});
+ };
+ const timingDescription=(candidate,saved)=>{const checked=timingDecisions.get(candidate)?.get(saved);if(checked)return checked;const result=scoringReplacement(candidate,saved,commitment);return result.allowed&&result.delayed.length?{...result,allowed:false,reason:'endpoint-comparison-not-run',referenceCertified:null}:result;};
+ const timelyReplacement=(candidate,saved=comparisonSaved)=>!commitment||options.disableTimelyScoring||timingDecision(candidate,saved).allowed;
  if(commitment){
   // The saved suffix may end at its goal while the fresh search already sees
   // another ordinary piece. Compare both choices at that same lock horizon,
   // reusing searched descendants of the exact saved proof rather than hiding
   // the fresh lookahead or inventing an unsearched continuation.
   const matchesSaved=n=>n.path.length>=commitment.path.length&&commitment.path.every((p,i)=>JSON.stringify(p.event)===JSON.stringify(n.path[i].event)&&sameObservedResult(p.state,n.path[i].state));
-  let saved=commitment,fresh=best,replacement=false;
+  let saved=commitment,fresh=best,replacement=false,rankingPreferred=false;
   if(fresh&&coversResourceGoal(fresh,commitment)&&fresh.path.length>saved.path.length){
    const candidates=comparisonLayer.filter(n=>n.path.length===fresh.path.length&&matchesSaved(n)&&n.cycleDebt===0&&n.notchValid&&certifiedCavities(n)&&n.assessment.maxHeight<20&&n.assessment.regionalSupport);
    const qualified=qualify(candidates).filter(n=>n.qualified&&n.assessment.right.entry?.status!=='unresolved-budget');
@@ -1040,10 +1077,12 @@ function planCore(raw,options={}){
   if(fresh&&coversResourceGoal(fresh,commitment)&&fresh.path.length===saved.path.length&&fresh.assessment.maxHeight<20&&fresh.assessment.regionalSupport){
    qualify([fresh,saved]);
    const settled=n=>n.qualified&&n.assessment.right.entry?.status!=='unresolved-budget';
-   replacement=settled(fresh)&&settled(saved)&&compareConstruction(fresh,saved)<0;
+   rankingPreferred=settled(fresh)&&settled(saved)&&compareConstruction(fresh,saved)<0;
+   replacement=rankingPreferred&&timelyReplacement(fresh,saved);
   }
-  base.metrics.commitmentComparison={freshGoalLocks:fresh?resourceGoalPrefix(fresh.path,commitment.path):null,savedGoalLocks:resourceGoalPrefix(commitment.path,commitment.path),
-   freshHorizon:fresh?.path.length??null,savedHorizon:saved.path.length,replacement,
+  comparisonSaved=saved;
+  base.metrics.commitmentComparison={scoringTiming:!options.disableTimelyScoring&&fresh?timingDescription(fresh,saved):null,freshGoalLocks:fresh?resourceGoalPrefix(fresh.path,commitment.path):null,savedGoalLocks:resourceGoalPrefix(commitment.path,commitment.path),
+   freshHorizon:fresh?.path.length??null,savedHorizon:saved.path.length,replacement,rankingPreferred,delayPrevented:Boolean(!options.disableTimelyScoring&&rankingPreferred&&!replacement),
    freshSettled:Boolean(fresh?.qualified&&fresh.assessment.right.entry?.status!=='unresolved-budget'),savedSettled:Boolean(saved?.qualified&&saved.assessment.right.entry?.status!=='unresolved-budget')};
   if(!replacement)best=commitment;
  }
@@ -1069,7 +1108,17 @@ function planCore(raw,options={}){
   }
   if(!ordinary||ordinary.path.length!==candidate.continuation.length)continue;
   const mass=ordinary.state.board.reduce((n,row)=>n+[...row].filter(c=>c!=='.').length,0),cm=candidate.metrics.endpointMass;
-  if(candidate.assessment.maxHeight<=ordinary.assessment.maxHeight&&cm<=mass&&(candidate.assessment.maxHeight<ordinary.assessment.maxHeight||cm<mass)){candidate.metrics=constructionMetrics(candidate,base.metrics,now()-started);if(usage){usage.selected={path:'cap-deferral',locks:candidate.continuation.length};candidate.metrics.usage=usage;}return candidate;}
+  let capTiming=null;
+  if(commitment){
+   // Construction advice intentionally has a smaller endpoint assessment.
+   // Rebuild the comparison facts from its actual public witness rather than
+   // assuming absent Center/Left facts are favorable or trusting advice flags.
+   let capNode=null,prior=s,valid=true;
+   for(const step of candidate.continuation){const r=R.replay(prior,step.witness);if(!r.valid||r.events.length!==1){valid=false;break;}capNode=nodeFor({state:r.state,event:r.events[0],target:r.events[0].target,witness:step.witness,hold:step.witness.includes('HOLD'),...policyWitnesses(prior)},capNode,initial,-1,readAssessment);prior=r.state;}
+   if(!valid||!capNode||!coversResourceGoal(capNode,commitment)||!timelyReplacement(capNode))continue;
+   if(!options.disableTimelyScoring)capTiming=timingDecision(capNode);
+  }
+  if(candidate.assessment.maxHeight<=ordinary.assessment.maxHeight&&cm<=mass&&(candidate.assessment.maxHeight<ordinary.assessment.maxHeight||cm<mass)){candidate.metrics=constructionMetrics(candidate,base.metrics,now()-started);if(capTiming)candidate.metrics.commitmentComparison={...base.metrics.commitmentComparison,selectedScoringTiming:capTiming};if(usage){usage.selected={path:'cap-deferral',locks:candidate.continuation.length};candidate.metrics.usage=usage;}return candidate;}
  }
  if(foundationStage){
   // Admission is a complete finite alternative, not proof that an unknown
@@ -1091,7 +1140,7 @@ function planCore(raw,options={}){
   // A shorter legal fallback is not a replacement for that protected goal.
   // Recheck alternatives at the selected horizon with every goal preserved;
   // if none can be certified, abstain rather than silently dropping the proof.
-  const horizon=best.path.length,alternatives=[...comparisonLayer,...frontier].filter(n=>(!commitment||n.path.length===horizon&&coversResourceGoal(n,commitment))&&(!cleanupCommitment||n.path.length===horizon&&coversResourceGoal(n,cleanupCommitment)));
+  const horizon=best.path.length,alternatives=[...comparisonLayer,...frontier].filter(n=>(!commitment||n.path.length===horizon&&coversResourceGoal(n,commitment)&&timelyReplacement(n))&&(!cleanupCommitment||n.path.length===horizon&&coversResourceGoal(n,cleanupCommitment)));
   best=cleanBest(alternatives);
  }
  if(!best&&earlyCapFallback&&!commitment&&!cleanupCommitment&&resourceSafe(earlyCapFallback)){best=earlyCapFallback;fallbackMetrics.selected=true;base.metrics.depth=Math.max(base.metrics.depth,1);}
@@ -1102,6 +1151,7 @@ function planCore(raw,options={}){
  const incompleteReason='The search limit was reached before finding a checked move. A valid continuation may still exist.';
  if(!best)return{...base,status:abstentionStatus,reason:searchIncomplete?incompleteReason:'No supported ST sequence was found within this search. Other continuations may exist.'};
  if(best.assessment.maxHeight>=20||!best.assessment.regionalSupport)return{...base,status:abstentionStatus,reason:searchIncomplete?incompleteReason:'The checked sequences did not retain enough space and a supported stack shape. No move is recommended.',assessment:best.assessment};
+ if(commitment&&!options.disableTimelyScoring)base.metrics.commitmentComparison.selectedScoringTiming=timingDecision(best);
  return describeNode(best);
  function describeNode(best,retained=best===commitment){
  const first=best.path[0],verified=R.replay(s,first.witness);if(!verified.valid)return{...base,status:'invalid-witness',reason:'The suggested input sequence failed validation, so it is not shown.'};
@@ -1387,5 +1437,5 @@ function decideRequest(raw,options={}){
  return budgetTracker.nodes||recovery?{...result,metrics:{...result.metrics,nodes:(result.metrics?.nodes||0)+budgetTracker.nodes,revalidationNodes:budgetTracker.nodes,...(recovery?{handoffRecovery:recovery}:{})}}:result;
 }
 
-return Object.freeze({advicePresentation,observe,assess,plan,decide,captureHandoffRecovery,resetSelection,startPatternHistory:H.start,updatePatternHistory:H.update,resolvePatternHistory:H.resolve,gapAccess:A.check,checkAccessPrefix:A.prefix,startOpeningSession,updateOpeningSession,acceptOpeningResult,revalidate,advance,cavityRepairDebt,continueCommitment,cycleResources,resourceGoal,resourceGoalPrefix,centerReservationStep,centerContinuityStep,ordinaryCenterEligible});
+return Object.freeze({advicePresentation,observe,assess,plan,decide,captureHandoffRecovery,resetSelection,startPatternHistory:H.start,updatePatternHistory:H.update,resolvePatternHistory:H.resolve,gapAccess:A.check,checkAccessPrefix:A.prefix,startOpeningSession,updateOpeningSession,acceptOpeningResult,revalidate,advance,cavityRepairDebt,continueCommitment,cycleResources,resourceGoal,resourceGoalPrefix,scoringSchedule,scoringReplacement,centerReservationStep,centerContinuityStep,ordinaryCenterEligible});
 });
