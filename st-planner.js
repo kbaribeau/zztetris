@@ -26,7 +26,7 @@ function resourceRepair(state,resource,options){
  if(cache?.has(key))return{...cache.get(key),visited:0,reused:true};
  const proof=M.repair(state,resource,options);if(proof.valid)cache?.set(key,proof);return proof;
 }
-function resourceBinding(raw,options={}){return M.start(raw,resourceSummary(raw,options)).originKey;}
+function resourceBinding(raw,options={}){return M.start(extendForced(raw),resourceSummary(raw,options)).originKey;}
 
 const holdCount=p=>p.holdCount??p.witness.filter(a=>a==='HOLD').length;
 const holdPrompt=p=>holdCount(p)===2?'Hold twice. ':holdCount(p)?'Hold once. ':'';
@@ -435,7 +435,7 @@ function continueCommitment(before,after,advice,actualEvent=after?.lastEvent,opt
  let origin,s;try{origin=observe(before);s=observe(after);}catch{return null;}if(R.validate(origin).length||R.validate(s).length)return null;
  const first=R.replay(origin,advice.continuation[0].witness);if(!first.valid||first.events.length!==1||!actualEvent||JSON.stringify(first.events[0])!==JSON.stringify(actualEvent)||!S.canonicalClear(actualEvent)||!sameObservedResult(first.state,s))return null;
  const steps=advice.continuation.slice(1);if(!resourceGoal(steps))return null;
- let current=s,notches=H.resolve(s,options.patternHistory),debt=[],centerDebt=centerReservationStep(origin,{event:first.events[0],state:first.state}).debt,prior=assess(s.board);const continuation=[];if(['broken','invalid-history'].includes(notches.status))return null;
+ let current=extendForced(s),notches=H.resolve(s,options.patternHistory),debt=[],centerDebt=centerReservationStep(origin,{event:first.events[0],state:first.state}).debt,prior=assess(s.board);const continuation=[];if(['broken','invalid-history'].includes(notches.status))return null;
  for(const step of steps){const r=R.replay(current,step.witness);if(!r.valid||r.events.length!==1||JSON.stringify(r.events[0])!==JSON.stringify(step.event)||!S.canonicalClear(r.events[0]))return null;
   const nextPhase=S.advanceNotches(current.board,{event:r.events[0],state:r.state},notches);if(!nextPhase.valid)return null;
   const policy=policyWitnesses(current),transition=S.transition(current,{event:r.events[0],state:r.state,...policy},S.assess(r.state,{notches:nextPhase.pattern}),{notches});if(transition.cycleViolations.length)return null;
@@ -452,7 +452,7 @@ function continueCommitment(before,after,advice,actualEvent=after?.lastEvent,opt
 function context(s){return JSON.stringify([s.rules,s.board,s.hold,s.canHold,s.queue,s.bag??null,s.active?.type]);}
 function stateKey(s){return JSON.stringify([s.rules,s.board,s.active,s.hold,s.canHold,s.queue,s.bag??null]);}
 function nodeKey(n){return stateKey(n.state)+':notches:'+n.notches.status+':'+n.notches.anchorRow+':cavities:'+JSON.stringify(n.cavityDebt.slice().sort(([ax,ay],[bx,by])=>ax-bx||ay-by))+':center:'+JSON.stringify(n.centerDebt)+':centerContinuity:'+Boolean(n.centerContinuityDebt)+':rootSeal:'+Boolean(n.path[0].structuralEvidence.cavityRepair.cells.length)+':resources:'+(n.resources?M.binding(n.resources):'none');}
-function extendForced(state){if(!state.bag)return state;const t=B.forcedNext(state.bag);if(!t)return state;return {...state,queue:[...state.queue,t],bag:B.consume(state.bag,t)};}
+function extendForced(state){return M.extendForced(state);}
 // Only an actually verified first-TSD allocation can leave this narrow quality
 // obligation pending. Projected progress is a preference, never an allowance or
 // a replacement for the existing access, cycle, notch and resource certificates.
@@ -1158,7 +1158,7 @@ function advance(raw,previous,action,options={}){
  if(R.validate(state).length||(state.bag&&B.validate(state.bag).length))return null;
  const witness=previous.witness.slice(1);if(!witness.length)return null;
  const steps=previous.continuation.map((step,i)=>({...step,witness:i?step.witness:witness,hold:i?step.hold:witness.includes('HOLD'),holdCount:i?holdCount(step):witness.filter(a=>a==='HOLD').length}));
- let current=state,notches=H.resolve(state,options.patternHistory);if(notches.status==='invalid-history'||notches.status==='broken')return null;for(const step of steps){const replay=R.replay(current,step.witness);
+ let current=extendForced(state),notches=H.resolve(state,options.patternHistory);if(notches.status==='invalid-history'||notches.status==='broken')return null;for(const step of steps){const replay=R.replay(current,step.witness);
   if(!replay.valid||replay.events.length!==1||!S.canonicalClear(replay.events[0])||JSON.stringify(replay.events[0])!==JSON.stringify(step.event)||(step.resultContext&&context(replay.state)!==step.resultContext))return null;
   const check=S.advanceNotches(current.board,{event:replay.events[0],state:replay.state},notches);if(!check.valid)return null;notches=check.pattern;
   current=replay.state;
@@ -1186,12 +1186,12 @@ function revalidate(raw,previous,options={}){
   return access.reachable===true?{...refreshed,retained:true,metrics:{...refreshed.metrics,certifiedHorizon:refreshed.continuation.length,nodes:tracker.nodes+access.visited,revalidationNodes:tracker.nodes,gapAccessNodes:access.visited}}:null;
  }
 
- const enumeration=R.placements(s,{maxNodes:options.maxNodes??8000,deadline:options.deadline,now:options.now});
+ const enumeration=R.placements(extendForced(s),{maxNodes:options.maxNodes??8000,deadline:options.deadline,now:options.now});
  if(options.budgetTracker)options.budgetTracker.nodes+=enumeration.visited;
  const p=enumeration.placements.find(p=>S.canonicalClear(p.event)&&holdCount(p)===holdCount(previous)&&JSON.stringify(p.target)===JSON.stringify(previous.target)&&p.event.spin===previous.continuation?.[0]?.event.spin&&p.event.lines===previous.continuation?.[0]?.event.lines);
  if(!p)return null;
  const continuation=[{...previous.continuation[0],target:p.target,hold:p.hold,holdCount:holdCount(p),witness:p.witness,event:p.event},...previous.continuation.slice(1)];
- let current=s,notches=H.resolve(s,options.patternHistory);if(notches.status==='invalid-history'||notches.status==='broken')return null;for(const step of continuation){const replay=R.replay(current,step.witness);if(!replay.valid||replay.events.length!==1||!S.canonicalClear(replay.events[0])||JSON.stringify(replay.events[0])!==JSON.stringify(step.event)||(step.resultContext&&context(replay.state)!==step.resultContext))return null;const check=S.advanceNotches(current.board,{event:replay.events[0],state:replay.state},notches);if(!check.valid)return null;notches=check.pattern;current=replay.state;}
+ let current=extendForced(s),notches=H.resolve(s,options.patternHistory);if(notches.status==='invalid-history'||notches.status==='broken')return null;for(const step of continuation){const replay=R.replay(current,step.witness);if(!replay.valid||replay.events.length!==1||!S.canonicalClear(replay.events[0])||JSON.stringify(replay.events[0])!==JSON.stringify(step.event)||(step.resultContext&&context(replay.state)!==step.resultContext))return null;const check=S.advanceNotches(current.board,{event:replay.events[0],state:replay.state},notches);if(!check.valid)return null;notches=check.pattern;current=replay.state;}
  const resources=checkedResourceEndpoint(s,continuation,{...options,maxNodes:Math.max(0,(options.maxNodes??8000)-enumeration.visited)});if(!resources.valid)return null;
  if(!repairedPrefix(s,continuation))return null;
  const access=A.prefix(s,continuation,{...options,notches:H.resolve(s,options.patternHistory),maxNodes:Math.max(0,(options.maxNodes??8000)-enumeration.visited-resources.visited)});if(options.budgetTracker)options.budgetTracker.nodes+=access.visited;if(access.reachable!==true)return null;

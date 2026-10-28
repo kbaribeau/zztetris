@@ -295,3 +295,9 @@ source progress through the second bag and first TSD, repair/commitment evidence
 mid-piece movement, stale same-revision replies, rejection atomicity and limits.
 Deterministic node-budget comparisons cover recommendation equivalence; ordinary
 wall-clock-limited planning may still differ with scheduling and hardware.
+
+## Forced-supply proof retention
+
+See [the forced-bag binding contract](docs/st-forced-bag-binding.md) for consistent
+normalization of a publicly deduced piece without weakening history/identity
+guards. No handoff budget or placement policy is changed by this correction.
