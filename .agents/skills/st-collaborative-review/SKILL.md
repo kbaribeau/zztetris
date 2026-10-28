@@ -1,6 +1,6 @@
 ---
 name: st-collaborative-review
-description: Review an ST-lab decision or player-proposed alternative together using a verified Fumen, replay-backed coaching session, and controlled counterfactual. Use when the player is participating in strategy diagnosis, not for unrelated UI or ordinary-engine work.
+description: Assemble visual ST-lab review packets or review a decision or player-proposed alternative together using a verified Fumen, replay-backed coaching session, and controlled counterfactual. Use when the player is participating in strategy diagnosis, not for unrelated UI or ordinary-engine work.
 ---
 
 # Collaborative ST review
@@ -15,9 +15,11 @@ Turn a specific observed decision into a shared, reproducible question before ch
 
 ## Give the player a usable review packet
 
+Read the [visual packet reference](references/review-packet.md) when assembling a packet. Make its README the player-facing entry point: a prioritized case index with PNG overviews and linked SVG sources, so the player can understand starting positions and choose what to review before importing or opening Fumen. Include actual clickable import-JSON and artifact links, not just filenames, and verify their portable bundle destinations.
+
 - Provide an English-commented Fumen showing the relevant prefix and decision boundary, plus a compact coaching-session JSON at the pre-lock state. Include all available replay-backed coaching history required by the supported session format; compact means whitespace removal, not deleting context.
 - Decode the Fumen and compare its fields, operations and labels with the recorded states. Import/parse the session through the production session contract, then compare the round-tripped public position and coaching context. A Fumen image or position-only snapshot is not a substitute for historical resource accounting.
-- Keep hidden future input, RNG state and evaluator provenance out of the coaching session and advice request. Explain any missing/truncated history, version warning, finite queue, or import limit rather than fabricating a complete session.
+- Keep hidden future input, RNG state and evaluator provenance out of the public coaching session and advice request. For replayable finite practice, use the separately validated private wrapper described in the packet reference; never insert its tail into public context. Explain any missing/truncated history, version warning, finite queue, or import limit rather than fabricating a complete session.
 - Give the Fumen page and move number where the player should look, what to try, and one focused question. Save the packet locally outside Git even if no code change is accepted.
 
 ## Test the proposed alternative
