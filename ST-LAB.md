@@ -335,3 +335,39 @@ availability is independently replayed from the current pose and up to two legal
 HOLDs before every step; an available Z cap still forbids optional Left work.
 Those finite checks share the original node/deadline budget, and unknown proof
 rejects the construction. T and Z are excluded from intermediate fillers.
+
+## Private practice imports
+
+The existing JSON textbox and **Import position or session** button also accept
+`zztetris-st-practice` schema version 1. This player-only wrapper leaves
+`zztetris-st-session` version 1 unchanged:
+
+```json
+{
+  "format": "zztetris-st-practice",
+  "schemaVersion": 1,
+  "session": { "...": "a complete zztetris-st-session envelope" },
+  "privatePractice": { "tail": ["I", "J", "L", "O", "S", "T", "Z"] }
+}
+```
+
+The example is schematic, not an importable session. `tail` begins **after** the
+six visible preview pieces, in draw order, not placement order. A filled-hold
+swap draws nothing; an empty hold draws once. Supply is bounded to 4,096 piece
+letters and the entire package to the session's 4 MiB JSON limit. A nonempty tail
+requires six preview pieces. Full session validation and seven-bag consistency
+at the public preview frontier complete before any game/worker mutation. Missing
+bag history is checked over possible preview phases, not fabricated; tail
+validation never narrows the public bag or fills missing resource history.
+
+The controller keeps the tail private and only reveals draws into its six-slot
+preview. It sends no tail or seed to the coach. The sequence never cycles or
+falls back to randomness or forced-bag materialization after it ends; remaining
+visible pieces may be played before the finite-supply end message. Restart
+(including the reset key) restores the exact imported session and tape. Undo
+rewinds the draw cursor alongside the existing public/history checkpoint.
+Importing another session or selecting a mode replaces that origin. Both ordinary
+export actions remain visible-only and deliberately omit the tail; retain the
+original package to share the same exercise. Saved advice from another coach
+version remains subject to the usual discard-and-recompute policy, not a
+promise that this coach will repeat the recorded continuation.

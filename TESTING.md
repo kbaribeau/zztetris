@@ -201,3 +201,17 @@ Historical 24.20.0 timing and crash records remain historical evidence, not a
 comparable performance baseline for 24.22.0 runs. A clean finite experiment does
 not prove the runtime can never crash. The npm pin and dependency versions are
 unchanged by this runtime update.
+
+## Private practice packages
+
+`test/st-practice.test.cjs` checks the bounded player-only wrapper, full-tail
+seven-bag compatibility, invalid payload rejection and preservation of unknown
+history. `test/st-practice-import.test.cjs` drives the actual lab's existing
+textbox/button through repeated and rejected imports, stale worker replies,
+empty/occupied hold, Undo, button/key Restart, finite exhaustion, and visible-only
+exports. Paired private tails produce identical initial Worker payloads; later
+requests contain only actual newly revealed previews and observed history. The
+finite-end case deliberately leaves a publicly forced seventh piece unavailable:
+the private package cannot silently gain a substitute draw. These actual-page
+DOM/controller tests use the documented Worker host stub, not a rendered browser
+or a claim about real Worker execution. Real-browser acceptance remains separate.

@@ -15,7 +15,7 @@
   window.DAS=das; // shared settings/navigation readback; not a second game engine.
   window.ctrlsPopup=()=>window.open('controls.html','popup','width=1200,height=800');
   const context=$('b').getContext('2d');
-  let state, origin, future=[], futureCursor=0, generated=false, observed=null, openingPhase=false, openingClear=null, openingRepair=null, openingSource=null, patternHistory=null, resourceHistory=null, resourceOriginBag=null, pieceLedger=null;
+  let state, origin, future=[], futureCursor=0, generated=false, privatePractice=false, observed=null, openingPhase=false, openingClear=null, openingRepair=null, openingSource=null, patternHistory=null, resourceHistory=null, resourceOriginBag=null, pieceLedger=null;
   let undoHistory=[], turnStart=null, resetDiagnosticCache=null;
   let worker=null, requestId=0, debounce=null, watchdog=null, revision=0;
   let result=null, previous=null, commitment=null, coachStatus='idle', coachMessage='';
@@ -107,7 +107,7 @@
     cancel();if(!retain)result=null;
     if(!TrainingSettings.guideVisible){coachStatus='hidden';coachMessage='';render();return;}
     if(state.topOut){coachStatus='top-out';coachMessage='This position has topped out. Undo the placement or reset to continue.';render();return;}
-    if(!state.active){coachStatus='insufficient-known-pieces';coachMessage='The supplied queue has ended. Import another snapshot or reset.';render();return;}
+    if(!state.active){coachStatus='insufficient-known-pieces';coachMessage=privatePractice?'The supplied private practice sequence has ended. Reset to replay it or import another session.':'The supplied queue has ended. Import another snapshot or reset.';render();return;}
     if(typeof Worker!=='function'){result=null;coachStatus='worker-unavailable';coachMessage='Coaching is unavailable in this browser. You can still practice manually.';render();return;}
     if(!retain){coachStatus='thinking';coachMessage='Checking the next moves…';}render();
     const currentRevision=state.revision;
@@ -172,7 +172,7 @@
       if(futureCursor>=future.length){
         if(!generated){
           // A unique observable remainder is knowledge, not hidden lookahead.
-          const forced=frontier?STBag.forcedNext(frontier):null;
+          const forced=!privatePractice&&frontier?STBag.forcedNext(frontier):null;
           if(forced){state={...state,queue:[...state.queue,forced]};added.push(forced);}
           break;
         }
@@ -190,7 +190,7 @@
     }
   }
   function resetState(input,{tail=[],random=false,history=null,note='',keepOrigin=false,opening=false,counterLabel='Lines since start'}={}) {
-    cancel();stopRepeating();recoveryOrigin=null;pendingHandoffRecovery=null;future=tail.slice();futureCursor=0;undoHistory=[];turnStart=null;generated=random;observed=history?.slice() || null;openingPhase=opening;openingClear=null;openingRepair=null;
+    cancel();stopRepeating();recoveryOrigin=null;pendingHandoffRecovery=null;future=tail.slice();futureCursor=0;undoHistory=[];turnStart=null;generated=random;privatePractice=false;observed=history?.slice() || null;openingPhase=opening;openingClear=null;openingRepair=null;
     state=STRules.migrateState({...clone(input),revision:++revision});
     const errors=STRules.validate(state);if(errors.length)throw new Error(errors.join('; '));
     if(state.queue.length>6){future.unshift(...state.queue.slice(6));state={...state,queue:state.queue.slice(0,6)};}
@@ -232,7 +232,7 @@
   }
   function act(action) {
     if(action==='UNDO'){undo();return;}
-    if(action==='RESET'){if(origin?.session){const saved=clone(origin.session);installSession(STSession.prepare(saved));}else if(origin)resetState(origin.input,{...origin.options,keepOrigin:true});return;}
+    if(action==='RESET'){if(origin?.session){const saved=clone(origin.session);installSession(STSession.prepare(saved),origin.tail??null);}else if(origin)resetState(origin.input,{...origin.options,keepOrigin:true});return;}
     if(!state.active)return;
     const beforeAction=observation(),beforeLock=action==='HD'?beforeAction:null;
     const next=STRules.move(state,action);
@@ -403,7 +403,7 @@
   function exportSession() {
     return STSession.create(observation(),{resourceHistory,resourceOriginBag,patternHistory,openingPhase,openingSource,openingClear,openingRepair,previous,commitment,search:searchSettings});
   }
-  function installSession(prepared) {
+  function installSession(prepared,tail=null) {
     // Normalize before mutation: Reset must replay current, validated evidence,
     // not an older envelope or discarded executable certificates.
     const envelope=STSession.create(prepared.state,prepared);
@@ -411,16 +411,16 @@
     // controller. Worker identity guards, not revision uniqueness, reject old replies.
     cancel();stopRepeating();recoveryOrigin=null;pendingHandoffRecovery=null;
     state=STRules.createState(prepared.state);revision=state.revision;
-    future=[];futureCursor=0;generated=false;observed=null;undoHistory=[];turnStart=null;
+    future=tail?.slice()||[];futureCursor=0;generated=false;privatePractice=tail!==null;observed=null;undoHistory=[];turnStart=null;
     resourceHistory=prepared.resourceHistory;resourceOriginBag=prepared.resourceOriginBag;
     pieceLedger=STPieceLedger.start(observation());patternHistory=prepared.patternHistory;
     openingPhase=prepared.openingPhase;openingSource=prepared.openingSource;openingClear=prepared.openingClear;openingRepair=prepared.openingRepair;
     previous=prepared.previous;commitment=prepared.commitment;searchSettings=prepared.search;
     result=null;lockCount=0;clearedLines=0;lineLabel='Lines since import';selectedId=null;$('st-fixture').value='';
-    origin={session:clone(envelope)};
-    setText($('st-position-note'),'Imported coaching session. Only visible supply is restored; hidden future and Undo history are excluded.');
+    origin={session:clone(envelope),tail:tail?.slice()??null};
+    setText($('st-position-note'),privatePractice?'Imported coaching session with a finite private practice sequence. Only six preview pieces are shown to the coach. Restart restores this exact sequence; exports exclude the private tail.':'Imported coaching session. Only visible supply is restored; hidden future and Undo history are excluded.');
     setText($('st-game-status'),'');requestPlan();render();
-    importStatus('Session imported. Advice will be revalidated.'+(prepared.warnings.length?' '+prepared.warnings.join(' '):''));
+    importStatus((privatePractice?'Private practice session imported.':'Session imported.')+' Advice will be revalidated.'+(prepared.warnings.length?' '+prepared.warnings.join(' '):''));
   }
   $('st-export-session').addEventListener('click',()=>{
     try{$('st-snapshot').value=JSON.stringify(exportSession(),null,2);importStatus('Exported visible position and coaching evidence; hidden future, Undo and diagnostic counters were excluded.');}
@@ -431,7 +431,7 @@
     if($('st-import-result').dataset.result==='rejected')setText($('st-import-error-note'),'Previous import attempt was rejected. Your edits have not been revalidated; the current game is unchanged.');
   });
   $('st-import').addEventListener('click',()=>{
-    try{if($('st-snapshot').value.length>STSession.LIMITS.bytes)throw new Error('Import exceeds size limit.');const input=JSON.parse($('st-snapshot').value);if(input?.format===STSession.FORMAT){const prepared=STSession.prepare(input);installSession(prepared);return;}const errors=STRules.validate(input);if(errors.length)throw new Error(errors.join('; '));
+    try{if($('st-snapshot').value.length>STSession.LIMITS.bytes)throw new Error('Import exceeds size limit.');const input=JSON.parse($('st-snapshot').value);if(input?.format===STPractice.FORMAT){const prepared=STPractice.prepare(input);installSession(prepared.session,prepared.tail);return;}if(input?.format===STSession.FORMAT){const prepared=STSession.prepare(input);installSession(prepared);return;}const errors=STRules.validate(input);if(errors.length)throw new Error(errors.join('; '));
       if(input.queue.length>6)throw new Error('Only six visible preview pieces may be imported; bag knowledge must refer to that frontier.');
       // Explicit whitelist prevents an import from injecting a hidden queue/seed.
       const clean={rules:input.rules,board:input.board,active:input.active,hold:input.hold,canHold:input.canHold,queue:input.queue.slice(0,6),streamCursor:input.streamCursor||0,topOut:Boolean(input.topOut)};

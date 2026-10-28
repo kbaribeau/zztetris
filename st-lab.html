@@ -30,6 +30,7 @@
   <script defer src="st-opening.js"></script>
   <script defer src="st-reset-diagnostics.js"></script>
   <script defer src="st-session.js"></script>
+  <script defer src="st-practice.js"></script>
   <script defer src="st-lab.js"></script>
   <script defer src="navigation.js"></script>
 </head>
@@ -99,7 +100,7 @@
       <p id="st-game-status" role="status" aria-live="polite"></p>
     </section>
     <details id="st-import-options" class="lab-options"><summary>Position and session import / export<span id="st-import-error-indicator" hidden> · Import rejected</span></summary>
-      <p>JSON snapshots contain the current board, pose, hold, visible queue and optional observed bag evidence. They do not export hidden future pieces. Coaching sessions additionally preserve versioned, validated resource and construction evidence. They exclude Undo history and diagnostic counters. Imported snapshots and sessions have a finite queue; no future order is invented when it ends.</p>
+      <p>JSON snapshots contain the current board, pose, hold, visible queue and optional observed bag evidence. They do not export hidden future pieces. Coaching sessions additionally preserve versioned, validated resource and construction evidence. They exclude Undo history and diagnostic counters. The same Import button also accepts a private practice package: a coaching session bundled with a finite draw sequence. Only six preview pieces reach the coach; Restart replays the exact sequence and Undo rewinds it. Both export buttons exclude private future pieces. Imported supply is finite; no random order is substituted when it ends.</p>
       <p id="st-legacy-rules-note">Legacy st-zero-v1 uses one hold per lock for historical replay. Importing a v1 snapshot into this lab migrates it to unlimited-hold st-zero-v2.</p>
       <label for="st-snapshot">Snapshot JSON</label><textarea id="st-snapshot" rows="8" spellcheck="false"></textarea>
       <div id="st-import-result">
