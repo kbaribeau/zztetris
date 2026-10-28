@@ -8,16 +8,29 @@ Fumens, sessions, profiles or run logs into this document.
 
 ## Revision boundaries
 
-- Accepted **local**, unpublished engine baseline:
+- Historical accepted **local**, unpublished engine baseline for the original
+  experiments below:
   `c4ec6fb700580aa9933eb978c0e838b2f40bdc39` (forced-bag normalization plus narrow
   handoff recovery above `edf052e`).
 - Published workflow-document revision: `e8d0f0dab4b1257795711a09dc86c8ec9d0951db`.
   It is a separate docs-only descendant of `edf052e`, not the c4 engine.
-- Isolated Center eligibility and combined V7/V8 are **rejected, uncommitted
-  experiments**. Neither is the accepted baseline. A review-session import does
+- The original isolated Center eligibility and combined V7/V8 are **rejected,
+  uncommitted experiments**. Neither is the accepted baseline. A review-session import does
   not install an experimental engine.
 - Support-aware dependency-before-cover work is a separate mechanism. Do not
   combine it with either task below without independent integration validation.
+
+### Current stable-milestone follow-on
+
+The later eligibility candidate is based on accepted local
+`559c9483964370452db7457d5c5056a2370a91c3`, not the original c4-only experiment.
+It remains an uncommitted candidate in `center-eligibility-stable-worktree`
+(branch `experiment/center-eligibility-stable-milestone-559`).
+The user accepted its 48-to-46-line performance comparison and deferred reset
+work after frame 107. That removes the performance blocker; it does not turn
+the historical rejection into a pass, authorize publication, or establish an
+all-green suite. The latest recorded full suite had 916 passes and 3 failures
+out of 919 tests. Test maintenance and final acceptance remain separate.
 
 ## 2. Center-pattern classifier correctness
 
@@ -98,6 +111,47 @@ classifier is not a complete grammar of good ST play; use the existing
 [Center foundation discussion](st-center-foundation.md) and
 [community source index](st-community-advice.md). Advanced constructions and
 freestyling preclude treating an unrecognized motif as geometric impossibility.
+
+### Deferred bug: incomplete search reported as completed abstention
+
+**Disposition:** user explicitly requested logging this for a later fix while
+focusing on Center eligibility. No status fix or validator relaxation is part
+of this documentation update.
+
+- **Reproduction target:** `fresh advice avoids the observed marathon-preparation
+  phase-losing placement` in
+  [test/st-autoplay-lost-phase.test.cjs](../test/st-autoplay-lost-phase.test.cjs),
+  case 127 in the recorded suite. Use its `marathon-preparation` case from
+  `test/support/st-autoplay-lost-phase.json`, `P.observe(c.snapshot)`, and
+  `P.plan` at depth 3 / width 8 / 45,000 nodes / 1,500 ms on the pinned runtime.
+  Compare baseline 559 above and the frozen stable-milestone eligibility
+  candidate serially; retain source hashes and actual proof counters. Real
+  clocks do not guarantee identical replayed search outcomes.
+- **Expected versus actual:** when the candidate abstains with scheduling
+  `unfinished=2` and `budgetStops=2`, the tested contract expects
+  `budget-exhausted`; actual status is `no-supported-continuation-found`, with
+  no target. The matched baseline also returns no target and the latter status,
+  correctly for its `unfinished=0` and `budgetStops=0`.
+- **Cause and scope:** both reject the best node at `maxHeight=20`. The unchanged
+  unsuitable-best return is at baseline `st-planner.js:1080` and candidate
+  `:1099` in the inspected sources. It originated in
+  `e34991655bc371c723170dd6658226d910a39e05`, before EDF. Eligibility exposes an
+  existing reporting defect through changed proof workload; it did not add
+  that return. The adjacent no-best branch already checks incompleteness.
+- **Risk:** both safely abstain, but callers/UI receive misleading completed-
+  search classification. This is not an illegal move, proof that a continuation
+  exists, or justification to weaken shape/resource checks.
+- **Later fix:** propagate relevant unfinished-search state through the
+  unsuitable-best rejection; add focused positive/negative status coverage
+  (unfinished versus completed) while retaining safety abstention. Do not
+  delete or weaken the current expectation merely to hide the failure.
+
+Keep case 127 visible as a known failure until fixed. A decision to accept a
+change with this explicitly deferred defect must name it; neither that decision
+nor the accepted performance result means “all tests pass” or an invented CI
+waiver. Exact source comparison and receipts are in the optional local locator
+`center-eligibility-revalidation-evidence/post-performance-acceptance/STATUS-CAUSALITY.md`.
+The original historical reports remain unchanged.
 
 ## 3. Broader S/L preference
 
