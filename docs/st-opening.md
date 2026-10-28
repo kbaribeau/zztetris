@@ -14,7 +14,31 @@ This initial canonical subset only diverts non-clearing Ts entirely into the Lef
 
 `STPlanner.decide` is the shared worker decision entry point. `startOpeningSession`, `updateOpeningSession` and `acceptOpeningResult` manage the public session. Actual lock events are captured before/after preview replenishment. Imported phase flags or claimed clears are ignored. Reset restores the original mode/import; manual movement is freshly planned rather than replaying stale opening advice. There remain exactly two selectable play modes.
 
-Opening remains active until an actual canonical scoring clear is replay-verified against its preceding public pose, the resulting geometry has balanced Left cells, a supported Center motif and established notches, the aligned lower Center has no non-notch vacancies below its shared surface, and maintenance produces an executable continuation from the newly visible state. A mere slot or height threshold is insufficient. Maintenance checking shares the deadline and reserves at most 12,000 nodes from the opening budget; its reserved allowance is reported separately from visited nodes. A failed handoff retains opening or honestly abstains.
+Opening remains active until an actual canonical scoring clear is replay-verified against its preceding public pose, the resulting geometry has balanced Left cells, a supported Center motif and established notches, the aligned lower Center has no non-notch vacancies below its shared surface, and maintenance produces an executable continuation from the newly visible state. A mere slot or height threshold is insufficient. The legacy maintenance check shares the deadline and reserves at most 12,000 nodes from the opening budget; its reserved allowance is reported separately from visited nodes. A failed handoff retains opening or honestly abstains. A narrowly admitted shared-budget recovery is described below.
+
+### Observed Hanging-S handoff recovery
+
+The original 12,000-node / 200-ms probe runs first. A successful original prefix
+is returned unchanged; extra search does not lengthen it into a different goal.
+Only its budget exhaustion, together with replay-complete historical opening
+allocation and quality, can trigger recovery for one still-live, known Hanging S.
+Unknown or unclassified S accounting does not qualify. Recovery uses two thirds
+of the remaining nodes and time, not another full request, and leaves the rest
+for ordinary fallback. All visited work is charged to the original allowance.
+
+The accepted recovery has at most two locks and ends by placing that exact owed
+S on Left. For a two-lock path, the controller may carry a bounded, ephemeral
+candidate across the actual first lock. On the next request the worker rebuilds
+the original and current history, piece identities, legal events, resource policy
+and access checks before retaining the S payment. This is not a new generic
+filler commitment, and a saved marker is not proof. A different legal movement
+route to the same first lock is allowed; disconnected history, post-lock input,
+unknown identities, changed results and exhausted proof budgets reject it.
+
+Undo, reset, import and worker failures clear this transient routing. Session
+exports do not preserve it. Ordinary resource goals and strategic ranking remain
+unchanged. Focused proof/lifecycle tests and finite paired simulations are separate
+acceptance checks; a legal two-lock payment does not establish better survival.
 
 Advice calls these results partial construction, not a completed opening, completed Reset or guarantee of future supply. Community links provide background from [Shocky's guide, Chapters 1–4](https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit), not certification of a specific runtime move.
 

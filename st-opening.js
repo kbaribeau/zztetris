@@ -1,6 +1,6 @@
 /* Bounded opening construction, distinct from established-stack maintenance.
  * Only actual board, active/hold and six public previews enter this search. */
-(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-structure'),require('./st-paired-repair'),require('./st-opening-sources'),require('./st-bag'),require('./st-source-scoring'),require('./st-resource-history'),()=>require('./st-planner')):factory(root.STRules,root.STStructure,root.STPairedRepair,root.STOpeningSources,root.STBag,root.STSourceScoring,root.STResourceHistory,()=>root.STPlanner);if(typeof module==='object'&&module.exports)module.exports=api;else root.STOpening=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,S,X,O,B,Q,RH,getPlanner){
+(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-structure'),require('./st-paired-repair'),require('./st-opening-sources'),require('./st-bag'),require('./st-source-scoring'),require('./st-resource-history'),require('./st-midgame-resources'),()=>require('./st-planner')):factory(root.STRules,root.STStructure,root.STPairedRepair,root.STOpeningSources,root.STBag,root.STSourceScoring,root.STResourceHistory,root.STMidgameResources,()=>root.STPlanner);if(typeof module==='object'&&module.exports)module.exports=api;else root.STOpening=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,S,X,O,B,Q,RH,M,getPlanner){
 'use strict';
 const clone=x=>JSON.parse(JSON.stringify(x));
 function balance(board){let n=0;for(let y=0;y<40;y++)for(let x=0;x<4;x++)if(board[y][x]!=='.')n+=(x+y)%2?1:-1;return n;}
@@ -591,7 +591,8 @@ function retainScoring(raw,previous,options={},action=null){
  }finally{if(options.budgetTracker)options.budgetTracker.nodes+=visited;}
 }
 
-function handoff(state,proof,options){
+function handoff(state,proof,options,work=null,recovery=false){
+ if(work)Object.assign(work,{eligible:false,nodes:0,status:'not-eligible'});
  const P=getPlanner(),summary=options.resourceContext?RH.resolve(state,RH.importContext(state,options.resourceContext)):null;
  // A first double does not erase an observed opening-Z obligation. Unknown
  // imported history retains the legacy actual-clear/geometry handoff path.
@@ -603,13 +604,32 @@ function handoff(state,proof,options){
    if(r.valid&&r.events.length===1&&JSON.stringify(e)===JSON.stringify(proof.event)&&e.lines&&S.canonicalClear(e)&&JSON.stringify(r.state.board)===JSON.stringify(state.board)&&r.state.active?.type===state.active?.type&&r.state.hold===state.hold&&r.state.canHold===state.canHold&&r.state.queue.every((t,i)=>state.queue[i]===t))event=e;
   }
  }catch{}}
- if(!event&&!historical)return null;
+ if(!event&&!historical||recovery&&!historical)return null;
  const f=facts(state.board);if(!handoffGeometry(state))return null;
  const now=options.now??(()=>Date.now()),deadline=options.deadline??Infinity;
  if(now()>=deadline)return null;
- const result=P.plan(state,{...options,disableOpening:true,openingPhase:false,openingClear:null,previous:null,commitment:null,constructionPrevious:null,maxNodes:Math.min(12000,options.maxNodes??45000),deadline:Math.min(deadline,now()+200)});
- if(!result?.target)return null;
+ const allowance=Math.min(recovery?45000:12000,Math.max(0,options.maxNodes??45000));
+ if(!allowance)return null;
+ const end=recovery?deadline:Math.min(deadline,now()+200);
+ if(work)Object.assign(work,{eligible:true,allocatedNodes:allowance,deadline:Number.isFinite(end)?end:null});
+ const result=P.plan(state,{...options,disableOpening:true,openingPhase:false,openingClear:null,previous:null,commitment:null,constructionPrevious:null,maxNodes:allowance,deadline:end});
+ const spent=result?.metrics?.nodes||0;if(work)Object.assign(work,{nodes:spent,status:result?.status||'no-result'});
+ if(!result?.target||spent>allowance)return null;
+ // This recovery does not introduce a general new filler/commitment goal.
+ // Accept only an immediate, actually executed payment of a still-live known S.
+ if(recovery){
+  const path=result.continuation||[],live=[summary?.instances?.active,summary?.instances?.hold,...(summary?.instances?.queue||[])].filter(Boolean);
+  const owed=(summary?.hangingS?.evidence||[]).filter(e=>Number.isInteger(e.sId)&&e.sId>0&&live.some(p=>p.id===e.sId&&p.type==='S'));
+  if(summary?.coverage?.status!=='complete'||summary?.hangingS?.status!=='hanging'||summary.hangingS.unclassified?.length||owed.length!==1||!Number.isInteger(owed[0].bag)||owed[0].bag<0||!path.length||path.length>2||path.at(-1).event?.type!=='S'||path.at(-1).event.lines!==0||!path.at(-1).event.cells.every(([x])=>x<4))return null;
+  const beforePayment=M.checkPath(state,path.slice(0,-1),summary),payment=M.checkPath(state,path,summary);
+  // M.step removes an identity on S→Left only for the S actually consumed.
+  // Requiring it immediately beforehand excludes an already-paid first step
+  // followed by a different same-letter filler presented as the payment.
+  if(!beforePayment.valid||beforePayment.resource.hangingS.length!==1||beforePayment.resource.hangingS[0].id!==owed[0].sId||beforePayment.resource.unclassifiedS.length||!payment.valid||payment.resource.hangingS.some(h=>h.id===owed[0].sId))return null;
+ }
+
  const evidence=event?{status:'checked-after-actual-clear',event:clone(event),balance:f.parity}:{status:'checked-after-observed-opening-quality',firstTsdAt:summary.openingAllocation.firstTsdAt,qualityAt:summary.extraZ.baseline.qualityAt,balance:f.parity};
+ if(recovery)evidence.recovery='shared-after-legacy-budget-miss';
  return{...result,phase:'maintenance',evidence:{...result.evidence,openingHandoff:evidence},reason:(event?'Opening handoff checked after the clear. ':'Opening handoff checked after observed allocation and quality completion. ')+result.reason};
 }
 function plan(raw,options={}){
@@ -623,9 +643,34 @@ function plan(raw,options={}){
  if(usage)base.metrics.usage=usage;
  const observedSummary=options.resourceContext?RH.resolve(state,RH.importContext(state,options.resourceContext)):null;
  const historicalHandoff=observedSummary?.coverage?.status==='complete'&&observedSummary.openingAllocation?.status==='verified-first-tsd'&&observedSummary.extraZ?.baseline&&['available','used'].includes(observedSummary.extraZ.status);
- const accepted=handoff(state,options.openingClear,{...options,deadline});if(accepted){if(usage){usage.families.handoff.verified=1;usage.families.handoff.selected=1;usage.selected={path:accepted.evidence.openingHandoff.status==='checked-after-actual-clear'?'actual-clear-handoff':'observed-quality-handoff',locks:accepted.continuation?.length||0};accepted.metrics={...accepted.metrics,usage};}return accepted;}
- // Reserve the complete handoff allowance even when an attempt abstains.
- const reserved=options.openingClear||historicalHandoff?Math.min(12000,limit):0;base.metrics.handoffReservedNodes=reserved;
+ // Preserve the exact established handoff path first. More search must not
+ // lengthen a successful old prefix and thereby invent a new retained goal.
+ const legacy={},recovery={};let accepted=handoff(state,options.openingClear,{...options,maxNodes:limit,deadline},legacy);
+ const handoffWork={legacy,recovery,requestNodes:limit};base.metrics.nodes=legacy.nodes;base.metrics.handoffWork=handoffWork;
+ if(!accepted&&legacy.eligible&&legacy.status==='budget-exhausted'&&historicalHandoff&&observedSummary.hangingS?.status==='hanging'&&!observedSummary.hangingS.unclassified?.length){
+  const live=[observedSummary.instances?.active,observedSummary.instances?.hold,...(observedSummary.instances?.queue||[])].filter(Boolean);
+  const owed=observedSummary.hangingS.evidence.filter(e=>Number.isInteger(e.sId)&&e.sId>0&&Number.isInteger(e.bag)&&e.bag>=0&&live.some(p=>p.id===e.sId&&p.type==='S'));
+  const remaining=Math.max(0,limit-base.metrics.nodes),fallbackNodes=Math.ceil(remaining/3),recoveryNodes=remaining-fallbackNodes;
+  const ms=Math.max(0,deadline-now()),end=Number.isFinite(deadline)?deadline-ms/3:deadline;
+  if(owed.length===1&&recoveryNodes&&now()<end){
+   handoffWork.fallbackNodes=fallbackNodes;
+   accepted=handoff(state,options.openingClear,{...options,maxNodes:recoveryNodes,deadline:end},recovery,true);
+   base.metrics.nodes+=recovery.nodes;
+  }
+ }
+ if(accepted){
+  accepted.metrics={...accepted.metrics,nodes:base.metrics.nodes,handoffWork,elapsedMs:now()-started};
+  // Do not switch phase on a two-lock recovery that the public controller
+  // cannot carry through its bounded, pre-handoff routing envelope.
+  if(accepted.evidence.openingHandoff.recovery&&accepted.continuation.length===2&&!P.captureHandoffRecovery(state,accepted,options.resourceContext)){recovery.status='routing-candidate-unavailable';accepted=null;}
+  else{if(usage){usage.families.handoff.verified=1;usage.families.handoff.selected=1;usage.selected={path:accepted.evidence.openingHandoff.status==='checked-after-actual-clear'?'actual-clear-handoff':'observed-quality-handoff',locks:accepted.continuation?.length||0};accepted.metrics={...accepted.metrics,usage};}return accepted;}
+ }
+ // Preserve old fallback capacity when no recovery was attempted, while logging
+ // real work. A recovery spends only that same residual allowance, never a new
+ // full request. The unspent legacy reservation is not counted as visited work.
+ const legacyReserve=options.openingClear||historicalHandoff?Math.min(12000,limit):0;
+ const reserved=Math.max(0,legacyReserve-base.metrics.nodes);base.metrics.handoffReservedNodes=reserved;
+ if(base.metrics.nodes>=limit||now()>=deadline)return{...base,status:'budget-exhausted',metrics:{...base.metrics,elapsedMs:now()-started}};
  const initial=P.assess(state.board),initialFacts=facts(state.board,P.resolvePatternHistory(state,options.patternHistory));
  const observed=observedSummary?.openingAllocation;
  const allocationRequired=!options.disableOpeningAllocation&&observed?.requiredNonRightZ===1&&(observed.requiredNonRightT===0||observed.firstTsdAt!==null&&observed.counts.TNonRight===2)&&['pending','pending-opening-z'].includes(observed.status)&&observed.counts.T>=2&&['staggered-scoring-wall','cap-preparation'].includes(initialFacts.right);
@@ -633,14 +678,14 @@ function plan(raw,options={}){
  base.metrics.openingAllocation={requiredNonRightZ:allocationRequired?1:null};
  base.metrics.openingAllocation.pendingCenterPartners=qualityPending.length;
  if(initial.maxHeight>=20||initialFacts.notches.status==='broken')return{...base,reason:'This opening needs a repair outside the supported construction search.'};
- if(!options.disableOpeningSources&&!options.disableSourceScoring&&!options.openingClear&&!options.openingRepair&&!options.commitment&&options.openingSource?.continuationSteps?.length===7){
-  const scored=sourceScoring(state,options,initialFacts.notches,deadline,now,limit-reserved);
-  if(scored)return scored;
+ if(!base.metrics.nodes&&!options.disableOpeningSources&&!options.disableSourceScoring&&!options.openingClear&&!options.openingRepair&&!options.commitment&&options.openingSource?.continuationSteps?.length===7){
+  const scored=sourceScoring(state,options,initialFacts.notches,deadline,now,Math.max(0,limit-reserved-base.metrics.nodes));
+  if(scored){scored.metrics={...scored.metrics,handoffWork};return scored;}
  }
  // The session flag enables guidance, not an evaluator certificate. Every
  // source claim is still regenerated from literal geometry and public inputs.
  if(options.openingSource&&options.openingSource.continuationSteps?.length!==7&&(options.openingSource.continuationFrom&&!options.openingSource.pattern||!O.compatible(state.board,options.openingSource.pattern).some(p=>p.mask===127))&&!options.disableOpeningSources&&!options.openingRepair&&!options.openingClear&&!options.commitment){
-  const source=sourceConstruction(state,options,initialFacts.notches,deadline,now,limit-reserved);base.metrics.nodes+=source.visited;base.metrics.sourceConstruction={nodes:source.visited,unknown:source.unknown,selected:Boolean(source.advice),verifiedLocks:source.advice?.continuation.length||0,endpointComplete:source.advice?.evidence.opening.sourceEndpoint==='exact-full-pattern'};
+  const source=sourceConstruction(state,options,initialFacts.notches,deadline,now,Math.max(0,limit-reserved-base.metrics.nodes));base.metrics.nodes+=source.visited;base.metrics.sourceConstruction={nodes:source.visited,unknown:source.unknown,selected:Boolean(source.advice),verifiedLocks:source.advice?.continuation.length||0,endpointComplete:source.advice?.evidence.opening.sourceEndpoint==='exact-full-pattern'};
   if(source.advice){if(usage){usage.selected={path:'verified-source-pattern',locks:source.advice.continuation.length};usage.families.sourcePattern={selected:1,nodes:source.visited};}return{...base,...source.advice,metrics:{...base.metrics,depth:0,completeDepth:0,enumeration:'verified-source-subset-graph',elapsedMs:now()-started}};}
  }
  let saved=checkedRepair(options.openingRepair,state);

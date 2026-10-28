@@ -18,7 +18,9 @@ test('proof scheduling: deliberately unfinished access never becomes rejection o
 });
 
 for(const f of require('./fixtures/scheduling-selection-roots.json'))test(`proof scheduling: certified selection and incomplete coverage remain distinct at ${f.seed}/${f.lock}`,()=>{
- const q=f.request,options={...q.options,previous:q.previous,commitment:q.commitment,deadline:Infinity,timeMs:undefined};
+ // These fixtures specify node-only selection. Control nested handoff clocks,
+ // too; an infinite outer deadline alone still leaves their 200-ms wall timer.
+ const q=f.request,options={...q.options,previous:q.previous,commitment:q.commitment,deadline:Infinity,timeMs:undefined,now:()=>0};
  const a=P.decide(q.observation,options);
  assert.deepEqual(a.target,f.expectedTarget);
  assert.ok(a.metrics.nodes<=45000);
