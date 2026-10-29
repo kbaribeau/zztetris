@@ -39,8 +39,8 @@ test('piece counter: position/session imports, exports, rejection, restart and m
  for(const selected of ['empty','marathon-rebuild']){mode(g,selected);totals(g,0,0,'since start');g.window.stLab.act('HD');totals(g,1,0,'since start');g.click('#st-reset');totals(g,0,0,'since start');g.window.stLab.act('HD');g.tap('KeyR');totals(g,0,0,'since start');}
 }));
 test('piece counter: private practice starts zero since import and restart replays without restoring diagnostic totals',()=>withPage('st-lab.html',{storage:{stGuideVisible:'false'}},g=>{
- imported(g,R.createState({active:'O',queue:Array(6).fill('O')}));
- const packed=Practice.create(g.window.stLab.exportSession(),Array(10).fill('O'));
+ imported(g,R.createState({active:'I',queue:['J','L','O','S','T','Z']}));
+ const packed=Practice.create(g.window.stLab.exportSession(),['I','J','L','O','S','T','Z']);
  imported(g,packed);totals(g,0);g.window.stLab.act('HD');totals(g,1);
  const invalid=JSON.parse(JSON.stringify(packed));invalid.privatePractice.tail=['Q'];imported(g,invalid);totals(g,1);
  g.click('#st-reset');totals(g,0);g.window.stLab.act('HD');totals(g,1);
