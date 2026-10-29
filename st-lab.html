@@ -72,9 +72,16 @@
       <div class="queue"><h2>HOLD</h2><canvas id="h" width="90" height="70" aria-label="Held piece"></canvas><p id="st-hold-state" class="lab-note"></p></div>
       <div class="lab-board-stack">
         <div class="lab-board"><canvas id="b" width="200" height="440" aria-label="Tetris board"></canvas><svg id="st-target" width="200" height="440" viewBox="0 0 200 440" aria-hidden="true"></svg></div>
-        <div id="st-lines" class="lab-line-counter" role="status" aria-live="polite" aria-atomic="true" aria-label="0 lines cleared since start">
-          <span class="lab-line-copy"><span id="st-lines-label">Lines cleared</span><span id="st-lines-scope">since start</span></span>
-          <span id="st-lines-value">0</span>
+        <div id="st-counters" class="lab-session-counters" role="group" aria-label="Session statistics" aria-describedby="st-lines-scope">
+          <div id="st-pieces" class="lab-session-counter" role="status" aria-live="polite" aria-atomic="true" aria-label="0 pieces locked since start">
+            <span id="st-pieces-label" class="lab-counter-label">Pieces locked</span>
+            <span id="st-pieces-value" class="lab-counter-value">0</span>
+          </div>
+          <div id="st-lines" class="lab-session-counter" role="status" aria-live="polite" aria-atomic="true" aria-label="0 lines cleared since start">
+            <span id="st-lines-label" class="lab-counter-label">Lines cleared</span>
+            <span id="st-lines-value" class="lab-counter-value">0</span>
+          </div>
+          <span id="st-lines-scope" class="lab-counter-scope">since start</span>
         </div>
       </div>
       <div class="queue"><h2>NEXT</h2><canvas id="n" width="90" height="360" aria-label="Six visible upcoming pieces"></canvas></div>
