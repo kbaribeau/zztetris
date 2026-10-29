@@ -46,9 +46,10 @@ test('line counter: restart, random reset, modes and imports establish explicit 
  select(g,'marathon-rebuild');count(g,0,'Lines since start');
 }));
 test('line counter: footer stays attached to the board, outside the collision/target layer and resource badges',()=>withPage('st-lab.html',{storage:{stGuideVisible:'false'}},g=>{
- const counter=g.element('#st-lines'),board=g.element('#b').parentElement;
- assert.equal(counter.previousElementSibling,board);
- assert.equal(counter.parentElement,board.parentElement);
+ const counter=g.element('#st-lines'),board=g.element('#b').parentElement,footer=g.element('#st-counters');
+ assert.equal(footer.previousElementSibling,board);
+ assert.equal(footer.parentElement,board.parentElement);
+ assert.equal(counter.parentElement,footer);
  assert.equal(board.contains(counter),false);
  assert.equal(g.element('#st-phase-indicator').contains(counter),false);
  assert.equal(counter.closest('.lab-field'),board.closest('.lab-field'));

@@ -306,7 +306,11 @@
     $('st-phase-indicator').hidden=false;
     $('st-undo').disabled=!undoHistory.length;
     const lineScope=lineLabel.replace('Lines ','');
-    const lineTotal=clearedLines.toLocaleString('en-US');
+    const lineTotal=clearedLines.toLocaleString('en-US'),pieceTotal=lockCount.toLocaleString('en-US');
+    setText($('st-pieces-value'),pieceTotal);
+    const pieceAnnouncement=`${pieceTotal} ${lockCount===1?'piece':'pieces'} locked${lineScope?' '+lineScope:''}`;
+    if($('st-pieces').getAttribute('aria-label')!==pieceAnnouncement)$('st-pieces').setAttribute('aria-label',pieceAnnouncement);
+    $('st-counters').classList.toggle('lab-counters-large',Math.max(lockCount,clearedLines)>=10000);
     setText($('st-lines-value'),lineTotal);
     setText($('st-lines-scope'),lineScope);$('st-lines-scope').hidden=!lineScope;
     const lineAnnouncement=`${lineTotal} ${clearedLines===1?'line':'lines'} cleared${lineScope?' '+lineScope:''}`;
