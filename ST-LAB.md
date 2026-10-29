@@ -4,7 +4,7 @@ The lab offers separate bounded opening and maintenance coaching for a **right-h
 
 Replay-verified [opening allocation and delayed quality](docs/st-opening-allocation.md) keep a known missing opening Z and early Center/S/L obligations distinct from optional stack growth. Imported geometry alone does not invent this history or an Extra-Z allowance.
 
-The last selected play mode is saved locally as `stLabMode`; unknown or retired values fall back to Stable ST stack. **Restart current board** restores the current starting board, including an imported snapshot. Snapshot import/export remains a diagnostic tool, not a third preset, and an import does not overwrite the saved mode. Choosing a mode replaces the imported origin. The rules, unlimited hold swaps, and coaching engine are unchanged.
+The last selected play mode is saved locally as `stLabMode`; unknown or retired values fall back to Stable ST stack. Snapshot import/export remains a diagnostic tool, not a third preset, and an import does not overwrite the saved mode. Choosing a mode replaces the imported origin.
 
 ## Play
 
@@ -15,7 +15,7 @@ The last selected play mode is saved locally as `stLabMode`; unknown or retired 
 - The gray outline is the ordinary hard-drop ghost. The amber outline is a separately checked coaching target. Follow the explanation, including HOLD when requested; no auto-play button executes the plan for you.
 - Keyboard bindings come from Game Settings; on-page buttons provide the same manual actions. Advice defaults to `KeyA` unless rebound. Display preferences persist without changing ordinary modes.
 - The lab has its own explicit `st-zero-v2` rules: 10×40 board, zero gravity, manual hard-drop lock, SRS+ kicks including 180°, and **unlimited hold swaps**. Ordinary practice is unchanged. Existing v1 fixtures and imports explicitly migrate to v2 in the lab; the kernel retains v1 for historical replay. Unlimited hold swaps the same two pieces, not the whole queue. See [rules contract](docs/st-rules-contract.md).
-- **Restart current board** (configured Reset key, default R) restarts the selected position and its coaching phase. Empty-board advice checks finite legal construction prefixes, then hands off only after an actual canonical clear and a freshly checked maintenance continuation. See [opening scope and limits](docs/st-opening.md).
+- **Restart current board** restores the starting position, pose, hold, preview and coaching phase, including an imported origin. The configured Reset key (default R) instead starts a fresh random piece sequence from the starting board for ordinary modes and plain position imports; for coaching sessions and private practice packages, it restores the imported session and any supplied tape exactly. Both actions reset the footer totals and Undo history. Empty-board advice checks finite legal construction prefixes, then hands off only after an actual canonical clear and a freshly checked maintenance continuation. See [opening scope and limits](docs/st-opening.md).
 - **Pieces locked and cleared lines** share a neutral two-column footer attached below the board, separate from phase/resource badges. “Pieces locked” counts actual completed hard-drop placements, including non-clears and a terminal lock—not draws, previews, active pieces or HOLD swaps. “Lines cleared” remains the total actual rows cleared. Both grouped totals share a visible “since start” qualifier for fixtures and empty-board games or “since import” for imported positions/sessions/private practice, without inventing earlier history from an existing heap or imported coaching evidence. Undo restores both totals; Restart and mode changes reset them. Each polite accessible status includes its total and baseline. These session-only statistics are not exported or sent to the coach.
 - Snapshot export contains only visible state and optional observed bag evidence. Import accepts at most six preview pieces. Missing history remains unknown. Full Fumen/editor/redo tools remain available through the ordinary-practice link; the lab does not pretend those legacy controls operate its new state.
 - Rejected position/session imports show a persistent **Import rejected** alert between Snapshot JSON and the Import button, with the exact parser/validator message. The input and current game stay intact; edit the existing textarea and retry with the same Import action (no separate Edit JSON button). Editing retains the previous failure and marks it as not yet revalidated. Rejection opens the import section without moving keyboard focus, and a textual cue remains if it is collapsed. Repeated failures update the assertive alert; accepted-import warnings, successes and export notices use the ordinary polite status instead. No validation or import rules are relaxed.
@@ -264,13 +264,15 @@ The import box accepts either the existing lightweight position JSON or a
 `zztetris-st-session` envelope (`schemaVersion: 1`). **Export coaching session**
 adds the current recommendation inputs to the visible position; **Export visible
 snapshot** is unchanged. Neither exports hidden future bags/RNG, Undo history,
-cleared-line totals, or the diagnostic shadow piece ledger. Imported play has a
+footer totals, or the diagnostic shadow piece ledger. Imported play has a
 finite visible queue (plus the existing logically forced bag remainder).
 
 The session contains:
 
 - `engineVersion`: an explicit coach compatibility identifier. Bump this when a
-  behavior/proof-contract change makes old contextual sessions incompatible.
+  behavior/proof-contract change invalidates saved advice or commitments.
+  A different coach version produces a warning and discards those candidates;
+  validated history and supported search settings can still be imported.
   It is a compatibility version, not a Git SHA or a signature.
 - `position`: rules, board, exact active pose/rotation evidence, HOLD, six-piece
   preview, bag frontier, stream cursor, top-out and revision.
