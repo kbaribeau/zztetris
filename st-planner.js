@@ -19,11 +19,22 @@ function resourceEndpointCore(raw,path,options={}){
  let visited=0;const now=options.now||(()=>Date.now()),deadline=options.deadline??Infinity,limit=options.maxNodes??45000;
 
  const observed=resourceSummary(raw,options);
- let dPending=observed.dPattern?.pending===true,centerDeparture=false,virtual=extendForced(observe(raw)),notches=H.resolve(observe(raw),options.patternHistory),projected=M.start(virtual,observed);for(const step of path){const r=R.replay(virtual,step.witness);if(!r.valid||r.events.length!==1)return{...checked,valid:false,visited,reason:'invalid-resource-witness'};if(!options[pairedResetScope]&&!ordinaryRightEligible(r.events[0]))return{...checked,valid:false,visited,reason:'ordinary-right-requires-Z-T-I'};const phase=S.advanceNotches(virtual.board,{state:r.state,event:r.events[0]},notches);if(!phase.valid)return{...checked,valid:false,visited,reason:'invalid-resource-repair-phase'};notches=phase.pattern;
+ let dPending=observed.dPattern?.pending===true,centerDeparture=false,virtual=extendForced(observe(raw)),notches=H.resolve(observe(raw),options.patternHistory),projected=M.start(virtual,observed);for(const [index,step] of path.entries()){const r=R.replay(virtual,step.witness);if(!r.valid||r.events.length!==1)return{...checked,valid:false,visited,reason:'invalid-resource-witness'};if(!options[pairedResetScope]&&!ordinaryRightEligible(r.events[0]))return{...checked,valid:false,visited,reason:'ordinary-right-requires-Z-T-I'};const phase=S.advanceNotches(virtual.board,{state:r.state,event:r.events[0]},notches);if(!phase.valid)return{...checked,valid:false,visited,reason:'invalid-resource-repair-phase'};notches=phase.pattern;
   dPending=L.isD(r.state.board); // Current D needs a usable J for support even when its creator is unknown.
   if(dPending){
-   const dAdmission=dPatternExitAdmission(virtual,{state:r.state,event:r.events[0],witness:step.witness},{...options,notches,maxNodes:Math.max(0,limit-visited),deadline,now,resource:projected});visited+=dAdmission.visited;
-   if(!dAdmission.valid)return{...checked,valid:false,visited,reason:dAdmission.reason};
+   // An actually executed next J exit can be proved by this whole public
+   // path, including its later reserved-piece restoration. The isolated
+   // immediate-J helper deliberately has a shorter/hole-free grammar.
+   // No saved flag grants this exception: full resource, repair and access
+   // validation below still applies to every lock and the final endpoint.
+   const exit=path[index+1]&&R.replay(r.state,path[index+1].witness);
+   const executedExit=exit?.valid&&exit.events.length===1&&exit.events[0].type==='J'&&
+    exit.events[0].cells.every(([x])=>x<4)&&!L.isD(exit.state.board)&&
+    JSON.stringify(exit.events[0])===JSON.stringify(path[index+1].event);
+   if(!executedExit){
+    const dAdmission=dPatternExitAdmission(virtual,{state:r.state,event:r.events[0],witness:step.witness},{...options,notches,maxNodes:Math.max(0,limit-visited),deadline,now,resource:projected});visited+=dAdmission.visited;
+    if(!dAdmission.valid)return{...checked,valid:false,visited,reason:dAdmission.reason};
+   }
   }
   const next=M.step(virtual,{...step,state:r.state,event:r.events[0]},projected),event=r.events[0];
   // A literal payment of an authenticated retained SL target is not new
@@ -2306,7 +2317,67 @@ function riskyFallback(raw,supported,options,collector){
   evidence:{strategy:'explicit-risk-fallback',verifiedLocks:1,resourcePermissions:'unchanged',actualPartnerPayments:paid,risk:{hazards,search},claim:'No supported repair certificate is supplied.'},metrics:{...supported.metrics,certifiedHorizon:0,legalHorizon:1}});
 }
 
-function decide(raw,options={}){return queryRequest(()=>{const now=options.now||(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs),collector={key:null,placements:null,complete:false,started:Date.now()};try{collector.key=stateKey(extendForced(observe(raw)));}catch{}options={...options,now,deadline,[riskRootCollector]:collector};const result=decideRequest(raw,options);return result.target?classifySupported(result):riskyFallback(raw,result,options,collector);});}
+// Optional exact-public repair search. It only extends the already selected
+// first placement, retaining one O instance until it actually repays covered
+// cells. Seven locks/width four are engineering bounds, not source criteria.
+function reservedPiecePlan(raw,incumbent,options,collector){
+ if(!incumbent?.target||options.disableReservedPiecePlan||options.allowHold===false||options.openingPhase!==false||options.commitment||incumbent.evidence?.construction||incumbent.evidence?.opening)return incumbent;
+ const s=extendForced(observe(raw)),summary=resourceSummary(raw,options),root=M.start(s,summary),pending=root.pendingCenter;
+ const reserve=[root.active,root.hold].find(p=>p?.type==='O'),extraS=[root.active,root.hold,...root.queue].filter(p=>p?.type==='S');
+ if(!reserve||pending.length!==1||pending[0].family!=='SL'||pending[0].lost||!extraS.length||!['complete','partial'].includes(summary.coverage.status)||!collector.placements?.length)return incumbent;
+ const now=options.now||(()=>Date.now()),deadline=options.deadline??Infinity,total=options.maxNodes??45000,spent=incumbent.metrics?.nodes||0,cap=Math.min(12000,Math.max(0,total-spent));
+ let used=0,incomplete=false;const started=Date.now(),phase=H.resolve(raw,options.patternHistory),maxDepth=Math.min(7,1+s.queue.length+(s.hold?1:0));
+ const telemetry={attempted:true,selected:false,reason:'no-complete-reserved-repair',nodeCap:cap,width:4,maxDepth,visited:0,rootId:pending[0].rootId,reservedId:reserve.id,scope:'same-first-placement; actual reserved-O repair and known-SL closure; public-only'};
+ const finish=result=>({...result,metrics:{...result.metrics,nodes:spent+used,elapsedMs:(incumbent.metrics?.elapsedMs||0)+Math.max(0,Date.now()-started),reservedPiecePlan:{...telemetry,visited:used,incomplete}}});
+ const bounded=()=>now()<deadline&&used<cap;
+ if(!bounded()){telemetry.reason='shared-budget';return finish(incumbent);}
+ const first=collector.placements.filter(p=>JSON.stringify(p.event)===JSON.stringify(incumbent.continuation?.[0]?.event)&&holdCount(p)===holdCount(incumbent));
+ let layer=[{state:s,resource:root,notches:phase,path:[],debt:summary.coveredRepair?.cells||[],everDebt:false,paid:false,extraPaid:false,score:0}];
+ for(let depth=0;depth<maxDepth&&layer.length&&bounded();depth++){
+  const children=[];
+  for(const n of layer){
+   if(!bounded()){incomplete=true;break;}
+   const canPay=n.everDebt&&n.debt.length&&!n.resource.pendingCenter.length&&n.extraPaid;
+   const enumeration=depth===0?{placements:first,visited:0,complete:true}:R.placements(n.state,{allowHold:canPay,maxNodes:cap-used,deadline,now});used+=enumeration.visited;if(!enumeration.complete)incomplete=true;
+   telemetry.depth=depth+1;
+   for(const p of enumeration.placements){
+    if(!bounded()){incomplete=true;break;}
+    const piece=placedResource(n.resource,p.witness),event=p.event;
+    if(!piece||!S.canonicalClear(event)||event.topOut||!ordinaryRightEligible(event)||assess(p.state.board).maxHeight>=19)continue;
+    const nextPhase=S.advanceNotches(n.state.board,p,n.notches);if(!nextPhase.valid||S.transition(n.state,p,undefined,{notches:n.notches}).cycleViolations.length)continue;
+    const resource=M.step(n.state,p,n.resource);if(resource.violations.length||resource.pendingCenter.some(q=>q.lost)||resource.unclassifiedS.some(q=>q.invalidated||q.requiresAccommodation))continue;
+    const debt=A.repairStep(n.state.board,p.state.board,event,n.debt,nextPhase.pattern),created=A.newlyCovered(n.state.board,p.state.board,event,nextPhase.pattern);
+    if(debt.length>4||S.cavityRepairDebt(S.cavityFacts(n.state.board),S.cavityFacts(p.state.board),event).length)continue;
+    const payment=piece.id===reserve.id;
+    // Merely consuming O is not paying a plan. It must fill the outstanding
+    // actual repair cells, rather than erase them through a guessed future.
+    if(payment&&(!n.everDebt||!n.debt.length||debt.length||event.lines))continue;
+    const paid=n.paid||payment,extraPaid=n.extraPaid||extraS.some(q=>q.id===piece.id),path=[...n.path,p];
+    const g=S.geometry(p.state.board,{notches:nextPhase.pattern});
+    const child={state:p.state,resource,notches:nextPhase.pattern,path,debt,everDebt:n.everDebt||created.length>0,paid,extraPaid,
+     score:resource.pendingCenter.length*8+debt.length*2+Math.max(...g.left.profile)+g.left.roughness-3*path.reduce((sum,q)=>sum+q.event.lines,0)};
+    if(paid&&extraPaid&&!resource.pendingCenter.length&&!debt.length&&!L.isD(p.state.board)&&assess(p.state.board).regionalSupport){
+     const initial={...assess(s.board),state:s,notches:phase,resources:root,coveredRepair:summary.coveredRepair};let assembled=null;
+     for(const step of path)assembled=nodeFor({...step,...policyWitnesses(assembled?.state??s)},assembled,initial,0);
+     if(assembled.cycleDebt||!assembled.notchValid||!certifiedCavities(assembled))continue;
+     const steps=assembled.path.map(({state,...p})=>({...p,resultContext:context(state)}));
+     const resourceProof=checkedResourceEndpoint(s,steps,{...options,maxNodes:cap-used,deadline,now});used+=resourceProof.visited||0;
+     const repair=checkedCoveredRepair(s,steps,options),access=resourceProof.valid&&repair?A.prefix(s,steps,{notches:phase,maxNodes:cap-used,deadline,now}):null;used+=access?.visited||0;
+     if(resourceProof.valid&&repair&&access?.reachable===true&&used<=cap&&now()<deadline){
+      telemetry.selected=true;telemetry.reason='reserved-O-restores-actual-covered-cells';
+      const assessment=assembled.assessment,presentation=advicePresentation(steps,assessment),first=steps[0];
+      return finish({...incumbent,...presentation,target:first.target,witness:first.witness,hold:first.hold,holdCount:holdCount(first),continuation:repair.steps,assessment,reason:presentation.reason+' Keep the O reserved for the checked repair later in this sequence.',evidence:{strategy:'canonical-right-ST',verifiedLocks:steps.length,knownPieceHorizon:s.queue.length+1,cycleDebt:0,cycleResources:cycleResources(steps),futureNotches:assembled.notches,structure:assessment.structure,structuralScore:assembled.structuralScore,structuralRank:assembled.rank,regionalSupport:assessment.regionalSupport,initialSealed:assess(s.board).sealed,endpointSealed:assessment.sealed,coveredRepair:repair.proof,coveredRepairPlan:repair.plan,resourceObligations:{status:'checked',binding:resourceProof.resource.originKey},gapAccess:access,reservedPiecePlan:{reservedId:reserve.id,paymentLock:path.length,claim:'Actual public finite repair, not indefinite sustainability.'},claim:'Finite executable prefix; endpoint estimates are not a sustainability guarantee.'},metrics:{...incumbent.metrics,certifiedHorizon:steps.length}});
+     }
+    }
+    if(!paid)children.push(child);
+   }
+  }
+  const seen=new Set();layer=children.sort((a,b)=>a.score-b.score).filter(n=>{const key=JSON.stringify([n.state.board,M.binding(n.resource),n.debt]);if(seen.has(key))return false;seen.add(key);return true;}).slice(0,4);
+ }
+ if(!bounded())incomplete=true;return finish(incumbent);
+}
+
+function decide(raw,options={}){return queryRequest(()=>{const now=options.now||(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs),collector={key:null,placements:null,complete:false,started:Date.now()};try{collector.key=stateKey(extendForced(observe(raw)));}catch{}options={...options,now,deadline,[riskRootCollector]:collector};const initial=decideRequest(raw,options),result=reservedPiecePlan(raw,initial,options,collector);return result.target?classifySupported(result):riskyFallback(raw,result,options,collector);});}
 function decideRequest(raw,options={}){
  const now=options.now||(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs),budgetTracker={nodes:0},limit=options.maxNodes??45000;
  options={...options,now,deadline};const previous=options.previous;

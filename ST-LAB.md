@@ -569,3 +569,23 @@ work is capped at 18,000 additional nodes inside the original remaining request
 budget and deadline. These explicit engineered bounds establish neither a global
 best allocation nor longer survival. Existing I obligations, Right roles, partial
 history semantics and Reset classification are unchanged.
+
+### Public reserved-piece repair plans
+
+Experimental midgame advice can recognize a narrow reserved-O completion plan
+when an authenticated S/L Center stage and another visible S compete for space.
+After ordinary admission, a width-four search may extend that same first move
+through at most seven public locks, spending at most 12,000 remaining nodes
+within the unchanged shared allowance. O must actually repay tracked covered
+cells; the existing S/L stage and extra S accommodation must be resolved by the
+finite endpoint. No unseen pieces, future repair guesses or historical spare-Z
+permissions are supplied. A failed or interrupted optional search preserves the
+admitted incumbent.
+
+A full executed continuation may demonstrate an immediate next J Left exit from
+D together with its later actual restoration, rather than requiring the isolated
+short J helper to discover the entire repair. All resource, notch, canonical-clear,
+covered-cell and access checks still apply. The original public repair witnesses
+are replayed across movement, HOLD, actual reveals and line-clear translation.
+These engineered bounds and finite certificates are not a guarantee of sustained
+play or a Reset policy.

@@ -1,0 +1,439 @@
+{
+  "provenance": "Minimized public regression from reviewed R385; partial earlier bag/Extra-Z history remains unknown. Three observed locks establish exact Center S identity. Seven-lock user witness is test oracle only, never planner input.",
+  "observation": {
+    "rules": "st-zero-v2",
+    "board": [
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      ".JJ.......",
+      "LJII......",
+      "LJII.SS...",
+      "LLIISS....",
+      "OOIILOO...",
+      "OOSSLOO...",
+      "JSSILL....",
+      "JJJILLL...",
+      "OOJILSS...",
+      "ILLLOOJ.Z.",
+      "TSSIJZZ.Z.",
+      "SSLLLOO.Z."
+    ],
+    "active": {
+      "type": "O",
+      "x": 3,
+      "y": 17,
+      "rotation": 0,
+      "lastRotation": null
+    },
+    "hold": "Z",
+    "canHold": true,
+    "queue": [
+      "J",
+      "S",
+      "T",
+      "I",
+      "L",
+      "Z"
+    ],
+    "revision": 108,
+    "streamCursor": 36,
+    "topOut": false,
+    "lastEvent": {
+      "type": "J",
+      "target": {
+        "type": "J",
+        "x": 0,
+        "y": 27,
+        "rotation": 1
+      },
+      "cells": [
+        [
+          1,
+          28
+        ],
+        [
+          2,
+          28
+        ],
+        [
+          1,
+          29
+        ],
+        [
+          1,
+          30
+        ]
+      ],
+      "lines": 0,
+      "clearedRows": [],
+      "spin": "none",
+      "topOut": false
+    }
+  },
+  "options": {
+    "openingPhase": false,
+    "resourceContext": {
+      "schemaVersion": 1,
+      "origin": {
+        "rules": "st-zero-v2",
+        "board": [
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "L.II......",
+          "L.II......",
+          "LLII......",
+          "OOIILOO...",
+          "OOSSLOO...",
+          "JSSILL....",
+          "JJJILLL...",
+          "OOJILSS...",
+          "OOJISS...Z",
+          "IJJLJJJ.ZZ",
+          "ILLLOOJ.Z.",
+          "TSSIJZZ.Z.",
+          "SSLLLOO.Z."
+        ],
+        "active": {
+          "type": "S",
+          "x": 3,
+          "y": 17,
+          "rotation": 0,
+          "lastRotation": null
+        },
+        "hold": "Z",
+        "canHold": true,
+        "queue": [
+          "T",
+          "J",
+          "O",
+          "J",
+          "S",
+          "T"
+        ],
+        "revision": 73,
+        "streamCursor": 33,
+        "topOut": false,
+        "lastEvent": null
+      },
+      "fresh": false,
+      "steps": [
+        {
+          "action": "R",
+          "revealed": []
+        },
+        {
+          "action": "HD",
+          "revealed": [
+            "I"
+          ]
+        },
+        {
+          "action": "CW",
+          "revealed": []
+        },
+        {
+          "action": "R",
+          "revealed": []
+        },
+        {
+          "action": "R",
+          "revealed": []
+        },
+        {
+          "action": "R",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "CW",
+          "revealed": []
+        },
+        {
+          "action": "HD",
+          "revealed": [
+            "L"
+          ]
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "CW",
+          "revealed": []
+        },
+        {
+          "action": "L",
+          "revealed": []
+        },
+        {
+          "action": "L",
+          "revealed": []
+        },
+        {
+          "action": "L",
+          "revealed": []
+        },
+        {
+          "action": "L",
+          "revealed": []
+        },
+        {
+          "action": "R",
+          "revealed": []
+        },
+        {
+          "action": "HD",
+          "revealed": [
+            "Z"
+          ]
+        }
+      ],
+      "handoffAtAction": null
+    }
+  },
+  "witnesses": [
+    [
+      "HOLD",
+      "CW",
+      "R",
+      "R",
+      "R",
+      "R",
+      "HD"
+    ],
+    [
+      "CW",
+      "CW",
+      "L",
+      "L",
+      "HOLD",
+      "HOLD",
+      "CW",
+      "L",
+      "L",
+      "L",
+      "L",
+      "HD"
+    ],
+    [
+      "L",
+      "L",
+      "R",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "L",
+      "HD"
+    ],
+    [
+      "CW",
+      "R",
+      "R",
+      "R",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "CW",
+      "HD"
+    ],
+    [
+      "CW",
+      "R",
+      "R",
+      "R",
+      "R",
+      "HD"
+    ],
+    [
+      "CW",
+      "CW",
+      "R",
+      "HD"
+    ],
+    [
+      "HOLD",
+      "R",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "L",
+      "L",
+      "HD"
+    ]
+  ],
+  "testOnlyRevealsAfterLocks": [
+    [
+      "S"
+    ],
+    [
+      "Z"
+    ],
+    [
+      "I"
+    ],
+    [
+      "J"
+    ],
+    [
+      "T"
+    ],
+    [
+      "L"
+    ],
+    [
+      "O"
+    ]
+  ]
+}
