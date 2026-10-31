@@ -22,12 +22,19 @@ test('reservoir/counterfactual pre-cap geometry retains exact verified credit wi
  assert.equal(result.evidence.structuralScore,-11.3);assert.deepEqual(result.evidence.structuralRank,[1,1,0,-3,1,-6,0,0]);assert.equal(a.leftContext.score,0);endpoint();
 });
 test('reservoir/ordinary advice cannot retain the historical non-scoring T prefix',()=>{
- const ordinary=P.plan(snapshot,{depth:3,width:8,maxNodes:45000,allowHold:false});
- assert.ok(ordinary.target);assert.ok(ordinary.continuation.every(p=>p.event.type!=='T'||p.event.spin==='full'&&p.event.lines===2));
+ const blocked=P.plan(snapshot,{depth:3,width:8,maxNodes:45000,allowHold:false});assert.equal(blocked.target,null,'The old Center L keeps inherited D without an immediate usable J');
+ const ordinary=P.plan(snapshot,{depth:3,width:8,maxNodes:45000});assert.ok(ordinary.target);assert.ok(ordinary.continuation.every(p=>p.event.type!=='T'||p.event.spin==='full'&&p.event.lines===2));
  let state=R.createState(snapshot);const steps=[];
  for(const witness of [...historicalPrefix,result.witness]){const r=R.replay(state,witness);assert.ok(r.valid);steps.push({witness,event:r.events[0],target:r.events[0].target,hold:false,holdCount:0});state=r.state;}
  assert.equal(steps[1].event.type,'T');assert.equal(steps[1].event.lines,0);
- assert.equal(P.revalidate(snapshot,{...ordinary,continuation:steps}),null);
+ const origin=R.createState(snapshot),stale={target:steps[0].target,witness:steps[0].witness,hold:false,holdCount:0,continuation:steps,context:JSON.stringify([origin.rules,origin.board,origin.hold,origin.canHold,origin.queue,origin.bag??null,origin.active.type]),evidence:{},metrics:{}};
+ assert.ok(stale.target,'The non-scoring-T rejection must not be a vacuous null-target check');assert.equal(require('../st-midgame-resources').checkPath(origin,steps).reason,'ordinary-T-must-score','The actual T-allocation violation remains independently observable');assert.equal(P.revalidate(snapshot,stale),null);
+});
+test('reservoir/immediate J supply keeps a genuine supported Center-L then D-exit positive',()=>{
+ // Disclosed synthetic order variant: move the existing final J to the front;
+ // no new piece type or hidden future is added. Actual history remains unknown.
+ const supplied={...snapshot,queue:['J','T','Z','S','L','I']},a=P.plan(supplied,{depth:3,width:8,maxNodes:45000,allowHold:false});assert.deepEqual(a.target,{type:'L',x:4,y:25,rotation:2});assert.equal(a.continuation[1].event.type,'J');
+ let state=R.createState(supplied);for(const p of a.continuation){const r=R.replay(state,p.witness);assert.ok(r.valid);assert.deepEqual(r.events[0],p.event);state=r.state;}assert.equal(require('../st-left-context').isD(state.board),false);assert.ok(P.revalidate(supplied,a,{maxNodes:45000,allowHold:false}));
 });
 test('reservoir/proof: actual clear reopens exact shaft, without inventing T arrival',()=>{
  const state=endpoint(),cavity=result.assessment.structure.right.reservoir;

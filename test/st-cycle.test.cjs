@@ -1,7 +1,7 @@
 'use strict';
 const {SEARCH_TIME_MS}=require('../st-coach-config');
 const test=require('node:test'),assert=require('node:assert/strict');
-const R=require('../st-rules'),S=require('../st-structure'),P=require('../st-planner'),F=require('../st-fixtures');
+const R=require('../st-rules'),S=require('../st-structure'),P=require('../st-planner'),F=require('../st-fixtures'),LC=require('../st-left-context');
 const I=require('./support/st-user-cleanup-i.json');
 const alternatives=require('./support/st-accepted-cycle-alternatives.json');
 const config={depth:3,width:8,maxNodes:45000};
@@ -24,13 +24,25 @@ test('cycle: raised cleanup I is a legitimate scoring phase and its double is no
  assert.equal(S.assess(s).right.cycle.phase,'scoring-above-cleanup-I');
  const t=S.transition(s,{state:r.state,event:r.events[0]});assert.equal(t.regionalRepair,0);assert.equal(t.allocation,'scoring-double');
 });
-for(const timed of [false,true])test(`cycle: supplied I prepares column ten with column eight and Z access preserved (${timed?'timed':'full'})`,()=>{
- const a=P.plan(I,{...config,...(timed?{timeMs:SEARCH_TIME_MS}:{})});replay(R.createState(I),a);
- assert.equal(a.target.type,'I');assert.ok(a.continuation[0].event.cells.every(([x])=>x===9));
- assert.equal(a.continuation[0].structuralEvidence.allocation,'quad-preparation');
- const after=R.replay(R.createState(I),a.witness).state;
- assert.equal(after.board.every(row=>row[7]==='.'),true);
- const z=R.placements(R.createState({board:after.board,active:'Z',canHold:false})).placements.find(p=>p.event.cells.every(([x])=>x>=8)&&S.geometry(p.state.board).right.shapeStatus==='staggered-scoring-wall');assert.ok(z,'cleanup preparation must still admit the Z cap');
+function assertCleanupPreparation(before,p){
+ assert.equal(p.event.type,'I');assert.ok(p.event.cells.every(([x])=>x===9));assert.equal(S.transition(before,p).allocation,'quad-preparation');assert.deepEqual(S.transition(before,p).cycleViolations,[]);
+ const after=p.state;assert.equal(after.board.every(row=>row[7]==='.'),true);
+ const z=R.placements(R.createState({board:after.board,active:'Z',canHold:false})).placements.find(q=>q.event.cells.every(([x])=>x>=8)&&S.geometry(q.state.board).right.shapeStatus==='staggered-scoring-wall');assert.ok(z,'cleanup preparation must still admit the Z cap');
+}
+for(const timed of [false,true])test(`cycle: inherited D is exited before the same supplied I preparation (${timed?'timed':'full'})`,()=>{
+ const before=R.createState(I),literal=R.replay(before,['HD']);assert.ok(literal.valid);assert.equal(literal.events.length,1);
+ // Preserve the original I-column10/column8/Z-access mechanics independently
+ // of the supported selector. This old snapshot already has D and no next J.
+ assertCleanupPreparation(before,{state:literal.state,event:literal.events[0]});assert.equal(LC.isD(before.board),true);assert.equal(LC.isD(literal.state.board),true);assert.equal(LC.immediateJStarts(literal.state).length,0);
+ const a=P.plan(I,{...config,...(timed?{timeMs:SEARCH_TIME_MS}:{})});replay(before,a);assert.deepEqual(a.target,{type:'S',x:2,y:23,rotation:3});assert.equal(a.hold,true);
+ const exit=R.replay(before,a.witness).state;assert.equal(LC.isD(exit.board),false,'The supported S actually exits inherited D');
+ const second=a.continuation[1],r=R.replay(exit,second.witness);assert.ok(r.valid);assert.deepEqual(second.target,literal.events[0].target);assertCleanupPreparation(exit,{state:r.state,event:r.events[0]});assert.equal(second.structuralEvidence.allocation,'quad-preparation');
+});
+test('cycle: immediate usable held J preserves a genuine supported I-first preparation',()=>{
+ // Explicit synthetic supply variant of the same reviewed board: held J instead
+ // of S, with a distinct visible J still available for Center. No history claim.
+ const supplied={...I,hold:'J'},before=R.createState(supplied),a=P.plan(supplied,config);replay(before,a);assert.deepEqual(a.target,{type:'I',x:7,y:36,rotation:1});
+ const r=R.replay(before,a.witness);assertCleanupPreparation(before,{state:r.state,event:r.events[0]});assert.equal(LC.isD(r.state.board),true);assert.ok(LC.immediateJStarts(r.state).length>0);assert.ok(P.revalidate(before,a,{maxNodes:45000}));
 });
 for(const f of alternatives)test(`cycle accepted alternative remains available: ${f.id}`,()=>{
  const a=P.plan(f.observation,config);const end=replay(R.createState(f.observation),a);
