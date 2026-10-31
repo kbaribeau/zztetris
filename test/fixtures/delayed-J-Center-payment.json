@@ -1,0 +1,359 @@
+{
+  "provenance": "Minimized observed locks29-31 establish the real SL target; earlier history remains unknown. Public before32 only.",
+  "observation": {
+    "rules": "st-zero-v2",
+    "board": [
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      ".OO.......",
+      ".OOI......",
+      ".OOI......",
+      ".OOI......",
+      ".SSI.SS...",
+      "SSLISS....",
+      "LLLILLL...",
+      "JJJILSS...",
+      "JJIILSS.Z.",
+      "OOSSLOO.Z.",
+      "OOJILSS.Z.",
+      "ILLLOOJ.Z.",
+      "TSSIJZZ.Z.",
+      "SSLLLOO.Z."
+    ],
+    "active": {
+      "type": "I",
+      "x": 3,
+      "y": 17,
+      "rotation": 0,
+      "lastRotation": null
+    },
+    "hold": "Z",
+    "canHold": true,
+    "queue": [
+      "O",
+      "L",
+      "J",
+      "O",
+      "J",
+      "S"
+    ],
+    "revision": 219,
+    "streamCursor": 53,
+    "topOut": false,
+    "bag": {
+      "remaining": [
+        101
+      ],
+      "observedCount": 59,
+      "provenance": "known-phase"
+    }
+  },
+  "options": {
+    "openingPhase": false,
+    "resourceContext": {
+      "schemaVersion": 1,
+      "origin": {
+        "rules": "st-zero-v2",
+        "board": [
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "...I......",
+          ".OOI......",
+          ".OOI......",
+          ".SSI......",
+          "SSLI......",
+          "LLLILLL...",
+          "JJJILSS...",
+          "JJJISS...Z",
+          "JJIILLL.ZZ",
+          "JJIILSS.Z.",
+          "OOSSLOO.Z.",
+          "OOJILSS.Z.",
+          "ILLLOOJ.Z.",
+          "TSSIJZZ.Z.",
+          "SSLLLOO.Z."
+        ],
+        "active": {
+          "type": "S",
+          "x": 3,
+          "y": 17,
+          "rotation": 0,
+          "lastRotation": null
+        },
+        "hold": "O",
+        "canHold": true,
+        "queue": [
+          "Z",
+          "T",
+          "I",
+          "O",
+          "L",
+          "J"
+        ],
+        "streamCursor": 50,
+        "topOut": false
+      },
+      "fresh": false,
+      "steps": [
+        {
+          "action": "R",
+          "revealed": []
+        },
+        {
+          "action": "HD",
+          "revealed": [
+            "O"
+          ]
+        },
+        {
+          "action": "HOLD",
+          "revealed": []
+        },
+        {
+          "action": "L",
+          "revealed": []
+        },
+        {
+          "action": "L",
+          "revealed": []
+        },
+        {
+          "action": "L",
+          "revealed": []
+        },
+        {
+          "action": "HD",
+          "revealed": [
+            "J"
+          ]
+        },
+        {
+          "action": "R",
+          "revealed": []
+        },
+        {
+          "action": "R",
+          "revealed": []
+        },
+        {
+          "action": "R",
+          "revealed": []
+        },
+        {
+          "action": "CW",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "CW",
+          "revealed": []
+        },
+        {
+          "action": "HD",
+          "revealed": [
+            "S"
+          ]
+        }
+      ],
+      "handoffAtAction": null
+    },
+    "resourceOriginBag": {
+      "remaining": [
+        0
+      ],
+      "observedCount": 56,
+      "provenance": "known-phase"
+    },
+    "patternHistory": {
+      "origin": [
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        ".OO.......",
+        ".OOI......",
+        ".OOI......",
+        ".OOI......",
+        ".SSI.SS...",
+        "SSLISS....",
+        "LLLILLL...",
+        "JJJILSS...",
+        "JJIILSS.Z.",
+        "OOSSLOO.Z.",
+        "OOJILSS.Z.",
+        "ILLLOOJ.Z.",
+        "TSSIJZZ.Z.",
+        "SSLLLOO.Z."
+      ],
+      "steps": []
+    }
+  },
+  "userWitnesses": [
+    [
+      "HOLD",
+      "CW",
+      "R",
+      "R",
+      "R",
+      "R",
+      "HD"
+    ],
+    [
+      "HOLD",
+      "CW",
+      "L",
+      "L",
+      "L",
+      "L",
+      "L",
+      "HD"
+    ],
+    [
+      "CW",
+      "CW",
+      "R",
+      "HD"
+    ],
+    [
+      "HOLD",
+      "R",
+      "L",
+      "HD"
+    ],
+    [
+      "CW",
+      "HOLD",
+      "CW",
+      "CW",
+      "R",
+      "HD"
+    ],
+    [
+      "CW",
+      "CW",
+      "L",
+      "L",
+      "HD"
+    ]
+  ]
+}

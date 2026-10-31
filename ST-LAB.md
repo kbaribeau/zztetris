@@ -606,3 +606,18 @@ space explained. Advice explicitly acknowledges the supported alternative found
 and the S-accommodation tradeoff; it does not claim no supported move existed or
 that the risky move is proved superior over unseen future play. Normal risk
 import/movement/reveal rejection and fresh replanning remain unchanged.
+
+### Experimental bounded delayed-J plan
+
+A D surface can now be supported when the currently active piece first pays
+one exact authenticated pre-existing Center target, leaves Left unchanged and
+creates no new covered/Center debt, and the resulting public inventory has a
+strictly verified immediate J exit. The same canonical, notch, movement,
+resource identity and shared time/node checks remain mandatory. A J merely
+appearing somewhere in preview is not permission; arbitrary waiting and
+recursive stage chains are outside this small grammar. Recorded plan metadata
+is rebuilt during retention/import validation and is never trusted authority.
+The one-J shorter route is distinct from a longer route that spends one J in
+Center and a second J in Left. No reset detection or benchmark change is part
+of this implementation. The general 85-line target is post-first-reset, not
+an acceptance target for these experimental branches or opener-root samples.
