@@ -134,7 +134,7 @@ test('SL session and actual page preserve selected proof through import, HOLD an
   const request=()=>{g.advance(40);return workers.at(-1).message;},respond=()=>{const req=request(),previous=req.previous||req.commitment?.advice;assert(previous);const advice=P.revalidate(req.observation,previous,{...req.options,...bounds});assert(advice);workers.at(-1).respond(advice);return advice;};
   let advice=respond();for(const action of advice.witness)g.window.stLab.act(action);advice=respond();const afterFirst=clone(g.snapshot());for(const action of advice.witness)g.window.stLab.act(action);advice=respond();
   assert.equal(advice.continuation[0].event.type,'L');assert.equal(advice.witness[0],'HOLD');g.window.stLab.act('HOLD');const held=request();assert.equal(held.observation.active.type,'L');assert(held.previous?.continuation.some(p=>p.event.type==='L'));
-  g.click('#st-undo');const undo=request();assert.deepEqual({...undo.observation,revision:afterFirst.revision},afterFirst);assert.equal(undo.options.openingPhase,false);assert(undo.commitment.advice.continuation.some(p=>p.event.type==='L'));g.click('#st-export-session');const round=Session.parse(g.element('#st-snapshot').value);assert.deepEqual(round.state,undo.observation);
+  g.click('#st-undo');const undo=request();assert.deepEqual({...undo.observation,revision:afterFirst.revision},afterFirst);assert.equal(undo.options.openingPhase,false);assert(undo.commitment.advice.continuation.some(p=>p.event.type==='L'));g.click('#st-export-session');const round=Session.parse(g.downloads.at(-1).text);assert.deepEqual(round.state,undo.observation);
  });
 });
 test('SL optional failure: exact remaining node-limit exhaustion retains incumbent with truthful cumulative nodes',()=>{

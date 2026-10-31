@@ -41,6 +41,7 @@ Before product initialization, the host installs:
 - The actual locally pinned **jQuery 3.6.0**, matching the pages' CDN version.
 - A fake timeout/interval/animation-frame clock. The real `render()` still runs because it also performs horizontal input processing. Replacing it with a no-op would hide game behavior.
 - A seeded, bounded random stream. Normal gameplay does not use `tetrio.js`'s separate seeded queue generator. A constant random stub can hang cheese's different-hole loop.
+- A Blob/object-URL/anchor download adapter captures emitted JSON bytes, MIME type and filename for the real export handler. It does not save files or prove browser download UI behavior.
 - Per-realm jsdom Storage. A modeled reload/navigation copies keys into a **fresh** same-origin realm; it is not real disk persistence, a browser reload, or a cross-tab storage event.
 - Explicit non-rendering canvas, sprite and audio adapters. Sprite/audio paths must be allowlisted and exist locally. Sprites complete in order by default; `autoLoadImages: false` lets startup tests deliver the actual onload handlers in a controlled order (see [Sprite readiness regression](#sprite-readiness-regression)). Canvas requests are not pixel assertions.
 

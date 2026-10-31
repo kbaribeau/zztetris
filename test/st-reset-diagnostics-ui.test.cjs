@@ -13,7 +13,7 @@ test('Reset diagnostics UI: readable unknown history, ordinary input, Undo, impo
  assert.equal(evidence(g).status,'unknown');assert.equal(evidence(g).allowanceRenewal,false);assert.equal(evidence(g).pairs.length,0);
  select(g,'empty');g.window.stLab.act('HD');g.tap('KeyR');assert.equal(evidence(g).locks,0);assert.equal(evidence(g).status,'no-reset-evidence');
  g.window.stLab.act('HD');g.click('#st-reset');assert.equal(evidence(g).locks,0);assert.equal(evidence(g).pairs.length,0);
- const exportBefore=g.window.stLab.snapshot();g.click('#st-export');assert.deepEqual(JSON.parse(g.element('#st-snapshot').value),clone(exportBefore));assert.equal('resetEvidence' in exportBefore,false);
+ const exportBefore=g.window.stLab.snapshot();g.click('#st-export');assert.deepEqual(JSON.parse(g.element('#st-snapshot').value),{...clone(exportBefore),suggestedFileName:'st-lab-coaching-export.json'});assert.equal('resetEvidence' in exportBefore,false);
 }));
 test('Reset diagnostics UI: exact state/history cache avoids repeat derivation, invalidates on actions and Undo, and returns defensive copies',()=>withPage('st-lab.html',{seed:42},g=>{
  select(g,'empty');const original=g.window.STResetDiagnostics;let calls=0;

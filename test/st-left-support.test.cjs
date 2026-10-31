@@ -55,7 +55,7 @@ test('production session and actual page preserve support proof through import, 
   for(let lock=0;lock<2;lock++){for(const action of advice.witness)g.window.stLab.act(action);if(!lock)afterFirst=clone(g.snapshot());advice=respond();}
   assert.equal(advice.witness[0],'HOLD');g.window.stLab.act('HOLD');const held=request();assert.equal(held.observation.active.type,'L');assert(held.previous?.evidence?.construction?.kind==='left-support','HOLD must retain the rederived construction');
   g.click('#st-undo');const undo=request();assert.deepEqual({...undo.observation,revision:afterFirst.revision},afterFirst);assert(undo.observation.revision>afterFirst.revision);assert.equal(undo.options.openingPhase,false);assert.equal(RH.resolve(undo.observation,RH.importContext(undo.observation,undo.options.resourceContext)).locks,33);assert.equal(undo.commitment.advice.evidence.construction.consumed,1);
-  g.click('#st-export-session');const round=Session.parse(g.element('#st-snapshot').value);assert.deepEqual(round.state,undo.observation);assert.equal(round.commitment.advice.evidence.construction.kind,'left-support');
+  g.click('#st-export-session');const round=Session.parse(g.downloads.at(-1).text);assert.deepEqual(round.state,undo.observation);assert.equal(round.commitment.advice.evidence.construction.kind,'left-support');
  });
 });
 test('original visibility is bound to connected history, not a forged origin preview',()=>{

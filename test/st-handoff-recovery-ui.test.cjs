@@ -16,7 +16,7 @@ test('handoff UI transport (covered-geometry isolated): actual first HOLD/moveme
  for(const action of a.witness)g.window.stLab.act(action);g.advance(40);assert.equal(all.at(-1).message.options.handoffRecovery,undefined);assert.equal(g.window.stLab.resources.hangingS.evidence.length,0);
 }));
 test('handoff UI transport (covered-geometry isolated): export/import, reset and Undo cannot restore transient routing authority',()=>withPage('st-lab.html',{},g=>{
- const {all,advice}=setup(g);g.click('#st-export-session');const saved=JSON.parse(g.element('#st-snapshot').value);assert.equal(saved.coaching.previous.evidence.openingHandoff.recovery,undefined);assert.equal(saved.coaching.handoffRecovery,undefined);
+ const {all,advice}=setup(g);g.click('#st-export-session');const saved=JSON.parse(g.downloads.at(-1).text);assert.equal(saved.coaching.previous.evidence.openingHandoff.recovery,undefined);assert.equal(saved.coaching.handoffRecovery,undefined);
  for(const action of advice.witness)g.window.stLab.act(action);g.advance(40);assert(all.at(-1).message.options.handoffRecovery);
  g.window.stLab.act('UNDO');g.advance(40);assert.equal(all.at(-1).message.options.handoffRecovery,undefined);
  saved.coaching.previous.evidence.openingHandoff.recovery='shared-after-legacy-budget-miss';saved.coaching.handoffRecovery={invented:true};g.element('#st-snapshot').value=JSON.stringify(saved);g.click('#st-import');g.advance(40);assert.equal(all.at(-1).message.options.handoffRecovery,undefined);assert.equal(all.at(-1).message.previous.evidence.openingHandoff.recovery,undefined);assert.match(g.element('#st-import-status').textContent,/Transient handoff routing was discarded/);

@@ -35,7 +35,7 @@ test('line counter: restart, random reset, modes and imports establish explicit 
  }
  importState(g,well(4));g.window.stLab.act('HD');count(g,4);
  const before=g.snapshot();importState(g,{board:[]});count(g,4);assert.deepEqual(g.snapshot(),before,'rejected import leaves the session intact');
- g.click('#st-export');const exported=JSON.parse(g.element('#st-snapshot').value);assert.deepEqual(exported,g.snapshot());assert.equal('clearedLines' in exported,false);
+ g.click('#st-export');const exported=JSON.parse(g.element('#st-snapshot').value);assert.deepEqual(exported,{...g.snapshot(),suggestedFileName:'st-lab-coaching-export.json'});assert.equal('clearedLines' in exported,false);
  importState(g,{...exported,clearedLines:999});count(g,0,'Lines since import');
  importState(g,well(4));g.window.stLab.act('HD');count(g,4);
  select(g,'empty');count(g,0,'Lines since start');
@@ -75,11 +75,11 @@ test('line counter: thousands of actual cleared rows format fully and survive Un
  g.click('#st-reset');count(g,0,'Lines since start');
 }));
 test('line counter: coaching-session imports and restart preserve an honest zero-since-import baseline',()=>withPage('st-lab.html',{storage:{stGuideVisible:'false'}},g=>{
- importState(g,well(4));g.click('#st-export-session');const envelope=JSON.parse(g.element('#st-snapshot').value);
+ importState(g,well(4));g.click('#st-export-session');const envelope=JSON.parse(g.downloads.at(-1).text);
  g.window.stLab.act('HD');count(g,4);
  importState(g,envelope);count(g,0);g.window.stLab.act('HD');count(g,4);
  g.click('#st-reset');count(g,0);g.window.stLab.act('HD');count(g,4);
- g.click('#st-export-session');const exported=JSON.parse(g.element('#st-snapshot').value);
+ g.click('#st-export-session');const exported=JSON.parse(g.downloads.at(-1).text);
  assert.equal('clearedLines' in exported,false);assert.equal('clearedLines' in exported.position,false);
 }));
 test('line counter: movement, hold, failed actions, nonclears and terminal actions do not add lines',()=>withPage('st-lab.html',{storage:{stGuideVisible:'false'}},g=>{

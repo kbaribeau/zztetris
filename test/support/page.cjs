@@ -27,7 +27,7 @@ const audioFiles = ['Move', 'Rotate', 'Hold', 'HardDrop', 'ClearTetra', 'Perfect
 // Only host effects are substituted. In particular render/checkShift/game stay real.
 async function boot(page, { storage = {}, seed = SEED, autoLoadImages = true } = {}) {
   assert.ok(page === 'controls.html' || ALL_PAGES.some(p => p.page === page), `Unknown page: ${page}`);
-  const errors = [], requests = [], trace = [], images = [], sounds = [];
+  const errors = [], requests = [], trace = [], images = [], sounds = [], downloads = [];
   const previewDraws = { n: [], h: [] }; // actual canvas calls, not pixel emulation
   let dom, clock, window, loadTimer, navigationExpected = false, navigationCount = 0, disposed = false;
   let randomState = seed >>> 0, randomCalls = 0;
@@ -70,6 +70,21 @@ async function boot(page, { storage = {}, seed = SEED, autoLoadImages = true } =
       })] },
       beforeParse(w) {
         window = w;
+        // Browser download host seam: keep real product Blob/anchor code and
+        // capture bytes/name, without claiming a disk save or browser rendering.
+        const blobText=new WeakMap(),objectURLs=new Map(),NativeBlob=w.Blob;
+        w.Blob=class extends NativeBlob {constructor(parts,options){super(parts,options);if(!parts.every(p=>typeof p==='string'))fail('Unsupported download Blob parts');blobText.set(this,parts.join(''));}};
+        let nextURL=0;
+        w.URL.createObjectURL=blob=>{const url=`blob:${ORIGIN}${++nextURL}`;objectURLs.set(url,blob);return url;};
+        w.URL.revokeObjectURL=url=>objectURLs.delete(url);
+        const anchorClick=w.HTMLAnchorElement.prototype.click;
+        w.HTMLAnchorElement.prototype.click=function(){
+          if(this.hasAttribute('download')&&objectURLs.has(this.href)){
+            const blob=objectURLs.get(this.href);downloads.push({filename:this.download,text:blobText.get(blob),type:blob.type,url:this.href});return;
+          }
+          return anchorClick.call(this);
+        };
+
         clock = FakeTimers.withGlobal(w).install({ now: 0, loopLimit: 2000,
           toFake: ['Date', 'performance', 'setTimeout', 'clearTimeout', 'setInterval',
             'clearInterval', 'requestAnimationFrame', 'cancelAnimationFrame'] });
@@ -149,7 +164,7 @@ async function boot(page, { storage = {}, seed = SEED, autoLoadImages = true } =
       return result;
     };
     const driver = {
-      page, window, clock, requests, sounds, trace, images,
+      page, window, clock, requests, sounds, trace, images, downloads,
       element,
       preview() { return JSON.parse(JSON.stringify(previewDraws)); },
       healthy,

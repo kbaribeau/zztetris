@@ -6,11 +6,12 @@ const FORMAT='zztetris-st-practice',VERSION=1;
 const LIMITS=Object.freeze({bytes:Session.LIMITS.bytes,pieces:4096});
 function keys(value,expected){return value&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).sort().join()===expected.slice().sort().join();}
 function prepare(input){
- if(!keys(input,['format','schemaVersion','session','privatePractice'])||input.format!==FORMAT||input.schemaVersion!==VERSION)throw Error('Unsupported private practice format version or properties.');
+ if(!keys(input,['format','schemaVersion','session','privatePractice',...(Object.hasOwn(input||{},'suggestedFileName')?['suggestedFileName']:[])])||input.format!==FORMAT||input.schemaVersion!==VERSION)throw Error('Unsupported private practice format version or properties.');
  if(!keys(input.privatePractice,['tail']))throw Error('Invalid private practice supply.');
  const tail=input.privatePractice.tail;
  if(!Array.isArray(tail)||tail.length>LIMITS.pieces||Array.from(tail).some(t=>typeof t!=='string'||!/^[IJLOSTZ]$/.test(t)))throw Error('Private practice tail must contain at most 4096 piece letters.');
  const session=Session.prepare(input.session);
+ if(Object.hasOwn(input,'suggestedFileName'))session.suggestedFileName=Session.exportFilename(input.suggestedFileName);
  if(JSON.stringify(input).length>LIMITS.bytes)throw Error('Private practice exceeds size limit.');
  if(tail.length&&session.state.queue.length!==6)throw Error('Private practice tail must begin after six visible preview pieces.');
  // The public bag is already at the END of preview. Never consume the preview
@@ -22,7 +23,7 @@ function prepare(input){
  // Validation must not narrow public knowledge using this private future.
  return{session,tail:tail.slice()};
 }
-function create(session,tail){const envelope={format:FORMAT,schemaVersion:VERSION,session,privatePractice:{tail}};prepare(envelope);return JSON.parse(JSON.stringify(envelope));}
+function create(session,tail,{suggestedFileName=session?.suggestedFileName}={}){const envelope={format:FORMAT,schemaVersion:VERSION,suggestedFileName:Session.exportFilename(suggestedFileName),session,privatePractice:{tail}};prepare(envelope);return JSON.parse(JSON.stringify(envelope));}
 function parse(text){if(typeof text!=='string'||text.length>LIMITS.bytes)throw Error('Private practice exceeds size limit.');return prepare(JSON.parse(text));}
 return Object.freeze({FORMAT,VERSION,LIMITS,create,prepare,parse});
 });

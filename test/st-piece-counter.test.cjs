@@ -32,7 +32,7 @@ test('piece counter: locks are distinct from prefilled heap, draw cursor, active
 test('piece counter: position/session imports, exports, rejection, restart and mode baselines stay honest',()=>withPage('st-lab.html',{storage:{stGuideVisible:'false'}},g=>{
  imported(g,well(4));g.window.stLab.act('HD');totals(g,1,4);
  g.click('#st-export');const position=JSON.parse(g.element('#st-snapshot').value);assert.equal('lockCount' in position,false);
- g.click('#st-export-session');const session=JSON.parse(g.element('#st-snapshot').value);assert.equal('lockCount' in session,false);assert.equal('lockCount' in session.position,false);
+ g.click('#st-export-session');const session=JSON.parse(g.downloads.at(-1).text);assert.equal('lockCount' in session,false);assert.equal('lockCount' in session.position,false);
  const before=g.snapshot();imported(g,{board:[]});assert.deepEqual(g.snapshot(),before);totals(g,1,4);
  imported(g,{...position,lockCount:999,clearedLines:999});totals(g,0);g.window.stLab.act('HD');totals(g,1);
  imported(g,session);totals(g,0);g.window.stLab.act('HD');totals(g,1);g.click('#st-reset');totals(g,0);g.window.stLab.act('HD');g.tap('KeyR');totals(g,0);
@@ -44,7 +44,7 @@ test('piece counter: private practice starts zero since import and restart repla
  imported(g,packed);totals(g,0);g.window.stLab.act('HD');totals(g,1);
  const invalid=JSON.parse(JSON.stringify(packed));invalid.privatePractice.tail=['Q'];imported(g,invalid);totals(g,1);
  g.click('#st-reset');totals(g,0);g.window.stLab.act('HD');totals(g,1);
- g.click('#st-export-session');const saved=JSON.parse(g.element('#st-snapshot').value);assert.equal('lockCount' in saved,false);assert.equal('lockCount' in saved.position,false);
+ g.click('#st-export-session');const saved=JSON.parse(g.downloads.at(-1).text);assert.equal('lockCount' in saved,false);assert.equal('lockCount' in saved.position,false);
  imported(g,saved);totals(g,0);g.window.stLab.act('HD');totals(g,1);g.window.stLab.act('UNDO');totals(g,0);
 }));
 test('piece counter: a terminal lock counts once; exhausted queue and blocked actions never repeat it',()=>withPage('st-lab.html',{storage:{stGuideVisible:'false'}},g=>{

@@ -621,3 +621,11 @@ The one-J shorter route is distinct from a longer route that spends one J in
 Center and a second J in Left. No reset detection or benchmark change is part
 of this implementation. The general 85-line target is post-first-reset, not
 an acceptance target for these experimental branches or opener-root samples.
+
+### Coaching-session download names
+
+`Export coaching session` requests a JSON download of the **current played session**; it does not replace the import textarea. The browser/user controls the final name and destination (including duplicate-file renaming). Optional top-level `suggestedFileName` on a visible snapshot, `zztetris-st-session`, or `zztetris-st-practice` supplies the default download name. A practice wrapper's name overrides its nested session name. Missing/invalid names use `st-lab-coaching-export.json`; names are bounded, stripped of path/control characters and given a `.json` suffix. Old imports remain supported with no schema-version change.
+
+The name is transport metadata, not a position, Worker input, source hash, or coaching certificate. It survives ordinary play, hold, Undo, Restart and exported-session reimport; selecting a fresh fixture/random start restores the default. Both exports still exclude private future pieces. A coaching export is always a public session, never the imported practice wrapper or stale textarea content.
+
+Builders should pass a descriptive case-based name (for example `R433-frame21-coaching-export.json`) through `STSession.create(state, {...options, suggestedFileName})` or `STPractice.create(session, tail, {suggestedFileName})`. Use `STSession.exportFilename` for the shared sanitizer; do not derive names from hidden future pieces.

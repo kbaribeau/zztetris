@@ -55,8 +55,8 @@ test('practice/page finite tail exhaustion never materializes a forced remainder
 }));
 test('practice/page normal exports omit private supply and ordinary session imports remain finite and unchanged',()=>withPage('st-lab.html',{},g=>{
  const packed=packageFor();importText(g,packed);
- g.click('#st-export-session');const saved=JSON.parse(g.element('#st-snapshot').value);assert.deepEqual(saved,packed.session);noPrivate(saved);assert.equal(saved.format,Session.FORMAT);
- g.click('#st-export');const position=JSON.parse(g.element('#st-snapshot').value);assert.deepEqual(position,packed.session.position);noPrivate(position);
+ g.click('#st-export-session');const saved=JSON.parse(g.downloads.at(-1).text);assert.deepEqual(saved,packed.session);noPrivate(saved);assert.equal(saved.format,Session.FORMAT);
+ g.click('#st-export');const position=JSON.parse(g.element('#st-snapshot').value);assert.deepEqual(position,{...packed.session.position,suggestedFileName:Session.DEFAULT_EXPORT_FILENAME});noPrivate(position);
  importText(g,saved);g.tap('Space');assert.equal(g.snapshot().queue.length,5,'ordinary session did not retain previously imported private tail');
  importText(g,packageFor([]));g.tap('Space');assert.equal(g.snapshot().queue.length,5,'explicit empty private tail is finite too');
  const forced=clone(position);forced.queue=[];forced.bag=B.fromObserved({observed:['I','J','L','O','S','T'],startPhase:0});importText(g,forced);assert.deepEqual(g.snapshot().queue,['Z'],'plain snapshot restores its legacy forced-remainder behavior');

@@ -15,6 +15,7 @@
   window.DAS=das; // shared settings/navigation readback; not a second game engine.
   window.ctrlsPopup=()=>window.open('controls.html','popup','width=1200,height=800');
   const context=$('b').getContext('2d');
+  let suggestedFileName=STSession.DEFAULT_EXPORT_FILENAME;
   let state, origin, future=[], futureCursor=0, generated=false, privatePractice=false, observed=null, openingPhase=false, openingClear=null, openingRepair=null, openingSource=null, patternHistory=null, resourceHistory=null, resourceOriginBag=null, pieceLedger=null;
   let undoHistory=[], turnStart=null, resetDiagnosticCache=null;
   let worker=null, requestId=0, debounce=null, watchdog=null, revision=0;
@@ -189,13 +190,14 @@
       state={...state,bag:knowledge};
     }
   }
-  function resetState(input,{tail=[],random=false,history=null,note='',keepOrigin=false,opening=false,counterLabel='Lines since start'}={}) {
+  function resetState(input,{tail=[],random=false,history=null,note='',keepOrigin=false,opening=false,counterLabel='Lines since start',suggestedFileName:filename=STSession.DEFAULT_EXPORT_FILENAME}={}) {
     cancel();stopRepeating();recoveryOrigin=null;pendingHandoffRecovery=null;future=tail.slice();futureCursor=0;undoHistory=[];turnStart=null;generated=random;privatePractice=false;observed=history?.slice() || null;openingPhase=opening;openingClear=null;openingRepair=null;
     state=STRules.migrateState({...clone(input),revision:++revision});
     const errors=STRules.validate(state);if(errors.length)throw new Error(errors.join('; '));
     if(state.queue.length>6){future.unshift(...state.queue.slice(6));state={...state,queue:state.queue.slice(0,6)};}
+    suggestedFileName=STSession.exportFilename(filename);
     replenish();searchSettings=STSession.defaults();resourceOriginBag=state.bag?clone(state.bag):null;openingSource=STPlanner.startOpeningSession(observation(),{emptyMode:random&&opening}).source;patternHistory=STPlanner.startPatternHistory(observation());resourceHistory=STResourceHistory.start(observation(),{fresh:random&&opening});pieceLedger=STPieceLedger.start(observation(),{fresh:random&&opening});previous=null;result=null;commitment=null;pendingLHint=null;lockCount=0;clearedLines=0;lineLabel=counterLabel;
-    if(!keepOrigin)origin={input:clone(input),options:{tail:tail.slice(),random,history:history?.slice()||null,note,opening,counterLabel}};
+    if(!keepOrigin)origin={input:clone(input),options:{tail:tail.slice(),random,history:history?.slice()||null,note,opening,counterLabel,suggestedFileName}};
     setText($('st-position-note'),note);setText($('st-game-status'),'');requestPlan();render();
   }
   function loadFixture(id) {
@@ -405,7 +407,7 @@
   document.querySelectorAll('[data-action]').forEach(button=>button.addEventListener('click',()=>{act(button.dataset.action);button.blur();}));
   $('st-fixture').addEventListener('change',()=>{chooseMode($('st-fixture').value);$('st-fixture').blur();});
   function exportSession() {
-    return STSession.create(observation(),{resourceHistory,resourceOriginBag,patternHistory,openingPhase,openingSource,openingClear,openingRepair,previous,commitment,pendingLHint,search:searchSettings});
+    return STSession.create(observation(),{resourceHistory,resourceOriginBag,patternHistory,openingPhase,openingSource,openingClear,openingRepair,previous,commitment,pendingLHint,search:searchSettings,suggestedFileName});
   }
   function installSession(prepared,tail=null) {
     // Normalize before mutation: Reset must replay current, validated evidence,
@@ -414,6 +416,7 @@
     // All untrusted parsing/proof checks have completed before touching the live
     // controller. Worker identity guards, not revision uniqueness, reject old replies.
     cancel();stopRepeating();recoveryOrigin=null;pendingHandoffRecovery=null;
+    suggestedFileName=envelope.suggestedFileName;
     state=STRules.createState(prepared.state);revision=state.revision;
     future=tail?.slice()||[];futureCursor=0;generated=false;privatePractice=tail!==null;observed=null;undoHistory=[];turnStart=null;
     resourceHistory=prepared.resourceHistory;resourceOriginBag=prepared.resourceOriginBag;
@@ -427,10 +430,16 @@
     importStatus((privatePractice?'Private practice session imported.':'Session imported.')+' Advice will be revalidated.'+(prepared.warnings.length?' '+prepared.warnings.join(' '):''));
   }
   $('st-export-session').addEventListener('click',()=>{
-    try{$('st-snapshot').value=JSON.stringify(exportSession(),null,2);importStatus('Exported visible position and coaching evidence; hidden future, Undo and diagnostic counters were excluded.');}
+    try{
+      const session=exportSession(),text=JSON.stringify(session,null,2);
+      const link=document.createElement('a'),url=URL.createObjectURL(new Blob([text],{type:'application/json'}));
+      try{link.href=url;link.download=STSession.exportFilename(session.suggestedFileName);link.hidden=true;document.body.appendChild(link);link.click();}
+      finally{link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+      importStatus('Download requested for the current coaching session. The browser controls the filename and save location; hidden future, Undo and diagnostic counters were excluded.');
+    }
     catch(error){importStatus(`Session export unavailable: ${error.message}`);}
   });
-  $('st-export').addEventListener('click',()=>{$('st-snapshot').value=JSON.stringify(observation(),null,2);importStatus('Exported visible state only; hidden future was excluded.');});
+  $('st-export').addEventListener('click',()=>{$('st-snapshot').value=JSON.stringify({...observation(),suggestedFileName},null,2);importStatus('Exported visible state only; hidden future was excluded.');});
   $('st-snapshot').addEventListener('input',()=>{
     if($('st-import-result').dataset.result==='rejected')setText($('st-import-error-note'),'Previous import attempt was rejected. Your edits have not been revalidated; the current game is unchanged.');
   });
@@ -440,7 +449,7 @@
       // Explicit whitelist prevents an import from injecting a hidden queue/seed.
       const clean={rules:input.rules,board:input.board,active:input.active,hold:input.hold,canHold:input.canHold,queue:input.queue.slice(0,6),streamCursor:input.streamCursor||0,topOut:Boolean(input.topOut)};
       if(input.bag){const bagErrors=STBag.validate(input.bag);if(bagErrors.length)throw new Error(bagErrors.join('; '));clean.bag=input.bag;}
-      resetState(clean,{counterLabel:'Lines since import',opening:STPlanner.startOpeningSession(clean).active,note:'Imported visible snapshot. Missing bag history remains unknown; preview is finite.'});selectedId=null;$('st-fixture').value='';importStatus(input.rules===STRules.LEGACY_PROFILE.id?'Snapshot imported and migrated from v1 to unlimited-hold v2.':'Snapshot imported.');
+      resetState(clean,{suggestedFileName:input.suggestedFileName,counterLabel:'Lines since import',opening:STPlanner.startOpeningSession(clean).active,note:'Imported visible snapshot. Missing bag history remains unknown; preview is finite.'});selectedId=null;$('st-fixture').value='';importStatus(input.rules===STRules.LEGACY_PROFILE.id?'Snapshot imported and migrated from v1 to unlimited-hold v2.':'Snapshot imported.');
     }catch(error){importStatus(`Import rejected: ${error.message}`,{rejected:true});}
   });
   for(const mode of playModes){const option=document.createElement('option');option.value=mode.id;option.textContent=mode.label;$('st-fixture').append(option);}

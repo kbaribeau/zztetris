@@ -35,9 +35,9 @@ test('unclassified S: session replay and real UI Undo restore the correct bounda
  g.element('#st-snapshot').value=JSON.stringify(pack(cases[0]));g.click('#st-import');
  const ctx17=cases[0].request.options.resourceContext,ctx18=cases[1].request.options.resourceContext;
  for(const step of ctx18.steps.slice(ctx17.steps.length))g.window.stLab.act(step.action);
- g.click('#st-export-session');let exported=JSON.parse(g.element('#st-snapshot').value),post=Session.prepare(exported);
+ g.click('#st-export-session');let exported=JSON.parse(g.downloads.at(-1).text),post=Session.prepare(exported);
  assert.ok(M.start(post.state,H.resolve(post.state,post.resourceHistory)).unclassifiedS.some(x=>x.sId===14));
- g.window.stLab.act('UNDO');g.click('#st-export-session');const restored=Session.prepare(JSON.parse(g.element('#st-snapshot').value));
+ g.window.stLab.act('UNDO');g.click('#st-export-session');const restored=Session.prepare(JSON.parse(g.downloads.at(-1).text));
  const r=M.start(restored.state,H.resolve(restored.state,restored.resourceHistory));assert.ok(r.pendingCenter.some(x=>x.rootId===14));assert.ok(!r.unclassifiedS.some(x=>x.sId===14));
 }));
 for(const deferred of [false,true])test(`unclassified S: empty HOLD with ${deferred?'deferred':'observed'} surplus uses only post-lock placement facts`,()=>{
@@ -91,8 +91,8 @@ test('unclassified S: actual disposal survives next initialization, session repl
  const transport=clone(H.exportContext(state,history));transport.hangingS={unclassified:[]};check(state,H.importContext(state,transport));
  g.element('#st-snapshot').value=JSON.stringify(pack(f,false));g.click('#st-import');
  for(const action of f.advice.witness)g.window.stLab.act(action);
- g.click('#st-export-session');const actual=Session.prepare(JSON.parse(g.element('#st-snapshot').value));check(actual.state,actual.resourceHistory);
- g.window.stLab.act('UNDO');g.click('#st-export-session');const undo=Session.prepare(JSON.parse(g.element('#st-snapshot').value)),old=M.start(undo.state,H.resolve(undo.state,undo.resourceHistory));
+ g.click('#st-export-session');const actual=Session.prepare(JSON.parse(g.downloads.at(-1).text));check(actual.state,actual.resourceHistory);
+ g.window.stLab.act('UNDO');g.click('#st-export-session');const undo=Session.prepare(JSON.parse(g.downloads.at(-1).text)),old=M.start(undo.state,H.resolve(undo.state,undo.resourceHistory));
  assert.ok(old.hangingS.some(x=>x.id===55));assert.ok(!old.unclassifiedS.some(x=>x.sId===55));
 }));
 

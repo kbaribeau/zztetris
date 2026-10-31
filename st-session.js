@@ -3,6 +3,15 @@
 (function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-bag'),require('./st-resource-history'),require('./st-pattern-history'),require('./st-planner'),require('./st-opening'),()=>require('./st-coach-config')):factory(root.STRules,root.STBag,root.STResourceHistory,root.STPatternHistory,root.STPlanner,root.STOpening,()=>root.STCoachConfig);if(typeof module==='object'&&module.exports)module.exports=api;else root.STSession=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,B,H,PH,P,O,C){
 'use strict';
 const FORMAT='zztetris-st-session',VERSION=1,ENGINE='st-coach-session-2026-10-31-delayed-J-v1';
+// Transport-only download hint; never part of a position or coaching proof.
+const DEFAULT_EXPORT_FILENAME='st-lab-coaching-export.json';
+function exportFilename(value){
+ if(typeof value!=='string')return DEFAULT_EXPORT_FILENAME;
+ let name=value.replace(/[^A-Za-z0-9._ -]/g,'_').replace(/^[. ]+|[. ]+$/g,'');
+ if(!/[A-Za-z0-9]/.test(name)||/^(con|prn|aux|nul|com[0-9]|lpt[0-9])(?:\.|$)/i.test(name))return DEFAULT_EXPORT_FILENAME;
+ name=name.replace(/\.json$/i,'').slice(0,115).replace(/[. ]+$/g,'');
+ return name?name+'.json':DEFAULT_EXPORT_FILENAME;
+}
 const LIMITS=Object.freeze({bytes:4*1024*1024,depth:64,nodes:150000,witness:256,continuation:16});
 const clone=x=>JSON.parse(JSON.stringify(x)),same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 // Transient next-lock routing is not portable certificate authority.
@@ -43,9 +52,9 @@ function validateBag(context,originBag,current){
  for(const step of context.steps)for(const t of step.revealed){if(bag){bag=B.consume(bag,t);if(B.validate(bag).length)throw Error('Resource draws contradict bag evidence.');}}
  if(!same(bag,current.bag??null))throw Error('Resource replay does not match current bag evidence.');
 }
-function create(state,{resourceHistory,resourceOriginBag=null,patternHistory=null,openingPhase=false,openingSource=null,openingClear=null,openingRepair=null,previous=null,commitment=null,pendingLHint=null,search=defaults()}={}){
+function create(state,{resourceHistory,resourceOriginBag=null,patternHistory=null,openingPhase=false,openingSource=null,openingClear=null,openingRepair=null,previous=null,commitment=null,pendingLHint=null,search=defaults(),suggestedFileName=DEFAULT_EXPORT_FILENAME}={}){
  const observation=position(state),resourceContext=H.exportContext(observation,resourceHistory),coverage=H.resolve(observation,resourceHistory).coverage;
- const result={format:FORMAT,schemaVersion:VERSION,engineVersion:ENGINE,position:observation,search:settings(search),coaching:{resourceContext:resourceContext?clone(resourceContext):null,resourceOriginBag:resourceContext?clone(resourceOriginBag):null,resourceCoverage:clone(coverage),patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null,previous:previous?portableAdvice(previous):null,commitment:commitment?portableCommitment(commitment):null,pendingLHint:portablePendingLHint(pendingLHint)}};
+ const result={format:FORMAT,schemaVersion:VERSION,engineVersion:ENGINE,suggestedFileName:exportFilename(suggestedFileName),position:observation,search:settings(search),coaching:{resourceContext:resourceContext?clone(resourceContext):null,resourceOriginBag:resourceContext?clone(resourceOriginBag):null,resourceCoverage:clone(coverage),patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null,previous:previous?portableAdvice(previous):null,commitment:commitment?portableCommitment(commitment):null,pendingLHint:portablePendingLHint(pendingLHint)}};
  bounded(result);return result;
 }
 function prepare(input){
@@ -67,8 +76,8 @@ function prepare(input){
  if(!differentCoach&&c.commitment&&c.commitment.advice?.recommendation?.kind!=='risky'&&c.commitment.advice?.status!=='recommended-risky-placement'){try{const origin=position(c.commitment.observation);if(candidate(origin,c.commitment.advice)&&P.resourceGoal(c.commitment.advice.continuation))commitment=portableCommitment(c.commitment);}catch{}if(!commitment)warnings.push('Stale or invalid construction commitment was discarded.');}
  // Candidates remain subject to the normal planner's resource, access, source
  // and construction revalidation. Import never displays them as advice.
- return{state,search,resourceHistory,resourceOriginBag,patternHistory,...{openingPhase:opening.session.active,openingSource:opening.session.source,openingClear:opening.session.clear,openingRepair:opening.session.repair},previous,commitment,pendingLHint,warnings};
+ return{suggestedFileName:exportFilename(input.suggestedFileName),state,search,resourceHistory,resourceOriginBag,patternHistory,...{openingPhase:opening.session.active,openingSource:opening.session.source,openingClear:opening.session.clear,openingRepair:opening.session.repair},previous,commitment,pendingLHint,warnings};
 }
 function parse(text){if(typeof text!=='string'||text.length>LIMITS.bytes)throw Error('Session exceeds size limit.');return prepare(JSON.parse(text));}
-return Object.freeze({FORMAT,VERSION,ENGINE,LIMITS,defaults,create,prepare,parse});
+return Object.freeze({FORMAT,VERSION,ENGINE,LIMITS,DEFAULT_EXPORT_FILENAME,exportFilename,defaults,create,prepare,parse});
 });

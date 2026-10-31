@@ -52,7 +52,7 @@ test('session/opener source progress, exact input prefix and pending repair surv
  const rp=Session.create(c.originObservation,{resourceHistory:hs,resourceOriginBag:c.originObservation.bag??null,openingPhase:true,openingRepair:repair});assert.deepEqual(Session.prepare(rp).openingRepair,repair);
 });
 test('session/page round-trip preserves worker inputs, rejects atomically and ignores stale same-revision workers',()=>withPage('st-lab.html',{},g=>{
- const ws=worker(g),before=ws.at(-1).message;g.click('#st-export-session');const saved=JSON.parse(g.element('#st-snapshot').value),old=ws.at(-1);assert.equal(saved.format,Session.FORMAT);assert.equal('future' in saved,false);assert.equal('pieceLedger' in saved,false);
+ const ws=worker(g),before=ws.at(-1).message;g.click('#st-export-session');const saved=JSON.parse(g.downloads.at(-1).text),old=ws.at(-1);assert.equal(saved.format,Session.FORMAT);assert.equal('future' in saved,false);assert.equal('pieceLedger' in saved,false);
  const bad=clone(saved);bad.position.board[39]='..........';importText(g,bad);assert.match(g.element('#st-import-status').textContent,/rejected/i);assert.deepEqual(g.snapshot(),before.observation);assert.equal(old.terminated,undefined);
  importText(g,saved);assert.equal(old.terminated,true);assert.equal(g.window.stLab.result,null);g.advance(40);const after=ws.at(-1).message;assert.deepEqual(inputs(after),inputs(before));
  old.respond({target:{type:'I',x:0,y:0,rotation:0},reason:'STALE'});assert.equal(g.window.stLab.result,null);
@@ -62,14 +62,14 @@ test('session/page round-trip preserves worker inputs, rejects atomically and ig
  assert.match(g.window.document.body.textContent,/Up to 100 placements/);
 }));
 test('session/page accepted advice round-trips without displaying unvalidated imported targets',()=>withPage('st-lab.html',{},g=>{
- const ws=worker(g),m=ws.at(-1).message,advice=P.decide(m.observation,{...m.options,deadline:Infinity});assert.ok(advice.target);ws.at(-1).respond(advice);g.click('#st-export-session');const saved=JSON.parse(g.element('#st-snapshot').value);assert.ok(saved.coaching.previous);
+ const ws=worker(g),m=ws.at(-1).message,advice=P.decide(m.observation,{...m.options,deadline:Infinity});assert.ok(advice.target);ws.at(-1).respond(advice);g.click('#st-export-session');const saved=JSON.parse(g.downloads.at(-1).text);assert.ok(saved.coaching.previous);
  importText(g,saved);assert.equal(g.element('#st-target').children.length,0);g.advance(40);const next=ws.at(-1).message;assert.deepEqual(next.previous,saved.coaching.previous);assert.deepEqual(next.commitment,saved.coaching.commitment);
 }));
 
 test('session/mid-piece movement preserves origin-bound commitment candidates and repeated keyboard reset is single-session',()=>withPage('st-lab.html',{},g=>{
  const ws=worker(g),m=ws.at(-1).message,advice=P.decide(m.observation,{...m.options,deadline:Infinity});assert.ok(advice.target);ws.at(-1).respond(advice);
  g.window.stLab.act('L');g.advance(40);const moved=ws.at(-1).message;assert.ok(moved.commitment);
- g.click('#st-export-session');const saved=JSON.parse(g.element('#st-snapshot').value);importText(g,saved);g.advance(40);assert.deepEqual(inputs(ws.at(-1).message),inputs(moved));
+ g.click('#st-export-session');const saved=JSON.parse(g.downloads.at(-1).text);importText(g,saved);g.advance(40);assert.deepEqual(inputs(ws.at(-1).message),inputs(moved));
  const select=g.element('#st-fixture');select.value='empty';select.dispatchEvent(new g.window.Event('change'));let calls=0;g.window.Math.random=()=>{calls++;return .5;};g.tap('KeyR');assert.equal(calls,6,'one seven-piece shuffle, not two');
 }));
 test('session/source second bag, scoring route, movement prefix and clear evidence survive without deriving a new opener',()=>{
@@ -130,7 +130,7 @@ test('session/older page import preserves accounting, drops cached targets, norm
  importText(g,saved);assert.match(g.element('#st-import-status').textContent,/Session imported/);assert.equal(g.window.stLab.result,null);g.advance(40);
  const first=ws.at(-1).message;assert.equal(first.previous,null);assert.equal(first.commitment,null);assert.deepEqual(first.options.resourceContext,saved.coaching.resourceContext);
  const fresh=P.decide(first.observation,{...first.options,deadline:Infinity});ws.at(-1).respond(fresh);
- g.click('#st-export-session');const normalized=JSON.parse(g.element('#st-snapshot').value);assert.equal(normalized.engineVersion,Session.ENGINE);assert.deepEqual(normalized.coaching.resourceContext,saved.coaching.resourceContext);const roundTrip=Session.prepare(normalized);assert.deepEqual(H.resolve(roundTrip.state,roundTrip.resourceHistory),H.resolve(t.state,t.history));
+ g.click('#st-export-session');const normalized=JSON.parse(g.downloads.at(-1).text);assert.equal(normalized.engineVersion,Session.ENGINE);assert.deepEqual(normalized.coaching.resourceContext,saved.coaching.resourceContext);const roundTrip=Session.prepare(normalized);assert.deepEqual(H.resolve(roundTrip.state,roundTrip.resourceHistory),H.resolve(t.state,t.history));
  g.window.stLab.act('RESET');g.advance(40);assert.deepEqual(inputs(ws.at(-1).message),inputs(first));assert.doesNotMatch(g.element('#st-import-status').textContent,/different coach version/);
  const before=g.snapshot(),current=ws.at(-1),bad=clone(saved);bad.coaching.resourceContext.steps[0].action='INVALID';importText(g,bad);
  assert.match(g.element('#st-import-status').textContent,/rejected/);assert.deepEqual(g.snapshot(),before);assert.equal(current.terminated,undefined);

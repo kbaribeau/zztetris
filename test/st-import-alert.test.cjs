@@ -72,8 +72,8 @@ test('st-import-alert/success, accepted-session warnings, exports and mode chang
  attempt(g,'{');attempt(g,{...session,engineVersion:'older-readable-coach'});notice(g,/^Session imported\..*different coach version.*history and settings are preserved/);
  assert.deepEqual(g.snapshot(),session.position,'accepted warning still installs validated position');
  attempt(g,'{');attempt(g,session);notice(g,/^Session imported\. Advice will be revalidated\.$/);
- for(const [button,pattern] of [['#st-export',/^Exported visible state only/],['#st-export-session',/^Exported visible position and coaching evidence/]]){
-  attempt(g,'{');g.click(button);notice(g,pattern);assert.doesNotThrow(()=>JSON.parse(g.element('#st-snapshot').value));
+ for(const [button,pattern] of [['#st-export',/^Exported visible state only/],['#st-export-session',/^Download requested for the current coaching session/]]){
+  attempt(g,'{');g.click(button);notice(g,pattern);assert.doesNotThrow(()=>JSON.parse(button==='#st-export-session'?g.downloads.at(-1).text:g.element('#st-snapshot').value));
  }
  // Export availability is a notice, not a false claim that an import failed.
  attempt(g,'{');const original=g.window.STSession;g.window.STSession={...original,create(){throw new Error('test export unavailable');}};g.click('#st-export-session');notice(g,/^Session export unavailable: test export unavailable$/);g.window.STSession=original;

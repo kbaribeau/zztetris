@@ -194,7 +194,7 @@ test('resource history UI: diagnostics stay outside snapshots and ignore stale o
   all.at(-1).respond(forged); assert.deepEqual(resources(g), held);
   g.click('#st-export');
   const exported = JSON.parse(g.element('#st-snapshot').value);
-  assert.deepEqual(exported, g.snapshot());
+  assert.deepEqual(exported, {...g.snapshot(),suggestedFileName:'st-lab-coaching-export.json'});
   for (const key of ['resources', 'resourceHistory', 'hangingS', 'extraZ', 'pieceOrigins']) assert.equal(key in exported, false);
   const display = JSON.parse(g.element('#st-diagnostic-text').textContent);
   assert.deepEqual(display.resources, held);

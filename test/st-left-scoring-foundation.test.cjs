@@ -62,7 +62,7 @@ test('native finite-session import, HOLD, Undo and re-export preserve the authen
   for(let lock=0;lock<2;lock++){for(const action of advice.witness)g.window.stLab.act(action);if(!lock)afterFirst=clone(g.snapshot());advice=respond();assert.equal(advice.evidence.construction.consumed,lock+1);assert.equal(advice.evidence.construction.origin.queue.length,6);assert.deepEqual(clone(request().observation.queue),lock===0?['T','L','J','S','I','O']:['L','J','S','I','O'],'native import reveals only the unique public O, then consumes finite supply');}
   assert.equal(advice.witness[0],'HOLD');g.window.stLab.act('HOLD');const held=request();assert.equal(held.previous?.evidence?.construction?.kind,'left-scoring-foundation');
   g.click('#st-undo');const undo=request();assert.deepEqual({...undo.observation,revision:afterFirst.revision},afterFirst);assert.equal(undo.commitment.advice.evidence.construction.consumed,1);assert.equal(undo.options.openingPhase,false);
-  g.click('#st-export-session');const round=Session.parse(g.element('#st-snapshot').value);assert.deepEqual(round.state,undo.observation);assert.equal(round.commitment.advice.evidence.construction.kind,'left-scoring-foundation');assert.equal(RH.resolve(round.state,round.resourceHistory).coverage.status,'partial');
+  g.click('#st-export-session');const round=Session.parse(g.downloads.at(-1).text);assert.deepEqual(round.state,undo.observation);assert.equal(round.commitment.advice.evidence.construction.kind,'left-scoring-foundation');assert.equal(RH.resolve(round.state,round.resourceHistory).coverage.status,'partial');
  });
 });
 test('newly revealed public singleton is not retroactive proof supply',()=>{

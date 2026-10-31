@@ -27,7 +27,7 @@ test('undo: private future tape survives bag boundaries without rerolling or lea
  assert.equal(calls,generatedCalls,'revisiting generated bags must not call Math.random again');
  g.window.stLab.act('UNDO');g.window.stLab.act('HOLD');g.window.stLab.act('HD');assert.equal(calls,generatedCalls,'a different continuation reuses already generated private bags');
  const m=request(g,all);assert.equal(m.observation.queue.length,6);for(const key of ['future','futureCursor','history','turnStart'])assert.equal(key in m.observation,false);
- g.click('#st-export');assert.deepEqual(JSON.parse(g.element('#st-snapshot').value),g.snapshot());
+ g.click('#st-export');assert.deepEqual(JSON.parse(g.element('#st-snapshot').value),{...g.snapshot(),suggestedFileName:'st-lab-coaching-export.json'});
 }));
 test('undo: line clears and top-out are reversible, including a consumed last active piece',()=>withPage('st-lab.html',{},g=>{
  const f=F.get('direct-double').observation;importState(g,f);const initial=g.snapshot();
