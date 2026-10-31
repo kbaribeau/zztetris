@@ -28,6 +28,8 @@ test('checked finite center preparation with a timely visible partner survives r
  const c=timelyControl(),saved=suffix();assert.ok(saved);assert.equal(saved.metrics.certifiedHorizon,saved.continuation.length);assert.equal(P.cycleResources(saved.continuation).centerPreparations,1);
  const advice=P.plan(c.after,{maxNodes:45000,commitment:{observation:c.after,advice:saved}});
  assert.deepEqual(advice.target,{type:'S',x:4,y:27,rotation:0});
+ assert.equal(advice.metrics.commitmentComparison.pendingLCompletionPreserved,true,'A waiting replacement may not consume the visible L before recreating this same protected goal');
+ assert.equal(advice.metrics.commitmentComparison.replacement,false);
  const r=R.replay(P.observe(c.after),advice.witness);assert.ok(r.valid);assert.equal(S.geometry(r.state.board).center.foundation.status,'aligned');
  const completion=advice.continuation[0].structuralEvidence.pairProgress.completion;
  assert.equal(r.state.active.type,'L');

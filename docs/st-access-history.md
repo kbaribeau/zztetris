@@ -111,6 +111,10 @@ Fresh selection compares certified searched alternatives at the same horizon,
 after existing safety/resource/protected-scoring constraints. Actual closure of
 an **already observed** pending target takes priority, then earlier closure,
 then existing endpoint ordering. Proposed future stages receive no such priority.
+A waiting replacement also cannot downgrade the same saved Center goal from an
+actually certified supplied-partner completion to an absent-partner wait. This
+is preservation of the checked goal, not unequal-horizon endpoint dominance;
+ordinary non-waiting replacements retain their existing comparison.
 Unresolved alternatives are disclosed; selected means best certified within the
 bounded searched set, not globally optimal. Semantic revalidation recomputes
 safety but clears prior comparison claims, and waiting advice is freshly compared

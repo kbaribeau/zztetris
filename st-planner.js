@@ -1376,9 +1376,21 @@ function planCore(raw,options={}){
    rankingPreferred=fresh!==saved&&settled(fresh)&&settled(saved)&&orderContinuations([saved,fresh])[0]===fresh;
    replacement=rankingPreferred&&timelyReplacement(fresh,saved);
   }
+  // Preserve a certified concrete completion of the same saved Center goal
+  // against spending that partner first and recreating the goal as a wait.
+  // This is goal preservation, not unequal-horizon endpoint dominance.
+  let pendingLCompletionPreserved=false;
+  if(replacement&&fresh.resourceRepair?.waitingStage&&coversResourceGoal(fresh,commitment)&&
+   commitment.resources?.pendingCenter.some(p=>p.family==='SL')&&
+   accessSafe(commitment)&&resourceSafe(commitment)){
+   const proof=commitment.resourceRepair;
+   pendingLCompletionPreserved=Boolean(proof?.valid===true&&!proof.waitingStage&&
+    proof.status==='visible-Center-and-S-repair'&&proof.path?.some(p=>p.event.type==='L'));
+   if(pendingLCompletionPreserved)replacement=false;
+  }
   comparisonSaved=saved;
   base.metrics.commitmentComparison={slAllocation:{enabled:commitment.ordinarySAllocationEnabled===true,savedPaid:commitment.slAllocation?.paid.length??0,freshPaid:fresh?.slAllocation?.paid.length??0,retentionBlocked:Boolean(commitment.ordinarySAllocationEnabled&&fresh&&resourceGoalPrefix(fresh.path,commitment.path)!==null&&(fresh.slAllocation?.paid.length??0)<(commitment.slAllocation?.paid.length??0))},scoringTiming:!options.disableTimelyScoring&&fresh?timingDescription(fresh,saved):null,freshGoalLocks:fresh?resourceGoalPrefix(fresh.path,commitment.path):null,savedGoalLocks:resourceGoalPrefix(commitment.path,commitment.path),
-   freshHorizon:fresh?.path.length??null,savedHorizon:saved.path.length,replacement,rankingPreferred,delayPrevented:Boolean(!options.disableTimelyScoring&&rankingPreferred&&!replacement),
+   freshHorizon:fresh?.path.length??null,savedHorizon:saved.path.length,replacement,rankingPreferred,pendingLCompletionPreserved,delayPrevented:Boolean(!options.disableTimelyScoring&&rankingPreferred&&!replacement&&!pendingLCompletionPreserved),
    freshSettled:Boolean(fresh?.qualified&&fresh.assessment.right.entry?.status!=='unresolved-budget'),savedSettled:Boolean(saved?.qualified&&saved.assessment.right.entry?.status!=='unresolved-budget')};
   if(!replacement)best=commitment;
  }

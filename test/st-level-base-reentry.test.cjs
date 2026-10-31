@@ -129,7 +129,9 @@ test('level-two re-entry cannot certify completion after its final candidate cro
  const now=()=>enumerated&&++calls>root.placements.length?100:0;
  vm.runInNewContext(fs.readFileSync(require.resolve('../st-planner'),'utf8'),{module,require:id=>id==='./st-rules.js'?rules:require(id.replace('./','../')),Date,performance});
  const a=module.exports.plan(f.observation,{...config,now,deadline:100});assert.equal(a.target,null);assert.equal(a.metrics.levelBaseReentry.selected,false);
- assert.equal(a.evidence.resourceObligations.reason,'resource-repair-budget');
+ // The pending-L stage query now owns this exact exhausted endpoint. It
+ // remains unfinished: no re-entry target, selection or extra nodes survive.
+ assert.equal(a.evidence.resourceObligations.reason,'pending-L-stage-budget');
  assert.equal(a.metrics.levelBaseReentry.candidateScanComplete,true);assert.equal(a.metrics.completeDepth,1);assert.equal(a.evidence.budgetExhausted,true);assert.equal(a.metrics.nodes,root.visited);
 });
 
