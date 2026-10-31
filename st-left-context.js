@@ -91,7 +91,8 @@ function evaluate(state,{heights,covered=null,resources=null,centerDebt=[],cente
 // before another lock, through the rules' actual HOLD transitions (including
 // empty HOLD), never merely membership later in the visible queue.
 const boardHeights=board=>Array.from({length:4},(_,x)=>{const y=board.findIndex(r=>r[x]!=='.');return y<0?0:40-y;});
-function createsD(before,after){return classify(boardHeights(after))?.tier==='D'&&classify(boardHeights(before))?.tier!=='D';}
+const isD=board=>classify(boardHeights(board))?.tier==='D';
+function createsD(before,after){return isD(after)&&!isD(before);}
 function immediateJStarts(state,options={}){
  const starts=[];let current=state;
  for(let count=0;count<=(options.allowHold===false?0:2);count++){
@@ -120,5 +121,5 @@ function dExit(state,options={}){
  }
  return{valid:false,complete,visited,reason:complete?'D-created-without-usable-J-exit':'D-J-exit-budget-unfinished'};
 }
-return Object.freeze({catalog,source:SOURCE,classify,landings,evaluate,createsD,immediateJStarts,dExit});
+return Object.freeze({catalog,source:SOURCE,classify,landings,evaluate,isD,createsD,immediateJStarts,dExit});
 });

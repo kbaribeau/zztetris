@@ -67,3 +67,31 @@ test('D admission: one J cannot pay Left and Center; a distinct executable repla
   else assert.equal(proof.reason,'D-J-exit-resources-unrepaired');
  }
 });
+const RH=require('../st-resource-history');
+const context=s=>JSON.stringify([s.rules,s.board,s.hold,s.canHold,s.queue,s.bag??null,s.active?.type]);
+function adviceFor(origin,witnesses){let s=origin;const continuation=witnesses.map(witness=>{const r=R.replay(s,witness);assert.equal(r.valid,true);assert.equal(r.events.length,1);s=r.state;return{witness,event:r.events[0],target:r.events[0].target,hold:witness.includes('HOLD'),holdCount:witness.filter(a=>a==='HOLD').length};});return{target:continuation[0].target,witness:continuation[0].witness,hold:continuation[0].hold,holdCount:continuation[0].holdCount,continuation,context:context(origin),metrics:{},evidence:{cycleDebt:0}};}
+function applyHistory(origin,witnesses){let s=origin,h=RH.start(s);for(const w of witnesses)for(const action of w){const n=R.move(s,action);h=RH.applyAction(h,s,action,n);s=n;}return{state:s,history:h};}
+const creator=['L','L','L','CW','HD'],centerJ=['CW','R','HD'];
+function doubleJobOrigin(queue){const h=[6,4,6,6,4,1,2,0,0,0];return R.createState({board:Array.from({length:40},(_,y)=>h.map(v=>y>=40-v?'X':'.').join('')),active:'J',hold:'O',queue});}
+test('D admission: an actual suffix cannot divert immediate J while leaving the newly created D',()=>{
+ for(const replacement of [false,true]){
+  const origin=doubleJobOrigin(replacement?['J','J','O']:['J','O','J']);
+  const creation=R.replay(origin,creator),proof=P.dPatternAdmission(origin,{state:creation.state,event:creation.events[0],witness:creator},{now:()=>0,deadline:1,maxNodes:12000});
+  assert.equal(proof.valid,true,'creation alone has an executable J exit and a separate Center repair');
+  const advice=adviceFor(origin,[creator,centerJ]);
+  assert.equal(Boolean(P.revalidate(origin,advice,{now:()=>0,deadline:1,maxNodes:30000})),replacement);
+ }
+});
+test('D history: observed creation survives fresh requests and import; an imported D root is not retroactive debt',()=>{
+ const origin=doubleJobOrigin(['J','O','J']),created=applyHistory(origin,[creator]);
+ const summary=RH.resolve(created.state,created.history);assert.deepEqual(summary.dPattern,{pending:true,createdAt:1});
+ const exported=RH.exportContext(created.state,created.history),restored=RH.importContext(created.state,JSON.parse(JSON.stringify(exported)));
+ assert.deepEqual(RH.resolve(created.state,restored).dPattern,summary.dPattern);
+ const advice=adviceFor(created.state,[centerJ]);
+ assert.equal(P.revalidate(created.state,advice,{resourceContext:exported,now:()=>0,deadline:1,maxNodes:12000}),null,'fresh request cannot forget observed creation');
+ assert.ok(P.revalidate(created.state,advice,{now:()=>0,deadline:1,maxNodes:12000}),'snapshot import with already-D root remains ordinary recovery');
+ const forged={...exported,dPattern:{pending:false}};assert.deepEqual(RH.resolve(created.state,RH.importContext(created.state,forged)).dPattern,summary.dPattern);
+ const exit=L.dExit(created.state,{now:()=>0,deadline:1,maxNodes:4000});assert.equal(exit.valid,true);
+ let state=created.state,history=created.history;for(const action of exit.exit.witness){const next=R.move(state,action);history=RH.applyAction(history,state,action,next);state=next;}
+ assert.deepEqual(RH.resolve(state,history).dPattern,{pending:false,createdAt:null});
+});

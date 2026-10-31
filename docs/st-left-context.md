@@ -103,3 +103,12 @@ another D obligation, avoiding circular certificates. These certificate limits a
 additional rules quoted from the guide. An unfinished check is not proof that
 no exit exists. Final admission and retained-advice revalidation recheck the
 condition rather than trusting saved evidence or a geometric `immediateJ` flag.
+
+An admitted prefix may not then spend its J on a different job while leaving
+its newly created D without another immediate executable J exit. The same
+obligation survives fresh requests via replay-verified observed history: a
+post-import non-D → D lock establishes it, and an actual exit from D resolves
+it. Importing D as the initial board does not invent a past promise. Serialized
+summary flags are not authority; context is reconstructed through actual input
+replay, including HOLD/draw boundaries. This narrow D obligation is separate
+from general covered-cell repair tracking.
