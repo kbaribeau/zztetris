@@ -33,8 +33,12 @@ test('final access accounting charges positive, rejected and unknown work withou
  // A controlled opening provider isolates the public plan wrapper's accounting.
  // Its one-lock witness is real; search-node amounts and final check are stubs,
  // not a claim that a seven-node movement proof exists for this board.
- const state=R.createState({active:'O',queue:['I']}),r=R.replay(state,['HD']);assert.ok(r.valid);
- const supplied={status:'recommended-with-verified-prefix',target:r.events[0].target,witness:['HD'],continuation:[{witness:['HD'],event:r.events[0]}],metrics:{nodes:100,earlyCapFallback:{selected:true},tieExtension:{selected:true},usage:{schemaVersion:1,scope:'maintenance',selected:{path:'early-cap-fallback'},families:{earlyCapFallback:{selected:1}}}},evidence:{}};
+ const state=R.createState({active:'O',queue:['I']}),witness=['L','L','L','HD'],r=R.replay(state,witness);assert.ok(r.valid);
+ // Keep this accounting seam independent of ordinary Center admission: the
+ // supplied real O now lies wholly on Left, rather than an unsupported empty
+ // Center. All positive/rejected/unknown access and charging assertions remain.
+ assert.ok(r.events[0].cells.every(([x])=>x<4));
+ const supplied={status:'recommended-with-verified-prefix',target:r.events[0].target,witness,continuation:[{witness,event:r.events[0]}],metrics:{nodes:100,earlyCapFallback:{selected:true},tieExtension:{selected:true},usage:{schemaVersion:1,scope:'maintenance',selected:{path:'early-cap-fallback'},families:{earlyCapFallback:{selected:1}}}},evidence:{}};
  for(const reachable of [true,false,null]){
   let calls=0;const module={exports:{}},access={...A,prefix:(s,steps,options)=>{calls++;assert.equal(options.maxNodes,50);return{reachable,complete:reachable!==null,visited:7,status:'controlled-access-result'};}};
   vm.runInNewContext(fs.readFileSync(require.resolve('../st-planner'),'utf8'),{module,require:id=>id==='./st-access.js'?access:id==='./st-opening.js'?{plan:()=>JSON.parse(JSON.stringify(supplied))}:require(id.replace('./','../')),Date,performance});

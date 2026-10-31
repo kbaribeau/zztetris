@@ -13,7 +13,15 @@ function resourceEndpointCore(raw,path,options={}){
   const replay=access.reachable?R.replay(checked.state,access.witness):null;
   if(!replay?.valid||replay.events.length!==1||replay.events[0].type!=='T'||replay.events[0].spin!=='full'||replay.events[0].lines!==2)return{...checked,valid:false,visited,reason:'pending-T-collision-without-score'};
  }
- let virtual=extendForced(observe(raw)),notches=H.resolve(observe(raw),options.patternHistory);for(const step of path){const r=R.replay(virtual,step.witness);if(!r.valid||r.events.length!==1)return{...checked,valid:false,visited,reason:'invalid-resource-witness'};const phase=S.advanceNotches(virtual.board,{state:r.state,event:r.events[0]},notches);if(!phase.valid)return{...checked,valid:false,visited,reason:'invalid-resource-repair-phase'};notches=phase.pattern;virtual=r.state;}
+ let centerDeparture=false,virtual=extendForced(observe(raw)),notches=H.resolve(observe(raw),options.patternHistory);for(const step of path){const r=R.replay(virtual,step.witness);if(!r.valid||r.events.length!==1)return{...checked,valid:false,visited,reason:'invalid-resource-witness'};const phase=S.advanceNotches(virtual.board,{state:r.state,event:r.events[0]},notches);if(!phase.valid)return{...checked,valid:false,visited,reason:'invalid-resource-repair-phase'};notches=phase.pattern;
+  const center=S.geometry(r.state.board,{notches}).center;
+  if(r.events[0].lines===0&&r.events[0].cells.every(([x])=>x>=4&&x<=6)&&!supportedCenterPattern(center))centerDeparture=true;
+  if(supportedCenterPattern(center))centerDeparture=false;
+  virtual=r.state;}
+ // Retention cannot turn imported claims into an eligibility exception. An
+ // exceptional intermediate Center must actually return to a supported shape
+ // in this replayed visible prefix; all existing resource/access checks remain.
+ if(centerDeparture)return{...checked,valid:false,visited,reason:'unsupported-center-without-executed-repair'};
  const repair=resourceRepair(checked.state,checked.resource,{...options,notches,maxNodes:Math.min(4000,Math.max(0,limit-visited)),deadline,now});visited+=repair.visited;
  return{...checked,valid:repair.valid===true,reason:repair.valid===true?null:repair.status,visited,repair};
 }
@@ -126,12 +134,12 @@ function advicePresentation(path,assessment={},construction=null){
   // original root pair. Describe its actual checked cells, without mutating
   // planner evidence or assuming preparation history from a piece letter.
   const partner=S.CENTER_PAIRS[first.event.type];
-  if(center(first)&&first.event.lines===0&&partner){
+  if(center(first)&&first.event.lines===0&&partner&&facts.structure?.center.patternSupport==='reference-supported'){
    const key=cells=>JSON.stringify(cells.slice().sort(([ax,ay],[bx,by])=>ax-bx||ay-by));
    for(let i=1;i<path.length;i++){
     const next=path[i];if(next.event.lines)break;
     if(next.event.cells.some(([x])=>x>=4&&x<7)){
-     if(center(next)&&next.event.type===partner&&facts.structure?.center.completions.some(c=>c.piece===partner&&c.resultStatus==='level'&&key(c.cells)===key(next.event.cells)))pair={status:'completed-in-checked-prefix',step:1,orderedPieces:[first.event.type,partner],completionLock:i+1};
+     if(center(next)&&next.event.type===partner&&facts.structure?.center.completions.some(c=>c.piece===partner&&c.resultStatus==='level'&&c.patternSupport==='reference-supported'&&key(c.cells)===key(next.event.cells)))pair={status:'completed-in-checked-prefix',step:1,orderedPieces:[first.event.type,partner],completionLock:i+1};
      break;
     }
    }
@@ -494,6 +502,17 @@ function compare(a,b){for(let i=0;i<a.rank.length;i++){if(i===3){const quality=o
 // Ordered center partners fit within a tetromino-height (three-step) envelope;
 // taller open deficits remain legal, but require an actually completed repair.
 const reusableCenter=c=>(!c.foundation||c.foundation.status==='aligned')&&c.status!=='unrecognized'&&c.patternSupport==='reference-supported'&&(!c.profile||Math.max(...c.profile)-Math.min(...c.profile)<=3);
+// Ordinary Center search uses positive modular-pattern evidence, not merely a
+// score penalty for an arbitrary silhouette. This is a conservative engine
+// admission boundary, not a claim that other legal constructions are impossible.
+// Keep this out of nodeFor/shared roots: independently replayed finite repair
+// producers must retain their non-modular intermediate placements (e.g. OSIO).
+const supportedCenterPattern=c=>c.patternSupport==='reference-supported'&&c.foundation?.status==='aligned';
+function ordinaryCenterEligible(before,p,notches){
+ if(p.event.lines!==0||!p.event.cells.every(([x])=>x>=4&&x<=6))return true;
+ const phase=S.advanceNotches(before.board,p,notches??S.notchPattern(before.board));
+ return phase.valid&&supportedCenterPattern(S.geometry(p.state.board,{notches:phase.pattern}).center);
+}
 function centerContinuityStep(before,after,event,debt=false){
  return !reusableCenter(after)&&(debt||(event.lines===0&&reusableCenter(before)));
 }
@@ -945,7 +964,7 @@ function planCore(raw,options={}){
   if(usage){Object.assign(usage.families.visibleCyclePreparation,{verified:Number(Boolean(preparation)),unknown:Number(preparationUnresolved),nodes:base.metrics.nodes-preparationStartNodes});usage.costsMs.visibleCyclePreparation+=usageNow()-preparationStarted;}
  }
  const spendsReservedT=(p,parent=null)=>(preparation||preparationUnresolved)&&p.event.type==='T'&&p.event.lines===0&&!parent?.path.some(step=>step.event.type==='T'&&step.event.lines===2&&step.event.spin==='full');
- let frontier=qualify(root.placements.filter(p=>S.canonicalClear(p.event)&&!spendsReservedT(p)).map((p,i)=>nodeFor(p,null,initial,i,readAssessment)).filter(n=>n.notchValid&&n.cycleDebt===0));
+ let frontier=qualify(root.placements.filter(p=>S.canonicalClear(p.event)&&!spendsReservedT(p)&&ordinaryCenterEligible(s,p,initial.notches)).map((p,i)=>nodeFor(p,null,initial,i,readAssessment)).filter(n=>n.notchValid&&n.cycleDebt===0));
  if(preparation){preparation=qualify([preparation])[0]??preparation;base.metrics.preparationProofLocks=preparation.path.length;}
 
  let screeningLimit=limit;
@@ -985,7 +1004,7 @@ function planCore(raw,options={}){
  for(let depth=2;depth<=maxDepth&&!stopped&&layer.length;depth++){
   const next=[],seen=new Map();let complete=true;
   for(const n of layer){if(!n.state.active)continue;expandedRoots.add(n.rootIndex);const e=enumerate(n.state);if(!e.complete)complete=false;
-   for(const p of e.placements){if(!S.canonicalClear(p.event)||spendsReservedT(p,n))continue;const child=nodeFor(p,n,initial,n.rootIndex,readAssessment);if(!child.notchValid||child.cycleDebt)continue;const key=nodeKey(child),prior=seen.get(key);if(!prior||compare(child,prior)<0)seen.set(key,child);}
+   for(const p of e.placements){if(!S.canonicalClear(p.event)||spendsReservedT(p,n)||!ordinaryCenterEligible(n.state,p,n.notches))continue;const child=nodeFor(p,n,initial,n.rootIndex,readAssessment);if(!child.notchValid||child.cycleDebt)continue;const key=nodeKey(child),prior=seen.get(key);if(!prior||compare(child,prior)<0)seen.set(key,child);}
    if(stopped)break;
   }
   next.push(...qualify([...seen.values()]));if(stopped)complete=false;
@@ -1089,12 +1108,12 @@ function planCore(raw,options={}){
  const centerOnly=p=>p.event.cells.every(([x])=>x>=4&&x<=6);
  const cellKey=cells=>JSON.stringify(cells.slice().sort(([ax,ay],[bx,by])=>ax-bx||ay-by));
 
- if(centerOnly(first)&&first.event.lines===0&&orderedPartner){
+ if(centerOnly(first)&&first.event.lines===0&&orderedPartner&&facts.structure?.center.patternSupport==='reference-supported'){
   for(let i=1;i<best.path.length;i++){
    const next=best.path[i];
    if(next.event.lines!==0)break;
    if(next.event.cells.some(([x])=>x>=4&&x<=6)){
-    const completion=facts.structure.center.completions.find(c=>c.piece===orderedPartner&&c.resultStatus==='level'&&cellKey(c.cells)===cellKey(next.event.cells));
+    const completion=facts.structure.center.completions.find(c=>c.piece===orderedPartner&&c.resultStatus==='level'&&c.patternSupport==='reference-supported'&&cellKey(c.cells)===cellKey(next.event.cells));
     if(centerOnly(next)&&next.event.type===orderedPartner&&completion){
      facts.pairProgress={...facts.pairProgress,orderedPieces:[first.event.type,orderedPartner],step:1,status:'completed-in-checked-prefix',completionLock:i+1};
      next.structuralEvidence.pairFamily=first.event.type+orderedPartner;
@@ -1363,5 +1382,5 @@ function decideRequest(raw,options={}){
  return budgetTracker.nodes||recovery?{...result,metrics:{...result.metrics,nodes:(result.metrics?.nodes||0)+budgetTracker.nodes,revalidationNodes:budgetTracker.nodes,...(recovery?{handoffRecovery:recovery}:{})}}:result;
 }
 
-return Object.freeze({advicePresentation,observe,assess,plan,decide,captureHandoffRecovery,resetSelection,startPatternHistory:H.start,updatePatternHistory:H.update,resolvePatternHistory:H.resolve,gapAccess:A.check,checkAccessPrefix:A.prefix,startOpeningSession,updateOpeningSession,acceptOpeningResult,revalidate,advance,cavityRepairDebt,continueCommitment,cycleResources,resourceGoal,resourceGoalPrefix,centerReservationStep,centerContinuityStep});
+return Object.freeze({advicePresentation,observe,assess,plan,decide,captureHandoffRecovery,resetSelection,startPatternHistory:H.start,updatePatternHistory:H.update,resolvePatternHistory:H.resolve,gapAccess:A.check,checkAccessPrefix:A.prefix,startOpeningSession,updateOpeningSession,acceptOpeningResult,revalidate,advance,cavityRepairDebt,continueCommitment,cycleResources,resourceGoal,resourceGoalPrefix,centerReservationStep,centerContinuityStep,ordinaryCenterEligible});
 });
