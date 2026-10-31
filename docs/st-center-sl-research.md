@@ -21,9 +21,17 @@ Fumens, sessions, profiles or run logs into this document.
 
 ## 2. Center-pattern classifier correctness
 
-**Next question:** distinguish useful incremental repair of inherited damage
-from creation of new unsupported construction. Do not revive the rejected
-blanket ordinary-Center eligibility gate.
+**Current milestone scope (user clarification, 2026-10-28):** stable ST play,
+not recovery from an already compromised stack. The inherited column-7 vacancy
+repair exception below is **out of scope**: its starting board violates the
+stable ST column-7 pattern. A legal TSD and absence of a new sealed void do not
+establish a milestone-eligible state. Do not weaken eligibility to accommodate
+this already compromised board.
+
+**Next discussion:** trace and prevent the earlier pattern violation, and define
+pattern-eligibility tests starting from verified stable ST fixtures. This is a
+research direction, not a request to implement or run a new experiment. The
+rejected blanket ordinary-Center gate remains rejected.
 
 The isolated gate required a recognized motif and aligned lower foundation for
 ordinary nonclearing pure-Center placements. It also corrected misleading SL
@@ -31,7 +39,7 @@ labels. But its six-pair comparison had zero line wins, five ties and one loss
 (known safety case 3197651683: 48 to 16 lines); six existing full-suite tests
 failed. It is not accepted pruning or a demonstrated speed improvement.
 
-### Minimal positive regression definition
+### Historical repair witness — outside the current milestone
 
 Start from “incidental I repair before a T goal” in the existing
 [commitment-comparison fixture](../test/support/st-commitment-comparison.json)
@@ -47,18 +55,24 @@ Replay CCW then hard drop to I target `(x=3,y=24,r=3)`, occupying zero-based cel
   vacancy remains after translation: this is **incremental repair**, not a
   completely repaired foundation or proof of sustainability.
 
-The rejected gate denied this I solely because the old vacancy remained. The
-narrow fix should classify that distinction correctly without certifying every
-unsupported endpoint. Before writing a regression, recover the full public
-fixture from the existing test or retained diagnostic; these coordinates alone
-are not a complete board/history. Minimize the fixture with an independent
-geometry/replay oracle, not the classifier's own expected answer.
+The rejected gate denied this I because the old vacancy remained. That was
+previously described as a repair-classification false negative, but it is not a
+current-milestone correctness requirement: the vacancy at zero-based `[6,28]`
+is in column 7 and does not follow the stable ST pattern. Preserve the mechanics
+observation and original reports as historical evidence; withdraw the proposed
+eligibility exception for this milestone. These coordinates alone are not a
+complete board/history and do not establish where the stack first became
+compromised.
 
-### Required negative and lifecycle tests
+### Proposed stable-ST eligibility checks (discussion only)
 
-1. Distinguish unchanged inherited vacancies from newly created, worsened or
-   covered defects; preserve cavity, notch, resource and actual-reachability
-   checks. Do not equate a flat skyline with a supported motif.
+1. Establish the stable ST column-7 pattern and complete starting-state
+   eligibility independently of the candidate classifier. Trace the recorded
+   prefix to the first departure before proposing a prevention mechanism.
+   Use verified stable-ST positive fixtures and pattern-violating negative
+   controls; an inherited off-pattern hole is not a positive repair exception.
+   Preserve cavity, notch, resource and actual-reachability checks. Do not
+   equate a flat skyline with a supported motif.
 2. Retain truthful rejection/labeling of the demonstrated unsupported vertical
    S plus hypothetical leveling L: that endpoint has an unrecognized motif and
    five lower-foundation vacancies. A hypothetical partner is not actual repair.
@@ -66,8 +80,10 @@ geometry/replay oracle, not the classifier's own expected answer.
    literal advanced **OSIO** partial sequence, including its vertical S without
    an immediate finisher. There is **no universal vertical-S ban**.
 4. Check actual row-clear translation, exact partner identity, advice
-   revalidation/advancement and commitment continuation. Diagnose all six prior
-   regressions; do not relax assertions merely to obtain a pass.
+   revalidation/advancement and commitment continuation. Classify the six prior
+   regressions by milestone eligibility; a failure on a compromised-board
+   recovery fixture does not itself justify weakening stable-ST admission.
+   Do not relax assertions merely to obtain a pass.
 
 The safety loss does not establish that a selected unsupported Center move was
 necessary: saved baseline selected maintenance prefixes all passed the new
@@ -136,9 +152,10 @@ classifier false-negative witness.
    sealed Left cells; it does not prove every IRight choice is bad. Later S43
    newly covers seven vacancies, but these are not proved sealed, irrecoverable
    or the cause of failure. Treat that later case as a diagnostic, not an oracle.
-2. Isolate classifier correctness using the case above. Do not use either
-   favorable manual endpoint as proof that all preferred S/L branches should
-   outrank scoring or cleanup.
+2. Discuss classifier correctness using verified stable-ST fixtures and trace
+   the earlier column-7 violation. Do not implement the out-of-scope inherited-
+   vacancy repair exception above. Neither favorable manual endpoint proves
+   that all preferred S/L branches should outrank scoring or cleanup.
 3. If broader preference is investigated, predeclare one mechanism and compare
    it against the accepted baseline, without silently importing the rejected
    V8 bundle. Preserve actual scoring timing, real partner payment, public
