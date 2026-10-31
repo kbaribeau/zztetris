@@ -332,6 +332,10 @@ function policyWitnesses(state){
 // A finite covered-cell repair carries its ORIGINAL public input and witnesses.
 // Recreate the certificate on every retention; neither a copied flag nor a
 // newly revealed queue can turn a hypothetical movement route into supply.
+function repairStepEvidence(proof,index,initialDebt=[]){
+ const record=proof.steps[index],entering=index?proof.steps[index-1].outstanding:initialDebt;
+ return{created:record.created,outstanding:record.outstanding,required:Boolean(entering.length||record.created.length),stage:Boolean(index===proof.steps.length-1&&proof.stage)};
+}
 function checkedCoveredRepair(raw,steps,options={},saved=null){
  const validSteps=value=>Array.isArray(value)&&value.length>0&&value.length<=7&&value.every(p=>p&&Array.isArray(p.witness)&&p.witness.length>0&&p.witness.length<=256);
  if(!validSteps(steps)||saved&&!validSteps(saved.steps))return null;
@@ -359,13 +363,14 @@ function checkedCoveredRepair(raw,steps,options={},saved=null){
  const initialDebt=observed.coveredRepair?.cells||[];
  const proof=A.repairPrefix(extendForced(origin),whole,{notches:H.resolve(origin,originOptions.patternHistory),initialDebt,stages:observed.center?.pending});
  if(!proof.valid)return null;
- const needed=initialDebt.length>0||proof.steps.some(p=>p.created.length);
+ const relevant=proof.steps.slice(consumed).map((p,i)=>repairStepEvidence(proof,consumed+i,initialDebt));
+ const needed=relevant.some(p=>p.required);
  if(saved){
   const resource=ordinaryResourceCheck(origin,whole,originOptions);
   if(!resource.valid)return null;
  }
  const plan=needed?{origin:observe(origin),steps:whole.map(p=>({witness:p.witness.slice(),event:clone(p.event)})),consumed,patternHistory:clone(originOptions.patternHistory??null),resourceContext:clone(originOptions.resourceContext??null)}:null;
- return{proof,plan,steps:steps.map((p,i)=>({...p,structuralEvidence:{...p.structuralEvidence,coveredRepair:{created:proof.steps[consumed+i].created,outstanding:proof.steps[consumed+i].outstanding,required:Boolean(needed)}}}))};
+ return{proof,plan,steps:steps.map((p,i)=>({...p,structuralEvidence:{...p.structuralEvidence,coveredRepair:relevant[i]}}))};
 }
 function cycleResources(path){
  const events=path.map(p=>p.event),tsds=events.filter(e=>e.type==='T'&&e.spin==='full'&&e.lines===2).length;
@@ -381,11 +386,12 @@ function resourceGoal(path){const r=cycleResources(path);return r.tsds+r.quads+r
 // not make an otherwise equivalent proof appear longer or more wasteful.
 function resourceGoalPrefix(path,goal){
  const centerGoals=centerGoalKeys(goal),primary=cycleResources(goal),stageGoals=primary.tsds+primary.quads+primary.pocket+primary.centerCompletions?[]:centerStageKeys(goal),hasCenter=prefix=>centerGoals.every(key=>centerGoalKeys(prefix).includes(key))&&stageGoals.every(key=>centerStageKeys(prefix).includes(key));
+ const repairRequired=goal.some(p=>p.structuralEvidence?.coveredRepair?.required),hasRepair=prefix=>{if(!repairRequired)return true;const end=prefix.at(-1)?.structuralEvidence?.coveredRepair;return Boolean(prefix.some(p=>p.structuralEvidence?.coveredRepair?.required)&&end&&(!end.outstanding.length||end.stage));};
  const required=cycleResources(goal),fulfils=a=>a.tsds>=required.tsds&&a.quads>=required.quads&&a.outstandingPocket+Math.max(0,a.quads-required.quads)>=required.outstandingPocket;
- let b=required;for(let length=1;length<=goal.length;length++){const prefix=cycleResources(goal.slice(0,length));if(fulfils(prefix)&&hasCenter(goal.slice(0,length))){b=prefix;break;}}
+ let b=required;for(let length=1;length<=goal.length;length++){const prefix=cycleResources(goal.slice(0,length));if(fulfils(prefix)&&hasCenter(goal.slice(0,length))&&hasRepair(goal.slice(0,length))){b=prefix;break;}}
  for(let length=1;length<=path.length;length++){
   const a=cycleResources(path.slice(0,length));
-  if(fulfils(a)&&hasCenter(path.slice(0,length))&&
+  if(fulfils(a)&&hasCenter(path.slice(0,length))&&hasRepair(path.slice(0,length))&&
    (!b.tsds||a.tFillers<=b.tFillers)&&(!(b.quads+b.outstandingPocket)||a.iFillers<=b.iFillers))return length;
  }
  return null;
@@ -435,7 +441,12 @@ function committedNode(s,proof,roots,initial,readAssessment=assess){
  for(const step of steps.slice(1)){const r=R.replay(n.state,step.witness);if(!r.valid||r.events.length!==1||JSON.stringify(r.events[0])!==JSON.stringify(step.event)||!ordinaryRightEligible(r.events[0]))return null;
   n=nodeFor({state:r.state,event:r.events[0],target:r.events[0].target,witness:step.witness,hold:step.witness.includes('HOLD'),...policyWitnesses(n.state)},n,initial,n.rootIndex,readAssessment);
  }
- return resourceGoal(n.path)&&n.path.every(p=>S.canonicalClear(p.event))&&n.cycleDebt===0&&n.notchValid&&certifiedCavities(n)&&n.assessment.maxHeight<20&&n.assessment.regionalSupport&&A.repairPrefix(s,n.path,{notches:initial.notches,initialDebt:initial.coveredRepair?.cells,stages:initial.coveredStages}).valid?n:null;
+ const repair=A.repairPrefix(s,n.path,{notches:initial.notches,initialDebt:initial.coveredRepair?.cells,stages:initial.coveredStages});
+ if(!repair.valid)return null;
+ // Only an already observed obligation promotes an otherwise goal-free saved
+ // suffix. A merely proposed future roof is not a mandatory construction.
+ if(initial.coveredRepair?.cells.length)n.path=n.path.map((p,i)=>({...p,structuralEvidence:{...p.structuralEvidence,coveredRepair:repairStepEvidence(repair,i,initial.coveredRepair.cells)}}));
+ return resourceGoal(n.path)&&n.path.every(p=>S.canonicalClear(p.event))&&n.cycleDebt===0&&n.notchValid&&certifiedCavities(n)&&n.assessment.maxHeight<20&&n.assessment.regionalSupport?n:null;
 }
 function sameConstructionResult(expected,actual){
  if(expected.rules!==actual.rules||JSON.stringify(expected.board)!==JSON.stringify(actual.board)||expected.hold!==actual.hold||expected.canHold!==actual.canHold||expected.topOut!==actual.topOut||(expected.active&&expected.active.type!==actual.active?.type)||!expected.queue.every((t,i)=>actual.queue[i]===t))return false;
@@ -575,7 +586,8 @@ function continueCommitment(before,after,advice,actualEvent=after?.lastEvent,opt
  // A genuine newly admitted roof carries its original certificate. Legacy
  // or forged advice without it cannot create an unrecorded repair exception.
  if(!savedRepair&&A.newlyCovered(origin.board,first.state.board,first.events[0],S.advanceNotches(origin.board,{state:first.state,event:first.events[0]}).pattern).length)return null;
- const pendingPlan=originalRepair?.plan?{...originalRepair.plan,consumed:originalRepair.plan.consumed+1}:null;
+ const afterDebt=originalRepair?.proof.steps[originalRepair.plan?.consumed??0]?.outstanding||[];
+ const pendingPlan=originalRepair?.plan&&afterDebt.length?{...originalRepair.plan,consumed:originalRepair.plan.consumed+1}:null;
  const steps=advice.continuation.slice(1);if(!resourceGoal(steps)&&!pendingPlan)return null;
  let current=extendForced(s),notches=H.resolve(s,options.patternHistory),debt=[],centerDebt=centerReservationStep(origin,{event:first.events[0],state:first.state}).debt,prior=assess(s.board);const continuation=[];if(['broken','invalid-history'].includes(notches.status))return null;
  for(const step of steps){const r=R.replay(current,step.witness);if(!r.valid||r.events.length!==1||JSON.stringify(r.events[0])!==JSON.stringify(step.event)||!S.canonicalClear(r.events[0])||!ordinaryRightEligible(r.events[0]))return null;
@@ -924,11 +936,8 @@ function planCore(raw,options={}){
  const observedPattern=H.resolve(s,options.patternHistory);if(['invalid-history','broken'].includes(observedPattern.status))return{...base,status:'no-supported-continuation-found',reason:observedPattern.status==='broken'?'A recognized T-slot opening in column 7 is filled. The coach does not support repairing this pattern yet.':'The recorded scoring-pattern evidence could not be verified. Reset or import a fresh snapshot before continuing.'};
  if(!options.disableOpening&&(options.openingPhase||s.board.every(r=>r==='..........'))){const opening=typeof module==='object'&&module.exports?require('./st-opening.js'):globalThis.STOpening;return opening.plan(s,{...options,deadline});}
  if(options.resourceContext&&resourceSummary(s,options).coverage.status==='invalid')return{...base,status:'no-supported-continuation-found',reason:'The observed resource history could not be verified for this position.'};
- if(options.commitment?.advice?.evidence?.coveredRepairPlan){
-  const retained=revalidate(s,options.commitment.advice,{...options,deadline});
-  if(retained)return retained;
-  return{...base,status:'no-supported-continuation-found',reason:'The pending covered-cell repair could not be revalidated; its obligation is not discharged.'};
- }
+ // Actual repair obligations come from authenticated history, not a pinned
+ // old witness. Fresh alternatives must certify those same current cells.
  const summary=resourceSummary(s,options);s=extendForced(s);
  const readAssessment=createAssessmentReader(),initial=readAssessment(s.board);initial.state=s;initial.notches=H.resolve(s,options.patternHistory);initial.coveredRepair=summary.coveredRepair;initial.coveredStages=summary.center?.pending;initial.resources=M.start(s,summary);initial.ordinarySAllocationEnabled=!options.disableOrdinarySAllocation;
  initial.extraZPreservable=summary.coverage?.status==='complete'&&summary.extraZ?.status==='available'&&Boolean(summary.extraZ.baseline);
@@ -1260,7 +1269,7 @@ function planCore(raw,options={}){
  let screeningLimit=limit;
  const screeningAllowance=limit>=20000&&!options.disableOpening&&!options.disableConstruction?Math.min(6000,Math.floor(limit/5)):Infinity;
  const screening=base.metrics.proofScheduling={enabled:Number.isFinite(screeningAllowance),allowance:Number.isFinite(screeningAllowance)?screeningAllowance:null,calls:0,nodes:0,unfinished:0,budgetStops:0};
- const accessSafe=n=>{if(!A.repairPrefix(s,n.path,{notches:initial.notches,initialDebt:initial.coveredRepair?.cells,stages:initial.coveredStages}).valid)return false;const proof=A.prefix(s,n.path,{notches:initial.notches,deadline,now,maxNodes:Math.max(0,Math.min(limit,screeningLimit)-base.metrics.nodes)});base.metrics.nodes+=proof.visited;if(proof.reachable===null)screening.unfinished++;base.metrics.gapAccessNodes=(base.metrics.gapAccessNodes||0)+proof.visited;n.path[0].gapAccess=proof;return proof.reachable===true;};
+ const accessSafe=n=>{const restoration=A.repairPrefix(s,n.path,{notches:initial.notches,initialDebt:initial.coveredRepair?.cells,stages:initial.coveredStages});if(!restoration.valid)return false;if(initial.coveredRepair?.cells.length)n.path=n.path.map((p,i)=>({...p,structuralEvidence:{...p.structuralEvidence,coveredRepair:repairStepEvidence(restoration,i,initial.coveredRepair.cells)}}));const proof=A.prefix(s,n.path,{notches:initial.notches,deadline,now,maxNodes:Math.max(0,Math.min(limit,screeningLimit)-base.metrics.nodes)});base.metrics.nodes+=proof.visited;if(proof.reachable===null)screening.unfinished++;base.metrics.gapAccessNodes=(base.metrics.gapAccessNodes||0)+proof.visited;n.path[0].gapAccess=proof;return proof.reachable===true;};
  const repairCache=new Map();
  const resourceSafe=n=>{
   if(n.resources?.centerBlocked||n.resources?.unclassifiedS?.some(s=>s.invalidated||s.requiresAccommodation))return false;

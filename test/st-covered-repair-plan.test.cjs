@@ -121,3 +121,28 @@ test('covered repair / cross-region S84 Center defect survives both nearby TSD a
  for(const cell of f.translatedCells)assert.ok(proof.outstandingCells.some(c=>JSON.stringify(c)===JSON.stringify(cell)));
  assert.equal(proof.valid,false);assert.equal(P.checkedCoveredRepair(f.observation,steps,options),null);
 });
+
+test('covered repair / a future repair promise does not pin a safe alternative before its roof exists',()=>{
+ const q=require('./fixtures/covered-repair-alternative.json'),options={...q.options,commitment:q.commitment,maxNodes:45000,timeMs:undefined,deadline:Infinity,now:()=>0};
+ const H=require('../st-resource-history'),summary=H.resolve(q.observation,H.importContext(q.observation,q.options.resourceContext));assert.deepEqual(summary.coveredRepair.cells,[]);
+ assert.ok(P.revalidate(q.observation,q.commitment.advice,options),'The saved finite repair remains legitimate, not silently invalidated');
+ const fresh=P.decide(q.observation,options);assert.deepEqual(fresh.target,{type:'J',x:1,y:27,rotation:3});assert.notDeepEqual(fresh.target,q.commitment.advice.target);
+ assert.equal(fresh.evidence.coveredRepair.valid,true);assert.deepEqual(fresh.evidence.coveredRepair.outstandingCells,[]);assert.ok(fresh.metrics.nodes<=45000);
+});
+test('covered repair / closing lock is required but later ordinary filler has no repair obligation',()=>{
+ const {state,steps}=simple(),last=steps.at(-1).state,tail=path(last,[['L','L','L','HD']]);
+ const whole=[...steps,...tail],checked=P.checkedCoveredRepair(state,whole);assert.ok(checked?.plan);
+ assert.deepEqual(checked.steps.map(p=>p.structuralEvidence.coveredRepair.required),[true,true,false]);
+ assert.equal(P.resourceGoalPrefix(checked.steps,checked.steps),2);
+ const suffix=P.checkedCoveredRepair(last,tail,{}, {...checked.plan,consumed:2});assert.ok(suffix);assert.equal(suffix.plan,null);
+ assert.equal(P.resourceGoal(suffix.steps),false,'Completed repair cannot promote trailing filler into a strategic goal');
+});
+
+test('covered repair / different actual continuations may close the same authenticated outstanding cell',()=>{
+ const q=require('./fixtures/covered-repair-current-alternatives.json'),H=require('../st-resource-history'),options={...q.options,maxNodes:45000,timeMs:undefined,deadline:Infinity,now:()=>0};
+ const summary=H.resolve(q.observation,H.importContext(q.observation,options.resourceContext));assert.deepEqual(summary.coveredRepair.cells,[[2,29]]);
+ assert.notDeepEqual(q.routes[0].target,q.routes[1].target);
+ for(const route of q.routes){const checked=P.revalidate(q.observation,route,options);assert.ok(checked);assert.deepEqual(checked.evidence.coveredRepair.outstandingCells,[]);}
+ const unfinished=clone(q.routes[1]);unfinished.continuation=unfinished.continuation.slice(0,1);
+ assert.equal(P.revalidate(q.observation,unfinished,options),null,'An alternative must actually address that same observed defect');
+});

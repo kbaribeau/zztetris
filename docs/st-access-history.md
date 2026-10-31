@@ -107,3 +107,11 @@ geometry in a test-only planner loader; they verify real history, identity,
 budget and routing contracts, **not** strategic admission. Real forced-bag
 scoring-suffix and supplied S→L temporary-roof integration positives remain
 unmodified. A green mechanical test cannot waive a production regression.
+
+Preserving an obligation does not freeze its original witness. Replanning may
+select a different continuation if it independently proves the same current
+history-derived cells resolved or covered by an allowed exact stage. A proposed
+future roof is not already-incurred debt. Repair goal lifetime includes the
+closing lock, but not ordinary fillers after closure; stale historical flags
+cannot keep those fillers committed. The known original repair remains a
+checked alternative when actual outstanding cells still need it.
