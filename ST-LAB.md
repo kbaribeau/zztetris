@@ -4,7 +4,7 @@ The lab offers separate bounded opening and maintenance coaching for a **right-h
 
 Replay-verified [opening allocation and delayed quality](docs/st-opening-allocation.md) keep a known missing opening Z and early Center/S/L obligations distinct from optional stack growth. Imported geometry alone does not invent this history or an Extra-Z allowance.
 
-The last selected play mode is saved locally as `stLabMode`; unknown or retired values fall back to Stable ST stack. **Restart current board** restores the current starting board, including an imported snapshot. Snapshot import/export remains a diagnostic tool, not a third preset, and an import does not overwrite the saved mode. Choosing a mode replaces the imported origin. The rules, unlimited hold swaps, and coaching engine are unchanged.
+The last selected play mode is saved locally as `stLabMode`; unknown or retired values fall back to Stable ST stack. Snapshot import/export remains a diagnostic tool, not a third preset, and an import does not overwrite the saved mode. Choosing a mode replaces the imported origin.
 
 ## Play
 
@@ -15,8 +15,8 @@ The last selected play mode is saved locally as `stLabMode`; unknown or retired 
 - The gray outline is the ordinary hard-drop ghost. The amber outline is a separately checked coaching target. Follow the explanation, including HOLD when requested; no auto-play button executes the plan for you.
 - Keyboard bindings come from Game Settings; on-page buttons provide the same manual actions. Advice defaults to `KeyA` unless rebound. Display preferences persist without changing ordinary modes.
 - The lab has its own explicit `st-zero-v2` rules: 10×40 board, zero gravity, manual hard-drop lock, SRS+ kicks including 180°, and **unlimited hold swaps**. Ordinary practice is unchanged. Existing v1 fixtures and imports explicitly migrate to v2 in the lab; the kernel retains v1 for historical replay. Unlimited hold swaps the same two pieces, not the whole queue. See [rules contract](docs/st-rules-contract.md).
-- **Restart current board** (configured Reset key, default R) restarts the selected position and its coaching phase. Empty-board advice checks finite legal construction prefixes, then hands off only after an actual canonical clear and a freshly checked maintenance continuation. See [opening scope and limits](docs/st-opening.md).
-- **Cleared lines** appear in a neutral footer attached below the board, separate from phase/resource badges. The footer shows “Lines cleared,” a grouped total and a visible “since start” qualifier for fixtures and empty-board games or “since import” for imported positions/sessions, without inventing earlier history. All actual clear sizes count; Undo restores the previous total. Restart and mode changes reset it. The polite accessible status includes the total and baseline. This session-only statistic is not exported or sent to the coach.
+- **Restart current board** restores the starting position, pose, hold, preview and coaching phase, including an imported origin. The configured Reset key (default R) instead starts a fresh random piece sequence from the starting board for ordinary modes and plain position imports; for coaching sessions and private practice packages, it restores the imported session and any supplied tape exactly. Both actions reset the footer totals and Undo history. Empty-board advice checks finite legal construction prefixes, then hands off only after an actual canonical clear and a freshly checked maintenance continuation. See [opening scope and limits](docs/st-opening.md).
+- **Pieces locked and cleared lines** share a neutral two-column footer attached below the board, separate from phase/resource badges. “Pieces locked” counts actual completed hard-drop placements, including non-clears and a terminal lock—not draws, previews, active pieces or HOLD swaps. “Lines cleared” remains the total actual rows cleared. Both grouped totals share a visible “since start” qualifier for fixtures and empty-board games or “since import” for imported positions/sessions/private practice, without inventing earlier history from an existing heap or imported coaching evidence. Undo restores both totals; Restart and mode changes reset them. Each polite accessible status includes its total and baseline. These session-only statistics are not exported or sent to the coach.
 - Snapshot export contains only visible state and optional observed bag evidence. Import accepts at most six preview pieces. Missing history remains unknown. Full Fumen/editor/redo tools remain available through the ordinary-practice link; the lab does not pretend those legacy controls operate its new state.
 - Rejected position/session imports show a persistent **Import rejected** alert between Snapshot JSON and the Import button, with the exact parser/validator message. The input and current game stay intact; edit the existing textarea and retry with the same Import action (no separate Edit JSON button). Editing retains the previous failure and marks it as not yet revalidated. Rejection opens the import section without moving keyboard focus, and a textual cue remains if it is collapsed. Repeated failures update the assertive alert; accepted-import warnings, successes and export notices use the ordinary polite status instead. No validation or import rules are relaxed.
 - Diagnostics show checked lock horizon, node count, elapsed time, budget status and executable continuation. A geometric slot or heuristic score is not proof that its required piece will arrive or enter.
@@ -34,6 +34,16 @@ The last selected play mode is saved locally as `stLabMode`; unknown or retired 
 The bounded beam preserves different piece/hold/construction families and verifies continuations over observed pieces. Recognized cycle obligations precede structural-support bands, which precede tactical TSD/slot tie-breakers; an executable hypothetical slot earns only a small tie-break, not the former dominant 24-point bonus. Regional obligations identify exact finishing placements and match distinct active/held/visible/forced piece instances. Their supply labels are not promises about arrival order: only the returned executed prefix proves timing and access. Unknown future partners remain searchable, with modest uncertainty cost. Cross-region moves remain legal and checked structural repair can repay their dependency cost. No back-to-back state or scoring is modeled. Geometric slot tie-breaks are only optimistic bounds: promising candidates are lazily checked for an executable hypothetical T-double path before any actual bonus is awarded. A blocked or unverified cavity cannot farm that reward. This hypothetical proof does not assert T availability and is never an eligibility gate for incomplete construction. A T-slot obligation stays unresolved until actual replay proves entry and clear. Only completed deeper iterations replace the prior result; partial work and budget exhaustion never mean “impossible.” See the [planning allowance and performance debt](docs/st-temporary-planning-budget.md) for current search budgets, worker watchdog and restoration goal. Assessment can finish just after the soft deadline; operational budgets do not guarantee response latency.
 
 `st-worker.js` runs search outside the main thread. The controller terminates superseded workers and checks worker identity, request ID, revision and witness before displaying advice. Exactly following a checked input preserves the same target, including through HOLD; the remaining prefix is replayed before retention. A deviation hides old advice immediately and replans from the actual pose. The main thread performs only short replay/validation, never placement search.
+
+The finite Left-context estimate may recognize an uncovered, unlisted surface
+as a temporary allocation when unreserved visible I/O/J pieces can fit a
+strictly smoother listed surface within two locks, including actual HOLD/queue
+order. It does not assign a community tier to the unlisted starting shape.
+Center partners and I pieces required for Right cleanup are not free Left
+supply. This remains a secondary geometric tie estimate, not a movement or
+resource certificate; original roughness/height priorities and all executable
+prefix checks remain in force. Flat, covered and unrepairable unlisted surfaces
+receive no new credit.
 
 ## Evidence and limits
 
@@ -87,6 +97,21 @@ address two observed autoplay failures without claiming indefinite sustainabilit
 T-scoring and I-Pocket routes across actual locks and fresh worker requests.
 This does not yet recognize the community Midgame/Reset cycle; the known Reset
 reference limitations are documented rather than hidden by a universal T rule.
+
+Ordinary replacement of an executable scoring commitment also preserves the
+lock timing of each required TSD and I-quad. A later score needs a fully checked,
+equal-horizon comparison with the original saved route: maximum height and
+occupied mass must both be no worse and at least one must improve, without
+increasing sealed cells, covered Left cells or unresolved Center continuity.
+A better blended estimate or cheaper inputs alone does not justify delay.
+This conservative endpoint-dominance exception uses the existing shared request
+budget and exact certified fallback; an unfinished comparison does not invalidate
+the saved goal. It is not an unconditional immediate-score rule, a physical-T
+identity reservation, or a promise of better long-term survival. Separately
+verified construction contracts and all existing resource/cleanup obligations
+remain in force. `disableTimelyScoring` is a diagnostic control, not session
+permission or an imported proof. Timing telemetry is descriptive and replayed
+witnesses remain the authority.
 
 See [temporary planning budget and measured limits](docs/st-temporary-planning-budget.md). Historical 750 ms experiments remain recorded at their original budget; more compute is not itself better strategy.
 
@@ -249,13 +274,15 @@ The import box accepts either the existing lightweight position JSON or a
 `zztetris-st-session` envelope (`schemaVersion: 1`). **Export coaching session**
 adds the current recommendation inputs to the visible position; **Export visible
 snapshot** is unchanged. Neither exports hidden future bags/RNG, Undo history,
-cleared-line totals, or the diagnostic shadow piece ledger. Imported play has a
+footer totals, or the diagnostic shadow piece ledger. Imported play has a
 finite visible queue (plus the existing logically forced bag remainder).
 
 The session contains:
 
 - `engineVersion`: an explicit coach compatibility identifier. Bump this when a
-  behavior/proof-contract change makes old contextual sessions incompatible.
+  behavior/proof-contract change invalidates saved advice or commitments.
+  A different coach version produces a warning and discards those candidates;
+  validated history and supported search settings can still be imported.
   It is a compatibility version, not a Git SHA or a signature.
 - `position`: rules, board, exact active pose/rotation evidence, HOLD, six-piece
   preview, bag frontier, stream cursor, top-out and revision.
@@ -335,3 +362,64 @@ availability is independently replayed from the current pose and up to two legal
 HOLDs before every step; an available Z cap still forbids optional Left work.
 Those finite checks share the original node/deadline budget, and unknown proof
 rejects the construction. T and Z are excluded from intermediate fillers.
+
+## Private practice imports
+
+The existing JSON textbox and **Import position or session** button also accept
+`zztetris-st-practice` schema version 1. This player-only wrapper leaves
+`zztetris-st-session` version 1 unchanged:
+
+```json
+{
+  "format": "zztetris-st-practice",
+  "schemaVersion": 1,
+  "session": { "...": "a complete zztetris-st-session envelope" },
+  "privatePractice": { "tail": ["I", "J", "L", "O", "S", "T", "Z"] }
+}
+```
+
+The example is schematic, not an importable session. `tail` begins **after** the
+six visible preview pieces, in draw order, not placement order. A filled-hold
+swap draws nothing; an empty hold draws once. Supply is bounded to 4,096 piece
+letters and the entire package to the session's 4 MiB JSON limit. A nonempty tail
+requires six preview pieces. Full session validation and seven-bag consistency
+at the public preview frontier complete before any game/worker mutation. Missing
+bag history is checked over possible preview phases, not fabricated; tail
+validation never narrows the public bag or fills missing resource history.
+
+The controller keeps the tail private and only reveals draws into its six-slot
+preview. It sends no tail or seed to the coach. The sequence never cycles or
+falls back to randomness or forced-bag materialization after it ends; remaining
+visible pieces may be played before the finite-supply end message. Restart
+(including the reset key) restores the exact imported session and tape. Undo
+rewinds the draw cursor alongside the existing public/history checkpoint.
+Importing another session or selecting a mode replaces that origin. Both ordinary
+export actions remain visible-only and deliberately omit the tail; retain the
+original package to share the same exercise. Saved advice from another coach
+version remains subject to the usual discard-and-recompute policy, not a
+promise that this coach will repeat the recorded continuation.
+
+### Extra-Z continuation ties
+
+Ordinary final continuation selection preserves a known available Extra-Z
+allowance only within an otherwise-equivalent group. The root permission must
+come from complete, replay-validated history with an established baseline;
+unknown history and a physical Z in HOLD/NEXT do not qualify. No clear or planner
+projection renews the allowance.
+
+Equivalence requires equal executed lock horizons and scoring/cleanup schedules, every existing numeric and
+Center/opening-quality priority, exact structural score and endpoint damage
+metrics, the same history origin and live piece/bag identities, and settled
+cavity, Center, access and resource obligations. The preference does not replace
+access/resource admission, required repairs, scoring goals or cleanup protections.
+It applies after existing ordering, only by exchanging members of the same
+eligible group; unrelated slots, unequal horizons and deterministic ties retain
+the existing ordering. Beam expansion/pruning receives no Extra-Z bonus. Before optional challenger
+checks, the ordinary incumbent must pass full outer admission and be registered
+as the invocation-local fallback. Unfinished optional work cannot revoke it.
+
+### Optional visible cap-and-score preservation
+
+Ordinary maintenance may compare a fully admitted, goal-free Right filler with one narrow finite alternative: the current I/J/O stays on Left, the **next visible Z** occupies the existing cap cells, and the **actually held T** takes a canonical double. A filler loses this opportunity only when its actual nonclearing cells occupy those cap cells; an unrecognized shape label or a failed old T witness alone is insufficient.
+
+This comparison runs after ordinary selection and final admission. It does not change the beam, depth, structural ranking, opening, construction commitments, or existing score goals. Every alternative is replayed and receives the usual phase, cavity, resource and access checks under the original remaining node/deadline budget. Failed or unfinished optional work returns the same privately bound, already-certified incumbent; caller/imported metadata cannot supply that authority. The finite returned cap/T score is retained through normal locks and HOLD. This is not a universal Right-filler ban, a guarantee of sustainability, or permission to bypass a rejected immediate TSD endpoint.

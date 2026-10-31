@@ -1,0 +1,521 @@
+{
+  "provenance": {
+    "source": "review A02, recorded experimental request 11; source d24cfba with rejected SL preference (not included in this change)",
+    "scope": "Exact public request with ten observed locks from a partial community import. No evaluator seed or hidden tail. Used as a finite mechanics/ranking regression, not a trusted historical-good opener.",
+    "oracle": "Current O Left on cells (2,23),(3,23),(2,24),(3,24), actual next Z cap on original Right cells, held T full double. Existing Right-filler O has no immediate TSD to destroy; the alternative establishes the cap-plus-score opportunity.",
+    "revealBoundary": "The three revealAfterLocks entries are controller-only arrivals revealed one at a time after actual test locks. They are never included in the initial planner request or a proof of that request."
+  },
+  "request": {
+    "type": "plan",
+    "id": 11,
+    "observation": {
+      "rules": "st-zero-v2",
+      "board": [
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "...I......",
+        "...I......",
+        ".J.I......",
+        ".J.I......",
+        "JJOOLLL...",
+        "IJOOLSS...",
+        "IJJJSS....",
+        "IJOOLLL...",
+        "IJOOLSS...",
+        "JJSSSS....",
+        "ISSLJJZ...",
+        "ILLLJZZ..I",
+        "JJOOLSS.ZI",
+        "ITTTLSS.ZI",
+        "IIIIJOO.ZI"
+      ],
+      "active": {
+        "type": "O",
+        "x": 3,
+        "y": 17,
+        "rotation": 0,
+        "lastRotation": null
+      },
+      "hold": "T",
+      "canHold": true,
+      "queue": [
+        "Z",
+        "L",
+        "S",
+        "I",
+        "Z",
+        "S"
+      ],
+      "revision": 63,
+      "streamCursor": 39,
+      "topOut": false,
+      "bag": {
+        "remaining": [
+          46
+        ],
+        "observedCount": 45,
+        "provenance": "known-phase"
+      }
+    },
+    "previous": null,
+    "commitment": null,
+    "options": {
+      "depth": 3,
+      "width": 8,
+      "maxNodes": 45000,
+      "timeMs": 1500,
+      "resourceContext": {
+        "schemaVersion": 1,
+        "origin": {
+          "rules": "st-zero-v2",
+          "board": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            ".JOOLLL...",
+            ".JOOLSS...",
+            "JJSSSS....",
+            "ISSLJJZ...",
+            "ILLLJZZ...",
+            "IJOOJZ....",
+            "IJOOLLL...",
+            "JJOOLSS...",
+            "ITTTLSS.Z.",
+            "IIIIJOO.Z."
+          ],
+          "active": {
+            "type": "S",
+            "x": 3,
+            "y": 17,
+            "rotation": 0,
+            "lastRotation": null
+          },
+          "hold": "I",
+          "canHold": true,
+          "queue": [
+            "J",
+            "I",
+            "L",
+            "O",
+            "T",
+            "Z"
+          ],
+          "streamCursor": 29,
+          "topOut": false
+        },
+        "fresh": false,
+        "steps": [
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "I"
+            ]
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "T"
+            ]
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "CCW",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "J"
+            ]
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R180",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "O"
+            ]
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "Z"
+            ]
+          },
+          {
+            "action": "HOLD",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "CCW",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "L"
+            ]
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "S"
+            ]
+          },
+          {
+            "action": "HOLD",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "SD",
+            "revealed": []
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "I"
+            ]
+          },
+          {
+            "action": "HOLD",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "Z"
+            ]
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "CCW",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "S"
+            ]
+          }
+        ],
+        "handoffAtAction": null
+      },
+      "patternHistory": {
+        "origin": [
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "...I......",
+          "...I......",
+          ".J.I......",
+          ".J.I......",
+          "JJOOLLL...",
+          "IJOOLSS...",
+          "IJJJSS....",
+          "IJOOLLL...",
+          "IJOOLSS...",
+          "JJSSSS....",
+          "ISSLJJZ...",
+          "ILLLJZZ..I",
+          "JJOOLSS.ZI",
+          "ITTTLSS.ZI",
+          "IIIIJOO.ZI"
+        ],
+        "steps": []
+      },
+      "openingPhase": false,
+      "openingSource": null,
+      "openingClear": null,
+      "openingRepair": null
+    }
+  },
+  "expectedFirstCells": [
+    [
+      2,
+      23
+    ],
+    [
+      3,
+      23
+    ],
+    [
+      2,
+      24
+    ],
+    [
+      3,
+      24
+    ]
+  ],
+  "expectedCapCells": [
+    [
+      9,
+      34
+    ],
+    [
+      8,
+      35
+    ],
+    [
+      9,
+      35
+    ],
+    [
+      8,
+      36
+    ]
+  ],
+  "revealAfterLocks": [
+    "L",
+    "T",
+    "O"
+  ]
+}

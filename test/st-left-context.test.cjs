@@ -17,7 +17,7 @@ test('Left context: immediate J and usable HOLD, not an arbitrary deeper preview
  assert.equal(evaluate(state('T',null,['O','J'])).immediateJ,false);
  assert.equal(immediate.executionVerified,false);
 });
-test('Left context: holes and unrecognized shapes have neutral adjustment, not a new escape bonus',()=>{
+test('Left context: holes and unlisted shapes without a visible conversion remain neutral',()=>{
  for(const options of [{covered:1},{heights:[3,6,5,3]}])assert.equal(evaluate(state(),options).adjustment,0);
  const known=evaluate(state('T',null,[],false));const unknownHeights=[3,6,5,3],rough=6;assert.ok(-rough*2.8+evaluate(state('T'),{heights:unknownHeights}).adjustment<known.score); // retain the unlisted surface's original penalty
  const board=Array(40).fill('..........');board[39]='XXXX......';board[37]='.XX.......';

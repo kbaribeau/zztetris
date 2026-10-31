@@ -8,6 +8,7 @@ const WEIGHTS=Object.freeze({SS:6,S:4,A:2,B:0,C:-2,D:-4});
 const catalog=[['SS',[0,0,0,2]],['SS',[2,0,0,0]],['S',[0,0,1,1]],['S',[2,2,2,0]],['A',[1,1,0,0]],['A',[0,2,2,2]],['A',[0,0,2,0]],['B',[1,0,0,1]],['B',[0,2,0,0]],['B',[2,2,0,2]],['C',[2,0,2,2]],['D',[0,1,1,0]]].map(([tier,profile],i)=>Object.freeze({id:'shocky-left-'+(i+1),tier,profile:Object.freeze(profile),weight:WEIGHTS[tier]}));
 Object.freeze(catalog);const byProfile=new Map(catalog.map(p=>[p.profile.join(','),p]));
 const normalize=h=>{const m=Math.min(...h);return h.map(v=>v-m);};
+const rough=p=>p.slice(1).reduce((n,v,i)=>n+Math.abs(v-p[i]),0);
 const classify=h=>byProfile.get(normalize(h).join(','))||null;
 const shapes={};for(const type of 'IJLOSZ'){
  const seen=new Set();shapes[type]=[];
@@ -40,7 +41,14 @@ function evaluate(state,{heights,covered=null,resources=null,centerDebt=[],cente
  const h=heights||Array.from({length:4},(_,x)=>{const y=state.board.findIndex(r=>r[x]!=='.');return y<0?0:40-y;});
  if(covered===null)covered=h.reduce((sum,v,x)=>sum+state.board.slice(40-v).filter(r=>r[x]==='.').length,0);
  const shape=classify(h),base={source:SOURCE,shape:shape?.id||null,tier:shape?.tier||null,profile:normalize(h),score:0,adjustment:0,context:'unlisted-neutral',horizon:2,executionVerified:false};
- if(covered||!shape)return{...base,context:covered?'covered-cells-neutral':'unlisted-neutral'};
+ if(covered)return{...base,context:'covered-cells-neutral'};
+ // An unlisted silhouette has no community tier. It can nevertheless be a
+ // useful intermediate allocation when the actual visible I/O/J inventory
+ // fits a smoother listed surface in at most two locks. Credit only that
+ // conversion, never the unknown shape itself; the planner's existing
+ // roughness/height scores and execution/resource checks remain unchanged.
+ const unlisted=!shape,startRoughness=rough(h);
+ if(unlisted&&!startRoughness)return base;
  // Never count the Center's next partner (including O/J), or I while Right has
  // an established quad demand, as a free Left repair. Conservative exclusion is
  // a scoring estimate only; the real search may prove another allocation.
@@ -49,20 +57,25 @@ function evaluate(state,{heights,covered=null,resources=null,centerDebt=[],cente
  if(center?.status==='supported-partner-completion')for(const c of center.completions||[])if(c.patternSupport==='reference-supported')reserved.add(c.piece);
  const allowed=p=>{
   if(!p||p.type==='T'||reserved.has(p.type))return false;
+  if(unlisted&&!'IJO'.includes(p.type))return false;
   if(p.type==='Z')return !right?.completions?.length&&resources?.extraZ==='available';
   if(p.type==='S')return p.id!==null&&(resources?.hangingS||[]).some(s=>s.id===p.id);
   if(p.type==='L')return p.id!==null&&(resources?.hangingL||[]).some(l=>l.id===p.id);
   if(p.type==='I'&&(right?.cycle?.prepareColumn!=null||right?.cycle?.cleanupColumns?.length))return false;
   return 'IJO'.includes(p.type);
  };
- const current=inventory(state,resources),first=choices(current).filter(c=>allowed(c.piece));let best=shape.weight,fitCount=0,repair=null;
+ const current=inventory(state,resources),first=choices(current).filter(c=>allowed(c.piece));let best=shape?.weight??0,fitCount=0,repair=null;
  for(const c of first)for(const next of landings(h,c.piece.type)){
-  fitCount++;const one=classify(next);if(one&&one.weight>best){best=one.weight;repair={pieces:[c.piece.type],tier:one.tier,hold:c.held};}
+  fitCount++;const one=classify(next);if(one&&one.weight>best&&(!unlisted||rough(next)<startRoughness)){best=one.weight;repair={pieces:[c.piece.type],tier:one.tier,hold:c.held};}
   for(const d of choices(c.next).filter(d=>allowed(d.piece)))for(const end of landings(next,d.piece.type)){
    // Extra Z is once per interval, never one fresh allowance per probe.
    if(c.piece.type==='Z'&&d.piece.type==='Z')continue;
-   const two=classify(end);if(two&&two.weight-1>best){best=two.weight-1;repair={pieces:[c.piece.type,d.piece.type],tier:two.tier,hold:c.held};}
+   const two=classify(end);if(two&&two.weight-1>best&&(!unlisted||rough(end)<startRoughness)){best=two.weight-1;repair={pieces:[c.piece.type,d.piece.type],tier:two.tier,hold:c.held};}
   }
+ }
+ if(unlisted){
+  const score=repair?best*.6+1:0;
+  return{...base,score,adjustment:score,context:repair?'unlisted-visible-conversion':'unlisted-neutral',available:first.map(c=>({type:c.piece.type,held:c.held})),reserved:[...reserved].sort(),repair,fitCount};
  }
  // The guide warns that the old tier preference is less reliable with T held
  // after Extra Z. Do not invent a second tier list: use only estimated geometric local
