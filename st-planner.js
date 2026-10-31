@@ -18,7 +18,13 @@ function resourceEndpointCore(raw,path,options={}){
  const checked=ordinaryResourceCheck(raw,path,options);if(!checked.valid)return{...checked,visited:0};
  let visited=0;const now=options.now||(()=>Date.now()),deadline=options.deadline??Infinity,limit=options.maxNodes??45000;
 
- let centerDeparture=false,virtual=extendForced(observe(raw)),notches=H.resolve(observe(raw),options.patternHistory);for(const step of path){const r=R.replay(virtual,step.witness);if(!r.valid||r.events.length!==1)return{...checked,valid:false,visited,reason:'invalid-resource-witness'};if(!options[pairedResetScope]&&!ordinaryRightEligible(r.events[0]))return{...checked,valid:false,visited,reason:'ordinary-right-requires-Z-T-I'};const phase=S.advanceNotches(virtual.board,{state:r.state,event:r.events[0]},notches);if(!phase.valid)return{...checked,valid:false,visited,reason:'invalid-resource-repair-phase'};notches=phase.pattern;
+ let centerDeparture=false,virtual=extendForced(observe(raw)),notches=H.resolve(observe(raw),options.patternHistory);const prefix=[];for(const step of path){const r=R.replay(virtual,step.witness);if(!r.valid||r.events.length!==1)return{...checked,valid:false,visited,reason:'invalid-resource-witness'};if(!options[pairedResetScope]&&!ordinaryRightEligible(r.events[0]))return{...checked,valid:false,visited,reason:'ordinary-right-requires-Z-T-I'};const phase=S.advanceNotches(virtual.board,{state:r.state,event:r.events[0]},notches);if(!phase.valid)return{...checked,valid:false,visited,reason:'invalid-resource-repair-phase'};notches=phase.pattern;
+  if(L.createsD(virtual.board,r.state.board)){
+   const prefixResource=ordinaryResourceCheck(raw,prefix,options).resource;
+   const dAdmission=dPatternAdmission(virtual,{state:r.state,event:r.events[0],witness:step.witness},{...options,notches,maxNodes:Math.max(0,limit-visited),deadline,now,resource:prefixResource});visited+=dAdmission.visited;
+   if(!dAdmission.valid)return{...checked,valid:false,visited,reason:dAdmission.reason};
+  }
+  prefix.push(step);
   const center=S.geometry(r.state.board,{notches}).center;
   if(r.events[0].lines===0&&r.events[0].cells.every(([x])=>x>=4&&x<=6)&&!supportedCenterPattern(center))centerDeparture=true;
   if(supportedCenterPattern(center))centerDeparture=false;
@@ -34,6 +40,34 @@ function resourceEndpointCore(raw,path,options={}){
  }
  const repair=resourceRepair(checked.state,checked.resource,{...options,notches,maxNodes:Math.min(4000,Math.max(0,limit-visited)),deadline,now});visited+=repair.visited;
  return{...checked,valid:repair.valid===true,reason:repair.valid===true?null:repair.status,visited,repair};
+}
+// Chapter 3.3's D caveat is an admission condition, not a reward. This
+// bounded certificate uses the post-creation inventory and an actual next J
+// lock. A hypothetical spawn or a nearby later J cannot discharge it.
+function dPatternAdmission(before,p,options={}){
+ if(!L.createsD(before.board,p.state.board))return{valid:true,visited:0,reason:'no-new-D-pattern'};
+ const now=options.now||(()=>Date.now()),deadline=options.deadline??Infinity,limit=options.maxNodes??4000;
+ const rejected=new Set(),key=exit=>JSON.stringify([exit.state.board,exit.state.active,exit.state.hold,exit.state.queue]);
+ let visited=0,lastReason=null;
+ while(true){
+  const proof=L.dExit(p.state,{...options,now,deadline,maxNodes:Math.max(0,limit-visited),acceptExit:e=>!rejected.has(key(e))});visited+=proof.visited;
+  if(!proof.valid)return{...proof,visited,reason:proof.complete&&lastReason?lastReason:proof.reason};
+  const phase=S.advanceNotches(p.state.board,proof.exit,options.notches??S.notchPattern(p.state.board));
+  let reason=null;
+  if(!phase.valid||S.transition(p.state,proof.exit,undefined,{notches:options.notches}).cycleViolations.length)reason='D-J-exit-conflicts-with-cycle';
+  const prior=options.resource?M.step(before,p,options.resource):M.start(p.state,resourceSummary(p.state,options));
+  const next=M.step(p.state,proof.exit,prior);
+  if(next.violations.length)reason='D-J-exit-resource-conflict';
+  if(!reason){
+   // Supporting replacement cannot recursively borrow another unproved D.
+   // Do not reuse the weaker resourceRepair cache for this stronger grammar.
+   const repair=M.repair(proof.exit.state,next,{...options,notches:phase.pattern,maxNodes:Math.max(0,limit-visited),acceptStep:(s,p)=>!L.createsD(s.board,p.state.board)});visited+=repair.visited;
+   if(repair.valid)return{...proof,valid:true,visited};
+   reason='D-J-exit-resources-unrepaired';
+  }
+  lastReason=reason;rejected.add(key(proof.exit));
+  if(visited>=limit||now()>=deadline)return{valid:false,complete:false,visited,reason:'D-J-exit-budget-unfinished'};
+ }
 }
 // Successful completion witnesses may be reused only inside one synchronous plan.
 // Bind the actual pose, inventory, resource identities and phase; caller evidence
@@ -755,6 +789,7 @@ function nodeFor(p,parent,initial,rootIndex,readAssessment=assess){
  const structure=S.assess(p.state,{notches:notchCheck.pattern});
  const transition=S.transition(before,p,structure,{notches:priorNotches});
  if(!ordinaryRightEligible(p.event))transition.cycleViolations.push('ordinary-right-requires-Z-T-I');
+ if(L.createsD(before.board,p.state.board)&&!L.immediateJStarts(p.state).length)transition.cycleViolations.push('D-created-without-immediate-J');
  transition.futureNotches=notchCheck;
  // Eligible crossings still carry their outstanding dependencies. The Right
  // role gate has no repair/benefit exception for an S/J/L/O crossing.
@@ -2077,5 +2112,5 @@ function decideRequest(raw,options={}){
  return budgetTracker.nodes||recovery?{...result,metrics:{...result.metrics,nodes:(result.metrics?.nodes||0)+budgetTracker.nodes,revalidationNodes:budgetTracker.nodes,...(recovery?{handoffRecovery:recovery}:{})}}:result;
 }
 
-return Object.freeze({pendingSLAllocationComparison,qualifiedSLTailOrder,compareSLTail,visibleSLTailComparison,ordinarySAllocationComparison,slAllocationStep,placedResource,certifyStrongestAllocation,publicDrawHorizon,exactAllocationPrefix,supportedSLComparison,preserveExtraZ,orderContinuations,advicePresentation,observe,assess,plan,decide,captureHandoffRecovery,resetSelection,startPatternHistory:H.start,updatePatternHistory:H.update,resolvePatternHistory:H.resolve,gapAccess:A.check,checkAccessPrefix:A.prefix,startOpeningSession,updateOpeningSession,acceptOpeningResult,revalidate,advance,cavityRepairDebt,continueCommitment,cycleResources,resourceGoal,resourceGoalPrefix,scoringSchedule,scoringReplacement,centerReservationStep,centerContinuityStep,ordinaryCenterEligible,ordinaryRightEligible});
+return Object.freeze({dPatternAdmission,pendingSLAllocationComparison,qualifiedSLTailOrder,compareSLTail,visibleSLTailComparison,ordinarySAllocationComparison,slAllocationStep,placedResource,certifyStrongestAllocation,publicDrawHorizon,exactAllocationPrefix,supportedSLComparison,preserveExtraZ,orderContinuations,advicePresentation,observe,assess,plan,decide,captureHandoffRecovery,resetSelection,startPatternHistory:H.start,updatePatternHistory:H.update,resolvePatternHistory:H.resolve,gapAccess:A.check,checkAccessPrefix:A.prefix,startOpeningSession,updateOpeningSession,acceptOpeningResult,revalidate,advance,cavityRepairDebt,continueCommitment,cycleResources,resourceGoal,resourceGoalPrefix,scoringSchedule,scoringReplacement,centerReservationStep,centerContinuityStep,ordinaryCenterEligible,ordinaryRightEligible});
 });

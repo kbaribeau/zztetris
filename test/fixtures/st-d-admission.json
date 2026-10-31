@@ -1,0 +1,85 @@
+[
+  {
+    "name": "position-08-S84",
+    "board": [
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..OOLLL...",
+      "LLOOLSS...",
+      "ILJISS...Z",
+      "ILJIJJJ.ZZ",
+      "IJJIOOJ.Z.",
+      "LLLILSS.Z.",
+      "OOJILSS.Z.",
+      "JSSIOOJ.Z.",
+      "ILLLLOO.Z.",
+      "JJIILSS.Z.",
+      "JSSJLSS.ZI",
+      "OOOOLSS.ZI",
+      "JJIILOO.ZI",
+      "JJSSLOO.ZI"
+    ],
+    "active": "S",
+    "hold": "O",
+    "queue": [
+      "S",
+      "I",
+      "T",
+      "O",
+      "J",
+      "L"
+    ],
+    "witness": [
+      "L",
+      "L",
+      "L",
+      "HD"
+    ]
+  },
+  {
+    "name": "position-09-J53",
+    "board": [
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "....LLL...",
+      "....LSS...",
+      "I.OOSS....",
+      "I.OOLLL...",
+      "IJJJLSS...",
+      "ISSJSS...Z",
+      "SSOOJJJ.ZZ",
+      "JJOOOOJ.Z."
+    ],
+    "active": "J",
+    "hold": "Z",
+    "queue": [
+      "S",
+      "O",
+      "T",
+      "I",
+      "S",
+      "L"
+    ],
+    "witness": [
+      "L",
+      "L",
+      "L",
+      "CW",
+      "HD"
+    ]
+  }
+]
