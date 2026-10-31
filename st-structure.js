@@ -340,7 +340,7 @@ function transition(before,p,afterStructure,options={}){const beforeNotches=opti
  const repaired=Math.max(0,prior.right.renewalDebt-after.right.renewalDebt)+Math.max(0,prior.left.covered-after.left.covered)+Math.max(0,prior.center.coveredInternal-after.center.coveredInternal);
  debt+=newlyCovered*3+regionalRepair*2-Math.min(8,repaired*2);
  const finish=prior.center.completions.find(c=>c.piece===type&&JSON.stringify(c.cells.slice().sort())===JSON.stringify(cells.slice().sort()));
- const partner=pure==='center'?after.center.completions.find(c=>CENTER_PAIRS[type]===c.piece&&c.resultStatus==='level'):null;
+ const partner=pure==='center'&&after.center.patternSupport==='reference-supported'&&after.center.status!=='unrecognized'?after.center.completions.find(c=>CENTER_PAIRS[type]===c.piece&&c.resultStatus==='level'&&c.patternSupport==='reference-supported'):null;
  const pairFamily=partner?type+partner.piece:null;
  const pairProgress=partner?{orderedPieces:[type,partner.piece],step:1,status:'partner-placement-checked',placedCells:cells,completion:partner}:null;
  // Spending the sole observed Z on optional work destroys a concrete cap

@@ -37,11 +37,16 @@ test('a placement cannot substitute a different recognized phase for an establis
  // Original visible order has no certified resource-safe route within this
  // bound; that is not evidence that its conflicting geometric phase is legal.
  const original=P.plan(state,{...config,deadline:Infinity});assert.equal(original.target,null);assert.equal(original.status,'budget-exhausted');
- // Separate positive control: make the actual Center partner available now,
+ // Separate physical-completion control: make the Center partner available,
  // rather than silently changing the original queue or weakening its policy.
  const available=R.createState({...state,active:'L'}),completion=S.geometry(available.board).center.completions.find(c=>c.piece==='L');assert.ok(completion);
  const finished=R.replay(available,completion.witness);assert.ok(finished.valid);assert.deepEqual(finished.events[0].cells.slice().sort(),completion.cells.slice().sort());
- const a=P.plan(available,{...config,deadline:Infinity});assert.ok(a.target,a.reason);const selected=R.replay(available,a.witness);assert.ok(selected.valid);
- assert.equal(selected.events[0].type,'L');assert.deepEqual(selected.events[0].cells.slice().sort(),completion.cells.slice().sort());
- assert.ok(S.advanceNotches(available.board,{state:selected.state,event:selected.events[0]},phase).valid);assert.ok(P.revalidate(available,a));
+ // Milestone scope: this is already compromised, not a stable-ST positive
+ // admission control. Supplying L does not repair its off-pattern column-7
+ // vacancies. Preserve the physical completion and phase-conflict assertions,
+ // but do not require the coach to select this recovery as ordinary play.
+ assert.deepEqual(S.centerFoundation(available.board,phase).vacancies,[[6,35],[6,36]]);
+ assert.deepEqual(S.centerFoundation(finished.state.board,phase).vacancies,[[6,35],[6,36]]);
+ assert.ok(S.advanceNotches(available.board,{state:finished.state,event:finished.events[0]},phase).valid);
+ assert.equal(P.ordinaryCenterEligible(available,{state:finished.state,event:finished.events[0]},phase),false);
 });

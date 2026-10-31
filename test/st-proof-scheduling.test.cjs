@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const P=require('../st-planner'),R=require('../st-rules'),A=require('../st-access'),fixtures=require('./fixtures/scheduling-roots.json');
+const P=require('../st-planner'),R=require('../st-rules'),A=require('../st-access'),M=require('../st-midgame-resources'),fixtures=require('./fixtures/scheduling-roots.json');
 for(const f of fixtures)test(`proof scheduling: seed ${f.seed} next ${f.nextLock} recovers within shared live node budget`,()=>{
  const q=f.request,options={...q.options,previous:q.previous,commitment:q.commitment,deadline:Infinity,timeMs:undefined,usageTelemetry:true};
  const a=P.decide(q.observation,options);assert.ok(a.target,a.reason);assert.ok(a.metrics.nodes<=45000);assert.equal(a.metrics.proofScheduling.allowance,6000);
@@ -18,7 +18,9 @@ test('proof scheduling: deliberately unfinished access never becomes rejection o
 });
 
 for(const f of require('./fixtures/scheduling-selection-roots.json'))test(`proof scheduling: certified selection and incomplete coverage remain distinct at ${f.seed}/${f.lock}`,()=>{
- const q=f.request,options={...q.options,previous:q.previous,commitment:q.commitment,deadline:Infinity,timeMs:undefined};
+ // These fixtures specify node-only selection. Control nested handoff clocks,
+ // too; an infinite outer deadline alone still leaves their 200-ms wall timer.
+ const q=f.request,options={...q.options,previous:q.previous,commitment:q.commitment,deadline:Infinity,timeMs:undefined,now:()=>0};
  const a=P.decide(q.observation,options);
  assert.deepEqual(a.target,f.expectedTarget);
  assert.ok(a.metrics.nodes<=45000);
@@ -28,10 +30,17 @@ for(const f of require('./fixtures/scheduling-selection-roots.json'))test(`proof
  assert.ok(a.metrics.completedBeamDepth>=a.metrics.certifiedHorizon);
  assert.equal(a.evidence.searchIncomplete,true);
  assert.equal(a.evidence.resourceObligations.status,'checked');assert.equal(a.evidence.gapAccess.reachable,true);
- // Two roots include a forced final bag identity in the planner's virtual
- // queue. Existing exact-context retention rejects these longer contexts;
- // preserve that rejection rather than weakening the imported-certificate gate.
- assert.equal(Boolean(P.revalidate(q.observation,a,options)),![2449486415,2449481070].includes(f.seed));
+ // Two roots include a uniquely deduced final bag member. Producer and
+ // retention now normalize that same public supply; no binding is ignored.
+ // This intentionally fixes their former exact-context retention rejection.
+ const retained=P.revalidate(q.observation,a,options);assert.ok(retained?.target);
+ assert.deepEqual(retained.target,a.target);assert.deepEqual(retained.continuation.map(p=>p.event),a.continuation.map(p=>p.event));
+ let normalized=M.extendForced(R.createState(q.observation));
+ for(const step of retained.continuation){const replay=R.replay(normalized,step.witness);assert.equal(replay.valid,true);assert.deepEqual(replay.events,[step.event]);normalized=replay.state;
+  assert.equal(JSON.stringify([normalized.rules,normalized.board,normalized.hold,normalized.canHold,normalized.queue,normalized.bag??null,normalized.active?.type]),step.resultContext,'Every retained result context uses the same exact public deduction');
+ }
+ const forged=JSON.parse(JSON.stringify(a));forged.evidence.resourceObligations.binding+='forged';
+ assert.equal(P.revalidate(q.observation,forged,options),null,'A resource binding is still mandatory when supplied');
  assert.equal(P.revalidate({...q.observation,hold:q.observation.hold==='T'?'I':'T'},a,{...options,maxNodes:0}),null);
  const r=R.replay(q.observation,a.continuation.flatMap(p=>p.witness));assert.equal(r.valid,true);assert.equal(r.events.length,a.metrics.certifiedHorizon);
  if(f.seed===2449482139)assert.equal(a.metrics.proofScheduling.enabled,false,'Internal subprobe retains original allocation');
