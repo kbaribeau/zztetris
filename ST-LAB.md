@@ -35,6 +35,16 @@ The bounded beam preserves different piece/hold/construction families and verifi
 
 `st-worker.js` runs search outside the main thread. The controller terminates superseded workers and checks worker identity, request ID, revision and witness before displaying advice. Exactly following a checked input preserves the same target, including through HOLD; the remaining prefix is replayed before retention. A deviation hides old advice immediately and replans from the actual pose. The main thread performs only short replay/validation, never placement search.
 
+The finite Left-context estimate may recognize an uncovered, unlisted surface
+as a temporary allocation when unreserved visible I/O/J pieces can fit a
+strictly smoother listed surface within two locks, including actual HOLD/queue
+order. It does not assign a community tier to the unlisted starting shape.
+Center partners and I pieces required for Right cleanup are not free Left
+supply. This remains a secondary geometric tie estimate, not a movement or
+resource certificate; original roughness/height priorities and all executable
+prefix checks remain in force. Flat, covered and unrepairable unlisted surfaces
+receive no new credit.
+
 ## Evidence and limits
 
 See the [acceptance map](docs/st-milestone-acceptance.md), [evaluation report](docs/st-evaluation.md) and run `node scripts/evaluate-st.cjs` for a repeatable corpus/closed-loop evaluation. The default demo was measured with real replanning and fresh six-piece preview after every lock: a nonclear filler, full TSD and supported nonclear rebuild, then another full TSD, through 12 locks. The then-production 750 ms budget also completed this cycle; see the [planning allowance](docs/st-temporary-planning-budget.md) for current limits.
