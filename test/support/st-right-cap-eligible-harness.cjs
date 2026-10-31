@@ -12,7 +12,7 @@ function planner(overrides={},leftContext=null){
  const rules={...R};for(const [name,override]of Object.entries(overrides))rules[name]=(...args)=>m.rightCapOptional?override(...args):R[name](...args);
  m.require=id=>id==='./st-rules.js'?Object.freeze(rules):id==='./st-left-context.js'&&leftContext?leftContext:req(id);
  let code=fs.readFileSync(filename,'utf8');
- const seam='const literal=observe(raw),first=best.path[0];',optional='preference.candidates=alternatives.length;';
+ const seam='const literal=observe(raw),first=best.path[0];',optional='preference.candidates=alternatives.length;\n  for(const n of alternatives){\n   if(now()>=deadline||base.metrics.nodes>=limit)break;\n   for(const cap of lostCaps){';
  if(code.split(seam).length!==2||code.split(optional).length!==2)throw Error('Right-cap branch seam changed; review the eligibility harness.');
  // Orchestration coverage, NOT natural ranking evidence: choose one actual
  // enumerated goal-free I root, then run its normal qualification and all
@@ -24,7 +24,7 @@ function planner(overrides={},leftContext=null){
  qualify([controlled]);
  if(!controlled.qualified||controlled.assessment.right.entry?.status==='unresolved-budget'||!accessSafe(controlled)||!resourceSafe(controlled))throw Error('I control lacks ordinary proof');
  best=controlled;
- ${seam}`).replace(optional,optional+'module.rightCapOptional=true;');
+ ${seam}`).replace(optional,optional.replace('preference.candidates=alternatives.length;','preference.candidates=alternatives.length;module.rightCapOptional=true;'));
  m._compile(code,filename);return m.exports;
 }
 function capBoard(){let state=request().observation;for(const witness of [['L','L','CCW','HD'],['CW','R','R','R','R','HD']]){const r=R.replay(state,witness);if(!r.valid||r.events.length!==1)throw Error('Invalid source-derived I control witness');state=r.state;}return state.board;}

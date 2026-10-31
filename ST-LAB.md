@@ -425,3 +425,69 @@ as the invocation-local fallback. Unfinished optional work cannot revoke it.
 Ordinary maintenance may compare a fully admitted, goal-free Right filler with one narrow finite alternative: the current I/J/O stays on Left, the **next visible Z** occupies the existing cap cells, and the **actually held T** takes a canonical double. A filler loses this opportunity only when its actual nonclearing cells occupy those cap cells; an unrecognized shape label or a failed old T witness alone is insufficient.
 
 This comparison runs after ordinary selection and final admission. It does not change the beam, depth, structural ranking, opening, construction commitments, or existing score goals. Every alternative is replayed and receives the usual phase, cavity, resource and access checks under the original remaining node/deadline budget. Failed or unfinished optional work returns the same privately bound, already-certified incumbent; caller/imported metadata cannot supply that authority. The finite returned cap/T score is retained through normal locks and HOLD. This is not a universal Right-filler ban, a guarantee of sustainability, or permission to bypass a rejected immediate TSD endpoint.
+
+### Experimental certified S/L allocation comparison
+
+The late, default-on S/L comparison is limited to ordinary maintenance with
+replay-validated complete or partial resource history, current/held S and an
+originally visible positive-identity L. It first privately admits the unchanged,
+goal-free incumbent. A candidate must execute the first S's exact supported L
+payment, translated through real clears, under all ordinary Right Z/T/I,
+canonical-score, notch, cycle, resource, cavity and access checks.
+
+The full paid candidate is compared with that exact incumbent, or its strongest
+already-searched exact-prefix descendant, at equal completed locks and literal
+public draw identities. A shorter paid candidate likewise needs an existing
+complete-layer descendant. There is no new beam, hidden refill or truncation
+before payment. Missing/unknown references, unavailable certificates, ties and
+budget exhaustion retain the exact admitted incumbent. Optional work uses only
+the original remaining request budget; it does not increase completed beam depth.
+
+Promotion requires no worse actual score count/schedule, original obligations,
+cleanup progress, queue-aware Left evaluation, Left covered/sealed damage,
+headroom, sealed damage, Center continuity or entry/dependency debt; then a
+strict existing Left-score gain or an earlier/additional actual canonical score.
+Completing S/L alone is not a bonus. The old aggregate structural ranking is
+unchanged for ordinary search but is not an absolute veto on this explicit
+regional comparison. Telemetry records structural, Center, Right and covered-cell
+tradeoffs, exact public inventories, witnesses and reference certificates. This
+is a conservative experimental rule, not a claim that all S/L alternatives are
+searched, a source theorem, or a sustainability guarantee. Partial history and
+unknown Extra-Z permission remain partial/unknown. Long historical S/L paths can
+remain valid mechanics without having a comparable ordinary horizon.
+
+### Experimental ordinary S allocation preference
+
+A separate late ordinary-plan comparison recognizes that S may be spent on Left
+inside a prefix whose active/held pieces are O/J. It first certifies the ordinary
+incumbent, then examines already generated complete-layer alternatives at the
+same horizon which keep that observed S available. It may extend a supported S
+preparation through an actually executed visible L payment, including a visible
+L from a different known bag. A same-bag L already spent Left is not a universal
+prohibition; unknown bag identity stays unknown. An unseen eventual L is not a
+paid pair, and a visible L cannot discharge two reservations.
+
+Both alternative and strongest bounded incumbent extension must pass ordinary
+admission at equal lock/draw horizons, identical placed observed instances and
+identical ending active/HOLD/known queue. All original scoring timing, cleanup,
+resource, Left covered/sealed damage, headroom, Center continuity and entry debt
+checks stay ahead of this preference. A genuine increase in fully paid supported
+SL allocations with fewer Left S placements then outranks input effort and the
+existing minor Left-tier score difference. Merely swapping two interchangeable
+S identities is neutral. Known Hanging-S Left repayment remains unpenalized.
+
+At most four existing alternatives and width-eight reference extensions are
+examined within seven literal-known locks and the original remaining request
+budget. These are explicit engineered search bounds, not community laws. Unknown
+or failed completion/reference proof returns the privately admitted incumbent;
+it does not prove that Left S was globally necessary. Real scoring-HOLD pressure
+and necessary Left support survive because a competing route must preserve those
+actual obligations rather than receiving an S-only bonus. Recomputed SL payment
+counts protect a selected paid-SL suffix from replacement with an unrelated LO
+completion; imported payment flags confer no authority. This experiment changes
+neither the initial ordinary beam comparator nor historical resource permissions.
+
+The existing root-active/held-S preference and first-I Right-preparation support
+comparison keep precedence. The new ordinary stage does not intercept their
+applicable roots, so an optional failure cannot suppress the established
+reference decision.
