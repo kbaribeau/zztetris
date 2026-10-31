@@ -622,6 +622,7 @@ function continueConstruction(before,after,advice,event,options={}){
  const tracker={nodes:(verified.visited||0)+replayUnits},suffix=constructionAdvice(observe(after),{...proof,consumed:proof.consumed+1},options.deadline,options.now,Math.max(0,(options.maxNodes??12000)-tracker.nodes),tracker,options);if(suffix)suffix.metrics.nodes=tracker.nodes;return suffix;
 }
 function continueCommitment(before,after,advice,actualEvent=after?.lastEvent,options={}){
+ if(advice?.recommendation?.kind==='risky'||advice?.status==='recommended-risky-placement')return null;
  options={...options,[pendingLHint]:advice?.evidence?.pendingLStage};
  if(advice?.evidence?.construction){
   const now=options.now||(()=>Date.now()),deadline=options.deadline??now()+150,maxNodes=options.maxNodes??12000,suffix=continueConstruction(before,after,advice,actualEvent,{...options,now,deadline,maxNodes});if(!suffix)return null;
@@ -1116,6 +1117,7 @@ function planCore(raw,options={}){
  for(const p of r.placements)p.availableCleanupPreparation=cleanupBeforeCap;
  return r;};
  const root=enumerate(s);base.metrics.roots=root.placements.length;
+ if(options[riskRootCollector]?.key===stateKey(s)){options[riskRootCollector].placements=root.placements;options[riskRootCollector].complete=root.complete;}
  // Save a fully checked one-lock cap before optional multi-lock preparation.
  // This is a backup, never an early return or authority to skip a saved goal.
  // Actual root enumeration establishes any competing executable cleanup I.
@@ -2068,6 +2070,7 @@ function planRequest(raw,options={}){
 // The entire remaining prefix is replayed from the new observation, so a newly
 // revealed piece cannot silently preserve an obsolete proof.
 function advance(raw,previous,action,options={}){
+ if(previous?.recommendation?.kind==='risky'||previous?.status==='recommended-risky-placement')return null;
  options={...options,[pendingLHint]:previous?.evidence?.pendingLStage};
  if(previous?.evidence?.opening?.scoringPlan)return openingModule().retainScoring(raw,previous,options,action);
  if(previous?.evidence?.opening?.sourcePlan)return openingModule().retainSource(raw,previous,options,action);
@@ -2103,6 +2106,7 @@ function advance(raw,previous,action,options={}){
   evidence:{...previous.evidence,pendingLSelection:null,coveredRepair:repair.proof,coveredRepairPlan:repair.plan,pendingLStage:pendingLProof(resources.repair),knownPieceHorizon:state.queue.length+1,resourceObligations:{status:'checked',binding:resourceBinding(state,options)}}};
 }
 function revalidate(raw,previous,options={}){
+ if(previous?.recommendation?.kind==='risky'||previous?.status==='recommended-risky-placement')return null;
  options={...options,[pendingLHint]:previous?.evidence?.pendingLStage};
  const now=options.now||(()=>Date.now());options={...options,deadline:options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs),now};
  if(previous?.evidence?.opening?.scoringPlan)return openingModule().retainScoring(raw,previous,options);
@@ -2222,7 +2226,75 @@ function openingModule(){return typeof module==='object'&&module.exports?require
 function startOpeningSession(raw,options){return openingModule().startSession(raw,options);}
 function updateOpeningSession(session,before,after,event){return openingModule().updateSession(session,before,after,event);}
 function acceptOpeningResult(session,result){return openingModule().acceptResult(session,result);}
-function decide(raw,options={}){return queryRequest(()=>decideRequest(raw,options));}
+// Risk is a separate one-lock recommendation, never a weaker supported proof.
+// The collector is private to a decide request and only holds already enumerated
+// placements at its exact public root. Nested planning cannot consume a risky
+// result as a certificate. No supported-search budget is reserved or enlarged.
+const riskRootCollector=Symbol('risk-root-collector');
+function classifySupported(result){
+ if(!result?.target||result.recommendation?.kind==='risky')return result;
+ return{...result,recommendation:{kind:'supported',hazards:[],claim:'A checked finite continuation, not a guarantee of continued survival.'}};
+}
+function riskyDAdmission(before,p,resource,options){
+ const pending=L.isD(p.state.board)&&(options.pendingD||L.createsD(before.board,p.state.board));
+ if(!pending)return{valid:true,visited:0,hazards:[]};
+ // Branch A deliberately retains strict immediate-J admission even for risk.
+ // Branch B may change this risk-only seam; supported certificates stay strict.
+ const checked=dPatternExitAdmission(before,p,{...options,resource});
+ return{...checked,hazards:[]};
+}
+function riskyFallback(raw,supported,options,collector){
+ const now=options.now||(()=>Date.now()),deadline=options.deadline??Infinity,limit=options.maxNodes??45000;
+ const fallbackStarted=Date.now(),spent=supported.metrics?.nodes||0,telemetry={attempted:false,considered:0,nodes:0,source:'existing-root-enumeration',supportedStatus:supported.status,truncated:false,proofIncomplete:false,dProofNodes:0,rejections:{}};
+ const finish=result=>{telemetry.elapsedMs=Math.max(0,Date.now()-fallbackStarted);return{...result,metrics:{...result.metrics,nodes:spent+telemetry.nodes,elapsedMs:collector.started===undefined?(supported.metrics?.elapsedMs||0)+telemetry.elapsedMs:Math.max(0,Date.now()-collector.started),riskFallback:telemetry}};};
+ if(supported.target||!collector.placements?.length||now()>=deadline||spent>=limit)return finish(supported);
+ let state;try{state=extendForced(observe(raw));}catch{return finish(supported);}
+ if(R.validate(state).length||(state.bag&&B.validate(state.bag).length)||state.topOut||!state.active||options.openingPhase===true)return finish(supported);
+ const summary=resourceSummary(observe(raw),options),notches=H.resolve(observe(raw),options.patternHistory);
+ if(summary.coverage?.status==='invalid'||['invalid-history','broken'].includes(notches.status))return finish(supported);
+ const resource=M.start(state,summary),beforeCavities=S.cavityFacts(state.board),initialDebt=summary.coveredRepair?.cells||[];
+ const incomplete=supported.status==='budget-exhausted'||Boolean(supported.evidence?.searchIncomplete||supported.evidence?.budgetExhausted||supported.metrics?.proofScheduling?.unfinished||supported.metrics?.queries?.unfinished||!collector.complete);
+ const candidates=[];telemetry.attempted=true;const reject=reason=>{telemetry.rejections[reason]=(telemetry.rejections[reason]||0)+1;};
+ for(const p of collector.placements.slice(0,64)){
+  const cost=p.witness.length;if(now()>=deadline||spent+telemetry.nodes+cost>limit){telemetry.truncated=true;break;}telemetry.nodes+=cost;telemetry.considered++;
+  const replay=R.replay(state,p.witness);if(!replay.valid||replay.events.length!==1||JSON.stringify(replay.events[0])!==JSON.stringify(p.event)){reject('invalid-witness');continue;}
+  const event=replay.events[0],nextState=replay.state;if(event.topOut||nextState.topOut||!S.canonicalClear(event)||!ordinaryRightEligible(event)){reject('hard-cycle-or-topout');continue;}
+  const phase=S.advanceNotches(state.board,{state:nextState,event},notches);if(!phase.valid)continue;
+  const next=M.step(state,{...p,state:nextState,event},resource);if(next.violations.length){reject('resource-permission');continue;}
+  const facts=assess(nextState.board),afterCavities=S.cavityFacts(nextState.board);
+  // Conservative prototype bounds, not source claims: reject sealed damage,
+  // near-topout targets and large new repair burdens rather than risk every stop.
+  const sealedDebt=S.cavityRepairDebt(beforeCavities,afterCavities,event);
+  const created=A.newlyCovered(state.board,nextState.board,event,phase.pattern),debt=A.repairStep(state.board,nextState.board,event,initialDebt,phase.pattern);
+  if(sealedDebt.length||facts.maxHeight>=19||created.length>4||debt.length>6){reject('conservative-structural-bound');continue;}
+  const d=riskyDAdmission(state,{...p,state:nextState,event},resource,{...options,notches:phase.pattern,pendingD:summary.dPattern?.pending===true,maxNodes:Math.min(Math.max(0,4000-telemetry.dProofNodes),Math.max(0,limit-spent-telemetry.nodes)),now,deadline});telemetry.nodes+=d.visited||0;telemetry.dProofNodes+=d.visited||0;if(d.complete===false)telemetry.proofIncomplete=true;if(!d.valid){reject(d.reason||'D-exit-unproved');continue;}if(now()>=deadline||spent+telemetry.nodes>limit){telemetry.truncated=true;break;}
+  const hazards=[...(d.hazards||[])];
+  if(debt.length)hazards.push({code:'unresolved-covered-cells',cells:debt,detail:`${debt.length} covered cell(s) remain without a verified restoration plan.`,downside:'The needed repair pieces may be unavailable or the gaps may become inaccessible.'});
+  const lost=next.pendingCenter.filter(p=>p.lost),live=next.pendingCenter.filter(p=>!p.lost);
+  if(lost.length)hazards.push({code:'lost-center-target',detail:'An exact recorded Center partner target is no longer supported or reachable; its repair is unverified.',downside:'A later partner piece alone may not restore the lost target.'});
+  if(live.length){const pieces=[...new Set(live.flatMap(p=>p.alternatives.map(a=>a.piece)))],supply=[next.active,next.hold,...next.queue].filter(Boolean),counts=Object.fromEntries(pieces.map(type=>[type,supply.filter(p=>p.type===type).length]));hazards.push({code:'pending-center-partner',pieces,publicCounts:counts,detail:`A Center ${pieces.join('/')} obligation remains; public supply has ${pieces.map(p=>counts[p]+' '+p).join(', ')} but no complete follow-up is certified.`,downside:'The partner may be inaccessible in time or compete with another region.'});}
+  const unresolved=[...(next.unclassifiedS||[]),...(next.unclassifiedL||[])];
+  if(unresolved.some(p=>p.invalidated||p.requiresAccommodation))hazards.push({code:'unresolved-observed-accommodation',detail:'An observed S/L accommodation remains unresolved or was invalidated; no replacement repair is proved.',downside:'Later pieces may be needed to repair this known obligation, not available as spare pieces.'});
+  else if(unresolved.length)hazards.push({code:'allocation-history-unknown',detail:'Some earlier S/L allocations remain unclassified; no spare-piece allowance is granted.',downside:'Using later S/L pieces elsewhere may leave an unmet partner obligation.'});
+  if(!facts.regionalSupport)hazards.push({code:'unsupported-stack-shape',detail:'The resulting regional stack is outside the checked continuation shapes.',downside:'Visible pieces may not fit while preserving the ST scoring channel.'});
+  if(!hazards.length){reject('no-concrete-risk-hazard');continue;}
+  hazards.push({code:'continuation-unverified',detail:'Only this placement is verified; no supported continuation was certified in this bounded search.',downside:'Further play may require an awkward repair or an early stop.'});
+  const score=[debt.length,next.pendingCenter.filter(p=>p.lost).length,afterCavities.sealed,facts.maxHeight,-event.lines,-facts.estimate,p.witness.length];
+  candidates.push({p:{...p,state:nextState,event},hazards,facts,score});
+ }
+ telemetry.truncated=telemetry.truncated||collector.placements.length>64;
+ candidates.sort((a,b)=>{for(let i=0;i<a.score.length;i++)if(a.score[i]!==b.score[i])return a.score[i]-b.score[i];return 0;});
+ const chosen=candidates[0];if(!chosen)return finish({...supported,reason:supported.reason+' No risky fallback passed the remaining-budget and conservative legality/resource/structure checks.'});
+ const {p,hazards,facts}=chosen,step={target:p.event.target,witness:p.witness.slice(),event:p.event,hold:p.witness.includes('HOLD'),holdCount:p.witness.filter(a=>a==='HOLD').length,resultContext:context(p.state)};
+ const search={status:supported.status,incomplete:incomplete||telemetry.truncated||telemetry.proofIncomplete,saferAlternative:'not-certified-within-bounded-search',candidateLimit:64};
+ const region=p.event.cells.every(([x])=>x<4)?'Left':p.event.cells.every(([x])=>x>=4&&x<7)?'Center':p.event.cells.every(([x])=>x>=7)?'Right':'across regions';
+ return finish({status:'recommended-risky-placement',revision:raw.revision,context:context(observe(raw)),target:step.target,witness:step.witness,hold:step.hold,holdCount:step.holdCount,continuation:[step],assessment:facts,
+  reason:`Risky: ${holdPrompt(step)}Place ${p.event.type} in ${region}. ${hazards.map(h=>h.detail+' '+h.downside).join(' ')} A safer move may exist; the search did not certify one.`,sources:[],
+  recommendation:{kind:'risky',hazards,search,claim:'Legal current placement only; restoration, continued survival and future piece arrival are not proved.'},
+  evidence:{strategy:'explicit-risk-fallback',verifiedLocks:1,resourcePermissions:'unchanged',risk:{hazards,search},claim:'No supported repair certificate is supplied.'},metrics:{...supported.metrics,certifiedHorizon:0,legalHorizon:1}});
+}
+
+function decide(raw,options={}){return queryRequest(()=>{const now=options.now||(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs),collector={key:null,placements:null,complete:false,started:Date.now()};try{collector.key=stateKey(extendForced(observe(raw)));}catch{}options={...options,now,deadline,[riskRootCollector]:collector};const result=decideRequest(raw,options);return result.target?classifySupported(result):riskyFallback(raw,result,options,collector);});}
 function decideRequest(raw,options={}){
  const now=options.now||(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs),budgetTracker={nodes:0},limit=options.maxNodes??45000;
  options={...options,now,deadline};const previous=options.previous;

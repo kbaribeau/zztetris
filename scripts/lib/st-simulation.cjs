@@ -117,7 +117,7 @@ function createSession(input, api=P) {
       if(wasOpening&&!opening.active)resourceHistory=H.markHandoff(resourceHistory,publicObservation(state));
       previous={...clone(advice),revision:state.revision};pendingLHint=advice.evidence?.pendingLStage?clone(advice.evidence.pendingLStage):null;
 
-      commitment=!advice.evidence?.opening && api.resourceGoal(advice.continuation||[]) ? {observation:clone(publicObservation(state)),advice:clone(advice)} : null;
+      commitment=advice.recommendation?.kind!=='risky'&&!advice.evidence?.opening && api.resourceGoal(advice.continuation||[]) ? {observation:clone(publicObservation(state)),advice:clone(advice)} : null;
       let displayed=advice, event=null;
       const actions=[];
       for(const action of advice.witness) {

@@ -140,7 +140,7 @@
           if(result?.target){
             previous={...clone(result),revision:state.revision};pendingLHint=result.evidence?.pendingLStage?clone(result.evidence.pendingLStage):null;
 
-            commitment=!result.evidence?.opening&&STPlanner.resourceGoal(result.continuation||[])?{observation:clone(observation()),advice:clone(result)}:null;
+            commitment=result.recommendation?.kind!=='risky'&&!result.evidence?.opening&&STPlanner.resourceGoal(result.continuation||[])?{observation:clone(observation()),advice:clone(result)}:null;
           }
           render();
         };
