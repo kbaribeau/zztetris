@@ -158,3 +158,20 @@ rules. Replay/access work and any newly public accommodation consume the same
 proof allowance. Old exhaustion flags cannot ignore a newly revealed piece.
 The hint changes neither the ordinary comparison horizon nor the goal lifetime,
 and does not pin the original witness over a different supported continuation.
+
+The page and simulation transport this optional waiting hint separately from
+ordinary advice and construction commitments. Exhausting a J/S/T goal therefore
+does not erase the still-useful waiting tape or revive a finished goal. Undo
+restores the candidate alongside the exact history; same-engine session import
+retains only whitelisted public origin, target identity and bounded literal
+steps, stripping permission/ranking flags. A different coach version discards
+it. Failed planning cannot discharge the history-derived target.
+
+If a later compared endpoint has consumed part of the tape, alignment requires
+actual replay from its old public origin and the exact clear-row target map,
+followed by an endpoint/inventory match. Remaining actions are still replayed
+against current supply. Alignment and replay consume the existing allowance;
+no arbitrary consumed-count flag, forced movement, horizon credit or guaranteed
+future arrival is introduced. The regression uses the actual page and fresh
+serialized Workers from J24 through S25/T26 goal expiry and public refill, not
+only a manually assembled retained-advice call.

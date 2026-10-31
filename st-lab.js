@@ -18,7 +18,7 @@
   let state, origin, future=[], futureCursor=0, generated=false, privatePractice=false, observed=null, openingPhase=false, openingClear=null, openingRepair=null, openingSource=null, patternHistory=null, resourceHistory=null, resourceOriginBag=null, pieceLedger=null;
   let undoHistory=[], turnStart=null, resetDiagnosticCache=null;
   let worker=null, requestId=0, debounce=null, watchdog=null, revision=0;
-  let result=null, previous=null, commitment=null, coachStatus='idle', coachMessage='';
+  let result=null, previous=null, commitment=null, pendingLHint=null, coachStatus='idle', coachMessage='';
   // One actual-lock routing candidate, not a commitment or imported authority.
   let recoveryOrigin=null, pendingHandoffRecovery=null;
   let searchSettings=STSession.defaults();
@@ -138,7 +138,7 @@
           coachStatus=result?.status || 'no-supported-continuation-found';
           coachMessage=result?.reason || 'No supported ST sequence was found within this search.';
           if(result?.target){
-            previous={...clone(result),revision:state.revision};
+            previous={...clone(result),revision:state.revision};pendingLHint=result.evidence?.pendingLStage?clone(result.evidence.pendingLStage):null;
 
             commitment=!result.evidence?.opening&&STPlanner.resourceGoal(result.continuation||[])?{observation:clone(observation()),advice:clone(result)}:null;
           }
@@ -151,7 +151,7 @@
         };
         activeWorker.postMessage({type:'plan',id,observation:observation(),previous:previous?clone(previous):null,
           commitment:commitment?clone(commitment):null,
-          options:{resourceContext:STResourceHistory.exportContext(observation(),resourceHistory),...(pendingHandoffRecovery?{handoffRecovery:clone(pendingHandoffRecovery)}:{}),...searchSettings,patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null}});
+          options:{...(pendingLHint?{pendingLHint:clone(pendingLHint)}:{}),resourceContext:STResourceHistory.exportContext(observation(),resourceHistory),...(pendingHandoffRecovery?{handoffRecovery:clone(pendingHandoffRecovery)}:{}),...searchSettings,patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null}});
         watchdog=setTimeout(()=>{
           if(worker!==activeWorker)return;
           cancel();recoveryOrigin=null;pendingHandoffRecovery=null;result=null;coachStatus='budget-exhausted';coachMessage='The coach timed out. A valid continuation may still exist.';render();
@@ -194,7 +194,7 @@
     state=STRules.migrateState({...clone(input),revision:++revision});
     const errors=STRules.validate(state);if(errors.length)throw new Error(errors.join('; '));
     if(state.queue.length>6){future.unshift(...state.queue.slice(6));state={...state,queue:state.queue.slice(0,6)};}
-    replenish();searchSettings=STSession.defaults();resourceOriginBag=state.bag?clone(state.bag):null;openingSource=STPlanner.startOpeningSession(observation(),{emptyMode:random&&opening}).source;patternHistory=STPlanner.startPatternHistory(observation());resourceHistory=STResourceHistory.start(observation(),{fresh:random&&opening});pieceLedger=STPieceLedger.start(observation(),{fresh:random&&opening});previous=null;result=null;commitment=null;lockCount=0;clearedLines=0;lineLabel=counterLabel;
+    replenish();searchSettings=STSession.defaults();resourceOriginBag=state.bag?clone(state.bag):null;openingSource=STPlanner.startOpeningSession(observation(),{emptyMode:random&&opening}).source;patternHistory=STPlanner.startPatternHistory(observation());resourceHistory=STResourceHistory.start(observation(),{fresh:random&&opening});pieceLedger=STPieceLedger.start(observation(),{fresh:random&&opening});previous=null;result=null;commitment=null;pendingLHint=null;lockCount=0;clearedLines=0;lineLabel=counterLabel;
     if(!keepOrigin)origin={input:clone(input),options:{tail:tail.slice(),random,history:history?.slice()||null,note,opening,counterLabel}};
     setText($('st-position-note'),note);setText($('st-game-status'),'');requestPlan();render();
   }
@@ -214,7 +214,7 @@
   function checkpoint() {
     return {state:clone(state),futureCursor,observed:observed?.slice()||null,
       resourceHistory,resourceOriginBag,pieceLedger,patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null,
-      commitment:commitment?clone(commitment):null,lockCount,clearedLines};
+      commitment:commitment?clone(commitment):null,pendingLHint:pendingLHint?clone(pendingLHint):null,lockCount,clearedLines};
   }
   function undo() {
     if(!undoHistory.length)return;
@@ -223,7 +223,7 @@
     state={...clone(saved.state),revision:++revision};futureCursor=saved.futureCursor;
     observed=saved.observed?.slice()||null;openingPhase=saved.openingPhase;openingSource=saved.openingSource?clone(saved.openingSource):null;openingClear=saved.openingClear?clone(saved.openingClear):null;openingRepair=saved.openingRepair?clone(saved.openingRepair):null;
     patternHistory=saved.patternHistory?clone(saved.patternHistory):null;resourceHistory=saved.resourceHistory;resourceOriginBag=saved.resourceOriginBag;pieceLedger=saved.pieceLedger;
-    commitment=saved.commitment?clone(saved.commitment):null;lockCount=saved.lockCount;clearedLines=saved.clearedLines;
+    commitment=saved.commitment?clone(saved.commitment):null;pendingLHint=saved.pendingLHint?clone(saved.pendingLHint):null;lockCount=saved.lockCount;clearedLines=saved.clearedLines;
     // Never resurrect displayed advice or an old worker response. The saved
     // proof is only a candidate for replay against this restored public state.
     previous=null;result=null;turnStart=null;recoveryOrigin=null;pendingHandoffRecovery=null;
@@ -405,7 +405,7 @@
   document.querySelectorAll('[data-action]').forEach(button=>button.addEventListener('click',()=>{act(button.dataset.action);button.blur();}));
   $('st-fixture').addEventListener('change',()=>{chooseMode($('st-fixture').value);$('st-fixture').blur();});
   function exportSession() {
-    return STSession.create(observation(),{resourceHistory,resourceOriginBag,patternHistory,openingPhase,openingSource,openingClear,openingRepair,previous,commitment,search:searchSettings});
+    return STSession.create(observation(),{resourceHistory,resourceOriginBag,patternHistory,openingPhase,openingSource,openingClear,openingRepair,previous,commitment,pendingLHint,search:searchSettings});
   }
   function installSession(prepared,tail=null) {
     // Normalize before mutation: Reset must replay current, validated evidence,
@@ -419,7 +419,7 @@
     resourceHistory=prepared.resourceHistory;resourceOriginBag=prepared.resourceOriginBag;
     pieceLedger=STPieceLedger.start(observation());patternHistory=prepared.patternHistory;
     openingPhase=prepared.openingPhase;openingSource=prepared.openingSource;openingClear=prepared.openingClear;openingRepair=prepared.openingRepair;
-    previous=prepared.previous;commitment=prepared.commitment;searchSettings=prepared.search;
+    previous=prepared.previous;commitment=prepared.commitment;pendingLHint=prepared.pendingLHint;searchSettings=prepared.search;
     result=null;lockCount=0;clearedLines=0;lineLabel='Lines since import';selectedId=null;$('st-fixture').value='';
     origin={session:clone(envelope),tail:tail?.slice()??null};
     setText($('st-position-note'),privatePractice?'Imported coaching session with a finite private practice sequence. Only six preview pieces are shown to the coach. Restart restores this exact sequence; exports exclude the private tail.':'Imported coaching session. Only visible supply is restored; hidden future and Undo history are excluded.');

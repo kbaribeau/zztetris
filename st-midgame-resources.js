@@ -228,12 +228,24 @@ function pendingLStage(raw,resource,{maxNodes=4000,deadline=Infinity,now=()=>Dat
  let layer=[{state,resource,path:[],notches,access:rootAccess,coveredDebt:coveredDebt.map(c=>c.slice()),score:0}];const immediate=finish(layer[0]);if(immediate)return immediate;
  const depth=Math.min(7,state.queue.length+1+(state.hold?1:0));
  let startDepth=0,hintReplayed=0;
- const h=waitingHint,o=h?.origin;
- const aligned=o&&h.rootId===rootId&&Array.isArray(h.target?.cells)&&h.target.cells.length===4&&
-  h.target.cells.every(c=>Array.isArray(c)&&c.length===2&&c.every(Number.isInteger))&&key(h.target.cells)===key(rootAccess.cells)&&
-  o.rules===state.rules&&JSON.stringify(o.board)===JSON.stringify(state.board)&&
-  JSON.stringify(o.active)===JSON.stringify(state.active)&&o.hold===state.hold&&o.canHold===state.canHold&&
-  Array.isArray(o.queue)&&o.queue.every((piece,i)=>state.queue[i]===piece);
+ let h=waitingHint,o=h?.origin;
+ const shaped=o&&h.rootId===rootId&&Array.isArray(h.target?.cells)&&h.target.cells.length===4&&
+  h.target.cells.every(c=>Array.isArray(c)&&c.length===2&&c.every(Number.isInteger))&&
+  Array.isArray(h.waiting)&&h.waiting.length<=7&&h.waiting.every(p=>Array.isArray(p?.witness)&&p.witness.length<=256&&p.event);
+ const matches=(origin,cells)=>origin.rules===state.rules&&JSON.stringify(origin.board)===JSON.stringify(state.board)&&
+  JSON.stringify(origin.active)===JSON.stringify(state.active)&&origin.hold===state.hold&&origin.canHold===state.canHold&&
+  Array.isArray(origin.queue)&&origin.queue.every((piece,i)=>state.queue[i]===piece)&&key(cells)===key(rootAccess.cells);
+ let aligned=Boolean(shaped&&matches(o,h.target.cells));
+ // Align a consumed candidate only by its literal public event tape. No saved
+ // consumed-count flag or arbitrary witness slice supplies authority.
+ if(shaped&&!aligned){let origin=o,cells=clone(h.target.cells);
+  try{for(let i=0;i<h.waiting.length;i++){
+   const p=h.waiting[i];if(!bounded()||p.witness.length>remaining()){stopped=true;break;}visited+=p.witness.length;
+   const replay=R.replay(origin,p.witness);if(!replay.valid||replay.events.length!==1||JSON.stringify(replay.events[0])!==JSON.stringify(p.event))break;
+   const rows=replay.events[0].clearedRows||[];cells=cells.map(([x,y])=>[x,rows.includes(y)?-1:y+rows.filter(v=>v>y).length]);origin=replay.state;
+   if(matches(origin,cells)){h={...h,origin,target:{cells},waiting:h.waiting.slice(i+1)};o=origin;aligned=true;break;}
+  }}catch{aligned=false;}
+ }
  if(aligned&&Array.isArray(h.waiting)&&h.waiting.length<=depth&&h.waiting.every(p=>Array.isArray(p.witness)&&p.witness.length<=256&&p.event)){
   let n=layer[0],valid=true;
   for(const p of h.waiting){

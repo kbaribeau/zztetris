@@ -18,7 +18,7 @@ const clone = x => JSON.parse(JSON.stringify(x));
 // intentionally omits that field from its worker message. Match that boundary.
 function publicObservation(state){const observation=P.observe(state);delete observation.lastEvent;return observation;}
 const digest = x => crypto.createHash('sha256').update(typeof x === 'string' ? x : JSON.stringify(x)).digest('hex');
-const SOURCE_FILES = ['st-coach-config.js', 'st-rules.js', 'st-bag.js', 'st-structure.js', 'st-paired-repair.js', 'st-access.js', 'st-pattern-history.js', 'st-left-foundation.js', 'st-left-context.js', 'st-planner.js', 'st-opening-patterns.js','st-opening-continuations.js','st-opening-sources.js','st-source-scoring.js', 'st-opening.js', 'st-resource-history.js', 'st-midgame-resources.js', 'st-worker.js', 'st-lab.js', 'st-fixtures.js', 'scripts/lib/st-simulation.cjs', 'scripts/simulate-st.cjs'];
+const SOURCE_FILES = ['st-coach-config.js', 'st-rules.js', 'st-bag.js', 'st-structure.js', 'st-paired-repair.js', 'st-access.js', 'st-pattern-history.js', 'st-left-foundation.js', 'st-left-context.js', 'st-planner.js', 'st-opening-patterns.js','st-opening-continuations.js','st-opening-sources.js','st-source-scoring.js', 'st-opening.js', 'st-resource-history.js', 'st-midgame-resources.js', 'st-worker.js', 'st-lab.js', 'st-session.js', 'st-fixtures.js', 'scripts/lib/st-simulation.cjs', 'scripts/simulate-st.cjs'];
 const CONFIG = Object.freeze({depth:3, width:8, maxNodes:45000, timeMs:SEARCH_TIME_MS});
 const PRESETS = Object.freeze({quick:{seeds:[10331, 20333], locks:24}, research:{seeds:Array.from({length:16}, (_,i) => 810001 + i * 997), locks:500}});
 const RNG_VERSION = 'mulberry32-seven-bag-v1';
@@ -93,7 +93,7 @@ function boardMetrics(state) {
 }
 function createSession(input, api=P) {
   if(typeof api.startOpeningSession!=='function')throw Error('Shared opening session API is not available');
-  let state=R.createState(clone(input.initial)), cursor=0, commitment=null, previous=null, pendingHandoffRecovery=null;
+  let state=R.createState(clone(input.initial)), cursor=0, commitment=null, previous=null, pendingLHint=null, pendingHandoffRecovery=null;
   let patternHistory=api.startPatternHistory(publicObservation(state));
   let resourceHistory=H.start(publicObservation(state),{fresh:input.scenario==='empty'});
   let opening=api.startOpeningSession(publicObservation(state),{emptyMode:input.scenario==='empty'});
@@ -106,7 +106,7 @@ function createSession(input, api=P) {
   }
   return {
     get state(){return state;}, get cursor(){return cursor;}, get opening(){return clone(opening);},
-    request(id,options) { const {handoffRecovery:ignored,...settings}=options||{};return {type:'plan',id,observation:publicObservation(state),previous:previous?clone(previous):null,commitment:commitment?clone(commitment):null,options:{...settings,...(pendingHandoffRecovery?{handoffRecovery:clone(pendingHandoffRecovery)}:{}),resourceContext:H.exportContext(publicObservation(state),resourceHistory),patternHistory:patternHistory?clone(patternHistory):null,openingPhase:opening.active,openingSource:opening.source?clone(opening.source):null,openingClear:opening.clear?clone(opening.clear):null,openingRepair:opening.repair?clone(opening.repair):null}}; },
+    request(id,options) { const {handoffRecovery:ignored,pendingLHint:ignoredHint,...settings}=options||{};return {type:'plan',id,observation:publicObservation(state),previous:previous?clone(previous):null,commitment:commitment?clone(commitment):null,options:{...settings,...(pendingLHint?{pendingLHint:clone(pendingLHint)}:{}),...(pendingHandoffRecovery?{handoffRecovery:clone(pendingHandoffRecovery)}:{}),resourceContext:H.exportContext(publicObservation(state),resourceHistory),patternHistory:patternHistory?clone(patternHistory):null,openingPhase:opening.active,openingSource:opening.source?clone(opening.source):null,openingClear:opening.clear?clone(opening.clear):null,openingRepair:opening.repair?clone(opening.repair):null}}; },
     execute(advice) {
       const proof=validateAdvice(state,advice);
       const requiredDraws=state.queue.length-proof.state.queue.length;
@@ -115,7 +115,7 @@ function createSession(input, api=P) {
       const recovery=typeof api.captureHandoffRecovery==='function'?api.captureHandoffRecovery(publicObservation(state),advice,H.exportContext(publicObservation(state),resourceHistory)):null;
       const wasOpening=opening.active;opening=api.acceptOpeningResult(opening,advice);
       if(wasOpening&&!opening.active)resourceHistory=H.markHandoff(resourceHistory,publicObservation(state));
-      previous={...clone(advice),revision:state.revision};
+      previous={...clone(advice),revision:state.revision};pendingLHint=advice.evidence?.pendingLStage?clone(advice.evidence.pendingLStage):null;
 
       commitment=!advice.evidence?.opening && api.resourceGoal(advice.continuation||[]) ? {observation:clone(publicObservation(state)),advice:clone(advice)} : null;
       let displayed=advice, event=null;

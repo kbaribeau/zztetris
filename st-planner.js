@@ -1905,7 +1905,7 @@ function planCore(raw,options={}){
 function plan(raw,options={}){return queryRequest(()=>planRequest(raw,options));}
 function queryRequest(run){if(!R.withQueries)return run();return R.withQueries(()=>{const result=run();result.metrics={...result.metrics,queries:R.queryMetrics()};return result;});}
 function planRequest(raw,options={}){
- options={...options,[resourceRepairCache]:new Map(),[pendingLHint]:options.previous?.evidence?.pendingLStage??options.commitment?.advice?.evidence?.pendingLStage};
+ options={...options,[resourceRepairCache]:new Map(),[pendingLHint]:options.previous?.evidence?.pendingLStage??options.commitment?.advice?.evidence?.pendingLStage??options.pendingLHint};
  const now=options.now||(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs);
  // Only this synchronous invocation can reuse its own fully checked ordinary
  // fallback. Serialized evidence, caller callbacks and imported advice carry
