@@ -18,9 +18,19 @@ function resourceEndpointCore(raw,path,options={}){
  const checked=ordinaryResourceCheck(raw,path,options);if(!checked.valid&&(options[pendingLStageDisabled]||checked.reason!=='center-partner-blocked-by-T-or-unseen'||!M.pendingLStageEligible(checked.state,checked.resource)))return{...checked,visited:0};
  let visited=0;const now=options.now||(()=>Date.now()),deadline=options.deadline??Infinity,limit=options.maxNodes??45000;
 
- let centerDeparture=false,virtual=extendForced(observe(raw)),notches=H.resolve(observe(raw),options.patternHistory);for(const step of path){const r=R.replay(virtual,step.witness);if(!r.valid||r.events.length!==1)return{...checked,valid:false,visited,reason:'invalid-resource-witness'};if(!options[pairedResetScope]&&!ordinaryRightEligible(r.events[0]))return{...checked,valid:false,visited,reason:'ordinary-right-requires-Z-T-I'};const phase=S.advanceNotches(virtual.board,{state:r.state,event:r.events[0]},notches);if(!phase.valid)return{...checked,valid:false,visited,reason:'invalid-resource-repair-phase'};notches=phase.pattern;
+ const observed=resourceSummary(raw,options);
+ let centerDeparture=false,virtual=extendForced(observe(raw)),notches=H.resolve(observe(raw),options.patternHistory),projected=M.start(virtual,observed);for(const step of path){const r=R.replay(virtual,step.witness);if(!r.valid||r.events.length!==1)return{...checked,valid:false,visited,reason:'invalid-resource-witness'};if(!options[pairedResetScope]&&!ordinaryRightEligible(r.events[0]))return{...checked,valid:false,visited,reason:'ordinary-right-requires-Z-T-I'};const phase=S.advanceNotches(virtual.board,{state:r.state,event:r.events[0]},notches);if(!phase.valid)return{...checked,valid:false,visited,reason:'invalid-resource-repair-phase'};notches=phase.pattern;
+  const next=M.step(virtual,{...step,state:r.state,event:r.events[0]},projected),event=r.events[0];
+  // A literal payment of an authenticated retained SL target is not new
+  // unsupported construction merely because the post-clear motif is absent.
+  // It cannot erase an unrelated earlier departure, manufacture a stage, or
+  // forgive a lost target: exact generated geometry and actual closure agree.
+  const exactSL=event.type==='L'&&event.lines===0&&projected.pendingCenter.some(p=>p.family==='SL'&&Number.isInteger(p.rootId)&&p.rootId>0&&!p.lost&&
+   !next.pendingCenter.some(q=>q.rootId===p.rootId)&&p.alternatives.some(a=>a.piece==='L'&&centerCellsKey(a.cells)===centerCellsKey(event.cells))&&
+   S.geometry(virtual.board).center.completions.some(c=>S.supportedCenterCompletion(c,[p])&&c.piece==='L'&&centerCellsKey(c.cells)===centerCellsKey(event.cells)));
   const center=S.geometry(r.state.board,{notches}).center;
-  if(r.events[0].lines===0&&r.events[0].cells.every(([x])=>x>=4&&x<=6)&&!supportedCenterPattern(center))centerDeparture=true;
+  if(event.lines===0&&event.cells.every(([x])=>x>=4&&x<=6)&&!supportedCenterPattern(center)&&!exactSL)centerDeparture=true;
+  projected=next;
   if(supportedCenterPattern(center))centerDeparture=false;
   virtual=r.state;}
  // Retention cannot turn imported claims into an eligibility exception. An
@@ -29,7 +39,6 @@ function resourceEndpointCore(raw,path,options={}){
  if(centerDeparture)return{...checked,valid:false,visited,reason:'unsupported-center-without-executed-repair'};
  // Shared by fresh advice AND construction/ordinary retention. A replayed
  // construction flag cannot make an observed pre-existing obligation vanish.
- const observed=resourceSummary(raw,options);
  if(options.resourceContext&&!['complete','partial'].includes(observed.coverage.status))return{...checked,valid:false,visited,reason:'unverified-covered-repair-history'};
  const restoration=A.repairPrefix(extendForced(observe(raw)),path,{notches:H.resolve(raw,options.patternHistory),initialDebt:observed.coveredRepair?.cells,stages:observed.center?.pending});
  if(!restoration.valid)return{...checked,valid:false,visited,reason:'unresolved-covered-cells',coveredRepair:restoration};

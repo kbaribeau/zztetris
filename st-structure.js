@@ -108,6 +108,18 @@ function completions(board,lo,hi,pieces,notches,h0=heights(board)){const protect
   }
  }return out;
 }
+// A small motif catalogue may stop recognizing the result after a legitimate
+// clear. It must not erase an already observed SL target whose exact L landing
+// remains independently generated and legal. This is retention only: callers
+// supply authenticated prior stages; absent/anonymous/lost stages grant nothing.
+// New construction and imported silhouettes still require reference support.
+function supportedCenterCompletion(c,stages=[]){
+ if(c.resultStatus!=='level')return false;
+ if(c.patternSupport==='reference-supported')return true;
+ const key=cells=>JSON.stringify(cells.slice().sort(([x,y],[u,v])=>x-u||y-v));
+ return c.piece==='L'&&stages.some(p=>p.family==='SL'&&Number.isInteger(p.rootId)&&p.rootId>0&&!p.lost&&
+  p.alternatives.some(a=>a.piece==='L'&&key(a.cells)===key(c.cells)));
+}
 // The pair is an ordered construction, never inferred from one finishing piece.
 const CENTER_PAIRS=Object.freeze({L:'O',O:'J',S:'L',Z:'J'});
 function localDrops(board,lo,hi,pieces){const out=[],seen=new Set();
@@ -362,5 +374,5 @@ function transition(before,p,afterStructure,options={}){const beforeNotches=opti
  const reason=allocation==='horizontal-left-I'?'Keep the left region flat.':allocation==='center-partner-preparation'?partner?'Start the ordered '+type+'/'+partner.piece+' center pair.':'Prepare the center; no ordered level-finishing pair has been established.':allocation==='center-completion'?'Complete the center pattern.':allocation==='scoring-double'?'Take the T-spin double and assess its rebuild.':allocation==='scoring-T-diversion'?'Diverts a T from the scoring role; another T may remain, but its timely use is not established.':allocation==='quad-preparation'?'Prepare the right-side I cleanup while keeping column eight open.':allocation==='quad-cleanup'?'Clear the scoring channel with a quad.':allocation==='unrecognized-role'?'This allocation needs additional regional repair evidence.':allocation==='right-cap-extension'?'Extends an existing cap; renewed entry still needs checking.':'Preserve a supported regional piece role.';
  return{reason,cycleViolations,pairFamily,pairProgress,pairEvidence:pairFamily?'ordered actual preparation plus checked level-finishing placement':null,opportunityCost,leftSubstitutes:substitutes,regions,crossRegion:regions.length>1,allocation,status:['unrecognized-role','scoring-T-diversion','right-cap-extension'].includes(allocation)?'requires-repair-evidence':'supported-local-role',dependencyDebt:debt,newlyCovered,regionalRepair,repairCredit:Math.min(8,repaired*2),note:'Crossing a boundary is not forbidden. Debt measures unsupported allocation and new structural repair burden; a later checked repair may repay it.'};
 }
-return Object.freeze({assess,transition,geometry,cavityFacts,cavityRepairDebt,instances,allocate,canonicalClear,centerFoundation,centerLevelBase,notchPattern,advanceNotches,CENTER_PAIRS,leftSubstitutes,clearCache:()=>{cache.clear();substituteCache.clear();}});
+return Object.freeze({assess,transition,geometry,cavityFacts,cavityRepairDebt,instances,allocate,canonicalClear,centerFoundation,centerLevelBase,notchPattern,advanceNotches,supportedCenterCompletion,CENTER_PAIRS,leftSubstitutes,clearCache:()=>{cache.clear();substituteCache.clear();}});
 });

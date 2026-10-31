@@ -5,7 +5,7 @@
 const clone=x=>JSON.parse(JSON.stringify(x)),key=c=>JSON.stringify(c.slice().sort(([x,y],[u,v])=>x-u||y-v));
 const tsd=e=>e.type==='T'&&e.spin==='full'&&e.lines===2&&S.canonicalClear(e);
 const left=e=>e.cells.every(([x])=>x<4),center=e=>e.cells.every(([x])=>x>=4&&x<7),nonRight=e=>e.cells.every(([x])=>x<7);
-const completions=board=>S.geometry(board).center.completions.filter(c=>c.resultStatus==='level'&&c.patternSupport==='reference-supported').map(c=>({piece:c.piece,cells:c.cells}));
+const completions=(board,stages=[])=>S.geometry(board).center.completions.filter(c=>S.supportedCenterCompletion(c,stages)).map(c=>({piece:c.piece,cells:c.cells}));
 // Canonical planning supply shared by proof creation and retention. This adds
 // only the unique remaining public bag member, consumes that deduction once,
 // and never changes the observed history or invents its piece/bag identity.
@@ -45,8 +45,8 @@ function step(before,p,prior){
  const piece=n.active,e=p.event;if(!piece||piece.type!==e.type){reject('piece-identity-mismatch');return n;}
  if(e.type==='T'){if(tsd(e))n.scoredTs.push(piece.id);else reject('ordinary-T-must-score');}
  if(e.type==='Z'){if(nonRight(e)){if(n.extraZ!=='available')reject('extra-Z-not-available');n.extraZ='used';}else if(!e.cells.every(([x])=>x>=8))reject('ordinary-Z-outside-reviewed-Right-role');}
- const available=completions(before.board),matches=c=>c.piece===e.type&&key(c.cells)===key(e.cells);
- const finished=n.pendingCenter.filter(p=>p.alternatives.some(c=>matches(c)&&available.some(a=>a.piece===c.piece&&key(a.cells)===key(c.cells))));
+ const available=completions(before.board,n.pendingCenter),matches=c=>c.piece===e.type&&key(c.cells)===key(e.cells);
+ const finished=n.pendingCenter.filter(p=>!p.lost&&p.alternatives.some(c=>matches(c)&&available.some(a=>a.piece===c.piece&&key(a.cells)===key(c.cells))));
  // Projection-only diagnostic: a proposed route may not spend a usable
  // pending partner elsewhere and then claim the absent-partner waiting exception.
  if(e.type==='L'&&prior.pendingCenter.some(p=>p.family==='SL'&&!p.lost&&!finished.some(f=>f.rootId===p.rootId)))n.pendingLDiverted=true;
@@ -56,16 +56,17 @@ function step(before,p,prior){
  const completedS=finished.filter(p=>p.family==='SL').map(p=>p.rootId);
  n.hangingS=n.hangingS.filter(s=>!(leftS&&s.id===piece.id)&&!completedS.includes(s.id));
  const cleared=e.clearedRows||[],translate=cells=>cells.map(([x,y])=>[x,cleared.includes(y)?-1:y+cleared.filter(r=>r>y).length]);
- const after=completions(p.state.board);
+ const movedPending=n.pendingCenter.map(p=>({...p,alternatives:p.alternatives.map(c=>({...c,cells:translate(c.cells)}))}));
+ const after=completions(p.state.board,movedPending);
  n.pendingCenter=n.pendingCenter.filter(p=>!finished.includes(p)).map(p=>{
   const alternatives=p.alternatives.map(c=>({...c,cells:translate(c.cells)}));
   // Losing a supported partner is debt, not completion. Keep its exact cells
   // until filled by that partner or removed entirely by an actual clear.
   const removed=alternatives.every(c=>c.cells.every(([,y])=>y<0));
-  return removed?null:{...p,alternatives,lost:!alternatives.some(c=>c.cells.every(([,y])=>y>=0)&&after.some(a=>a.piece===c.piece&&key(a.cells)===key(c.cells)))};
+  return removed?null:{...p,alternatives,lost:Boolean(p.lost)||!alternatives.some(c=>c.cells.every(([,y])=>y>=0)&&after.some(a=>a.piece===c.piece&&key(a.cells)===key(c.cells)))};
  }).filter(Boolean);
  if(center(e)&&!e.lines&&S.CENTER_PAIRS[e.type]){
-  const alternatives=after.filter(c=>c.piece===S.CENTER_PAIRS[e.type]);
+  const alternatives=completions(p.state.board).filter(c=>c.piece===S.CENTER_PAIRS[e.type]);
   if(alternatives.length&&!n.pendingCenter.some(p=>key(p.alternatives[0].cells)===key(alternatives[0].cells)))n.pendingCenter.push({rootId:piece.id,bag:piece.bag,family:e.type+S.CENTER_PAIRS[e.type],alternatives,created:true});
  }
  if(e.type==='L'&&piece.bag!==null){
@@ -199,7 +200,7 @@ function pendingLStage(raw,resource,{maxNodes=4000,deadline=Infinity,now=()=>Dat
  const remaining=()=>Math.max(0,maxNodes-visited),bounded=()=>now()<deadline&&visited<maxNodes;
  const access=(state,r,phase)=>{
   const pending=r.pendingCenter.find(p=>p.rootId===rootId);if(!pending||pending.lost)return null;
-  const candidates=S.geometry(state.board,{notches:phase}).center.completions.filter(c=>c.piece==='L'&&c.resultStatus==='level'&&c.patternSupport==='reference-supported'&&pending.alternatives.some(a=>key(a.cells)===key(c.cells)));
+  const candidates=S.geometry(state.board,{notches:phase}).center.completions.filter(c=>c.piece==='L'&&S.supportedCenterCompletion(c,[pending])&&pending.alternatives.some(a=>key(a.cells)===key(c.cells)));
   for(const c of candidates){if(!bounded()||c.witness.length>remaining()){stopped=true;return null;}visited+=c.witness.length;
    const conditional=R.createState({rules:state.rules,board:state.board,active:'L',queue:[],canHold:false}),proof=R.replay(conditional,c.witness);
    if(proof.valid&&proof.events.length===1&&key(proof.events[0].cells)===key(c.cells))return{piece:'L',cells:clone(c.cells),witness:c.witness.slice(),access:'conditional-fresh-L-only',arrival:'not-established'};
