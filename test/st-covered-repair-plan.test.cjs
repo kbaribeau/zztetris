@@ -80,7 +80,18 @@ test('covered repair / replay history survives lost commitment and refuses copie
 });
 test('covered repair / ordinary admission retains a real temporary roof through lock and fresh worker request',()=>{
  const board=R.emptyBoard();for(let y=36;y<40;y++)board[y]='XXXXXXX...';board[37]='XXXXXX....';
- const state=R.createState({board,active:'S',queue:['L','O','I']}),steps=path(state,[['L','L','L','HD'],[...Array(16).fill('SD'),'L','HD']]);
+ const witnesses=[['L','L','L','HD'],[...Array(16).fill('SD'),'L','HD']];
+ // The old supply physically fills the roof, but its finishing L creates D
+ // with no immediate J. Keep both facts instead of waiving the new D gate.
+ const old=R.createState({board,active:'S',queue:['L','O','I']}),oldSteps=path(old,witnesses);
+ const oldCertificate=P.checkedCoveredRepair(old,oldSteps);assert.ok(oldCertificate);
+ const oldAdvice={target:oldSteps[0].target,witness:oldSteps[0].witness,hold:false,continuation:oldCertificate.steps,context:JSON.stringify([old.rules,old.board,old.hold,old.canHold,old.queue,null,old.active.type]),evidence:{coveredRepairPlan:oldCertificate.plan,coveredRepair:oldCertificate.proof}};
+ assert.equal(P.revalidate(old,oldAdvice,{maxNodes:45000}),null,'Actual full admission does not waive the finishing D merely because its roof was repaired');
+ assert.equal(P.dPatternAdmission(oldSteps[0].state,oldSteps[1],{maxNodes:45000}).reason,'D-created-without-immediate-J');
+ // Independent full-admission positive: J is actually next after the L and
+ // has a checked immediate exit. No hypothetical or distant J supplies it.
+ const state=R.createState({board,active:'S',queue:['L','J','O','I']}),steps=path(state,witnesses);
+ assert.equal(P.dPatternAdmission(steps[0].state,steps[1],{maxNodes:45000}).valid,true);
  const cert=P.checkedCoveredRepair(state,steps);assert.ok(cert?.plan);
  const advice={target:steps[0].target,witness:steps[0].witness,hold:false,continuation:cert.steps,context:JSON.stringify([state.rules,state.board,state.hold,state.canHold,state.queue,null,state.active.type]),assessment:P.assess(steps.at(-1).state.board),evidence:{coveredRepairPlan:cert.plan,coveredRepair:cert.proof}};
  const checked=P.revalidate(state,advice,{maxNodes:45000});assert.ok(checked,'The temporary roof is an actual admitted repair, not only legal geometry');

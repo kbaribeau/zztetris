@@ -28,7 +28,12 @@ test('checked finite center preparation with a timely visible partner survives r
  const c=timelyControl(),saved=suffix();assert.ok(saved);assert.equal(saved.metrics.certifiedHorizon,saved.continuation.length);assert.equal(P.cycleResources(saved.continuation).centerPreparations,1);
  const advice=P.plan(c.after,{maxNodes:45000,commitment:{observation:c.after,advice:saved}});
  assert.deepEqual(advice.target,{type:'S',x:4,y:27,rotation:0});
- assert.equal(advice.metrics.commitmentComparison.pendingLCompletionPreserved,true,'A waiting replacement may not consume the visible L before recreating this same protected goal');
+ // The strict-D gate can remove the formerly preferred waiting challenger.
+ // The flag means a veto fired, not that every retained Center goal needs one.
+ // Keep the actual same-goal/no-replacement and literal L completion oracles.
+ const compared=advice.metrics.commitmentComparison;
+ if(compared.rankingPreferred)assert.equal(compared.pendingLCompletionPreserved,true,'A preferred waiting replacement may not consume the protected visible L');
+ else assert.equal(compared.pendingLCompletionPreserved,false,'No waiting-replacement veto is claimed when the incumbent already wins');
  assert.equal(advice.metrics.commitmentComparison.replacement,false);
  const r=R.replay(P.observe(c.after),advice.witness);assert.ok(r.valid);assert.equal(S.geometry(r.state.board).center.foundation.status,'aligned');
  const completion=advice.continuation[0].structuralEvidence.pairProgress.completion;
@@ -73,4 +78,11 @@ test('center preparation with no accessible finishing L is not retained as a sup
  assert.equal(P.continueCommitment(f.origin,f.after,f.advice,f.event),null,'A reusable-looking endpoint cannot promise an absent partner');
  const advice=P.plan(f.after,{maxNodes:45000,commitment:{observation:f.after,advice:{...clone(f.advice),continuation:f.advice.continuation.slice(1)}}});
  assert.notDeepEqual(advice.target,{type:'S',x:4,y:27,rotation:0},'Uncertified historical S target is not resurrected');
+});
+
+test('Center goal veto / isolated historical challenger cannot spend the visible L and recreate a waiting goal',()=>{
+ const load=require('./support/st-center-goal-d-isolated.cjs'),c=timelyControl();
+ const run=api=>{const saved=api.continueCommitment(c.origin,c.after,c.advice,c.event);assert.ok(saved);return api.plan(c.after,{maxNodes:45000,now:()=>0,deadline:Infinity,commitment:{observation:c.after,advice:saved}});};
+ const kept=run(load());assert.equal(kept.metrics.commitmentComparison.pendingLCompletionPreserved,true);assert.equal(kept.metrics.commitmentComparison.replacement,false);assert.deepEqual(kept.target,{type:'S',x:4,y:27,rotation:0});
+ const mutant=run(load({disablePreservation:true}));assert.equal(mutant.metrics.commitmentComparison.pendingLCompletionPreserved,false);assert.equal(mutant.metrics.commitmentComparison.replacement,true,'Disabling the real preservation guard must expose the bad waiting replacement');
 });
