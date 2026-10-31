@@ -532,3 +532,13 @@ advice. `disableVisibleSLTail` isolates this stage for regression controls.
 I/O IDs, retained prefix/endpoint ranks, final two certificates and comparison;
 the enclosing ordinary-allocation comparison continues to describe its original
 complete-SL proof. Imported telemetry provides no admission authority.
+
+### Finite Left-I scoring foundation
+
+A separate [three-lock scoring-foundation contract](docs/st-left-scoring-foundation.md)
+may use a Left I to fill cells in an actual visible Z/T double's scoring rows
+when Right has only optional I preparation. Existing cleanup columns, retained
+Pocket/scoring commitments and all other resource/access/quality checks remain
+protected. It does not relax the ordinary I guard or Center classifier; the
+post-score Center motif can remain explicitly uncertain. The original finite
+proof is rederived through input, HOLD and each lock under the shared budget.

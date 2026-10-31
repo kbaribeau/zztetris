@@ -168,5 +168,84 @@ function supportSearch(initial,options={}){
  }
  return result(null);
 }
-return Object.freeze({eligibility,validate,search,parity,leftCovered,deficits,supportEligibility,supportValidate,supportSearch});
+// Distinct from support-first replacement: the Left I must supply missing cells
+// in an actual, immediately ensuing visible Z/T double. No cleanup already on
+// the board is displaced, and no future replacement I is assumed.
+function scoringEligibility(raw,options={}){
+ const P=getPlanner();let state;try{state=P.observe(raw);}catch{return null;}
+ if(R.validate(state).length||state.queue.length>6||!state.active||state.topOut)return null;
+ const pattern=P.resolvePatternHistory(state,options.patternHistory),g=S.geometry(state.board,{notches:pattern}),a=P.assess(state.board),supply=[state.active.type,state.hold,...state.queue];
+ if(pattern.status!=='established'||g.right.cycle.prepareColumn===null||g.right.cycle.cleanupColumns.length||!g.right.completions.length||g.center.patternSupport!=='reference-supported'||g.center.foundation.status!=='aligned'||leftCovered(state.board)||a.maxHeight>=20||!a.regionalSupport||!['I','Z','T'].every(t=>supply.includes(t)))return null;
+ return{state,pattern,maxHeight:a.maxHeight,center:g.center};
+}
+function scoringValidate(initial,steps,options={}){
+ const P=getPlanner(),now=options.now||(()=>Date.now()),started=now(),deadline=options.deadline??started+(options.timeMs??150),limit=options.maxNodes??12000;let visited=0;
+ const fail=reason=>({valid:false,status:'uncertified',reason,visited,elapsedMs:now()-started});
+ const g=scoringEligibility(initial,options);if(!g)return fail('optional-preparation-and-visible-I-Z-T-required');
+ if(!Array.isArray(steps)||steps.length!==3)return fail('exact-three-lock-scoring-route-required');
+ const spend=n=>{if(now()>=deadline||visited+n>limit)return false;visited+=n;return true;};
+ let state=g.state,notches=g.pattern;const verified=[];
+ for(const [i,step]of steps.entries()){
+  if(!Array.isArray(step?.witness)||!step.witness.length||step.witness.length>256||step.witness.at(-1)!=='HD'||step.witness.slice(0,-1).includes('HD')||options.allowHold===false&&step.witness.includes('HOLD'))return fail('bounded-one-lock-witness-required');
+  const availableCap=supportCapAvailability(state,spend);if(availableCap===null||!spend(step.witness.length))return fail('budget-exhausted');
+  const r=R.replay(state,step.witness);if(!r.valid||r.events.length!==1)return fail('invalid-visible-witness');
+  const event=r.events[0],p={state:r.state,event,availableCap};
+  if(event.type!==['I','Z','T'][i]||event.topOut||!S.canonicalClear(event))return fail('actual-I-Z-T-canonical-route-required');
+  if(i===0&&(event.lines||!event.cells.every(([x])=>x<4&&x===event.cells[0][0])||r.state.board.some((row,y)=>row.slice(4)!==state.board[y].slice(4))))return fail('vertical-Left-I-foundation-required');
+  if(i===1&&(event.lines||!event.cells.every(([x])=>x>=8)))return fail('actual-Right-Z-cap-required');
+  // Conservatively preserve the available-I-before-cap rule. This route has
+  // no authority to postpone another actual active/held cleanup I.
+  if(i===1&&S.geometry(state.board).right.cycle.prepareColumn!==null&&[state.active?.type,state.hold].includes('I'))return fail('competing-available-cleanup-I');
+  if(i===2&&(event.lines!==2||event.spin!=='full'))return fail('actual-canonical-TSD-required');
+  const phase=S.advanceNotches(state.board,p,notches);if(!phase.valid)return fail('changed-scoring-pattern');
+  const transition=S.transition(state,p,S.assess(r.state,{notches:phase.pattern}),{notches});
+  if(transition.cycleViolations.some(v=>!(i===0&&v==='spent-cleanup-I-on-optional-work')))return fail('competing-cycle-obligation');
+  if(i===1&&transition.allocation!=='right-cap-preparation')return fail('actual-Right-Z-cap-required');
+  const a=P.assess(r.state.board),center=S.geometry(r.state.board,{notches:phase.pattern}).center;
+  if(leftCovered(r.state.board)||a.maxHeight>g.maxHeight||a.maxHeight>=20||!a.regionalSupport||P.cavityRepairDebt(P.assess(state.board),a,event).length||center.foundation.status!=='aligned'||center.coveredInternal>g.center.coveredInternal||center.sealedVoids>g.center.sealedVoids)return fail('unsupported-or-damaged-scoring-route');
+  verified.push({witness:step.witness.slice(),event:clone(event),structuralEvidence:transition});state=r.state;notches=phase.pattern;
+ }
+ const rows=verified[2].event.clearedRows,missing=[];
+ for(const y of rows)for(let x=0;x<4;x++)if(g.state.board[y][x]==='.')missing.push([x,y]);
+ if(!missing.length||missing.some(([x,y])=>!verified[0].event.cells.some(([u,v])=>u===x&&v===y)))return fail('I-must-fill-actual-scoring-row-deficits');
+ const access=P.checkAccessPrefix(g.state,verified,{notches:g.pattern,deadline,now,maxNodes:Math.max(0,limit-visited)});visited+=access.visited;
+ if(access.reachable!==true||!access.complete||now()>=deadline||visited>limit)return fail('movement-access-unverified');
+ verified[0].structuralEvidence={...verified[0].structuralEvidence,scoringFoundation:{cells:clone(missing),scoreLock:3,clearedRows:rows.slice()}};
+ return{valid:true,status:'finite-Left-I-scoring-foundation',continuation:verified,end:state,targets:missing,visited,elapsedMs:now()-started,limitations:['Only the three originally visible locks are certified.','The actual TSD may expose an unrecognized Center motif; no ordinary classifier is relaxed.','Optional future I preparation, another score and continued play are not promised.']};
+}
+function scoringSearch(initial,options={}){
+ const P=getPlanner(),now=options.now||(()=>Date.now()),deadline=options.deadline??now()+150,limit=options.maxNodes??12000,g=scoringEligibility(initial,options);let visited=0;
+ const result=(candidate,reason)=>({candidate,visited,reason});if(!g)return result(null,'ineligible');
+ const spend=n=>{if(now()>=deadline||visited+n>limit)return false;visited+=n;return true;};
+ const starts=state=>{const out=[{state,witness:[]}];if(options.allowHold===false)return out;let cur=state;for(let i=1;i<=2;i++){if(!spend(1))break;const next=R.move(cur,'HOLD');if(next===cur||next.topOut)break;cur=next;out.push({state:cur,witness:Array(i).fill('HOLD')});}return out;};
+ // Four vertical Left columns, from actual pose and HOLD, are the whole first
+ // move grammar. Exact replay (not geometric placement) is the certificate.
+ const firsts=[];
+ for(const from of starts(g.state)){
+  if(from.state.active?.type!=='I')continue;
+  for(const rotation of [1,3])for(let column=0;column<4;column++){
+   let cur=from.state,witness=from.witness.slice(),valid=true;
+   for(let n=0;n<4&&cur.active.rotation!==rotation;n++){if(!spend(1))return result(null,'budget-exhausted');const next=R.move(cur,'CW');if(next===cur){valid=false;break;}cur=next;witness.push('CW');}
+   if(!valid)continue;const x=column-(R.cells(cur.active)[0][0]-cur.active.x);
+   while(cur.active.x!==x){if(!spend(1))return result(null,'budget-exhausted');const action=cur.active.x<x?'R':'L',next=R.move(cur,action);if(next===cur){valid=false;break;}cur=next;witness.push(action);}if(!valid)continue;
+   witness.push('HD');if(!spend(witness.length))return result(null,'budget-exhausted');const r=R.replay(g.state,witness);
+   if(r.valid&&r.events.length===1&&!r.events[0].lines&&!r.events[0].topOut&&!leftCovered(r.state.board)&&P.assess(r.state.board).maxHeight<=g.maxHeight)firsts.push({state:r.state,witness});
+  }
+ }
+ for(const first of firsts)for(const z of starts(first.state)){
+  if(z.state.active?.type!=='Z')continue;
+  for(const cap of S.geometry(z.state.board).right.completions){
+   const zw=[...z.witness,...cap.witness];if(!spend(zw.length))return result(null,'budget-exhausted');const zr=R.replay(first.state,zw);if(!zr.valid||zr.events.length!==1||zr.events[0].lines)continue;
+   for(const t of starts(zr.state)){
+    if(t.state.active?.type!=='T')continue;
+    const access=R.tDoubleAccess(t.state.board,{deadline,now,maxNodes:Math.max(0,limit-visited)});visited+=access.visited;
+    if(!access.complete)return result(null,'score-access-unknown');if(!access.reachable)continue;
+    const steps=[{witness:first.witness},{witness:zw},{witness:[...t.witness,...access.witness]}],proof=scoringValidate(g.state,steps,{...options,deadline,now,maxNodes:Math.max(0,limit-visited)});visited+=proof.visited;
+    if(proof.valid)return result({kind:'left-scoring-foundation',origin:clone(g.state),patternHistory:clone(options.patternHistory??null),steps,consumed:0},'certified');
+   }
+  }
+ }
+ return result(null,now()>=deadline||visited>=limit?'budget-exhausted':'no-certified-score');
+}
+return Object.freeze({eligibility,validate,search,parity,leftCovered,deficits,supportEligibility,supportValidate,supportSearch,scoringEligibility,scoringValidate,scoringSearch});
 });

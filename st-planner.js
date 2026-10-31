@@ -134,10 +134,11 @@ function advicePresentation(path,assessment={},construction=null){
    structural=first.event.type==='T'&&!first.event.lines?(tRepairs>1?`Place T in the ${region} to begin the checked paired-T mino-parity repair.`:`Place T in the ${region} to balance the checked pair of T placements.`):`Build the ${region} with ${first.event.type} as shown.`;
    if(tRepairs)add('SHOCKY-4');if(center(first))add('SHOCKY-3.2','FLAME-CENTER');
   }
+  if(construction.kind==='left-scoring-foundation')structural+=' This I supplies the missing Left cells in the checked Z/T scoring rows; it replaces optional preparation, not an existing cleanup I.';
   if(construction.kind==='left-support')structural+=' Fill the checked Left support before covering it; a distinct visible I completes the original Right preparation at the end of this finite route.';
   if(construction.kind==='left-foundation')structural+=' This checked pair fills the missing Left cells beside the next scoring rows; it does not yet complete the Center or prove the next score.';
   if(tsdAt>0){structural+=` This checked sequence reaches a T-spin double in ${tsdAt+1} placements, including this one.`;add('SHOCKY-3.1');}
-  structural+=construction.kind==='cap-deferral'?' This verifies a visible cap replacement, not whether an Extra Z remains available.':' This finite repair is not proof of a completed Reset.';
+  structural+=construction.kind==='left-scoring-foundation'?' This finite scoring construction does not certify the exposed Center motif or continued play.':construction.kind==='cap-deferral'?' This verifies a visible cap replacement, not whether an Extra Z remains available.':' This finite repair is not proof of a completed Reset.';
  }else{
   let pair=facts.pairProgress;
   // A scored first lock can expose a center-only suffix that was not the
@@ -424,7 +425,7 @@ function resetSelection(raw,options={}){
 }
 // Construction history is an executable public proof, never an imported mode.
 // Recreate its complete route and bind the consumed prefix to the current board.
-function verifyConstruction(proof,options={}){return proof.kind==='left-support'?Y.supportValidate(proof.origin,proof.steps,options):proof.kind==='left-foundation'?Y.validate(proof.origin,proof.steps,options):X.validateCertificate(proof.origin,proof.steps,{...options,kind:proof.kind});}
+function verifyConstruction(proof,options={}){return proof.kind==='left-scoring-foundation'?Y.scoringValidate(proof.origin,proof.steps,{...options,patternHistory:proof.patternHistory}):proof.kind==='left-support'?Y.supportValidate(proof.origin,proof.steps,options):proof.kind==='left-foundation'?Y.validate(proof.origin,proof.steps,options):X.validateCertificate(proof.origin,proof.steps,{...options,kind:proof.kind});}
 // A chosen macro retains its proof-specific fields, but never discards work
 // already spent searching and certifying competing continuations.
 function constructionMetrics(candidate,spent,elapsedMs){return{...spent,...candidate.metrics,nodes:spent.nodes,elapsedMs};}
@@ -435,51 +436,56 @@ function supportHistoryBinding(s,proof,verified,options,deadline,now,maxNodes){
  const fail=()=>({valid:false,visited});
  try{
   if(!prior||!current||!Array.isArray(prior.steps)||!Array.isArray(current.steps)||prior.steps.length>current.steps.length||!same(prior.origin,current.origin)||prior.fresh!==current.fresh||prior.handoffAtAction!==current.handoffAtAction||!same(current.steps.slice(0,prior.steps.length),prior.steps))return fail();
-  if(resourceSummary(proof.origin,{resourceContext:prior}).coverage.status!=='complete'||resourceSummary(s,options).coverage.status!=='complete')return fail();
+  if(![...(proof.kind==='left-scoring-foundation'?['partial']:[]),'complete'].includes(resourceSummary(proof.origin,{resourceContext:prior}).coverage.status)||![...(proof.kind==='left-scoring-foundation'?['partial']:[]),'complete'].includes(resourceSummary(s,options).coverage.status))return fail();
   const tail=current.steps.slice(prior.steps.length);if(tail.length>1792||tail.filter(p=>p.action==='HD').length!==proof.consumed)return fail();
-  let state=observe(proof.origin),locked=0;
+  let state=observe(proof.origin),locked=0,actionsSinceLock=[];
   for(const step of tail){if(now()>=deadline||visited>=maxNodes)return fail();visited++;const next=R.move(state,step.action);if(next===state)return fail();
-   if(step.action==='HD'&&!same(next.lastEvent,verified.continuation[locked++]?.event))return fail();
+   if(step.action==='HD'){if(!same(next.lastEvent,verified.continuation[locked++]?.event))return fail();actionsSinceLock=[];}else actionsSinceLock.push(step.action);
    state={...next,queue:[...next.queue,...step.revealed]};for(const piece of step.revealed)if(state.bag)state={...state,bag:B.consume(state.bag,piece)};
   }
-  const actual=observe(state),expected=observe(s);delete actual.revision;delete expected.revision;return{valid:same(actual,expected),visited};
+  const actual=observe(state),expected=observe(s);delete actual.revision;delete expected.revision;return{valid:same(actual,expected),visited,actionsSinceLock};
  }catch{return fail();}
 }
 function constructionAdvice(s,proof,deadline=Infinity,now=()=>Date.now(),maxNodes=12000,budgetTracker=null,historyOptions={}){
  if(proof?.kind==='left-support'&&historyOptions.allowHold===false)return null;
- if(!proof||proof.kind!==undefined&&!['cap-deferral','left-support','left-foundation'].includes(proof.kind)||!Number.isInteger(proof.consumed)||proof.consumed<0||proof.consumed>=proof.steps?.length)return null;
- let visited=0;const charge=n=>{visited+=n||0;if(budgetTracker)budgetTracker.nodes+=n||0;};
+ if(!proof||proof.kind!==undefined&&!['cap-deferral','left-support','left-foundation','left-scoring-foundation'].includes(proof.kind)||!Number.isInteger(proof.consumed)||proof.consumed<0||proof.consumed>=proof.steps?.length)return null;
+ let visited=0,followedActions=[];const charge=n=>{visited+=n||0;if(budgetTracker)budgetTracker.nodes+=n||0;};
  if(!proof.kind&&resetSelection(proof.origin).status!=='candidate')return null;
- const verified=verifyConstruction(proof,{timeMs:Math.max(0,Math.min(750,deadline-now())),deadline,now,maxNodes});charge(verified.visited);if(!verified.valid)return null;
+ const verified=verifyConstruction(proof,{timeMs:Math.max(0,Math.min(750,deadline-now())),deadline,now,maxNodes,allowHold:historyOptions.allowHold});charge(verified.visited);if(!verified.valid)return null;
  if(proof.kind!==undefined&&verified.continuation.slice(proof.consumed).some(p=>!ordinaryRightEligible(p.event)))return null;
- if(proof.kind==='left-support'){
-  const binding=supportHistoryBinding(s,proof,verified,historyOptions,deadline,now,Math.max(0,maxNodes-visited));charge(binding.visited);if(!binding.valid)return null;
+ if(['left-support','left-scoring-foundation'].includes(proof.kind)){
+  const binding=supportHistoryBinding(s,proof,verified,historyOptions,deadline,now,Math.max(0,maxNodes-visited));charge(binding.visited);if(!binding.valid)return null;followedActions=binding.actionsSinceLock;
   const replayUnits=verified.continuation.reduce((n,p)=>n+p.witness.length,0);if(now()>=deadline||visited+replayUnits>maxNodes)return null;charge(replayUnits);
   const paid=ordinaryResourceCheck(proof.origin,verified.continuation,{resourceContext:proof.resourceContext}),r=paid.resource;
   if(!paid.valid||!r||r.pendingCenter.length||r.hangingS.length||r.centerBlocked||r.tCollision||r.unclassifiedS?.some(p=>p.invalidated||p.requiresAccommodation))return null;
  }
 
+ const replay=(state,witness)=>{if(proof.kind==='left-scoring-foundation'){if(now()>=deadline||visited+witness.length>maxNodes)return{valid:false,events:[]};charge(witness.length);}return R.replay(state,witness);};
  let expected=observe(proof.origin);
- for(const step of verified.continuation.slice(0,proof.consumed))expected=R.replay(expected,step.witness).state;
+ for(const step of verified.continuation.slice(0,proof.consumed)){const r=replay(expected,step.witness);if(!r.valid)return null;expected=r.state;}
  if(JSON.stringify(expected.board)!==JSON.stringify(s.board))return null;
  let current=s;const continuation=[];
  for(const [index,step]of verified.continuation.slice(proof.consumed).entries()){
-  const expectedAfter=R.replay(expected,step.witness).state;
+  const future=replay(expected,step.witness);if(!future.valid)return null;const expectedAfter=future.state;
   const matches=r=>r.valid&&r.events.length===1&&JSON.stringify(r.events[0])===JSON.stringify(step.event)&&sameConstructionResult(expectedAfter,r.state);
-  let witness=step.witness,r=R.replay(current,witness);
+  let witness=step.witness;
+  // Exact followed HOLD cycles can return to the same public pose. Prefer the
+  // authenticated action suffix, not a replayable full witness that repeats it.
+  if(proof.kind==='left-scoring-foundation'&&index===0&&followedActions.length&&followedActions.every((a,i)=>step.witness[i]===a))witness=step.witness.slice(followedActions.length);
+  let r=replay(current,witness);
   if(!matches(r)&&index===0){
    // The user may already have followed HOLD/movement inputs, or switched
    // active and held pieces. Bind an equivalent actual first-lock witness to
    // the SAME verified event and public result, never just a saved mode flag.
-   for(let k=1;k<step.witness.length;k++){const prefix=R.replay(expected,step.witness.slice(0,k));if(!prefix.valid||!sameObservedResult(prefix.state,current))continue;
-    const trial=R.replay(current,step.witness.slice(k));if(matches(trial)){witness=step.witness.slice(k);r=trial;break;}
+   for(let k=1;k<step.witness.length;k++){const prefix=replay(expected,step.witness.slice(0,k));if(!prefix.valid||!sameObservedResult(prefix.state,current))continue;
+    const trial=replay(current,step.witness.slice(k));if(matches(trial)){witness=step.witness.slice(k);r=trial;break;}
    }
-   if(!matches(r)&&now()<deadline&&visited<maxNodes){const e=R.placements(current,{deadline,now,maxNodes:maxNodes-visited});charge(e.visited);const found=e.placements.find(p=>JSON.stringify(p.event)===JSON.stringify(step.event)&&sameConstructionResult(expectedAfter,p.state));if(found){witness=found.witness;r={valid:true,state:found.state,events:[found.event]};}}
+   if(!matches(r)&&now()<deadline&&visited<maxNodes){const e=R.placements(current,{deadline,now,maxNodes:maxNodes-visited,...(proof.kind==='left-scoring-foundation'?{allowHold:historyOptions.allowHold}:{} )});charge(e.visited);const found=e.placements.find(p=>JSON.stringify(p.event)===JSON.stringify(step.event)&&sameConstructionResult(expectedAfter,p.state));if(found){witness=found.witness;r={valid:true,state:found.state,events:[found.event]};}}
   }
   if(!matches(r))return null;
   current=r.state;expected=expectedAfter;continuation.push({...step,witness,target:step.event.target,hold:witness.includes('HOLD'),holdCount:holdCount({witness}),resultContext:context(current)});
  }
- if(proof.kind==='left-support'&&(now()>=deadline||visited>maxNodes))return null;
+ if(['left-support','left-scoring-foundation'].includes(proof.kind)&&(now()>=deadline||visited>maxNodes))return null;
  const first=continuation[0],done=verified.continuation.slice(0,proof.consumed);
  const resetOrigin=!proof.kind?resetSelection(proof.origin):null;
  const resetDecision=resetOrigin?.status==='candidate'?{...resetOrigin,status:proof.consumed?'continuing':'selected',
@@ -493,23 +499,25 @@ function constructionAdvice(s,proof,deadline=Infinity,now=()=>Date.now(),maxNode
   ...presentation,
   metrics:{nodes:visited,endpointMass:current.board.reduce((n,row)=>n+[...row].filter(c=>c!=='.').length,0),depth:continuation.length,completeDepth:continuation.length,elapsedMs:verified.elapsedMs},assessment:assess(current.board),
   evidence:{strategy:proof.kind==='cap-deferral'?'finite-cap-deferral':'finite-regional-repair',...(resetDecision?{resetSelection:resetDecision}:{}),construction:admittedProof,cycleResources:cycleResources(continuation),cycleDebt:0,verifiedLocks:continuation.length,knownPieceHorizon:s.queue.length+1,
-   constructionStage:{parity,capDebt:verified.cap&&proof.consumed<=verified.cap.paidAt?verified.cap.targets:[],remainingLocks:continuation.length,zAllocation:'Only the executed public route is reserved; no Extra-Z history is inferred.',completion:proof.kind==='left-support'?'Finite Left support and actual Right-I replacement completed; no score or continued play is promised.':proof.kind==='left-foundation'?'Finite Left foundation completed; Center partner and future scoring remain unproved.':'Finite supported TSD endpoint, not a completed Reset.'},claim:'Finite executable regional repair; continued play is not guaranteed.'}};
+   constructionStage:{parity,capDebt:verified.cap&&proof.consumed<=verified.cap.paidAt?verified.cap.targets:[],remainingLocks:continuation.length,zAllocation:'Only the executed public route is reserved; no Extra-Z history is inferred.',completion:proof.kind==='left-scoring-foundation'?'Finite visible I/Z/T score completed; exposed Center geometry and continued play remain uncertain.':proof.kind==='left-support'?'Finite Left support and actual Right-I replacement completed; no score or continued play is promised.':proof.kind==='left-foundation'?'Finite Left foundation completed; Center partner and future scoring remain unproved.':'Finite supported TSD endpoint, not a completed Reset.'},claim:'Finite executable regional repair; continued play is not guaranteed.'}};
 }
 function continueConstruction(before,after,advice,event,options={}){
  const proof=advice?.evidence?.construction;if(!proof)return null;
  const verified=verifyConstruction(proof,options);if(!verified.valid||!Number.isInteger(proof.consumed)||proof.consumed<0)return null;
  const expected=verified.continuation.slice(proof.consumed);
  if(!expected.length||JSON.stringify(expected.map(p=>p.event))!==JSON.stringify(advice.continuation.map(p=>p.event)))return null;
+ const replayUnits=proof.kind==='left-scoring-foundation'?advice.witness.length:0;
+ if(replayUnits&&((options.now||(()=>Date.now()))()>=(options.deadline??Infinity)||(verified.visited||0)+replayUnits>(options.maxNodes??12000)))return null;
  const r=R.replay(observe(before),advice.witness);
  if(!r.valid||r.events.length!==1||JSON.stringify(expected[0].event)!==JSON.stringify(event)||JSON.stringify(r.events[0])!==JSON.stringify(event)||proof.kind!==undefined&&!ordinaryRightEligible(r.events[0])||!sameObservedResult(r.state,observe(after)))return null;
- const tracker={nodes:verified.visited||0},suffix=constructionAdvice(observe(after),{...proof,consumed:proof.consumed+1},options.deadline,options.now,Math.max(0,(options.maxNodes??12000)-tracker.nodes),tracker,options);if(suffix)suffix.metrics.nodes=tracker.nodes;return suffix;
+ const tracker={nodes:(verified.visited||0)+replayUnits},suffix=constructionAdvice(observe(after),{...proof,consumed:proof.consumed+1},options.deadline,options.now,Math.max(0,(options.maxNodes??12000)-tracker.nodes),tracker,options);if(suffix)suffix.metrics.nodes=tracker.nodes;return suffix;
 }
 function continueCommitment(before,after,advice,actualEvent=after?.lastEvent,options={}){
  if(advice?.evidence?.construction){
   const now=options.now||(()=>Date.now()),deadline=options.deadline??now()+150,maxNodes=options.maxNodes??12000,suffix=continueConstruction(before,after,advice,actualEvent,{...options,now,deadline,maxNodes});if(!suffix)return null;
   const resources=checkedResourceEndpoint(after,suffix.continuation,constructionPolicyOptions(suffix,{...options,now,deadline,maxNodes:Math.max(0,maxNodes-suffix.metrics.nodes)}));suffix.metrics.nodes+=resources.visited||0;if(!resources.valid)return null;
   const access=A.prefix(observe(after),suffix.continuation,{notches:H.resolve(after,options.patternHistory),deadline,now,maxNodes:Math.max(0,maxNodes-suffix.metrics.nodes)});suffix.metrics.nodes+=access.visited;if(access.reachable!==true)return null;
-  if(advice.evidence.construction.kind==='left-support'&&(now()>=deadline||suffix.metrics.nodes>maxNodes))return null;
+  if(['left-support','left-scoring-foundation'].includes(advice.evidence.construction.kind)&&(now()>=deadline||suffix.metrics.nodes>maxNodes))return null;
   return{...suffix,metrics:{...suffix.metrics,certifiedHorizon:suffix.continuation.length},evidence:{...suffix.evidence,resourceObligations:{status:'checked',binding:resources.resource.originKey}}};
  }
  if(!advice?.continuation?.length||advice.continuation.length<2)return null;
@@ -852,15 +860,15 @@ function planCore(raw,options={}){
  const readAssessment=createAssessmentReader(),initial=readAssessment(s.board);initial.state=s;initial.notches=H.resolve(s,options.patternHistory);initial.resources=M.start(s,summary);initial.ordinarySAllocationEnabled=!options.disableOrdinarySAllocation;
  initial.extraZPreservable=summary.coverage?.status==='complete'&&summary.extraZ?.status==='available'&&Boolean(summary.extraZ.baseline);
  initial.openingQualityPending=summary.coverage?.status==='complete'&&summary.openingAllocation?.status==='verified-first-tsd'&&summary.extraZ?.status==='unknown'&&summary.extraZ.baseline===null&&!summary.extraZ.allocations.length&&!summary.extraZ.departures.length&&!summary.center.closed.some(p=>p.status==='debt-invalidated'&&p.at>=summary.openingAllocation.firstTsdAt);
- if(!options.disableConstruction&&options.constructionPrevious?.evidence?.construction){const tracker={nodes:0},retained=revalidate(options.constructionPrevious.evidence.construction.kind==='left-support'?observe(raw):s,options.constructionPrevious,{...options,deadline,budgetTracker:tracker,maxNodes:Math.min(8000,Math.max(0,(options.maxNodes??45000)-base.metrics.nodes))});base.metrics.nodes+=tracker.nodes;if(retained){retained.metrics.nodes=base.metrics.nodes;return retained;}}
+ if(!options.disableConstruction&&options.constructionPrevious?.evidence?.construction){const tracker={nodes:0},retained=revalidate(['left-support','left-scoring-foundation'].includes(options.constructionPrevious.evidence.construction.kind)?observe(raw):s,options.constructionPrevious,{...options,deadline,budgetTracker:tracker,maxNodes:Math.min(8000,Math.max(0,(options.maxNodes??45000)-base.metrics.nodes))});base.metrics.nodes+=tracker.nodes;if(retained){retained.metrics.nodes=base.metrics.nodes;return retained;}}
 
  if(!options.disableConstruction&&options.commitment?.advice?.evidence?.construction){
-  const proof=options.commitment.advice.evidence.construction,tracker={nodes:0},saved=constructionAdvice(proof.kind==='left-support'?observe(raw):s,proof,deadline,now,Math.max(0,(options.maxNodes??45000)-base.metrics.nodes),tracker,options);base.metrics.nodes+=tracker.nodes;
+  const proof=options.commitment.advice.evidence.construction,tracker={nodes:0},saved=constructionAdvice(['left-support','left-scoring-foundation'].includes(proof.kind)?observe(raw):s,proof,deadline,now,Math.max(0,(options.maxNodes??45000)-base.metrics.nodes),tracker,options);base.metrics.nodes+=tracker.nodes;
   if(saved){
    // Consider ordinary scoring at the SAME executed horizon. A replacement
    // must re-certify the original public construction and dominate its endpoint,
    // rather than silently abandoning a pending parity/center/Z obligation.
-   if(proof.kind!=='left-support'&&initial.maintenanceScope&&saved.continuation.length<=s.queue.length+1&&deadline-now()>100){
+   if(!['left-support','left-scoring-foundation'].includes(proof.kind)&&initial.maintenanceScope&&saved.continuation.length<=s.queue.length+1&&deadline-now()>100){
     const ordinary=plan(s,{...options,disableConstruction:true,deadline,commitment:null,constructionPrevious:null,depth:saved.continuation.length,maxNodes:Math.max(0,(options.maxNodes??45000)-base.metrics.nodes)});base.metrics.nodes+=ordinary.metrics?.nodes||0;
     if(ordinary.target&&ordinary.continuation.length===saved.continuation.length){
      const candidateProof={...proof,steps:[...proof.steps.slice(0,proof.consumed),...ordinary.continuation.map(p=>({witness:p.witness}))]},tracker={nodes:0},replacement=constructionAdvice(s,candidateProof,deadline,now,Math.max(0,(options.maxNodes??45000)-base.metrics.nodes),tracker);base.metrics.nodes+=tracker.nodes;
@@ -1709,7 +1717,31 @@ function planRequest(raw,options={}){
   // incumbent's cheaper metrics. No imported certificate supplies authority.
   return{...maintenanceFallback,metrics:{...checked.metrics,...(checked.metrics?.usage?{usage:{...checked.metrics.usage,selected:maintenanceFallback.metrics.usage?.selected??null}}:{}),firstCertified:result.metrics?.firstCertified,admissionAttempts:result.metrics?.admissionAttempts,admissionFailures:result.metrics?.admissionFailures,certifiedHorizon:maintenanceFallback.continuation.length,certifiedFallback:{selected:true,locks:maintenanceFallback.continuation.length}},evidence:{...maintenanceFallback.evidence,budgetExhausted:checked.status==='budget-exhausted'||Boolean(result.evidence?.budgetExhausted),searchIncomplete:true}};
  }
- return supportPreference(checked);
+ return supportPreference(scoringPreference(checked));
+ function scoringPreference(checked){
+  // This separate finite goal is considered only AFTER the ordinary incumbent
+  // has passed final admission. Optional work cannot starve or revoke it.
+  if(!checked?.target||options.openingPhase!==false||options.disableLeftScoringFoundation||options.disableConstruction||options.commitment||options.constructionPrevious||checked.evidence?.opening||checked.evidence?.construction||checked.evidence?.commitmentRetained||!options.resourceContext)return checked;
+  const goal=cycleResources(checked.continuation||[]),first=checked.continuation?.[0];
+  if(goal.tsds||goal.quads||goal.centerPreparations||goal.centerCompletions||goal.leftFoundations||goal.outstandingPocket!==1||first?.event.type!=='I'||first.structuralEvidence?.allocation!=='quad-preparation'||!Y.scoringEligibility(raw,options))return checked;
+  const scoringSignature=r=>JSON.stringify([signature(r),options.resourceContext,options.patternHistory]);
+  const incumbent=clone(checked),bound=scoringSignature(incumbent),limit=options.maxNodes??45000,optionalStarted=now();let used=checked.metrics?.nodes||0;
+  const telemetry={attempted:true,selected:false,nodes:0,reason:'not-certified',scope:'exact-visible-I-Left-Z-Right-TSD; prospective preparation only; existing cleanup and retained goals protected',incumbentPrefix:clone(incumbent.continuation),incumbentAdmission:{evidence:clone(incumbent.evidence),assessment:clone(incumbent.assessment)}};
+  const finish=result=>{telemetry.nodes=used-(checked.metrics?.nodes||0);return{...result,metrics:{...result.metrics,nodes:used,elapsedMs:(checked.metrics?.elapsedMs||0)+Math.max(0,now()-optionalStarted),leftScoringFoundation:telemetry}};};
+  const fallback=()=>scoringSignature(incumbent)===bound?finish(incumbent):{...checked,target:null,witness:[],continuation:[],status:'invalid-input',reason:'The public request changed during optional scoring verification.',metrics:{...checked.metrics,nodes:used,certifiedHorizon:0}};
+  if(now()>=deadline||used>=limit){telemetry.reason='shared-budget';return fallback();}
+  const found=Y.scoringSearch(observe(raw),{...options,deadline,now,maxNodes:Math.max(0,limit-used)});used+=found.visited;telemetry.reason=found.reason;
+  if(!found.candidate||now()>=deadline||used>=limit)return fallback();
+  found.candidate.resourceContext=clone(options.resourceContext);
+  const tracker={nodes:0},candidate=constructionAdvice(observe(raw),found.candidate,deadline,now,Math.max(0,limit-used),tracker,options);used+=tracker.nodes;
+  if(!candidate||now()>=deadline||used>=limit){telemetry.reason='construction-not-certified';return fallback();}
+  const a=candidate.assessment,b=checked.assessment;
+  if(a.maxHeight>b.maxHeight||a.sealed>b.sealed||a.leftSealed>b.leftSealed){telemetry.reason='endpoint-quality-regression';return fallback();}
+  candidate.metrics={...incumbent.metrics,...candidate.metrics,nodes:used,stageProofLocks:candidate.continuation.length};
+  const admitted=finalCheck(candidate);used=admitted.metrics?.nodes??used;
+  if(!admitted.target||now()>=deadline||used>limit){telemetry.reason=admitted.evidence?.resourceObligations?.reason||'final-admission-unavailable';return fallback();}
+  telemetry.selected=true;telemetry.reason='actual-scoring-row-foundation';telemetry.scoreLock=3;telemetry.foundationCells=clone(candidate.continuation[0].structuralEvidence.scoringFoundation.cells);return finish(admitted);
+ }
  function supportPreference(checked){
   // Optional work starts only after the unchanged ordinary result is fully
   // admitted. It cannot consume the incumbent's proof budget or revoke it.
@@ -1782,7 +1814,7 @@ function advance(raw,previous,action,options={}){
   if(!refreshed||JSON.stringify(refreshed.witness)!==JSON.stringify(witness)||JSON.stringify(refreshed.continuation.map(p=>p.event))!==JSON.stringify(previous.continuation.map(p=>p.event)))return null;
   const bounds={...options,now,deadline,maxNodes:Math.max(0,limit-tracker.nodes)},resources=checkedResourceEndpoint(state,refreshed.continuation,constructionPolicyOptions(refreshed,bounds));tracker.nodes+=resources.visited||0;if(!resources.valid)return null;
   const access=A.prefix(state,refreshed.continuation,{...bounds,notches:H.resolve(state,options.patternHistory),maxNodes:Math.max(0,limit-tracker.nodes)});tracker.nodes+=access.visited;
-  if(access.reachable!==true||previous.evidence.construction.kind==='left-support'&&(now()>=deadline||tracker.nodes>limit))return null;
+  if(access.reachable!==true||['left-support','left-scoring-foundation'].includes(previous.evidence.construction.kind)&&(now()>=deadline||tracker.nodes>limit))return null;
   return{...refreshed,retained:true,metrics:{...refreshed.metrics,certifiedHorizon:refreshed.continuation.length,revalidationNodes:tracker.nodes},evidence:{...refreshed.evidence,resourceObligations:{status:'checked',binding:resourceBinding(state,options)}}};
  }
  const steps=previous.continuation.map((step,i)=>({...step,witness:i?step.witness:witness,hold:i?step.hold:witness.includes('HOLD'),holdCount:i?holdCount(step):witness.filter(a=>a==='HOLD').length}));
@@ -1811,7 +1843,7 @@ function revalidate(raw,previous,options={}){
   if(!refreshed||JSON.stringify(refreshed.continuation.map(p=>p.event))!==JSON.stringify(previous.continuation.map(p=>p.event)))return null;
   const resource=checkedResourceEndpoint(s,refreshed.continuation,constructionPolicyOptions(refreshed,{...options,maxNodes:Math.max(0,(options.maxNodes??8000)-tracker.nodes)}));tracker.nodes+=resource.visited||0;if(!resource.valid)return null;
   const access=A.prefix(s,refreshed.continuation,{...options,notches:H.resolve(s,options.patternHistory),maxNodes:Math.max(0,(options.maxNodes??8000)-tracker.nodes)});if(options.budgetTracker)options.budgetTracker.nodes+=access.visited;
-  if(previous.evidence.construction.kind==='left-support'&&(now()>=options.deadline||tracker.nodes+access.visited>(options.maxNodes??8000)))return null;
+  if(['left-support','left-scoring-foundation'].includes(previous.evidence.construction.kind)&&(now()>=options.deadline||tracker.nodes+access.visited>(options.maxNodes??8000)))return null;
   return access.reachable===true?{...refreshed,retained:true,metrics:{...refreshed.metrics,certifiedHorizon:refreshed.continuation.length,nodes:tracker.nodes+access.visited,revalidationNodes:tracker.nodes,gapAccessNodes:access.visited}}:null;
  }
 
