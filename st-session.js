@@ -2,7 +2,7 @@
  * restored. This format stores visible inputs, not hidden RNG or future bags. */
 (function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-bag'),require('./st-resource-history'),require('./st-pattern-history'),require('./st-planner'),require('./st-opening'),()=>require('./st-coach-config')):factory(root.STRules,root.STBag,root.STResourceHistory,root.STPatternHistory,root.STPlanner,root.STOpening,()=>root.STCoachConfig);if(typeof module==='object'&&module.exports)module.exports=api;else root.STSession=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,B,H,PH,P,O,C){
 'use strict';
-const FORMAT='zztetris-st-session',VERSION=1,ENGINE='st-coach-session-2026-10-31-reserved-plan-v1';
+const FORMAT='zztetris-st-session',VERSION=1,ENGINE='st-coach-session-2026-10-31-contextual-risk-v1';
 const LIMITS=Object.freeze({bytes:4*1024*1024,depth:64,nodes:150000,witness:256,continuation:16});
 const clone=x=>JSON.parse(JSON.stringify(x)),same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 // Transient next-lock routing is not portable certificate authority.
@@ -62,7 +62,7 @@ function prepare(input){
  let previous=null,commitment=null;const pendingLHint=differentCoach?null:portablePendingLHint(c.pendingLHint);
  if(c.handoffRecovery||c.previous?.evidence?.openingHandoff?.recovery||c.commitment?.advice?.evidence?.openingHandoff?.recovery)warnings.push('Transient handoff routing was discarded; advice remains subject to fresh validation.');
  if(differentCoach&&(c.previous||c.commitment))warnings.push('Saved coach advice and construction commitments were discarded for fresh planning.');
- if(c.previous?.recommendation?.kind==='risky'||c.previous?.status==='recommended-risky-placement')warnings.push('Saved risky advice was discarded for fresh supported-first planning.');
+ if(c.previous?.recommendation?.kind==='risky'||c.previous?.status==='recommended-risky-placement')warnings.push('Saved risky advice was discarded for fresh planning.');
  if(!differentCoach&&c.previous&&c.previous.recommendation?.kind!=='risky'&&c.previous.status!=='recommended-risky-placement'){try{if(candidateShape(c.previous))previous=portableAdvice(c.previous);}catch{}if(!previous)warnings.push('Stale or invalid previous advice was discarded.');}
  if(!differentCoach&&c.commitment&&c.commitment.advice?.recommendation?.kind!=='risky'&&c.commitment.advice?.status!=='recommended-risky-placement'){try{const origin=position(c.commitment.observation);if(candidate(origin,c.commitment.advice)&&P.resourceGoal(c.commitment.advice.continuation))commitment=portableCommitment(c.commitment);}catch{}if(!commitment)warnings.push('Stale or invalid construction commitment was discarded.');}
  // Candidates remain subject to the normal planner's resource, access, source

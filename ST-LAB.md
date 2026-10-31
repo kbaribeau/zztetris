@@ -589,3 +589,20 @@ covered-cell and access checks still apply. The original public repair witnesses
 are replayed across movement, HOLD, actual reveals and line-clear translation.
 These engineered bounds and finite certificates are not a guarantee of sustained
 play or a Reset policy.
+
+### Contextual explained-risk allocation
+
+The experimental decision layer can compare an explicit D-risk placement with
+an already supported finite alternative in one narrow public-supply situation:
+HOLD would postpone S while at least two more S than L are visible, and actually
+placing S on Left reduces that burden. The compared first locks must leave the
+same public next draw and identical Center/Right, with no increased height or
+new covered/sealed damage. Existing Center/repair commitments, retained advice,
+opening and construction plans remain protected. This is a conservative
+allocation hypothesis, not a community rule or a promise of an arriving J/L.
+
+The chosen D placement stays risky, with its unresolved J timing and waiting
+space explained. Advice explicitly acknowledges the supported alternative found
+and the S-accommodation tradeoff; it does not claim no supported move existed or
+that the risky move is proved superior over unseen future play. Normal risk
+import/movement/reveal rejection and fresh replanning remain unchanged.

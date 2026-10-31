@@ -2264,11 +2264,11 @@ function riskyDAdmission(before,p,resource,options){
  hazards.push({code:'D-waiting-space-unproved',detail:`Left reaches ${Math.max(...geometry.left.profile)} rows; no route for parking intervening pieces while waiting for J is certified.`,downside:'Visible pieces may exhaust the available space before the D exit becomes usable.'});
  return{...checked,valid:true,visited:checked.visited||0,hazards};
 }
-function riskyFallback(raw,supported,options,collector){
+function riskyFallback(raw,supported,options,collector,comparison=null){
  const now=options.now||(()=>Date.now()),deadline=options.deadline??Infinity,limit=options.maxNodes??45000;
  const fallbackStarted=Date.now(),spent=supported.metrics?.nodes||0,telemetry={attempted:false,considered:0,nodes:0,source:'existing-root-enumeration',supportedStatus:supported.status,truncated:false,proofIncomplete:false,dProofNodes:0,rejections:{}};
  const finish=result=>{telemetry.elapsedMs=Math.max(0,Date.now()-fallbackStarted);return{...result,metrics:{...result.metrics,nodes:spent+telemetry.nodes,elapsedMs:collector.started===undefined?(supported.metrics?.elapsedMs||0)+telemetry.elapsedMs:Math.max(0,Date.now()-collector.started),riskFallback:telemetry}};};
- if(supported.target||!collector.placements?.length||now()>=deadline||spent>=limit)return finish(supported);
+ if(supported.target&&!comparison||!collector.placements?.length||now()>=deadline||spent>=limit)return finish(supported);
  let state;try{state=extendForced(observe(raw));}catch{return finish(supported);}
  if(R.validate(state).length||(state.bag&&B.validate(state.bag).length)||state.topOut||!state.active||options.openingPhase===true)return finish(supported);
  const summary=resourceSummary(observe(raw),options),notches=H.resolve(observe(raw),options.patternHistory);
@@ -2289,6 +2289,7 @@ function riskyFallback(raw,supported,options,collector){
   const created=A.newlyCovered(state.board,nextState.board,event,phase.pattern),debt=A.repairStep(state.board,nextState.board,event,initialDebt,phase.pattern);
   if(sealedDebt.length||facts.maxHeight>=19||created.length>4||debt.length>6){reject('conservative-structural-bound');continue;}
   const d=riskyDAdmission(state,{...p,state:nextState,event},resource,{...options,notches:phase.pattern,pendingD:summary.dPattern?.pending===true,maxNodes:Math.min(Math.max(0,4000-telemetry.dProofNodes),Math.max(0,limit-spent-telemetry.nodes)),now,deadline});telemetry.nodes+=d.visited||0;telemetry.dProofNodes+=d.visited||0;if(d.complete===false)telemetry.proofIncomplete=true;if(!d.valid){reject(d.reason||'D-exit-unproved');continue;}if(now()>=deadline||spent+telemetry.nodes>limit){telemetry.truncated=true;break;}
+  if(comparison&&!(d.hazards||[]).some(h=>h.code==='D-J-exit-unresolved')){reject('no-unresolved-D-risk');continue;}
   const hazards=[...(d.hazards||[])];
   if(debt.length)hazards.push({code:'unresolved-covered-cells',cells:debt,detail:`${debt.length} covered cell(s) remain without a verified restoration plan.`,downside:'The needed repair pieces may be unavailable or the gaps may become inaccessible.'});
   const lost=next.pendingCenter.filter(p=>p.lost),live=next.pendingCenter.filter(p=>!p.lost);
@@ -2301,20 +2302,20 @@ function riskyFallback(raw,supported,options,collector){
   // A clean payment must not lose solely because it removes the last known
   // hazard. Uncertified continuation is disclosed without inventing damage.
   const paid=['complete','partial'].includes(summary.coverage?.status)?resource.pendingCenter.filter(o=>Number.isInteger(o.rootId)&&o.rootId>0&&!o.lost&&!next.pendingCenter.some(n=>n.rootId===o.rootId)&&o.alternatives.some(a=>a.piece===event.type&&a.cells.length===event.cells.length&&a.cells.every(([x,y])=>event.cells.some(([ex,ey])=>x===ex&&y===ey)))).map(o=>o.rootId):[];
-  hazards.push({code:'continuation-unverified',detail:'Only this placement is verified; no supported continuation was certified in this bounded search.',downside:'Further play may require an awkward repair or an early stop.'});
+  hazards.push({code:'continuation-unverified',detail:comparison?'Only this risky placement is verified; its continuation is not certified.':'Only this placement is verified; no supported continuation was certified in this bounded search.',downside:'Further play may require an awkward repair or an early stop.'});
   const score=[debt.length,next.pendingCenter.filter(p=>p.lost).length,afterCavities.sealed,facts.maxHeight,-paid.length,-event.lines,-facts.estimate,p.witness.length];
   candidates.push({p:{...p,state:nextState,event},hazards,facts,score,paid});
  }
  telemetry.truncated=telemetry.truncated||collector.placements.length>64;
  candidates.sort((a,b)=>{for(let i=0;i<a.score.length;i++)if(a.score[i]!==b.score[i])return a.score[i]-b.score[i];return 0;});
- const chosen=candidates[0];if(!chosen)return finish({...supported,reason:supported.reason+' No risky fallback passed the remaining-budget and conservative legality/resource/structure checks.'});
+ const chosen=candidates[0];if(!chosen&&supported.target)return finish(supported);if(!chosen)return finish({...supported,reason:supported.reason+' No risky fallback passed the remaining-budget and conservative legality/resource/structure checks.'});
  const {p,hazards,facts,paid}=chosen,step={target:p.event.target,witness:p.witness.slice(),event:p.event,hold:p.witness.includes('HOLD'),holdCount:p.witness.filter(a=>a==='HOLD').length,resultContext:context(p.state)};
- const search={status:supported.status,incomplete:incomplete||telemetry.truncated||telemetry.proofIncomplete,saferAlternative:'not-certified-within-bounded-search',candidateLimit:64};
+ const search={status:supported.status,incomplete:incomplete||telemetry.truncated||telemetry.proofIncomplete,saferAlternative:comparison?'supported-finite-alternative-ranked-lower':'not-certified-within-bounded-search',candidateLimit:64,...(comparison?{comparison}: {})};
  const region=p.event.cells.every(([x])=>x<4)?'Left':p.event.cells.every(([x])=>x>=4&&x<7)?'Center':p.event.cells.every(([x])=>x>=7)?'Right':'across regions';
  return finish({status:'recommended-risky-placement',revision:raw.revision,context:context(observe(raw)),target:step.target,witness:step.witness,hold:step.hold,holdCount:step.holdCount,continuation:[step],assessment:facts,
-  reason:`Risky: ${holdPrompt(step)}Place ${p.event.type} in ${region}. ${hazards.map(h=>h.detail+' '+h.downside).join(' ')} A safer move may exist; the search did not certify one.`,sources:[],
+  reason:`Risky: ${holdPrompt(step)}Place ${p.event.type} in ${region}. ${hazards.map(h=>h.detail+' '+h.downside).join(' ')} ${comparison?`A supported finite alternative was found but holds this S instead. Placing S now reduces the public S-minus-L surplus from ${comparison.excessBefore} to ${comparison.excessAfter}, accepting the stated D risk. This is not proof that the supported alternative is worse over future play.`:'A safer move may exist; the search did not certify one.'}`,sources:[],
   recommendation:{kind:'risky',riskBasis:hazards.length===1&&hazards[0].code==='continuation-unverified'?'uncertified-follow-up-only':'identified-dependency',hazards,search,claim:'Legal current placement only; restoration, continued survival and future piece arrival are not proved.'},
-  evidence:{strategy:'explicit-risk-fallback',verifiedLocks:1,resourcePermissions:'unchanged',actualPartnerPayments:paid,risk:{hazards,search},claim:'No supported repair certificate is supplied.'},metrics:{...supported.metrics,certifiedHorizon:0,legalHorizon:1}});
+  evidence:{strategy:comparison?'contextual-risk-allocation':'explicit-risk-fallback',...(comparison?{riskComparison:comparison}:{}),verifiedLocks:1,resourcePermissions:'unchanged',actualPartnerPayments:paid,risk:{hazards,search},claim:'No supported repair certificate is supplied.'},metrics:{...(comparison?{nodes:supported.metrics?.nodes||0,elapsedMs:supported.metrics?.elapsedMs||0,supportedSearch:clone(supported.metrics||{})}:supported.metrics),certifiedHorizon:0,legalHorizon:1}});
 }
 
 // Optional exact-public repair search. It only extends the already selected
@@ -2377,7 +2378,32 @@ function reservedPiecePlan(raw,incumbent,options,collector){
  if(!bounded())incomplete=true;return finish(incumbent);
 }
 
-function decide(raw,options={}){return queryRequest(()=>{const now=options.now||(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs),collector={key:null,placements:null,complete:false,started:Date.now()};try{collector.key=stateKey(extendForced(observe(raw)));}catch{}options={...options,now,deadline,[riskRootCollector]:collector};const initial=decideRequest(raw,options),result=reservedPiecePlan(raw,initial,options,collector);return result.target?classifySupported(result):riskyFallback(raw,result,options,collector);});}
+// A scoped allocation tradeoff, not a universal risky-over-supported rule.
+// Actual S placement can relieve a public S/L supply imbalance that the
+// supported HOLD move postpones. The newly created D remains an explicit risk.
+function contextualRiskPreference(raw,supported,options,collector){
+ if(!supported?.target||supported.retained||options.disableContextualRisk||options.openingPhase!==false||options.allowHold===false||options.commitment||supported.evidence?.opening||supported.evidence?.construction||supported.evidence?.commitmentRetained||supported.evidence?.reservedPiecePlan||!collector.placements?.length)return supported;
+ const state=observe(raw),summary=resourceSummary(state,options),supply=M.start(state,summary),visible=[supply.active,supply.hold,...supply.queue].filter(Boolean),counts=type=>visible.filter(p=>p.type===type).length;
+ if(!['complete','partial'].includes(summary.coverage.status)||counts('S')-counts('L')<2||summary.coveredRepair?.cells.length||supply.pendingCenter.length||supply.violations.length)return supported;
+ const first=supported.continuation?.[0],replay=first&&R.replay(extendForced(state),first.witness);
+ if(!replay?.valid||replay.events.length!==1||replay.events[0].type==='S'||replay.events[0].lines||!replay.events[0].cells.every(([x])=>x<4)||replay.state.hold!=='S')return supported;
+ const now=options.now||(()=>Date.now()),deadline=options.deadline??Infinity;
+ if(now()>=deadline||(supported.metrics?.nodes||0)>=(options.maxNodes??45000))return supported;
+ const baseline=replay.state,old=assess(baseline.board),phase=H.resolve(state,options.patternHistory),oldSealed=S.cavityFacts(state.board).sealed,sameOutsideLeft=b=>b.every((row,y)=>row.slice(4)===baseline.board[y].slice(4)),placements=[];
+ for(const p of collector.placements){
+  if(now()>=deadline)return supported;
+  if(p.event.type!=='S'||p.event.lines||!p.event.cells.every(([x])=>x<4)||!L.createsD(state.board,p.state.board)||p.state.active?.type!==baseline.active?.type||JSON.stringify(p.state.queue)!==JSON.stringify(baseline.queue)||p.state.streamCursor!==baseline.streamCursor||!sameOutsideLeft(p.state.board))continue;
+  const facts=assess(p.state.board);
+  if(facts.maxHeight>old.maxHeight||facts.left.height>old.left.height||A.newlyCovered(state.board,p.state.board,p.event,phase).length||S.cavityFacts(p.state.board).sealed>oldSealed)continue;
+  placements.push(p);
+ }
+ if(!placements.length)return supported;
+ const comparison={scope:'same-public-draw; first-lock Left-only accommodation',reason:'place-visible-S-instead-of-postponing-it-in-HOLD',visibleS:counts('S'),visibleL:counts('L'),excessBefore:counts('S')-counts('L'),excessAfter:counts('S')-counts('L')-1,
+  supportedAlternative:{target:clone(first.target),holdCount:holdCount(first),verifiedLocks:supported.continuation.length,metrics:{certifiedHorizon:supported.metrics?.certifiedHorizon??null,nodes:supported.metrics?.nodes??null},claim:'A supported finite alternative was found, not a guarantee of sustainability.'}};
+ return riskyFallback(raw,supported,options,{...collector,placements},comparison);
+}
+
+function decide(raw,options={}){return queryRequest(()=>{const now=options.now||(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs),collector={key:null,placements:null,complete:false,started:Date.now()};try{collector.key=stateKey(extendForced(observe(raw)));}catch{}options={...options,now,deadline,[riskRootCollector]:collector};const initial=decideRequest(raw,options),result=reservedPiecePlan(raw,initial,options,collector);return result.target?classifySupported(contextualRiskPreference(raw,result,options,collector)):riskyFallback(raw,result,options,collector);});}
 function decideRequest(raw,options={}){
  const now=options.now||(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs),budgetTracker={nodes:0},limit=options.maxNodes??45000;
  options={...options,now,deadline};const previous=options.previous;

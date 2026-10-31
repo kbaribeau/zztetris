@@ -1,0 +1,75 @@
+{
+  "provenance": "Reviewed public R417 before26 decision. Current board plus six-preview inventory suffice for the scoped S accommodation comparison; deliberately synthetic partial history does not grant historical spare-piece permissions. Original full history remains in external evidence.",
+  "observation": {
+    "rules": "st-zero-v2",
+    "board": [
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..LI......",
+      "LLLILLL...",
+      "JJJILSS...",
+      "JJJISS...Z",
+      "JJIILLL.ZZ",
+      "JJIILSS.Z.",
+      "OOSSLOO.Z.",
+      "OOJILSS.Z.",
+      "ILLLOOJ.Z.",
+      "TSSIJZZ.Z.",
+      "SSLLLOO.Z."
+    ],
+    "active": {
+      "type": "S",
+      "x": 3,
+      "y": 17,
+      "rotation": 0,
+      "lastRotation": null
+    },
+    "hold": "O",
+    "canHold": true,
+    "queue": [
+      "I",
+      "O",
+      "S",
+      "Z",
+      "T",
+      "I"
+    ],
+    "revision": 182,
+    "streamCursor": 47,
+    "topOut": false,
+    "bag": {
+      "remaining": [
+        14
+      ],
+      "observedCount": 53,
+      "provenance": "known-phase"
+    }
+  }
+}
