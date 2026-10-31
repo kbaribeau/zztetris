@@ -9,13 +9,13 @@ function ordinaryRightEligible(event){return !event.cells.some(([x])=>x>=7)||['Z
 // The shared construction presenter also serves the existing paired-T recovery.
 // Only a freshly replay-verified, Reset-eligible proof receives this private
 // scope. No serialized construction kind or caller option can exempt a route.
-const pairedResetProofs=new WeakSet(),pairedResetScope=Symbol('paired-reset-scope');
-function constructionPolicyOptions(advice,options){return{...options,[pairedResetScope]:pairedResetProofs.has(advice?.evidence?.construction)};}
+const pairedResetProofs=new WeakSet(),pairedResetScope=Symbol('paired-reset-scope'),pendingLStageDisabled=Symbol('pending-L-stage-disabled'),pendingLSelections=new WeakSet();
+function constructionPolicyOptions(advice,options){return{...options,[pairedResetScope]:pairedResetProofs.has(advice?.evidence?.construction),[pendingLStageDisabled]:Boolean(advice?.evidence?.construction)};}
 function resourceSummary(raw,options={}){return RH.resolve(raw,options.resourceContext?RH.importContext(raw,options.resourceContext):RH.start(raw));}
 function ordinaryResourceCheck(raw,path,options={}){const summary=resourceSummary(raw,options);if(options.resourceContext&&summary.coverage?.status==='invalid')return{valid:false,reason:'invalid-resource-context'};return M.checkPath(raw,path,summary);}
 function checkedResourceEndpoint(raw,path,options={}){const result=resourceEndpointCore(raw,path,options);if(options.budgetTracker)options.budgetTracker.nodes+=(result.visited||0);return result;}
 function resourceEndpointCore(raw,path,options={}){
- const checked=ordinaryResourceCheck(raw,path,options);if(!checked.valid)return{...checked,visited:0};
+ const checked=ordinaryResourceCheck(raw,path,options);if(!checked.valid&&(options[pendingLStageDisabled]||checked.reason!=='center-partner-blocked-by-T-or-unseen'||!M.pendingLStageEligible(checked.state,checked.resource)))return{...checked,visited:0};
  let visited=0;const now=options.now||(()=>Date.now()),deadline=options.deadline??Infinity,limit=options.maxNodes??45000;
 
  let centerDeparture=false,virtual=extendForced(observe(raw)),notches=H.resolve(observe(raw),options.patternHistory);for(const step of path){const r=R.replay(virtual,step.witness);if(!r.valid||r.events.length!==1)return{...checked,valid:false,visited,reason:'invalid-resource-witness'};if(!options[pairedResetScope]&&!ordinaryRightEligible(r.events[0]))return{...checked,valid:false,visited,reason:'ordinary-right-requires-Z-T-I'};const phase=S.advanceNotches(virtual.board,{state:r.state,event:r.events[0]},notches);if(!phase.valid)return{...checked,valid:false,visited,reason:'invalid-resource-repair-phase'};notches=phase.pattern;
@@ -38,7 +38,7 @@ function resourceEndpointCore(raw,path,options={}){
   const replay=access.reachable?R.replay(checked.state,access.witness):null;
   if(!replay?.valid||replay.events.length!==1||replay.events[0].type!=='T'||replay.events[0].spin!=='full'||replay.events[0].lines!==2)return{...checked,valid:false,visited,reason:'pending-T-collision-without-score'};
  }
- const repair=resourceRepair(checked.state,checked.resource,{...options,notches,maxNodes:Math.min(4000,Math.max(0,limit-visited)),deadline,now});visited+=repair.visited;
+ const repair=resourceRepair(checked.state,checked.resource,{...options,notches,coveredDebt:restoration.outstandingCells,maxNodes:Math.min(4000,Math.max(0,limit-visited)),deadline,now});visited+=repair.visited;
  return{...checked,valid:repair.valid===true,reason:repair.valid===true?null:repair.status,visited,repair};
 }
 // Successful completion witnesses may be reused only inside one synchronous plan.
@@ -46,10 +46,17 @@ function resourceEndpointCore(raw,path,options={}){
 // never supplies this private cache and failed/budget-limited probes are not saved.
 const resourceRepairCache=Symbol('resource-repair-cache'),rightCapAdmission=Symbol('right-cap-admission'),supportedSLAdmission=Symbol('supported-SL-admission');
 function resourceRepair(state,resource,options){
- const cache=options[resourceRepairCache],key=JSON.stringify([observe(state),M.binding(resource),options.notches]);
+ const cache=options[resourceRepairCache],key=JSON.stringify([observe(state),M.binding(resource),options.notches,options.coveredDebt||[],Boolean(resource.pendingLDiverted),Boolean(options[pendingLStageDisabled])]);
  if(cache?.has(key))return{...cache.get(key),visited:0,reused:true};
- const proof=M.repair(state,resource,options);if(proof.valid)cache?.set(key,proof);return proof;
+ const eligible=!options[pendingLStageDisabled]&&M.pendingLStageEligible(state,resource),hasL=[resource.active,resource.hold,...resource.queue].some(p=>p?.type==='L');
+ let proof=eligible&&!hasL?M.pendingLStage(state,resource,options):M.repair(state,resource,options);
+ if(!proof.valid&&eligible&&hasL&&(proof.visited||0)<options.maxNodes){const extra=M.pendingLStage(state,resource,{...options,maxNodes:Math.max(0,options.maxNodes-(proof.visited||0))});proof={...extra,visited:(proof.visited||0)+(extra.visited||0)};}
+ if(proof.valid)cache?.set(key,proof);return proof;
 }
+function pendingLProof(proof){return proof?.waitingStage?{status:proof.status,rootId:proof.rootId,target:clone(proof.target),endpointTarget:clone(proof.endpointTarget),waiting:proof.path.map(p=>({witness:p.witness.slice(),event:clone(p.event)})),publicDrawsExhausted:proof.publicDrawsExhausted,parkedHold:proof.parkedHold,arrival:'not-established',scope:proof.scope}:null;}
+
+function pendingLPresentation(path,assessment,construction,proof){const result=advicePresentation(path,assessment,construction);if(proof?.waitingStage)result.reason+=' The exact Center L target remains pending; the visible intervening pieces have a checked waiting route. L arrival is not yet established.';return result;}
+
 function resourceBinding(raw,options={}){return M.start(extendForced(raw),resourceSummary(raw,options)).originKey;}
 
 const holdCount=p=>p.holdCount??p.witness.filter(a=>a==='HOLD').length;
@@ -367,7 +374,7 @@ function checkedCoveredRepair(raw,steps,options={},saved=null){
  const needed=relevant.some(p=>p.required);
  if(saved){
   const resource=ordinaryResourceCheck(origin,whole,originOptions);
-  if(!resource.valid)return null;
+  if(!resource.valid&&(resource.reason!=='center-partner-blocked-by-T-or-unseen'||!M.pendingLStageEligible(resource.state,resource.resource)))return null;
  }
  const plan=needed?{origin:observe(origin),steps:whole.map(p=>({witness:p.witness.slice(),event:clone(p.event)})),consumed,patternHistory:clone(originOptions.patternHistory??null),resourceContext:clone(originOptions.resourceContext??null)}:null;
  return{proof,plan,steps:steps.map((p,i)=>({...p,structuralEvidence:{...p.structuralEvidence,coveredRepair:relevant[i]}}))};
@@ -602,11 +609,11 @@ function continueCommitment(before,after,advice,actualEvent=after?.lastEvent,opt
  if(debt.length||centerDebt.length||!prior.regionalSupport||!resourceGoal(continuation)&&!pendingPlan)return null;
  const repair=checkedCoveredRepair(s,continuation,options,pendingPlan);if(!repair)return null;
  const head=continuation[0],access=A.prefix(s,continuation,{...bounds,notches:H.resolve(s,options.patternHistory),maxNodes:Math.max(0,bounds.maxNodes-resources.visited)});if(access.reachable!==true)return null;return {...advice,target:head.target,witness:head.witness,hold:head.witness.includes('HOLD'),holdCount:holdCount(head),continuation:repair.steps,context:context(s),revision:s.revision,metrics:{...advice.metrics,certifiedHorizon:continuation.length,revalidationNodes:resources.visited+access.visited},
-  ...advicePresentation(continuation,prior),evidence:{...advice.evidence,coveredRepair:repair.proof,coveredRepairPlan:repair.plan,cycleResources:cycleResources(continuation),commitmentRetained:true,resourceObligations:{status:'checked',binding:resourceBinding(s,options)}}};
+  ...pendingLPresentation(continuation,prior,null,resources.repair),evidence:{...advice.evidence,pendingLSelection:null,coveredRepair:repair.proof,coveredRepairPlan:repair.plan,pendingLStage:pendingLProof(resources.repair),cycleResources:cycleResources(continuation),commitmentRetained:true,resourceObligations:{status:'checked',binding:resourceBinding(s,options)}}};
 }
 function context(s){return JSON.stringify([s.rules,s.board,s.hold,s.canHold,s.queue,s.bag??null,s.active?.type]);}
 function stateKey(s){return JSON.stringify([s.rules,s.board,s.active,s.hold,s.canHold,s.queue,s.bag??null]);}
-function nodeKey(n){return stateKey(n.state)+':notches:'+n.notches.status+':'+n.notches.anchorRow+':cavities:'+JSON.stringify(n.cavityDebt.slice().sort(([ax,ay],[bx,by])=>ax-bx||ay-by))+':center:'+JSON.stringify(n.centerDebt)+':centerContinuity:'+Boolean(n.centerContinuityDebt)+':rootSeal:'+Boolean(n.path[0].structuralEvidence.cavityRepair.cells.length)+':resources:'+(n.resources?M.binding(n.resources):'none');}
+function nodeKey(n){return stateKey(n.state)+':notches:'+n.notches.status+':'+n.notches.anchorRow+':cavities:'+JSON.stringify(n.cavityDebt.slice().sort(([ax,ay],[bx,by])=>ax-bx||ay-by))+':coveredRepair:'+JSON.stringify((n.coveredRepairDebt||[]).slice().sort(([ax,ay],[bx,by])=>ax-bx||ay-by))+':center:'+JSON.stringify(n.centerDebt)+':centerContinuity:'+Boolean(n.centerContinuityDebt)+':rootSeal:'+Boolean(n.path[0].structuralEvidence.cavityRepair.cells.length)+':resources:'+(n.resources?M.binding(n.resources):'none');}
 function extendForced(state){return M.extendForced(state);}
 // Only an actually verified first-TSD allocation can leave this narrow quality
 // obligation pending. Projected progress is a preference, never an allowance or
@@ -827,6 +834,7 @@ function nodeFor(p,parent,initial,rootIndex,readAssessment=assess){
  const dependencyDebt=Math.max(0,(parent?.dependencyDebt??0)+transition.dependencyDebt);
  const priorAssessment=parent?.assessment??initial;
  const cavityDebt=cavityRepairDebt(priorAssessment,assessment,p.event,parent?.cavityDebt);
+ const coveredRepairDebt=A.repairStep(before.board,p.state.board,p.event,parent?.coveredRepairDebt??initial.coveredRepair?.cells??[],notchCheck.pattern);
  const centerReservation=centerReservationStep(before,p,parent?.centerDebt,priorNotches),centerDebt=centerReservation.debt;
  const resources=initial.resources?M.step(before,p,parent?.resources??initial.resources):null;
  const slAllocation=slAllocationStep(before,p,parent?.resources??initial.resources,resources,priorNotches,parent?.slAllocation);
@@ -865,7 +873,7 @@ function nodeFor(p,parent,initial,rootIndex,readAssessment=assess){
  // updates the real replay ledger or manufactures Extra-Z eligibility.
  const openingQualityProgress=initial.openingQualityPending&&resources?-(resources.hangingS.length+resources.pendingCenter.length+resources.hangingL.length+(resources.unclassifiedS?.length||0)+(resources.unclassifiedL?.length||0)):null;
  if(openingQualityProgress!==null)assessment.structure.openingQuality={status:'pending-observed-quality',projectedUnresolved:-openingQualityProgress,baselineGranted:false};
- return{resources,slAllocation,ordinarySAllocationEnabled:initial.ordinarySAllocationEnabled===true,extraZPreservable:initial.extraZPreservable===true,openingQualityProgress,centerContinuity,centerContinuityDebt,state:p.state,path,notches:notchCheck.pattern,notchValid:notchCheck.valid,assessment,rank,structuralScore,dependencyDebt,entryDebt,cycleDebt,cavityDebt,centerDebt,baseEstimateRank:rank[4],qualified:!assessment.right.slots.length,rootIndex,key:JSON.stringify(path[0].target)+':'+holdCount(path[0])};
+ return{resources,slAllocation,ordinarySAllocationEnabled:initial.ordinarySAllocationEnabled===true,extraZPreservable:initial.extraZPreservable===true,openingQualityProgress,centerContinuity,centerContinuityDebt,state:p.state,path,notches:notchCheck.pattern,notchValid:notchCheck.valid,assessment,rank,structuralScore,dependencyDebt,entryDebt,cycleDebt,cavityDebt,coveredRepairDebt,centerDebt,baseEstimateRank:rank[4],qualified:!assessment.right.slots.length,rootIndex,key:JSON.stringify(path[0].target)+':'+holdCount(path[0])};
 }
 function diversify(nodes,width){const sorted=[...nodes].sort(compare),chosen=[],roots=new Set(),groups=new Set();
  // Protect meaningfully different construction families, not just top-scoring
@@ -1269,14 +1277,15 @@ function planCore(raw,options={}){
  let screeningLimit=limit;
  const screeningAllowance=limit>=20000&&!options.disableOpening&&!options.disableConstruction?Math.min(6000,Math.floor(limit/5)):Infinity;
  const screening=base.metrics.proofScheduling={enabled:Number.isFinite(screeningAllowance),allowance:Number.isFinite(screeningAllowance)?screeningAllowance:null,calls:0,nodes:0,unfinished:0,budgetStops:0};
- const accessSafe=n=>{const restoration=A.repairPrefix(s,n.path,{notches:initial.notches,initialDebt:initial.coveredRepair?.cells,stages:initial.coveredStages});if(!restoration.valid)return false;if(initial.coveredRepair?.cells.length)n.path=n.path.map((p,i)=>({...p,structuralEvidence:{...p.structuralEvidence,coveredRepair:repairStepEvidence(restoration,i,initial.coveredRepair.cells)}}));const proof=A.prefix(s,n.path,{notches:initial.notches,deadline,now,maxNodes:Math.max(0,Math.min(limit,screeningLimit)-base.metrics.nodes)});base.metrics.nodes+=proof.visited;if(proof.reachable===null)screening.unfinished++;base.metrics.gapAccessNodes=(base.metrics.gapAccessNodes||0)+proof.visited;n.path[0].gapAccess=proof;return proof.reachable===true;};
+ const accessSafe=n=>{const restoration=A.repairPrefix(s,n.path,{notches:initial.notches,initialDebt:initial.coveredRepair?.cells,stages:initial.coveredStages});if(!restoration.valid)return false;n.coveredRepairProof=restoration;if(initial.coveredRepair?.cells.length)n.path=n.path.map((p,i)=>({...p,structuralEvidence:{...p.structuralEvidence,coveredRepair:repairStepEvidence(restoration,i,initial.coveredRepair.cells)}}));const proof=A.prefix(s,n.path,{notches:initial.notches,deadline,now,maxNodes:Math.max(0,Math.min(limit,screeningLimit)-base.metrics.nodes)});base.metrics.nodes+=proof.visited;if(proof.reachable===null)screening.unfinished++;base.metrics.gapAccessNodes=(base.metrics.gapAccessNodes||0)+proof.visited;n.path[0].gapAccess=proof;return proof.reachable===true;};
  const repairCache=new Map();
  const resourceSafe=n=>{
-  if(n.resources?.centerBlocked||n.resources?.unclassifiedS?.some(s=>s.invalidated||s.requiresAccommodation))return false;
+  const restoration=n.coveredRepairProof||A.repairPrefix(s,n.path,{notches:initial.notches,initialDebt:initial.coveredRepair?.cells,stages:initial.coveredStages});if(!restoration.valid)return false;n.coveredRepairProof=restoration;
+  if(n.resources?.centerBlocked&&!M.pendingLStageEligible(n.state,n.resources)||n.resources?.unclassifiedS?.some(s=>s.invalidated||s.requiresAccommodation))return false;
   if(n.resources?.tCollision&&n.assessment.right.entry?.status!=='reachable-if-T-available')return false;
   if(!n.resources?.hangingS.length&&!n.resources?.pendingCenter.length)return true;
-  const key=JSON.stringify([observe(n.state),M.binding(n.resources),n.notches]);let proof=repairCache.get(key);
-  if(!proof){proof=resourceRepair(n.state,n.resources,{...options,notches:n.notches,maxNodes:Math.min(4000,Math.max(0,Math.min(limit,screeningLimit)-base.metrics.nodes)),deadline,now});base.metrics.nodes+=proof.visited;if(proof.valid!==null)repairCache.set(key,proof);}
+  const key=JSON.stringify([observe(n.state),M.binding(n.resources),n.notches,n.coveredRepairProof?.outstandingCells||[]]);let proof=repairCache.get(key);
+  if(!proof){proof=resourceRepair(n.state,n.resources,{...options,notches:n.notches,coveredDebt:n.coveredRepairProof?.outstandingCells||[],maxNodes:Math.min(4000,Math.max(0,Math.min(limit,screeningLimit)-base.metrics.nodes)),deadline,now});base.metrics.nodes+=proof.visited;if(proof.valid!==null)repairCache.set(key,proof);}
   n.resourceRepair=proof;if(proof.valid===null)screening.unfinished++;return proof.valid===true;
  };
  // Early endpoint screening must leave work for the next beam layer. A
@@ -1287,13 +1296,18 @@ function planCore(raw,options={}){
   if(!accessSafe(n)||!resourceSafe(n))return false;
   n.continuationChecked=true;return true;
  };
+ const currentLTargets=(summary.center?.pending||[]).filter(p=>p.family==='SL'&&p.rootId!==null).map(p=>({rootId:p.rootId,alternatives:clone(p.alternatives)}));
+ const currentLClosureLocks=n=>{let targets=clone(currentLTargets),closed=[];for(const [index,step]of n.path.entries()){const e=step.event,rows=e.clearedRows||[];targets=targets.filter(p=>{if(e.type==='L'&&p.alternatives.some(c=>centerCellsKey(c.cells)===centerCellsKey(e.cells))){closed.push(index+1);return false;}return true;}).map(p=>({...p,alternatives:p.alternatives.map(c=>({...c,cells:c.cells.map(([x,y])=>[x,rows.includes(y)?-1:y+rows.filter(v=>v>y).length])}))}));}return closed;};
+ const pendingLOrder=(a,b)=>{const x=currentLClosureLocks(a),y=currentLClosureLocks(b);if(x.length!==y.length)return y.length-x.length;for(let i=0;i<x.length;i++)if(x[i]!==y[i])return x[i]-y[i];return compareConstruction(a,b);};
+
  const cleanBest=(nodes,allowance=Infinity)=>{
   const start=base.metrics.nodes,prior=screeningLimit;screening.calls++;
   screeningLimit=Math.min(prior,start+allowance);
-  try{const ordered=nodes.filter(n=>n.cycleDebt===0&&certifiedCavities(n)).sort(compareConstruction);for(const n of ordered){
+  try{const ordered=nodes.filter(n=>n.cycleDebt===0&&certifiedCavities(n)).sort(pendingLOrder);let unknownHigher=0;for(const n of ordered){
    if(now()>=deadline){screening.budgetStops++;return null;}
    const beforeUnknown=screening.unfinished;
-   if(certifyContinuation(n))return preserveExtraZ(n,ordered,{protect:incumbent=>{remember(incumbent);return admittedNode===incumbent;},certify:candidate=>now()<deadline&&base.metrics.nodes<limit&&certifyContinuation(candidate)});
+   if(certifyContinuation(n)){if(n.resourceRepair?.waitingStage)n.pendingLSelection={scope:'same-horizon-searched-candidates',horizon:n.path.length,currentPendingClosures:currentLClosureLocks(n).length,currentPendingClosureLocks:currentLClosureLocks(n),higherRankedUnresolved:unknownHigher,globallyOptimal:false};return preserveExtraZ(n,ordered,{protect:incumbent=>{remember(incumbent);return admittedNode===incumbent;},certify:candidate=>now()<deadline&&base.metrics.nodes<limit&&certifyContinuation(candidate)});}
+   if(screening.unfinished>beforeUnknown)unknownHigher++;
    // Completed cached/no-work proofs remain usable at zero remaining nodes.
    // A zero allowance cannot turn an unfinished query into negative evidence.
    if(base.metrics.nodes>=screeningLimit&&screening.unfinished>beforeUnknown)screening.budgetStops++;
@@ -1426,6 +1440,7 @@ function planCore(raw,options={}){
   best=cleanBest(alternatives);
  }
  if(!best&&earlyCapFallback&&!commitment&&!cleanupCommitment&&resourceSafe(earlyCapFallback)){best=earlyCapFallback;fallbackMetrics.selected=true;base.metrics.depth=Math.max(base.metrics.depth,1);}
+ if(best?.resourceRepair?.waitingStage&&!best.pendingLSelection){const horizon=best.path.length;best=cleanBest([...comparisonLayer,...frontier,best].filter(n=>n.path.length===horizon&&(!commitment||coversResourceGoal(n,commitment)&&timelyReplacement(n))&&(!cleanupCommitment||coversResourceGoal(n,cleanupCommitment))));}
  // A rejected endpoint does not complete other budget-truncated proofs.
  // Classify abstention only; a certified best move below remains unchanged.
  const searchIncomplete=Boolean(stopped||screening.unfinished||screening.budgetStops);
@@ -1867,9 +1882,10 @@ function planCore(raw,options={}){
   usage.selected={path:fallbackMetrics.selected?'early-cap-fallback':retained?'retained-commitment':preparationProof?'preparation:'+preparationKind:'ordinary',locks:best.path.length,rank:best.rank.slice()};
  }
  const presentation=advicePresentation(best.path,best.assessment);
- return{...base,status:'recommended-with-verified-prefix',target:first.target,hold:first.hold,holdCount:holdCount(first),witness:first.witness,...presentation,
+ const described={...base,status:'recommended-with-verified-prefix',target:first.target,hold:first.hold,holdCount:holdCount(first),witness:first.witness,...presentation,
  continuation:best.path.map(p=>({target:p.target,hold:p.hold,holdCount:holdCount(p),witness:p.witness,event:p.event,resultContext:context(p.state),structuralEvidence:p.structuralEvidence})),
- evidence:{resetSelection:resetDecision,strategy:'canonical-right-ST',cycleResources:cycleResources(best.path),commitmentRetained:retained,futureNotches:best.notches,preparationProof,cycleDebt:best.cycleDebt,cavityRepair:{status:'verified-prefix-repaired',outstandingCells:best.cavityDebt},clearPolicy:'right-region full T-spin doubles and I tetrises only',verifiedLocks:best.path.length,tsdAt:tsdAt>=0?tsdAt+1:null,knownPieceHorizon:s.queue.length+1,rootEnumerationComplete:root.complete,budgetExhausted:stopped||Boolean(base.metrics.proofScheduling?.unfinished||base.metrics.proofScheduling?.budgetStops),searchIncomplete:Boolean(base.metrics.proofScheduling?.unfinished||base.metrics.proofScheduling?.budgetStops),informationBoundary:!best.state.active,initialSealed:initial.sealed,endpointSealed:best.assessment.sealed,regionalSupport:best.assessment.regionalSupport,channel:best.assessment.channel,endpointTEntry:best.assessment.right.entry?.status??'not-established',unresolvedObligations:best.assessment.obligations,structuralScore:best.structuralScore,structuralRank:best.rank,structure:best.assessment.structure,dependencyDebt:best.dependencyDebt,claim:'Finite executable prefix; endpoint estimates are not a sustainability guarantee.'},assessment:best.assessment};
+ evidence:{pendingLSelection:best.pendingLSelection??null,resetSelection:resetDecision,strategy:'canonical-right-ST',cycleResources:cycleResources(best.path),commitmentRetained:retained,futureNotches:best.notches,preparationProof,cycleDebt:best.cycleDebt,cavityRepair:{status:'verified-prefix-repaired',outstandingCells:best.cavityDebt},clearPolicy:'right-region full T-spin doubles and I tetrises only',verifiedLocks:best.path.length,tsdAt:tsdAt>=0?tsdAt+1:null,knownPieceHorizon:s.queue.length+1,rootEnumerationComplete:root.complete,budgetExhausted:stopped||Boolean(base.metrics.proofScheduling?.unfinished||base.metrics.proofScheduling?.budgetStops),searchIncomplete:Boolean(base.metrics.proofScheduling?.unfinished||base.metrics.proofScheduling?.budgetStops),informationBoundary:!best.state.active,initialSealed:initial.sealed,endpointSealed:best.assessment.sealed,regionalSupport:best.assessment.regionalSupport,channel:best.assessment.channel,endpointTEntry:best.assessment.right.entry?.status??'not-established',unresolvedObligations:best.assessment.obligations,structuralScore:best.structuralScore,structuralRank:best.rank,structure:best.assessment.structure,dependencyDebt:best.dependencyDebt,claim:'Finite executable prefix; endpoint estimates are not a sustainability guarantee.'},assessment:best.assessment};
+ if(best.pendingLSelection)pendingLSelections.add(described);return described;
 }
 }
 function plan(raw,options={}){return queryRequest(()=>planRequest(raw,options));}
@@ -1951,16 +1967,18 @@ function planRequest(raw,options={}){
  }
  function finalCheck(result,nodeLimit=options.maxNodes??45000){
  if(!result?.target)return result;
+ const pendingLSelected=pendingLSelections.has(result);
  const finalLimit=Math.min(options.maxNodes??45000,nodeLimit);
  if(!result.evidence?.opening){
   const resource=checkedResourceEndpoint(raw,result.continuation||[],constructionPolicyOptions(result,{...options,deadline,maxNodes:Math.max(0,finalLimit-(result.metrics?.nodes||0))}));
   result={...result,metrics:{...result.metrics,nodes:(result.metrics?.nodes||0)+(resource.visited||0),resourceProofNodes:resource.visited||0}};
+  if(resource.repair?.waitingStage&&!pendingLSelected)return{...result,status:'no-supported-continuation-found',target:null,witness:[],continuation:[],metrics:{...result.metrics,certifiedHorizon:0},reason:'A safe pending-L wait was not selected by a completed same-horizon comparison.'};
   if(!resource.valid){
    for(const name of ['sourceConstruction','earlyCapFallback','levelBaseReentry','tieExtension'])if(result.metrics[name])result.metrics[name]={...result.metrics[name],selected:false};
    if(result.metrics.usage?.scope==='maintenance')result.metrics.usage={...result.metrics.usage,selected:null,families:Object.fromEntries(Object.entries(result.metrics.usage.families).map(([name,family])=>[name,'selected'in family?{...family,selected:0}:family]))};
    return{...result,status:'no-supported-continuation-found',metrics:{...result.metrics,certifiedHorizon:0},target:null,witness:[],continuation:[],reason:resource.reason==='unresolved-covered-cells'?'No supported restoration plan for the actual newly covered cells was verified.':'No ordinary-midgame route preserving the observed T, Z and Center obligations was verified.',evidence:{...result.evidence,...(resource.coveredRepair?{coveredRepair:resource.coveredRepair}:{}),resourceObligations:{status:'rejected',reason:resource.reason}}};
   }
-  result={...result,evidence:{...result.evidence,resourceObligations:{status:'checked',binding:resource.resource.originKey,extraZ:resource.resource.extraZ,pendingCenter:resource.resource.pendingCenter,hangingS:resource.resource.hangingS,unclassifiedS:resource.resource.unclassifiedS,hangingL:resource.resource.hangingL}}};
+  result={...result,...(resource.repair?.waitingStage?{reason:result.reason+' The exact Center L target remains pending; the visible intervening pieces have a checked waiting route. L arrival is not yet established.'}:{}),evidence:{...result.evidence,pendingLStage:pendingLProof(resource.repair),resourceObligations:{status:'checked',binding:resource.resource.originKey,extraZ:resource.resource.extraZ,pendingCenter:resource.resource.pendingCenter,hangingS:resource.resource.hangingS,unclassifiedS:resource.resource.unclassifiedS,hangingL:resource.resource.hangingL}}};
  }
  if(!result.evidence?.opening){
   const repair=checkedCoveredRepair(raw,result.continuation||[],{...options,deadline},result.evidence?.coveredRepairPlan);
@@ -2019,8 +2037,8 @@ function advance(raw,previous,action,options={}){
  const access=A.prefix(state,steps,{...bounds,maxNodes:Math.max(0,bounds.maxNodes-resources.visited),notches:H.resolve(state,options.patternHistory)});if(access.reachable!==true)return null;
  const repair=checkedCoveredRepair(state,steps,options,previous.evidence?.coveredRepairPlan);if(!repair)return null;
  return{...previous,revision:state.revision,context:context(state),witness,hold:witness.includes('HOLD'),holdCount:witness.filter(a=>a==='HOLD').length,continuation:repair.steps,
-  ...advicePresentation(steps,previous.assessment,previous.evidence?.construction),retained:true,metrics:{...previous.metrics,certifiedHorizon:steps.length,revalidationNodes:resources.visited+access.visited},
-  evidence:{...previous.evidence,coveredRepair:repair.proof,coveredRepairPlan:repair.plan,knownPieceHorizon:state.queue.length+1,resourceObligations:{status:'checked',binding:resourceBinding(state,options)}}};
+  ...pendingLPresentation(steps,previous.assessment,previous.evidence?.construction,resources.repair),retained:true,metrics:{...previous.metrics,certifiedHorizon:steps.length,revalidationNodes:resources.visited+access.visited},
+  evidence:{...previous.evidence,pendingLSelection:null,coveredRepair:repair.proof,coveredRepairPlan:repair.plan,pendingLStage:pendingLProof(resources.repair),knownPieceHorizon:state.queue.length+1,resourceObligations:{status:'checked',binding:resourceBinding(state,options)}}};
 }
 function revalidate(raw,previous,options={}){
  const now=options.now||(()=>Date.now());options={...options,deadline:options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs),now};
@@ -2049,7 +2067,7 @@ function revalidate(raw,previous,options={}){
  if(!repairedPrefix(s,continuation))return null;
  const access=A.prefix(s,continuation,{...options,notches:H.resolve(s,options.patternHistory),maxNodes:Math.max(0,(options.maxNodes??8000)-enumeration.visited-resources.visited)});if(options.budgetTracker)options.budgetTracker.nodes+=access.visited;if(access.reachable!==true)return null;
  const repair=checkedCoveredRepair(s,continuation,options,previous.evidence?.coveredRepairPlan);if(!repair)return null;
- return{...previous,revision:s.revision,hold:p.hold,holdCount:holdCount(p),witness:p.witness,continuation:repair.steps,evidence:{...previous.evidence,coveredRepair:repair.proof,coveredRepairPlan:repair.plan},...advicePresentation(continuation,previous.assessment,previous.evidence?.construction),metrics:{...previous.metrics,certifiedHorizon:continuation.length,nodes:enumeration.visited+resources.visited+access.visited,revalidationNodes:enumeration.visited+resources.visited,gapAccessNodes:access.visited},retained:true};
+ return{...previous,revision:s.revision,hold:p.hold,holdCount:holdCount(p),witness:p.witness,continuation:repair.steps,evidence:{...previous.evidence,pendingLSelection:null,coveredRepair:repair.proof,coveredRepairPlan:repair.plan,pendingLStage:pendingLProof(resources.repair)},...pendingLPresentation(continuation,previous.assessment,previous.evidence?.construction,resources.repair),metrics:{...previous.metrics,certifiedHorizon:continuation.length,nodes:enumeration.visited+resources.visited+access.visited,revalidationNodes:enumeration.visited+resources.visited,gapAccessNodes:access.visited},retained:true};
 }
 // Shared UI/simulator transport helper. This bounded copy is only a routing
 // candidate: no resource identity, historical status or certificate is trusted.
@@ -2150,7 +2168,7 @@ function decideRequest(raw,options={}){
  if(recovered)return{...recovered,metrics:{...recovered.metrics,nodes:budgetTracker.nodes,revalidationNodes:budgetTracker.nodes,handoffRecovery:recovery}};
  if(previous?.evidence?.construction)options={...options,constructionPrevious:previous};
  const retained=!options.commitment&&previous?revalidate(raw,previous,{...options,budgetTracker,maxNodes:Math.max(0,limit-budgetTracker.nodes)}):null;
- if(retained)return recovery?{...retained,metrics:{...retained.metrics,nodes:budgetTracker.nodes,revalidationNodes:budgetTracker.nodes,handoffRecovery:recovery}}:retained;
+ if(retained&&!retained.evidence?.pendingLStage)return recovery?{...retained,metrics:{...retained.metrics,nodes:budgetTracker.nodes,revalidationNodes:budgetTracker.nodes,handoffRecovery:recovery}}:retained;
  const result=plan(raw,{...options,handoffRecovery:null,maxNodes:Math.max(0,limit-budgetTracker.nodes)});
  return budgetTracker.nodes||recovery?{...result,metrics:{...result.metrics,nodes:(result.metrics?.nodes||0)+budgetTracker.nodes,revalidationNodes:budgetTracker.nodes,...(recovery?{handoffRecovery:recovery}:{})}}:result;
 }

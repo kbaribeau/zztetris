@@ -47,6 +47,9 @@ function step(before,p,prior){
  if(e.type==='Z'){if(nonRight(e)){if(n.extraZ!=='available')reject('extra-Z-not-available');n.extraZ='used';}else if(!e.cells.every(([x])=>x>=8))reject('ordinary-Z-outside-reviewed-Right-role');}
  const available=completions(before.board),matches=c=>c.piece===e.type&&key(c.cells)===key(e.cells);
  const finished=n.pendingCenter.filter(p=>p.alternatives.some(c=>matches(c)&&available.some(a=>a.piece===c.piece&&key(a.cells)===key(c.cells))));
+ // Projection-only diagnostic: a proposed route may not spend a usable
+ // pending partner elsewhere and then claim the absent-partner waiting exception.
+ if(e.type==='L'&&prior.pendingCenter.some(p=>p.family==='SL'&&!p.lost&&!finished.some(f=>f.rootId===p.rootId)))n.pendingLDiverted=true;
  const leftS=left(e)&&e.type==='S';
  // Only actual consumption of the identified S, or its exact supported SL
  // completion, discharges that identity. A same-bag label alone is not enough.
@@ -124,7 +127,7 @@ function checkPath(raw,path,summary={}){if(!Array.isArray(path)||path.length>7)r
 // A local landing is positive evidence only. It must be reached from the real
 // observed inventory through a checked finite prefix before it can be promised.
 function repairGoal(event,instance,resource){return event.type==='S'&&left(event)&&resource.hangingS.some(h=>h.id===instance?.id);}
-function binding(resource){return JSON.stringify([resource.active,resource.hold,resource.queue,resource.observedSL,resource.extraZ,resource.pendingCenter,resource.hangingS,resource.unclassifiedS,resource.hangingL,resource.unclassifiedL,resource.violations,resource.scoredTs]);}
+function binding(resource){return JSON.stringify([resource.active,resource.hold,resource.queue,resource.observedSL,resource.extraZ,resource.pendingCenter,resource.hangingS,resource.unclassifiedS,resource.hangingL,resource.unclassifiedL,resource.violations,resource.scoredTs,Boolean(resource.pendingLDiverted)]);}
 function repair(raw,resource,options={}){const result=repairCore(raw,resource,options);return{...result,queryStatus:result.valid===true?'proven':result.valid===false?'failed-within-scope':'unfinished',scope:{kind:'visible-resource-repair',grammar:'left-center-v1',beamWidth:4,depth:options.depth??4,centerCompletions:options.centerCompletions!==false,...(typeof options.acceptStep==='function'?{additionalStepFilter:true}:{})}};}
 function repairCore(raw,resource,{maxNodes=4000,deadline=Infinity,now=()=>Date.now(),depth=4,notches=S.notchPattern(raw.board),centerCompletions=true,acceptStep=null}={}){
  // This finite repair grammar cannot establish how an already consumed,
@@ -183,5 +186,58 @@ function repairCore(raw,resource,{maxNodes=4000,deadline=Infinity,now=()=>Date.n
  }
  return{valid:complete?false:null,visited,status:complete?'no-visible-resource-repair':'resource-repair-budget'};
 }
-return Object.freeze({start,step,checkPath,partnerAccessible,repairGoal,binding,repair,extendForced});
+// A narrowly scoped unfinished SL stage. This is conditional completion access
+// plus actual accommodation of PUBLIC intervening draws, never an L arrival.
+function pendingLStageEligible(raw,resource){
+ const pending=resource.pendingCenter;
+ return Boolean(pending?.length===1&&pending[0].family==='SL'&&Number.isInteger(pending[0].rootId)&&pending[0].rootId>0&&!pending[0].lost&&pending[0].alternatives.length&&pending[0].alternatives.every(c=>c.piece==='L')&&!resource.pendingLDiverted&&!resource.violations.length&&!resource.unclassifiedS?.some(s=>s.invalidated||s.requiresAccommodation)&&resource.hangingS.every(s=>s.id===pending[0].rootId));
+}
+function pendingLStage(raw,resource,{maxNodes=4000,deadline=Infinity,now=()=>Date.now(),notches=S.notchPattern(raw.board),coveredDebt=[]}={}){
+ if(!pendingLStageEligible(raw,resource))return{valid:false,visited:0,status:'ineligible-pending-L-stage'};
+ const rootId=resource.pendingCenter[0].rootId;let visited=0,stopped=false;
+ const room=board=>board.findIndex(row=>/[^.]/.test(row))>20||board.every(row=>row==='..........');
+ const remaining=()=>Math.max(0,maxNodes-visited),bounded=()=>now()<deadline&&visited<maxNodes;
+ const access=(state,r,phase)=>{
+  const pending=r.pendingCenter.find(p=>p.rootId===rootId);if(!pending||pending.lost)return null;
+  const candidates=S.geometry(state.board,{notches:phase}).center.completions.filter(c=>c.piece==='L'&&c.resultStatus==='level'&&c.patternSupport==='reference-supported'&&pending.alternatives.some(a=>key(a.cells)===key(c.cells)));
+  for(const c of candidates){if(!bounded()||c.witness.length>remaining()){stopped=true;return null;}visited+=c.witness.length;
+   const conditional=R.createState({rules:state.rules,board:state.board,active:'L',queue:[],canHold:false}),proof=R.replay(conditional,c.witness);
+   if(proof.valid&&proof.events.length===1&&key(proof.events[0].cells)===key(c.cells))return{piece:'L',cells:clone(c.cells),witness:c.witness.slice(),access:'conditional-fresh-L-only',arrival:'not-established'};
+  }return null;
+ };
+ const state=R.createState(raw);if(!room(state.board))return{valid:false,visited,status:'pending-L-stage-headroom'};
+ const rootAccess=access(state,resource,notches);if(!rootAccess)return{valid:stopped?null:false,visited,status:stopped?'pending-L-stage-budget':'pending-L-stage-inaccessible'};
+ const finish=n=>{
+  const live=n.resource.pendingCenter.find(p=>p.rootId===rootId),closed=!live;
+  const exhausted=!n.state.active&&n.state.queue.length===0&&n.state.hold!=='L';
+  if(!closed&&!exhausted)return null;
+  if(n.resource.centerBlocked||n.resource.tCollision||n.resource.hangingS.length&&!n.resource.hangingS.every(s=>!closed&&s.id===rootId)||n.resource.unclassifiedS?.some(s=>s.invalidated||s.requiresAccommodation))return null;
+  const covered=A.repairPrefix(state,n.path,{notches,initialDebt:coveredDebt,stages:resource.pendingCenter});if(!covered.valid)return null;
+  return{valid:true,visited,status:closed?'visible-pending-L-closure':'visible-pending-L-wait',waitingStage:!closed,rootId,target:rootAccess,endpointTarget:n.access,path:n.path,publicDrawsExhausted:exhausted,parkedHold:n.state.hold??null,arrival:closed?'actually-supplied-and-placed':'not-established',queryStatus:'proven',scope:{kind:'pending-L-visible-wait',beamWidth:4,maxNodes,depth:Math.min(7,state.queue.length+1+(state.hold?1:0))}};
+ };
+ let layer=[{state,resource,path:[],notches,access:rootAccess,coveredDebt:coveredDebt.map(c=>c.slice()),score:0}];const immediate=finish(layer[0]);if(immediate)return immediate;
+ const depth=Math.min(7,state.queue.length+1+(state.hold?1:0));
+ for(let d=0;d<depth&&layer.length;d++){
+  const next=[];
+  for(const n of layer){if(!bounded())return{valid:null,visited,status:'pending-L-stage-budget',queryStatus:'unfinished'};
+   const placements=R.placements(n.state,{maxNodes:remaining(),deadline,now});visited+=placements.visited;if(!placements.complete)stopped=true;
+   for(const p of placements.placements){
+    if(!bounded()){stopped=true;break;}
+    if(!S.canonicalClear(p.event)||p.event.topOut||!room(p.state.board)||p.event.cells.some(([x])=>x>=7)&&!['Z','T','I'].includes(p.event.type))continue;
+    const phase=S.advanceNotches(n.state.board,p,n.notches);if(!phase.valid||S.transition(n.state,p,undefined,{notches:n.notches}).cycleViolations.length)continue;
+    // Keep this new grammar narrow: it may preserve this exact Center stage,
+    // not create unrelated Left repairs while searching for an absent L.
+    if(A.newlyCovered(n.state.board,p.state.board,p.event,phase.pattern).some(([x])=>x<4)||S.cavityRepairDebt(S.cavityFacts(n.state.board),S.cavityFacts(p.state.board),p.event).length)continue;
+    const r=step(n.state,p,n.resource);if(r.violations.length||r.pendingLDiverted||r.pendingCenter.some(v=>v.rootId!==rootId||v.lost)||r.unclassifiedS?.some(s=>s.invalidated||s.requiresAccommodation))continue;
+    const live=r.pendingCenter.some(v=>v.rootId===rootId),conditional=live?access(p.state,r,phase.pattern):null;if(live&&!conditional)continue;
+    const child={state:p.state,resource:r,path:[...n.path,p],notches:phase.pattern,access:conditional,coveredDebt:A.repairStep(n.state.board,p.state.board,p.event,n.coveredDebt,phase.pattern),score:S.geometry(p.state.board).left.covered+Math.max(...S.geometry(p.state.board).left.profile)-p.event.lines*3};
+    const proof=finish(child);if(proof)return proof;next.push(child);
+   }
+  }
+  const seen=new Set();layer=next.sort((a,b)=>a.score-b.score).filter(n=>{const id=n.state.board.join('')+binding(n.resource)+JSON.stringify(n.coveredDebt);if(seen.has(id))return false;seen.add(id);return true;}).slice(0,4);
+ }
+ // Beam/cap failure is never a theorem about all waiting alternatives.
+ return{valid:null,visited,status:stopped?'pending-L-stage-budget':'no-pending-L-wait-witness',queryStatus:'unfinished',scope:{kind:'pending-L-visible-wait',beamWidth:4,depth}};
+}
+return Object.freeze({start,step,checkPath,partnerAccessible,repairGoal,binding,repair,extendForced,pendingLStageEligible,pendingLStage});
 });

@@ -88,14 +88,44 @@ actual cell obligation. A fresh Worker or same-engine session import replays
 that history. A position-only import still has explicitly unknown provenance;
 its already present damage is not invented as observed prior construction.
 
-The position01 player continuation is a regression for this new boundary: its
-seven actual supplied locks and ordinary resource accounting remain valid, and
-its accessible, unfinished Center L is not mislabeled a completed repair/Reset.
-This does **not** add a general unseen-partner admission exemption. The existing
-full planner endpoint gate still requires a supplied Center completion; it
-rejects that full seven-lock endpoint in both the prior and changed policy when
-L is absent. The new covered-cell check does not solve that separate boundary
-or make a new preference claim.
+### Conditional pending-L stages
+
+The initial covered-cell-only change left the prior supplied-partner endpoint
+boundary unchanged. The separately authorized pending-L extension now admits
+position01's exact seven-lock player continuation, without calling its pending
+L complete or promising an unseen arrival. This is not a general missing-L
+waiver: eligibility requires the replay-derived identity of an ordered Center
+S→L stage and its exact still-accessible completion cells.
+
+A bounded positive certificate must either actually complete that target with
+publicly supplied L, or safely accommodate **all currently public draws**,
+preserving the target, legal conditional completion access, headroom, notches,
+and unrelated resource/covered-cell obligations at every waiting lock. At most
+a non-L held piece may remain parked. Conditional fresh-L movement establishes
+access only, never arrival or supply authority. Failed/pruned searches remain
+unknown, not proof that no route exists; a complete actual witness remains
+valid even when other branches were pruned. Existing request and proof budgets
+are unchanged.
+
+Fresh selection compares certified searched alternatives at the same horizon,
+after existing safety/resource/protected-scoring constraints. Actual closure of
+an **already observed** pending target takes priority, then earlier closure,
+then existing endpoint ordering. Proposed future stages receive no such priority.
+Unresolved alternatives are disclosed; selected means best certified within the
+bounded searched set, not globally optimal. Semantic revalidation recomputes
+safety but clears prior comparison claims, and waiting advice is freshly compared
+rather than automatically retained. Copied evidence cannot supply selection
+authority.
+
+The target survives clears, advice loss, movement, HOLD and replay-backed session
+import independently of advice. A proposed L diversion cannot acquire the
+waiting exception. An actual manual diversion still leaves the authenticated
+target unresolved; subsequent fresh planning may repair it, rather than treating
+the earlier mistake as completion or imposing a permanent ban. Position-only
+imports do not invent producing-piece identity. The authentic S84 player route
+is a separate positive: its first seven locks complete the Center target using
+public L, preserve the ordinary column-seven notch, and leave the originally
+held S undecided. Neither example claims sustainable play or a completed Reset.
 
 ### Legacy handoff test boundary
 

@@ -9,7 +9,8 @@ for(const f of fixtures)test(`proof scheduling: old seed ${f.seed} route cannot 
  assert.equal(proof.valid,false);assert.deepEqual(proof.outstandingCells,old.outstanding);
  assert.equal(P.checkedCoveredRepair(q.observation,old.steps,options),null);
  const a=P.decide(q.observation,options);assert.equal(a.target,null);assert.ok(a.metrics.nodes<=45000);
- assert.equal(a.status,'no-supported-continuation-found');
+ assert.ok(['no-supported-continuation-found','budget-exhausted'].includes(a.status));
+ if(a.status==='budget-exhausted')assert.ok(a.metrics.proofScheduling.unfinished>0||a.metrics.nodes===45000,'New eligible staged alternatives may remain unknown; the archived unsafe route is still rejected');
 });
 test('proof scheduling: deliberately unfinished access never becomes rejection or an admitted fallback',()=>{
  const f=fixtures[0],q=f.request,calls=[];const access={...A,prefix:(state,path,options)=>{calls.push(options.maxNodes);return{reachable:null,complete:false,visited:Math.min(1000,options.maxNodes),status:'unknown-access-budget'};}};
