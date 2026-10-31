@@ -17,8 +17,13 @@ test('risk / exhausted or zero budget and invalid replay cannot manufacture reco
  const bad=clone(q.options.resourceContext);if(bad){bad.steps[0].action='TELEPORT';assert.equal(risky({resourceContext:bad}).target,null);}
  assert.doesNotThrow(()=>P.decide({board:['bad']},{maxNodes:0}));
 });
-test('risk / A still rejects creating D without an immediate usable J',()=>{
- const h=harness();for(const f of require('./fixtures/st-d-admission.json')){const s=R.createState({board:[...Array(20).fill('..........'),...f.board],active:f.active,hold:f.hold,queue:f.queue}),p=placement(s,f.witness),proof=h.riskyDAdmission(s,p,require('../st-midgame-resources').start(s,H.resolve(s,H.start(s))),{maxNodes:4000,now:()=>0,deadline:Infinity});assert.equal(proof.valid,false);assert.equal(proof.reason,'D-created-without-immediate-J');const result=h.riskyFallback(s,clone(stopped),{maxNodes:45000,now:()=>0,deadline:Infinity,openingPhase:false},{placements:[p],complete:true});assert.equal(result.target,null);}
+test('risk / B D risk seam does not weaken supported proof or other hard gates',()=>{
+ const h=harness();for(const f of require('./fixtures/st-d-admission.json')){
+  const s=R.createState({board:[...Array(20).fill('..........'),...f.board],active:f.active,hold:f.hold,queue:f.queue}),p=placement(s,f.witness),proof=h.riskyDAdmission(s,p,require('../st-midgame-resources').start(s,H.resolve(s,H.start(s))),{maxNodes:4000,now:()=>0,deadline:Infinity});
+  assert.equal(proof.valid,true);assert.ok(proof.hazards.some(h=>h.code==='D-J-exit-unresolved'));assert.equal(P.dPatternAdmission(s,p,{maxNodes:45000,now:()=>0,deadline:Infinity}).valid,false);
+  const result=h.riskyFallback(s,clone(stopped),{maxNodes:45000,now:()=>0,deadline:Infinity,openingPhase:false},{placements:[p],complete:true});
+  assert.ok(result.target,f.name+' is an admitted explicit risk under the unchanged other hard gates');assert.equal(result.recommendation.kind,'risky');assert.ok(result.recommendation.hazards.some(h=>h.code==='D-J-exit-unresolved'));assert.deepEqual(JSON.parse(JSON.stringify(result.metrics.riskFallback.rejections)),{});assert.equal(result.recommendation.hazards.some(h=>h.code==='D-I-parking-competes-with-cleanup'),f.name==='position-08-S84','Only an observed Right I demand is reported');
+ }
 });
 test('risk / unknown Extra Z is not a risky permission',()=>{
  const s=R.createState({active:'Z',queue:['O','I']}),p=placement(s,['L','L','L','HD']),out=harness().riskyFallback(s,clone(stopped),{maxNodes:45000,now:()=>0,deadline:Infinity},{placements:[p],complete:true});assert.equal(out.target,null);assert.equal(out.metrics.riskFallback.rejections['resource-permission'],1);

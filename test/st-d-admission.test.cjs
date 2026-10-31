@@ -89,7 +89,7 @@ test('D history: observed creation survives fresh requests and import; an import
  assert.deepEqual(RH.resolve(created.state,restored).dPattern,summary.dPattern);
  const advice=adviceFor(created.state,[centerJ]);
  assert.equal(P.revalidate(created.state,advice,{resourceContext:exported,now:()=>0,deadline:1,maxNodes:12000}),null,'fresh request cannot forget observed creation');
- assert.ok(P.revalidate(created.state,advice,{now:()=>0,deadline:1,maxNodes:12000}),'snapshot import with already-D root remains ordinary recovery');
+ assert.equal(P.revalidate(created.state,advice,{now:()=>0,deadline:1,maxNodes:12000}),null,'Current D without a usable next J is not supported merely because imported creation history is unknown');
  const forged={...exported,dPattern:{pending:false}};assert.deepEqual(RH.resolve(created.state,RH.importContext(created.state,forged)).dPattern,summary.dPattern);
  const exit=L.dExit(created.state,{now:()=>0,deadline:1,maxNodes:4000});assert.equal(exit.valid,true);
  let state=created.state,history=created.history;for(const action of exit.exit.witness){const next=R.move(state,action);history=RH.applyAction(history,state,action,next);state=next;}

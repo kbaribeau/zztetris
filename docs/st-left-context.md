@@ -85,10 +85,16 @@ strong enough to override existing structural or input-effort preferences.
 ## D-pattern creation admission
 
 Shocky's Chapter 3.3 warns against making the D silhouette `[0,1,1,0]`
-unless a J is coming immediately. Ordinary-midgame admission now treats this
-as a hard condition, separately from the existing two-lock preference score.
+unless a J is coming immediately. The supported ordinary-midgame channel treats
+this as a hard condition, separately from the existing two-lock preference score.
 Creation is detected from actual before/after Left skylines, including covered
-columns and clear transitions; an already existing D is not newly forbidden.
+columns and clear transitions. Current D geometry also requires an immediate
+usable J for a supported continuation even when the creator is unknown; this
+does not invent a past promise or forbid a move that actually leaves D.
+The separate [explicit risk fallback](st-risk-recommendations.md) may recommend
+a legal D continuation without that certificate, with its unresolved J, competing
+resource demands and unproved waiting capacity explained. It is not relabelled
+supported, and a later observed J cannot retroactively certify its entry.
 
 The operational certificate is conservative: after the proposed lock, a J must
 be playable **before any intervening lock** using actual rules/HOLD transitions.

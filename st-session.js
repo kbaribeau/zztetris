@@ -2,7 +2,7 @@
  * restored. This format stores visible inputs, not hidden RNG or future bags. */
 (function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-bag'),require('./st-resource-history'),require('./st-pattern-history'),require('./st-planner'),require('./st-opening'),()=>require('./st-coach-config')):factory(root.STRules,root.STBag,root.STResourceHistory,root.STPatternHistory,root.STPlanner,root.STOpening,()=>root.STCoachConfig);if(typeof module==='object'&&module.exports)module.exports=api;else root.STSession=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,B,H,PH,P,O,C){
 'use strict';
-const FORMAT='zztetris-st-session',VERSION=1,ENGINE='st-coach-session-2026-10-30-risk-recommendations-v1';
+const FORMAT='zztetris-st-session',VERSION=1,ENGINE='st-coach-session-2026-10-30-risky-d-v1';
 const LIMITS=Object.freeze({bytes:4*1024*1024,depth:64,nodes:150000,witness:256,continuation:16});
 const clone=x=>JSON.parse(JSON.stringify(x)),same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 // Transient next-lock routing is not portable certificate authority.

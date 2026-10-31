@@ -20,7 +20,7 @@ function resourceEndpointCore(raw,path,options={}){
 
  const observed=resourceSummary(raw,options);
  let dPending=observed.dPattern?.pending===true,centerDeparture=false,virtual=extendForced(observe(raw)),notches=H.resolve(observe(raw),options.patternHistory),projected=M.start(virtual,observed);for(const step of path){const r=R.replay(virtual,step.witness);if(!r.valid||r.events.length!==1)return{...checked,valid:false,visited,reason:'invalid-resource-witness'};if(!options[pairedResetScope]&&!ordinaryRightEligible(r.events[0]))return{...checked,valid:false,visited,reason:'ordinary-right-requires-Z-T-I'};const phase=S.advanceNotches(virtual.board,{state:r.state,event:r.events[0]},notches);if(!phase.valid)return{...checked,valid:false,visited,reason:'invalid-resource-repair-phase'};notches=phase.pattern;
-  dPending=L.isD(r.state.board)&&(dPending||L.createsD(virtual.board,r.state.board));
+  dPending=L.isD(r.state.board); // Current D needs a usable J for support even when its creator is unknown.
   if(dPending){
    const dAdmission=dPatternExitAdmission(virtual,{state:r.state,event:r.events[0],witness:step.witness},{...options,notches,maxNodes:Math.max(0,limit-visited),deadline,now,resource:projected});visited+=dAdmission.visited;
    if(!dAdmission.valid)return{...checked,valid:false,visited,reason:dAdmission.reason};
@@ -876,8 +876,8 @@ function nodeFor(p,parent,initial,rootIndex,readAssessment=assess){
  const structure=S.assess(p.state,{notches:notchCheck.pattern});
  const transition=S.transition(before,p,structure,{notches:priorNotches});
  if(!ordinaryRightEligible(p.event))transition.cycleViolations.push('ordinary-right-requires-Z-T-I');
- const dPending=L.isD(p.state.board)&&((parent?.dPending??initial.dPending)===true||L.createsD(before.board,p.state.board));
- if(dPending&&!L.immediateJStarts(p.state).length)transition.cycleViolations.push('D-created-without-immediate-J');
+ const dPending=L.isD(p.state.board); // Geometry is known; no creation history is inferred.
+ if(dPending&&!L.immediateJStarts(p.state).length)transition.cycleViolations.push('D-without-immediate-J');
  transition.futureNotches=notchCheck;
  // Eligible crossings still carry their outstanding dependencies. The Right
  // role gate has no repair/benefit exception for an S/J/L/O crossing.
@@ -2236,12 +2236,22 @@ function classifySupported(result){
  return{...result,recommendation:{kind:'supported',hazards:[],claim:'A checked finite continuation, not a guarantee of continued survival.'}};
 }
 function riskyDAdmission(before,p,resource,options){
- const pending=L.isD(p.state.board)&&(options.pendingD||L.createsD(before.board,p.state.board));
- if(!pending)return{valid:true,visited:0,hazards:[]};
- // Branch A deliberately retains strict immediate-J admission even for risk.
- // Branch B may change this risk-only seam; supported certificates stay strict.
+ // The current silhouette is observable even if its creator is unknown. Only
+ // this explicit risk channel may continue it without the strict J certificate.
+ if(!L.isD(p.state.board))return{valid:true,visited:0,hazards:[]};
  const checked=dPatternExitAdmission(before,p,{...options,resource});
- return{...checked,hazards:[]};
+ if(checked.valid)return{...checked,hazards:[]};
+ const after=p.state,immediate=L.immediateJStarts(after).length>0;
+ const publicJ=after.active?.type==='J'||after.hold==='J'||after.queue.includes('J');
+ const availability=!publicJ?'absent-from-public-supply':!immediate?'visible-but-delayed':checked.complete===false?'immediate-exit-proof-unfinished':'immediate-exit-not-established';
+ const detail=!publicJ?'No supported immediate J exit is established for the Left D pattern, and no J is in the current public active, HOLD or preview; its arrival is unknown.':!immediate?'A J is known later in the public sequence, but cannot be used before another lock; the Left D pattern must wait.':checked.complete===false?'A J is immediately accessible, but its legal, resource-compatible D exit proof was unfinished within budget.':'A J is immediately accessible, but a usable, resource-compatible D exit was not established by the checked continuations.';
+ const hazards=[{code:'D-J-exit-unresolved',availability,proofStatus:checked.complete===false?'unfinished':'not-established',detail,downside:'The D surface may become harder to accommodate or inaccessible before the needed J can repair it.'}];
+ const next=M.step(before,p,resource),geometry=S.geometry(after.board,{notches:options.notches});
+ if(next.pendingCenter.some(q=>q.alternatives.some(a=>a.piece==='J')))hazards.push({code:'D-J-competes-with-Center',detail:'A J is also recorded as a Center partner; it is not a free Left repair.',downside:'Spending the same J on Left can leave Center unfinished; a separate executable replacement is not promised.'});
+ const cycle=geometry.right.cycle;
+ if(cycle.prepareColumn!==null||cycle.cleanupColumns.length)hazards.push({code:'D-I-parking-competes-with-cleanup',detail:'Right has an observed I cleanup/preparation demand while Left waits for J.',downside:'Using I to park or reshape Left can delay Right cleanup; one I is not permission for both jobs.'});
+ hazards.push({code:'D-waiting-space-unproved',detail:`Left reaches ${Math.max(...geometry.left.profile)} rows; no route for parking intervening pieces while waiting for J is certified.`,downside:'Visible pieces may exhaust the available space before the D exit becomes usable.'});
+ return{...checked,valid:true,visited:checked.visited||0,hazards};
 }
 function riskyFallback(raw,supported,options,collector){
  const now=options.now||(()=>Date.now()),deadline=options.deadline??Infinity,limit=options.maxNodes??45000;
