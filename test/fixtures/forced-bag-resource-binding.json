@@ -1,0 +1,4454 @@
+{
+  "source": {
+    "kind": "literal public observation and saved finite maintenance advice",
+    "trace": "postpublish-evidence-946f84f/fresh/2026-10-27T16-14-43.701Z-5/empty-4097105707/trace.jsonl pre-lock 20",
+    "advice": "handoff-5707/20-normal-budget-maintenance.json",
+    "revision": "946f84f1e14fe0a51a97784d32f7ec30134234d9",
+    "scope": "The known-phase public bag forces only I beyond the six preview pieces. No hidden supply is included. The archived two-lock prefix passed action/event replay but failed old retention binding."
+  },
+  "observation": {
+    "rules": "st-zero-v2",
+    "board": [
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "....JJJ...",
+      ".LLIOOJ...",
+      ".ZLIOO....",
+      "ZZLIJJJ...",
+      "ZSSIOOJ...",
+      "SSLIOO....",
+      "LLLILLL...",
+      "TTTILSS...",
+      "TIIIIOO.Z."
+    ],
+    "active": {
+      "type": "S",
+      "x": 3,
+      "y": 17,
+      "rotation": 0,
+      "lastRotation": null
+    },
+    "hold": "Z",
+    "canHold": true,
+    "queue": [
+      "T",
+      "O",
+      "Z",
+      "S",
+      "J",
+      "L"
+    ],
+    "revision": 264,
+    "streamCursor": 21,
+    "topOut": false,
+    "bag": {
+      "remaining": [
+        1
+      ],
+      "observedCount": 27,
+      "provenance": "known-phase"
+    }
+  },
+  "options": {
+    "resourceContext": {
+      "schemaVersion": 1,
+      "origin": {
+        "rules": "st-zero-v2",
+        "board": [
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          ".........."
+        ],
+        "active": {
+          "type": "T",
+          "x": 3,
+          "y": 17,
+          "rotation": 0,
+          "lastRotation": null
+        },
+        "hold": null,
+        "canHold": true,
+        "queue": [
+          "S",
+          "I",
+          "O",
+          "Z",
+          "J",
+          "L"
+        ],
+        "streamCursor": 1,
+        "topOut": false
+      },
+      "fresh": true,
+      "steps": [
+        {
+          "action": "L",
+          "revealed": []
+        },
+        {
+          "action": "L",
+          "revealed": []
+        },
+        {
+          "action": "L",
+          "revealed": []
+        },
+        {
+          "action": "CW",
+          "revealed": []
+        },
+        {
+          "action": "L",
+          "revealed": []
+        },
+        {
+          "action": "HD",
+          "revealed": [
+            "J"
+          ]
+        },
+        {
+          "action": "HOLD",
+          "revealed": [
+            "T"
+          ]
+        },
+        {
+          "action": "L",
+          "revealed": []
+        },
+        {
+          "action": "R180",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "L",
+          "revealed": []
+        },
+        {
+          "action": "HD",
+          "revealed": [
+            "I"
+          ]
+        },
+        {
+          "action": "R",
+          "revealed": []
+        },
+        {
+          "action": "HD",
+          "revealed": [
+            "O"
+          ]
+        },
+        {
+          "action": "R",
+          "revealed": []
+        },
+        {
+          "action": "R",
+          "revealed": []
+        },
+        {
+          "action": "R",
+          "revealed": []
+        },
+        {
+          "action": "R",
+          "revealed": []
+        },
+        {
+          "action": "CW",
+          "revealed": []
+        },
+        {
+          "action": "HD",
+          "revealed": [
+            "S"
+          ]
+        },
+        {
+          "action": "L",
+          "revealed": []
+        },
+        {
+          "action": "HD",
+          "revealed": [
+            "L"
+          ]
+        },
+        {
+          "action": "HOLD",
+          "revealed": []
+        },
+        {
+          "action": "R",
+          "revealed": []
+        },
+        {
+          "action": "HD",
+          "revealed": [
+            "Z"
+          ]
+        },
+        {
+          "action": "HOLD",
+          "revealed": []
+        },
+        {
+          "action": "R",
+          "revealed": []
+        },
+        {
+          "action": "R180",
+          "revealed": []
+        },
+        {
+          "action": "HD",
+          "revealed": [
+            "O"
+          ]
+        },
+        {
+          "action": "L",
+          "revealed": []
+        },
+        {
+          "action": "L",
+          "revealed": []
+        },
+        {
+          "action": "L",
+          "revealed": []
+        },
+        {
+          "action": "R180",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "HD",
+          "revealed": [
+            "Z"
+          ]
+        },
+        {
+          "action": "L",
+          "revealed": []
+        },
+        {
+          "action": "CCW",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "HD",
+          "revealed": [
+            "J"
+          ]
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "HD",
+          "revealed": [
+            "L"
+          ]
+        },
+        {
+          "action": "HOLD",
+          "revealed": []
+        },
+        {
+          "action": "R",
+          "revealed": []
+        },
+        {
+          "action": "R180",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "HD",
+          "revealed": [
+            "I"
+          ]
+        },
+        {
+          "action": "L",
+          "revealed": []
+        },
+        {
+          "action": "L",
+          "revealed": []
+        },
+        {
+          "action": "L",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "HD",
+          "revealed": [
+            "T"
+          ]
+        },
+        {
+          "action": "HOLD",
+          "revealed": []
+        },
+        {
+          "action": "L",
+          "revealed": []
+        },
+        {
+          "action": "L",
+          "revealed": []
+        },
+        {
+          "action": "L",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "HD",
+          "revealed": [
+            "S"
+          ]
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "HD",
+          "revealed": [
+            "T"
+          ]
+        },
+        {
+          "action": "L",
+          "revealed": []
+        },
+        {
+          "action": "L",
+          "revealed": []
+        },
+        {
+          "action": "L",
+          "revealed": []
+        },
+        {
+          "action": "CCW",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "HD",
+          "revealed": [
+            "O"
+          ]
+        },
+        {
+          "action": "R",
+          "revealed": []
+        },
+        {
+          "action": "R180",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "HD",
+          "revealed": [
+            "Z"
+          ]
+        },
+        {
+          "action": "L",
+          "revealed": []
+        },
+        {
+          "action": "L",
+          "revealed": []
+        },
+        {
+          "action": "CCW",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "HD",
+          "revealed": [
+            "S"
+          ]
+        },
+        {
+          "action": "L",
+          "revealed": []
+        },
+        {
+          "action": "CCW",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "HD",
+          "revealed": [
+            "J"
+          ]
+        },
+        {
+          "action": "R",
+          "revealed": []
+        },
+        {
+          "action": "R",
+          "revealed": []
+        },
+        {
+          "action": "R",
+          "revealed": []
+        },
+        {
+          "action": "CW",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "SD",
+          "revealed": []
+        },
+        {
+          "action": "CW",
+          "revealed": []
+        },
+        {
+          "action": "HD",
+          "revealed": [
+            "L"
+          ]
+        }
+      ],
+      "handoffAtAction": null
+    },
+    "patternHistory": {
+      "origin": [
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "....JJJ...",
+        ".LLIOOJ...",
+        ".ZLIOO....",
+        "ZZLIJJJ...",
+        "ZSSIOOJ...",
+        "SSLIOO....",
+        "LLLILLL...",
+        "TTTILSS...",
+        "TIIIIOO.Z."
+      ],
+      "steps": []
+    }
+  },
+  "advice": {
+    "revision": 264,
+    "target": {
+      "type": "Z",
+      "x": 7,
+      "y": 35,
+      "rotation": 1
+    },
+    "hold": true,
+    "holdCount": 1,
+    "witness": [
+      "HOLD",
+      "R",
+      "R",
+      "R",
+      "R",
+      "CW",
+      "HD"
+    ],
+    "continuation": [
+      {
+        "target": {
+          "type": "Z",
+          "x": 7,
+          "y": 35,
+          "rotation": 1
+        },
+        "hold": true,
+        "holdCount": 1,
+        "witness": [
+          "HOLD",
+          "R",
+          "R",
+          "R",
+          "R",
+          "CW",
+          "HD"
+        ],
+        "event": {
+          "type": "Z",
+          "target": {
+            "type": "Z",
+            "x": 7,
+            "y": 35,
+            "rotation": 1
+          },
+          "cells": [
+            [
+              9,
+              36
+            ],
+            [
+              8,
+              37
+            ],
+            [
+              9,
+              37
+            ],
+            [
+              8,
+              38
+            ]
+          ],
+          "lines": 0,
+          "clearedRows": [],
+          "spin": "none",
+          "topOut": false
+        },
+        "resultContext": "[\"st-zero-v2\",[\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"....JJJ...\",\".LLIOOJ...\",\".ZLIOO....\",\"ZZLIJJJ...\",\"ZSSIOOJ...\",\"SSLIOO...Z\",\"LLLILLL.ZZ\",\"TTTILSS.Z.\",\"TIIIIOO.Z.\"],\"S\",true,[\"O\",\"Z\",\"S\",\"J\",\"L\",\"I\"],{\"remaining\":[0],\"observedCount\":28,\"provenance\":\"known-phase\"},\"T\"]",
+        "structuralEvidence": {
+          "reason": "Preserve a supported regional piece role.",
+          "cycleViolations": [],
+          "pairFamily": null,
+          "pairProgress": null,
+          "pairEvidence": null,
+          "opportunityCost": 0,
+          "leftSubstitutes": [
+            {
+              "pieces": [
+                "L",
+                "I"
+              ],
+              "steps": [
+                {
+                  "piece": "L",
+                  "target": {
+                    "type": "L",
+                    "x": 1,
+                    "y": 29,
+                    "rotation": 0
+                  },
+                  "cells": [
+                    [
+                      3,
+                      30
+                    ],
+                    [
+                      1,
+                      31
+                    ],
+                    [
+                      2,
+                      31
+                    ],
+                    [
+                      3,
+                      31
+                    ]
+                  ],
+                  "witness": [
+                    "L",
+                    "L",
+                    "HD"
+                  ]
+                },
+                {
+                  "piece": "I",
+                  "target": {
+                    "type": "I",
+                    "x": -2,
+                    "y": 30,
+                    "rotation": 1
+                  },
+                  "cells": [
+                    [
+                      0,
+                      30
+                    ],
+                    [
+                      0,
+                      31
+                    ],
+                    [
+                      0,
+                      32
+                    ],
+                    [
+                      0,
+                      33
+                    ]
+                  ],
+                  "witness": [
+                    "CW",
+                    "L",
+                    "L",
+                    "L",
+                    "L",
+                    "L",
+                    "HD"
+                  ],
+                  "access": "hypothetical-spawn-straight-drop"
+                }
+              ],
+              "resultProfile": [
+                10,
+                9,
+                9,
+                10
+              ],
+              "resultStatus": "partial-scoring-row-fill",
+              "access": "two hypothetical fresh-spawn drops; actual timing requires search"
+            },
+            {
+              "pieces": [
+                "I",
+                "L"
+              ],
+              "steps": [
+                {
+                  "piece": "I",
+                  "target": {
+                    "type": "I",
+                    "x": -2,
+                    "y": 30,
+                    "rotation": 1
+                  },
+                  "cells": [
+                    [
+                      0,
+                      30
+                    ],
+                    [
+                      0,
+                      31
+                    ],
+                    [
+                      0,
+                      32
+                    ],
+                    [
+                      0,
+                      33
+                    ]
+                  ],
+                  "witness": [
+                    "CW",
+                    "L",
+                    "L",
+                    "L",
+                    "L",
+                    "L",
+                    "HD"
+                  ]
+                },
+                {
+                  "piece": "L",
+                  "target": {
+                    "type": "L",
+                    "x": 1,
+                    "y": 29,
+                    "rotation": 0
+                  },
+                  "cells": [
+                    [
+                      3,
+                      30
+                    ],
+                    [
+                      1,
+                      31
+                    ],
+                    [
+                      2,
+                      31
+                    ],
+                    [
+                      3,
+                      31
+                    ]
+                  ],
+                  "witness": [
+                    "L",
+                    "L",
+                    "HD"
+                  ],
+                  "access": "hypothetical-spawn-straight-drop"
+                }
+              ],
+              "resultProfile": [
+                10,
+                9,
+                9,
+                10
+              ],
+              "resultStatus": "partial-scoring-row-fill",
+              "access": "two hypothetical fresh-spawn drops; actual timing requires search"
+            },
+            {
+              "pieces": [
+                "J",
+                "I"
+              ],
+              "steps": [
+                {
+                  "piece": "J",
+                  "target": {
+                    "type": "J",
+                    "x": 1,
+                    "y": 29,
+                    "rotation": 0
+                  },
+                  "cells": [
+                    [
+                      1,
+                      30
+                    ],
+                    [
+                      1,
+                      31
+                    ],
+                    [
+                      2,
+                      31
+                    ],
+                    [
+                      3,
+                      31
+                    ]
+                  ],
+                  "witness": [
+                    "L",
+                    "L",
+                    "HD"
+                  ]
+                },
+                {
+                  "piece": "I",
+                  "target": {
+                    "type": "I",
+                    "x": -2,
+                    "y": 30,
+                    "rotation": 1
+                  },
+                  "cells": [
+                    [
+                      0,
+                      30
+                    ],
+                    [
+                      0,
+                      31
+                    ],
+                    [
+                      0,
+                      32
+                    ],
+                    [
+                      0,
+                      33
+                    ]
+                  ],
+                  "witness": [
+                    "CW",
+                    "L",
+                    "L",
+                    "L",
+                    "L",
+                    "L",
+                    "HD"
+                  ],
+                  "access": "hypothetical-spawn-straight-drop"
+                }
+              ],
+              "resultProfile": [
+                10,
+                10,
+                9,
+                9
+              ],
+              "resultStatus": "partial-scoring-row-fill",
+              "access": "two hypothetical fresh-spawn drops; actual timing requires search"
+            },
+            {
+              "pieces": [
+                "I",
+                "J"
+              ],
+              "steps": [
+                {
+                  "piece": "I",
+                  "target": {
+                    "type": "I",
+                    "x": -2,
+                    "y": 30,
+                    "rotation": 1
+                  },
+                  "cells": [
+                    [
+                      0,
+                      30
+                    ],
+                    [
+                      0,
+                      31
+                    ],
+                    [
+                      0,
+                      32
+                    ],
+                    [
+                      0,
+                      33
+                    ]
+                  ],
+                  "witness": [
+                    "CW",
+                    "L",
+                    "L",
+                    "L",
+                    "L",
+                    "L",
+                    "HD"
+                  ]
+                },
+                {
+                  "piece": "J",
+                  "target": {
+                    "type": "J",
+                    "x": 1,
+                    "y": 29,
+                    "rotation": 0
+                  },
+                  "cells": [
+                    [
+                      1,
+                      30
+                    ],
+                    [
+                      1,
+                      31
+                    ],
+                    [
+                      2,
+                      31
+                    ],
+                    [
+                      3,
+                      31
+                    ]
+                  ],
+                  "witness": [
+                    "L",
+                    "L",
+                    "HD"
+                  ],
+                  "access": "hypothetical-spawn-straight-drop"
+                }
+              ],
+              "resultProfile": [
+                10,
+                10,
+                9,
+                9
+              ],
+              "resultStatus": "partial-scoring-row-fill",
+              "access": "two hypothetical fresh-spawn drops; actual timing requires search"
+            },
+            {
+              "pieces": [
+                "J",
+                "S"
+              ],
+              "steps": [
+                {
+                  "piece": "J",
+                  "target": {
+                    "type": "J",
+                    "x": -1,
+                    "y": 30,
+                    "rotation": 1
+                  },
+                  "cells": [
+                    [
+                      0,
+                      31
+                    ],
+                    [
+                      1,
+                      31
+                    ],
+                    [
+                      0,
+                      32
+                    ],
+                    [
+                      0,
+                      33
+                    ]
+                  ],
+                  "witness": [
+                    "CW",
+                    "L",
+                    "L",
+                    "L",
+                    "L",
+                    "HD"
+                  ]
+                },
+                {
+                  "piece": "S",
+                  "target": {
+                    "type": "S",
+                    "x": 0,
+                    "y": 28,
+                    "rotation": 1
+                  },
+                  "cells": [
+                    [
+                      1,
+                      29
+                    ],
+                    [
+                      1,
+                      30
+                    ],
+                    [
+                      2,
+                      30
+                    ],
+                    [
+                      2,
+                      31
+                    ]
+                  ],
+                  "witness": [
+                    "CW",
+                    "L",
+                    "L",
+                    "L",
+                    "HD"
+                  ],
+                  "access": "hypothetical-spawn-straight-drop"
+                }
+              ],
+              "resultProfile": [
+                9,
+                11,
+                10,
+                8
+              ],
+              "resultStatus": "partial-scoring-row-fill",
+              "access": "two hypothetical fresh-spawn drops; actual timing requires search"
+            },
+            {
+              "pieces": [
+                "O",
+                "I"
+              ],
+              "steps": [
+                {
+                  "piece": "O",
+                  "target": {
+                    "type": "O",
+                    "x": 0,
+                    "y": 29,
+                    "rotation": 0
+                  },
+                  "cells": [
+                    [
+                      1,
+                      30
+                    ],
+                    [
+                      2,
+                      30
+                    ],
+                    [
+                      1,
+                      31
+                    ],
+                    [
+                      2,
+                      31
+                    ]
+                  ],
+                  "witness": [
+                    "L",
+                    "L",
+                    "L",
+                    "HD"
+                  ]
+                },
+                {
+                  "piece": "I",
+                  "target": {
+                    "type": "I",
+                    "x": -2,
+                    "y": 30,
+                    "rotation": 1
+                  },
+                  "cells": [
+                    [
+                      0,
+                      30
+                    ],
+                    [
+                      0,
+                      31
+                    ],
+                    [
+                      0,
+                      32
+                    ],
+                    [
+                      0,
+                      33
+                    ]
+                  ],
+                  "witness": [
+                    "CW",
+                    "L",
+                    "L",
+                    "L",
+                    "L",
+                    "L",
+                    "HD"
+                  ],
+                  "access": "hypothetical-spawn-straight-drop"
+                }
+              ],
+              "resultProfile": [
+                10,
+                10,
+                10,
+                8
+              ],
+              "resultStatus": "partial-scoring-row-fill",
+              "access": "two hypothetical fresh-spawn drops; actual timing requires search"
+            },
+            {
+              "pieces": [
+                "L",
+                "J"
+              ],
+              "steps": [
+                {
+                  "piece": "L",
+                  "target": {
+                    "type": "L",
+                    "x": 1,
+                    "y": 28,
+                    "rotation": 1
+                  },
+                  "cells": [
+                    [
+                      2,
+                      29
+                    ],
+                    [
+                      2,
+                      30
+                    ],
+                    [
+                      2,
+                      31
+                    ],
+                    [
+                      3,
+                      31
+                    ]
+                  ],
+                  "witness": [
+                    "CW",
+                    "L",
+                    "L",
+                    "HD"
+                  ]
+                },
+                {
+                  "piece": "J",
+                  "target": {
+                    "type": "J",
+                    "x": -1,
+                    "y": 30,
+                    "rotation": 1
+                  },
+                  "cells": [
+                    [
+                      0,
+                      31
+                    ],
+                    [
+                      1,
+                      31
+                    ],
+                    [
+                      0,
+                      32
+                    ],
+                    [
+                      0,
+                      33
+                    ]
+                  ],
+                  "witness": [
+                    "CW",
+                    "L",
+                    "L",
+                    "L",
+                    "L",
+                    "HD"
+                  ],
+                  "access": "hypothetical-spawn-straight-drop"
+                }
+              ],
+              "resultProfile": [
+                9,
+                9,
+                11,
+                9
+              ],
+              "resultStatus": "partial-scoring-row-fill",
+              "access": "two hypothetical fresh-spawn drops; actual timing requires search"
+            },
+            {
+              "pieces": [
+                "J",
+                "L"
+              ],
+              "steps": [
+                {
+                  "piece": "J",
+                  "target": {
+                    "type": "J",
+                    "x": -1,
+                    "y": 30,
+                    "rotation": 1
+                  },
+                  "cells": [
+                    [
+                      0,
+                      31
+                    ],
+                    [
+                      1,
+                      31
+                    ],
+                    [
+                      0,
+                      32
+                    ],
+                    [
+                      0,
+                      33
+                    ]
+                  ],
+                  "witness": [
+                    "CW",
+                    "L",
+                    "L",
+                    "L",
+                    "L",
+                    "HD"
+                  ]
+                },
+                {
+                  "piece": "L",
+                  "target": {
+                    "type": "L",
+                    "x": 1,
+                    "y": 28,
+                    "rotation": 1
+                  },
+                  "cells": [
+                    [
+                      2,
+                      29
+                    ],
+                    [
+                      2,
+                      30
+                    ],
+                    [
+                      2,
+                      31
+                    ],
+                    [
+                      3,
+                      31
+                    ]
+                  ],
+                  "witness": [
+                    "CW",
+                    "L",
+                    "L",
+                    "HD"
+                  ],
+                  "access": "hypothetical-spawn-straight-drop"
+                }
+              ],
+              "resultProfile": [
+                9,
+                9,
+                11,
+                9
+              ],
+              "resultStatus": "partial-scoring-row-fill",
+              "access": "two hypothetical fresh-spawn drops; actual timing requires search"
+            },
+            {
+              "pieces": [
+                "I",
+                "O"
+              ],
+              "steps": [
+                {
+                  "piece": "I",
+                  "target": {
+                    "type": "I",
+                    "x": -2,
+                    "y": 30,
+                    "rotation": 1
+                  },
+                  "cells": [
+                    [
+                      0,
+                      30
+                    ],
+                    [
+                      0,
+                      31
+                    ],
+                    [
+                      0,
+                      32
+                    ],
+                    [
+                      0,
+                      33
+                    ]
+                  ],
+                  "witness": [
+                    "CW",
+                    "L",
+                    "L",
+                    "L",
+                    "L",
+                    "L",
+                    "HD"
+                  ]
+                },
+                {
+                  "piece": "O",
+                  "target": {
+                    "type": "O",
+                    "x": 0,
+                    "y": 29,
+                    "rotation": 0
+                  },
+                  "cells": [
+                    [
+                      1,
+                      30
+                    ],
+                    [
+                      2,
+                      30
+                    ],
+                    [
+                      1,
+                      31
+                    ],
+                    [
+                      2,
+                      31
+                    ]
+                  ],
+                  "witness": [
+                    "L",
+                    "L",
+                    "L",
+                    "HD"
+                  ],
+                  "access": "hypothetical-spawn-straight-drop"
+                }
+              ],
+              "resultProfile": [
+                10,
+                10,
+                10,
+                8
+              ],
+              "resultStatus": "partial-scoring-row-fill",
+              "access": "two hypothetical fresh-spawn drops; actual timing requires search"
+            },
+            {
+              "pieces": [
+                "J",
+                "O"
+              ],
+              "steps": [
+                {
+                  "piece": "J",
+                  "target": {
+                    "type": "J",
+                    "x": -1,
+                    "y": 30,
+                    "rotation": 1
+                  },
+                  "cells": [
+                    [
+                      0,
+                      31
+                    ],
+                    [
+                      1,
+                      31
+                    ],
+                    [
+                      0,
+                      32
+                    ],
+                    [
+                      0,
+                      33
+                    ]
+                  ],
+                  "witness": [
+                    "CW",
+                    "L",
+                    "L",
+                    "L",
+                    "L",
+                    "HD"
+                  ]
+                },
+                {
+                  "piece": "O",
+                  "target": {
+                    "type": "O",
+                    "x": 1,
+                    "y": 29,
+                    "rotation": 0
+                  },
+                  "cells": [
+                    [
+                      2,
+                      30
+                    ],
+                    [
+                      3,
+                      30
+                    ],
+                    [
+                      2,
+                      31
+                    ],
+                    [
+                      3,
+                      31
+                    ]
+                  ],
+                  "witness": [
+                    "L",
+                    "L",
+                    "HD"
+                  ],
+                  "access": "hypothetical-spawn-straight-drop"
+                }
+              ],
+              "resultProfile": [
+                9,
+                9,
+                10,
+                10
+              ],
+              "resultStatus": "partial-scoring-row-fill",
+              "access": "two hypothetical fresh-spawn drops; actual timing requires search"
+            },
+            {
+              "pieces": [
+                "J",
+                "J"
+              ],
+              "steps": [
+                {
+                  "piece": "J",
+                  "target": {
+                    "type": "J",
+                    "x": -1,
+                    "y": 30,
+                    "rotation": 1
+                  },
+                  "cells": [
+                    [
+                      0,
+                      31
+                    ],
+                    [
+                      1,
+                      31
+                    ],
+                    [
+                      0,
+                      32
+                    ],
+                    [
+                      0,
+                      33
+                    ]
+                  ],
+                  "witness": [
+                    "CW",
+                    "L",
+                    "L",
+                    "L",
+                    "L",
+                    "HD"
+                  ]
+                },
+                {
+                  "piece": "J",
+                  "target": {
+                    "type": "J",
+                    "x": 0,
+                    "y": 28,
+                    "rotation": 2
+                  },
+                  "cells": [
+                    [
+                      0,
+                      30
+                    ],
+                    [
+                      1,
+                      30
+                    ],
+                    [
+                      2,
+                      30
+                    ],
+                    [
+                      2,
+                      31
+                    ]
+                  ],
+                  "witness": [
+                    "R180",
+                    "L",
+                    "L",
+                    "L",
+                    "HD"
+                  ],
+                  "access": "hypothetical-spawn-straight-drop"
+                }
+              ],
+              "resultProfile": [
+                10,
+                10,
+                10,
+                8
+              ],
+              "resultStatus": "partial-scoring-row-fill",
+              "access": "two hypothetical fresh-spawn drops; actual timing requires search"
+            },
+            {
+              "pieces": [
+                "O",
+                "J"
+              ],
+              "steps": [
+                {
+                  "piece": "O",
+                  "target": {
+                    "type": "O",
+                    "x": 1,
+                    "y": 29,
+                    "rotation": 0
+                  },
+                  "cells": [
+                    [
+                      2,
+                      30
+                    ],
+                    [
+                      3,
+                      30
+                    ],
+                    [
+                      2,
+                      31
+                    ],
+                    [
+                      3,
+                      31
+                    ]
+                  ],
+                  "witness": [
+                    "L",
+                    "L",
+                    "HD"
+                  ]
+                },
+                {
+                  "piece": "J",
+                  "target": {
+                    "type": "J",
+                    "x": -1,
+                    "y": 30,
+                    "rotation": 1
+                  },
+                  "cells": [
+                    [
+                      0,
+                      31
+                    ],
+                    [
+                      1,
+                      31
+                    ],
+                    [
+                      0,
+                      32
+                    ],
+                    [
+                      0,
+                      33
+                    ]
+                  ],
+                  "witness": [
+                    "CW",
+                    "L",
+                    "L",
+                    "L",
+                    "L",
+                    "HD"
+                  ],
+                  "access": "hypothetical-spawn-straight-drop"
+                }
+              ],
+              "resultProfile": [
+                9,
+                9,
+                10,
+                10
+              ],
+              "resultStatus": "partial-scoring-row-fill",
+              "access": "two hypothetical fresh-spawn drops; actual timing requires search"
+            }
+          ],
+          "regions": [
+            "right"
+          ],
+          "crossRegion": false,
+          "allocation": "right-cap-preparation",
+          "status": "supported-local-role",
+          "dependencyDebt": 0,
+          "newlyCovered": 0,
+          "regionalRepair": 0,
+          "repairCredit": 0,
+          "note": "Crossing a boundary is not forbidden. Debt measures unsupported allocation and new structural repair burden; a later checked repair may repay it.",
+          "futureNotches": {
+            "valid": true,
+            "violation": null,
+            "pattern": {
+              "status": "established",
+              "anchorRow": 36,
+              "protectedRows": [
+                36,
+                33,
+                30,
+                27,
+                24,
+                21,
+                18,
+                15,
+                12,
+                9,
+                6,
+                3,
+                0
+              ],
+              "blockedRows": [],
+              "source": "translated-established-cycle"
+            },
+            "blockedCells": []
+          },
+          "centerPartnerDeficitBefore": 0,
+          "centerPartnerDeficitAfter": 0,
+          "placedPiece": "Z",
+          "structure": {
+            "frontierDebt": 0,
+            "scoringRowDebt": 0,
+            "left": {
+              "profile": [
+                6,
+                8,
+                8,
+                8
+              ],
+              "flat": false,
+              "roughness": 2,
+              "covered": 0,
+              "horizontalI": null,
+              "completions": []
+            },
+            "center": {
+              "foundation": {
+                "status": "aligned",
+                "vacancies": [],
+                "profile": [
+                  9,
+                  9,
+                  9
+                ]
+              },
+              "profile": [
+                9,
+                9,
+                9
+              ],
+              "status": "level",
+              "motif": "###/###/##.",
+              "patternSupport": "reference-supported",
+              "coveredInternal": 0,
+              "sealedVoids": 0,
+              "coveredCavities": 2,
+              "completionDebt": 0,
+              "completions": []
+            },
+            "right": {
+              "profile": [
+                0,
+                3,
+                4
+              ],
+              "shapeStatus": "staggered-scoring-wall",
+              "cycle": {
+                "shape": "staggered-scoring-wall",
+                "phase": "scoring",
+                "cleanupColumns": [],
+                "prepareColumn": null,
+                "wallSolid": true,
+                "channelBase": true
+              },
+              "renewalDebt": 0,
+              "reservoir": {
+                "status": "verified-clear-reopens-reservoir",
+                "cells": [
+                  [
+                    9,
+                    38
+                  ],
+                  [
+                    9,
+                    39
+                  ]
+                ],
+                "roofRow": 37,
+                "pattern": "canonical-Z-cap-reservoir",
+                "witness": [
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "R",
+                  "R",
+                  "R",
+                  "CW",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "CW",
+                  "HD"
+                ],
+                "clearRows": [
+                  36,
+                  37
+                ]
+              },
+              "completions": []
+            },
+            "supportEstimate": 1,
+            "uncertainty": false,
+            "capSupplyBurden": 0,
+            "centerCompletionDebt": 0,
+            "supplyBurden": 0,
+            "obligations": [
+              {
+                "kind": "scoring-cycle",
+                "alternatives": [
+                  "T"
+                ],
+                "completions": [],
+                "note": "Normal scoring-wall shape; actual T-spin entry and line completion require execution verification.",
+                "supply": [
+                  {
+                    "id": "active",
+                    "piece": "T",
+                    "source": "active",
+                    "available": "now"
+                  }
+                ],
+                "status": "known-piece-identity"
+              }
+            ],
+            "supply": {
+              "instances": [
+                {
+                  "id": "active",
+                  "piece": "T",
+                  "source": "active",
+                  "available": "now"
+                },
+                {
+                  "id": "hold",
+                  "piece": "S",
+                  "source": "hold",
+                  "available": "hold-now"
+                },
+                {
+                  "id": "queue:0",
+                  "piece": "O",
+                  "source": "visible",
+                  "drawOffset": 1,
+                  "available": "when-drawn"
+                },
+                {
+                  "id": "queue:1",
+                  "piece": "Z",
+                  "source": "visible",
+                  "drawOffset": 2,
+                  "available": "when-drawn"
+                },
+                {
+                  "id": "queue:2",
+                  "piece": "S",
+                  "source": "visible",
+                  "drawOffset": 3,
+                  "available": "when-drawn"
+                },
+                {
+                  "id": "queue:3",
+                  "piece": "J",
+                  "source": "visible",
+                  "drawOffset": 4,
+                  "available": "when-drawn"
+                },
+                {
+                  "id": "queue:4",
+                  "piece": "L",
+                  "source": "visible",
+                  "drawOffset": 5,
+                  "available": "when-drawn"
+                },
+                {
+                  "id": "queue:5",
+                  "piece": "I",
+                  "source": "visible",
+                  "drawOffset": 6,
+                  "available": "when-drawn"
+                }
+              ],
+              "assignments": [
+                {
+                  "obligation": "scoring-cycle",
+                  "instance": "active",
+                  "piece": "T",
+                  "priority": "normal",
+                  "arrival": "now"
+                }
+              ],
+              "conflicts": [],
+              "matched": 1,
+              "priorityScore": 10,
+              "arrivalEstimate": 0,
+              "timing": "Distinct instances, essential-role priority and arrival estimates; execution still requires search.",
+              "conflictCount": 0
+            },
+            "claim": "Local regional support estimate, not a sustainability guarantee.",
+            "headroomRisk": 0,
+            "centerContinuity": {
+              "disruptedWithoutClear": false,
+              "unresolved": false,
+              "endpointReusable": true,
+              "preference": 0
+            }
+          },
+          "entryDebt": 0,
+          "nonclearScoringGeometryLost": false,
+          "centerReservation": {
+            "debt": [],
+            "completed": []
+          },
+          "cavityRepair": {
+            "status": "no-outstanding-new-internal-cavity",
+            "cells": []
+          }
+        }
+      },
+      {
+        "target": {
+          "type": "S",
+          "x": 2,
+          "y": 28,
+          "rotation": 3
+        },
+        "hold": true,
+        "holdCount": 1,
+        "witness": [
+          "HOLD",
+          "L",
+          "CCW",
+          "HD"
+        ],
+        "event": {
+          "type": "S",
+          "target": {
+            "type": "S",
+            "x": 2,
+            "y": 28,
+            "rotation": 3
+          },
+          "cells": [
+            [
+              2,
+              29
+            ],
+            [
+              2,
+              30
+            ],
+            [
+              3,
+              30
+            ],
+            [
+              3,
+              31
+            ]
+          ],
+          "lines": 0,
+          "clearedRows": [],
+          "spin": "none",
+          "topOut": false
+        },
+        "resultContext": "[\"st-zero-v2\",[\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..S.......\",\"..SS......\",\"...SJJJ...\",\".LLIOOJ...\",\".ZLIOO....\",\"ZZLIJJJ...\",\"ZSSIOOJ...\",\"SSLIOO...Z\",\"LLLILLL.ZZ\",\"TTTILSS.Z.\",\"TIIIIOO.Z.\"],\"T\",true,[\"Z\",\"S\",\"J\",\"L\",\"I\"],{\"remaining\":[0],\"observedCount\":28,\"provenance\":\"known-phase\"},\"O\"]",
+        "structuralEvidence": {
+          "reason": "Preserve a supported regional piece role.",
+          "cycleViolations": [],
+          "pairFamily": null,
+          "pairProgress": null,
+          "pairEvidence": null,
+          "opportunityCost": 0,
+          "leftSubstitutes": [],
+          "regions": [
+            "left"
+          ],
+          "crossRegion": false,
+          "allocation": "left-filler",
+          "status": "supported-local-role",
+          "dependencyDebt": 3,
+          "newlyCovered": 1,
+          "regionalRepair": 0,
+          "repairCredit": 0,
+          "note": "Crossing a boundary is not forbidden. Debt measures unsupported allocation and new structural repair burden; a later checked repair may repay it.",
+          "futureNotches": {
+            "valid": true,
+            "violation": null,
+            "pattern": {
+              "status": "established",
+              "anchorRow": 36,
+              "protectedRows": [
+                36,
+                33,
+                30,
+                27,
+                24,
+                21,
+                18,
+                15,
+                12,
+                9,
+                6,
+                3,
+                0
+              ],
+              "blockedRows": [],
+              "source": "translated-established-cycle"
+            },
+            "blockedCells": []
+          },
+          "centerPartnerDeficitBefore": 0,
+          "centerPartnerDeficitAfter": 0,
+          "placedPiece": "S",
+          "structure": {
+            "frontierDebt": 0,
+            "scoringRowDebt": 0,
+            "left": {
+              "profile": [
+                6,
+                8,
+                11,
+                10
+              ],
+              "flat": false,
+              "roughness": 6,
+              "covered": 1,
+              "horizontalI": null,
+              "completions": [
+                {
+                  "piece": "J",
+                  "family": null,
+                  "target": {
+                    "type": "J",
+                    "x": -1,
+                    "y": 30,
+                    "rotation": 1
+                  },
+                  "cells": [
+                    [
+                      0,
+                      31
+                    ],
+                    [
+                      1,
+                      31
+                    ],
+                    [
+                      0,
+                      32
+                    ],
+                    [
+                      0,
+                      33
+                    ]
+                  ],
+                  "witness": [
+                    "CW",
+                    "L",
+                    "L",
+                    "L",
+                    "L",
+                    "HD"
+                  ],
+                  "access": "hypothetical-spawn-straight-drop",
+                  "resultProfile": [
+                    9,
+                    9,
+                    11,
+                    10
+                  ],
+                  "resultStatus": "partial-repair",
+                  "patternSupport": null,
+                  "preserveCells": [
+                    [
+                      0,
+                      31
+                    ],
+                    [
+                      1,
+                      31
+                    ],
+                    [
+                      0,
+                      32
+                    ],
+                    [
+                      0,
+                      33
+                    ]
+                  ]
+                }
+              ]
+            },
+            "center": {
+              "foundation": {
+                "status": "aligned",
+                "vacancies": [],
+                "profile": [
+                  9,
+                  9,
+                  9
+                ]
+              },
+              "profile": [
+                9,
+                9,
+                9
+              ],
+              "status": "level",
+              "motif": "###/###/##.",
+              "patternSupport": "reference-supported",
+              "coveredInternal": 0,
+              "sealedVoids": 0,
+              "coveredCavities": 2,
+              "completionDebt": 0,
+              "completions": []
+            },
+            "right": {
+              "profile": [
+                0,
+                3,
+                4
+              ],
+              "shapeStatus": "staggered-scoring-wall",
+              "cycle": {
+                "shape": "staggered-scoring-wall",
+                "phase": "scoring",
+                "cleanupColumns": [],
+                "prepareColumn": null,
+                "wallSolid": true,
+                "channelBase": true
+              },
+              "renewalDebt": 0,
+              "reservoir": {
+                "status": "verified-clear-reopens-reservoir",
+                "cells": [
+                  [
+                    9,
+                    38
+                  ],
+                  [
+                    9,
+                    39
+                  ]
+                ],
+                "roofRow": 37,
+                "pattern": "canonical-Z-cap-reservoir",
+                "witness": [
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "R",
+                  "R",
+                  "R",
+                  "CW",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "CW",
+                  "HD"
+                ],
+                "clearRows": [
+                  36,
+                  37
+                ]
+              },
+              "completions": []
+            },
+            "supportEstimate": -13,
+            "uncertainty": false,
+            "capSupplyBurden": 0,
+            "centerCompletionDebt": 0,
+            "supplyBurden": 0,
+            "obligations": [
+              {
+                "kind": "left-surface",
+                "alternatives": [
+                  "J"
+                ],
+                "completions": [
+                  {
+                    "piece": "J",
+                    "family": null,
+                    "target": {
+                      "type": "J",
+                      "x": -1,
+                      "y": 30,
+                      "rotation": 1
+                    },
+                    "cells": [
+                      [
+                        0,
+                        31
+                      ],
+                      [
+                        1,
+                        31
+                      ],
+                      [
+                        0,
+                        32
+                      ],
+                      [
+                        0,
+                        33
+                      ]
+                    ],
+                    "witness": [
+                      "CW",
+                      "L",
+                      "L",
+                      "L",
+                      "L",
+                      "HD"
+                    ],
+                    "access": "hypothetical-spawn-straight-drop",
+                    "resultProfile": [
+                      9,
+                      9,
+                      11,
+                      10
+                    ],
+                    "resultStatus": "partial-repair",
+                    "patternSupport": null,
+                    "preserveCells": [
+                      [
+                        0,
+                        31
+                      ],
+                      [
+                        1,
+                        31
+                      ],
+                      [
+                        0,
+                        32
+                      ],
+                      [
+                        0,
+                        33
+                      ]
+                    ]
+                  }
+                ],
+                "note": "Optional left-surface improvement, not a mandatory immediate fill.",
+                "supply": [
+                  {
+                    "id": "queue:2",
+                    "piece": "J",
+                    "source": "visible",
+                    "drawOffset": 3,
+                    "available": "when-drawn"
+                  }
+                ],
+                "status": "known-piece-identity"
+              },
+              {
+                "kind": "scoring-cycle",
+                "alternatives": [
+                  "T"
+                ],
+                "completions": [],
+                "note": "Normal scoring-wall shape; actual T-spin entry and line completion require execution verification.",
+                "supply": [
+                  {
+                    "id": "hold",
+                    "piece": "T",
+                    "source": "hold",
+                    "available": "hold-now"
+                  }
+                ],
+                "status": "known-piece-identity"
+              }
+            ],
+            "supply": {
+              "instances": [
+                {
+                  "id": "active",
+                  "piece": "O",
+                  "source": "active",
+                  "available": "now"
+                },
+                {
+                  "id": "hold",
+                  "piece": "T",
+                  "source": "hold",
+                  "available": "hold-now"
+                },
+                {
+                  "id": "queue:0",
+                  "piece": "Z",
+                  "source": "visible",
+                  "drawOffset": 1,
+                  "available": "when-drawn"
+                },
+                {
+                  "id": "queue:1",
+                  "piece": "S",
+                  "source": "visible",
+                  "drawOffset": 2,
+                  "available": "when-drawn"
+                },
+                {
+                  "id": "queue:2",
+                  "piece": "J",
+                  "source": "visible",
+                  "drawOffset": 3,
+                  "available": "when-drawn"
+                },
+                {
+                  "id": "queue:3",
+                  "piece": "L",
+                  "source": "visible",
+                  "drawOffset": 4,
+                  "available": "when-drawn"
+                },
+                {
+                  "id": "queue:4",
+                  "piece": "I",
+                  "source": "visible",
+                  "drawOffset": 5,
+                  "available": "when-drawn"
+                }
+              ],
+              "assignments": [
+                {
+                  "obligation": "left-surface",
+                  "instance": "queue:2",
+                  "piece": "J",
+                  "priority": "normal",
+                  "arrival": "when-drawn"
+                },
+                {
+                  "obligation": "scoring-cycle",
+                  "instance": "hold",
+                  "piece": "T",
+                  "priority": "normal",
+                  "arrival": "hold-now"
+                }
+              ],
+              "conflicts": [],
+              "matched": 2,
+              "priorityScore": 11,
+              "arrivalEstimate": 3,
+              "timing": "Distinct instances, essential-role priority and arrival estimates; execution still requires search.",
+              "conflictCount": 0
+            },
+            "claim": "Local regional support estimate, not a sustainability guarantee.",
+            "headroomRisk": 0,
+            "centerContinuity": {
+              "disruptedWithoutClear": false,
+              "unresolved": false,
+              "endpointReusable": true,
+              "preference": 0
+            }
+          },
+          "entryDebt": 0,
+          "nonclearScoringGeometryLost": false,
+          "centerReservation": {
+            "debt": [],
+            "completed": []
+          },
+          "cavityRepair": {
+            "status": "no-outstanding-new-internal-cavity",
+            "cells": []
+          }
+        }
+      }
+    ],
+    "reason": "Hold once. Rebuild the Z cap over the Pocket (column 10) as shown. Then build the Left with S. Place here without clearing a line. At the end of this sequence, a T-spin-double entry is reachable if a T is available.",
+    "metrics": {
+      "nodes": 45000,
+      "roots": 76,
+      "rootExpanded": 2,
+      "depth": 3,
+      "completeDepth": 0,
+      "elapsedMs": 694,
+      "accessNodes": 4380,
+      "usage": {
+        "schemaVersion": 1,
+        "scope": "maintenance",
+        "families": {
+          "cleanupBeforeCap": {
+            "attempted": 11,
+            "examined": 861,
+            "nonISkipped": 861,
+            "iColumnSkipped": 0,
+            "iTransitionChecked": 0,
+            "verified": 0,
+            "unknown": 0
+          },
+          "earlyCapFallback": {
+            "scanEligible": 1,
+            "attempted": 1,
+            "verified": 1,
+            "selected": 0,
+            "nodes": 175
+          },
+          "visibleCyclePreparation": {
+            "eligible": 1,
+            "attempted": 1,
+            "verified": 1,
+            "selected": 0,
+            "nodes": 0,
+            "unknown": 0
+          }
+        },
+        "costsMs": {
+          "cleanupBeforeCap": 0.20529800000005594,
+          "earlyCapFallback": 14.813911999999988,
+          "visibleCyclePreparation": 26.34157399999998
+        },
+        "selected": {
+          "path": "ordinary",
+          "locks": 2,
+          "rank": [
+            1,
+            1,
+            0,
+            -10,
+            1,
+            -15,
+            0,
+            0
+          ]
+        }
+      },
+      "gapAccessNodes": 370,
+      "earlyCapFallback": {
+        "attempted": 1,
+        "verified": 1,
+        "selected": false,
+        "nodes": 175
+      },
+      "leftFoundationCandidate": false,
+      "preparationProofLocks": 2,
+      "proofScheduling": {
+        "enabled": false,
+        "allowance": null,
+        "calls": 3,
+        "nodes": 23499,
+        "unfinished": 16,
+        "budgetStops": 12
+      },
+      "completedBeamDepth": 3,
+      "admissionAttempts": 1,
+      "firstCertified": {
+        "nodes": 20848,
+        "elapsedMs": 374,
+        "locks": 2
+      },
+      "capStageCandidates": 0,
+      "resourceProofNodes": 0,
+      "certifiedHorizon": 2,
+      "queries": {
+        "hits": 6,
+        "avoidedNodes": 3186,
+        "proven": 54,
+        "failedWithinScope": 1,
+        "unfinished": 6,
+        "evictions": 0,
+        "peakBytes": 6818776,
+        "peakEntries": 55,
+        "entries": 55,
+        "bytes": 6818776,
+        "maxBytes": 8388608,
+        "maxEntries": 64
+      }
+    },
+    "context": "[\"st-zero-v2\",[\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"....JJJ...\",\".LLIOOJ...\",\".ZLIOO....\",\"ZZLIJJJ...\",\"ZSSIOOJ...\",\"SSLIOO....\",\"LLLILLL...\",\"TTTILSS...\",\"TIIIIOO.Z.\"],\"Z\",true,[\"T\",\"O\",\"Z\",\"S\",\"J\",\"L\"],{\"remaining\":[1],\"observedCount\":27,\"provenance\":\"known-phase\"},\"S\"]",
+    "evidence": {
+      "resetSelection": {
+        "policy": "joint-low-visible-pair-v2",
+        "status": "ordinary-preferred",
+        "reason": "Ordinary geometric profile is present; this is not proof of an executable maintenance continuation.",
+        "ordinaryComparison": "ordinary-geometric-profile",
+        "source": "SHOCKY-4",
+        "claim": "Finite recovery preference within coach coverage; not proof that ordinary play is impossible or a complete Reset.",
+        "resourceRenewal": false
+      },
+      "strategy": "canonical-right-ST",
+      "cycleResources": {
+        "leftFoundations": 0,
+        "centerPreparations": 0,
+        "centerCompletions": 0,
+        "locks": 2,
+        "lines": 0,
+        "materialDelta": 8,
+        "tsds": 0,
+        "quads": 0,
+        "pocket": 0,
+        "outstandingPocket": 0,
+        "tFillers": 0,
+        "iFillers": 0
+      },
+      "commitmentRetained": false,
+      "futureNotches": {
+        "status": "established",
+        "anchorRow": 36,
+        "protectedRows": [
+          36,
+          33,
+          30,
+          27,
+          24,
+          21,
+          18,
+          15,
+          12,
+          9,
+          6,
+          3,
+          0
+        ],
+        "blockedRows": [],
+        "source": "translated-established-cycle"
+      },
+      "preparationProof": null,
+      "cycleDebt": 0,
+      "cavityRepair": {
+        "status": "verified-prefix-repaired",
+        "outstandingCells": []
+      },
+      "clearPolicy": "right-region full T-spin doubles and I tetrises only",
+      "verifiedLocks": 2,
+      "tsdAt": null,
+      "knownPieceHorizon": 8,
+      "rootEnumerationComplete": true,
+      "budgetExhausted": true,
+      "searchIncomplete": true,
+      "informationBoundary": false,
+      "initialSealed": 0,
+      "endpointSealed": 2,
+      "regionalSupport": true,
+      "channel": {
+        "column": 7,
+        "height": 0,
+        "openBelowStack": true
+      },
+      "endpointTEntry": "reachable-if-T-available",
+      "unresolvedObligations": [
+        {
+          "kind": "left-surface",
+          "alternatives": [
+            "J"
+          ],
+          "completions": [
+            {
+              "piece": "J",
+              "family": null,
+              "target": {
+                "type": "J",
+                "x": -1,
+                "y": 30,
+                "rotation": 1
+              },
+              "cells": [
+                [
+                  0,
+                  31
+                ],
+                [
+                  1,
+                  31
+                ],
+                [
+                  0,
+                  32
+                ],
+                [
+                  0,
+                  33
+                ]
+              ],
+              "witness": [
+                "CW",
+                "L",
+                "L",
+                "L",
+                "L",
+                "HD"
+              ],
+              "access": "hypothetical-spawn-straight-drop",
+              "resultProfile": [
+                9,
+                9,
+                11,
+                10
+              ],
+              "resultStatus": "partial-repair",
+              "patternSupport": null,
+              "preserveCells": [
+                [
+                  0,
+                  31
+                ],
+                [
+                  1,
+                  31
+                ],
+                [
+                  0,
+                  32
+                ],
+                [
+                  0,
+                  33
+                ]
+              ]
+            }
+          ],
+          "note": "Optional left-surface improvement, not a mandatory immediate fill.",
+          "supply": [
+            {
+              "id": "queue:2",
+              "piece": "J",
+              "source": "visible",
+              "drawOffset": 3,
+              "available": "when-drawn"
+            }
+          ],
+          "status": "known-piece-identity"
+        },
+        {
+          "kind": "scoring-cycle",
+          "alternatives": [
+            "T"
+          ],
+          "completions": [],
+          "note": "Normal scoring-wall shape; actual T-spin entry and line completion require execution verification.",
+          "supply": [
+            {
+              "id": "hold",
+              "piece": "T",
+              "source": "hold",
+              "available": "hold-now"
+            }
+          ],
+          "status": "known-piece-identity"
+        },
+        {
+          "kind": "T-slot",
+          "demands": [
+            "T"
+          ],
+          "status": "entry-verified-arrival-unresolved",
+          "at": [
+            6,
+            34
+          ],
+          "note": "Counterfactual T entry is checked separately from whether a T arrives in time."
+        }
+      ],
+      "structuralScore": -36.1,
+      "structuralRank": [
+        1,
+        1,
+        0,
+        -10,
+        1,
+        -15,
+        0,
+        0
+      ],
+      "structure": {
+        "frontierDebt": 0,
+        "scoringRowDebt": 0,
+        "left": {
+          "profile": [
+            6,
+            8,
+            11,
+            10
+          ],
+          "flat": false,
+          "roughness": 6,
+          "covered": 1,
+          "horizontalI": null,
+          "completions": [
+            {
+              "piece": "J",
+              "family": null,
+              "target": {
+                "type": "J",
+                "x": -1,
+                "y": 30,
+                "rotation": 1
+              },
+              "cells": [
+                [
+                  0,
+                  31
+                ],
+                [
+                  1,
+                  31
+                ],
+                [
+                  0,
+                  32
+                ],
+                [
+                  0,
+                  33
+                ]
+              ],
+              "witness": [
+                "CW",
+                "L",
+                "L",
+                "L",
+                "L",
+                "HD"
+              ],
+              "access": "hypothetical-spawn-straight-drop",
+              "resultProfile": [
+                9,
+                9,
+                11,
+                10
+              ],
+              "resultStatus": "partial-repair",
+              "patternSupport": null,
+              "preserveCells": [
+                [
+                  0,
+                  31
+                ],
+                [
+                  1,
+                  31
+                ],
+                [
+                  0,
+                  32
+                ],
+                [
+                  0,
+                  33
+                ]
+              ]
+            }
+          ]
+        },
+        "center": {
+          "foundation": {
+            "status": "aligned",
+            "vacancies": [],
+            "profile": [
+              9,
+              9,
+              9
+            ]
+          },
+          "profile": [
+            9,
+            9,
+            9
+          ],
+          "status": "level",
+          "motif": "###/###/##.",
+          "patternSupport": "reference-supported",
+          "coveredInternal": 0,
+          "sealedVoids": 0,
+          "coveredCavities": 2,
+          "completionDebt": 0,
+          "completions": []
+        },
+        "right": {
+          "profile": [
+            0,
+            3,
+            4
+          ],
+          "shapeStatus": "staggered-scoring-wall",
+          "cycle": {
+            "shape": "staggered-scoring-wall",
+            "phase": "scoring",
+            "cleanupColumns": [],
+            "prepareColumn": null,
+            "wallSolid": true,
+            "channelBase": true
+          },
+          "renewalDebt": 0,
+          "reservoir": {
+            "status": "verified-clear-reopens-reservoir",
+            "cells": [
+              [
+                9,
+                38
+              ],
+              [
+                9,
+                39
+              ]
+            ],
+            "roofRow": 37,
+            "pattern": "canonical-Z-cap-reservoir",
+            "witness": [
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "R",
+              "R",
+              "R",
+              "CW",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "CW",
+              "HD"
+            ],
+            "clearRows": [
+              36,
+              37
+            ]
+          },
+          "completions": []
+        },
+        "supportEstimate": -13,
+        "uncertainty": false,
+        "capSupplyBurden": 0,
+        "centerCompletionDebt": 0,
+        "supplyBurden": 0,
+        "obligations": [
+          {
+            "kind": "left-surface",
+            "alternatives": [
+              "J"
+            ],
+            "completions": [
+              {
+                "piece": "J",
+                "family": null,
+                "target": {
+                  "type": "J",
+                  "x": -1,
+                  "y": 30,
+                  "rotation": 1
+                },
+                "cells": [
+                  [
+                    0,
+                    31
+                  ],
+                  [
+                    1,
+                    31
+                  ],
+                  [
+                    0,
+                    32
+                  ],
+                  [
+                    0,
+                    33
+                  ]
+                ],
+                "witness": [
+                  "CW",
+                  "L",
+                  "L",
+                  "L",
+                  "L",
+                  "HD"
+                ],
+                "access": "hypothetical-spawn-straight-drop",
+                "resultProfile": [
+                  9,
+                  9,
+                  11,
+                  10
+                ],
+                "resultStatus": "partial-repair",
+                "patternSupport": null,
+                "preserveCells": [
+                  [
+                    0,
+                    31
+                  ],
+                  [
+                    1,
+                    31
+                  ],
+                  [
+                    0,
+                    32
+                  ],
+                  [
+                    0,
+                    33
+                  ]
+                ]
+              }
+            ],
+            "note": "Optional left-surface improvement, not a mandatory immediate fill.",
+            "supply": [
+              {
+                "id": "queue:2",
+                "piece": "J",
+                "source": "visible",
+                "drawOffset": 3,
+                "available": "when-drawn"
+              }
+            ],
+            "status": "known-piece-identity"
+          },
+          {
+            "kind": "scoring-cycle",
+            "alternatives": [
+              "T"
+            ],
+            "completions": [],
+            "note": "Normal scoring-wall shape; actual T-spin entry and line completion require execution verification.",
+            "supply": [
+              {
+                "id": "hold",
+                "piece": "T",
+                "source": "hold",
+                "available": "hold-now"
+              }
+            ],
+            "status": "known-piece-identity"
+          }
+        ],
+        "supply": {
+          "instances": [
+            {
+              "id": "active",
+              "piece": "O",
+              "source": "active",
+              "available": "now"
+            },
+            {
+              "id": "hold",
+              "piece": "T",
+              "source": "hold",
+              "available": "hold-now"
+            },
+            {
+              "id": "queue:0",
+              "piece": "Z",
+              "source": "visible",
+              "drawOffset": 1,
+              "available": "when-drawn"
+            },
+            {
+              "id": "queue:1",
+              "piece": "S",
+              "source": "visible",
+              "drawOffset": 2,
+              "available": "when-drawn"
+            },
+            {
+              "id": "queue:2",
+              "piece": "J",
+              "source": "visible",
+              "drawOffset": 3,
+              "available": "when-drawn"
+            },
+            {
+              "id": "queue:3",
+              "piece": "L",
+              "source": "visible",
+              "drawOffset": 4,
+              "available": "when-drawn"
+            },
+            {
+              "id": "queue:4",
+              "piece": "I",
+              "source": "visible",
+              "drawOffset": 5,
+              "available": "when-drawn"
+            }
+          ],
+          "assignments": [
+            {
+              "obligation": "left-surface",
+              "instance": "queue:2",
+              "piece": "J",
+              "priority": "normal",
+              "arrival": "when-drawn"
+            },
+            {
+              "obligation": "scoring-cycle",
+              "instance": "hold",
+              "piece": "T",
+              "priority": "normal",
+              "arrival": "hold-now"
+            }
+          ],
+          "conflicts": [],
+          "matched": 2,
+          "priorityScore": 11,
+          "arrivalEstimate": 3,
+          "timing": "Distinct instances, essential-role priority and arrival estimates; execution still requires search.",
+          "conflictCount": 0
+        },
+        "claim": "Local regional support estimate, not a sustainability guarantee.",
+        "headroomRisk": 0,
+        "centerContinuity": {
+          "disruptedWithoutClear": false,
+          "unresolved": false,
+          "endpointReusable": true,
+          "preference": 0
+        }
+      },
+      "dependencyDebt": 3,
+      "claim": "Finite executable prefix; endpoint estimates are not a sustainability guarantee.",
+      "resourceObligations": {
+        "status": "checked",
+        "binding": "[\"complete\",[{\"id\":2,\"type\":\"S\",\"bag\":0},{\"id\":7,\"type\":\"L\",\"bag\":0},{\"id\":12,\"type\":\"S\",\"bag\":1},{\"id\":13,\"type\":\"L\",\"bag\":1},{\"id\":18,\"type\":\"L\",\"bag\":2},{\"id\":21,\"type\":\"S\",\"bag\":2},{\"id\":25,\"type\":\"S\",\"bag\":3},{\"id\":27,\"type\":\"L\",\"bag\":3}],[{\"id\":21,\"type\":\"S\",\"bag\":2},{\"id\":14,\"type\":\"Z\",\"bag\":1},{\"id\":22,\"type\":\"T\",\"bag\":3},{\"id\":23,\"type\":\"O\",\"bag\":3},{\"id\":24,\"type\":\"Z\",\"bag\":3},{\"id\":25,\"type\":\"S\",\"bag\":3},{\"id\":26,\"type\":\"J\",\"bag\":3},{\"id\":27,\"type\":\"L\",\"bag\":3},{\"id\":-1,\"type\":\"I\",\"bag\":null}],[],[],[{\"bag\":2,\"sId\":21,\"lId\":18,\"at\":17,\"reason\":\"The L was allocated outside its observed S/L pair.\"}],[],[],[],[],\"available\",[],null]",
+        "extraZ": "available",
+        "pendingCenter": [],
+        "hangingS": [],
+        "unclassifiedS": [],
+        "hangingL": []
+      },
+      "gapAccess": {
+        "reachable": true,
+        "complete": true,
+        "visited": 0,
+        "status": "prefix-movement-access-witnessed",
+        "steps": [
+          {
+            "status": "no-new-roofed-cells",
+            "complete": true,
+            "reachable": true,
+            "cells": [],
+            "visited": 0
+          },
+          {
+            "status": "movement-access-witnessed",
+            "complete": true,
+            "reachable": true,
+            "cells": [
+              [
+                2,
+                31
+              ]
+            ],
+            "unreachable": [],
+            "witnesses": [
+              {
+                "piece": "J",
+                "cells": [
+                  [
+                    2,
+                    31
+                  ]
+                ],
+                "witness": [
+                  "L",
+                  "L",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "SD",
+                  "CW",
+                  "L",
+                  "SD",
+                  "SD",
+                  "CCW",
+                  "HD"
+                ],
+                "target": {
+                  "type": "J",
+                  "x": 0,
+                  "y": 29,
+                  "rotation": 0
+                }
+              }
+            ],
+            "visited": 0,
+            "cached": true
+          }
+        ]
+      }
+    },
+    "status": "recommended-with-verified-prefix",
+    "sources": [
+      {
+        "url": "https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit",
+        "section": "Chapter 1: The ST Stacking Timeline and Anatomy",
+        "id": "SHOCKY-1",
+        "label": "Shocky's ST Stacking Guide",
+        "scope": "Defines Left as columns 1\u20134, Center as 5\u20137, Right as 8\u201310, Pocket as column 10, Well as column 8, and a Z covering the Pocket as capped. Supports terminology, not this checked cap-replacement sequence."
+      }
+    ],
+    "assessment": {
+      "maintenanceScope": true,
+      "regionalSupport": true,
+      "regionImbalance": 0,
+      "channel": {
+        "column": 7,
+        "height": 0,
+        "openBelowStack": true
+      },
+      "heights": [
+        6,
+        8,
+        11,
+        10,
+        9,
+        9,
+        9,
+        0,
+        3,
+        4
+      ],
+      "maxHeight": 11,
+      "headroom": 9,
+      "sealed": 2,
+      "sealedCells": [
+        [
+          9,
+          38
+        ],
+        [
+          9,
+          39
+        ]
+      ],
+      "leftSealed": 0,
+      "covered": 5,
+      "damageSealed": 0,
+      "damageCovered": 3,
+      "left": {
+        "height": 11,
+        "roughness": 6
+      },
+      "center": {
+        "height": 9,
+        "profile": [
+          9,
+          9,
+          9
+        ],
+        "partnerDeficit": 0,
+        "partnerStatus": "level-surface"
+      },
+      "right": {
+        "height": 4,
+        "slots": [
+          {
+            "x": 6,
+            "y": 34,
+            "rotation": 2,
+            "lines": 2,
+            "access": "geometry-only"
+          }
+        ],
+        "entry": {
+          "status": "reachable-if-T-available",
+          "witness": [
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "R",
+            "R",
+            "R",
+            "CW",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "SD",
+            "CW",
+            "HD"
+          ],
+          "target": {
+            "type": "T",
+            "x": 6,
+            "y": 34,
+            "rotation": 2
+          }
+        }
+      },
+      "obligations": [
+        {
+          "kind": "left-surface",
+          "alternatives": [
+            "J"
+          ],
+          "completions": [
+            {
+              "piece": "J",
+              "family": null,
+              "target": {
+                "type": "J",
+                "x": -1,
+                "y": 30,
+                "rotation": 1
+              },
+              "cells": [
+                [
+                  0,
+                  31
+                ],
+                [
+                  1,
+                  31
+                ],
+                [
+                  0,
+                  32
+                ],
+                [
+                  0,
+                  33
+                ]
+              ],
+              "witness": [
+                "CW",
+                "L",
+                "L",
+                "L",
+                "L",
+                "HD"
+              ],
+              "access": "hypothetical-spawn-straight-drop",
+              "resultProfile": [
+                9,
+                9,
+                11,
+                10
+              ],
+              "resultStatus": "partial-repair",
+              "patternSupport": null,
+              "preserveCells": [
+                [
+                  0,
+                  31
+                ],
+                [
+                  1,
+                  31
+                ],
+                [
+                  0,
+                  32
+                ],
+                [
+                  0,
+                  33
+                ]
+              ]
+            }
+          ],
+          "note": "Optional left-surface improvement, not a mandatory immediate fill.",
+          "supply": [
+            {
+              "id": "queue:2",
+              "piece": "J",
+              "source": "visible",
+              "drawOffset": 3,
+              "available": "when-drawn"
+            }
+          ],
+          "status": "known-piece-identity"
+        },
+        {
+          "kind": "scoring-cycle",
+          "alternatives": [
+            "T"
+          ],
+          "completions": [],
+          "note": "Normal scoring-wall shape; actual T-spin entry and line completion require execution verification.",
+          "supply": [
+            {
+              "id": "hold",
+              "piece": "T",
+              "source": "hold",
+              "available": "hold-now"
+            }
+          ],
+          "status": "known-piece-identity"
+        },
+        {
+          "kind": "T-slot",
+          "demands": [
+            "T"
+          ],
+          "status": "entry-verified-arrival-unresolved",
+          "at": [
+            6,
+            34
+          ],
+          "note": "Counterfactual T entry is checked separately from whether a T arrives in time."
+        }
+      ],
+      "estimate": -14.100000000000001,
+      "assumptions": [
+        "Structural estimates are heuristic; only the returned input prefix is verified."
+      ],
+      "structure": {
+        "frontierDebt": 0,
+        "scoringRowDebt": 0,
+        "left": {
+          "profile": [
+            6,
+            8,
+            11,
+            10
+          ],
+          "flat": false,
+          "roughness": 6,
+          "covered": 1,
+          "horizontalI": null,
+          "completions": [
+            {
+              "piece": "J",
+              "family": null,
+              "target": {
+                "type": "J",
+                "x": -1,
+                "y": 30,
+                "rotation": 1
+              },
+              "cells": [
+                [
+                  0,
+                  31
+                ],
+                [
+                  1,
+                  31
+                ],
+                [
+                  0,
+                  32
+                ],
+                [
+                  0,
+                  33
+                ]
+              ],
+              "witness": [
+                "CW",
+                "L",
+                "L",
+                "L",
+                "L",
+                "HD"
+              ],
+              "access": "hypothetical-spawn-straight-drop",
+              "resultProfile": [
+                9,
+                9,
+                11,
+                10
+              ],
+              "resultStatus": "partial-repair",
+              "patternSupport": null,
+              "preserveCells": [
+                [
+                  0,
+                  31
+                ],
+                [
+                  1,
+                  31
+                ],
+                [
+                  0,
+                  32
+                ],
+                [
+                  0,
+                  33
+                ]
+              ]
+            }
+          ]
+        },
+        "center": {
+          "foundation": {
+            "status": "aligned",
+            "vacancies": [],
+            "profile": [
+              9,
+              9,
+              9
+            ]
+          },
+          "profile": [
+            9,
+            9,
+            9
+          ],
+          "status": "level",
+          "motif": "###/###/##.",
+          "patternSupport": "reference-supported",
+          "coveredInternal": 0,
+          "sealedVoids": 0,
+          "coveredCavities": 2,
+          "completionDebt": 0,
+          "completions": []
+        },
+        "right": {
+          "profile": [
+            0,
+            3,
+            4
+          ],
+          "shapeStatus": "staggered-scoring-wall",
+          "cycle": {
+            "shape": "staggered-scoring-wall",
+            "phase": "scoring",
+            "cleanupColumns": [],
+            "prepareColumn": null,
+            "wallSolid": true,
+            "channelBase": true
+          },
+          "renewalDebt": 0,
+          "reservoir": {
+            "status": "verified-clear-reopens-reservoir",
+            "cells": [
+              [
+                9,
+                38
+              ],
+              [
+                9,
+                39
+              ]
+            ],
+            "roofRow": 37,
+            "pattern": "canonical-Z-cap-reservoir",
+            "witness": [
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "R",
+              "R",
+              "R",
+              "CW",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "SD",
+              "CW",
+              "HD"
+            ],
+            "clearRows": [
+              36,
+              37
+            ]
+          },
+          "completions": []
+        },
+        "supportEstimate": -13,
+        "uncertainty": false,
+        "capSupplyBurden": 0,
+        "centerCompletionDebt": 0,
+        "supplyBurden": 0,
+        "obligations": [
+          {
+            "kind": "left-surface",
+            "alternatives": [
+              "J"
+            ],
+            "completions": [
+              {
+                "piece": "J",
+                "family": null,
+                "target": {
+                  "type": "J",
+                  "x": -1,
+                  "y": 30,
+                  "rotation": 1
+                },
+                "cells": [
+                  [
+                    0,
+                    31
+                  ],
+                  [
+                    1,
+                    31
+                  ],
+                  [
+                    0,
+                    32
+                  ],
+                  [
+                    0,
+                    33
+                  ]
+                ],
+                "witness": [
+                  "CW",
+                  "L",
+                  "L",
+                  "L",
+                  "L",
+                  "HD"
+                ],
+                "access": "hypothetical-spawn-straight-drop",
+                "resultProfile": [
+                  9,
+                  9,
+                  11,
+                  10
+                ],
+                "resultStatus": "partial-repair",
+                "patternSupport": null,
+                "preserveCells": [
+                  [
+                    0,
+                    31
+                  ],
+                  [
+                    1,
+                    31
+                  ],
+                  [
+                    0,
+                    32
+                  ],
+                  [
+                    0,
+                    33
+                  ]
+                ]
+              }
+            ],
+            "note": "Optional left-surface improvement, not a mandatory immediate fill.",
+            "supply": [
+              {
+                "id": "queue:2",
+                "piece": "J",
+                "source": "visible",
+                "drawOffset": 3,
+                "available": "when-drawn"
+              }
+            ],
+            "status": "known-piece-identity"
+          },
+          {
+            "kind": "scoring-cycle",
+            "alternatives": [
+              "T"
+            ],
+            "completions": [],
+            "note": "Normal scoring-wall shape; actual T-spin entry and line completion require execution verification.",
+            "supply": [
+              {
+                "id": "hold",
+                "piece": "T",
+                "source": "hold",
+                "available": "hold-now"
+              }
+            ],
+            "status": "known-piece-identity"
+          }
+        ],
+        "supply": {
+          "instances": [
+            {
+              "id": "active",
+              "piece": "O",
+              "source": "active",
+              "available": "now"
+            },
+            {
+              "id": "hold",
+              "piece": "T",
+              "source": "hold",
+              "available": "hold-now"
+            },
+            {
+              "id": "queue:0",
+              "piece": "Z",
+              "source": "visible",
+              "drawOffset": 1,
+              "available": "when-drawn"
+            },
+            {
+              "id": "queue:1",
+              "piece": "S",
+              "source": "visible",
+              "drawOffset": 2,
+              "available": "when-drawn"
+            },
+            {
+              "id": "queue:2",
+              "piece": "J",
+              "source": "visible",
+              "drawOffset": 3,
+              "available": "when-drawn"
+            },
+            {
+              "id": "queue:3",
+              "piece": "L",
+              "source": "visible",
+              "drawOffset": 4,
+              "available": "when-drawn"
+            },
+            {
+              "id": "queue:4",
+              "piece": "I",
+              "source": "visible",
+              "drawOffset": 5,
+              "available": "when-drawn"
+            }
+          ],
+          "assignments": [
+            {
+              "obligation": "left-surface",
+              "instance": "queue:2",
+              "piece": "J",
+              "priority": "normal",
+              "arrival": "when-drawn"
+            },
+            {
+              "obligation": "scoring-cycle",
+              "instance": "hold",
+              "piece": "T",
+              "priority": "normal",
+              "arrival": "hold-now"
+            }
+          ],
+          "conflicts": [],
+          "matched": 2,
+          "priorityScore": 11,
+          "arrivalEstimate": 3,
+          "timing": "Distinct instances, essential-role priority and arrival estimates; execution still requires search.",
+          "conflictCount": 0
+        },
+        "claim": "Local regional support estimate, not a sustainability guarantee.",
+        "headroomRisk": 0,
+        "centerContinuity": {
+          "disruptedWithoutClear": false,
+          "unresolved": false,
+          "endpointReusable": true,
+          "preference": 0
+        }
+      },
+      "leftContext": {
+        "source": "https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit",
+        "shape": null,
+        "tier": null,
+        "profile": [
+          0,
+          2,
+          5,
+          4
+        ],
+        "score": 0,
+        "adjustment": 0,
+        "context": "covered-cells-neutral",
+        "horizon": 2,
+        "executionVerified": false
+      },
+      "intentionalReservoir": {
+        "cells": [
+          [
+            9,
+            38
+          ],
+          [
+            9,
+            39
+          ]
+        ],
+        "sealedExempt": 2,
+        "coveredExempt": 2,
+        "credit": 6,
+        "proof": "reachable counterfactual T-double reopens these cells; arrival not established"
+      }
+    }
+  },
+  "nextPublicReveal": "I"
+}

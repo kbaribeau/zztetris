@@ -6,6 +6,10 @@ const clone=x=>JSON.parse(JSON.stringify(x)),key=c=>JSON.stringify(c.slice().sor
 const tsd=e=>e.type==='T'&&e.spin==='full'&&e.lines===2&&S.canonicalClear(e);
 const left=e=>e.cells.every(([x])=>x<4),center=e=>e.cells.every(([x])=>x>=4&&x<7),nonRight=e=>e.cells.every(([x])=>x<7);
 const completions=board=>S.geometry(board).center.completions.filter(c=>c.resultStatus==='level'&&c.patternSupport==='reference-supported').map(c=>({piece:c.piece,cells:c.cells}));
+// Canonical planning supply shared by proof creation and retention. This adds
+// only the unique remaining public bag member, consumes that deduction once,
+// and never changes the observed history or invents its piece/bag identity.
+function extendForced(state){if(!state.bag||state.bag.error)return state;const type=B.forcedNext(state.bag);return type?{...state,queue:[...state.queue,type],bag:B.consume(state.bag,type)}:state;}
 function start(raw,summary={}){
  let next=-1;const instance=(p,type)=>p&&p.type===type?{id:p.id,type,bag:p.bag??null}:{id:next--,type,bag:null};
  const live=summary.instances||{},a=raw.active?instance(live.active,raw.active.type):null,h=raw.hold?instance(live.hold,raw.hold):null,q=raw.queue.map((t,i)=>instance(live.queue?.[i],t));
@@ -116,7 +120,7 @@ function step(before,p,prior){
  n.hangingLive=n.hangingS.filter(h=>[n.active,n.hold,...n.queue].some(p=>p?.id===h.id));
  return n;
 }
-function checkPath(raw,path,summary={}){if(!Array.isArray(path)||path.length>7)return{valid:false,reason:'resource-prefix-limit',resource:start(raw,summary)};let state=R.createState(raw);const forced=state.bag&&B.forcedNext(state.bag);if(forced)state={...state,queue:[...state.queue,forced],bag:B.consume(state.bag,forced)};let resource=start(state,summary);for(const p of path){const r=R.replay(state,p.witness);if(!r.valid||r.events.length!==1||JSON.stringify(r.events[0])!==JSON.stringify(p.event))return{valid:false,reason:'invalid-resource-witness',resource};resource=step(state,{...p,state:r.state,event:r.events[0]},resource);if(resource.violations.length)return{valid:false,reason:resource.violations[0],resource};state=r.state;}return{valid:!resource.centerBlocked,reason:resource.centerBlocked?'center-partner-blocked-by-T-or-unseen':null,resource,state};}
+function checkPath(raw,path,summary={}){if(!Array.isArray(path)||path.length>7)return{valid:false,reason:'resource-prefix-limit',resource:start(raw,summary)};let state=extendForced(R.createState(raw)),resource=start(state,summary);for(const p of path){const r=R.replay(state,p.witness);if(!r.valid||r.events.length!==1||JSON.stringify(r.events[0])!==JSON.stringify(p.event))return{valid:false,reason:'invalid-resource-witness',resource};resource=step(state,{...p,state:r.state,event:r.events[0]},resource);if(resource.violations.length)return{valid:false,reason:resource.violations[0],resource};state=r.state;}return{valid:!resource.centerBlocked,reason:resource.centerBlocked?'center-partner-blocked-by-T-or-unseen':null,resource,state};}
 // A local landing is positive evidence only. It must be reached from the real
 // observed inventory through a checked finite prefix before it can be promised.
 function repairGoal(event,instance,resource){return event.type==='S'&&left(event)&&resource.hangingS.some(h=>h.id===instance?.id);}
@@ -177,5 +181,5 @@ function repairCore(raw,resource,{maxNodes=4000,deadline=Infinity,now=()=>Date.n
  }
  return{valid:complete?false:null,visited,status:complete?'no-visible-resource-repair':'resource-repair-budget'};
 }
-return Object.freeze({start,step,checkPath,partnerAccessible,repairGoal,binding,repair});
+return Object.freeze({start,step,checkPath,partnerAccessible,repairGoal,binding,repair,extendForced});
 });
