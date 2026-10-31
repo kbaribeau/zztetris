@@ -2287,21 +2287,23 @@ function riskyFallback(raw,supported,options,collector){
   if(unresolved.some(p=>p.invalidated||p.requiresAccommodation))hazards.push({code:'unresolved-observed-accommodation',detail:'An observed S/L accommodation remains unresolved or was invalidated; no replacement repair is proved.',downside:'Later pieces may be needed to repair this known obligation, not available as spare pieces.'});
   else if(unresolved.length)hazards.push({code:'allocation-history-unknown',detail:'Some earlier S/L allocations remain unclassified; no spare-piece allowance is granted.',downside:'Using later S/L pieces elsewhere may leave an unmet partner obligation.'});
   if(!facts.regionalSupport)hazards.push({code:'unsupported-stack-shape',detail:'The resulting regional stack is outside the checked continuation shapes.',downside:'Visible pieces may not fit while preserving the ST scoring channel.'});
-  if(!hazards.length){reject('no-concrete-risk-hazard');continue;}
+  // A clean payment must not lose solely because it removes the last known
+  // hazard. Uncertified continuation is disclosed without inventing damage.
+  const paid=['complete','partial'].includes(summary.coverage?.status)?resource.pendingCenter.filter(o=>Number.isInteger(o.rootId)&&o.rootId>0&&!o.lost&&!next.pendingCenter.some(n=>n.rootId===o.rootId)&&o.alternatives.some(a=>a.piece===event.type&&a.cells.length===event.cells.length&&a.cells.every(([x,y])=>event.cells.some(([ex,ey])=>x===ex&&y===ey)))).map(o=>o.rootId):[];
   hazards.push({code:'continuation-unverified',detail:'Only this placement is verified; no supported continuation was certified in this bounded search.',downside:'Further play may require an awkward repair or an early stop.'});
-  const score=[debt.length,next.pendingCenter.filter(p=>p.lost).length,afterCavities.sealed,facts.maxHeight,-event.lines,-facts.estimate,p.witness.length];
-  candidates.push({p:{...p,state:nextState,event},hazards,facts,score});
+  const score=[debt.length,next.pendingCenter.filter(p=>p.lost).length,afterCavities.sealed,facts.maxHeight,-paid.length,-event.lines,-facts.estimate,p.witness.length];
+  candidates.push({p:{...p,state:nextState,event},hazards,facts,score,paid});
  }
  telemetry.truncated=telemetry.truncated||collector.placements.length>64;
  candidates.sort((a,b)=>{for(let i=0;i<a.score.length;i++)if(a.score[i]!==b.score[i])return a.score[i]-b.score[i];return 0;});
  const chosen=candidates[0];if(!chosen)return finish({...supported,reason:supported.reason+' No risky fallback passed the remaining-budget and conservative legality/resource/structure checks.'});
- const {p,hazards,facts}=chosen,step={target:p.event.target,witness:p.witness.slice(),event:p.event,hold:p.witness.includes('HOLD'),holdCount:p.witness.filter(a=>a==='HOLD').length,resultContext:context(p.state)};
+ const {p,hazards,facts,paid}=chosen,step={target:p.event.target,witness:p.witness.slice(),event:p.event,hold:p.witness.includes('HOLD'),holdCount:p.witness.filter(a=>a==='HOLD').length,resultContext:context(p.state)};
  const search={status:supported.status,incomplete:incomplete||telemetry.truncated||telemetry.proofIncomplete,saferAlternative:'not-certified-within-bounded-search',candidateLimit:64};
  const region=p.event.cells.every(([x])=>x<4)?'Left':p.event.cells.every(([x])=>x>=4&&x<7)?'Center':p.event.cells.every(([x])=>x>=7)?'Right':'across regions';
  return finish({status:'recommended-risky-placement',revision:raw.revision,context:context(observe(raw)),target:step.target,witness:step.witness,hold:step.hold,holdCount:step.holdCount,continuation:[step],assessment:facts,
   reason:`Risky: ${holdPrompt(step)}Place ${p.event.type} in ${region}. ${hazards.map(h=>h.detail+' '+h.downside).join(' ')} A safer move may exist; the search did not certify one.`,sources:[],
-  recommendation:{kind:'risky',hazards,search,claim:'Legal current placement only; restoration, continued survival and future piece arrival are not proved.'},
-  evidence:{strategy:'explicit-risk-fallback',verifiedLocks:1,resourcePermissions:'unchanged',risk:{hazards,search},claim:'No supported repair certificate is supplied.'},metrics:{...supported.metrics,certifiedHorizon:0,legalHorizon:1}});
+  recommendation:{kind:'risky',riskBasis:hazards.length===1&&hazards[0].code==='continuation-unverified'?'uncertified-follow-up-only':'identified-dependency',hazards,search,claim:'Legal current placement only; restoration, continued survival and future piece arrival are not proved.'},
+  evidence:{strategy:'explicit-risk-fallback',verifiedLocks:1,resourcePermissions:'unchanged',actualPartnerPayments:paid,risk:{hazards,search},claim:'No supported repair certificate is supplied.'},metrics:{...supported.metrics,certifiedHorizon:0,legalHorizon:1}});
 }
 
 function decide(raw,options={}){return queryRequest(()=>{const now=options.now||(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs),collector={key:null,placements:null,complete:false,started:Date.now()};try{collector.key=stateKey(extendForced(observe(raw)));}catch{}options={...options,now,deadline,[riskRootCollector]:collector};const result=decideRequest(raw,options);return result.target?classifySupported(result):riskyFallback(raw,result,options,collector);});}

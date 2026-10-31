@@ -10,10 +10,11 @@ for(const f of fixtures)test(`proof scheduling: old seed ${f.seed} route cannot 
  assert.equal(proof.valid,false);assert.deepEqual(proof.outstandingCells,old.outstanding);
  assert.equal(P.checkedCoveredRepair(q.observation,old.steps,options),null);
  // Supported admission still rejects the archived hypothetical repair. The
- // explicitly risky recommendation is a different, one-lock contract.
+ // explicitly risky recommendation is a different, one-lock contract. The
+ // clean-candidate correction no longer forces a pending-O defect at0001.
  const strict=P.plan(q.observation,options);assert.equal(strict.target,null);assert.ok(['no-supported-continuation-found','budget-exhausted'].includes(strict.status));
  const a=P.decide(q.observation,options);assertRisk(q.observation,a);
- if(f.seed===2449480001){assert.deepEqual(a.target,{type:'L',x:3,y:22,rotation:1});const h=a.recommendation.hazards.find(h=>h.code==='pending-center-partner');assert.deepEqual(h.pieces,['O']);assert.equal(h.publicCounts.O,1);assert.equal(a.recommendation.search.incomplete,true);}
+ if(f.seed===2449480001){assert.deepEqual(a.target,{type:'L',x:1,y:24,rotation:2});assert.equal(a.recommendation.riskBasis,'uncertified-follow-up-only');assert.deepEqual(a.recommendation.hazards.map(h=>h.code),['continuation-unverified']);assert.equal(a.recommendation.search.incomplete,true);}
  else{assert.deepEqual(a.target,{type:'L',x:0,y:21,rotation:2});assert.deepEqual(a.recommendation.hazards.find(h=>h.code==='unresolved-covered-cells').cells,[[3,28]]);assert.ok(a.recommendation.hazards.some(h=>h.code==='allocation-history-unknown'));}
 
 });
@@ -21,7 +22,7 @@ test('proof scheduling: deliberately unfinished access remains unknown, never a 
  const f=fixtures[0],q=f.request,calls=[];const access={...A,prefix:(state,path,options)=>{calls.push(options.maxNodes);return{reachable:null,complete:false,visited:Math.min(1000,options.maxNodes),status:'unknown-access-budget'};}};
  const mod={exports:{}};vm.runInNewContext(fs.readFileSync(require.resolve('../st-planner'),'utf8'),{module:mod,require:id=>id==='./st-access.js'?access:require(id.replace('./','../')),Date,performance});
  const options={...q.options,previous:q.previous,commitment:q.commitment,deadline:Infinity,timeMs:undefined,now:()=>0};const strict=mod.exports.plan(q.observation,options);assert.equal(strict.target,null);assert.equal(strict.status,'budget-exhausted');
- const a=mod.exports.decide(q.observation,options);assertRisk(q.observation,a);assert.deepEqual(a.target,{type:'L',x:3,y:22,rotation:1});assert.equal(a.recommendation.search.status,'budget-exhausted');assert.equal(a.recommendation.search.incomplete,true);assert.ok(a.recommendation.hazards.some(h=>h.code==='pending-center-partner'));assert.ok(a.metrics.nodes<=45000);assert.equal(a.metrics.completeDepth,0);assert.ok(a.metrics.proofScheduling.unfinished>0);assert.ok(calls.some(n=>n<=6000));assert.ok(a.metrics.rootExpanded>0,'Unfinished screening leaves budget for ordinary expansion');
+ const a=mod.exports.decide(q.observation,options);assertRisk(q.observation,a);assert.deepEqual(a.target,{type:'L',x:1,y:24,rotation:2});assert.equal(a.recommendation.search.status,'budget-exhausted');assert.equal(a.recommendation.search.incomplete,true);assert.equal(a.recommendation.riskBasis,'uncertified-follow-up-only');assert.deepEqual(Array.from(a.recommendation.hazards,h=>h.code),['continuation-unverified']);assert.ok(a.metrics.nodes<=45000);assert.equal(a.metrics.completeDepth,0);assert.ok(a.metrics.proofScheduling.unfinished>0);assert.ok(calls.some(n=>n<=6000));assert.ok(a.metrics.rootExpanded>0,'Unfinished screening leaves budget for ordinary expansion');
 });
 
 for(const f of require('./fixtures/scheduling-selection-roots.json'))test(`proof scheduling: certified selection and incomplete coverage remain distinct at ${f.seed}/${f.lock}`,()=>{

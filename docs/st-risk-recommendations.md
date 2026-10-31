@@ -21,14 +21,23 @@ Conservative prototype bounds: no newly sealed cavity, resulting height below19,
 at most4 newly covered cells and6 tracked outstanding covered cells. These are
 engineering bounds, not community rules or tuned thresholds. Rejected bounds are
 reported in `metrics.riskFallback.rejections`; failure to qualify still abstains.
-A candidate needs at least one concrete dependency/shape/history hazard; a generic
-search failure alone is not a risk recommendation. Candidates are ordered by outstanding covered debt, lost Center obligations,
-sealed cells, height, actual lines, existing structural estimate, then input length.
+An eligible clean move may carry only continuation-proof uncertainty; requiring a
+remaining structural hazard incorrectly excluded an exact known-L payment in the
+first experiment. That original version and its evaluation are preserved. No
+structural defect is invented to justify the risk label. Candidates are ordered by
+outstanding covered debt, lost Center obligations, sealed cells, height, exact
+authentic partner payments, actual lines, existing structural estimate, then input
+length. Payment priority never overrides the preceding structural risk dimensions.
+A payment matches the actual event to an authentic live root's exact target; it
+does not grant a certified continuation or a spare-piece permission.
 This is a local risk preference, not a global-best claim.
 
 `recommendation.kind` is `supported` or `risky` on every returned `decide` target.
 Risk includes `hazards` (`code`, `detail`, `downside`), search status/incompleteness
-and a legal-placement-only claim. Its status is `recommended-risky-placement` and
+and a legal-placement-only claim. `riskBasis` is `uncertified-follow-up-only`
+when that is the sole remaining uncertainty, otherwise `identified-dependency`.
+These labels are diagnostics, never retained proof authority. No optional strict
+one-lock upgrade is attempted here: existing revalidation would re-enumerate roots. Its status is `recommended-risky-placement` and
 its text begins “Risky”. `certifiedHorizon` stays0; `legalHorizon` is1.
 
 Risk is never retained as strategic authority: movement, lock, fresh Worker and
