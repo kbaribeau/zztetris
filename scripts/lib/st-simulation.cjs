@@ -93,7 +93,7 @@ function boardMetrics(state) {
 }
 function createSession(input, api=P) {
   if(typeof api.startOpeningSession!=='function')throw Error('Shared opening session API is not available');
-  let state=R.createState(clone(input.initial)), cursor=0, commitment=null, previous=null;
+  let state=R.createState(clone(input.initial)), cursor=0, commitment=null, previous=null, pendingHandoffRecovery=null;
   let patternHistory=api.startPatternHistory(publicObservation(state));
   let resourceHistory=H.start(publicObservation(state),{fresh:input.scenario==='empty'});
   let opening=api.startOpeningSession(publicObservation(state),{emptyMode:input.scenario==='empty'});
@@ -106,11 +106,13 @@ function createSession(input, api=P) {
   }
   return {
     get state(){return state;}, get cursor(){return cursor;}, get opening(){return clone(opening);},
-    request(id,options) { return {type:'plan',id,observation:publicObservation(state),previous:previous?clone(previous):null,commitment:commitment?clone(commitment):null,options:{...options,resourceContext:H.exportContext(publicObservation(state),resourceHistory),patternHistory:patternHistory?clone(patternHistory):null,openingPhase:opening.active,openingSource:opening.source?clone(opening.source):null,openingClear:opening.clear?clone(opening.clear):null,openingRepair:opening.repair?clone(opening.repair):null}}; },
+    request(id,options) { const {handoffRecovery:ignored,...settings}=options||{};return {type:'plan',id,observation:publicObservation(state),previous:previous?clone(previous):null,commitment:commitment?clone(commitment):null,options:{...settings,...(pendingHandoffRecovery?{handoffRecovery:clone(pendingHandoffRecovery)}:{}),resourceContext:H.exportContext(publicObservation(state),resourceHistory),patternHistory:patternHistory?clone(patternHistory):null,openingPhase:opening.active,openingSource:opening.source?clone(opening.source):null,openingClear:opening.clear?clone(opening.clear):null,openingRepair:opening.repair?clone(opening.repair):null}}; },
     execute(advice) {
       const proof=validateAdvice(state,advice);
       const requiredDraws=state.queue.length-proof.state.queue.length;
       if(input.future.length-cursor<requiredDraws)throw Object.assign(Error('Private stream cannot replenish this witness; no actions applied'),{code:'INPUT_EXHAUSTED'});
+      pendingHandoffRecovery=null;
+      const recovery=typeof api.captureHandoffRecovery==='function'?api.captureHandoffRecovery(publicObservation(state),advice,H.exportContext(publicObservation(state),resourceHistory)):null;
       const wasOpening=opening.active;opening=api.acceptOpeningResult(opening,advice);
       if(wasOpening&&!opening.active)resourceHistory=H.markHandoff(resourceHistory,publicObservation(state));
       previous={...clone(advice),revision:state.revision};
@@ -126,6 +128,7 @@ function createSession(input, api=P) {
         resourceHistory=H.applyAction(resourceHistory,before,action,{...publicObservation(state),lastEvent:state.lastEvent});
         if(action==='HD') {
           event=clone(state.lastEvent); previous=null;
+          pendingHandoffRecovery=recovery?{...clone(recovery),actualEvent:clone(event)}:null;
           patternHistory=api.updatePatternHistory(patternHistory,before,publicObservation(state),event);
           opening=api.updateOpeningSession(opening,before,publicObservation(state),event);
           const suffix=commitment?api.continueCommitment(commitment.observation,publicObservation(state),commitment.advice,event,{patternHistory,resourceContext:H.exportContext(publicObservation(state),resourceHistory)}):null;
