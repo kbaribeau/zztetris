@@ -87,5 +87,39 @@ function evaluate(state,{heights,covered=null,resources=null,centerDebt=[],cente
  const score=late?improvement+fit:shape.weight+improvement+fit-(shape.tier==='D'&&!immediateJ?2:0);
  return{...base,score,adjustment:score,context:late?'held-T-after-extra-Z':'visible-inventory',available:first.map(c=>({type:c.piece.type,held:c.held})),reserved:[...reserved].sort(),immediateJ,repair,fitCount};
 }
-return Object.freeze({catalog,source:SOURCE,classify,landings,evaluate});
+// Admission is separate from the two-lock preference above. Immediate means
+// before another lock, through the rules' actual HOLD transitions (including
+// empty HOLD), never merely membership later in the visible queue.
+const boardHeights=board=>Array.from({length:4},(_,x)=>{const y=board.findIndex(r=>r[x]!=='.');return y<0?0:40-y;});
+const isD=board=>classify(boardHeights(board))?.tier==='D';
+function createsD(before,after){return isD(after)&&!isD(before);}
+function immediateJStarts(state,options={}){
+ const starts=[];let current=state;
+ for(let count=0;count<=(options.allowHold===false?0:2);count++){
+  if(!current.active||current.topOut)break;
+  if(current.active.type==='J')starts.push({state:current,witness:Array(count).fill('HOLD')});
+  const next=R.move(current,'HOLD');if(next===current)break;current=next;
+ }
+ return starts;
+}
+function dExit(state,options={}){
+ const now=options.now||(()=>Date.now()),deadline=options.deadline??Infinity,maxNodes=options.maxNodes??4000;
+ const starts=immediateJStarts(state,options);let visited=0,complete=true;
+ if(!starts.length)return{valid:false,complete:true,visited,reason:'D-created-without-immediate-J'};
+ const covered=board=>{const out=new Set();for(let x=0;x<4;x++){let roof=false;for(let y=0;y<40;y++){if(board[y][x]!=='.')roof=true;else if(roof)out.add(x+','+y);}}return out;};
+ const oldCovered=covered(state.board);let exit=null;
+ for(const start of starts){
+  const e=R.placements(start.state,{allowHold:false,now,deadline,maxNodes:Math.max(0,maxNodes-visited),stopWhen:p=>{
+   const h=boardHeights(p.state.board),shape=classify(h);
+   if(p.event.type!=='J'||p.event.lines||p.event.topOut||!p.event.cells.every(([x])=>x<4)||Math.max(...h)>=20||!(shape&&shape.tier!=='D'||h.every(v=>v===h[0])))return false;
+   if([...covered(p.state.board)].some(c=>!oldCovered.has(c)))return false;
+   const candidate={...p,witness:[...start.witness,...p.witness],hold:start.witness.length>0,holdCount:start.witness.length};
+   if(options.acceptExit&&!options.acceptExit(candidate))return false;exit=candidate;return true;
+  }});visited+=e.visited;
+  if(exit)return{valid:true,complete:true,visited,reason:'immediate-executable-J-exit',exit};
+  if(!e.complete)complete=false;
+ }
+ return{valid:false,complete,visited,reason:complete?'D-created-without-usable-J-exit':'D-J-exit-budget-unfinished'};
+}
+return Object.freeze({catalog,source:SOURCE,classify,landings,evaluate,isD,createsD,immediateJStarts,dExit});
 });

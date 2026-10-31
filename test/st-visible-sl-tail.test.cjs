@@ -16,7 +16,14 @@ function pair(){const a=plan(),t=a.metrics.ordinarySAllocation.visibleTail;asser
 test('visible SL tail: actual two-lock I/O allocation improves realized Left after the same paid SL and TSD',()=>{
  const {a,t,c,r,options}=pair(),off=plan(true);assert.equal(off.continuation.length,5);assert.equal(a.continuation.length,7);assert.equal(t.reason,'strict-visible-tail-left-gain');assert(a.metrics.nodes<=45000);assert.deepEqual(t.priorAdmission.continuation,off.continuation);
  assert.equal(t.comparison.candidate.leftScore,4);assert.equal(t.comparison.reference.leftScore,2);assert.deepEqual(t.comparison.candidate.schedule,t.comparison.reference.schedule);assert.deepEqual(t.comparison.candidate.schedule.tsds,[3]);assert.deepEqual(c.slAllocation,r.slAllocation);assert.deepEqual(c.state.active,null);assert.equal(c.state.hold,'T');assert.deepEqual(c.state.queue,[]);assert.equal(c.path.at(-1).structuralEvidence.allocation,'quad-preparation');assert.equal(P.resourceGoalPrefix(c.path,c.path),7);
- assert.deepEqual(options.candidateDraw.drawn,options.referenceDraw.drawn);assert.deepEqual(options.candidateDraw.placed.slice().sort(),options.referenceDraw.placed.slice().sort());assert.equal(t.compatiblePrefixes,3);assert.equal(t.omittedPrefixes,0);assert(t.prefixes.every(p=>p.qualifiedEndpoints===2&&p.layers.every(l=>l.retained<=2)));assert(P.revalidate(fixture.observation,a,opts()));
+ assert.deepEqual(options.candidateDraw.drawn,options.referenceDraw.drawn);assert.deepEqual(options.candidateDraw.placed.slice().sort(),options.referenceDraw.placed.slice().sort());assert.equal(t.compatiblePrefixes,2);assert.equal(t.omittedPrefixes,0);assert(t.prefixes.every(p=>p.qualifiedEndpoints===2&&p.layers.every(l=>l.retained<=2)));assert(P.revalidate(fixture.observation,a,opts()));
+});
+test('visible SL tail: former third compatible prefix creates D without immediate J',()=>{
+ let state=P.observe(fixture.observation);const first=R.replay(state,['L','L','L','HD']);assert(first.valid);assert.equal(first.events[0].type,'J');state=first.state;
+ const witness=['HOLD','L','L','L','HD'],r=R.replay(state,witness);assert(r.valid);assert.equal(r.events[0].type,'O');
+ const h=Array.from({length:4},(_,x)=>40-r.state.board.findIndex(row=>row[x]!=='.'));assert.deepEqual(h.map(v=>v-Math.min(...h)),[0,1,1,0]);
+ assert.equal(P.dPatternAdmission(state,{state:r.state,event:r.events[0],witness},{now:()=>0,deadline:Infinity,maxNodes:8000}).reason,'D-created-without-immediate-J');
+ assert.equal(r.state.active.type,'T');assert.equal(r.state.hold,'S');assert.deepEqual(r.state.queue,['L','I','O','T']);
 });
 test('visible SL tail comparator: no additional SL reward, identity substitution, delayed score or weakened quality',()=>{
  const {c,r,options}=pair();assert(P.visibleSLTailComparison(c,r,options).allowed);

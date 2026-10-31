@@ -81,3 +81,34 @@ The conservative tie-break does not yet replace the general roughness model or
 solve the broader whole-board/resource-priority design. That requires explicit
 preparation priorities and independent validation before making source tiers
 strong enough to override existing structural or input-effort preferences.
+
+## D-pattern creation admission
+
+Shocky's Chapter 3.3 warns against making the D silhouette `[0,1,1,0]`
+unless a J is coming immediately. Ordinary-midgame admission now treats this
+as a hard condition, separately from the existing two-lock preference score.
+Creation is detected from actual before/after Left skylines, including covered
+columns and clear transitions; an already existing D is not newly forbidden.
+
+The operational certificate is conservative: after the proposed lock, a J must
+be playable **before any intervening lock** using actual rules/HOLD transitions.
+An active J, held J, or first-preview J through empty HOLD can qualify. A J
+consumed to make D, or one behind an intervening piece with occupied HOLD,
+cannot. The coach checks a real one-lock J witness wholly in Left, with no clear,
+no newly roofed Left cells, height below 20, and an exit to a better listed
+silhouette or flat surface. Cycle/notch and resource checks still apply; a J
+reserved for Center needs an actual bounded replacement repair, not a second
+claim on the same piece. The bounded supporting replacement cannot itself create
+another D obligation, avoiding circular certificates. These certificate limits are engineering bounds, not
+additional rules quoted from the guide. An unfinished check is not proof that
+no exit exists. Final admission and retained-advice revalidation recheck the
+condition rather than trusting saved evidence or a geometric `immediateJ` flag.
+
+An admitted prefix may not then spend its J on a different job while leaving
+its newly created D without another immediate executable J exit. The same
+obligation survives fresh requests via replay-verified observed history: a
+post-import non-D → D lock establishes it, and an actual exit from D resolves
+it. Importing D as the initial board does not invent a past promise. Serialized
+summary flags are not authority; context is reconstructed through actual input
+replay, including HOLD/draw boundaries. This narrow D obligation is separate
+from general covered-cell repair tracking.
