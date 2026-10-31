@@ -28,7 +28,7 @@ function resourceEndpointCore(raw,path,options={}){
 // Successful completion witnesses may be reused only inside one synchronous plan.
 // Bind the actual pose, inventory, resource identities and phase; caller evidence
 // never supplies this private cache and failed/budget-limited probes are not saved.
-const resourceRepairCache=Symbol('resource-repair-cache');
+const resourceRepairCache=Symbol('resource-repair-cache'),rightCapAdmission=Symbol('right-cap-admission');
 function resourceRepair(state,resource,options){
  const cache=options[resourceRepairCache],key=JSON.stringify([observe(state),M.binding(resource),options.notches]);
  if(cache?.has(key))return{...cache.get(key),visited:0,reused:true};
@@ -1198,6 +1198,46 @@ function planCore(raw,options={}){
  if(!best)return{...base,status:abstentionStatus,reason:searchIncomplete?incompleteReason:'No supported ST sequence was found within this search. Other continuations may exist.'};
  if(best.assessment.maxHeight>=20||!best.assessment.regionalSupport)return{...base,status:abstentionStatus,reason:searchIncomplete?incompleteReason:'The checked sequences did not retain enough space and a supported stack shape. No move is recommended.',assessment:best.assessment};
  if(commitment&&!options.disableTimelyScoring)base.metrics.commitmentComparison.selectedScoringTiming=timingDecision(best);
+ // A visible cap is not authority by shape alone. Only the fully replayed
+ // current-piece / actual next Z / actually held T route below can prefer it
+ // to a goal-free filler which occupies that cap's cells. Run this late so
+ // an unfinished optional proof cannot starve or revoke ordinary admission.
+ const literal=observe(raw),first=best.path[0];
+ if(!options.disableRightCapPreference&&!options.disableConstruction&&maxDepth>=3&&options.openingPhase===false&&options.allowHold!==false&&options.resourceContext&&['complete','partial'].includes(summary.coverage?.status)&&
+    !options.commitment&&!options.constructionPrevious&&!commitment&&!cleanupCommitment&&!resourceGoal(best.path)&&options[rightCapAdmission]&&
+    'IJO'.includes(literal.active?.type)&&literal.hold==='T'&&literal.queue[0]==='Z'&&first.event.type===literal.active.type&&!first.event.lines&&!holdCount(first)&&
+    first.event.cells.some(([x])=>x>=7)){
+  const lostCaps=S.geometry(literal.board,{notches:initial.notches}).right.completions.filter(cap=>first.event.cells.some(([x,y])=>cap.cells.some(([cx,cy])=>x===cx&&y===cy)));
+  if(!lostCaps.length)return describeNode(best);
+  const startNodes=base.metrics.nodes,preference={attempted:true,selected:false,candidates:0,proofs:0,unknown:0,nodes:0,scope:'late current-Left-piece / next-visible-Z cap / held-T double; unchanged goal-free incumbent on unknown',incumbentPrefix:best.path.map(p=>({witness:p.witness.slice(),event:clone(p.event)})),lostCapCells:lostCaps.map(c=>clone(c.cells))};
+  const incumbent=options[rightCapAdmission](describeNode(clone(best)));base.metrics.nodes=incumbent.metrics?.nodes??base.metrics.nodes;
+  if(!incumbent.target)return incumbent;
+  const finish=result=>{preference.nodes=base.metrics.nodes-startNodes;result.metrics={...result.metrics,nodes:base.metrics.nodes,elapsedMs:Date.now()-started,rightCapPreference:preference};return result;};
+  const sameCells=(a,b)=>a.length===b.length&&a.every(([x,y])=>b.some(([cx,cy])=>x===cx&&y===cy));
+  const replay=(before,witness)=>{if(now()>=deadline||base.metrics.nodes+witness.length>limit)return null;base.metrics.nodes+=witness.length;return R.replay(before,witness);};
+  const alternatives=root.placements.filter(p=>p.event.type===literal.active.type&&!p.event.lines&&!holdCount(p)&&p.event.cells.every(([x])=>x<4)&&p.state.active?.type==='Z'&&p.state.hold==='T')
+   .map((p,i)=>nodeFor(p,null,initial,i,readAssessment)).filter(n=>n.notchValid&&!n.cycleDebt&&certifiedCavities(n)&&n.assessment.maxHeight<20).sort(compareConstruction);
+  preference.candidates=alternatives.length;
+  for(const n of alternatives){
+   if(now()>=deadline||base.metrics.nodes>=limit)break;
+   for(const cap of lostCaps){
+    const z=replay(n.state,cap.witness);if(!z?.valid||z.events.length!==1||z.events[0].type!=='Z'||z.events[0].lines||!sameCells(z.events[0].cells,cap.cells))continue;
+    const capStep={state:z.state,event:z.events[0],target:z.events[0].target,witness:cap.witness.slice(),hold:false,holdCount:0,availableCleanupPreparation:false};
+    const capped=nodeFor(capStep,n,initial,n.rootIndex,readAssessment);if(!capped.notchValid||capped.cycleDebt||!certifiedCavities(capped)||capped.assessment.maxHeight>=20)continue;
+    const held=replay(z.state,['HOLD']),ready=held?.state;if(!held?.valid||held.events.length||ready.topOut||ready.active?.type!=='T')continue;
+    const access=R.tDoubleAccess(ready.board,{deadline,now,maxNodes:Math.max(0,limit-base.metrics.nodes)});base.metrics.nodes+=access.visited;base.metrics.accessNodes+=access.visited;preference.proofs++;preference.unknown+=Number(!access.complete);
+    if(access.reachable!==true||!access.complete)continue;
+    const witness=['HOLD',...access.witness],t=replay(ready,access.witness);if(!t?.valid||t.events.length!==1||t.events[0].type!=='T'||t.events[0].spin!=='full'||t.events[0].lines!==2||!S.canonicalClear(t.events[0]))continue;
+    const scored=nodeFor({state:t.state,event:t.events[0],target:t.events[0].target,witness,hold:true,holdCount:1},capped,initial,n.rootIndex,readAssessment);
+    if(!scored.notchValid||scored.cycleDebt||!certifiedCavities(scored)||!scored.assessment.regionalSupport||scored.assessment.maxHeight>=20)continue;
+    if(!scored.qualified)qualify([scored]);
+    if(!scored.qualified||scored.assessment.right.entry?.status==='unresolved-budget'||!accessSafe(scored)||!resourceSafe(scored))continue;
+    const candidate=options[rightCapAdmission](describeNode(clone(scored),false));base.metrics.nodes=candidate.metrics?.nodes??base.metrics.nodes;
+    if(candidate.target&&now()<deadline&&base.metrics.nodes<=limit){preference.selected=true;preference.capLock=2;preference.scoreLock=3;return finish(candidate);}
+   }
+  }
+  return finish(incumbent);
+ }
  return describeNode(best);
  function describeNode(best,retained=best===commitment){
  const first=best.path[0],verified=R.replay(s,first.witness);if(!verified.valid)return{...base,status:'invalid-witness',reason:'The suggested input sequence failed validation, so it is not shown.'};
@@ -1246,6 +1286,8 @@ function planRequest(raw,options={}){
  // no authority. The exact returned object AND continuation remain bound.
  let ordinaryFallback=null,ordinarySignature=null,retainedFallback=null,retainedSignature=null,maintenanceFallback=null,maintenanceSignature=null;
  const signature=r=>JSON.stringify([observe(raw),{...r,metrics:undefined}]);
+ const capAdmissions=new WeakMap(),capSignature=r=>JSON.stringify([observe(raw),options.resourceContext??null,options.patternHistory??null,{...r,metrics:undefined}]);
+ const admitRightCap=candidate=>{const checked=finalCheck(candidate);if(!checked?.target)return checked;const result=clone(checked);capAdmissions.set(result,capSignature(result));return result;};
  const admitMaintenance=candidate=>{const checked=finalCheck(candidate);if(checked?.target){maintenanceFallback=clone(checked);maintenanceSignature=signature(maintenanceFallback);}return checked;};
  const normalOpeningDecision=()=>{const result=plan(raw,{...options,deadline,disableSourceScoring:true,openingSource:null});ordinaryFallback=result;ordinarySignature=JSON.stringify([observe(raw),{...result,metrics:undefined}]);return result;};
  const sameOrdinary=()=>ordinaryFallback&&ordinarySignature===JSON.stringify([observe(raw),{...ordinaryFallback,metrics:undefined}]);
@@ -1253,8 +1295,8 @@ function planRequest(raw,options={}){
  // Only an internal producer can register a fallback, and registration itself
  // performs the full final boundary check within this request's shared budget.
  const checkOpeningFallback=candidate=>{const checked=finalCheck(candidate);if(checked?.target){retainedFallback=checked;retainedSignature=JSON.stringify([observe(raw),{...checked,metrics:undefined}]);}return checked;};
- const result=planCore(raw,{...options,deadline,normalOpeningDecision,checkOpeningFallback,admitMaintenance});
- if(result===ordinaryFallback&&sameOrdinary()||result===retainedFallback&&sameRetained())return result;
+ const result=planCore(raw,{...options,deadline,normalOpeningDecision,checkOpeningFallback,admitMaintenance,[rightCapAdmission]:admitRightCap});
+ if(result===ordinaryFallback&&sameOrdinary()||result===retainedFallback&&sameRetained()||capAdmissions.has(result)&&capAdmissions.get(result)===capSignature(result))return result;
  const checked=finalCheck(result);
  if(!checked?.target&&maintenanceFallback&&signature(maintenanceFallback)===maintenanceSignature){
   // Only this invocation's admitted clone can survive later interrupted work.

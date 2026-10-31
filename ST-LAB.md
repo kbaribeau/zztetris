@@ -405,3 +405,9 @@ eligible group; unrelated slots, unequal horizons and deterministic ties retain
 the existing ordering. Beam expansion/pruning receives no Extra-Z bonus. Before optional challenger
 checks, the ordinary incumbent must pass full outer admission and be registered
 as the invocation-local fallback. Unfinished optional work cannot revoke it.
+
+### Optional visible cap-and-score preservation
+
+Ordinary maintenance may compare a fully admitted, goal-free Right filler with one narrow finite alternative: the current I/J/O stays on Left, the **next visible Z** occupies the existing cap cells, and the **actually held T** takes a canonical double. A filler loses this opportunity only when its actual nonclearing cells occupy those cap cells; an unrecognized shape label or a failed old T witness alone is insufficient.
+
+This comparison runs after ordinary selection and final admission. It does not change the beam, depth, structural ranking, opening, construction commitments, or existing score goals. Every alternative is replayed and receives the usual phase, cavity, resource and access checks under the original remaining node/deadline budget. Failed or unfinished optional work returns the same privately bound, already-certified incumbent; caller/imported metadata cannot supply that authority. The finite returned cap/T score is retained through normal locks and HOLD. This is not a universal Right-filler ban, a guarantee of sustainability, or permission to bypass a rejected immediate TSD endpoint.
