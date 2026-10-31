@@ -403,6 +403,9 @@ function sourceConstruction(state,options,notches,deadline,now,maxNodes){
 // Follow the original input prefix, including real HOLD/draw changes. No pose
 // bridge or source-family replacement is inferred from a moved observation.
 function retainSource(raw,previous,options={},action=null){
+ // A proof label cannot choose its own phase. The live controller must
+ // explicitly retain opening scope, independently of the serialized advice.
+ if(options.disableOpening||options.openingPhase!==true)return null;
  const proof=previous?.evidence?.opening?.sourcePlan,same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
  if(!proof||proof.schemaVersion!==1||!O.pattern(proof.id)||!Number.isInteger(proof.consumed)||proof.consumed<0||!Array.isArray(proof.steps)||!proof.steps.length||proof.steps.length>7)return null;
  if(options.openingSource?.pattern&&options.openingSource.pattern!==proof.id)return null;
@@ -569,7 +572,7 @@ function sourceScoring(state,options,notches,deadline,now,limit){
  return fallback();
 }
 function retainScoring(raw,previous,options={},action=null){
- if(options.disableOpeningSources||options.disableSourceScoring||options.disableOpening||options.openingPhase===false)return null;
+ if(options.disableOpeningSources||options.disableSourceScoring||options.disableOpening||options.openingPhase!==true)return null;
  const proof=previous?.evidence?.opening?.scoringPlan,same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
  if(!proof||proof.schemaVersion!==1||proof.kind!=='source-first-tsd'||typeof proof.corridor!=='boolean'||!Number.isInteger(proof.consumed)||proof.consumed<0||!Array.isArray(proof.steps)||!proof.steps.length||proof.steps.length>6||scoringSourceIdentity(options.openingSource)!==scoringSourceIdentity(proof.source))return null;
  for(const step of proof.steps)if(!Array.isArray(step.witness)||!step.witness.length||step.witness.length>256||step.witness.at(-1)!=='HD'||!same(step.target,step.event?.target)||step.hold!==step.witness.includes('HOLD')||step.holdCount!==step.witness.filter(a=>a==='HOLD').length)return null;

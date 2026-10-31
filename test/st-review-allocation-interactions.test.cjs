@@ -5,9 +5,10 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),Module=require('node:module');
 const R=require('../st-rules'),S=require('../st-structure'),L=require('../st-left-context');
 const cap=require('./fixtures/right-cap-score.json'),timing=require('./fixtures/timely-scoring.json');
+const eligible=require('./support/st-right-cap-eligible-harness.cjs');
 const bounds={depth:3,width:8,maxNodes:45000,timeMs:1500,now:()=>0,deadline:Infinity};
 const samePayload=a=>JSON.parse(JSON.stringify({...a,metrics:undefined}));
-function observePlanner(ruleOverrides={}){
+function observePlanner(ruleOverrides={},branch=false){
  const calls={total:0,centerReservations:0,rightCleanupContexts:0,rightCapContexts:0};
  const left=Object.freeze({...L,evaluate(state,facts){
   const value=L.evaluate(state,facts);calls.total++;
@@ -26,6 +27,11 @@ function observePlanner(ruleOverrides={}){
  const filename=path.resolve(__dirname,'../st-planner.js'),m=new Module(filename,module),req=Module.createRequire(filename);
  m.filename=filename;m.paths=Module._nodeModulePaths(path.dirname(filename));
  m.require=id=>id==='./st-left-context.js'?left:id==='./st-rules.js'?Object.freeze({...R,...ruleOverrides}):req(id);
+ if(branch){
+  // Reuse the reviewed actual-I branch harness while observing the same real
+  // Left evaluator through its dependency module. No synthetic score enters.
+  return{planner:eligible.planner(ruleOverrides,left),calls};
+ }
  m._compile(fs.readFileSync(filename,'utf8'),filename);return{planner:m.exports,calls};
 }
 function decide(p,q,extra={}){return p.decide(q.observation,{...q.options,...bounds,previous:q.previous,commitment:q.commitment,...extra});}
@@ -43,16 +49,14 @@ test('Combined allocation: real Left estimates do not replace an existing execut
  assert.equal(a.evidence.resourceObligations.status,'checked');assert.equal(a.evidence.gapAccess.reachable,true);actualPrefix(timing.request.observation,a);
 });
 
-test('Combined allocation: real Left estimates cannot turn an unknown optional cap proof into authority',()=>{
- let state=R.createState(cap.request.observation);for(const witness of [['L','L','HD'],['CW','R','R','R','R','HD']]){const r=R.replay(state,witness);assert(r.valid);state=r.state;}
- const wanted=JSON.stringify(state.board);let unknown=0;
+test('Combined allocation eligible-I branch harness: real Left estimates cannot turn unknown optional cap proof into authority',()=>{
+ const q=eligible.request();let unknown=0;
  const watched=observePlanner({tDoubleAccess(board,options){
-  if(JSON.stringify(board)===wanted){unknown++;return{reachable:null,complete:false,witness:[],event:null,visited:Math.min(7,options.maxNodes)};}
-  return R.tDoubleAccess(board,options);
- }});
- const off=observePlanner(),incumbent=decide(off.planner,cap.request,{disableRightCapPreference:true}),actual=decide(watched.planner,cap.request);
+  unknown++;return{reachable:null,complete:false,witness:[],event:null,visited:Math.min(7,options.maxNodes)};
+ }},true);
+ const off=observePlanner({},true),incumbent=decide(off.planner,q,{disableRightCapPreference:true}),actual=decide(watched.planner,q);
  assert(watched.calls.total>0&&off.calls.total>0);assert(unknown>0,'controlled seam must reach the optional query');
  assert.equal(actual.metrics.rightCapPreference.selected,false);assert(actual.metrics.rightCapPreference.unknown>0);
  assert.deepEqual(samePayload(actual),samePayload(incumbent));assert(actual.metrics.nodes<=45000);
- actualPrefix(cap.request.observation,actual);
+ actualPrefix(q.observation,actual);
 });

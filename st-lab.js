@@ -262,7 +262,7 @@
         ?STPlanner.continueCommitment(commitment.observation,observation(),commitment.advice,state.lastEvent,{patternHistory,resourceContext:STResourceHistory.exportContext(observation(),resourceHistory)}):null;
       commitment=suffix?{observation:clone(observation()),advice:clone(suffix)}:null;
     }
-    const advanced=!locked&&displayed?STPlanner.advance(observation(),displayed,action,{patternHistory,openingSource,resourceContext:STResourceHistory.exportContext(observation(),resourceHistory)}):null;
+    const advanced=!locked&&displayed?STPlanner.advance(observation(),displayed,action,{patternHistory,openingPhase,openingSource,resourceContext:STResourceHistory.exportContext(observation(),resourceHistory)}):null;
     if(advanced){result=advanced;previous=advanced;coachMessage=advanced.reason;coachStatus=advanced.status;}
     requestPlan({retain:Boolean(advanced)});render();
   }

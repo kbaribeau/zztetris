@@ -135,7 +135,7 @@ function createSession(input, api=P) {
           commitment=suffix?{observation:clone(publicObservation(state)),advice:clone(suffix)}:null;
           displayed=null;
         } else {
-          const advanced=displayed?api.advance(publicObservation(state),displayed,action,{patternHistory,openingSource:opening.source,resourceContext:H.exportContext(publicObservation(state),resourceHistory)}):null;
+          const advanced=displayed?api.advance(publicObservation(state),displayed,action,{patternHistory,openingPhase:opening.active,openingSource:opening.source,resourceContext:H.exportContext(publicObservation(state),resourceHistory)}):null;
           if(advanced){displayed=advanced;previous=advanced;}
           else displayed=null;
         }

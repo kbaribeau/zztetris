@@ -2,6 +2,7 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const R=require('../st-rules'),B=require('../st-bag'),P=require('../st-planner'),O=require('../st-opening-sources'),D=require('../st-opening-continuations'),Sim=require('../scripts/lib/st-simulation.cjs');
 const clone=x=>JSON.parse(JSON.stringify(x));
+const retainOpening=(state,advice,opts={})=>P.revalidate(state,advice,{openingPhase:true,...opts});
 const config={...Sim.CONFIG,timeMs:undefined};
 // Discover each seed's opening once, but replay it into a fresh session per caller.
 // Live replay rebuilds observation authority; never clone/cache a mutable session
@@ -48,7 +49,7 @@ test('second-bag source: derived visible prefixes exclude the terminal refill ac
   const s=firstBag(seed),a=advice(s);assert.equal(a.evidence?.opening?.sourcePlan?.stage,'second-bag',String(seed));assert.equal(a.evidence.opening.sourcePlan.variant,'derived-OJ-SL');assert.equal(a.continuation.length,6);assert.match(a.reason,/derived/);assert.match(a.reason,/second T to Left/);
   let state=s.state;for(const step of a.continuation){const r=R.replay(state,step.witness);assert.equal(r.events.length,1);assert.ok(r.state.active);assert.deepEqual(r.events[0],step.event);state=r.state;}
   assert.equal(P.checkAccessPrefix(s.state,a.continuation,{maxNodes:45000}).reachable,true);assert.equal(a.phase,'opening');assert.equal(a.evidence.opening.handoffCandidate,null);
-  const forged=clone(a);delete forged.evidence.opening.sourcePlan.history;assert.equal(P.revalidate(s.state,forged,{maxNodes:45000}),null);
+  const forged=clone(a);delete forged.evidence.opening.sourcePlan.history;assert.equal(retainOpening(s.state,forged,{maxNodes:45000}),null);
   const alternate=clone(s.state);alternate.future=['I','I'];alternate.hiddenQueue=['Z'];const q=s.request(8,config);const hidden=P.decide(alternate,q.options);assert.deepEqual(hidden.target,a.target,'private fields cannot change source selection');assert.deepEqual(hidden.witness,a.witness);assert.deepEqual(hidden.evidence.opening.sourcePlan,a.evidence.opening.sourcePlan);
  }
 });
@@ -72,11 +73,11 @@ test('second-bag source: history and source authority revalidate a copied public
  const s=firstBag(2026103510),q=s.request(8,config),a=P.decide(q.observation,q.options),snapshot=clone({state:q.observation,options:q.options});
  s.execute(a);const restored=P.decide(snapshot.state,snapshot.options);assert.deepEqual(restored.target,a.target);assert.deepEqual(restored.witness,a.witness);assert.equal(restored.evidence.opening.sourcePlan.id,a.evidence.opening.sourcePlan.id);
  const reset=P.startOpeningSession(snapshot.state,{emptyMode:true});assert.equal(reset.source,null);assert.equal(sourceOnly(snapshot.state,reset.source).evidence?.opening?.sourcePlan,undefined);
- assert.equal(P.revalidate(snapshot.state,a,{maxNodes:45000}),null,'stale proof without live session authority fails closed');
- const liveSource={...clone(snapshot.options.openingSource),pattern:a.evidence.opening.sourcePlan.id};assert.ok(P.revalidate(snapshot.state,a,{maxNodes:45000,openingSource:liveSource}));
- const wrong=clone(a);wrong.evidence.opening.sourcePlan.history.steps[2].after.bag.remaining=[];assert.equal(P.revalidate(snapshot.state,wrong,{maxNodes:45000}),null);
+ assert.equal(retainOpening(snapshot.state,a,{maxNodes:45000}),null,'stale proof without live session authority fails closed');
+ const liveSource={...clone(snapshot.options.openingSource),pattern:a.evidence.opening.sourcePlan.id};assert.ok(retainOpening(snapshot.state,a,{maxNodes:45000,openingSource:liveSource}));
+ const wrong=clone(a);wrong.evidence.opening.sourcePlan.history.steps[2].after.bag.remaining=[];assert.equal(retainOpening(snapshot.state,wrong,{maxNodes:45000}),null);
  const source=clone(snapshot.options.openingSource);source.continuationFrom='buri-03';assert.equal(sourceOnly(snapshot.state,source).evidence?.opening?.sourcePlan,undefined);
- const tracker={nodes:0},late=clone(a);late.evidence.opening.sourcePlan.history.steps[6].event.type='I';const live={...clone(snapshot.options.openingSource),pattern:late.evidence.opening.sourcePlan.id,history:clone(late.evidence.opening.sourcePlan.history)};assert.equal(P.revalidate(snapshot.state,late,{maxNodes:45000,budgetTracker:tracker,openingSource:live}),null);assert.ok(tracker.nodes>0);
+ const tracker={nodes:0},late=clone(a);late.evidence.opening.sourcePlan.history.steps[6].event.type='I';const live={...clone(snapshot.options.openingSource),pattern:late.evidence.opening.sourcePlan.id,history:clone(late.evidence.opening.sourcePlan.history)};assert.equal(retainOpening(snapshot.state,late,{maxNodes:45000,budgetTracker:tracker,openingSource:live}),null);assert.ok(tracker.nodes>0);
 });
 test('second-bag source: every bag-compatible first actual refill is revalidated without hidden discovery',()=>{
  const start=firstBag(2026103510);let checked=0;
@@ -88,7 +89,7 @@ test('second-bag source: every bag-compatible first actual refill is revalidated
    session=P.acceptOpeningResult(session,a);let displayed=a;
    for(const action of a.witness){const before=state;state=R.move(state,action);if(!injected&&state.queue.length<6){state={...state,queue:state.queue.concat(type),bag:B.consume(state.bag,type)};injected=true;}
     if(action==='HD'){history=P.updatePatternHistory(history,before,state,state.lastEvent);session=P.updateOpeningSession(session,before,state,state.lastEvent);}
-    else{displayed=P.advance(state,displayed,action,{openingSource:session.source,patternHistory:history,maxNodes:45000});assert.ok(displayed,type+' '+action);}
+    else{displayed=P.advance(state,displayed,action,{openingPhase:session.active,openingSource:session.source,patternHistory:history,maxNodes:45000});assert.ok(displayed,type+' '+action);}
    }
   }
   assert.equal(O.compatible(state.board,id)[0].mask,127);assert.equal(session.source.continuationSteps.length,7);assert.deepEqual(session.source.scoringSteps,[]);assert.equal(session.active,true);checked++;

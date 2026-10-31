@@ -1,0 +1,389 @@
+{
+  "provenance": {
+    "source": "marathon-rebuild-810001 baseline trace, recorded lock 7, 2026-10-29",
+    "sourceTraceSha256": "a11e8956cad01ed0d74bf4e42337791e69f185aa4d4089f31d714b77ef88b943",
+    "scope": "Exact public pre-lock request and minimal recorded advice. The public resource and phase histories are authentic, not reconstructed from a user board. No evaluator stream or hidden arrivals.",
+    "oracle": "The actual S lock has cells in columns 9 and 10 (zero-based x 8 and 9), is legal manual play, but is not an ordinary Z/T/I Right allocation. T is second in the visible preview. An eligibility regression, not a guaranteed alternative or sustainability claim.",
+    "minimization": "Preserved request unchanged. Removed advice presentation, metrics, endpoint assessment and structural telemetry; retained exact witness, event and context."
+  },
+  "request": {
+    "type": "plan",
+    "id": 7,
+    "observation": {
+      "rules": "st-zero-v2",
+      "board": [
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "....JJJ...",
+        "....OOJ...",
+        "....OO....",
+        "....LLL...",
+        "....LSS...",
+        "IIIISS....",
+        "IIIILLL...",
+        "OOJILSS...",
+        "OOJISS....",
+        "TJJIJJJ...",
+        "TTSIOOJ...",
+        "TZSSOO...Z",
+        "ZZTSLLL.ZZ",
+        "ZZTTLSS.Z."
+      ],
+      "active": {
+        "type": "S",
+        "x": 3,
+        "y": 17,
+        "rotation": 0,
+        "lastRotation": null
+      },
+      "hold": "Z",
+      "canHold": true,
+      "queue": [
+        "I",
+        "T",
+        "J",
+        "O",
+        "Z",
+        "L"
+      ],
+      "revision": 23,
+      "streamCursor": 29,
+      "topOut": false,
+      "bag": {
+        "remaining": [
+          0
+        ],
+        "observedCount": 35,
+        "provenance": "known-phase"
+      }
+    },
+    "previous": null,
+    "commitment": null,
+    "options": {
+      "depth": 3,
+      "width": 8,
+      "maxNodes": 45000,
+      "timeMs": 1500,
+      "resourceContext": {
+        "schemaVersion": 1,
+        "origin": {
+          "rules": "st-zero-v2",
+          "board": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "IIIILLL...",
+            "OOJILSS...",
+            "OOJISS....",
+            "TJJIJJJ...",
+            "TTSIOOJ...",
+            "TZSSOO....",
+            "ZZTSLLL...",
+            "ZZTTLSS..."
+          ],
+          "active": {
+            "type": "I",
+            "x": 3,
+            "y": 17,
+            "rotation": 0,
+            "lastRotation": null
+          },
+          "hold": "Z",
+          "canHold": true,
+          "queue": [
+            "S",
+            "L",
+            "J",
+            "O",
+            "Z",
+            "S"
+          ],
+          "streamCursor": 23,
+          "topOut": false
+        },
+        "fresh": false,
+        "steps": [
+          {
+            "action": "HOLD",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "CW",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "I"
+            ]
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "T"
+            ]
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R180",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "J"
+            ]
+          },
+          {
+            "action": "HOLD",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "L",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "O"
+            ]
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "Z"
+            ]
+          },
+          {
+            "action": "HOLD",
+            "revealed": []
+          },
+          {
+            "action": "R",
+            "revealed": []
+          },
+          {
+            "action": "R180",
+            "revealed": []
+          },
+          {
+            "action": "HD",
+            "revealed": [
+              "L"
+            ]
+          }
+        ],
+        "handoffAtAction": null
+      },
+      "patternHistory": {
+        "origin": [
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "....JJJ...",
+          "....OOJ...",
+          "....OO....",
+          "....LLL...",
+          "....LSS...",
+          "IIIISS....",
+          "IIIILLL...",
+          "OOJILSS...",
+          "OOJISS....",
+          "TJJIJJJ...",
+          "TTSIOOJ...",
+          "TZSSOO...Z",
+          "ZZTSLLL.ZZ",
+          "ZZTTLSS.Z."
+        ],
+        "steps": []
+      },
+      "openingPhase": false,
+      "openingSource": null,
+      "openingClear": null,
+      "openingRepair": null
+    }
+  },
+  "recordedAdvice": {
+    "revision": 23,
+    "target": {
+      "type": "S",
+      "x": 7,
+      "y": 33,
+      "rotation": 1
+    },
+    "hold": false,
+    "holdCount": 0,
+    "witness": [
+      "R",
+      "R",
+      "R",
+      "R",
+      "CW",
+      "HD"
+    ],
+    "context": "[\"st-zero-v2\",[\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"....JJJ...\",\"....OOJ...\",\"....OO....\",\"....LLL...\",\"....LSS...\",\"IIIISS....\",\"IIIILLL...\",\"OOJILSS...\",\"OOJISS....\",\"TJJIJJJ...\",\"TTSIOOJ...\",\"TZSSOO...Z\",\"ZZTSLLL.ZZ\",\"ZZTTLSS.Z.\"],\"Z\",true,[\"I\",\"T\",\"J\",\"O\",\"Z\",\"L\"],{\"remaining\":[0],\"observedCount\":35,\"provenance\":\"known-phase\"},\"S\"]",
+    "continuation": [
+      {
+        "target": {
+          "type": "S",
+          "x": 7,
+          "y": 33,
+          "rotation": 1
+        },
+        "hold": false,
+        "holdCount": 0,
+        "witness": [
+          "R",
+          "R",
+          "R",
+          "R",
+          "CW",
+          "HD"
+        ],
+        "event": {
+          "type": "S",
+          "target": {
+            "type": "S",
+            "x": 7,
+            "y": 33,
+            "rotation": 1
+          },
+          "cells": [
+            [
+              8,
+              34
+            ],
+            [
+              8,
+              35
+            ],
+            [
+              9,
+              35
+            ],
+            [
+              9,
+              36
+            ]
+          ],
+          "lines": 0,
+          "clearedRows": [],
+          "spin": "none",
+          "topOut": false
+        },
+        "resultContext": "[\"st-zero-v2\",[\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"....JJJ...\",\"....OOJ...\",\"....OO....\",\"....LLL...\",\"....LSS...\",\"IIIISS....\",\"IIIILLL...\",\"OOJILSS...\",\"OOJISS..S.\",\"TJJIJJJ.SS\",\"TTSIOOJ..S\",\"TZSSOO...Z\",\"ZZTSLLL.ZZ\",\"ZZTTLSS.Z.\"],\"Z\",true,[\"T\",\"J\",\"O\",\"Z\",\"L\"],{\"remaining\":[0],\"observedCount\":35,\"provenance\":\"known-phase\"},\"I\"]"
+      }
+    ],
+    "evidence": {
+      "strategy": "canonical-right-ST",
+      "cycleDebt": 0
+    }
+  }
+}

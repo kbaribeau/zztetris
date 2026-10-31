@@ -50,7 +50,9 @@ test('source scoring: copied public state retains only with connected live sourc
  assert.equal(P.revalidate(request.observation,advice,{...options,openingSource:imported.source}),null);
  const revised=clone(request.observation);revised.revision++;assert.equal(P.revalidate(revised,advice,options),null,'same board restored under a new Undo revision is not the bound history');
  for(const flag of ['disableOpeningSources','disableSourceScoring','disableOpening'])assert.equal(P.revalidate(request.observation,advice,{...options,[flag]:true}),null);
- assert.equal(P.revalidate(request.observation,advice,{...options,openingPhase:false}),null);
+ for(const openingPhase of [false,undefined])assert.equal(P.revalidate(request.observation,advice,{...options,openingPhase}),null);
+ assert.equal(P.revalidate(request.observation,advice),null);
+ const firstAction=advice.witness[0],moved=R.move(request.observation,firstAction);for(const openingPhase of [false,undefined])assert.equal(P.advance(moved,advice,firstAction,{...options,openingPhase}),null);
  assert.equal(P.advance(request.observation,advice,'HD',options),null);
  const wrong=advice.witness[0]==='L'?'R':'L';assert.equal(P.advance(request.observation,advice,wrong,options),null);
 });
