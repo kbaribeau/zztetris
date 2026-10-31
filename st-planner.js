@@ -9,7 +9,7 @@ function ordinaryRightEligible(event){return !event.cells.some(([x])=>x>=7)||['Z
 // The shared construction presenter also serves the existing paired-T recovery.
 // Only a freshly replay-verified, Reset-eligible proof receives this private
 // scope. No serialized construction kind or caller option can exempt a route.
-const pairedResetProofs=new WeakSet(),pairedResetScope=Symbol('paired-reset-scope'),pendingLStageDisabled=Symbol('pending-L-stage-disabled'),pendingLSelections=new WeakSet();
+const pairedResetProofs=new WeakSet(),pairedResetScope=Symbol('paired-reset-scope'),pendingLStageDisabled=Symbol('pending-L-stage-disabled'),pendingLSelections=new WeakSet(),pendingLHint=Symbol('pending-L-replay-hint');
 function constructionPolicyOptions(advice,options){return{...options,[pairedResetScope]:pairedResetProofs.has(advice?.evidence?.construction),[pendingLStageDisabled]:Boolean(advice?.evidence?.construction)};}
 function resourceSummary(raw,options={}){return RH.resolve(raw,options.resourceContext?RH.importContext(raw,options.resourceContext):RH.start(raw));}
 function ordinaryResourceCheck(raw,path,options={}){const summary=resourceSummary(raw,options);if(options.resourceContext&&summary.coverage?.status==='invalid')return{valid:false,reason:'invalid-resource-context'};return M.checkPath(raw,path,summary);}
@@ -46,14 +46,15 @@ function resourceEndpointCore(raw,path,options={}){
 // never supplies this private cache and failed/budget-limited probes are not saved.
 const resourceRepairCache=Symbol('resource-repair-cache'),rightCapAdmission=Symbol('right-cap-admission'),supportedSLAdmission=Symbol('supported-SL-admission');
 function resourceRepair(state,resource,options){
- const cache=options[resourceRepairCache],key=JSON.stringify([observe(state),M.binding(resource),options.notches,options.coveredDebt||[],Boolean(resource.pendingLDiverted),Boolean(options[pendingLStageDisabled])]);
+ options={...options,waitingHint:options[pendingLHint]??null};
+ const cache=options[resourceRepairCache],key=JSON.stringify([observe(state),M.binding(resource),options.notches,options.coveredDebt||[],Boolean(resource.pendingLDiverted),Boolean(options[pendingLStageDisabled]),options.waitingHint]);
  if(cache?.has(key))return{...cache.get(key),visited:0,reused:true};
  const eligible=!options[pendingLStageDisabled]&&M.pendingLStageEligible(state,resource),hasL=[resource.active,resource.hold,...resource.queue].some(p=>p?.type==='L');
  let proof=eligible&&!hasL?M.pendingLStage(state,resource,options):M.repair(state,resource,options);
  if(!proof.valid&&eligible&&hasL&&(proof.visited||0)<options.maxNodes){const extra=M.pendingLStage(state,resource,{...options,maxNodes:Math.max(0,options.maxNodes-(proof.visited||0))});proof={...extra,visited:(proof.visited||0)+(extra.visited||0)};}
  if(proof.valid)cache?.set(key,proof);return proof;
 }
-function pendingLProof(proof){return proof?.waitingStage?{status:proof.status,rootId:proof.rootId,target:clone(proof.target),endpointTarget:clone(proof.endpointTarget),waiting:proof.path.map(p=>({witness:p.witness.slice(),event:clone(p.event)})),publicDrawsExhausted:proof.publicDrawsExhausted,parkedHold:proof.parkedHold,arrival:'not-established',scope:proof.scope}:null;}
+function pendingLProof(proof){return proof?.waitingStage?{status:proof.status,rootId:proof.rootId,origin:clone(proof.origin),hintReplayed:proof.hintReplayed||0,target:clone(proof.target),endpointTarget:clone(proof.endpointTarget),waiting:proof.path.map(p=>({witness:p.witness.slice(),event:clone(p.event)})),publicDrawsExhausted:proof.publicDrawsExhausted,parkedHold:proof.parkedHold,arrival:'not-established',scope:proof.scope}:null;}
 
 function pendingLPresentation(path,assessment,construction,proof){const result=advicePresentation(path,assessment,construction);if(proof?.waitingStage)result.reason+=' The exact Center L target remains pending; the visible intervening pieces have a checked waiting route. L arrival is not yet established.';return result;}
 
@@ -576,6 +577,7 @@ function continueConstruction(before,after,advice,event,options={}){
  const tracker={nodes:(verified.visited||0)+replayUnits},suffix=constructionAdvice(observe(after),{...proof,consumed:proof.consumed+1},options.deadline,options.now,Math.max(0,(options.maxNodes??12000)-tracker.nodes),tracker,options);if(suffix)suffix.metrics.nodes=tracker.nodes;return suffix;
 }
 function continueCommitment(before,after,advice,actualEvent=after?.lastEvent,options={}){
+ options={...options,[pendingLHint]:advice?.evidence?.pendingLStage};
  if(advice?.evidence?.construction){
   const now=options.now||(()=>Date.now()),deadline=options.deadline??now()+150,maxNodes=options.maxNodes??12000,suffix=continueConstruction(before,after,advice,actualEvent,{...options,now,deadline,maxNodes});if(!suffix)return null;
   const resources=checkedResourceEndpoint(after,suffix.continuation,constructionPolicyOptions(suffix,{...options,now,deadline,maxNodes:Math.max(0,maxNodes-suffix.metrics.nodes)}));suffix.metrics.nodes+=resources.visited||0;if(!resources.valid)return null;
@@ -1284,7 +1286,7 @@ function planCore(raw,options={}){
   if(n.resources?.centerBlocked&&!M.pendingLStageEligible(n.state,n.resources)||n.resources?.unclassifiedS?.some(s=>s.invalidated||s.requiresAccommodation))return false;
   if(n.resources?.tCollision&&n.assessment.right.entry?.status!=='reachable-if-T-available')return false;
   if(!n.resources?.hangingS.length&&!n.resources?.pendingCenter.length)return true;
-  const key=JSON.stringify([observe(n.state),M.binding(n.resources),n.notches,n.coveredRepairProof?.outstandingCells||[]]);let proof=repairCache.get(key);
+  const key=JSON.stringify([observe(n.state),M.binding(n.resources),n.notches,n.coveredRepairProof?.outstandingCells||[],options[pendingLHint]??null]);let proof=repairCache.get(key);
   if(!proof){proof=resourceRepair(n.state,n.resources,{...options,notches:n.notches,coveredDebt:n.coveredRepairProof?.outstandingCells||[],maxNodes:Math.min(4000,Math.max(0,Math.min(limit,screeningLimit)-base.metrics.nodes)),deadline,now});base.metrics.nodes+=proof.visited;if(proof.valid!==null)repairCache.set(key,proof);}
   n.resourceRepair=proof;if(proof.valid===null)screening.unfinished++;return proof.valid===true;
  };
@@ -1903,7 +1905,7 @@ function planCore(raw,options={}){
 function plan(raw,options={}){return queryRequest(()=>planRequest(raw,options));}
 function queryRequest(run){if(!R.withQueries)return run();return R.withQueries(()=>{const result=run();result.metrics={...result.metrics,queries:R.queryMetrics()};return result;});}
 function planRequest(raw,options={}){
- options={...options,[resourceRepairCache]:new Map()};
+ options={...options,[resourceRepairCache]:new Map(),[pendingLHint]:options.previous?.evidence?.pendingLStage??options.commitment?.advice?.evidence?.pendingLStage};
  const now=options.now||(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs);
  // Only this synchronous invocation can reuse its own fully checked ordinary
  // fallback. Serialized evidence, caller callbacks and imported advice carry
@@ -2019,6 +2021,7 @@ function planRequest(raw,options={}){
 // The entire remaining prefix is replayed from the new observation, so a newly
 // revealed piece cannot silently preserve an obsolete proof.
 function advance(raw,previous,action,options={}){
+ options={...options,[pendingLHint]:previous?.evidence?.pendingLStage};
  if(previous?.evidence?.opening?.scoringPlan)return openingModule().retainScoring(raw,previous,options,action);
  if(previous?.evidence?.opening?.sourcePlan)return openingModule().retainSource(raw,previous,options,action);
  if(previous?.evidence?.opening)return null;
@@ -2053,6 +2056,7 @@ function advance(raw,previous,action,options={}){
   evidence:{...previous.evidence,pendingLSelection:null,coveredRepair:repair.proof,coveredRepairPlan:repair.plan,pendingLStage:pendingLProof(resources.repair),knownPieceHorizon:state.queue.length+1,resourceObligations:{status:'checked',binding:resourceBinding(state,options)}}};
 }
 function revalidate(raw,previous,options={}){
+ options={...options,[pendingLHint]:previous?.evidence?.pendingLStage};
  const now=options.now||(()=>Date.now());options={...options,deadline:options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs),now};
  if(previous?.evidence?.opening?.scoringPlan)return openingModule().retainScoring(raw,previous,options);
  if(previous?.evidence?.opening?.sourcePlan)return openingModule().retainSource(raw,previous,options);

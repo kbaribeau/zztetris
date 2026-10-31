@@ -192,7 +192,7 @@ function pendingLStageEligible(raw,resource){
  const pending=resource.pendingCenter;
  return Boolean(pending?.length===1&&pending[0].family==='SL'&&Number.isInteger(pending[0].rootId)&&pending[0].rootId>0&&!pending[0].lost&&pending[0].alternatives.length&&pending[0].alternatives.every(c=>c.piece==='L')&&!resource.pendingLDiverted&&!resource.violations.length&&!resource.unclassifiedS?.some(s=>s.invalidated||s.requiresAccommodation)&&resource.hangingS.every(s=>s.id===pending[0].rootId));
 }
-function pendingLStage(raw,resource,{maxNodes=4000,deadline=Infinity,now=()=>Date.now(),notches=S.notchPattern(raw.board),coveredDebt=[]}={}){
+function pendingLStage(raw,resource,{maxNodes=4000,deadline=Infinity,now=()=>Date.now(),notches=S.notchPattern(raw.board),coveredDebt=[],waitingHint=null}={}){
  if(!pendingLStageEligible(raw,resource))return{valid:false,visited:0,status:'ineligible-pending-L-stage'};
  const rootId=resource.pendingCenter[0].rootId;let visited=0,stopped=false;
  const room=board=>board.findIndex(row=>/[^.]/.test(row))>20||board.every(row=>row==='..........');
@@ -213,25 +213,47 @@ function pendingLStage(raw,resource,{maxNodes=4000,deadline=Infinity,now=()=>Dat
   if(!closed&&!exhausted)return null;
   if(n.resource.centerBlocked||n.resource.tCollision||n.resource.hangingS.length&&!n.resource.hangingS.every(s=>!closed&&s.id===rootId)||n.resource.unclassifiedS?.some(s=>s.invalidated||s.requiresAccommodation))return null;
   const covered=A.repairPrefix(state,n.path,{notches,initialDebt:coveredDebt,stages:resource.pendingCenter});if(!covered.valid)return null;
-  return{valid:true,visited,status:closed?'visible-pending-L-closure':'visible-pending-L-wait',waitingStage:!closed,rootId,target:rootAccess,endpointTarget:n.access,path:n.path,publicDrawsExhausted:exhausted,parkedHold:n.state.hold??null,arrival:closed?'actually-supplied-and-placed':'not-established',queryStatus:'proven',scope:{kind:'pending-L-visible-wait',beamWidth:4,maxNodes,depth:Math.min(7,state.queue.length+1+(state.hold?1:0))}};
+  return{valid:true,visited,status:closed?'visible-pending-L-closure':'visible-pending-L-wait',waitingStage:!closed,rootId,origin:clone(state),target:rootAccess,endpointTarget:n.access,path:n.path,publicDrawsExhausted:exhausted,parkedHold:n.state.hold??null,arrival:closed?'actually-supplied-and-placed':'not-established',queryStatus:'proven',scope:{kind:'pending-L-visible-wait',beamWidth:4,maxNodes,depth:Math.min(7,state.queue.length+1+(state.hold?1:0))}};
+ };
+ const childFor=(n,p)=>{
+    if(!S.canonicalClear(p.event)||p.event.topOut||!room(p.state.board)||p.event.cells.some(([x])=>x>=7)&&!['Z','T','I'].includes(p.event.type))return null;
+    const phase=S.advanceNotches(n.state.board,p,n.notches);if(!phase.valid||S.transition(n.state,p,undefined,{notches:n.notches}).cycleViolations.length)return null;
+    // Keep this new grammar narrow: it may preserve this exact Center stage,
+    // not create unrelated Left repairs while searching for an absent L.
+    if(A.newlyCovered(n.state.board,p.state.board,p.event,phase.pattern).some(([x])=>x<4)||S.cavityRepairDebt(S.cavityFacts(n.state.board),S.cavityFacts(p.state.board),p.event).length)return null;
+    const r=step(n.state,p,n.resource);if(r.violations.length||r.pendingLDiverted||r.pendingCenter.some(v=>v.rootId!==rootId||v.lost)||r.unclassifiedS?.some(s=>s.invalidated||s.requiresAccommodation))return null;
+    const live=r.pendingCenter.some(v=>v.rootId===rootId),conditional=live?access(p.state,r,phase.pattern):null;if(live&&!conditional)return null;
+    return {state:p.state,resource:r,path:[...n.path,p],notches:phase.pattern,access:conditional,coveredDebt:A.repairStep(n.state.board,p.state.board,p.event,n.coveredDebt,phase.pattern),score:S.geometry(p.state.board).left.covered+Math.max(...S.geometry(p.state.board).left.profile)-p.event.lines*3};
  };
  let layer=[{state,resource,path:[],notches,access:rootAccess,coveredDebt:coveredDebt.map(c=>c.slice()),score:0}];const immediate=finish(layer[0]);if(immediate)return immediate;
  const depth=Math.min(7,state.queue.length+1+(state.hold?1:0));
- for(let d=0;d<depth&&layer.length;d++){
+ let startDepth=0,hintReplayed=0;
+ const h=waitingHint,o=h?.origin;
+ const aligned=o&&h.rootId===rootId&&Array.isArray(h.target?.cells)&&h.target.cells.length===4&&
+  h.target.cells.every(c=>Array.isArray(c)&&c.length===2&&c.every(Number.isInteger))&&key(h.target.cells)===key(rootAccess.cells)&&
+  o.rules===state.rules&&JSON.stringify(o.board)===JSON.stringify(state.board)&&
+  JSON.stringify(o.active)===JSON.stringify(state.active)&&o.hold===state.hold&&o.canHold===state.canHold&&
+  Array.isArray(o.queue)&&o.queue.every((piece,i)=>state.queue[i]===piece);
+ if(aligned&&Array.isArray(h.waiting)&&h.waiting.length<=depth&&h.waiting.every(p=>Array.isArray(p.witness)&&p.witness.length<=256&&p.event)){
+  let n=layer[0],valid=true;
+  for(const p of h.waiting){
+   if(!bounded()||p.witness.length>remaining()){stopped=true;valid=false;break;}
+   visited+=p.witness.length;const replay=R.replay(n.state,p.witness);
+   if(!replay.valid||replay.events.length!==1||JSON.stringify(replay.events[0])!==JSON.stringify(p.event)){valid=false;break;}
+   const child=childFor(n,{state:replay.state,event:replay.events[0],witness:p.witness,target:replay.events[0].target});
+   if(!child){valid=false;break;}n=child;hintReplayed++;
+   const proof=finish(n);if(proof)return{...proof,hintReplayed};
+  }
+  if(valid){layer=[n];startDepth=n.path.length;}else hintReplayed=0;
+ }
+ for(let d=startDepth;d<depth&&layer.length;d++){
   const next=[];
   for(const n of layer){if(!bounded())return{valid:null,visited,status:'pending-L-stage-budget',queryStatus:'unfinished'};
    const placements=R.placements(n.state,{maxNodes:remaining(),deadline,now});visited+=placements.visited;if(!placements.complete)stopped=true;
    for(const p of placements.placements){
     if(!bounded()){stopped=true;break;}
-    if(!S.canonicalClear(p.event)||p.event.topOut||!room(p.state.board)||p.event.cells.some(([x])=>x>=7)&&!['Z','T','I'].includes(p.event.type))continue;
-    const phase=S.advanceNotches(n.state.board,p,n.notches);if(!phase.valid||S.transition(n.state,p,undefined,{notches:n.notches}).cycleViolations.length)continue;
-    // Keep this new grammar narrow: it may preserve this exact Center stage,
-    // not create unrelated Left repairs while searching for an absent L.
-    if(A.newlyCovered(n.state.board,p.state.board,p.event,phase.pattern).some(([x])=>x<4)||S.cavityRepairDebt(S.cavityFacts(n.state.board),S.cavityFacts(p.state.board),p.event).length)continue;
-    const r=step(n.state,p,n.resource);if(r.violations.length||r.pendingLDiverted||r.pendingCenter.some(v=>v.rootId!==rootId||v.lost)||r.unclassifiedS?.some(s=>s.invalidated||s.requiresAccommodation))continue;
-    const live=r.pendingCenter.some(v=>v.rootId===rootId),conditional=live?access(p.state,r,phase.pattern):null;if(live&&!conditional)continue;
-    const child={state:p.state,resource:r,path:[...n.path,p],notches:phase.pattern,access:conditional,coveredDebt:A.repairStep(n.state.board,p.state.board,p.event,n.coveredDebt,phase.pattern),score:S.geometry(p.state.board).left.covered+Math.max(...S.geometry(p.state.board).left.profile)-p.event.lines*3};
-    const proof=finish(child);if(proof)return proof;next.push(child);
+    const child=childFor(n,p);if(!child)continue;
+    const proof=finish(child);if(proof)return{...proof,hintReplayed};next.push(child);
    }
   }
   const seen=new Set();layer=next.sort((a,b)=>a.score-b.score).filter(n=>{const id=n.state.board.join('')+binding(n.resource)+JSON.stringify(n.coveredDebt);if(seen.has(id))return false;seen.add(id);return true;}).slice(0,4);

@@ -149,3 +149,12 @@ future roof is not already-incurred debt. Repair goal lifetime includes the
 closing lock, but not ordinary fillers after closure; stale historical flags
 cannot keep those fillers committed. The known original repair remains a
 checked alternative when actual outstanding cells still need it.
+
+A waiting certificate also retains its bounded literal witness as a search hint
+when the public preview refills. The hint is not authority: its endpoint pose,
+board, HOLD state, old queue prefix and exact pending identity must align, then
+every action is replayed against current supply and checked by the same waiting
+rules. Replay/access work and any newly public accommodation consume the same
+proof allowance. Old exhaustion flags cannot ignore a newly revealed piece.
+The hint changes neither the ordinary comparison horizon nor the goal lifetime,
+and does not pin the original witness over a different supported continuation.
