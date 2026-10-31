@@ -491,3 +491,44 @@ The existing root-active/held-S preference and first-I Right-preparation support
 comparison keep precedence. The new ordinary stage does not intercept their
 applicable roots, so an optional failure cannot suppress the established
 reference decision.
+
+### Experimental visible I/O tail comparison after completed SL
+
+The experimental ordinary S-allocation branch can compare remaining visible I/O
+placements **after** its existing complete-SL selection has been finally
+admitted. That exact selected advice is the private fallback, not the earlier
+ordinary S-Left route. This does not change the main beam, the Left tier table,
+or the ordinary allocation preference itself.
+
+The additional stage considers one or two remaining observed I/O instances,
+including an O, within seven total literal-known locks; any other remaining
+pieces must be T/Z and remain outside the matched I/O supply. A competing actual
+score outside that supply makes the optional comparison decline. Every normal
+Center/Right/movement/resource/cavity gate remains applicable; O is not forced
+Left and I is not treated as a free Left filler. At most four distinct completed
+SL prefix/resource states enter, including the prior selection, and each tail
+layer retains at most two states after complete movement enumeration. Omitted
+prefixes and layer counts are reported. This is strongest-within-retained search,
+not exhaustive optimality.
+
+Each competing completed prefix is re-certified. Every retained terminal node
+is entry-qualified before terminal ordering, because qualification can change
+its structural band. The local terminal order retains existing safety, Center
+continuity, structural-band and scoring priorities, then compares the actual
+terminal Left value before input effort. Only the strongest retained reference
+and strongest challenger are finally certified; an unfinished or failed proof
+cannot substitute an easier, weaker comparison target. Promotion requires a
+strict realized Left gain, identical observed placed/drawn supply and ending
+inventory, equal actual paid S/L bindings, no original score/cleanup/resource or
+explicit quality regression, and an existing resource goal reaching the end of
+the selected tail. No additional SL credit is awarded. In the diagnostic route,
+the final actual I Right preparation keeps the intervening O→I suffix alive
+through the earlier L payment under existing commitment machinery.
+
+All work shares the request's remaining nodes/deadline. Unknown, exhaustion,
+rejection or no strict gain returns the exact privately admitted prior SL
+advice. `disableVisibleSLTail` isolates this stage for regression controls.
+`metrics.ordinarySAllocation.visibleTail` records the prior admission, literal
+I/O IDs, retained prefix/endpoint ranks, final two certificates and comparison;
+the enclosing ordinary-allocation comparison continues to describe its original
+complete-SL proof. Imported telemetry provides no admission authority.

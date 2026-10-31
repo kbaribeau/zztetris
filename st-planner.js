@@ -699,6 +699,33 @@ function ordinarySAllocationComparison(candidate,reference,options={}){
  const gain=a.paid.length>b.paid.length&&a.left.length<b.left.length;
  return{...base,allowed:gain&&spared.length>0,reason:gain&&spared.length?'preferred-complete-SL-allocation':'no-complete-SL-allocation-gain',allocation:{candidate:a,reference:b,sparedS:spared.map(p=>p.sId)},leftTierTradeoff:(base.candidate?.leftScore??0)-(base.reference?.leftScore??0)};
 }
+// This comparator is local to actual finite tail endpoints. Preserve the
+// existing safety/Center/structural/scoring priorities, then compare realized
+// Left value before input effort. It is not a change to main-beam ranking.
+function compareSLTail(a,b){
+ for(let i=0;i<5;i++){
+  if(i===3){const center=(b.centerContinuity??0)-(a.centerContinuity??0);if(center)return center;const quality=openingQualityOrder(a,b);if(quality)return quality;}
+  if(a.rank[i]!==b.rank[i])return b.rank[i]-a.rank[i];
+ }
+ const left=(b.assessment.leftContext?.score??-Infinity)-(a.assessment.leftContext?.score??-Infinity);
+ return left||compareConstruction(a,b);
+}
+function qualifiedSLTailOrder(nodes,qualify){
+ for(const node of nodes)if(qualify(node)!==true)return null;
+ return nodes.slice().sort(compareSLTail);
+}
+function visibleSLTailComparison(candidate,reference,options={}){
+ const base=supportedSLComparison(candidate,reference,options),cd=options.candidateDraw,rd=options.referenceDraw;
+ if(!base.allowed)return base;
+ if(resourceGoalPrefix(candidate.path,candidate.path)!==candidate.path.length)return{...base,allowed:false,reason:'tail-not-retained-by-resource-goal'};
+ const inventory=d=>d&&JSON.stringify({placed:d.placed.slice().sort((a,b)=>a-b),drawn:d.drawn,active:d.active,hold:d.hold,queue:d.queue});
+ if(!cd||!rd||inventory(cd)!==inventory(rd))return{...base,allowed:false,reason:'unequal-observed-tail-inventory'};
+ const paid=n=>JSON.stringify((n.slAllocation?.paid??[]).map(p=>[p.sId,p.lId]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]));
+ if(!candidate.slAllocation?.paid.length||paid(candidate)!==paid(reference)||candidate.slAllocation.left.length!==reference.slAllocation.left.length)return{...base,allowed:false,reason:'unequal-completed-SL-allocation'};
+ if(candidate.rank[3]<reference.rank[3])return{...base,allowed:false,reason:'tail-structural-band-regression'};
+ if(!(base.candidate.leftScore>base.reference.leftScore))return{...base,allowed:false,reason:'no-realized-tail-left-gain'};
+ return{...base,allowed:true,reason:'strict-visible-tail-left-gain'};
+}
 function nodeFor(p,parent,initial,rootIndex,readAssessment=assess){
  const assessment=readAssessment(p.state.board),path=[...(parent?.path??[]),p];
  const before=parent?.state??initial.state,priorNotches=parent?.notches??initial.notches;
@@ -1439,7 +1466,70 @@ function planCore(raw,options={}){
     const comparison=ordinarySAllocationComparison(candidate,reference,{candidateDraw:draw,referenceDraw:publicDrawHorizon(literal,reference.path,summary),original:best,initialResources:initial.resources});telemetry.comparisons.push(comparison);telemetry.reason=comparison.reason;
     if(!comparison.allowed)continue;
     telemetry.selected=true;telemetry.candidatePrefix=prefix(candidate);telemetry.referencePrefix=prefix(reference);telemetry.comparison=comparison;telemetry.referenceAdmission=admission(referenceAdvice);telemetry.candidateAdmission=admission(candidateAdvice);
-    return finish(candidateAdvice);
+    // Finish the old selection first. Optional tail work may never replace
+    // this private, fully checked result by the earlier S-Left incumbent.
+    if(options.disableVisibleSLTail)return finish(candidateAdvice);
+    const remaining=[candidate.resources.active,candidate.resources.hold,...candidate.resources.queue].filter(Boolean),io=remaining.filter(p=>'IO'.includes(p.type));
+    if(io.length<1||io.length>2||!io.some(p=>p.type==='O')||io.some(p=>!Number.isInteger(p.id)||p.id<=0)||remaining.some(p=>!'IOTZ'.includes(p.type))||candidate.path.length+io.length>7)return finish(candidateAdvice);
+    const tailStart=base.metrics.nodes,tail={attempted:true,selected:false,reason:'no-certified-tail-gain',nodes:0,prefixLimit:4,width:2,prefixes:[],priorAdmission:admission(candidateAdvice),priorPrefix:prefix(candidate),literalTailIds:io.map(p=>p.id),scope:'same paid SL and literal I/O tail; strongest bounded exact-prefix extension; selected SL fallback on unknown'};
+    telemetry.visibleTail=tail;
+    const tailFinish=result=>{tail.nodes=base.metrics.nodes-tailStart;return finish(result);};
+    const inventory=d=>d&&JSON.stringify({placed:d.placed.slice().sort((a,b)=>a-b),active:d.active,hold:d.hold,queue:d.queue,drawn:d.drawn});
+    const startingInventory=inventory(draw),paid=n=>JSON.stringify(n.slAllocation.paid.map(p=>[p.sId,p.lId]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]));
+    const seen=new Set([nodeKey(candidate)]),tailPrefixes=[candidate];
+    let compatiblePrefixCount=1;
+    for(const n of orderContinuations(completedAllocations)){
+     const key=nodeKey(n);if(seen.has(key)||n.path.length!==candidate.path.length||inventory(publicDrawHorizon(literal,n.path,summary))!==startingInventory||paid(n)!==paid(candidate))continue;
+     seen.add(key);compatiblePrefixCount++;if(tailPrefixes.length<4)tailPrefixes.push(n);
+    }
+    tail.compatiblePrefixes=compatiblePrefixCount;tail.retainedPrefixes=tailPrefixes.length;tail.omittedPrefixes=compatiblePrefixCount-tailPrefixes.length;
+    const tailIds=new Set(io.map(p=>p.id)),tailEndpoints=[];
+    for(const start of tailPrefixes){
+     if(!available()){tail.reason='tail-budget-unknown';return tailFinish(candidateAdvice);}
+     const prefixAdmission=start===candidate?candidateAdvice:certify(start);
+     if(!prefixAdmission){tail.reason='tail-prefix-certificate-unavailable';return tailFinish(candidateAdvice);}
+     const record={prefix:prefix(start),prefixAdmission:admission(prefixAdmission),startNodes:base.metrics.nodes,layers:[]};tail.prefixes.push(record);
+     let layer=[start];
+     for(let depth=0;depth<io.length;depth++){
+      const next=[];
+      for(const n of layer){
+       const children=extend(n);if(!children){tail.reason='tail-extension-unknown';return tailFinish(candidateAdvice);}
+       // Never hide an actual scoring competitor by declaring its T/Z outside
+       // this I/O comparison. Decline the optional stage instead.
+       if(children.some(v=>v.path.at(-1).event.lines&&!tailIds.has(placedResource(n.resources,v.path.at(-1).witness)?.id))){tail.reason='tail-competing-score';return tailFinish(candidateAdvice);}
+       next.push(...children.filter(v=>tailIds.has(placedResource(n.resources,v.path.at(-1).witness)?.id)));
+      }
+      const unique=new Map();for(const n of next.sort(compareSLTail)){const key=nodeKey(n);if(!unique.has(key))unique.set(key,n);}
+      record.layers.push({nodes:base.metrics.nodes,generated:next.length,distinct:unique.size,retained:Math.min(2,unique.size)});layer=[...unique.values()].slice(0,2);
+      if(!layer.length)break;
+     }
+     if(!layer.length){tail.reason='tail-no-compatible-extension';return tailFinish(candidateAdvice);}
+     // Entry qualification can change the structural band. Resolve every
+     // retained final endpoint before ordering; unknown is not a low score.
+     const ordered=qualifiedSLTailOrder(layer,n=>{if(!available())return false;if(!n.qualified)qualify([n]);return n.qualified&&n.assessment.right.entry?.status!=='unresolved-budget';});
+     if(!ordered){tail.reason='tail-qualification-unknown';return tailFinish(candidateAdvice);}
+     record.qualifiedEndpoints=ordered.length;record.endpointOrder=ordered.map(n=>({prefix:prefix(n),rank:n.rank.slice(),leftScore:n.assessment.leftContext?.score,centerContinuity:n.centerContinuity,structuralScore:n.structuralScore,entry:n.assessment.right.entry??null}));
+     // Certify the strongest bounded endpoint, never an easier weaker one.
+     const endpoint=ordered[0];
+     record.endNodes=base.metrics.nodes;record.endpointPrefix=prefix(endpoint);record.draw=publicDrawHorizon(literal,endpoint.path,summary);
+     tailEndpoints.push({node:endpoint,record});
+    }
+    const tailReference=tailEndpoints[0],choice=tailEndpoints.slice(1).sort((a,b)=>compareSLTail(a.node,b.node))[0];
+    if(!choice){tail.reason='tail-no-competing-prefix';return tailFinish(candidateAdvice);}
+    // Certify only the strongest bounded reference and challenger. A failed
+    // strongest certificate never causes selection of an easier weaker one.
+    tailReference.advice=certify(tailReference.node);
+    if(!tailReference.advice){tail.reason='tail-reference-certificate-unavailable';return tailFinish(candidateAdvice);}
+    choice.advice=certify(choice.node);
+    if(!choice.advice){tail.reason='tail-candidate-certificate-unavailable';return tailFinish(candidateAdvice);}
+    tail.referencePrefix=prefix(tailReference.node);tail.referenceAdmission=admission(tailReference.advice);
+    tailReference.record.endpointAdmission=admission(tailReference.advice);choice.record.endpointAdmission=admission(choice.advice);
+    const result=visibleSLTailComparison(choice.node,tailReference.node,{candidateDraw:publicDrawHorizon(literal,choice.node.path,summary),referenceDraw:publicDrawHorizon(literal,tailReference.node.path,summary),original:candidate,initialResources:initial.resources});tail.comparison=result;tail.reason=result.reason;
+    if(!result.allowed)return tailFinish(candidateAdvice);
+    tail.selected=true;tail.candidatePrefix=prefix(choice.node);tail.candidateAdmission=admission(choice.advice);
+    // Keep the original S-allocation comparison describing its real five-lock
+    // proof; the selected seven-lock admission is separately replayable here.
+    return tailFinish(choice.advice);
   }
   return finish(incumbent);
  }
@@ -1840,5 +1930,5 @@ function decideRequest(raw,options={}){
  return budgetTracker.nodes||recovery?{...result,metrics:{...result.metrics,nodes:(result.metrics?.nodes||0)+budgetTracker.nodes,revalidationNodes:budgetTracker.nodes,...(recovery?{handoffRecovery:recovery}:{})}}:result;
 }
 
-return Object.freeze({ordinarySAllocationComparison,slAllocationStep,placedResource,certifyStrongestAllocation,publicDrawHorizon,exactAllocationPrefix,supportedSLComparison,preserveExtraZ,orderContinuations,advicePresentation,observe,assess,plan,decide,captureHandoffRecovery,resetSelection,startPatternHistory:H.start,updatePatternHistory:H.update,resolvePatternHistory:H.resolve,gapAccess:A.check,checkAccessPrefix:A.prefix,startOpeningSession,updateOpeningSession,acceptOpeningResult,revalidate,advance,cavityRepairDebt,continueCommitment,cycleResources,resourceGoal,resourceGoalPrefix,scoringSchedule,scoringReplacement,centerReservationStep,centerContinuityStep,ordinaryCenterEligible,ordinaryRightEligible});
+return Object.freeze({qualifiedSLTailOrder,compareSLTail,visibleSLTailComparison,ordinarySAllocationComparison,slAllocationStep,placedResource,certifyStrongestAllocation,publicDrawHorizon,exactAllocationPrefix,supportedSLComparison,preserveExtraZ,orderContinuations,advicePresentation,observe,assess,plan,decide,captureHandoffRecovery,resetSelection,startPatternHistory:H.start,updatePatternHistory:H.update,resolvePatternHistory:H.resolve,gapAccess:A.check,checkAccessPrefix:A.prefix,startOpeningSession,updateOpeningSession,acceptOpeningResult,revalidate,advance,cavityRepairDebt,continueCommitment,cycleResources,resourceGoal,resourceGoalPrefix,scoringSchedule,scoringReplacement,centerReservationStep,centerContinuityStep,ordinaryCenterEligible,ordinaryRightEligible});
 });
