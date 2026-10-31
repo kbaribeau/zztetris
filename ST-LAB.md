@@ -542,3 +542,30 @@ Pocket/scoring commitments and all other resource/access/quality checks remain
 protected. It does not relax the ordinary I guard or Center classifier; the
 post-score Center motif can remain explicitly uncertain. The original finite
 proof is rederived through input, HOLD and each lock under the shared budget.
+
+### Experimental surrounding allocation for an existing pending S/L
+
+A separate late bounded comparison can revisit surrounding Left allocation when
+an observed S is already pending its literal-visible L. It does not reward a new
+Center S or change the main beam. The ordinary incumbent is privately admitted
+first. Up to two already generated penultimate-layer alternatives keep that same
+S/L obligation live while extending at most three locks, width two, to an equal
+horizon of at most seven literal-known locks. The candidate must actually pay
+that L **last**; a canonical score may precede it. This keeps the complete route
+under the existing real Center resource goal, without retaining generic filler.
+Fresh ordinary planning may still replace its order under the existing checked
+same-goal and scoring-timing rules; retention is not a promise of identical next
+inputs or execution of the original five-lock diagnostic sequence.
+
+The strongest qualified bounded exact-incumbent extension and candidate must
+have identical actual placed identities, public draws, ending active/HOLD/queue,
+paid S/L pair and resource binding. A strict realized Left-context gain must also
+preserve scoring timing, cleanup obligations, Center continuity, structural band,
+headroom, cavity, notch, resource and access checks. Intermediate inventories may
+differ; final inventory equality is mandatory. No hidden refill or guessed L is
+credited. Unknown enumeration, strongest-endpoint qualification or final proof
+returns the exact admitted incumbent, not an easier weaker comparison. Optional
+work is capped at 18,000 additional nodes inside the original remaining request
+budget and deadline. These explicit engineered bounds establish neither a global
+best allocation nor longer survival. Existing I obligations, Right roles, partial
+history semantics and Reset classification are unchanged.
