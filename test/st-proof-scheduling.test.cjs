@@ -1,6 +1,7 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const P=require('../st-planner'),R=require('../st-rules'),A=require('../st-access'),M=require('../st-midgame-resources'),fixtures=require('./fixtures/scheduling-roots.json');
+function assertRisk(state,a){assert.equal(a.status,'recommended-risky-placement');assert.equal(a.recommendation.kind,'risky');assert.equal(a.metrics.certifiedHorizon,0);assert.equal(a.continuation.length,1);assert.ok(a.metrics.nodes<=45000);assert.equal(a.evidence.resourceObligations,undefined);assert.equal(a.evidence.coveredRepairPlan,undefined);assert.equal(R.replay(state,a.witness).valid,true);assert.equal(P.revalidate(state,a),null);assert.match(a.reason,/^Risky:/);assert.match(a.reason,/safer move may exist/);}
 for(const f of fixtures)test(`proof scheduling: old seed ${f.seed} route cannot replace actual repair with hypothetical access`,()=>{
  const q=f.request,options={...q.options,previous:q.previous,commitment:q.commitment,deadline:Infinity,timeMs:undefined,now:()=>0};
  const old=require('./fixtures/unsafe-scheduling-repair-prefixes.json').find(p=>p.seed===f.seed),H=require('../st-resource-history');
@@ -8,15 +9,19 @@ for(const f of fixtures)test(`proof scheduling: old seed ${f.seed} route cannot 
  const proof=A.repairPrefix(M.extendForced(q.observation),old.steps,{initialDebt:summary.coveredRepair.cells,stages:summary.center.pending});
  assert.equal(proof.valid,false);assert.deepEqual(proof.outstandingCells,old.outstanding);
  assert.equal(P.checkedCoveredRepair(q.observation,old.steps,options),null);
- const a=P.decide(q.observation,options);assert.equal(a.target,null);assert.ok(a.metrics.nodes<=45000);
- assert.ok(['no-supported-continuation-found','budget-exhausted'].includes(a.status));
- if(a.status==='budget-exhausted')assert.ok(a.metrics.proofScheduling.unfinished>0||a.metrics.nodes===45000,'New eligible staged alternatives may remain unknown; the archived unsafe route is still rejected');
+ // Supported admission still rejects the archived hypothetical repair. The
+ // explicitly risky recommendation is a different, one-lock contract.
+ const strict=P.plan(q.observation,options);assert.equal(strict.target,null);assert.ok(['no-supported-continuation-found','budget-exhausted'].includes(strict.status));
+ const a=P.decide(q.observation,options);assertRisk(q.observation,a);
+ if(f.seed===2449480001){assert.deepEqual(a.target,{type:'L',x:3,y:22,rotation:1});const h=a.recommendation.hazards.find(h=>h.code==='pending-center-partner');assert.deepEqual(h.pieces,['O']);assert.equal(h.publicCounts.O,1);assert.equal(a.recommendation.search.incomplete,true);}
+ else{assert.deepEqual(a.target,{type:'L',x:0,y:21,rotation:2});assert.deepEqual(a.recommendation.hazards.find(h=>h.code==='unresolved-covered-cells').cells,[[3,28]]);assert.ok(a.recommendation.hazards.some(h=>h.code==='allocation-history-unknown'));}
+
 });
-test('proof scheduling: deliberately unfinished access never becomes rejection or an admitted fallback',()=>{
+test('proof scheduling: deliberately unfinished access remains unknown, never a supported certificate',()=>{
  const f=fixtures[0],q=f.request,calls=[];const access={...A,prefix:(state,path,options)=>{calls.push(options.maxNodes);return{reachable:null,complete:false,visited:Math.min(1000,options.maxNodes),status:'unknown-access-budget'};}};
  const mod={exports:{}};vm.runInNewContext(fs.readFileSync(require.resolve('../st-planner'),'utf8'),{module:mod,require:id=>id==='./st-access.js'?access:require(id.replace('./','../')),Date,performance});
- const a=mod.exports.decide(q.observation,{...q.options,previous:q.previous,commitment:q.commitment,deadline:Infinity,timeMs:undefined});
- assert.equal(a.target,null);assert.equal(a.status,'budget-exhausted');assert.ok(a.metrics.nodes<=45000);assert.equal(a.metrics.completeDepth,0);assert.ok(a.metrics.proofScheduling.unfinished>0);assert.ok(calls.some(n=>n<=6000));assert.ok(a.metrics.rootExpanded>0,'Unfinished screening leaves budget for ordinary expansion');
+ const options={...q.options,previous:q.previous,commitment:q.commitment,deadline:Infinity,timeMs:undefined,now:()=>0};const strict=mod.exports.plan(q.observation,options);assert.equal(strict.target,null);assert.equal(strict.status,'budget-exhausted');
+ const a=mod.exports.decide(q.observation,options);assertRisk(q.observation,a);assert.deepEqual(a.target,{type:'L',x:3,y:22,rotation:1});assert.equal(a.recommendation.search.status,'budget-exhausted');assert.equal(a.recommendation.search.incomplete,true);assert.ok(a.recommendation.hazards.some(h=>h.code==='pending-center-partner'));assert.ok(a.metrics.nodes<=45000);assert.equal(a.metrics.completeDepth,0);assert.ok(a.metrics.proofScheduling.unfinished>0);assert.ok(calls.some(n=>n<=6000));assert.ok(a.metrics.rootExpanded>0,'Unfinished screening leaves budget for ordinary expansion');
 });
 
 for(const f of require('./fixtures/scheduling-selection-roots.json'))test(`proof scheduling: certified selection and incomplete coverage remain distinct at ${f.seed}/${f.lock}`,()=>{
