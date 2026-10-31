@@ -1,14 +1,15 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const P=require('../st-planner'),R=require('../st-rules'),A=require('../st-access'),M=require('../st-midgame-resources'),fixtures=require('./fixtures/scheduling-roots.json');
-for(const f of fixtures)test(`proof scheduling: seed ${f.seed} next ${f.nextLock} recovers within shared live node budget`,()=>{
- const q=f.request,options={...q.options,previous:q.previous,commitment:q.commitment,deadline:Infinity,timeMs:undefined,usageTelemetry:true};
- const a=P.decide(q.observation,options);assert.ok(a.target,a.reason);assert.ok(a.metrics.nodes<=45000);assert.equal(a.metrics.proofScheduling.allowance,6000);
- assert.ok(a.metrics.proofScheduling.unfinished>0,'Earlier partial screening remains explicit');assert.equal(a.evidence.searchIncomplete,true);
- assert.equal(a.evidence.resourceObligations.status,'checked');assert.equal(a.evidence.gapAccess.reachable,true);
- const r=R.replay(q.observation,a.continuation.flatMap(p=>p.witness));assert.equal(r.valid,true);assert.equal(r.events.length,a.continuation.length);
- assert.ok(P.revalidate(q.observation,a,options),'The whole result passes current validation again');
- assert.equal(P.revalidate({...q.observation,hold:q.observation.hold==='T'?'I':'T'},a,{...options,maxNodes:0}),null,'A prior certificate is not authority for another inventory');
+for(const f of fixtures)test(`proof scheduling: old seed ${f.seed} route cannot replace actual repair with hypothetical access`,()=>{
+ const q=f.request,options={...q.options,previous:q.previous,commitment:q.commitment,deadline:Infinity,timeMs:undefined,now:()=>0};
+ const old=require('./fixtures/unsafe-scheduling-repair-prefixes.json').find(p=>p.seed===f.seed),H=require('../st-resource-history');
+ const summary=H.resolve(q.observation,H.importContext(q.observation,q.options.resourceContext));
+ const proof=A.repairPrefix(M.extendForced(q.observation),old.steps,{initialDebt:summary.coveredRepair.cells,stages:summary.center.pending});
+ assert.equal(proof.valid,false);assert.deepEqual(proof.outstandingCells,old.outstanding);
+ assert.equal(P.checkedCoveredRepair(q.observation,old.steps,options),null);
+ const a=P.decide(q.observation,options);assert.equal(a.target,null);assert.ok(a.metrics.nodes<=45000);
+ assert.equal(a.status,'no-supported-continuation-found');
 });
 test('proof scheduling: deliberately unfinished access never becomes rejection or an admitted fallback',()=>{
  const f=fixtures[0],q=f.request,calls=[];const access={...A,prefix:(state,path,options)=>{calls.push(options.maxNodes);return{reachable:null,complete:false,visited:Math.min(1000,options.maxNodes),status:'unknown-access-budget'};}};
@@ -46,20 +47,20 @@ for(const f of require('./fixtures/scheduling-selection-roots.json'))test(`proof
  if(f.seed===2449482139)assert.equal(a.metrics.proofScheduling.enabled,false,'Internal subprobe retains original allocation');
 });
 
-for(const f of fixtures)test(`proof scheduling: certified horizon follows executed suffix at ${f.seed}`,()=>{
+for(const f of require('./fixtures/scheduling-selection-roots.json').slice(0,1))test(`proof scheduling: safe certified horizon follows executed suffix at ${f.seed}`,()=>{
  const H=require('../st-resource-history'),PH=require('../st-pattern-history');
  const q=f.request,options={...q.options,previous:q.previous,commitment:q.commitment,deadline:Infinity,timeMs:undefined};
- const a=P.decide(q.observation,options);assert.equal(a.metrics.certifiedHorizon,3);
+ const a=P.decide(q.observation,{...options,now:()=>0});assert.ok(a.target);const horizon=a.continuation.length;assert.ok(horizon>=2);assert.equal(a.metrics.certifiedHorizon,horizon);
  let state=q.observation,history=H.importContext(state,q.options.resourceContext),pattern=q.options.patternHistory;
  for(const action of a.witness){const before=state;state=R.move(state,action);history=H.applyAction(history,before,action,state);if(action==='HD')pattern=PH.update(pattern,before,state,state.lastEvent);}
  const nextOptions={...options,patternHistory:pattern,resourceContext:H.exportContext(state,history)};
  const suffix=P.continueCommitment(q.observation,state,a,state.lastEvent,nextOptions);
- assert.ok(suffix);assert.equal(suffix.continuation.length,2);assert.equal(suffix.metrics.certifiedHorizon,2);
+ assert.ok(suffix);assert.equal(suffix.continuation.length,horizon-1);assert.equal(suffix.metrics.certifiedHorizon,horizon-1);
  const forgedCount={...suffix,metrics:{...suffix.metrics,certifiedHorizon:99}};
- const checked=P.revalidate(state,forgedCount,nextOptions);assert.ok(checked);assert.equal(checked.metrics.certifiedHorizon,2);
+ const checked=P.revalidate(state,forgedCount,nextOptions);assert.ok(checked);assert.equal(checked.metrics.certifiedHorizon,horizon-1);
  const action=suffix.witness[0];if(action!=='HD'){
   const moved=R.move(state,action),movedHistory=H.applyAction(history,state,action,moved);
   const advanced=P.advance(moved,forgedCount,action,{...nextOptions,resourceContext:H.exportContext(moved,movedHistory)});
-  assert.ok(advanced);assert.equal(advanced.metrics.certifiedHorizon,advanced.continuation.length);assert.equal(advanced.metrics.certifiedHorizon,2);
+  assert.ok(advanced);assert.equal(advanced.metrics.certifiedHorizon,advanced.continuation.length);assert.equal(advanced.metrics.certifiedHorizon,horizon-1);
  }
 });

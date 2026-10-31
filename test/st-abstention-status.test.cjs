@@ -5,12 +5,12 @@ const fixture=require('./support/st-autoplay-lost-phase.json').cases.find(c=>c.i
 const observation=()=>P.observe(fixture.snapshot);
 const bounds={depth:3,width:8,maxNodes:45000,now:()=>0};
 function withheld(a){assert.equal(a.target,null);assert.deepEqual(a.witness,[]);assert.deepEqual(a.continuation,[]);assert.ok(a.metrics.nodes<=45000);}
-test('abstention status: unsuitable endpoint with unfinished internal screening remains budget-limited',()=>{
+test('abstention status: completed covered-cell exclusion does not invent unfinished movement screening',()=>{
  const a=P.plan(observation(),bounds);withheld(a);
  assert.equal(a.assessment.maxHeight,20);assert.equal(a.assessment.regionalSupport,true);
  assert.ok(a.metrics.nodes<45000,'An internal proof allowance can stop before the global cap');
- assert.ok(a.metrics.proofScheduling.unfinished>0);assert.ok(a.metrics.proofScheduling.budgetStops>0);
- assert.equal(a.status,'budget-exhausted');assert.match(a.reason,/search limit/);
+ assert.equal(a.metrics.proofScheduling.unfinished,0);assert.equal(a.metrics.proofScheduling.budgetStops,0);
+ assert.equal(a.status,'no-supported-continuation-found');assert.match(a.reason,/supported/);
 });
 test('abstention status: completed unsuitable endpoint remains a supported-shape rejection',()=>{
  // Ordinary-only control disables construction and its optional screening cap;

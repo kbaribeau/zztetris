@@ -27,6 +27,12 @@ function resourceEndpointCore(raw,path,options={}){
  // exceptional intermediate Center must actually return to a supported shape
  // in this replayed visible prefix; all existing resource/access checks remain.
  if(centerDeparture)return{...checked,valid:false,visited,reason:'unsupported-center-without-executed-repair'};
+ // Shared by fresh advice AND construction/ordinary retention. A replayed
+ // construction flag cannot make an observed pre-existing obligation vanish.
+ const observed=resourceSummary(raw,options);
+ if(options.resourceContext&&!['complete','partial'].includes(observed.coverage.status))return{...checked,valid:false,visited,reason:'unverified-covered-repair-history'};
+ const restoration=A.repairPrefix(extendForced(observe(raw)),path,{notches:H.resolve(raw,options.patternHistory),initialDebt:observed.coveredRepair?.cells,stages:observed.center?.pending});
+ if(!restoration.valid)return{...checked,valid:false,visited,reason:'unresolved-covered-cells',coveredRepair:restoration};
  if(checked.resource.tCollision){
   const access=R.tDoubleAccess(checked.state.board,{maxNodes:Math.max(0,limit-visited),deadline,now});visited+=access.visited;
   const replay=access.reachable?R.replay(checked.state,access.witness):null;
@@ -429,7 +435,7 @@ function committedNode(s,proof,roots,initial,readAssessment=assess){
  for(const step of steps.slice(1)){const r=R.replay(n.state,step.witness);if(!r.valid||r.events.length!==1||JSON.stringify(r.events[0])!==JSON.stringify(step.event)||!ordinaryRightEligible(r.events[0]))return null;
   n=nodeFor({state:r.state,event:r.events[0],target:r.events[0].target,witness:step.witness,hold:step.witness.includes('HOLD'),...policyWitnesses(n.state)},n,initial,n.rootIndex,readAssessment);
  }
- return resourceGoal(n.path)&&n.path.every(p=>S.canonicalClear(p.event))&&n.cycleDebt===0&&n.notchValid&&certifiedCavities(n)&&n.assessment.maxHeight<20&&n.assessment.regionalSupport?n:null;
+ return resourceGoal(n.path)&&n.path.every(p=>S.canonicalClear(p.event))&&n.cycleDebt===0&&n.notchValid&&certifiedCavities(n)&&n.assessment.maxHeight<20&&n.assessment.regionalSupport&&A.repairPrefix(s,n.path,{notches:initial.notches,initialDebt:initial.coveredRepair?.cells,stages:initial.coveredStages}).valid?n:null;
 }
 function sameConstructionResult(expected,actual){
  if(expected.rules!==actual.rules||JSON.stringify(expected.board)!==JSON.stringify(actual.board)||expected.hold!==actual.hold||expected.canHold!==actual.canHold||expected.topOut!==actual.topOut||(expected.active&&expected.active.type!==actual.active?.type)||!expected.queue.every((t,i)=>actual.queue[i]===t))return false;
@@ -562,8 +568,14 @@ function continueCommitment(before,after,advice,actualEvent=after?.lastEvent,opt
  if(!advice?.continuation?.length||advice.continuation.length<2)return null;
  let origin,s;try{origin=observe(before);s=observe(after);}catch{return null;}if(R.validate(origin).length||R.validate(s).length)return null;
  const first=R.replay(origin,advice.continuation[0].witness);if(!first.valid||first.events.length!==1||!actualEvent||JSON.stringify(first.events[0])!==JSON.stringify(actualEvent)||!S.canonicalClear(actualEvent)||!ordinaryRightEligible(first.events[0])||!sameObservedResult(first.state,s))return null;
- const originalRepair=checkedCoveredRepair(origin,advice.continuation,options,advice.evidence?.coveredRepairPlan);if(!originalRepair)return null;
- const pendingPlan=originalRepair.plan?{...originalRepair.plan,consumed:originalRepair.plan.consumed+1}:null;
+ const savedRepair=advice.evidence?.coveredRepairPlan;
+ // options belongs to AFTER the lock. Do not validate that history against
+ // the old observation when there was no original repair plan to preserve.
+ const originalRepair=savedRepair?checkedCoveredRepair(origin,advice.continuation,options,savedRepair):null;if(savedRepair&&!originalRepair)return null;
+ // A genuine newly admitted roof carries its original certificate. Legacy
+ // or forged advice without it cannot create an unrecorded repair exception.
+ if(!savedRepair&&A.newlyCovered(origin.board,first.state.board,first.events[0],S.advanceNotches(origin.board,{state:first.state,event:first.events[0]}).pattern).length)return null;
+ const pendingPlan=originalRepair?.plan?{...originalRepair.plan,consumed:originalRepair.plan.consumed+1}:null;
  const steps=advice.continuation.slice(1);if(!resourceGoal(steps)&&!pendingPlan)return null;
  let current=extendForced(s),notches=H.resolve(s,options.patternHistory),debt=[],centerDebt=centerReservationStep(origin,{event:first.events[0],state:first.state}).debt,prior=assess(s.board);const continuation=[];if(['broken','invalid-history'].includes(notches.status))return null;
  for(const step of steps){const r=R.replay(current,step.witness);if(!r.valid||r.events.length!==1||JSON.stringify(r.events[0])!==JSON.stringify(step.event)||!S.canonicalClear(r.events[0])||!ordinaryRightEligible(r.events[0]))return null;
@@ -1238,6 +1250,9 @@ function planCore(raw,options={}){
   preparationUnresolved=proofStopped&&!preparation;
   if(usage){Object.assign(usage.families.visibleCyclePreparation,{verified:Number(Boolean(preparation)),unknown:Number(preparationUnresolved),nodes:base.metrics.nodes-preparationStartNodes});usage.costsMs.visibleCyclePreparation+=usageNow()-preparationStarted;}
  }
+ // An unsafe preparation is not an incumbent: let ordinary alternatives be
+ // considered instead of selecting it only to reject it at final admission.
+ if(preparation&&!A.repairPrefix(s,preparation.path,{notches:initial.notches,initialDebt:initial.coveredRepair?.cells,stages:initial.coveredStages}).valid)preparation=null;
  const spendsReservedT=(p,parent=null)=>(preparation||preparationUnresolved)&&p.event.type==='T'&&p.event.lines===0&&!parent?.path.some(step=>step.event.type==='T'&&step.event.lines===2&&step.event.spin==='full');
  let frontier=qualify(root.placements.filter(p=>S.canonicalClear(p.event)&&!spendsReservedT(p)&&ordinaryCenterEligible(s,p,initial.notches)).map((p,i)=>nodeFor(p,null,initial,i,readAssessment)).filter(n=>n.notchValid&&n.cycleDebt===0));
  if(preparation){preparation=qualify([preparation])[0]??preparation;base.metrics.preparationProofLocks=preparation.path.length;}
@@ -1934,7 +1949,7 @@ function planRequest(raw,options={}){
   if(!resource.valid){
    for(const name of ['sourceConstruction','earlyCapFallback','levelBaseReentry','tieExtension'])if(result.metrics[name])result.metrics[name]={...result.metrics[name],selected:false};
    if(result.metrics.usage?.scope==='maintenance')result.metrics.usage={...result.metrics.usage,selected:null,families:Object.fromEntries(Object.entries(result.metrics.usage.families).map(([name,family])=>[name,'selected'in family?{...family,selected:0}:family]))};
-   return{...result,status:'no-supported-continuation-found',metrics:{...result.metrics,certifiedHorizon:0},target:null,witness:[],continuation:[],reason:'No ordinary-midgame route preserving the observed T, Z and Center obligations was verified.',evidence:{...result.evidence,resourceObligations:{status:'rejected',reason:resource.reason}}};
+   return{...result,status:'no-supported-continuation-found',metrics:{...result.metrics,certifiedHorizon:0},target:null,witness:[],continuation:[],reason:resource.reason==='unresolved-covered-cells'?'No supported restoration plan for the actual newly covered cells was verified.':'No ordinary-midgame route preserving the observed T, Z and Center obligations was verified.',evidence:{...result.evidence,...(resource.coveredRepair?{coveredRepair:resource.coveredRepair}:{}),resourceObligations:{status:'rejected',reason:resource.reason}}};
   }
   result={...result,evidence:{...result.evidence,resourceObligations:{status:'checked',binding:resource.resource.originKey,extraZ:resource.resource.extraZ,pendingCenter:resource.resource.pendingCenter,hangingS:resource.resource.hangingS,unclassifiedS:resource.resource.unclassifiedS,hangingL:resource.resource.hangingL}}};
  }

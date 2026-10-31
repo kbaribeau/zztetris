@@ -29,8 +29,11 @@ test('handoff recovery budget: actual old positive handoff cannot grow into a di
  const f=require('./fixtures/legacy-handoff-prefix.json'),q=f.request,a=P.decide(q.observation,{...q.options,previous:q.previous,commitment:q.commitment,deadline:Infinity,now:()=>0});
  assert(a.target);assert.equal(a.phase,'maintenance');assert.equal(a.evidence.openingHandoff.recovery,undefined);assert.deepEqual(a.continuation.map(p=>p.event),f.advice.continuation.map(p=>p.event));assert.equal(P.resourceGoal(a.continuation),false);assert.equal(a.metrics.handoffWork.recovery.nodes,undefined);assert(a.metrics.nodes<=45000);E.validateAdvice(q.observation,a);
 });
-test('handoff recovery budget: fresh live worker recovers only the visible observed-S payment within unchanged cap',()=>{
- const q=roots[0].request,a=E.workerPlanner()(q);assert(a.target,a.reason);assert.equal(a.phase,'maintenance');assert.equal(a.evidence.openingHandoff.recovery,'shared-after-legacy-budget-miss');assert(a.metrics.nodes<=45000);assert(a.metrics.handoffWork.legacy.nodes>0);assert(a.metrics.handoffWork.recovery.nodes>0);assert.equal(a.continuation.at(-1).event.type,'S');assert(a.continuation.at(-1).event.cells.every(([x])=>x<4));E.validateAdvice(q.observation,a);
+test('handoff production budget: real worker uses a safe ordinary alternative instead of archived unsafe observed-S payment',()=>{
+ const q=roots[0].request,a=E.workerPlanner()(q);assert.ok(a.target);assert(a.metrics.nodes<=45000);
+ assert.notEqual(a.evidence?.openingHandoff?.recovery,'shared-after-legacy-budget-miss');
+ const H=require('../st-resource-history'),A=require('../st-access'),M=require('../st-midgame-resources'),summary=H.resolve(q.observation,H.importContext(q.observation,q.options.resourceContext));
+ assert.equal(A.repairPrefix(M.extendForced(q.observation),a.continuation,{initialDebt:summary.coveredRepair.cells,stages:summary.center.pending}).valid,true);E.validateAdvice(q.observation,a);
 });
 
 test('handoff recovery budget: an already-paid prefix cannot label another S filler as its mandatory payment',()=>{

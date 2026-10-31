@@ -114,3 +114,10 @@ test('covered repair / retained-advice hard gate rejects actual S22 even when co
  const bad={target:steps[0].target,witness:steps[0].witness,hold:true,continuation:steps,context:JSON.stringify([q.rules,q.board,q.hold,q.canHold,q.queue,q.bag??null,q.active.type]),assessment:P.assess(steps.at(-1).state.board),evidence:{coveredRepair:{valid:true,status:'actual-covered-cells-repaired',outstandingCells:[]}}};
  assert.equal(P.revalidate(q,bad,{...f.options,maxNodes:45000}),null);
 });
+test('covered repair / cross-region S84 Center defect survives both nearby TSD and quad',()=>{
+ const f=fixture.centerCrossing,steps=path(f.observation,f.steps.map(p=>p.witness)),options={patternHistory:f.patternHistory};
+ const proof=A.repairPrefix(f.observation,steps,{notches:require('../st-pattern-history').resolve(f.observation,f.patternHistory)});
+ assert.deepEqual(proof.steps[0].created,f.createdCells);assert.equal(steps[3].event.lines,2);assert.equal(steps[4].event.lines,4);
+ for(const cell of f.translatedCells)assert.ok(proof.outstandingCells.some(c=>JSON.stringify(c)===JSON.stringify(cell)));
+ assert.equal(proof.valid,false);assert.equal(P.checkedCoveredRepair(f.observation,steps,options),null);
+});

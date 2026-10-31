@@ -96,3 +96,14 @@ full planner endpoint gate still requires a supplied Center completion; it
 rejects that full seven-lock endpoint in both the prior and changed policy when
 L is absent. The new covered-cell check does not solve that separate boundary
 or make a new preference claim.
+
+### Legacy handoff test boundary
+
+The archived Z→S handoff used by transport/identity tests creates an unresolved
+Left cell `[2,31]`. It is now a production-negative control. No valid end-to-end
+strategic positive is currently established for that narrow archived handoff
+mechanism. Explicitly labeled bookkeeping/UI tests isolate only covered-cell
+geometry in a test-only planner loader; they verify real history, identity,
+budget and routing contracts, **not** strategic admission. Real forced-bag
+scoring-suffix and supplied S→L temporary-roof integration positives remain
+unmodified. A green mechanical test cannot waive a production regression.

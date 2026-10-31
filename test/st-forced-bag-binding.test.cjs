@@ -21,7 +21,8 @@ test('forced bag binding: producer and consumer share one public deduction, with
  assert.deepEqual(canonical.queue.at(-1),{id:-1,type:'I',bag:null});assert.equal(canonical.extraZ,raw.extraZ);
  assert.deepEqual(canonical.hangingS,[{id:21,bag:2,known:true}]);assert.deepEqual(summary.instances.queue.map(p=>p.type),state.queue);
 });
-test('forced bag binding: the archived Z then S prefix now survives exact retention and result-context replay',()=>{
+test('forced bag bookkeeping (covered-geometry isolated): archived prefix exact retention and result-context replay',()=>{
+ const P=require('./support/repair-isolated-planner.cjs').planner();
  const {state,options,advice}=observed(),tracker={nodes:0};
  const retained=P.revalidate(state,advice,{...options,...bounds,budgetTracker:tracker});
  assert.ok(retained?.target,'Previously rejected immediately at the raw resource binding');assert.equal(retained.retained,true);
@@ -30,7 +31,8 @@ test('forced bag binding: the archived Z then S prefix now survives exact retent
  assert.equal(retained.evidence.resourceObligations.binding,advice.evidence.resourceObligations.binding);
  assert.ok(tracker.nodes>0&&tracker.nodes<=45000,'Still performs finite reachability/resource/access validation');verifyPrefix(state,retained);
 });
-test('forced bag binding: HOLD advancement binds actual swapped identities and Undo restores the old proof',()=>{
+test('forced bag bookkeeping (covered-geometry isolated): HOLD identities and Undo restore the old binding',()=>{
+ const P=require('./support/repair-isolated-planner.cjs').planner();
  const {state,history,options,advice}=observed(),action=advice.witness[0];assert.equal(action,'HOLD');
  const next=R.move(state,action),nextHistory=H.applyAction(history,state,action,next),nextOptions={...options,...bounds,resourceContext:H.exportContext(next,nextHistory)};
  const advanced=P.advance(next,advice,action,nextOptions);assert.ok(advanced?.target);verifyPrefix(next,advanced);
