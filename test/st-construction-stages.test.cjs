@@ -61,9 +61,13 @@ test('visible replacement Z creates an executable exact-cap deferral certificate
 test('ordinary cap-first remains usable without granting an unknown optional-Z allowance',()=>{
  // Test endpoint comparison independently of a host-dependent wall-clock cut.
  // Production responsiveness remains covered by the timed tests and rollouts.
- const a=P.plan(zFixture.initial,{maxNodes:45000});assert.ok(a.target,a.reason);assert.ok(a.metrics.capStageCandidates>0);
+ // Synthetic O inventory is the roof-free control. The old S inventory's
+ // Z/S/T prefix left an unplanned covered Left cell; that exact route is now
+ // a negative in st-covered-repair-plan, not permission to keep the defect.
+ const initial=clone(zFixture.initial);initial.queue[0]='O';
+ const a=P.plan(initial,{maxNodes:45000});assert.ok(a.target,a.reason);assert.ok(a.metrics.capStageCandidates>0);
  assert.equal(a.continuation.length,3);assert.equal(a.continuation.at(-1).event.spin,'full');
- const state=a.continuation.reduce((s,p)=>{const r=R.replay(s,p.witness);assert.ok(r.valid);return r.state;},zFixture.initial);
+ const state=a.continuation.reduce((s,p)=>{const r=R.replay(s,p.witness);assert.ok(r.valid);return r.state;},initial);
  assert.ok(P.assess(state.board).maxHeight<=9);assert.equal(state.board.join('').replaceAll('.','').length,44);
  assert.equal(S.geometry(state.board).center.status,'supported-partner-completion');
  // The recorded Z deferral remains certified separately. Ordinary cap-first

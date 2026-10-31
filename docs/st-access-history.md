@@ -55,3 +55,44 @@ This reallocates finite search effort to still-admissible paths without changing
 The movement enumerator now offers an optional read-only placement predicate for internal existential queries. A predicate stop is explicitly incomplete enumeration, with `stopReason: placement-predicate`; ordinary callers without the option retain the same outputs and traversal order. Access checking uses it to stop once every queried cell has an actual legal placement witness. It no longer explores the rest of that piece's movement graph after its positive proof is complete.
 
 This preserves the existing per-cell physical-access contract. Separate cells may have different hypothetical placements; it is not a jointly executable repair, a visible-supply promise or ST-strategy certification. A partial match followed by a time/node cutoff remains unknown and is not cached. Negative results still require exhaustive completion. Seven frozen positive/negative controls retain identical proof content except visited-node counts; the reported inaccessible S13 gap still requires1,603 nodes and remains rejected, while the preceding accessible cell needs24 rather than573 nodes. Hard tuck witnesses may still require most of the graph. These are bounded work observations, not a survival claim.
+
+## Covered-cell restoration plans
+
+Ordinary midgame admission now distinguishes hypothetical movement access from
+an actual restoration plan. Every newly covered Left/Center cell (including a
+side-open cell) is tracked by coordinates through actual clear rows. A nearby
+TSD does not discharge it. Filling the cell, clearing its row, or removing its
+roof does; merely opening a side does not. Existing imported damage is not
+silently promoted to newly created debt. Canonical column-seven notches and
+Right reservoirs retain their separate contracts.
+
+The supplied executable prefix must resolve the actual new defect, or leave a
+recognized ordered Center partner stage with its exact accessible completion.
+The existing replay-backed resource policy independently checks partner supply
+and intervening-piece accommodation. That stage is explicitly unfinished: it
+neither promises an unseen arrival nor claims a completed Reset. An arbitrary
+future horizontal-I landing is not a restoration certificate.
+
+A finite repair retains the original public observation and exact lock proof.
+After movement, HOLD, an actual lock, or a refreshed preview, admission recreates
+the original repair and binds its remaining events to the current observation.
+While that repair is pending, an unrelated scoring prefix cannot replace it.
+Copied proof flags, a changed board/inventory, or an invalid history do not grant
+an exception. Existing stricter newly sealed-cell admission remains unchanged;
+this adds coverage for side-open roofs rather than relaxing sealed cavities.
+
+Outstanding cells are also reconstructed from the authenticated public action
+history, independently of advice. A failed/budget-limited continuation check or
+manual deviation may discard a chosen route but cannot silently discharge its
+actual cell obligation. A fresh Worker or same-engine session import replays
+that history. A position-only import still has explicitly unknown provenance;
+its already present damage is not invented as observed prior construction.
+
+The position01 player continuation is a regression for this new boundary: its
+seven actual supplied locks and ordinary resource accounting remain valid, and
+its accessible, unfinished Center L is not mislabeled a completed repair/Reset.
+This does **not** add a general unseen-partner admission exemption. The existing
+full planner endpoint gate still requires a supplied Center completion; it
+rejects that full seven-lock endpoint in both the prior and changed policy when
+L is absent. The new covered-cell check does not solve that separate boundary
+or make a new preference claim.

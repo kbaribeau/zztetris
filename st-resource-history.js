@@ -1,6 +1,6 @@
 /* Public, observed resource history. Planning context is accepted only by replay.
  * Histories are immutable local capabilities, not trusted imported JSON. */
-(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-structure'),require('./st-opening-patterns')):factory(root.STRules,root.STStructure,root.STSourcePatterns);if(typeof module==='object'&&module.exports)module.exports=api;else root.STResourceHistory=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,S,Patterns){
+(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-structure'),require('./st-opening-patterns'),require('./st-access')):factory(root.STRules,root.STStructure,root.STSourcePatterns,root.STAccess);if(typeof module==='object'&&module.exports)module.exports=api;else root.STResourceHistory=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,S,Patterns,A){
 'use strict';
 const transport=new WeakMap(),exported=new WeakMap(),localContexts=new WeakMap(),validatedContexts=new WeakMap();
 const trusted=new WeakSet(),clone=x=>JSON.parse(JSON.stringify(x)),same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
@@ -24,7 +24,7 @@ function start(raw,{fresh=false}={}){
   // Only the caller's actual new empty session may establish observed bag zero.
   // Imported snapshots, including forged flags, use the default unknown origin.
   fresh=Boolean(fresh&&o.board.every(r=>r==='..........')&&o.active&&o.hold===null&&o.streamCursor===1&&o.queue.length===6&&new Set([o.active.type,...o.queue]).size===7);
-  const h={schemaVersion:1,coverage:{status:fresh?'complete':'partial',reason:fresh?'Observed from a local empty seven-bag start.':'Earlier placements and held-piece age are unknown.'},observation:o,fresh,nextId:1,observedCount:0,pieces:{},active:null,hold:null,queue:[],actions:0,locks:0,allocations:[],pairs:[],center:{pending:[],debt:[],closed:[]},milestones:{sourcePattern:null,firstTsd:null,maintenanceHandoff:null},opening:{counts:{S:0,L:0,T:0,Z:0,TNonRight:0,ZNonRight:0,ZRight:0},violations:[],cap:null,quality:null,allocation:null,completedAt:null},extraZ:{baseline:null,allocations:[],departures:[]}};
+  const h={schemaVersion:1,coverage:{status:fresh?'complete':'partial',reason:fresh?'Observed from a local empty seven-bag start.':'Earlier placements and held-piece age are unknown.'},observation:o,fresh,nextId:1,observedCount:0,pieces:{},active:null,hold:null,queue:[],actions:0,locks:0,allocations:[],pairs:[],center:{pending:[],debt:[],closed:[]},coveredRepair:{cells:[],notches:S.notchPattern(o.board)},milestones:{sourcePattern:null,firstTsd:null,maintenanceHandoff:null},opening:{counts:{S:0,L:0,T:0,Z:0,TNonRight:0,ZNonRight:0,ZRight:0},violations:[],cap:null,quality:null,allocation:null,completedAt:null},extraZ:{baseline:null,allocations:[],departures:[]}};
   if(o.active)h.active=addPiece(h,o.active.type,fresh);if(o.hold)h.hold=addPiece(h,o.hold,false);h.queue=o.queue.map(type=>addPiece(h,type,fresh));
   // Imported geometry is factual even though its producing piece identity is not.
   h.center.pending=initialPending(o.board);
@@ -139,6 +139,10 @@ function applyAction(history,before,action,after){
    const allocation={at:h.locks,pieceId:lockedId,type:e.type,region:whole(e),cells:clone(e.cells),lines:e.lines,spin:e.spin,clearedRows:e.clearedRows.slice()};
    h.allocations.push(allocation);h.pieces[lockedId].allocation=allocation;
    updateCenter(h,before,after,e,lockedId);observeOpening(h,before,after,e);
+   // Event-authenticated debt survives discarded advice, failed continuation
+   // checks and fresh worker realms. Imported origin damage starts unclaimed.
+   const phase=S.advanceNotches(before.board,{state:after,event:e},h.coveredRepair.notches);
+   h.coveredRepair={cells:A.repairStep(before.board,after.board,e,h.coveredRepair.cells,phase.pattern),notches:phase.pattern};
    // Reconstruct only an observed known-to-unreviewed transition. This flag
    // is derived from replay, never accepted from a serialized summary.
    if(knownSurplus&&allocation.region!=='left'&&h.pieces[lockedId].pair?.family!=='SL'&&!h.center.pending.some(p=>p.family==='SL'&&p.rootId===lockedId))allocation.requiresAccommodation=true;
@@ -258,7 +262,7 @@ function resolve(raw,history){
  const h=history,instance=id=>id===null?null:clone(h.pieces[id]);
  const center=clone(h.center);for(const list of ['pending','debt'])for(const obligation of center[list])obligation.rootBag=h.pieces[obligation.rootId]?.bag??null;
  const extraStatus=!h.extraZ.baseline?'unknown':h.extraZ.departures.length||h.extraZ.allocations.length>1?'out-of-profile':h.extraZ.allocations.length?'used':'available';
- return{schemaVersion:1,terminal:Boolean(h.observation.topOut),coverage:clone(h.coverage),actions:h.actions,locks:h.locks,openingAllocation:openingAllocation(h),instances:{active:instance(h.active),hold:instance(h.hold),queue:h.queue.map(instance)},observedSL:h.fresh?Object.values(h.pieces).filter(p=>'SL'.includes(p.type)).map(p=>({id:p.id,type:p.type,bag:p.bag})):[],flow:{ageKnown:h.fresh,oldestFirst:[h.active,h.hold,...h.queue].filter(id=>id!==null).map(instance).sort((a,b)=>(a.observedOrder??Infinity)-(b.observedOrder??Infinity))},center,hangingS:hanging(h),hangingL:hangingL(h),extraZ:{status:extraStatus,...clone(h.extraZ),reason:!h.extraZ.baseline?'First TSD and source pattern are not sufficient: the source allocation/quality baseline must be verified.':'One optional Left/Center Z per observed Midgame interval; clears never replenish it and no Reset is inferred.'},milestones:clone(h.milestones),allocations:clone(h.allocations),pairs:clone(h.pairs),source:{url:SOURCE,sections:['2','3.2','7','8','9','10']},note:'Observed resource evidence; planner validates replay context separately. No automatic Reset or allowance renewal.'};
+ return{schemaVersion:1,terminal:Boolean(h.observation.topOut),coverage:clone(h.coverage),actions:h.actions,locks:h.locks,openingAllocation:openingAllocation(h),instances:{active:instance(h.active),hold:instance(h.hold),queue:h.queue.map(instance)},observedSL:h.fresh?Object.values(h.pieces).filter(p=>'SL'.includes(p.type)).map(p=>({id:p.id,type:p.type,bag:p.bag})):[],flow:{ageKnown:h.fresh,oldestFirst:[h.active,h.hold,...h.queue].filter(id=>id!==null).map(instance).sort((a,b)=>(a.observedOrder??Infinity)-(b.observedOrder??Infinity))},center,coveredRepair:clone(h.coveredRepair),hangingS:hanging(h),hangingL:hangingL(h),extraZ:{status:extraStatus,...clone(h.extraZ),reason:!h.extraZ.baseline?'First TSD and source pattern are not sufficient: the source allocation/quality baseline must be verified.':'One optional Left/Center Z per observed Midgame interval; clears never replenish it and no Reset is inferred.'},milestones:clone(h.milestones),allocations:clone(h.allocations),pairs:clone(h.pairs),source:{url:SOURCE,sections:['2','3.2','7','8','9','10']},note:'Observed resource evidence; planner validates replay context separately. No automatic Reset or allowance renewal.'};
 }
 return Object.freeze({start,applyAction,markHandoff,resolve,exportContext,importContext,limits:Object.freeze({actions:MAX_ACTIONS,locks:MAX_LOCKS})});
 });
