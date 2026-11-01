@@ -12,8 +12,8 @@ const view=o=>({rules:o.rules,board:o.board.slice(),active:o.active?clone(o.acti
 const bound=(h,o)=>{try{return trusted.has(h)&&h.observation&&R.validate(o).length===0&&same(h.observation,view(o));}catch{return false;}};
 const cellsKey=c=>JSON.stringify(c.slice().sort(([ax,ay],[bx,by])=>ax-bx||ay-by));
 const heights=b=>Array.from({length:10},(_,x)=>{const y=b.findIndex(r=>r[x]!=='.');return y<0?0:40-y;});
-// Skyline fact only; no dependency on the later-loaded Left preference module.
-const leftD=board=>{const h=heights(board);return h[0]===h[3]&&h[1]===h[2]&&h[1]===h[0]+1;};
+// Shared skyline fact only; history never imports preference or exit proofs.
+const leftD=S.leftSurface.isD;
 const canonical=e=>e.lines===0||(e.type==='T'&&e.spin==='full'&&e.lines===2&&e.cells.every(([x])=>x>=6)&&e.cells.some(([x])=>x>=7))||(e.type==='I'&&e.lines===4&&e.cells.every(([x])=>x>=7));
 const tsd=e=>e.type==='T'&&e.spin==='full'&&e.lines===2&&canonical(e);
 const whole=e=>e.cells.every(([x])=>x<4)?'left':e.cells.every(([x])=>x>=4&&x<7)?'center':e.cells.every(([x])=>x<7)?'left-center':e.cells.every(([x])=>x>=7)?'right':'cross-right';

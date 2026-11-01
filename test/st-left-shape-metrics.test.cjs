@@ -57,6 +57,7 @@ test('Left shape metrics: offline CLI preserves source bytes and refuses output 
   fs.writeFileSync(path.join(dir,'input.json'),inputText);fs.writeFileSync(path.join(dir,'trace.jsonl'),traceText);
   const out=path.join(dir,'counts.json'),result=CLI.analyzeDirectory(dir,{out});assert.equal(result.countsByShape['shocky-left-2'],1);assert.equal(result.percentByTier.SS,100);
   assert.ok(result.artifact.traceSha256);assert.deepEqual(JSON.parse(fs.readFileSync(out)),result);
+  for(const file of ['st-structure.js','st-rules.js','st-bag.js'])assert.equal(result.artifact.sources[file],require('node:crypto').createHash('sha256').update(fs.readFileSync(path.join(__dirname,'..',file))).digest('hex'),'Catalogue/runtime source is bound: '+file);
   assert.throws(()=>CLI.analyzeDirectory(dir,{out}),/EEXIST/);assert.equal(fs.readFileSync(path.join(dir,'input.json'),'utf8'),inputText);assert.equal(fs.readFileSync(path.join(dir,'trace.jsonl'),'utf8'),traceText);
   assert.throws(()=>CLI.parse(['--episode']),/Missing/);assert.throws(()=>CLI.parse(['--unknown']),/Unknown/);
  }finally{fs.rmSync(dir,{recursive:true,force:true});}

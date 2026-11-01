@@ -14,7 +14,7 @@ function analyzeDirectory(directory,{out=null,prefixLocks=null}={}){
  const inputBytes=bytes(path.join(directory,'input.json')),traceBytes=bytes(path.join(directory,'trace.jsonl'));
  const input=JSON.parse(inputBytes),records=traceBytes.toString('utf8').split('\n').filter(line=>line.trim()).map(line=>JSON.parse(line));
  const result=L.analyze(input,records,{prefixLocks});
- result.artifact={inputSha256:digest(inputBytes),traceSha256:digest(traceBytes),node:process.version,sources:Object.fromEntries(['scripts/analyze-st-left-shapes.cjs','scripts/lib/st-left-shape-metrics.cjs','st-left-context.js'].map(file=>[file,digest(fs.readFileSync(path.join(__dirname,'..',file)))]))};
+ result.artifact={inputSha256:digest(inputBytes),traceSha256:digest(traceBytes),node:process.version,sources:Object.fromEntries(['scripts/analyze-st-left-shapes.cjs','scripts/lib/st-left-shape-metrics.cjs','st-left-context.js','st-structure.js','st-rules.js','st-bag.js'].map(file=>[file,digest(fs.readFileSync(path.join(__dirname,'..',file)))]))};
  if(out)fs.writeFileSync(path.resolve(out),JSON.stringify(result,null,2)+'\n',{flag:'wx'});
  return result;
 }

@@ -1,15 +1,11 @@
 /* Shocky's Chapter 3.3 Left surfaces, interpreted in finite visible supply.
  * Tiers and oriented silhouettes are source facts; weights and two-lock horizon
  * are deliberately small engineering preferences, never legality certificates. */
-(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules')):factory(root.STRules);if(typeof module==='object'&&module.exports)module.exports=api;else root.STLeftContext=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R){
+(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-structure')):factory(root.STRules,root.STStructure);if(typeof module==='object'&&module.exports)module.exports=api;else root.STLeftContext=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,S){
 'use strict';
 const SOURCE='https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit';
-const WEIGHTS=Object.freeze({SS:6,S:4,A:2,B:0,C:-2,D:-4});
-const catalog=[['SS',[0,0,0,2]],['SS',[2,0,0,0]],['S',[0,0,1,1]],['S',[2,2,2,0]],['A',[1,1,0,0]],['A',[0,2,2,2]],['A',[0,0,2,0]],['B',[1,0,0,1]],['B',[0,2,0,0]],['B',[2,2,0,2]],['C',[2,0,2,2]],['D',[0,1,1,0]]].map(([tier,profile],i)=>Object.freeze({id:'shocky-left-'+(i+1),tier,profile:Object.freeze(profile),weight:WEIGHTS[tier]}));
-Object.freeze(catalog);const byProfile=new Map(catalog.map(p=>[p.profile.join(','),p]));
-const normalize=h=>{const m=Math.min(...h);return h.map(v=>v-m);};
+const {catalog,classify,isD,createsD}=S.leftSurface,boardHeights=S.leftSurface.heights;
 const rough=p=>p.slice(1).reduce((n,v,i)=>n+Math.abs(v-p[i]),0);
-const classify=h=>byProfile.get(normalize(h).join(','))||null;
 const shapes={};for(const type of 'IJLOSZ'){
  const seen=new Set();shapes[type]=[];
  for(let rotation=0;rotation<4;rotation++){
@@ -38,9 +34,9 @@ function choices(n){const out=[];if(n.a)out.push({piece:n.a,next:{a:n.q[0]||null
  return out;
 }
 function evaluate(state,{heights,covered=null,resources=null,centerDebt=[],center=null,right=null}={}){
- const h=heights||Array.from({length:4},(_,x)=>{const y=state.board.findIndex(r=>r[x]!=='.');return y<0?0:40-y;});
- if(covered===null)covered=h.reduce((sum,v,x)=>sum+state.board.slice(40-v).filter(r=>r[x]==='.').length,0);
- const shape=classify(h),base={source:SOURCE,shape:shape?.id||null,tier:shape?.tier||null,profile:normalize(h),score:0,adjustment:0,context:'unlisted-neutral',horizon:2,executionVerified:false};
+ const surface=S.leftSurface.assess(state.board,{heights,covered}),h=surface.heights,shape=surface.shape;
+ covered=surface.covered;
+ const base={source:SOURCE,shape:shape?.id||null,tier:shape?.tier||null,profile:surface.profile,score:0,adjustment:0,context:'unlisted-neutral',horizon:2,executionVerified:false};
  if(covered)return{...base,context:'covered-cells-neutral'};
  // An unlisted silhouette has no community tier. It can nevertheless be a
  // useful intermediate allocation when the actual visible I/O/J inventory
@@ -90,9 +86,6 @@ function evaluate(state,{heights,covered=null,resources=null,centerDebt=[],cente
 // Admission is separate from the two-lock preference above. Immediate means
 // before another lock, through the rules' actual HOLD transitions (including
 // empty HOLD), never merely membership later in the visible queue.
-const boardHeights=board=>Array.from({length:4},(_,x)=>{const y=board.findIndex(r=>r[x]!=='.');return y<0?0:40-y;});
-const isD=board=>classify(boardHeights(board))?.tier==='D';
-function createsD(before,after){return isD(after)&&!isD(before);}
 function immediateJStarts(state,options={}){
  const starts=[];let current=state;
  for(let count=0;count<=(options.allowHold===false?0:2);count++){
@@ -121,5 +114,21 @@ function dExit(state,options={}){
  }
  return{valid:false,complete,visited,reason:complete?'D-created-without-usable-J-exit':'D-J-exit-budget-unfinished'};
 }
-return Object.freeze({catalog,source:SOURCE,classify,landings,evaluate,isD,createsD,immediateJStarts,dExit});
+// Descriptive dependency facts for the explicit risk channel. The caller must
+// supply the actual strict proof result and projected resource ledger; this
+// function does no search and cannot convert these warnings into admission.
+function dDependencies(after,checked,{resources,geometry}){
+ if(checked.valid===true)return [];
+ const immediate=immediateJStarts(after).length>0;
+ const publicJ=after.active?.type==='J'||after.hold==='J'||after.queue.includes('J');
+ const availability=!publicJ?'absent-from-public-supply':!immediate?'visible-but-delayed':checked.complete===false?'immediate-exit-proof-unfinished':'immediate-exit-not-established';
+ const detail=!publicJ?'No supported immediate J exit is established for the Left D pattern, and no J is in the current public active, HOLD or preview; its arrival is unknown.':!immediate?'A J is known later in the public sequence, but cannot be used before another lock; the Left D pattern must wait.':checked.complete===false?'A J is immediately accessible, but its legal, resource-compatible D exit proof was unfinished within budget.':'A J is immediately accessible, but a usable, resource-compatible D exit was not established by the checked continuations.';
+ const hazards=[{code:'D-J-exit-unresolved',availability,proofStatus:checked.complete===false?'unfinished':'not-established',detail,downside:'The D surface may become harder to accommodate or inaccessible before the needed J can repair it.'}];
+ if(resources.pendingCenter.some(q=>q.alternatives.some(a=>a.piece==='J')))hazards.push({code:'D-J-competes-with-Center',detail:'A J is also recorded as a Center partner; it is not a free Left repair.',downside:'Spending the same J on Left can leave Center unfinished; a separate executable replacement is not promised.'});
+ const cycle=geometry.right.cycle;
+ if(cycle.prepareColumn!==null||cycle.cleanupColumns.length)hazards.push({code:'D-I-parking-competes-with-cleanup',detail:'Right has an observed I cleanup/preparation demand while Left waits for J.',downside:'Using I to park or reshape Left can delay Right cleanup; one I is not permission for both jobs.'});
+ hazards.push({code:'D-waiting-space-unproved',detail:`Left reaches ${Math.max(...geometry.left.profile)} rows; no route for parking intervening pieces while waiting for J is certified.`,downside:'Visible pieces may exhaust the available space before the D exit becomes usable.'});
+ return hazards;
+}
+return Object.freeze({dDependencies,catalog,source:SOURCE,classify,landings,evaluate,isD,createsD,immediateJStarts,dExit});
 });
