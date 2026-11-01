@@ -57,7 +57,7 @@ also available to callers before saving a protocol.
 
 - `schemaVersion: 1`, `kind: "st-evaluation-protocol"`, nonempty `id`.
 - `sources: {baseline: {relativePath: sha256, ...}, candidate: {...}}`.
-  The required current source closure is `REQUIRED_SOURCES`; a prospective run
+  The shared minimum source closure is `REQUIRED_SOURCES`; revision-specific new modules need not be invented in an older baseline. A prospective run
   additionally requires exact equality with the runner's entire current source
   map, including evaluation code and any newly loaded coach modules. Missing
   required files fail hashing rather than being silently omitted. Explicitly adapted historical source maps are validated as nonempty SHA-256 maps rather than requiring files that did not exist then. Both sides must be explicitly adapted for this retrospective protocol route. Historical
