@@ -1,6 +1,7 @@
 /* Milestone-one finite-information coach. No fixture IDs, seeds or hidden queues. */
-(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules.js'),require('./st-bag.js'),require('./st-structure.js'),require('./st-paired-repair.js'),require('./st-access.js'),require('./st-pattern-history.js'),require('./st-left-foundation.js'),require('./st-resource-history.js'),require('./st-midgame-resources.js'),require('./st-left-context.js')):factory(root.STRules,root.STBag,root.STStructure,root.STPairedRepair,root.STAccess,root.STPatternHistory,root.STLeftFoundation,root.STResourceHistory,root.STMidgameResources,root.STLeftContext);if(typeof module==='object'&&module.exports)module.exports=api;else root.STPlanner=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,B,S,X,A,H,Y,RH,M,L){
+(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules.js'),require('./st-bag.js'),require('./st-structure.js'),require('./st-paired-repair.js'),require('./st-access.js'),require('./st-pattern-history.js'),require('./st-left-foundation.js'),require('./st-resource-history.js'),require('./st-midgame-resources.js'),require('./st-left-context.js'),require('./st-midgame-coaches.js')):factory(root.STRules,root.STBag,root.STStructure,root.STPairedRepair,root.STAccess,root.STPatternHistory,root.STLeftFoundation,root.STResourceHistory,root.STMidgameResources,root.STLeftContext,root.STMidgameCoaches);if(typeof module==='object'&&module.exports)module.exports=api;else root.STPlanner=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,B,S,X,A,H,Y,RH,M,L,C){
 'use strict';
+const coaches=C.create(L);
 const clone=x=>JSON.parse(JSON.stringify(x));
 // Ordinary midgame assigns Right (columns 8–10) to Z, T and I. Inspect the
 // actual lock, including HOLD and boundary-crossing minos; existing board
@@ -950,7 +951,11 @@ function nodeFor(p,parent,initial,rootIndex,readAssessment=assess){
  const damage=Math.max(0,assessment.leftSealed-initial.leftSealed);
  const safe=assessment.maxHeight<20&&!p.event.topOut;
  const headroomRisk=Math.max(0,assessment.maxHeight-14)**2;
- const leftContext=L.evaluate(p.state,{heights:assessment.heights.slice(0,4),covered:structure.left.covered,resources,centerDebt,center:structure.center,right:structure.right});
+ // Phase follows the projected ledger after this actual lock. The root's
+ // replay-validated authority constrains unknown history, not early→late flow.
+ const coach=coaches.project(resources,parent?.assessment.coachPhase??coaches.forResources(initial.resources).phase);
+ const leftContext=coach.evaluateLeft(p.state,{heights:assessment.heights.slice(0,4),covered:structure.left.covered,resources,centerDebt,center:structure.center,right:structure.right});
+ assessment.coachPhase=coach.phase;
  const structuralScore=structure.supportEstimate+assessment.estimate-damage*4-dependencyDebt*3-headroomRisk-entryDebt*12;
  assessment.leftContext=leftContext;
  assessment.structure.headroomRisk=headroomRisk;

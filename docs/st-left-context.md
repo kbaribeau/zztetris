@@ -118,3 +118,18 @@ it. Importing D as the initial board does not invent a past promise. Serialized
 summary flags are not authority; context is reconstructed through actual input
 replay, including HOLD/draw boundaries. This narrow D obligation is separate
 from general covered-cell repair tracking.
+
+## Early and late logical coaches
+
+`st-midgame-coaches.js` selects an early coach when the validated resource ledger
+has Extra Z available, a late coach when it is spent, and explicit compatibility
+mode when history does not establish either. Both coaches and compatibility mode
+call the same Left evaluator, including its existing used-Z/held-T adjustment.
+There is no new late bonus, search budget, ranking rule, or Reset coach.
+
+Selection runs for each projected planner node after resource accounting. Actual
+optional Left/Center Z spending changes early to late; ordinary Right Z does not.
+An invalid speculative spend cannot turn unknown history into verified late
+history. The additive `assessment.coachPhase` annotation describes the projected
+endpoint, not a change to the real replay history. HOLD, imported sessions and
+Undo continue to derive authority from the existing observation-bound ledger.
