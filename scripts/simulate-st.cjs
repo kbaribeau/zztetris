@@ -3,6 +3,7 @@
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os');
 const {spawnSync,execFileSync}=require('node:child_process');
 const E=require('./lib/st-simulation.cjs');
+const V=require('./lib/st-evaluation.cjs');
 const ROOT=path.resolve(__dirname,'..'),MAX_FILE=64*1024*1024;
 const json=file=>{if(fs.statSync(file).size>MAX_FILE)throw Error('Artifact exceeds 64 MiB: '+file);return JSON.parse(fs.readFileSync(file,'utf8'));};
 const write=(file,value)=>fs.writeFileSync(file,JSON.stringify(value,null,2)+'\n');
@@ -15,7 +16,7 @@ function parse(args) {
     if(key==='--help'){out.help=true;continue;}
     if(key==='--usage-telemetry'||key==='--mino-ledger'){out[key.slice(2)]=true;continue;}
     if(key==='--compare'){out.compare=[args[++i],args[++i]];if(out.compare.some(x=>!x||x.startsWith('--')))throw Error('--compare requires two run directories');continue;}
-    if(!['--preset','--scenario','--seeds','--locks','--out','--replay','--rerun','--episode-ms','--lane','--child'].includes(key))throw Error('Unknown option '+key);
+    if(!['--preset','--scenario','--seeds','--locks','--out','--replay','--rerun','--episode-ms','--lane','--child','--protocol','--side'].includes(key))throw Error('Unknown option '+key);
     const value=args[++i];if(!value||value.startsWith('--'))throw Error('Missing value for '+key);out[key.slice(2)]=value;
   }
   return out;
@@ -51,6 +52,7 @@ function compare(a,b) {
 }
 function child(specPath) {
   const spec=json(specPath),input=json(spec.input),trace=path.join(spec.directory,'trace.jsonl');let bytes=0;
+  if(spec.evaluationBinding)V.validateBoundEpisode(spec.evaluationBinding,E.sourceHashes(),{...spec.execution,config:spec.config},input);
   fs.writeFileSync(trace,'');
   try {
     const summary=E.runEpisode(input,{config:spec.config,onRecord:record=>{const line=JSON.stringify(record)+'\n';bytes+=Buffer.byteLength(line);if(bytes>MAX_FILE)throw Object.assign(Error('Trace reached 64 MiB limit'),{code:'ARTIFACT_LIMIT'});fs.appendFileSync(trace,line);}});
@@ -75,9 +77,13 @@ function main(args=process.argv.slice(2)) {
   const o=parse(args);
   if(o['usage-telemetry']&&(o.replay||o.compare))throw Error('--usage-telemetry instruments new decisions; use it with a run or --rerun, not replay/compare');
   if(o['mino-ledger']&&(o.replay||o.compare||o.child))throw Error('--mino-ledger is post-processing for a run or --rerun; use minos:st for existing traces');
-  const config=configuration(o);
+  const protocol=o.protocol?V.validateProtocol(json(path.resolve(o.protocol))):null;
+  const config=protocol?protocol.execution.config:configuration(o);
+  if(protocol&&o['usage-telemetry'])throw Error('Protocol owns telemetry configuration');
+  if(Boolean(protocol)!==Boolean(o.side))throw Error('--protocol and --side must be supplied together');
+  if(protocol&&(o.replay||o.rerun||o.compare||o.child||o.seeds||o.scenario||o.locks||o.preset))throw Error('Protocol owns cohort, roots and caps; do not override them');
   if(['compare','replay','rerun','child'].filter(key=>o[key]).length>1)throw Error('Choose one of --compare, --replay or --rerun');
-  if(o.help){console.log(`ST closed-loop evaluation (Node 24.22.0; no browser/dependencies)\n\nnpm run sim:st -- --preset quick [--scenario empty|stable|both]\nnpm run sim:st -- --preset research [--seeds 1,2] [--locks 500]\nnpm run sim:st -- --replay test-results/simulation/RUN/empty-1\nnpm run sim:st -- --rerun test-results/simulation/RUN/empty-1\nnpm run sim:st -- --compare BASELINE_RUN CANDIDATE_RUN\n\nOptions: --out parent-directory, --episode-ms wall-watchdog, --lane production, --usage-telemetry, --mino-ledger.\nMino ledgers are offline exports after all timed episodes; use minos:st for existing traces.\nUsage counters are opt-in and recorded in run configuration; measure overhead before timed comparisons.\nOnly production wall-clock lane is supported; fixed seeds are not deterministic search.\nQuick: 2 development seeds × 24 locks. Research: 16 seeds × 500 locks.\nDefaults start empty. Stable uses the public marathon-rebuild position with a seeded valid continuation, not its fixed demo tail.\nAbstention is a measured outcome, not a failing command or a top-out. Safety/runner failures exit nonzero.`);return;}
+  if(o.help){console.log(`ST closed-loop evaluation (Node 24.22.0; no browser/dependencies)\n\nnpm run sim:st -- --preset quick [--scenario empty|stable|both]\nnpm run sim:st -- --preset research [--seeds 1,2] [--locks 500]\nnpm run sim:st -- --replay test-results/simulation/RUN/empty-1\nnpm run sim:st -- --rerun test-results/simulation/RUN/empty-1\nnpm run sim:st -- --compare BASELINE_RUN CANDIDATE_RUN\n\nProtocol: --protocol protocol.json --side baseline|candidate (protocol owns the input cohort).\nOptions: --out parent-directory, --episode-ms wall-watchdog, --lane production, --usage-telemetry, --mino-ledger.\nMino ledgers are offline exports after all timed episodes; use minos:st for existing traces.\nUsage counters are opt-in and recorded in run configuration; measure overhead before timed comparisons.\nOnly production wall-clock lane is supported; fixed seeds are not deterministic search.\nQuick: 2 development seeds × 24 locks. Research: 16 seeds × 500 locks.\nDefaults start empty. Stable uses the public marathon-rebuild position with a seeded valid continuation, not its fixed demo tail.\nAbstention is a measured outcome, not a failing command or a top-out. Safety/runner failures exit nonzero.`);return;}
   if(o.child){child(o.child);return;}
   if(process.version!=='v24.22.0')throw Error('Use Node 24.22.0 from .nvmrc; current '+process.version);
   if(o.compare){const report=compare(...o.compare.map(d=>json(path.join(d,'manifest.json'))));console.log(JSON.stringify(report,null,2));return report;}
@@ -90,18 +96,20 @@ function main(args=process.argv.slice(2)) {
   if(!seeds.length||seeds.length>100||new Set(seeds).size!==seeds.length)throw Error('Provide 1..100 distinct seeds');
   const rerun=o.rerun?json(path.join(path.resolve(o.rerun),'input.json')):null;
   if(rerun&&(o.seeds||o.scenario||o.locks))throw Error('--rerun preserves recorded input and cap; do not override seeds/scenario/locks');
-  const inputs=rerun?[rerun]:(scenario==='both'?['empty','stable']:[scenario]).flatMap(s=>seeds.map(seed=>E.makeInput(s,seed,locks)));
-  const cap=rerun?rerun.locks:locks,episodeMs=integer(o['episode-ms']||Math.ceil(cap*(config.timeMs+1750)+5000),'episode-ms',100,7200000);
+  const inputs=protocol?V.pairs(protocol).map(p=>p.input):rerun?[rerun]:(scenario==='both'?['empty','stable']:[scenario]).flatMap(s=>seeds.map(seed=>E.makeInput(s,seed,locks)));
+  const cap=protocol?protocol.execution.locks:rerun?rerun.locks:locks,episodeMs=integer(o['episode-ms']||(protocol?protocol.execution.episodeMs:null)||Math.ceil(cap*(config.timeMs+1750)+5000),'episode-ms',100,7200000);
   const id=new Date().toISOString().replaceAll(':','-')+'-'+process.pid;
   const directory=path.resolve(o.out||path.join(ROOT,'test-results/simulation'),id);fs.mkdirSync(directory,{recursive:true});
   const git=(...a)=>execFileSync('git',a,{cwd:ROOT,encoding:'utf8'}).trim();
   const manifest={schemaVersion:1,id,command:args,startedAt:new Date().toISOString(),commit:git('rev-parse','HEAD'),dirty:Boolean(git('status','--porcelain')),node:process.version,platform:process.platform,arch:process.arch,cpu:os.cpus()[0]?.model,lockHash:E.digest(fs.readFileSync(path.join(ROOT,'package-lock.json'),'utf8')),sources:E.sourceHashes(),preset:rerun?'recorded-input-rerun':preset,config,locks:cap,rng:E.RNG_VERSION,lane:'production-wall-clock',execution:'rapid-uninterrupted-actual-witness-v1',episodeMs,episodes:[],complete:false};
+  if(protocol)manifest.evaluationBinding=V.bindProtocol(protocol,o.side,manifest.sources,V.manifestExecution(manifest),inputs);
   const manifestPath=path.join(directory,'manifest.json');write(manifestPath,manifest);
+  if(protocol)fs.writeFileSync(path.join(directory,'protocol.json'),V.stringify(protocol),{flag:'wx'});
   console.log('Results: '+directory);
   for(const input of inputs) {
     if(JSON.stringify(E.sourceHashes())!==JSON.stringify(manifest.sources))throw Error('Source changed during evaluation; restart after edits settle. Partial manifest retained.');
     const episodeDir=path.join(directory,`${input.scenario}-${input.seed}`);fs.mkdirSync(episodeDir);
-    const inputPath=path.join(episodeDir,'input.json'),specPath=path.join(episodeDir,'spec.json');write(inputPath,input);write(specPath,{input:inputPath,directory:episodeDir,config});
+    const inputPath=path.join(episodeDir,'input.json'),specPath=path.join(episodeDir,'spec.json');write(inputPath,input);write(specPath,{input:inputPath,directory:episodeDir,config,...(manifest.evaluationBinding?{evaluationBinding:manifest.evaluationBinding,execution:V.manifestExecution(manifest)}:{})});
     const result=spawnSync(process.execPath,['--max-old-space-size=512',__filename,'--child',specPath],{cwd:ROOT,encoding:'utf8',timeout:episodeMs,killSignal:'SIGKILL',maxBuffer:1024*1024});
     const summaryPath=path.join(episodeDir,'summary.json');let summary=fs.existsSync(summaryPath)?json(summaryPath):fallback(episodeDir,input,result);
     if(JSON.stringify(E.sourceHashes())!==JSON.stringify(manifest.sources)){summary.stop='source-changed';summary.censored=false;summary.detail='Source files changed during episode; result is not revision-bound.';}
@@ -111,8 +119,10 @@ function main(args=process.argv.slice(2)) {
     if(summary.stop==='source-changed')break;
   }
   manifest.finishedAt=new Date().toISOString();manifest.complete=manifest.episodes.length===inputs.length;manifest.exitCode=process.exitCode||0;write(manifestPath,manifest);
+  // Normalize only after every timed child has ended, outside planner budgets.
   const lines=['# ST simulation',`Revision: ${manifest.commit}${manifest.dirty?' (dirty; diagnostic only)':''}`,`Lane: ${manifest.lane}; fixed seeds do not imply deterministic search.`,...manifest.episodes.map(e=>`- ${e.scenario}, seed ${e.seed}: ${e.locks}/${e.cap} locks, ${e.lines} lines; ${e.stop}${e.censored?' (censored)':''}.`),'','No capped run certifies indefinite sustainability or a full Reset. Recorded-action replay verifies actions; rerun asks the current timed engine again.'];fs.writeFileSync(path.join(directory,'report.md'),lines.join('\n')+'\n');
   if(o['mino-ledger']){manifest.regionalMinoAnalysis={mode:'offline-after-all-episodes',episodes:exportMinoLedgers(directory,manifest.episodes),finishedAt:new Date().toISOString()};manifest.exitCode=process.exitCode||0;write(manifestPath,manifest);}
+  fs.writeFileSync(path.join(directory,'observations.json'),V.stringify(V.normalize(manifest,inputs)));
   return manifest;
 }
 if(require.main===module){try{main();}catch(error){console.error(error.stack);process.exitCode=1;}}

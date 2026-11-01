@@ -125,3 +125,12 @@ finished. This adds no planner metadata or scoring rule. The
 [regional mino ledger](st-regional-mino-ledger.md) documents cellwise 4/3/3 regions,
 original-bag HOLD identity where verified, honest unknown imports, rolling
 windows, conservation checks and JSON/CSV fields.
+
+## Canonical evaluation observations
+
+New runs additionally write versioned `observations.json` after all timed episodes.
+Use `--protocol FILE --side baseline|candidate` for binding before execution, and
+`node scripts/evaluate-st-protocol.cjs --help` for canonical JSON/Markdown reports.
+The [executable evaluation contract](st-evaluation-contract.md) owns validation,
+explicit aggregate criteria, independent correctness receipts and legacy adapters.
+Existing manifests, summaries and commands remain supported.
