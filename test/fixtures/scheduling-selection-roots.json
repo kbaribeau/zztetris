@@ -3849,7 +3849,15 @@
       "x": 4,
       "y": 27,
       "rotation": 2
-    }
+    },
+    "alternativeTargets": [
+      {
+        "type": "O",
+        "x": -1,
+        "y": 28,
+        "rotation": 0
+      }
+    ]
   },
   {
     "seed": 2449482139,

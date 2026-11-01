@@ -19,7 +19,7 @@ test('reservoir/counterfactual pre-cap geometry retains exact verified credit wi
  assert.deepEqual(a.intentionalReservoir.cells,[[9,37],[9,38],[9,39]]);
  assert.equal(a.intentionalReservoir.credit,9);assert.equal(a.sealed,3);assert.equal(a.damageSealed,0);
  assert.equal(a.covered,6);assert.equal(a.damageCovered,3,'unrelated roofed cells keep their original penalty');
- assert.equal(result.evidence.structuralScore,-11.3);assert.deepEqual(result.evidence.structuralRank,[1,1,0,-3,1,-6,0,0]);assert.equal(a.leftContext.score,0);endpoint();
+ assert.equal(result.evidence.structuralScore,-11.3);assert.deepEqual(result.evidence.structuralRank,[1,1,0,-3,1,0,-6,0]);assert.equal(a.leftContext.score,0);endpoint();
 });
 test('reservoir/ordinary advice cannot retain the historical non-scoring T prefix',()=>{
  const blocked=P.plan(snapshot,{depth:3,width:8,maxNodes:45000,allowHold:false});assert.equal(blocked.target,null,'The old Center L keeps inherited D without an immediate usable J');

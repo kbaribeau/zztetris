@@ -99,7 +99,12 @@ test('covered repair / ordinary admission retains a real temporary roof through 
  for(const action of steps[0].witness){const before=current;current=R.move(current,action);h=RH.applyAction(h,before,action,current);}
  const options={resourceContext:RH.exportContext(current,h),maxNodes:45000},suffix=P.continueCommitment(state,current,checked,current.lastEvent,options);assert.ok(suffix,'The original exact repair survives the creator lock');
  assert.ok(P.revalidate(current,suffix,options));
- const fresh=P.decide(current,{...options,openingPhase:false,commitment:{observation:current,advice:suffix}});assert.ok(fresh.target);assert.deepEqual(fresh.target,steps[1].target);
+ const fresh=P.decide(current,{...options,openingPhase:false,commitment:{observation:current,advice:suffix}});assert.ok(fresh.target);
+ // Re-ranking may choose another L, but it must certify and actually resolve
+ // the same observed roof debt. Do not replace this with target-only validity.
+ assert.ok(P.checkedCoveredRepair(current,fresh.continuation,options));assert.ok(P.revalidate(current,fresh,options));
+ let repairedState=current,repairedHistory=h;for(const step of fresh.continuation){for(const action of step.witness){const before=repairedState;repairedState=R.move(repairedState,action);repairedHistory=RH.applyAction(repairedHistory,before,action,repairedState);}assert.deepEqual(repairedState.lastEvent,step.event);}
+ assert.deepEqual(RH.resolve(repairedState,repairedHistory).coveredRepair.cells,[]);
  const stale=clone(checked);stale.continuation[1].witness=['HD'];
  assert.equal(P.continueCommitment(state,current,stale,current.lastEvent,options),null);
  assert.deepEqual(RH.resolve(current,RH.importContext(current,options.resourceContext)).coveredRepair.cells,[[2,35]],'A failed continuation does not erase actual debt');

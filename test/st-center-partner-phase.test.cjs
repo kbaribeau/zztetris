@@ -70,7 +70,10 @@ test('st-center-phase/existing incomplete center constructions retain replayable
   const s=P.observe(F.get(id).observation),notches=S.notchPattern(s.board),g=S.assess(s,{notches});
   for(const c of g.center.completions)assert.equal(replayPartner(s.board,c,notches).valid,true);
  }
- const plan=P.plan(F.get('empty-hold').observation,{depth:3,width:8,maxNodes:45000});
+ // Exercise the existing authored S/L route independently of current ranking.
+ const observation=F.get('empty-hold').observation,orders=require('./support/st-empty-hold-orders.json').orders;
+ const controlled=require('./support/st-controlled-placements.cjs')(observation,Object.values(orders));
+ const plan=controlled.plan(observation,{depth:3,width:8,maxNodes:45000});
  const pair=plan.continuation.find(p=>p.structuralEvidence.pairFamily==='SL');assert.ok(pair);
  assert.deepEqual(pair.structuralEvidence.pairProgress.orderedPieces,['S','L']);
  const finish=plan.continuation.find(p=>p.event.type==='L'&&p.event.cells.every(([x])=>x>=4&&x<=6));assert.ok(finish);

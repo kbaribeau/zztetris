@@ -15,8 +15,10 @@ function verifyEmptyOrder(steps){
  }
  assert.deepEqual(center,['S','L']);assert.equal(doubles,1);assert.equal(P.assess(state.board).sealed,0);assert.deepEqual(state.board,emptyOrders.expectedBoard);return state;
 }
-test('st-advice/empty hold completes S/L and the double in either accepted order',()=>{
- const plan=P.plan(F.get('empty-hold').observation,opts);assert.equal(plan.continuation.length,3);
+test('st-advice/controlled empty-hold S/L route names its checked pair precisely',()=>{
+ const observation=F.get('empty-hold').observation;
+ const controlled=require('./support/st-controlled-placements.cjs')(observation,Object.values(emptyOrders.orders));
+ const plan=controlled.plan(observation,opts);assert.equal(plan.continuation.length,3);
  verifyEmptyOrder(plan.continuation);
  const pair=plan.continuation.find(p=>p.structuralEvidence.pairFamily==='SL');assert.ok(pair);
  assert.deepEqual(pair.structuralEvidence.pairProgress.orderedPieces,['S','L']);
@@ -42,8 +44,10 @@ test('st-advice/an existing finishing J is a completion without invented O/J pre
  assert.doesNotMatch(plan.reason,/start an|pair/);
 });
 
-test('st-advice/quad rebuild reports S preparation without promising the unexecuted L partner',()=>{
- const plan=P.plan(F.get('after-quad').observation,opts),first=plan.continuation[0];
+test('st-advice/controlled quad S preparation does not promise an unexecuted L partner',()=>{
+ const observation=F.get('after-quad').observation;
+ const controlled=require('./support/st-controlled-placements.cjs')(observation,[[['R','HD'],['L','L','HD'],['R','R','R','R','CW','HD']]]);
+ const plan=controlled.plan(observation,opts),first=plan.continuation[0];
  assert.equal(first.event.type,'S');assert.ok(first.event.cells.every(([x])=>x>=4&&x<=6));
  assert.equal(first.structuralEvidence.pairFamily,'SL');
  assert.match(plan.reason,/A completing placement has not been checked yet/);
@@ -67,4 +71,15 @@ test('st-advice/previous quad L/O continuation still names its executed pair pre
   const replay=R.replay(state,step.witness);assert.equal(replay.valid,true);state=replay.state;
  }
  assert.equal(plan.continuation.length,2);assert.equal(new Set(plan.assessment.structure.center.profile).size,1);
+});
+
+test('st-advice/current Left-first choices describe actual roles rather than inherited Center pairs',()=>{
+ for(const id of ['empty-hold','after-quad']){
+  const observation=F.get(id).observation,plan=P.plan(observation,opts);assert.ok(plan.target);assert.equal(plan.continuation.length,3);
+  assert(plan.continuation.every(p=>!p.structuralEvidence.pairFamily));assert.doesNotMatch(plan.reason,/S\/L pair|L\/O pair|O\/J pair|Then place .* to complete/);
+  let state=observation;for(const step of plan.continuation){const replay=R.replay(state,step.witness);assert(replay.valid);assert.deepEqual(replay.events,[step.event]);assert(S.canonicalClear(step.event));state=replay.state;}
+  assert.equal(P.assess(state.board).leftSealed,0);assert.equal(plan.evidence.regionalSupport,true);
+  if(id==='empty-hold'){assert.equal(plan.continuation[0].event.spin,'full');assert.equal(plan.continuation[0].event.lines,2);}
+  else{assert.equal(plan.continuation[0].event.type,'L');assert(plan.continuation[0].event.cells.every(([x])=>x<4));assert.equal(plan.assessment.structure.right.reservoir.status,'verified-clear-reopens-reservoir');}
+ }
 });

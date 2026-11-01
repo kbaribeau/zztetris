@@ -11,12 +11,45 @@ function node(advice,facts){let state=P.observe(fixture.observation),resource=M.
  const path=advice.continuation.map(p=>{const r=R.replay(state,p.witness);assert(r.valid);assert.deepEqual(r.events,[p.event]);const step={...p,state:r.state},next=M.step(state,step,resource);allocation=P.slAllocationStep(state,step,resource,next,notches,allocation);notches=S.advanceNotches(state.board,step,notches).pattern;state=r.state;resource=next;return step;});
  return{path,state,resources:resource,slAllocation:allocation,assessment:clone(advice.assessment),rank:clone(advice.evidence.structuralRank),structuralScore:advice.evidence.structuralScore,centerContinuity:facts.centerContinuity,dependencyDebt:facts.dependencyDebt,entryDebt:facts.entryDebt,notchValid:true,qualified:true,continuationChecked:true,cycleDebt:0,centerDebt:[],cavityDebt:[],key:'tail-comparison'};
 }
-function pair(){const a=plan(),t=a.metrics.ordinarySAllocation.visibleTail;assert(t.selected);const c=node(t.candidateAdmission,t.comparison.candidate),r=node(t.referenceAdmission,t.comparison.reference);return{a,t,c,r,options:{candidateDraw:P.publicDrawHorizon(fixture.observation,c.path,sum()),referenceDraw:P.publicDrawHorizon(fixture.observation,r.path,sum()),initialResources:M.start(fixture.observation,sum()),original:node(t.priorAdmission,t.comparison.reference)}};}
 
-test('visible SL tail: actual two-lock I/O allocation improves realized Left after the same paid SL and TSD',()=>{
- const {a,t,c,r,options}=pair(),off=plan(true);assert.equal(off.continuation.length,5);assert.equal(a.continuation.length,7);assert.equal(t.reason,'strict-visible-tail-left-gain');assert(a.metrics.nodes<=45000);assert.deepEqual(t.priorAdmission.continuation,off.continuation);
- assert.equal(t.comparison.candidate.leftScore,4);assert.equal(t.comparison.reference.leftScore,2);assert.deepEqual(t.comparison.candidate.schedule,t.comparison.reference.schedule);assert.deepEqual(t.comparison.candidate.schedule.tsds,[3]);assert.deepEqual(c.slAllocation,r.slAllocation);assert.deepEqual(c.state.active,null);assert.equal(c.state.hold,'T');assert.deepEqual(c.state.queue,[]);assert.equal(c.path.at(-1).structuralEvidence.allocation,'quad-preparation');assert.equal(P.resourceGoalPrefix(c.path,c.path),7);
- assert.deepEqual(options.candidateDraw.drawn,options.referenceDraw.drawn);assert.deepEqual(options.candidateDraw.placed.slice().sort(),options.referenceDraw.placed.slice().sort());assert.equal(t.compatiblePrefixes,2);assert.equal(t.omittedPrefixes,0);assert(t.prefixes.every(p=>p.qualifiedEndpoints===2&&p.layers.every(l=>l.retained<=2)));assert(P.revalidate(fixture.observation,a,opts()));
+// These two historical routes are independent literal component inputs, not
+// expected unrestricted policy choices. Depth seven exposes their complete
+// public I/O allocation to the current admission machinery; production depth
+// remains three and the shared node ceiling stays 45,000.
+const controlledPlanner=require('./support/st-controlled-placements.cjs');
+const tailRoutes={"candidate":[["HOLD","L","L","L","HD"],["HOLD","L","L","L","CW","L","HD"],["R","R","R","CW","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","CW","HD"],["HOLD","R","HD"],["HOLD","R180","R","HD"],["L","L","HD"],["HOLD","R","R","R","CW","R","HD"]],"reference":[["L","L","CW","HD"],["HOLD","L","L","L","L","HD"],["R","R","R","CW","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","CW","HD"],["HOLD","R","HD"],["HOLD","R180","R","HD"],["L","L","L","L","HD"],["HOLD","R","R","R","CW","R","HD"]]};
+let componentPair;
+function admittedRoute(witnesses){
+ const advice=clone(controlledPlanner(fixture.observation,[witnesses]).plan(fixture.observation,opts({depth:7,disableVisibleSLTail:true})));
+ assert.equal(advice.continuation.length,7,'The complete literal route must pass current admission');
+ // Rotation/shift order may differ while reaching the same literal moves.
+ let state=P.observe(fixture.observation);const events=witnesses.map(witness=>{const replay=R.replay(state,witness);assert(replay.valid);state=replay.state;return replay.events[0];});
+ assert.deepEqual(advice.continuation.map(p=>p.event),events);
+ assert(advice.metrics.nodes<=45000);assert(P.revalidate(fixture.observation,advice,opts()));
+ return advice;
+}
+function facts(advice){return{centerContinuity:advice.assessment.structure.centerContinuity.preference,dependencyDebt:advice.evidence.dependencyDebt,entryDebt:advice.continuation.at(-1).structuralEvidence.entryDebt};}
+
+function pair(){
+ if(!componentPair){
+  const a=admittedRoute(tailRoutes.candidate),reference=admittedRoute(tailRoutes.reference),c=node(a,facts(a)),r=node(reference,facts(reference));
+  const options={candidateDraw:P.publicDrawHorizon(fixture.observation,c.path,sum()),referenceDraw:P.publicDrawHorizon(fixture.observation,r.path,sum()),initialResources:M.start(fixture.observation,sum()),original:{...r,path:r.path.slice(0,5)}};
+  componentPair={a,reference,c,r,options};
+ }
+ return clone(componentPair);
+}
+
+test('visible SL tail: fixed admitted I/O routes retain the same paid SL and TSD while improving Left',()=>{
+ const {a,c,r,options}=pair(),comparison=P.visibleSLTailComparison(c,r,options);
+ assert.equal(comparison.allowed,true);assert.equal(comparison.reason,'strict-visible-tail-left-gain');
+ assert.equal(comparison.candidate.leftScore,4);assert.equal(comparison.reference.leftScore,2);assert.deepEqual(comparison.candidate.schedule,comparison.reference.schedule);assert.deepEqual(comparison.candidate.schedule.tsds,[3]);assert.deepEqual(c.slAllocation,r.slAllocation);assert.deepEqual(c.state.active,null);assert.equal(c.state.hold,'T');assert.deepEqual(c.state.queue,[]);assert.equal(c.path.at(-1).structuralEvidence.allocation,'quad-preparation');assert.equal(P.resourceGoalPrefix(c.path,c.path),7);
+ assert.deepEqual(options.candidateDraw.drawn,options.referenceDraw.drawn);assert.deepEqual(options.candidateDraw.placed.slice().sort(),options.referenceDraw.placed.slice().sort());assert(P.revalidate(fixture.observation,a,opts()));
+});
+test('visible SL tail: unrestricted Left-first search preserves its prior goal instead of selecting a weaker tail',()=>{
+ const a=plan(),off=plan(true),t=a.metrics.ordinarySAllocation.visibleTail;
+ assert.equal(a.continuation.length,5);assert.equal(t.selected,false);assert.equal(t.reason,'score-or-original-goal-regression');assert.deepEqual(noMetrics(a),noMetrics(off));
+ assert.deepEqual(t.priorAdmission.continuation,off.continuation);assert.equal(t.comparison.reference.leftScore,4);assert.equal(t.comparison.candidate.leftScore,2);
+ assert.equal(t.compatiblePrefixes,2);assert.equal(t.omittedPrefixes,0);assert(t.prefixes.every(p=>p.qualifiedEndpoints===2&&p.layers.every(l=>l.retained<=2)));assert(a.metrics.nodes<=45000);assert(P.revalidate(fixture.observation,a,opts()));
 });
 test('visible SL tail: former third compatible prefix creates D without immediate J',()=>{
  let state=P.observe(fixture.observation);const first=R.replay(state,['L','L','L','HD']);assert(first.valid);assert.equal(first.events[0].type,'J');state=first.state;
@@ -34,7 +67,7 @@ test('visible SL tail comparator: no additional SL reward, identity substitution
 });
 test('visible SL endpoint order: Center continuity and structural/scoring bands precede Left and effort',()=>{
  const {c}=pair(),center=clone(c),left=clone(c);center.centerContinuity=0;left.centerContinuity=-1;left.assessment.leftContext.score=999;assert(P.compareSLTail(center,left)<0,'a Center-support role is not discarded for a better Left surface');
- const score=clone(c);score.rank[4]++;score.assessment.leftContext.score=-999;assert(P.compareSLTail(score,c)<0);const effort=clone(c);effort.rank[5]+=100;effort.assessment.leftContext.score--;assert(P.compareSLTail(c,effort)<0);
+ const score=clone(c);score.rank[4]++;score.assessment.leftContext.score=-999;assert(P.compareSLTail(score,c)<0);const effort=clone(c);effort.rank[6]+=100;effort.assessment.leftContext.score--;assert(P.compareSLTail(c,effort)<0);
 });
 test('visible SL tail unfinished enumeration retains the exact already selected five-lock SL admission',()=>{
  const off=plan(true);let clock=0,stopped=0;const api=moduleWith({'./st-rules.js':{...R,placements:(state,options)=>{if(state.active?.type==='O'&&state.hold==='I'&&JSON.stringify(state.queue)==='["T"]'){clock=1500;stopped++;return{placements:[],visited:19,complete:false};}return R.placements(state,options);}}});
@@ -45,7 +78,7 @@ test('visible SL tail failed strongest terminal proof cannot select a weaker cha
  const a=api.plan(fixture.observation,opts());assert(rejected);assert.equal(a.metrics.ordinarySAllocation.visibleTail.selected,false);assert.deepEqual(noMetrics(a),noMetrics(off));
 });
 test('visible SL tail lifecycle: actual input and HOLD retain O→I cleanup after the L payment',()=>{
- let state=clone(fixture.observation),history=RH.importContext(state,fixture.options.resourceContext),patterns=clone(fixture.options.patternHistory),advice=plan(),locks=0,holds=0;const expected=advice.continuation.map(p=>p.event);
+ let state=clone(fixture.observation),history=RH.importContext(state,fixture.options.resourceContext),patterns=clone(fixture.options.patternHistory),advice=pair().a,locks=0,holds=0;const expected=advice.continuation.map(p=>p.event);
  while(advice){const before=clone(state),original=advice;for(const action of original.witness){const prior=state;state=R.move(state,action);history=RH.applyAction(history,prior,action,state);const options={...bounds,openingPhase:false,patternHistory:patterns,resourceContext:RH.exportContext(state,history)};
   if(action==='HD'){assert.deepEqual(state.lastEvent,expected[locks]);locks++;patterns=H.update(patterns,prior,state,state.lastEvent);advice=P.continueCommitment(before,state,original,state.lastEvent,{...options,patternHistory:patterns});if(locks<expected.length)assert(advice,'lost actual tail after lock '+locks);if(locks===5){assert.deepEqual(advice.continuation.map(p=>p.event.type),['O','I']);assert.equal(P.resourceGoalPrefix(advice.continuation,advice.continuation),2);}}
   else{if(action==='HOLD')holds++;advice=P.advance(state,advice,action,options);assert(advice,'lost tail during '+action);}
