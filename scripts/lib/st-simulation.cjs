@@ -12,13 +12,14 @@ const P = require('../../st-planner');
 const S = require('../../st-structure');
 const H = require('../../st-resource-history');
 const F = require('../../st-fixtures');
+const LS = require('./st-left-shape-metrics.cjs');
 const root = path.resolve(__dirname, '../..');
 const clone = x => JSON.parse(JSON.stringify(x));
 // P.observe normalizes through createState, which adds lastEvent:null; the page
 // intentionally omits that field from its worker message. Match that boundary.
 function publicObservation(state){const observation=P.observe(state);delete observation.lastEvent;return observation;}
 const digest = x => crypto.createHash('sha256').update(typeof x === 'string' ? x : JSON.stringify(x)).digest('hex');
-const SOURCE_FILES = ['st-coach-config.js', 'st-rules.js', 'st-bag.js', 'st-structure.js', 'st-paired-repair.js', 'st-access.js', 'st-pattern-history.js', 'st-left-foundation.js', 'st-left-context.js', 'st-planner.js', 'st-opening-patterns.js','st-opening-continuations.js','st-opening-sources.js','st-source-scoring.js', 'st-opening.js', 'st-resource-history.js', 'st-midgame-resources.js', 'st-worker.js', 'st-lab.js', 'st-session.js', 'st-fixtures.js', 'scripts/lib/st-simulation.cjs', 'scripts/simulate-st.cjs'];
+const SOURCE_FILES = ['st-coach-config.js', 'st-rules.js', 'st-bag.js', 'st-structure.js', 'st-paired-repair.js', 'st-access.js', 'st-pattern-history.js', 'st-left-foundation.js', 'st-left-context.js', 'st-planner.js', 'st-opening-patterns.js','st-opening-continuations.js','st-opening-sources.js','st-source-scoring.js', 'st-opening.js', 'st-resource-history.js', 'st-midgame-resources.js', 'st-worker.js', 'st-lab.js', 'st-session.js', 'st-fixtures.js', 'scripts/lib/st-simulation.cjs', 'scripts/lib/st-left-shape-metrics.cjs', 'scripts/simulate-st.cjs'];
 const CONFIG = Object.freeze({depth:3, width:8, maxNodes:45000, timeMs:SEARCH_TIME_MS});
 const PRESETS = Object.freeze({quick:{seeds:[10331, 20333], locks:24}, research:{seeds:Array.from({length:16}, (_,i) => 810001 + i * 997), locks:500}});
 const RNG_VERSION = 'mulberry32-seven-bag-v1';
@@ -151,6 +152,7 @@ function createSession(input, api=P) {
 function runEpisode(input, {config=CONFIG, planner=workerPlanner(), onRecord=()=>{}, api=P}={}) {
   const session=createSession(input,api), started=performance.now();
   const summary={schemaVersion:1,scenario:input.scenario,seed:input.seed,inputHash:input.inputHash,cap:input.locks,config,stop:'lock-cap',censored:true,locks:0,lines:0,tsds:0,quads:0,invalidRecommendations:0,budgetHits:0,openingCompletedAt:null,firstTsdAt:null,firstQuadAt:null,rebuildAfterTsdEvents:0,holds:0,nodes:0,peakHeight:boardMetrics(session.state).height,profile:[],latencies:[]};
+  const leftShapes=LS.create(session.state.board);
   let notches=S.notchPattern(session.state.board), cavityDebt=[], centerDebt=[], awaitingRebuild=false;
   const stop=(kind,detail)=>{summary.stop=kind;summary.censored=false;summary.detail=detail;};
   for(let lock=0;lock<input.locks;lock++) {
@@ -167,6 +169,7 @@ function runEpisode(input, {config=CONFIG, planner=workerPlanner(), onRecord=()=
     try {actual=session.execute(advice);}catch(error){stop(error.code==='INPUT_EXHAUSTED'?'input-exhausted':'execution-error',error.message);onRecord({kind:'stop',lock,request,advice,error:error.message});break;}
     summary.locks++;
     const after=publicObservation(session.state), metrics=boardMetrics(after), assessment=P.assess(after.board),event=actual.event;
+    metrics.leftShape=LS.classify(after.board);LS.add(leftShapes,metrics.leftShape);
     const check=S.advanceNotches(before.board,{state:session.state,event},notches), fresh=S.notchPattern(after.board);
     cavityDebt=P.cavityRepairDebt(preAssessment,assessment,event,cavityDebt);
     centerDebt=P.centerReservationStep(before,{state:session.state,event},centerDebt,notches).debt;
@@ -189,6 +192,7 @@ function runEpisode(input, {config=CONFIG, planner=workerPlanner(), onRecord=()=
     if(session.state.topOut){stop('top-out');break;}
     if(flags.some(f=>f==='noncanonical-clear'||f==='notch-transition')){stop('policy-violation',flags);break;}
   }
+  summary.leftShapes=LS.finish(leftShapes);
   summary.elapsedMs=performance.now()-started;summary.final=boardMetrics(session.state);summary.finalObservation=publicObservation(session.state);
   const times=summary.latencies.slice().sort((a,b)=>a-b);
   summary.timing={plans:times.length,medianMs:times.length?times[Math.floor(times.length/2)]:null,p95Ms:times.length?times[Math.ceil(times.length*.95)-1]:null,maxMs:times.at(-1)??null};

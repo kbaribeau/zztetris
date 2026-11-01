@@ -5,7 +5,8 @@
   "scripts": {
     "test": "node scripts/test.cjs",
     "sim:st": "node scripts/simulate-st.cjs",
-    "minos:st": "node scripts/analyze-st-minos.cjs"
+    "minos:st": "node scripts/analyze-st-minos.cjs",
+    "left-shapes:st": "node scripts/analyze-st-left-shapes.cjs"
   },
   "engines": {
     "node": "24.22.0"

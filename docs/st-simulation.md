@@ -61,6 +61,35 @@ Abstention, top-out and caps are measured policy outcomes; the command does not 
 
 Metrics include placements, cleared lines, TSDs/quads and first occurrences, opening handoff after N prior locks, supported nonclearing rebuild events after TSDs, holds, planning nodes/time/budget hits, peak/end height, mean skyline height, occupied mass divided by ten (filled-row equivalents), parity and center/cavity debt. A rebuild event is not a certified full cycle. New cavity debt is logged diagnostically, not automatically declared an illegal placement. Fresh-versus-inherited phase disagreement is also diagnostic; it is not automatically an actually blocked notch.
 
+## Left-shape observations
+
+Each newly simulated episode includes `summary.leftShapes`: counts for all twelve
+oriented Shocky Left profiles and `other`, tier totals, percentages, and the
+number of observations. Each successful lock records `metrics.leftShape` from
+the **post-line-clear board**. Counts sum to executed locks, including a final
+lock that ends the run. The initial board is reported separately and is not
+counted. HOLD, movement, candidate search and abstentions do not add samples.
+
+Profiles use the normalized skyline of columns 1–4, independent of elevation.
+**Any covered hole in these columns makes the observation `other`**, even when
+the skyline matches a ranked profile. Unranked and flat shapes also use `other`.
+These are shape frequencies, not safety certificates or reset detection.
+
+Existing traces can be analyzed without rerunning the planner:
+
+```sh
+npm run left-shapes:st -- --episode EPISODE_DIRECTORY --out NEW_JSON_FILE
+npm run left-shapes:st -- --episode EPISODE_DIRECTORY --prefix-locks 40
+```
+
+The offline JSON includes the same counters, catalog, per-lock observations and
+input/trace/source hashes. It reads recorded boards rather than revalidating
+actions, does not modify source artifacts, and refuses to replace an existing
+output file. A trace without its terminal summary is explicitly marked partial.
+Compare percentages as well as counts; longer surviving runs have more samples.
+For paired outcomes, also compare the shared lock horizon using `--prefix-locks`.
+Keep opening/stable cohorts separate; these counts do not infer a reset phase.
+
 ## Replay versus rerun
 
 ```sh
