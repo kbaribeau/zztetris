@@ -129,10 +129,13 @@ test('pending SL grow qualifies every distinct compatible final endpoint before 
 // D silhouettes are neutralized ONLY in this synthetic scheduling harness to
 // keep its >2 uncached reference-endpoint population fixed. Production D pruning
 // otherwise changes query reuse/order, not the all-endpoints invariant below.
+// The reorder control also neutralizes contextual Left score so that input
+// effort keeps its established >2-endpoint population; the real scoring/entry
+// qualification and all-endpoint ordering assertions remain unchanged.
 function qualificationBoundary(mode){const silhouette=fixture.expected.goalLastBoard.map(row=>row.slice(4)).join(''),referenceBoards=new Set(),finalCache=new WeakMap(),stats={calls:0,referenceCalls:0,budgets:[],firstReference:null};let finalAssessment=false;
  const key=board=>board.join(''),final=board=>{if(finalCache.has(board))return finalCache.get(board);const value=board.reduce((n,row)=>n+[...row].filter(c=>c!=='.').length,0)===48&&board.map(row=>row.slice(4)).join('')===silhouette;finalCache.set(board,value);return value;};
  const synthetic=p=>p?.type==='T'&&p.x===6&&p.y===36&&p.rotation===2;
- const api=moduleWith({'./st-left-context.js':{...LC,createsD:()=>false,isD:()=>false},'./st-rules.js':{...R,
+ const api=moduleWith({'./st-left-context.js':{...LC,createsD:()=>false,isD:()=>false,...(mode==='reorder'?{evaluate:(...args)=>({...LC.evaluate(...args),score:0})}:{})},'./st-rules.js':{...R,
   placements:(state,options)=>{const e=R.placements(state,options);if(state.queue.length===2&&state.active?.type==='S'&&state.hold==='O')for(const p of e.placements)if(p.event.type==='O'&&p.event.cells.every(([x])=>x<4)&&final(p.state.board))referenceBoards.add(key(p.state.board));return e;},
   fits:(board,p)=>{finalAssessment=final(board);if(finalAssessment&&synthetic(p))return true;if(finalAssessment&&p?.type==='T'&&p.x===6&&p.y===37&&p.rotation===2)return false;return R.fits(board,p);},
   spin:(board,p)=>final(board)&&synthetic(p)?'full':R.spin(board,p),

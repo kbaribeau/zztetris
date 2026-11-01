@@ -62,9 +62,14 @@ test('st-cycle-ui/hold swaps do not mutate the proof origin or expose hidden pie
 }));
 // These use the real planner API, not the plumbing stub above. The two known
 // fixtures exercise an occupied hold and the empty-hold preview expansion.
-for(const id of ['o-before-double','empty-hold'])test(`st-cycle-ui/real ${id} resource suffix survives locks and retires after its final protected goal`,()=>withPage('st-lab.html',{},g=>{
+for(const id of ['o-before-double','empty-hold'])test(`st-cycle-ui/${id==='empty-hold'?'controlled real':'real'} ${id} resource suffix survives locks and retires after its final protected goal`,()=>withPage('st-lab.html',{},g=>{
  const P=require('../st-planner'),workers=setup(g);g.window.stLab.loadFixture(id);g.advance(40);
- let request=workers.at(-1).message,plan=P.plan(request.observation,{depth:3,width:8,maxNodes:45000});
+ let request=workers.at(-1).message;
+ // Control only the authored empty-hold T/SL route so this lifecycle test
+ // still exercises a post-score Center goal after unrestricted rank changes.
+ const planner=id==='empty-hold'?require('./support/st-controlled-placements.cjs')(request.observation,[require('./support/st-empty-hold-orders.json').orders.scoreFirst]):P;
+ const plan=planner.plan(request.observation,{depth:3,width:8,maxNodes:45000});
+ assert.ok(P.revalidate(request.observation,plan,{maxNodes:45000}),'the controlled route passes unrestricted admission');
  assert.ok(plan.target);assert.ok(plan.continuation.some(s=>s.event.type==='T'&&s.event.lines===2));workers.at(-1).respond(plan);
  const originalSteps=json(plan.continuation),doubleIndex=originalSteps.findIndex(s=>s.event.type==='T'&&s.event.lines===2);
  for(let lock=0;lock<originalSteps.length;lock++){
