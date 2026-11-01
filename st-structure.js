@@ -2,6 +2,24 @@
  * that an unrecognized position is impossible. No fixture IDs or hidden stream. */
 (function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules.js'),require('./st-bag.js')):factory(root.STRules,root.STBag);if(typeof module==='object'&&module.exports)module.exports=api;else root.STStructure=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,B){
 'use strict';
+// One source for oriented Left skyline facts, shared by history and scoring.
+// This descriptor never grants a resource permission or an executable J exit.
+const leftSurface=(()=>{
+ const WEIGHTS=Object.freeze({SS:6,S:4,A:2,B:0,C:-2,D:-4});
+ const catalog=[['SS',[0,0,0,2]],['SS',[2,0,0,0]],['S',[0,0,1,1]],['S',[2,2,2,0]],['A',[1,1,0,0]],['A',[0,2,2,2]],['A',[0,0,2,0]],['B',[1,0,0,1]],['B',[0,2,0,0]],['B',[2,2,0,2]],['C',[2,0,2,2]],['D',[0,1,1,0]]].map(([tier,profile],i)=>Object.freeze({id:'shocky-left-'+(i+1),tier,profile:Object.freeze(profile),weight:WEIGHTS[tier]}));
+ Object.freeze(catalog);const byProfile=new Map(catalog.map(p=>[p.profile.join(','),p]));
+ const normalize=h=>{const m=Math.min(...h);return h.map(v=>v-m);};
+ const classify=h=>byProfile.get(normalize(h).join(','))||null;
+ const boardHeights=board=>Array.from({length:4},(_,x)=>{const y=board.findIndex(r=>r[x]!=='.');return y<0?0:40-y;});
+ const isD=board=>classify(boardHeights(board))?.tier==='D';
+ const createsD=(before,after)=>isD(after)&&!isD(before);
+ function assess(board,{heights:given,covered:known=null}={}){
+  const heights=given||boardHeights(board),shape=classify(heights);
+  const covered=known===null?heights.reduce((sum,v,x)=>sum+board.slice(40-v).filter(r=>r[x]==='.').length,0):known;
+  return{heights,profile:normalize(heights),shape,covered};
+ }
+ return Object.freeze({catalog,classify,heights:boardHeights,isD,createsD,assess});
+})();
 const cache=new Map(),substituteCache=new Map(),clone=x=>JSON.parse(JSON.stringify(x));
 function heights(board){const out=new Array(10);
  // Preserve column/read order without allocating a callback for every scan.
@@ -374,5 +392,5 @@ function transition(before,p,afterStructure,options={}){const beforeNotches=opti
  const reason=allocation==='horizontal-left-I'?'Keep the left region flat.':allocation==='center-partner-preparation'?partner?'Start the ordered '+type+'/'+partner.piece+' center pair.':'Prepare the center; no ordered level-finishing pair has been established.':allocation==='center-completion'?'Complete the center pattern.':allocation==='scoring-double'?'Take the T-spin double and assess its rebuild.':allocation==='scoring-T-diversion'?'Diverts a T from the scoring role; another T may remain, but its timely use is not established.':allocation==='quad-preparation'?'Prepare the right-side I cleanup while keeping column eight open.':allocation==='quad-cleanup'?'Clear the scoring channel with a quad.':allocation==='unrecognized-role'?'This allocation needs additional regional repair evidence.':allocation==='right-cap-extension'?'Extends an existing cap; renewed entry still needs checking.':'Preserve a supported regional piece role.';
  return{reason,cycleViolations,pairFamily,pairProgress,pairEvidence:pairFamily?'ordered actual preparation plus checked level-finishing placement':null,opportunityCost,leftSubstitutes:substitutes,regions,crossRegion:regions.length>1,allocation,status:['unrecognized-role','scoring-T-diversion','right-cap-extension'].includes(allocation)?'requires-repair-evidence':'supported-local-role',dependencyDebt:debt,newlyCovered,regionalRepair,repairCredit:Math.min(8,repaired*2),note:'Crossing a boundary is not forbidden. Debt measures unsupported allocation and new structural repair burden; a later checked repair may repay it.'};
 }
-return Object.freeze({assess,transition,geometry,cavityFacts,cavityRepairDebt,instances,allocate,canonicalClear,centerFoundation,centerLevelBase,notchPattern,advanceNotches,supportedCenterCompletion,CENTER_PAIRS,leftSubstitutes,clearCache:()=>{cache.clear();substituteCache.clear();}});
+return Object.freeze({leftSurface,assess,transition,geometry,cavityFacts,cavityRepairDebt,instances,allocate,canonicalClear,centerFoundation,centerLevelBase,notchPattern,advanceNotches,supportedCenterCompletion,CENTER_PAIRS,leftSubstitutes,clearCache:()=>{cache.clear();substituteCache.clear();}});
 });

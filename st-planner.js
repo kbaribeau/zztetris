@@ -2294,16 +2294,7 @@ function riskyDAdmission(before,p,resource,options){
  if(!L.isD(p.state.board))return{valid:true,visited:0,hazards:[]};
  const checked=dPatternExitAdmission(before,p,{...options,resource});
  if(checked.valid)return{...checked,hazards:[]};
- const after=p.state,immediate=L.immediateJStarts(after).length>0;
- const publicJ=after.active?.type==='J'||after.hold==='J'||after.queue.includes('J');
- const availability=!publicJ?'absent-from-public-supply':!immediate?'visible-but-delayed':checked.complete===false?'immediate-exit-proof-unfinished':'immediate-exit-not-established';
- const detail=!publicJ?'No supported immediate J exit is established for the Left D pattern, and no J is in the current public active, HOLD or preview; its arrival is unknown.':!immediate?'A J is known later in the public sequence, but cannot be used before another lock; the Left D pattern must wait.':checked.complete===false?'A J is immediately accessible, but its legal, resource-compatible D exit proof was unfinished within budget.':'A J is immediately accessible, but a usable, resource-compatible D exit was not established by the checked continuations.';
- const hazards=[{code:'D-J-exit-unresolved',availability,proofStatus:checked.complete===false?'unfinished':'not-established',detail,downside:'The D surface may become harder to accommodate or inaccessible before the needed J can repair it.'}];
- const next=M.step(before,p,resource),geometry=S.geometry(after.board,{notches:options.notches});
- if(next.pendingCenter.some(q=>q.alternatives.some(a=>a.piece==='J')))hazards.push({code:'D-J-competes-with-Center',detail:'A J is also recorded as a Center partner; it is not a free Left repair.',downside:'Spending the same J on Left can leave Center unfinished; a separate executable replacement is not promised.'});
- const cycle=geometry.right.cycle;
- if(cycle.prepareColumn!==null||cycle.cleanupColumns.length)hazards.push({code:'D-I-parking-competes-with-cleanup',detail:'Right has an observed I cleanup/preparation demand while Left waits for J.',downside:'Using I to park or reshape Left can delay Right cleanup; one I is not permission for both jobs.'});
- hazards.push({code:'D-waiting-space-unproved',detail:`Left reaches ${Math.max(...geometry.left.profile)} rows; no route for parking intervening pieces while waiting for J is certified.`,downside:'Visible pieces may exhaust the available space before the D exit becomes usable.'});
+ const hazards=L.dDependencies(p.state,checked,{resources:M.step(before,p,resource),geometry:S.geometry(p.state.board,{notches:options.notches})});
  return{...checked,valid:true,visited:checked.visited||0,hazards};
 }
 function riskyFallback(raw,supported,options,collector,comparison=null){

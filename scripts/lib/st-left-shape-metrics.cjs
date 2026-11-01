@@ -1,17 +1,12 @@
 'use strict';
 // Observed post-clear boards only. Never feeds a planner score or request.
-const L=require('../../st-left-context');
+const L=require('../../st-structure').leftSurface;
 const tiers=['SS','S','A','B','C','D','other'];
 const catalog=L.catalog.map(({id,tier,profile})=>({id,tier,profile:[...profile]}));
 function classify(board){
  if(!Array.isArray(board)||board.length!==40||board.some(row=>typeof row!=='string'||row.length!==10))throw Error('Left metrics require a 40 by 10 board');
- const heights=[],covered=[];
- for(let x=0;x<4;x++){
-  const first=board.findIndex(row=>row[x]!=='.');heights.push(first<0?0:40-first);
-  if(first>=0)for(let y=first+1;y<40;y++)if(board[y][x]==='.')covered.push([x,y]);
- }
- const minimum=Math.min(...heights),profile=heights.map(h=>h-minimum),shape=covered.length?null:L.classify(heights);
- return{shape:shape?.id||'other',tier:shape?.tier||'other',profile,heights,coveredCells:covered.length,reason:covered.length?'left-holes':shape?'catalog-shape':'unranked-shape'};
+ const {heights,profile,covered,shape:classified}=L.assess(board),shape=covered?null:classified;
+ return{shape:shape?.id||'other',tier:shape?.tier||'other',profile,heights,coveredCells:covered,reason:covered?'left-holes':shape?'catalog-shape':'unranked-shape'};
 }
 function create(initialBoard){return{schemaVersion:1,sampling:'post-lock-post-line-clear',initial:classify(initialBoard),observations:0,countsByShape:Object.fromEntries([...catalog.map(s=>s.id),'other'].map(id=>[id,0])),countsByTier:Object.fromEntries(tiers.map(t=>[t,0])),leftHoleObservations:0};}
 function add(counts,observation){
