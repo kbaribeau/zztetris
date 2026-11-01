@@ -19,7 +19,7 @@ const clone = x => JSON.parse(JSON.stringify(x));
 // intentionally omits that field from its worker message. Match that boundary.
 function publicObservation(state){const observation=P.observe(state);delete observation.lastEvent;return observation;}
 const digest = x => crypto.createHash('sha256').update(typeof x === 'string' ? x : JSON.stringify(x)).digest('hex');
-const SOURCE_FILES = ['st-coach-config.js', 'st-rules.js', 'st-bag.js', 'st-structure.js', 'st-paired-repair.js', 'st-access.js', 'st-pattern-history.js', 'st-left-foundation.js', 'st-left-context.js', 'st-planner.js', 'st-opening-patterns.js','st-opening-continuations.js','st-opening-sources.js','st-source-scoring.js', 'st-opening.js', 'st-resource-history.js', 'st-midgame-resources.js', 'st-worker.js', 'st-lab.js', 'st-session.js', 'st-fixtures.js', 'scripts/lib/st-simulation.cjs', 'scripts/lib/st-left-shape-metrics.cjs', 'scripts/simulate-st.cjs'];
+const SOURCE_FILES = ['st-coach-config.js', 'st-rules.js', 'st-bag.js', 'st-structure.js', 'st-paired-repair.js', 'st-access.js', 'st-pattern-history.js', 'st-left-foundation.js', 'st-left-context.js', 'st-planner.js', 'st-opening-patterns.js','st-opening-continuations.js','st-opening-sources.js','st-source-scoring.js', 'st-opening.js', 'st-resource-history.js', 'st-midgame-resources.js', 'st-worker.js', 'st-lab.js', 'st-session.js', 'st-fixtures.js', 'scripts/lib/st-simulation.cjs', 'scripts/lib/st-left-shape-metrics.cjs', 'scripts/lib/st-evaluation.cjs', 'scripts/evaluate-st-protocol.cjs', 'scripts/simulate-st.cjs'];
 const CONFIG = Object.freeze({depth:3, width:8, maxNodes:45000, timeMs:SEARCH_TIME_MS});
 const PRESETS = Object.freeze({quick:{seeds:[10331, 20333], locks:24}, research:{seeds:Array.from({length:16}, (_,i) => 810001 + i * 997), locks:500}});
 const RNG_VERSION = 'mulberry32-seven-bag-v1';
@@ -27,7 +27,7 @@ function random(seed) {
   let a = seed >>> 0;
   return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t ^= t + Math.imul(t ^ t >>> 7, 61 | t); return ((t ^ t >>> 14) >>> 0) / 4294967296; };
 }
-function sourceHashes() { return Object.fromEntries(SOURCE_FILES.filter(f => fs.existsSync(path.join(root,f))).map(f => [f,digest(fs.readFileSync(path.join(root,f),'utf8'))])); }
+function sourceHashes() { return Object.fromEntries(SOURCE_FILES.map(f => [f,digest(fs.readFileSync(path.join(root,f),'utf8'))])); }
 function makeInput(scenario, seed, locks, {withOrigins=false}={}) {
   const rng = random(seed);
   const nextBag = () => { const bag = [...'IJLOSTZ']; for (let i=6;i>0;i--) { const j=Math.floor(rng()*(i+1)); [bag[i],bag[j]]=[bag[j],bag[i]]; } return bag; };

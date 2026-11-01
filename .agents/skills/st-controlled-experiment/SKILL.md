@@ -11,7 +11,7 @@ Use the [shared research process](../../../docs/st-research-workflow.md) as the 
 
 1. Confirm the current hypothesis, allowed changes, execution environment, compute budget, stopping condition and commit/publication permissions. Resolve a missing required permission before the dependent action; do not inherit yesterday's deadline or work authorization.
 2. Inspect repository status and current source/base. Use an isolated worktree for concurrent experiments; preserve others' tracked and untracked work. Coordinate timed CPU ownership before launching search, tests or performance measurements.
-3. Write a local predeclared protocol outside Git: baseline and candidate identities, fixed input cohort, runtime/budgets/caps, required controls, primary and safety metrics, acceptance/rejection criteria, repeats, and time limit. Label development cases as development cases; an inspected seed is not an untouched holdout.
+3. Use the [executable evaluation contract](../../../docs/st-evaluation-contract.md) to validate a frozen protocol and bind it before planner execution. Write that protocol outside Git: baseline and candidate identities, fixed input cohort, runtime/budgets/caps, required controls, primary and safety metrics, acceptance/rejection criteria, repeats, and time limit. Label development cases as development cases; an inspected seed is not an untouched holdout.
 4. Investigate the smallest plausible mechanism. Review community evidence where it governs the claim; label conservative engineered bounds as such. Do not tune to hidden future pieces, fixture IDs, or known answers.
 
 ## Execute and evaluate
@@ -19,7 +19,7 @@ Use the [shared research process](../../../docs/st-research-workflow.md) as the 
 1. Reproduce the behavior and run focused behavioral tests. Freeze relevant source hashes before the timed cohort. Do not edit those sources during a run.
 2. Run baseline and candidate serially on matched actual inputs, configuration and host conditions. Read current pinned runtime and production search settings from the repository; never enlarge a budget silently to obtain a favorable result. Keep all attempts, including crashes, partial runs and losing repeats.
 3. Use recorded-action replay and Fumen/session validation to check the evidence. These do not rerun the policy or establish its strategic quality. Reconcile summaries with actual lock/clear events and resource accounting, including controls that did not improve.
-4. Report every predeclared pair and its stop classification. Reject invalid comparisons rather than quietly dropping inconvenient seeds. If a fixed-seed timed rerun diverges, retain both and narrow the conclusion.
+4. Generate canonical JSON and Markdown with `scripts/evaluate-st-protocol.cjs`; its executable schema owns report semantics. Report every predeclared pair and its stop classification. Reject invalid comparisons rather than quietly dropping inconvenient seeds. If a fixed-seed timed rerun diverges, retain both and narrow the conclusion.
 5. For an engine change proposed for acceptance, run the complete unfiltered suite and obtain independent review of the exact source and raw evidence. Include change-appropriate browser checks or an explicit blocker; DOM tests are not browser evidence. Keep rejected variants locally as evidence, not as accepted source changes.
 
 ## Finish honestly
