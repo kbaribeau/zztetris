@@ -962,15 +962,18 @@ function nodeFor(p,parent,initial,rootIndex,readAssessment=assess){
  const tsds=path.filter(v=>v.event.spin==='full'&&v.event.lines===2).length;
  p.structuralEvidence={...transition,centerPartnerDeficitBefore:(parent?.assessment??initial).center.partnerDeficit,centerPartnerDeficitAfter:assessment.center.partnerDeficit,placedPiece:p.event.type,structure,dependencyDebt,entryDebt,nonclearScoringGeometryLost:losesEntry,centerReservation,cavityRepair:{status:cavityDebt.length?'requires-executed-repair':'no-outstanding-new-internal-cavity',cells:cavityDebt}};
  // General source/queue preferences only break ties after the numeric
- // priorities, including executed TSD, verified entry and input effort. The
+ // priorities, including executed TSD and verified entry. The
  // replay-bound pending-opening quality preference is compared separately,
  // after safety/cycle/Center continuity and before optional structural growth.
- // Contextual Left quality precedes input effort and total lines, but cannot
+ // Contextual Left quality precedes total lines, but cannot
  // override safety, regional/cycle support, structural bands or verified TSD/access.
  // Nearby structural estimates are deliberately comparable. The finite
  // executable TSD then breaks ties; it cannot buy a poorer structural band.
  const cycleDebt=(parent?.cycleDebt??0)+transition.cycleViolations.length+(notchCheck.valid?0:1)+(resources?.violations.length||0);
- const rank=[safe?1:0,assessment.regionalSupport?1:0,cycleDebt?-cycleDebt:0,Math.floor(structuralScore/4),tsds*2,leftContext.score,-path.reduce((n,v)=>n+v.witness.length+holdCount(v)*2,0),path.reduce((n,v)=>n+v.event.lines,0)];
+ // Experiment: neutralize strategic effort, retaining the rank schema and
+ // shortest executable witnesses. Extra-Z equivalence uses this same neutral
+ // slot; opening and independent fallback/foundation costs are unchanged.
+ const rank=[safe?1:0,assessment.regionalSupport?1:0,cycleDebt?-cycleDebt:0,Math.floor(structuralScore/4),tsds*2,leftContext.score,0,path.reduce((n,v)=>n+v.event.lines,0)];
  const priorCenter=(parent?.assessment.structure??S.geometry(before.board,{notches:priorNotches})).center;
  const centerDisrupted=p.event.lines===0&&reusableCenter(priorCenter)&&!reusableCenter(structure.center);
  const centerContinuityDebt=centerContinuityStep(priorCenter,structure.center,p.event,parent?.centerContinuityDebt);

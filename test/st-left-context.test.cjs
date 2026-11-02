@@ -72,22 +72,24 @@ test('Left context integration: source preference can choose between otherwise e
  vm.runInNewContext(fs.readFileSync(require.resolve('../st-planner'),'utf8'),{module,require:name=>name==='./st-left-context.js'?{...L,evaluate:(...args)=>({...L.evaluate(...args),score:0})}:requireAt(name)});
  const options={depth:2,width:8,maxNodes:45000,disableConstruction:true},a=P.plan(s,options),b=module.exports.plan(s,options);
  assert.deepEqual([...a.evidence.structuralRank.slice(0,5)],[...b.evidence.structuralRank.slice(0,5)]);
- assert.equal(a.continuation[0].event.type,'O');assert.equal(b.continuation[0].event.type,'I');
+ // Effort-neutral beam ordering changes the tied first move; the source
+ // scorer still selects a different, better-Left complete prefix.
+ assert.notEqual(JSON.stringify(a.continuation.map(p=>p.event)),JSON.stringify(b.continuation.map(p=>p.event)));
  assert.ok(a.assessment.leftContext.score>b.assessment.leftContext.score);
  assert.equal(a.evidence.structuralRank[5],a.assessment.leftContext.score);
- assert.equal(a.evidence.structuralRank[6],-a.continuation.reduce((n,v)=>n+v.witness.length+(v.witness.filter(x=>x==='HOLD').length)*2,0));
+ assert.equal(a.evidence.structuralRank[6],0);
  assert.equal(a.evidence.structuralRank[7],a.continuation.reduce((n,v)=>n+v.event.lines,0));
  for(const plan of[a,b]){let current=s;for(const step of plan.continuation){const replay=R.replay(current,step.witness);assert.equal(replay.valid,true);current=replay.state;}}
 });
-test('ordinary ranking: Left quality beats effort only after safety, structure and scoring ties',()=>{
+test('ordinary ranking: Left quality precedes lines after safety, structure and scoring ties',()=>{
  const fs=require('node:fs'),vm=require('node:vm'),module={exports:{}},req=require('node:module').createRequire(require.resolve('../st-planner'));
  const source=fs.readFileSync(require.resolve('../st-planner'),'utf8').replace('return Object.freeze({dPatternAdmission,','return Object.freeze({testCompare:compare,testCompareConstruction:compareConstruction,dPatternAdmission,');
  vm.runInNewContext(source,{module,require:req});
- const a={rank:[1,1,0,10,2,4,-20,2],key:'a'},b={rank:[1,1,0,10,2,2,-10,4],key:'b'};
+ const a={rank:[1,1,0,10,2,4,0,2],key:'a'},b={rank:[1,1,0,10,2,2,0,4],key:'b'};
  for(const compare of [module.exports.testCompare,module.exports.testCompareConstruction]){
-  assert(compare(a,b)<0,'better Left beats lower effort and extra lines');
+  assert(compare(a,b)<0,'better Left beats extra lines');
   for(let i=0;i<5;i++){const stronger={...b,rank:[...b.rank]};stronger.rank[i]=a.rank[i]+1;assert(compare(stronger,a)<0,'higher priority '+i+' remains dominant');}
-  const equalLeft={...b,rank:[...b.rank]};equalLeft.rank[5]=a.rank[5];assert(compare(equalLeft,a)<0,'effort still precedes lines');
-  const equalEffort={...a,rank:[...a.rank]};equalEffort.rank[7]++;assert(compare(equalEffort,a)<0,'lines still break an effort tie');
+  const equalLeft={...b,rank:[...b.rank]};equalLeft.rank[5]=a.rank[5];assert(compare(equalLeft,a)<0,'lines decide when Left ties and effort is neutral');
+  const equalEffort={...a,rank:[...a.rank]};equalEffort.rank[7]++;assert(compare(equalEffort,a)<0,'lines still break the neutral slot tie');
  }
 });

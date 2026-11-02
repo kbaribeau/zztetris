@@ -86,6 +86,13 @@ test('midgame coaches: planner projected nodes switch early to late without prom
  const unknownNext=project(unknown,['HOLD','CW','HD'],invalid);assert.equal(unknownNext.assessment.coachPhase,'compatibility');
  const root=observed(17),right=project(makeInitial(root,true),['R','R','R','R','CW','HD']);
  assert.equal(right.resources.extraZ,'available');assert.equal(right.assessment.coachPhase,'early');
+ for(const node of [spent,next,invalid,unknownNext,right]){
+  assert.equal(node.rank.length,8,'rank layout stays compatible');
+  assert.equal(node.rank[6],0,'early, late and compatibility strategic effort is neutral');
+  assert.ok(node.path.every(p=>p.witness.length>0),'executable witnesses remain intact');
+ }
+ const reset=project(makeInitial(root,true),['HOLD','HOLD','R','R','R','R','CW','HD']);
+ assert.deepEqual(clone(reset.rank),clone(right.rank),'equivalent extra-HOLD route changes no strategic rank');
 });
 test('midgame coaches: classic Worker imports and real page load the same coach factory before the planner',async()=>{
  const context={Date,performance,console,self:{postMessage(){}}};context.globalThis=context;

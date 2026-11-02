@@ -6,7 +6,7 @@ const clone=x=>JSON.parse(JSON.stringify(x));
 // strategic route. Actual replay/history permission is checked separately below.
 function node(key,extraZ='used',patch={}){
  return {key,extraZPreservable:true,path:Array.from({length:3},()=>({event:{type:'O',lines:0,cells:[]},structuralEvidence:{cavityRepair:{cells:[]}}})),
- rank:[1,1,0,10,2,-20,2,0],structuralScore:40,centerContinuity:0,openingQualityProgress:null,
+ rank:[1,1,0,10,2,-20,0,0],structuralScore:40,centerContinuity:0,openingQualityProgress:null,
  continuationChecked:true,qualified:true,notchValid:true,cycleDebt:0,cavityDebt:[],centerDebt:[],dependencyDebt:0,entryDebt:0,
  assessment:{maxHeight:8,regionalSupport:true,sealed:0,covered:0,estimate:20,right:{}},
  resources:{extraZ,originKey:'same replay-validated root',active:{type:'I',id:5,bag:1},hold:{type:'Z',id:4,bag:1},queue:[],scoredTs:[3],
@@ -22,7 +22,7 @@ test('Extra-Z ties: no contrast preserves the original deterministic target orde
  const a=node('a'),z=node('z','available',{extraZPreservable:false});assert.deepEqual(order([z,a]),['a','z']);
 });
 test('Extra-Z ties: every existing numeric priority dominates preservation, including necessary spending',()=>{
- for(let i=0;i<8;i++){
+ for(const i of [0,1,2,3,4,5,7]){
   const spend=node('z'),save=node('a','available');spend.rank[i]++;
   assert.deepEqual(order([save,spend]),['z','a'],'rank '+i+' remains stronger');
  }
@@ -30,6 +30,12 @@ test('Extra-Z ties: every existing numeric priority dominates preservation, incl
  assert.deepEqual(order([save,spend]),['z','a'],'reusable Center is not sacrificed');
  spend.openingQualityProgress=0;save.openingQualityProgress=-1;save.centerContinuity=0;
  assert.deepEqual(order([save,spend]),['z','a'],'observed opening quality remains stronger');
+});
+test('Extra-Z ties: differing witness effort is not an equivalence condition',()=>{
+ const spent=node('a'),saved=node('z','available');
+ spent.path.forEach(p=>{p.witness=['HD'];p.holdCount=0;});
+ saved.path.forEach(p=>{p.witness=['HOLD','HOLD','L','R','HD'];p.holdCount=2;});
+ assert.deepEqual(order([spent,saved]),['z','a']);
 });
 test('Extra-Z ties: scoring and cleanup timing are not otherwise-equivalent',()=>{
  const a=node('a'),z=node('z','available');a.path[0].event={type:'T',spin:'full',lines:2,cells:[]};z.path[2].event={type:'T',spin:'full',lines:2,cells:[]};
