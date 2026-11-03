@@ -1,16 +1,51 @@
 'use strict';
 const equivalent=require('./support/st-equivalent-s.cjs');
 const test=require('node:test'),assert=require('node:assert/strict');
-const P=require('../st-planner'),M=require('../st-midgame-resources'),H=require('../st-resource-history'),R=require('../st-rules'),q=require('./fixtures/pending-L-visible-stage.json'),f=require('./fixtures/pending-L-refill.json'),clone=x=>JSON.parse(JSON.stringify(x));
+const P=require('../st-planner'),M=require('../st-midgame-resources'),H=require('../st-resource-history'),R=require('../st-rules'),S=require('../st-structure'),q=require('./fixtures/pending-L-visible-stage.json'),f=require('./fixtures/pending-L-refill.json'),route=require('./fixtures/covered-repair-plan.json').ordinaryCenter,clone=x=>JSON.parse(JSON.stringify(x));
 const bounds={maxNodes:45000,now:()=>0,deadline:Infinity};
-function lifecycle(){const a=P.decide(q.observation,{...q.options,...bounds}),first=R.replay(q.observation,a.witness),s=P.continueCommitment(q.observation,f.afterS.observation,a,first.events[0],{...f.afterS.options,...bounds});assert.ok(s);
+const context=s=>JSON.stringify([s.rules,s.board,s.hold,s.canHold,s.queue,s.bag??null,s.active?.type]);
+function literalPocketAdvice(){
+ let state=q.observation;const continuation=route.steps.slice(0,3).map(p=>{const r=R.replay(state,p.witness);assert.equal(r.valid,true);assert.deepEqual(r.events,[p.event]);state=r.state;return{...p,target:p.event.target,hold:p.witness.includes('HOLD'),holdCount:p.witness.filter(a=>a==='HOLD').length,resultContext:context(state)};});
+ const first=continuation[0];return P.revalidate(q.observation,{target:first.target,witness:first.witness,hold:first.hold,holdCount:first.holdCount,continuation,context:context(q.observation),evidence:{}},{...q.options,...bounds});
+}
+// This positive protects the independently retained S/T/I Pocket route, not a
+// promise that each bounded fresh search must select its same trailing filler.
+function lifecycle(){const a=literalPocketAdvice();assert.ok(a);const first=R.replay(q.observation,a.witness),s=P.continueCommitment(q.observation,f.afterS.observation,a,first.events[0],{...f.afterS.options,...bounds});assert.ok(s);
  const b=P.decide(f.afterS.observation,{...f.afterS.options,...bounds,commitment:{observation:f.afterS.observation,advice:s}}),second=R.replay(f.afterS.observation,b.witness),n=P.continueCommitment(f.afterS.observation,f.afterT.observation,b,second.events[0],{...f.afterT.options,...bounds});assert.ok(n);
  return{a,s,b,n,result:P.decide(f.afterT.observation,{...f.afterT.options,...bounds,commitment:{observation:f.afterT.observation,advice:n}})};}
 let saved;
-test('pending L refill / actual S25 T26 refill preserves checked waiting candidate and accommodates new public T',()=>{
+test('pending L refill / literal S25 T26 Pocket commitment survives refill and accommodates new public T',()=>{
  saved=lifecycle();const {a,s,b,n,result}=saved;equivalent.sPlacement(a.continuation[0].event,[[5,23],[6,23],[4,24],[5,24]]);assert.equal(s.continuation.length,2);assert.equal(n.continuation.length,1);assert.equal(result.target.type,'I');assert.equal(result.continuation.length,1);assert.ok(result.metrics.nodes<=45000);
  assert.ok(s.evidence.pendingLStage.hintReplayed>=4);assert.ok(n.evidence.pendingLStage.hintReplayed>=5);assert.equal(result.evidence.pendingLStage.waiting.at(-1).event.type,'T');assert.equal(result.evidence.pendingLStage.waiting.at(-1).event.lines,2);
  const replay=R.replay(f.afterT.observation,[...result.continuation,...result.evidence.pendingLStage.waiting].flatMap(p=>p.witness));assert.ok(replay.valid);assert.equal(replay.state.active,null);assert.equal(replay.state.queue.length,0);assert.equal(replay.state.hold,'Z');assert.equal(result.evidence.pendingLStage.arrival,'not-established');
+});
+test('pending L refill / fresh choices transport the waiting hint even when the scoring commitment expires',()=>{
+ const a=P.decide(q.observation,{...q.options,...bounds}),first=R.replay(q.observation,a.witness);assert.equal(first.valid,true);assert.deepEqual(first.state.board,f.afterS.observation.board);
+ const s=P.continueCommitment(q.observation,f.afterS.observation,a,first.events[0],{...f.afterS.options,...bounds});assert.ok(s);
+ const b=P.decide(f.afterS.observation,{...f.afterS.options,...bounds,commitment:{observation:f.afterS.observation,advice:s}}),second=R.replay(f.afterS.observation,b.witness);assert.equal(second.valid,true);assert.deepEqual(second.state.board,f.afterT.observation.board);assert.equal(second.events[0].spin,'full');assert.equal(second.events[0].lines,2);
+ const n=P.continueCommitment(f.afterS.observation,f.afterT.observation,b,second.events[0],{...f.afterT.options,...bounds}),remainingGoal=P.resourceGoal(b.continuation.slice(1));
+ assert.equal(Boolean(n),remainingGoal,'Only a still-executable resource goal keeps this commitment alive');
+ if(!n)assert.equal(b.evidence.coveredRepairPlan,null,'Outstanding covered repair must not be retired as filler');
+ const hint=b.evidence.pendingLStage;assert.ok(hint,'The controller stores this separately from the retiring commitment');
+ const result=P.decide(f.afterT.observation,{...f.afterT.options,...bounds,pendingLHint:hint,...(n?{commitment:{observation:f.afterT.observation,advice:n}}:{})});
+ assert.equal(result.target?.type,'I');assert.ok(result.metrics.nodes<=45000);assert.equal(result.evidence.pendingLStage.arrival,'not-established');assert.equal(result.evidence.pendingLStage.rootId,hint.rootId);
+ const summary=H.resolve(f.afterT.observation,H.importContext(f.afterT.observation,f.afterT.options.resourceContext)),joined=[...result.continuation,...result.evidence.pendingLStage.waiting],checked=M.checkPath(f.afterT.observation,joined,summary);
+ assert.equal(checked.valid,true);assert.deepEqual(checked.resource.violations,[]);assert.equal(checked.resource.pendingCenter.length,1);assert.equal(checked.resource.pendingCenter[0].rootId,hint.rootId);
+ const replay=R.replay(f.afterT.observation,joined.flatMap(p=>p.witness));assert.equal(replay.valid,true);assert.equal(replay.events.reduce((n,e)=>n+e.lines,0),6);assert.equal(replay.events.at(-1).type,'T');assert.equal(replay.events.at(-1).lines,2);assert.equal(replay.state.active,null);assert.deepEqual(replay.state.queue,[]);assert.equal(replay.state.hold,'Z');assert.equal(replay.state.topOut,false);
+});
+test('pending L refill / literal TSD then right-cap Z retires its goal-free suffix without erasing its waiting hint',()=>{
+ const raw=f.afterS.observation,witnesses=[route.steps[1].witness,['HOLD','R','R','R','R','CW','HD']];let state=raw;
+ const continuation=witnesses.map(witness=>{const r=R.replay(state,witness);assert.equal(r.valid,true);state=r.state;const event=r.events[0];return{witness,event,target:event.target,hold:witness.includes('HOLD'),holdCount:witness.filter(a=>a==='HOLD').length,resultContext:context(state)};});
+ const summary=H.resolve(raw,H.importContext(raw,f.afterS.options.resourceContext)),end=M.checkPath(raw,continuation,summary);assert.equal(end.valid,true);
+ const pending=end.resource.pendingCenter[0],origin=clone(state),waiting=[['L','L','HD'],['HOLD','R','R','R','CW','R','HD'],['HOLD','R','R','R','R','CW','HD'],['HOLD','L','L','HD'],['L','L','HD']].map(witness=>{const r=R.replay(state,witness);assert.equal(r.valid,true);state=r.state;return{witness,event:r.events[0]};});
+ assert.equal(state.active,null);assert.deepEqual(state.queue,[]);
+ const hint={rootId:pending.rootId,origin,target:{cells:clone(pending.alternatives[0].cells)},waiting},head=continuation[0],proposed={target:head.target,witness:head.witness,hold:head.hold,holdCount:head.holdCount,continuation,context:context(raw),evidence:{pendingLStage:hint}};
+ const admitted=P.revalidate(raw,proposed,{...f.afterS.options,...bounds});assert.ok(admitted,'The literal cap route and its complete waiting tape are independently admitted');assert.equal(admitted.continuation.length,2);
+ const suffix=admitted.continuation[1];assert.equal(suffix.event.type,'Z');assert.equal(suffix.event.lines,0);assert.ok(suffix.event.cells.every(([x])=>x>=7));const beforeCap=R.replay(raw,admitted.witness).state,cap=R.replay(beforeCap,suffix.witness);assert.equal(cap.valid,true);assert.equal(S.transition(beforeCap,{state:cap.state,event:cap.events[0]}).allocation,'right-cap-preparation');assert.equal(suffix.structuralEvidence.coveredRepair.required,false);assert.equal(admitted.evidence.coveredRepairPlan,null);
+ assert.equal(P.resourceGoal([suffix]),false,'A non-scoring right Z cap alone is not a scoring, Pocket, Center or repair commitment');
+ const actual=R.replay(raw,admitted.witness);assert.equal(actual.events[0].spin,'full');assert.equal(actual.events[0].lines,2);assert.deepEqual(actual.state.board,f.afterT.observation.board);
+ assert.equal(P.continueCommitment(raw,f.afterT.observation,admitted,actual.events[0],{...f.afterT.options,...bounds}),null);
+ assert.ok(admitted.evidence.pendingLStage,'The waiting hint remains available independently of the expired goal');
 });
 test('pending L refill / hint identity, endpoint, inventory, event and witness cannot substitute for current proof',()=>{
  const {result}=saved||lifecycle(),summary=H.resolve(f.afterT.observation,H.importContext(f.afterT.observation,f.afterT.options.resourceContext)),end=M.checkPath(f.afterT.observation,result.continuation,summary),hint=result.evidence.pendingLStage;

@@ -12,17 +12,35 @@ function observedWithNewL({extraO=false}={}){let state=R.createState({...route.o
 }
 test('pending L / exact player seven-lock route passes full admission without pretending completion or arrival',()=>{
  const raw=q.observation,a=P.revalidate(raw,advice(raw,route.steps),{...q.options,...bounds});assert.ok(a);
- const end=endpoint();assert.equal(end.valid,true);assert.equal(end.resource.pendingCenter.length,1);
+ const end=endpoint();assert.equal(end.valid,true);assert.equal(end.resource.pendingCenter.length,1);assert.equal(end.state.hold,'Z');
  assert.equal(route.steps.reduce((n,p)=>n+p.event.lines,0),6);assert.equal(P.assess(end.state.board).maxHeight,11);
  assert.equal(a.evidence.pendingLStage.arrival,'not-established');assert.equal(a.evidence.pendingLStage.publicDrawsExhausted,true);assert.equal(a.evidence.pendingLStage.parkedHold,'Z');assert.match(a.reason,/exact Center L target remains pending/);
  assert.equal(a.evidence.pendingLStage.target.access,'conditional-fresh-L-only');
 });
-test('pending L / actual root selects cleaner Center S among certified searched choices, with unresolved alternatives disclosed',()=>{
+test('pending L / actual root selects cleaner Center S with a fully checked public waiting route',()=>{
  const a=P.decide(q.observation,{...q.options,...bounds});equivalent.sPlacement(a.continuation[0].event,[[5,23],[6,23],[4,24],[5,24]]);assert.ok(a.metrics.nodes<=45000);
  assert.equal(a.evidence.pendingLStage.waiting.length,4);assert.equal(a.evidence.pendingLSelection.horizon,3);assert.equal(a.evidence.pendingLSelection.globallyOptimal,false);
- assert.ok(a.evidence.pendingLSelection.higherRankedUnresolved>0);assert.equal(a.evidence.searchIncomplete,true);
- const joined=[...a.continuation,...a.evidence.pendingLStage.waiting],r=R.replay(q.observation,joined.flatMap(p=>p.witness));assert.equal(r.valid,true);assert.equal(r.events.reduce((n,e)=>n+e.lines,0),6);
- assert.equal(r.state.active,null);assert.equal(r.state.hold,'Z');assert.equal(P.assess(r.state.board).maxHeight,11);
+ assert.ok(Number.isInteger(a.evidence.pendingLSelection.higherRankedUnresolved));assert.ok(a.evidence.pendingLSelection.higherRankedUnresolved>=0);if(a.evidence.pendingLSelection.higherRankedUnresolved)assert.equal(a.evidence.searchIncomplete,true);
+ // More reusable proofs may certify a different trailing route. The literal
+ // six-line route above stays a separate positive; live selection must prove
+ // all public supply safe without pinning its parked piece or optional scores.
+ const joined=[...a.continuation,...a.evidence.pendingLStage.waiting],r=R.replay(q.observation,joined.flatMap(p=>p.witness));assert.equal(r.valid,true);assert.ok(r.events.every(e=>S.canonicalClear(e)&&!e.topOut));
+ assert.equal(r.state.active,null);assert.deepEqual(r.state.queue,[]);assert.notEqual(r.state.hold,'L');assert.ok(P.assess(r.state.board).maxHeight<20);
+ const summary=H.resolve(q.observation,H.importContext(q.observation,q.options.resourceContext)),checked=M.checkPath(q.observation,joined,summary);assert.equal(checked.valid,true);assert.deepEqual(checked.resource.violations,[]);assert.equal(checked.resource.pendingCenter.length,1);assert.equal(checked.resource.pendingCenter[0].rootId,a.evidence.pendingLStage.rootId);
+ const target=a.evidence.pendingLStage.endpointTarget;assert.ok(checked.resource.pendingCenter[0].alternatives.some(p=>p.piece==='L'&&JSON.stringify(p.cells.slice().sort())===JSON.stringify(target.cells.slice().sort())),'Conditional access must bind the exact authenticated pending cells');
+ const conditional=R.replay(R.createState({board:r.state.board,active:'L',canHold:false}),target.witness);assert.equal(conditional.valid,true);assert.deepEqual(conditional.events[0].cells.slice().sort(),target.cells.slice().sort());assert.equal(a.evidence.pendingLStage.arrival,'not-established');
+ assert.ok(P.revalidate(q.observation,a,{...q.options,...bounds}),'Fresh selection must still pass ordinary independent admission');
+});
+test('pending L / a deliberately unfinished higher-ranked waiting proof is disclosed, never treated as rejection',()=>{
+ // The reviewed S/T setup plus this literal held-Z cap reaches the alternative
+ // endpoint. Withhold only that endpoint's proof allowance, independently of
+ // whether request-cache reuse normally makes its full proof affordable.
+ const witness=route.steps.slice(0,2).flatMap(p=>p.witness).concat(['HOLD','R','R','R','R','CW','HD']);
+ const controlled=require('./support/st-pending-L-budget.cjs')(q.observation,witness),a=clone(controlled.planner.decide(q.observation,{...q.options,...bounds}));
+ assert.ok(controlled.blocked.length>0);assert.ok(controlled.blocked.every(p=>p.valid===null));assert.ok(a.target);assert.ok(a.metrics.nodes<=45000);
+ assert.ok(a.evidence.pendingLSelection.higherRankedUnresolved>0);assert.equal(a.evidence.pendingLSelection.globallyOptimal,false);assert.equal(a.evidence.searchIncomplete,true);
+ const selected=R.replay(M.extendForced(R.createState(q.observation)),a.continuation.flatMap(p=>p.witness));assert.equal(selected.valid,true);assert.notEqual(controlled.key(selected.state),controlled.blockedKey,'An unfinished endpoint cannot be admitted');
+ assert.ok(P.revalidate(q.observation,a,{...q.options,...bounds}),'The selected alternative still needs every real admission check');
 });
 test('pending L / full visible waiting is a positive proof; unfinished search cannot certify unaccommodated pieces',()=>{
  const e=endpoint(3),a=M.pendingLStage(e.state,e.resource,{maxNodes:4000,now:()=>0});assert.equal(a.valid,true);assert.equal(a.waitingStage,true);assert.deepEqual(a.path.map(p=>p.event.type),['O','Z','J','I']);
