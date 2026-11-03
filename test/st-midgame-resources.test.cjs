@@ -100,7 +100,17 @@ const P=require('../st-planner');
 test('midgame resources: real planner never returns the known invalid resource allocations',()=>{
  for(const f of fixtures){const {state,history,diagnostics}=replayFixture(f),resourceContext=H.exportContext(state,history);
   const advice=P.plan(state,{resourceContext,maxNodes:45000,deadline:Infinity,openingPhase:false});
-  if(advice.target){if(f.id.startsWith('second-z')||f.id.startsWith('unscored-t'))assert.notDeepEqual(advice.continuation[0].event,f.expected.event,f.id+' must not preserve the invalid allocation');assert.equal(M.checkPath(state,advice.continuation,diagnostics).valid,true,f.id+' returns a resource-valid prefix');assert.ok(advice.evidence.resourceObligations);}
+  if(advice.target){
+   if(advice.evidence?.strategy==='reset-coach'){
+    // The explicitly selected Reset is the new scoped exception. It must not
+    // launder the original unearned Z or accept an arbitrary T diversion.
+    const Reset=require('../st-reset-coach'),policy=require('../st-reset-policy');
+    assert.equal(policy.consider(state,diagnostics).status,'candidate');assert.equal(Reset.check(state,advice.continuation,{resourceContext,deadline:Infinity}).valid,true);
+    if(f.id.startsWith('second-z'))assert.notDeepEqual(advice.continuation[0].event,f.expected.event,'Old unearned Z remains forbidden');
+    assert.ok(advice.continuation.filter(p=>p.event.type==='T').every(p=>policy.qualifies(p.event)));
+   }else{if(f.id.startsWith('second-z')||f.id.startsWith('unscored-t'))assert.notDeepEqual(advice.continuation[0].event,f.expected.event,f.id+' must not preserve the invalid allocation');assert.equal(M.checkPath(state,advice.continuation,diagnostics).valid,true,f.id+' returns a resource-valid prefix');}
+   assert.ok(advice.evidence.resourceObligations);
+  }
   else assert.ok(['no-supported-continuation-found','unsupported-position','budget-exhausted'].includes(advice.status),f.id+': '+advice.status);
  }
 });

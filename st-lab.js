@@ -129,6 +129,7 @@
             recoveryOrigin=null;pendingHandoffRecovery=null;coachStatus='invalid-witness';coachMessage='The suggested move failed validation, so it is not shown.';result=null;render();return;
           }
           result=candidate || null;pendingHandoffRecovery=null;
+          if(result?.target&&result.evidence?.strategy==='reset-coach')resourceHistory=STResourceHistory.beginReset(resourceHistory,observation());
           const recovery=STPlanner.captureHandoffRecovery(observation(),result,STResourceHistory.exportContext(observation(),resourceHistory));
           // Revalidation during the same first piece must not replace the
           // pre-handoff origin with an already-marked mid-piece ledger.
@@ -141,7 +142,7 @@
           if(result?.target){
             previous={...clone(result),revision:state.revision};pendingLHint=result.evidence?.pendingLStage?clone(result.evidence.pendingLStage):null;
 
-            commitment=result.recommendation?.kind!=='risky'&&!result.evidence?.opening&&STPlanner.resourceGoal(result.continuation||[])?{observation:clone(observation()),advice:clone(result)}:null;
+            commitment=result.recommendation?.kind!=='risky'&&!result.evidence?.opening&&(result.evidence?.strategy==='reset-coach'||STPlanner.resourceGoal(result.continuation||[]))?{observation:clone(observation()),advice:clone(result)}:null;
           }
           render();
         };
@@ -302,8 +303,9 @@
     const visible=TrainingSettings.guideVisible;
     // This names the session's coaching path, not search success or a local
     // scoring-wall phase. A finite repair is not a detected community Reset.
-    $('st-phase').dataset.phase=openingPhase?'opening':'maintenance';
-    setText($('st-phase-name'),openingPhase?'Opening':'Mid-game');
+    const resetting=STResourceHistory.resolve(observation(),resourceHistory).reset?.status==='active';
+    $('st-phase').dataset.phase=openingPhase?'opening':resetting?'reset':'maintenance';
+    setText($('st-phase-name'),openingPhase?'Opening':resetting?'Reset':'Mid-game');
     setText($('st-phase-symbol'),openingPhase?'◌':'▦');
     $('st-phase-indicator').hidden=false;
     $('st-undo').disabled=!undoHistory.length;
@@ -326,7 +328,7 @@
     const resources=STResourceHistory.resolve(observation(),resourceHistory);
     const sLabel={hanging:'observed surplus','none-observed':'none observed in the checked interval',unknown:'unknown history or allocation','out-of-profile':'outside the reviewed source profile'}[resources.hangingS.status];
     const lLabel={hanging:'observed surplus','none-observed':'none observed in the checked interval',unknown:'unknown history or allocation','out-of-profile':'outside the reviewed source profile'}[resources.hangingL.status];
-    const zLabel={available:'unused in the verified interval',used:'used in the verified interval',unknown:'eligibility unknown','out-of-profile':'outside the reviewed source profile'}[resources.extraZ.status];
+    const zLabel=resources.reset?.status==='active'?`Reset in progress; observed balance ${resources.extraZ.remaining}`:resources.extraZ.status==='available'&&resources.extraZ.remaining>1?`${resources.extraZ.remaining} remaining in the verified balance`:{available:'unused in the verified interval',used:'used in the verified interval',unknown:'eligibility unknown','out-of-profile':'outside the reviewed source profile'}[resources.extraZ.status];
     renderResourceBadge('st-hanging-s',resources.hangingS.status,`Hanging S: ${sLabel}`,resources.hangingS.reason||resources.coverage.reason,'hanging',resources.terminal);
     renderResourceBadge('st-hanging-l',resources.hangingL.status,`Hanging L: ${lLabel}`,`${resources.hangingL.reason||resources.coverage.reason} A normal Center SL awaiting its L is separate; no L repair strategy is implied.`,'hanging',resources.terminal);
     renderResourceBadge('st-extra-z',resources.extraZ.status,`Extra Z: ${zLabel}`,resources.extraZ.reason||resources.coverage.reason,'used',resources.terminal);
@@ -336,7 +338,7 @@
     const resetEvidence=resetDiagnostics();
     const resetCount=resetEvidence.pairs.filter(p=>p.status==='reset-like-candidate').length;
     const resetLabel=resetCount?`${resetCount} Reset-like diversion pair(s) observed; exact phase boundaries remain uncertain.`:resetEvidence.status==='unknown'?'Earlier Reset history is unknown.':resetEvidence.status==='no-reset-evidence'?'No Reset evidence observed.':'Observed T diversions are insufficient to identify a Reset.';
-    setText($('st-reset-summary'),`Reset evidence: ${resetLabel} No allowance is renewed and recommendations are unchanged.`);
+    setText($('st-reset-summary'),resources.reset?.episodes?.length||resources.reset?.status==='active'?`Reset coach: ${resources.reset.status==='active'?`${resources.reset.progress} of 2 Left T placements completed`:`${resources.reset.episodes.length} completed`}. Remaining non-Right Z balance: ${resources.extraZ.remaining}.`:`Reset evidence: ${resetLabel} No allowance is renewed from diagnostic pairs.`);
     setText($('st-diagnostic-text'),JSON.stringify({status:coachStatus,revision:state.revision,resources,resetEvidence,
       ...(result?{metrics:result.metrics,evidence:result.evidence,horizon:result.horizon,continuation:result.continuation}:{}),
       note:'Only the shown sequence has been checked. Continued ST play is not guaranteed.'},null,2));
