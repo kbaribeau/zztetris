@@ -23,18 +23,25 @@ function move(s,action){if(!s.active||s.topOut)return s;const a=s.active;let nex
  if(action==='HOLD'){if((s.rules===LEGACY_PROFILE.id&&!s.canHold)||(!s.hold&&!s.queue.length))return s;const type=s.hold||s.queue[0];next={...s,active:spawn(type),hold:a.type,canHold:s.rules===PROFILE.id,queue:s.hold?s.queue:s.queue.slice(1),streamCursor:s.streamCursor+(s.hold?0:1)};next.topOut=!fits(next.board,next.active);}
  else if(action==='L'||action==='R'||action==='SD'){const trial={...a,x:a.x+(action==='L'?-1:action==='R'?1:0),y:a.y+(action==='SD'?1:0),lastRotation:null};if(!fits(s.board,trial))return s;next={...s,active:trial};}
  else if(['CW','CCW','R180'].includes(action)){const r=(a.rotation+(action==='CW'?1:action==='CCW'?3:2))%4;const table=kicks[`${a.type==='I'?'I':'N'}${a.rotation}-${r}`];for(let i=0;i<table.length;i++){const [dx,dy]=table[i],trial={...a,x:a.x+dx,y:a.y-dy,rotation:r,lastRotation:{from:a.rotation,to:r,kickIndex:i}};if(fits(s.board,trial)){next={...s,active:trial};break;}}if(!next)return s;}
- else if(action==='HD'){let landing={...a};while(fits(s.board,{...landing,y:landing.y+1}))landing.y++;if(landing.y!==a.y)landing.lastRotation=null;const occupied=cells(landing),classification=spin(s.board,landing),board=s.board.slice();
-  // Cells are row-major: rebuild each touched string once, leaving all other
-  // immutable rows shared. The outer array and every edited row stay private.
-  for(let i=0;i<occupied.length;){const y=occupied[i][1],row=[...board[y]];
-   do{row[occupied[i][0]]=a.type;i++;}while(i<occupied.length&&occupied[i][1]===y);
-   board[y]=row.join('');
-  }
-  // Imported positions may already contain full rows outside the piece.
-  // Keep the complete scan and original pre-clear row indices/order.
-  const cleared=[];let rows=board.filter((r,i)=>{if(!r.includes('.')){cleared.push(i);return false;}return true;});while(rows.length<40)rows.unshift('..........');const active=spawn(s.queue[0]);const topOut=occupied.every(([,y])=>y<20)||(active!==null&&!fits(rows,active));const event={type:a.type,target:{type:a.type,x:landing.x,y:landing.y,rotation:landing.rotation},cells:occupied,lines:cleared.length,clearedRows:cleared,spin:classification,topOut};next={...s,board:rows,active,canHold:true,queue:s.queue.slice(1),streamCursor:s.streamCursor+(active?1:0),topOut,lastEvent:event};}
+ else if(action==='HD'){const landing=dropLanding(s.board,a);return lockLanding(s,landing,spin(s.board,landing));}
  else return s;
- return{...next,revision:s.revision+1,lastEvent:action==='HD'?next.lastEvent:null};
+ return{...next,revision:s.revision+1,lastEvent:null};
+}
+// Geometry is enough to identify a hard-drop outcome. Keep locking separate so
+// enumeration can discard duplicate/longer witnesses before allocating rows,
+// cells, events, queue slices and complete successor states.
+function dropLanding(board,a){let landing={...a};while(fits(board,{...landing,y:landing.y+1}))landing.y++;if(landing.y!==a.y)landing.lastRotation=null;return landing;}
+function lockLanding(s,landing,classification){const occupied=cells(landing),board=s.board.slice();
+ // Cells are row-major: rebuild each touched string once, leaving all other
+ // immutable rows shared. The outer array and every edited row stay private.
+ for(let i=0;i<occupied.length;){const y=occupied[i][1],row=[...board[y]];
+  do{row[occupied[i][0]]=landing.type;i++;}while(i<occupied.length&&occupied[i][1]===y);
+  board[y]=row.join('');
+ }
+ // Imported positions may already contain full rows outside the piece.
+ // Keep the complete scan and original pre-clear row indices/order.
+ const cleared=[];let rows=board.filter((r,i)=>{if(!r.includes('.')){cleared.push(i);return false;}return true;});while(rows.length<40)rows.unshift('..........');const active=spawn(s.queue[0]);const topOut=occupied.every(([,y])=>y<20)||(active!==null&&!fits(rows,active));const event={type:landing.type,target:{type:landing.type,x:landing.x,y:landing.y,rotation:landing.rotation},cells:occupied,lines:cleared.length,clearedRows:cleared,spin:classification,topOut};
+ return{...s,board:rows,active,canHold:true,queue:s.queue.slice(1),streamCursor:s.streamCursor+(active?1:0),topOut,lastEvent:event,revision:s.revision+1};
 }
 function replay(state,actions){let s=state;const events=[];for(let i=0;i<actions.length;i++){const n=move(s,actions[i]);if(n===s)return{state:s,events,valid:false,failedAt:i};s=n;if(s.lastEvent)events.push(s.lastEvent);}return{state:s,events,valid:true,failedAt:null};}
 // Legal four-cell poses have origins in [-3,9] x [-3,39]. Keep the three
@@ -107,13 +114,14 @@ function placementsCore(s,options={}){
   if(heads[k]>=queues[k].length)continue;
   if(visited>=maxNodes||now()>=deadline){complete=false;break outer;}
   const indexInQueue=heads[k]++,n=queues[k][indexInQueue];visited++;
-  const locked=move(n.state,'HD'),event=locked.lastEvent;
-  if(event&&!event.topOut){
-   // In v2 deduplicate equivalent outcomes, not merely matching targets: an
-   // empty-hold swap-back can have the same target but different held/next pieces.
-   const id=unlimited?(((outcomeRoots[k]*16+event.target.x+4)*64+event.target.y+4)*4+event.target.rotation)*3+(event.spin==='full'?2:event.spin==='mini'?1:0):[roots[k].hold,event.target.type,event.target.x,event.target.y,event.target.rotation,event.spin].join(':');
-   const index=seenOut.get(id);
-   if(index===undefined||n.depth+1<out[index].witness.length){
+  const landing=dropLanding(n.state.board,n.state.active),classification=spin(n.state.board,landing);
+  // In v2 deduplicate equivalent outcomes, not merely matching targets: an
+  // empty-hold swap-back can have the same target but different held/next pieces.
+  const id=unlimited?(((outcomeRoots[k]*16+landing.x+4)*64+landing.y+4)*4+landing.rotation)*3+(classification==='full'?2:classification==='mini'?1:0):[roots[k].hold,landing.type,landing.x,landing.y,landing.rotation,classification].join(':');
+  const index=seenOut.get(id);
+  if(index===undefined||n.depth+1<out[index].witness.length){
+   const locked=lockLanding(n.state,landing,classification),event=locked.lastEvent;
+   if(!event.topOut){
     const placement={target:event.target,hold:roots[k].hold,holdCount:roots[k].holdCount,witness:witness(queues[k],indexInQueue,roots[k].witness),state:locked,event};
     if(index===undefined){seenOut.set(id,out.length);out.push(placement);
      // A new witness can settle an existential query, not complete enumeration.
