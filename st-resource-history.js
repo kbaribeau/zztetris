@@ -33,7 +33,7 @@ function start(raw,{fresh=false}={}){
   const result=seal(h);transport.set(result,{origin:o,fresh,parent:null,step:null,length:0,handoffAtAction:null,resetAtActions:[]});return result;
  }catch{return invalid(raw,'Could not validate public origin.');}
 }
-function completionList(board,stages=[]){return S.geometry(board).center.completions.filter(c=>S.supportedCenterCompletion(c,stages)).map(c=>({piece:c.piece,cells:clone(c.cells)}));}
+function completionList(board,stages=[],first=null){return S.geometry(board).center.completions.filter(c=>S.supportedCenterCompletion(c,stages)&&(!first||S.centerPairCompletion(first,c))).map(c=>({piece:c.piece,cells:clone(c.cells)}));}
 function initialPending(board){const alternatives=completionList(board);return alternatives.length?[{id:'origin',rootId:null,family:null,createdAt:0,alternatives}]:[];}
 function matching(c,e){return c.piece===e.type&&cellsKey(c.cells)===cellsKey(e.cells);}
 function translate(cells,rows){return cells.map(([x,y])=>[x,rows.includes(y)?-1:y+rows.filter(r=>r>y).length]);}
@@ -65,8 +65,8 @@ function updateCenter(h,before,after,e,id){
  }
  h.center.debt=nextDebt;
  if(whole(e)==='center'&&S.CENTER_PAIRS[e.type]){
-  const alternatives=completionList(after.board).filter(c=>c.piece===S.CENTER_PAIRS[e.type]);
-  if(alternatives.length&&!remaining.some(p=>same(p.alternatives,alternatives)))remaining.push({id:'piece-'+id,rootId:id,family:e.type+S.CENTER_PAIRS[e.type],createdAt:h.locks,alternatives});
+  const alternatives=completionList(after.board,[],e.type);
+  if(alternatives.length&&!remaining.some(p=>same(p.alternatives,alternatives)))remaining.push({id:'piece-'+id,rootId:id,family:S.centerPairFamily(e.type),createdAt:h.locks,alternatives});
  }
  h.center.pending=remaining;
 }
