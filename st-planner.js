@@ -1,5 +1,5 @@
 /* Milestone-one finite-information coach. No fixture IDs, seeds or hidden queues. */
-(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules.js'),require('./st-bag.js'),require('./st-structure.js'),require('./st-paired-repair.js'),require('./st-access.js'),require('./st-pattern-history.js'),require('./st-left-foundation.js'),require('./st-resource-history.js'),require('./st-midgame-resources.js'),require('./st-left-context.js'),require('./st-midgame-coaches.js')):factory(root.STRules,root.STBag,root.STStructure,root.STPairedRepair,root.STAccess,root.STPatternHistory,root.STLeftFoundation,root.STResourceHistory,root.STMidgameResources,root.STLeftContext,root.STMidgameCoaches);if(typeof module==='object'&&module.exports)module.exports=api;else root.STPlanner=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,B,S,X,A,H,Y,RH,M,L,C){
+(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules.js'),require('./st-bag.js'),require('./st-structure.js'),require('./st-paired-repair.js'),require('./st-access.js'),require('./st-pattern-history.js'),require('./st-left-foundation.js'),require('./st-resource-history.js'),require('./st-midgame-resources.js'),require('./st-left-context.js'),require('./st-midgame-coaches.js'),require('./st-reset-coach.js')):factory(root.STRules,root.STBag,root.STStructure,root.STPairedRepair,root.STAccess,root.STPatternHistory,root.STLeftFoundation,root.STResourceHistory,root.STMidgameResources,root.STLeftContext,root.STMidgameCoaches,root.STResetCoach);if(typeof module==='object'&&module.exports)module.exports=api;else root.STPlanner=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,B,S,X,A,H,Y,RH,M,L,C,Reset){
 'use strict';
 const coaches=C.create(L);
 const clone=x=>JSON.parse(JSON.stringify(x));
@@ -576,6 +576,7 @@ function resetCandidate(s,initial){
  return result('candidate','Center is below the supported maintenance profile; a complete visible paired-T recovery must still be proved.');
 }
 function resetSelection(raw,options={}){
+ if(options.resourceContext)return Reset.consider(raw,resourceSummary(raw,options));
  let s;try{s=observe(raw);if(R.validate(s).length||(s.bag&&B.validate(s.bag).length))throw new Error('invalid');}catch{return{policy:'joint-low-visible-pair-v2',status:'invalid-observation',resourceRenewal:false};}
  return resetCandidate(s,{...assess(s.board),notches:H.resolve(s,options.patternHistory)});
 }
@@ -670,6 +671,7 @@ function continueConstruction(before,after,advice,event,options={}){
  const tracker={nodes:(verified.visited||0)+replayUnits},suffix=constructionAdvice(observe(after),{...proof,consumed:proof.consumed+1},options.deadline,options.now,Math.max(0,(options.maxNodes??12000)-tracker.nodes),tracker,options);if(suffix)suffix.metrics.nodes=tracker.nodes;return suffix;
 }
 function continueCommitment(before,after,advice,actualEvent=after?.lastEvent,options={}){
+ if(advice?.evidence?.strategy==='reset-coach')return Reset.continuation(before,after,advice,actualEvent,{...options,deadline:options.deadline??Date.now()+150,maxNodes:options.maxNodes??12000});
  if(advice?.recommendation?.kind==='risky'||advice?.status==='recommended-risky-placement')return null;
  options={...options,[pendingLHint]:advice?.evidence?.pendingLStage};
  if(advice?.evidence?.construction){
@@ -2015,6 +2017,7 @@ function planCore(raw,options={}){
 function plan(raw,options={}){return queryRequest(()=>planRequest(raw,options));}
 function queryRequest(run){if(!R.withQueries)return run();return R.withQueries(()=>{const result=run();result.metrics={...result.metrics,queries:R.queryMetrics()};return result;});}
 function planRequest(raw,options={}){
+ if(options.openingPhase!==true){const reset=Reset.plan(raw,options);if(reset)return reset;}
  options={...options,[resourceRepairCache]:new Map(),[pendingLHint]:options.previous?.evidence?.pendingLStage??options.commitment?.advice?.evidence?.pendingLStage??options.pendingLHint};
  const now=options.now||(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs);
  // Only this synchronous invocation can reuse its own fully checked ordinary
@@ -2131,6 +2134,7 @@ function planRequest(raw,options={}){
 // The entire remaining prefix is replayed from the new observation, so a newly
 // revealed piece cannot silently preserve an obsolete proof.
 function advance(raw,previous,action,options={}){
+ if(previous?.evidence?.strategy==='reset-coach')return Reset.retain(raw,previous,{...options,deadline:options.deadline??Date.now()+150,maxNodes:options.maxNodes??12000},action);
  if(previous?.recommendation?.kind==='risky'||previous?.status==='recommended-risky-placement')return null;
  options={...options,[pendingLHint]:previous?.evidence?.pendingLStage};
  if(previous?.evidence?.opening?.scoringPlan)return openingModule().retainScoring(raw,previous,options,action);
@@ -2167,6 +2171,7 @@ function advance(raw,previous,action,options={}){
   evidence:{...previous.evidence,pendingLSelection:null,coveredRepair:repair.proof,coveredRepairPlan:repair.plan,pendingLStage:pendingLProof(resources.repair),knownPieceHorizon:state.queue.length+1,resourceObligations:{status:'checked',binding:resourceBinding(state,options),delayedDPlans:resources.delayedDPlans}}};
 }
 function revalidate(raw,previous,options={}){
+ if(previous?.evidence?.strategy==='reset-coach')return Reset.retain(raw,previous,options);
  if(previous?.recommendation?.kind==='risky'||previous?.status==='recommended-risky-placement')return null;
  options={...options,[pendingLHint]:previous?.evidence?.pendingLStage};
  const now=options.now||(()=>Date.now());options={...options,deadline:options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs),now};
@@ -2444,10 +2449,14 @@ function contextualRiskPreference(raw,supported,options,collector){
  return riskyFallback(raw,supported,options,{...collector,placements},comparison);
 }
 
-function decide(raw,options={}){return queryRequest(()=>{const now=options.now||(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs),collector={key:null,placements:null,complete:false,started:Date.now()};try{collector.key=stateKey(extendForced(observe(raw)));}catch{}options={...options,now,deadline,[riskRootCollector]:collector};const initial=decideRequest(raw,options),result=reservedPiecePlan(raw,initial,options,collector);return result.target?classifySupported(contextualRiskPreference(raw,result,options,collector)):riskyFallback(raw,result,options,collector);});}
+function decide(raw,options={}){return queryRequest(()=>{const now=options.now||(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs),collector={key:null,placements:null,complete:false,started:Date.now()};try{collector.key=stateKey(extendForced(observe(raw)));}catch{}options={...options,now,deadline,[riskRootCollector]:collector};const initial=decideRequest(raw,options);if(initial.evidence?.strategy==='reset-coach')return initial;const result=reservedPiecePlan(raw,initial,options,collector);return result.target?classifySupported(contextualRiskPreference(raw,result,options,collector)):riskyFallback(raw,result,options,collector);});}
 function decideRequest(raw,options={}){
  const now=options.now||(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs),budgetTracker={nodes:0},limit=options.maxNodes??45000;
- options={...options,now,deadline};const previous=options.previous;
+ options={...options,now,deadline};
+ const savedReset=options.commitment?.advice?.evidence?.strategy==='reset-coach'?options.commitment.advice:options.previous?.evidence?.strategy==='reset-coach'?options.previous:null;
+ if(savedReset){const retained=Reset.retain(raw,savedReset,{...options,budgetTracker,maxNodes:limit});if(retained)return{...retained,metrics:{...retained.metrics,nodes:budgetTracker.nodes,revalidationNodes:budgetTracker.nodes}};}
+ if(options.openingPhase!==true){const reset=Reset.plan(raw,{...options,maxNodes:Math.max(0,limit-budgetTracker.nodes)});if(reset)return{...reset,metrics:{...reset.metrics,nodes:(reset.metrics?.nodes||0)+budgetTracker.nodes,revalidationNodes:budgetTracker.nodes}};}
+ const previous=savedReset?null:options.previous;
  const recovery=options.handoffRecovery?{attempted:true,retained:false,nodes:0,reason:options.commitment?'existing-commitment':'not-checked'}:null;
  const recovered=recovery&&!options.commitment?retainHandoffRecovery(raw,{...options,budgetTracker,maxNodes:limit},recovery):null;
  if(recovered)return{...recovered,metrics:{...recovered.metrics,nodes:budgetTracker.nodes,revalidationNodes:budgetTracker.nodes,handoffRecovery:recovery}};

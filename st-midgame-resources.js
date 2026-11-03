@@ -18,11 +18,12 @@ function start(raw,summary={}){
  // the live queue alone must never fabricate a deferred counterpart.
  const observedSL=summary.coverage?.status==='complete'&&Array.isArray(summary.observedSL)?clone(summary.observedSL):null;
  return{active:a,hold:h,queue:q,nextId:next,observedSL,extraZ:summary.extraZ?.status==='available'?'available':summary.extraZ?.status||'unknown',
+  extraZRemaining:Number.isInteger(summary.extraZ?.remaining)?summary.extraZ.remaining:null,resetActive:summary.reset?.status==='active',resetProgress:summary.reset?.progress||0,
   pendingCenter:(summary.center?.pending||[]).map(p=>({rootId:p.rootId,bag:p.rootBag??byId(p.rootId)?.bag??null,family:p.family,alternatives:clone(p.alternatives),created:false})),
   hangingS:(summary.hangingS?.evidence||[]).map(e=>({id:e.sId,bag:e.bag,known:true})),
   unclassifiedS:(summary.hangingS?.unclassified||[]).map(s=>({...clone(s),...(summary.center?.closed?.some(p=>p.family==='SL'&&p.rootId===s.sId&&p.status==='invalidated')?{invalidated:true}:{})})),
   hangingL:(summary.hangingL?.evidence||[]).map(e=>({id:e.lId,bag:e.bag,known:true})),unclassifiedL:clone(summary.hangingL?.unclassified||[]),violations:[],scoredTs:[],
-  originKey:JSON.stringify([summary.coverage?.status,observedSL,all,summary.center?.pending,summary.center?.debt,summary.hangingS?.evidence,summary.hangingS?.unclassified,summary.center?.closed?.filter(p=>p.status==='invalidated'),summary.hangingL?.evidence,summary.hangingL?.unclassified,summary.extraZ?.status,summary.extraZ?.allocations?.map(a=>[a.at,a.pieceId]),summary.milestones?.maintenanceHandoff])};
+  originKey:JSON.stringify([summary.coverage?.status,observedSL,all,summary.center?.pending,summary.center?.debt,summary.hangingS?.evidence,summary.hangingS?.unclassified,summary.center?.closed?.filter(p=>p.status==='invalidated'),summary.hangingL?.evidence,summary.hangingL?.unclassified,summary.extraZ?.status,summary.extraZ?.remaining,summary.reset,summary.extraZ?.allocations?.map(a=>[a.at,a.pieceId]),summary.milestones?.maintenanceHandoff])};
 }
 // Necessary piece-flow test, not a geometric placement proof. Enumerate HOLD
 // choices without spending a T; a partner behind two pending Ts is inaccessible.
@@ -43,8 +44,8 @@ function step(before,p,prior){
  while(n.queue.length<before.queue.length)n.queue.push({id:n.nextId--,type:before.queue[n.queue.length],bag:null});
  for(const action of p.witness||[]){if(action==='HOLD'){if(n.hold){const a=n.active;n.active=n.hold;n.hold=a;}else{n.hold=n.active;n.active=n.queue.shift()??null;}}}
  const piece=n.active,e=p.event;if(!piece||piece.type!==e.type){reject('piece-identity-mismatch');return n;}
- if(e.type==='T'){if(tsd(e))n.scoredTs.push(piece.id);else reject('ordinary-T-must-score');}
- if(e.type==='Z'){if(nonRight(e)){if(n.extraZ!=='available')reject('extra-Z-not-available');n.extraZ='used';}else if(!e.cells.every(([x])=>x>=8))reject('ordinary-Z-outside-reviewed-Right-role');}
+ if(e.type==='T'){if(n.resetActive){if(e.lines===0&&left(e)&&n.resetProgress<2){n.resetProgress++;if(n.extraZRemaining!==null)n.extraZRemaining++;if(n.resetProgress===2)n.resetActive=false;}else reject('reset-T-must-be-zero-clear-Left');}else if(tsd(e))n.scoredTs.push(piece.id);else reject('ordinary-T-must-score');}
+ if(e.type==='Z'){if(nonRight(e)){if(n.extraZRemaining!==null? n.extraZRemaining<=0:n.extraZ!=='available')reject('extra-Z-not-available');if(n.extraZRemaining!==null)n.extraZRemaining--;n.extraZ=n.extraZRemaining>0?'available':'used';}else if(!e.cells.every(([x])=>x>=8))reject('ordinary-Z-outside-reviewed-Right-role');}
  const available=completions(before.board,n.pendingCenter),matches=c=>c.piece===e.type&&key(c.cells)===key(e.cells);
  const finished=n.pendingCenter.filter(p=>!p.lost&&p.alternatives.some(c=>matches(c)&&available.some(a=>a.piece===c.piece&&key(a.cells)===key(c.cells))));
  // Projection-only diagnostic: a proposed route may not spend a usable
@@ -117,7 +118,7 @@ function step(before,p,prior){
  while(n.queue.length<p.state.queue.length)n.queue.push({id:n.nextId--,type:p.state.queue[n.queue.length],bag:null});
  if(n.active?.type!==p.state.active?.type||(n.hold?.type??null)!==p.state.hold)reject('piece-identity-mismatch');
  const pendingT=[n.active,n.hold,...n.queue].some(p=>p?.type==='T');
- n.centerBlocked=n.pendingCenter.some(debt=>debt.lost||pendingT&&!partnerAccessible(n,debt.alternatives.map(c=>c.piece)));
+ n.centerBlocked=n.pendingCenter.some(debt=>debt.lost||!n.resetActive&&pendingT&&!partnerAccessible(n,debt.alternatives.map(c=>c.piece)));
  // Even a completed pair is not a scoring route. A T/T collision is accepted
  // only if the next checked node actually scores one of those identities.
  n.tCollision=n.active?.type==='T'&&n.hold?.type==='T';
@@ -128,7 +129,7 @@ function checkPath(raw,path,summary={}){if(!Array.isArray(path)||path.length>7)r
 // A local landing is positive evidence only. It must be reached from the real
 // observed inventory through a checked finite prefix before it can be promised.
 function repairGoal(event,instance,resource){return event.type==='S'&&left(event)&&resource.hangingS.some(h=>h.id===instance?.id);}
-function binding(resource){return JSON.stringify([resource.active,resource.hold,resource.queue,resource.observedSL,resource.extraZ,resource.pendingCenter,resource.hangingS,resource.unclassifiedS,resource.hangingL,resource.unclassifiedL,resource.violations,resource.scoredTs,Boolean(resource.pendingLDiverted)]);}
+function binding(resource){return JSON.stringify([resource.active,resource.hold,resource.queue,resource.observedSL,resource.extraZ,resource.extraZRemaining,resource.resetActive,resource.resetProgress,resource.pendingCenter,resource.hangingS,resource.unclassifiedS,resource.hangingL,resource.unclassifiedL,resource.violations,resource.scoredTs,Boolean(resource.pendingLDiverted)]);}
 function repair(raw,resource,options={}){const result=repairCore(raw,resource,options);return{...result,queryStatus:result.valid===true?'proven':result.valid===false?'failed-within-scope':'unfinished',scope:{kind:'visible-resource-repair',grammar:'left-center-v1',beamWidth:4,depth:options.depth??4,centerCompletions:options.centerCompletions!==false,...(typeof options.acceptStep==='function'?{additionalStepFilter:true}:{})}};}
 function repairCore(raw,resource,{maxNodes=4000,deadline=Infinity,now=()=>Date.now(),depth=4,notches=S.notchPattern(raw.board),centerCompletions=true,acceptStep=null}={}){
  // This finite repair grammar cannot establish how an already consumed,

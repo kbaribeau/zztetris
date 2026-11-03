@@ -19,7 +19,7 @@ const clone = x => JSON.parse(JSON.stringify(x));
 // intentionally omits that field from its worker message. Match that boundary.
 function publicObservation(state){const observation=P.observe(state);delete observation.lastEvent;return observation;}
 const digest = x => crypto.createHash('sha256').update(typeof x === 'string' ? x : JSON.stringify(x)).digest('hex');
-const SOURCE_FILES = ['st-coach-config.js', 'st-rules.js', 'st-bag.js', 'st-structure.js', 'st-paired-repair.js', 'st-access.js', 'st-pattern-history.js', 'st-left-foundation.js', 'st-left-context.js', 'st-midgame-coaches.js', 'st-planner.js', 'st-opening-patterns.js','st-opening-continuations.js','st-opening-sources.js','st-source-scoring.js', 'st-opening.js', 'st-resource-history.js', 'st-midgame-resources.js', 'st-worker.js', 'st-lab.js', 'st-session.js', 'st-fixtures.js', 'scripts/lib/st-simulation.cjs', 'scripts/lib/st-left-shape-metrics.cjs', 'scripts/lib/st-evaluation.cjs', 'scripts/evaluate-st-protocol.cjs', 'scripts/simulate-st.cjs'];
+const SOURCE_FILES = ['st-coach-config.js', 'st-rules.js', 'st-bag.js', 'st-structure.js', 'st-paired-repair.js', 'st-access.js', 'st-pattern-history.js', 'st-left-foundation.js', 'st-left-context.js', 'st-midgame-coaches.js','st-reset-coach.js', 'st-planner.js', 'st-opening-patterns.js','st-opening-continuations.js','st-opening-sources.js','st-source-scoring.js', 'st-opening.js', 'st-reset-policy.js','st-resource-history.js', 'st-midgame-resources.js', 'st-worker.js', 'st-lab.js', 'st-session.js', 'st-fixtures.js', 'scripts/lib/st-simulation.cjs', 'scripts/lib/st-left-shape-metrics.cjs', 'scripts/lib/st-evaluation.cjs', 'scripts/evaluate-st-protocol.cjs', 'scripts/simulate-st.cjs'];
 const CONFIG = Object.freeze({depth:3, width:8, maxNodes:45000, timeMs:SEARCH_TIME_MS});
 const PRESETS = Object.freeze({quick:{seeds:[10331, 20333], locks:24}, research:{seeds:Array.from({length:16}, (_,i) => 810001 + i * 997), locks:500}});
 const RNG_VERSION = 'mulberry32-seven-bag-v1';
@@ -106,7 +106,7 @@ function createSession(input, api=P) {
     }
   }
   return {
-    get state(){return state;}, get cursor(){return cursor;}, get opening(){return clone(opening);},
+    get resources(){return H.resolve(publicObservation(state),resourceHistory);}, get state(){return state;}, get cursor(){return cursor;}, get opening(){return clone(opening);},
     request(id,options) { const {handoffRecovery:ignored,pendingLHint:ignoredHint,...settings}=options||{};return {type:'plan',id,observation:publicObservation(state),previous:previous?clone(previous):null,commitment:commitment?clone(commitment):null,options:{...settings,...(pendingLHint?{pendingLHint:clone(pendingLHint)}:{}),...(pendingHandoffRecovery?{handoffRecovery:clone(pendingHandoffRecovery)}:{}),resourceContext:H.exportContext(publicObservation(state),resourceHistory),patternHistory:patternHistory?clone(patternHistory):null,openingPhase:opening.active,openingSource:opening.source?clone(opening.source):null,openingClear:opening.clear?clone(opening.clear):null,openingRepair:opening.repair?clone(opening.repair):null}}; },
     execute(advice) {
       const proof=validateAdvice(state,advice);
@@ -114,11 +114,12 @@ function createSession(input, api=P) {
       if(input.future.length-cursor<requiredDraws)throw Object.assign(Error('Private stream cannot replenish this witness; no actions applied'),{code:'INPUT_EXHAUSTED'});
       pendingHandoffRecovery=null;
       const recovery=typeof api.captureHandoffRecovery==='function'?api.captureHandoffRecovery(publicObservation(state),advice,H.exportContext(publicObservation(state),resourceHistory)):null;
+      if(advice.evidence?.strategy==='reset-coach')resourceHistory=H.beginReset(resourceHistory,publicObservation(state));
       const wasOpening=opening.active;opening=api.acceptOpeningResult(opening,advice);
       if(wasOpening&&!opening.active)resourceHistory=H.markHandoff(resourceHistory,publicObservation(state));
       previous={...clone(advice),revision:state.revision};pendingLHint=advice.evidence?.pendingLStage?clone(advice.evidence.pendingLStage):null;
 
-      commitment=advice.recommendation?.kind!=='risky'&&!advice.evidence?.opening && api.resourceGoal(advice.continuation||[]) ? {observation:clone(publicObservation(state)),advice:clone(advice)} : null;
+      commitment=advice.recommendation?.kind!=='risky'&&!advice.evidence?.opening && (advice.evidence?.strategy==='reset-coach'||api.resourceGoal(advice.continuation||[])) ? {observation:clone(publicObservation(state)),advice:clone(advice)} : null;
       let displayed=advice, event=null;
       const actions=[];
       for(const action of advice.witness) {
@@ -152,6 +153,7 @@ function createSession(input, api=P) {
 function runEpisode(input, {config=CONFIG, planner=workerPlanner(), onRecord=()=>{}, api=P}={}) {
   const session=createSession(input,api), started=performance.now();
   const summary={schemaVersion:1,scenario:input.scenario,seed:input.seed,inputHash:input.inputHash,cap:input.locks,config,stop:'lock-cap',censored:true,locks:0,lines:0,tsds:0,quads:0,invalidRecommendations:0,budgetHits:0,openingCompletedAt:null,firstTsdAt:null,firstQuadAt:null,rebuildAfterTsdEvents:0,holds:0,nodes:0,peakHeight:boardMetrics(session.state).height,profile:[],latencies:[]};
+  summary.reset={starts:[],completions:[],firstCompletion:null,postFirstLines:null,postFirstLocks:null,intervals:[]};
   const leftShapes=LS.create(session.state.board);
   let notches=S.notchPattern(session.state.board), cavityDebt=[], centerDebt=[], awaitingRebuild=false;
   const stop=(kind,detail)=>{summary.stop=kind;summary.censored=false;summary.detail=detail;};
@@ -178,7 +180,10 @@ function runEpisode(input, {config=CONFIG, planner=workerPlanner(), onRecord=()=
     // Opening has no inherited maintenance cycle. Do not call recognition changes blocked notches.
     if(!request.options.openingPhase && !check.valid)flags.push('notch-transition');
     if(cavityDebt.length)flags.push('unrepaired-cavity-debt');
-    summary.lines+=event.lines;summary.tsds+=Number(event.lines===2&&event.spin==='full');summary.quads+=Number(event.lines===4);
+    summary.lines+=event.lines;
+    const reset=session.resources.reset;if(reset?.startedAt!==null&&reset?.startedAt!==undefined&&!summary.reset.starts.some(x=>x.at===reset.startedAt))summary.reset.starts.push({at:reset.startedAt,firstLock:summary.locks,linesBefore:summary.lines-event.lines});
+    if(reset?.episodes?.length>summary.reset.completions.length){const episode=reset.episodes.at(-1),record={...clone(episode),lines:summary.lines,remainingZ:session.resources.extraZ.remaining};summary.reset.completions.push(record);if(summary.reset.firstCompletion===null)summary.reset.firstCompletion=record;else{const prior=summary.reset.completions.at(-2);summary.reset.intervals.push({from:prior.completedAt,to:record.completedAt,locks:record.completedAt-prior.completedAt,lines:record.lines-prior.lines});}}
+    summary.tsds+=Number(event.lines===2&&event.spin==='full');summary.quads+=Number(event.lines===4);
     if(event.lines===2&&event.spin==='full'){if(summary.firstTsdAt===null)summary.firstTsdAt=summary.locks;awaitingRebuild=true;}
     if(event.lines===4&&summary.firstQuadAt===null)summary.firstQuadAt=summary.locks;
     if(awaitingRebuild&&event.lines===0&&metrics.regionalSupport){summary.rebuildAfterTsdEvents++;awaitingRebuild=false;}
@@ -192,6 +197,8 @@ function runEpisode(input, {config=CONFIG, planner=workerPlanner(), onRecord=()=
     if(session.state.topOut){stop('top-out');break;}
     if(flags.some(f=>f==='noncanonical-clear'||f==='notch-transition')){stop('policy-violation',flags);break;}
   }
+  if(summary.reset.firstCompletion){summary.reset.postFirstLines=summary.lines-summary.reset.firstCompletion.lines;summary.reset.postFirstLocks=summary.locks-summary.reset.firstCompletion.completedAt;}
+  summary.reset.finalStatus=session.resources.reset?.status??'unknown';summary.reset.finalProgress=session.resources.reset?.progress??null;
   summary.leftShapes=LS.finish(leftShapes);
   summary.elapsedMs=performance.now()-started;summary.final=boardMetrics(session.state);summary.finalObservation=publicObservation(session.state);
   const times=summary.latencies.slice().sort((a,b)=>a-b);
