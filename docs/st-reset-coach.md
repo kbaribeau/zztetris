@@ -68,3 +68,26 @@ canonical reports are retained outside Git. Correctness, aggregate regression
 and exploration are separate. Total game lines and post-first-Reset lines are
 reported separately; the general 85-line post-Reset goal is not an entry rule or
 implicit acceptance gate.
+
+## Pre-entry ordinary proof preference
+
+A support-risk trigger is consideration, not an instruction to discard an
+executable ordinary scoring proof. Before selecting a new Reset, the dispatcher
+revalidates an existing ordinary commitment/previous advice. It prefers that
+exact route only if it contains a visible TSD or its non-T prefix resolves both
+scoring-row support deficits. A fresh ordinary search is preferred only when its
+fully checked public continuation contains an actual TSD and no diverted T.
+An active Reset never takes this branch: its two-T completion contract remains.
+
+The pre-entry comparison shares the caller's deadline and node budget. Ordinary
+work, including retained-proof validation, receives at most 80% of nodes and two
+thirds of remaining wall time; 256 nodes within that ordinary allocation are
+reserved for literal preference verification. All spent work is reported even
+when the ordinary candidate is not preferred. Reset receives only the remaining
+budget. Disabled HOLD is enforced again at the preference replay boundary.
+
+Reset's expansion beam is still bounded by its configured width. Certification
+scans already-enumerated ranked candidates within the same budget rather than
+allowing failed top-ranked certificates to hide a lower-ranked valid prefix.
+The three public-history regression fixtures document actual development misses;
+they are not special-case seed or board inputs to production logic.
