@@ -85,6 +85,13 @@ also available to callers before saving a protocol.
   `mean-paired-delta` (candidate minus baseline); operator is `at-least` or
   `at-most`; threshold must be explicitly justified and numeric. Missing
   measurements yield incomplete, never zero or pass.
+  Coach metrics `openingEntries`, `earlyMidgameEntries`, `lateMidgameEntries`,
+  `resetEntries`, and `compatibilityEntries` map to the matching keys in
+  `summary.coachEntries`. They count actual observed coach entries, including
+  repeated entries, rather than planner calls, completed resets or certified
+  cycles. Imported starts count only observed entries; prior history is not
+  reconstructed. Missing historical counters remain null/unavailable, not zero.
+  These counters become acceptance criteria only when explicitly declared.
 - Uncertainty is `{method: "none"}` or
   `{method: "paired-bootstrap-percentile", confidence, samples, seed, minPairs}`.
   Confidence is strictly between 0 and 1, samples 100–100000, seed uint32,
@@ -132,8 +139,11 @@ aggregate pass. Explicit safety failures also remain in correctness.
 Lock-cap counts are right-censored restricted observations, not indefinite
 survival. Stops, raw counts and censoring are preserved. `budgetHits` becomes
 `budgetExhaustedSuccessfulLocks`: it conflates exhaustion causes and excludes
-terminal abstentions, so it is **not** wall-clock timeout frequency. Phase/reset
-interpretations are annotations. The 85-line post-first-reset goal supplies no
+terminal abstentions, so it is **not** wall-clock timeout frequency. Reports include all five per-run counters, current coach, history scope, and
+per-cohort/per-side count histograms with explicit unavailable-run counts. These
+descriptive distributions do not change aggregate acceptance or safety gates.
+They expose runs still in Opening and repeated entries without asserting that a
+Reset entry completed a full reset. Phase/reset interpretations are annotations. The 85-line post-first-reset goal supplies no
 implicit branch gate. Exploratory JSON is displayed separately and is never read
 by aggregate or correctness computations.
 
@@ -148,3 +158,18 @@ Old artifacts remain retrospective even when later supplied a matching protocol.
 Retrospective numeric criteria may pass, but the aggregate acceptance status
 remains incomplete. Unsupported old input/source contracts must be migrated
 explicitly; this adapter does not guess missing measurements or roots.
+
+Coach entry timing is controller ownership, not search activity. Initial opening
+counts once even if the first request abstains. A selected Reset dispatcher
+counts once even if it cannot return its first move; an ordinary probe does not.
+A checked opening handoff records the ordinary coach at the pre-lock boundary;
+actual locks then update ownership from the verified resource ledger. Reset
+completion is counted immediately, even at the final capped lock. Unknown or
+out-of-profile ordinary histories use `compatibility`, never an invented early
+phase. `coachTransitions` records `{coach, afterLock, reason}`; the initial record
+uses `afterLock: 0`. Stable imports count only the phases observed in this run.
+The former new-run `openingCompletedAt` field is replaced by these counters and
+transitions. Historical raw summaries remain readable, without filling missing
+counters with zeros. A process-killed episode may retain `partialCoachMetrics`
+through its last written lock; these are not complete cohort measurements and
+are deliberately excluded from the complete `coachEntries` aggregate.

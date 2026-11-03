@@ -128,3 +128,47 @@ test('evaluation/direct normalized files fail closed on nonboolean provenance fl
   }
  }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });
+
+test('evaluation/coach entries retain zero repeated entries and unavailable legacy evidence',()=>{
+ const f=fixture();
+ f.a.episodes[0].coachEntries={opening:1,earlyMidgame:1,lateMidgame:2,reset:3,compatibility:0};
+ f.a.episodes[0].currentCoach='reset';f.a.episodes[0].coachHistoryScope='observed-from-import';
+ f.b.episodes[0].coachEntries={opening:1,earlyMidgame:0,lateMidgame:0,reset:0,compatibility:0};f.b.episodes[0].currentCoach='opening';
+ const o=f.normalized(),r=V.evaluate(f.p,...o,[f.receipt]);
+ assert.equal(o[0].episodes[0].measurements.resetEntries,3);
+ assert.equal(o[0].episodes[0].measurements.compatibilityEntries,0);
+ assert.equal(o[0].episodes[1].measurements.resetEntries,null);
+ assert.equal(r.status,'pass','Undeclared missing coach counters must not introduce a gate');
+ const c=r.regression.cohorts[0];
+ assert.deepEqual(c.coachEntryDistributions.resetEntries.baseline,{observed:1,unavailable:1,histogram:[{entries:3,runs:1}]});
+ assert.deepEqual(c.coachEntryDistributions.resetEntries.candidate,{observed:1,unavailable:1,histogram:[{entries:0,runs:1}]});
+ assert.equal(c.pairs[0].baseline.coachHistoryScope,'observed-from-import');
+ const report=V.render(r);
+ assert.match(report,/pair-0 baseline \| reset \| observed-from-import \| 1 \| 1 \| 2 \| 3 \| 0/);
+ assert.match(report,/pair-0 candidate \| opening \| unavailable \| 1 \| 0 \| 0 \| 0 \| 0/);
+ assert.match(report,/pair-1 baseline \| unavailable \| unavailable \| unavailable/);
+ assert.match(report,/3 entries: 1 runs; unavailable: 1 runs/);
+ assert.equal(report,V.render(V.evaluate(f.p,...f.normalized(),[f.receipt])));
+});
+
+test('evaluation/coach count distributions sort numerically and retain every run',()=>{
+ const f=fixture({count:4});
+ for(const m of [f.a,f.b])m.episodes.forEach((e,i)=>e.coachEntries={opening:1,earlyMidgame:[10,2,2,0][i],lateMidgame:0,reset:0,compatibility:0});
+ const r=V.evaluate(f.p,...f.normalized(),[f.receipt]);
+ assert.deepEqual(r.regression.cohorts[0].coachEntryDistributions.earlyMidgameEntries.candidate,{observed:4,unavailable:0,histogram:[{entries:0,runs:1},{entries:2,runs:2},{entries:10,runs:1}]});
+});
+
+test('evaluation/coach metrics can be declared but absent historical counters never pass as zero',()=>{
+ const f=fixture();f.p.cohorts[0].criteria=[{id:'reset-entry-delta',metric:'resetEntries',aggregate:'mean-paired-delta',operator:'at-least',threshold:1,uncertainty:{method:'none'}}];
+ for(const [side,m]of [['baseline',f.a],['candidate',f.b]]){m.episodes.forEach(e=>e.coachEntries={reset:side==='baseline'?1:2});m.evaluationBinding=V.bindProtocol(f.p,side,m.sources,f.p.execution,f.inputs);}
+ let r=V.evaluate(f.p,...f.normalized(),[f.receipt]);assert.equal(r.status,'pass');assert.equal(r.regression.cohorts[0].criteria[0].estimate,1);
+ delete f.b.episodes[0].coachEntries;
+ r=V.evaluate(f.p,...f.normalized(),[f.receipt]);assert.equal(r.status,'incomplete');assert.equal(r.regression.cohorts[0].criteria[0].candidateMean,null);
+ const old=V.normalize(f.b,f.inputs,{legacy:true});assert.equal(old.episodes[0].measurements.resetEntries,null);
+});
+
+test('evaluation/coach metrics reject invalid counts and contradictions with raw evidence',()=>{
+ for(const value of [-1,.5,'1',Infinity]){const f=fixture();f.b.episodes[0].coachEntries={opening:value};assert.throws(()=>f.normalized());}
+ for(const value of ['invalid',[]]){const f=fixture();f.b.episodes[0].coachEntries=value;assert.throws(()=>f.normalized(),/coachEntries must be an object/);}
+ const f=fixture();f.b.episodes[0].coachEntries={opening:1};const o=f.normalized();o[1].episodes[0].measurements.openingEntries=2;assert.throws(()=>V.evaluate(f.p,...o,[f.receipt]),/Raw measurement mismatch/);
+});
