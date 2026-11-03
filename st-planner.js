@@ -10,7 +10,7 @@ function ordinaryRightEligible(event){return !event.cells.some(([x])=>x>=7)||['Z
 // The shared construction presenter also serves the existing paired-T recovery.
 // Only a freshly replay-verified, Reset-eligible proof receives this private
 // scope. No serialized construction kind or caller option can exempt a route.
-const pairedResetProofs=new WeakSet(),pairedResetScope=Symbol('paired-reset-scope'),pendingLStageDisabled=Symbol('pending-L-stage-disabled'),pendingLSelections=new WeakSet(),pendingLHint=Symbol('pending-L-replay-hint');
+const resetScoringExtension=Symbol('reset-scoring-extension'),pairedResetProofs=new WeakSet(),pairedResetScope=Symbol('paired-reset-scope'),pendingLStageDisabled=Symbol('pending-L-stage-disabled'),pendingLSelections=new WeakSet(),pendingLHint=Symbol('pending-L-replay-hint');
 function constructionPolicyOptions(advice,options){return{...options,[pairedResetScope]:pairedResetProofs.has(advice?.evidence?.construction),[pendingLStageDisabled]:Boolean(advice?.evidence?.construction)};}
 function resourceSummary(raw,options={}){return RH.resolve(raw,options.resourceContext?RH.importContext(raw,options.resourceContext):RH.start(raw));}
 function ordinaryResourceCheck(raw,path,options={}){const summary=resourceSummary(raw,options);if(options.resourceContext&&summary.coverage?.status==='invalid')return{valid:false,reason:'invalid-resource-context'};return M.checkPath(raw,path,summary);}
@@ -1502,9 +1502,23 @@ function planCore(raw,options={}){
     proof.status==='visible-Center-and-S-repair'&&proof.path?.some(p=>p.event.type==='L'));
    if(pendingLCompletionPreserved)replacement=false;
   }
+  // Only the pre-entry Reset comparison may expose a longer scoring proof
+  // that literally executes the entire checked saved prefix first. This is
+  // not an unequal-horizon replacement that reorders a protected goal.
+  let resetExactPrefixExtension=false;
+  const literalResetSaved=options[resetScoringExtension]?options.commitment?.advice?.continuation:null;
+  if(!replacement&&!pendingLCompletionPreserved&&options[resetScoringExtension]&&fresh&&Array.isArray(literalResetSaved)&&literalResetSaved.length===commitment.path.length&&commitment.path.length&&fresh.path.length>commitment.path.length&&
+   literalResetSaved.every((p,i)=>JSON.stringify(p.event)===JSON.stringify(fresh.path[i].event)&&JSON.stringify(p.witness)===JSON.stringify(fresh.path[i].witness))&&
+   commitment.path.every((p,i)=>JSON.stringify(p.event)===JSON.stringify(fresh.path[i].event)&&JSON.stringify(p.witness)===JSON.stringify(fresh.path[i].witness))&&
+   fresh.path.slice(commitment.path.length).some(p=>p.event.type==='T'&&p.event.lines===2&&p.event.spin==='full')&&coversResourceGoal(fresh,commitment)&&
+   fresh.cycleDebt===0&&fresh.notchValid&&certifiedCavities(fresh)&&fresh.assessment.maxHeight<20&&fresh.assessment.regionalSupport){
+   qualify([fresh]);
+   resetExactPrefixExtension=Boolean(fresh.qualified&&fresh.assessment.right.entry?.status!=='unresolved-budget'&&accessSafe(fresh)&&resourceSafe(fresh)&&timelyReplacement(fresh,commitment));
+   if(resetExactPrefixExtension){best=fresh;replacement=true;}
+  }
   comparisonSaved=saved;
   base.metrics.commitmentComparison={slAllocation:{enabled:commitment.ordinarySAllocationEnabled===true,savedPaid:commitment.slAllocation?.paid.length??0,freshPaid:fresh?.slAllocation?.paid.length??0,retentionBlocked:Boolean(commitment.ordinarySAllocationEnabled&&fresh&&resourceGoalPrefix(fresh.path,commitment.path)!==null&&(fresh.slAllocation?.paid.length??0)<(commitment.slAllocation?.paid.length??0))},scoringTiming:!options.disableTimelyScoring&&fresh?timingDescription(fresh,saved):null,freshGoalLocks:fresh?resourceGoalPrefix(fresh.path,commitment.path):null,savedGoalLocks:resourceGoalPrefix(commitment.path,commitment.path),
-   freshHorizon:fresh?.path.length??null,savedHorizon:saved.path.length,replacement,rankingPreferred,pendingLCompletionPreserved,delayPrevented:Boolean(!options.disableTimelyScoring&&rankingPreferred&&!replacement&&!pendingLCompletionPreserved),
+   freshHorizon:fresh?.path.length??null,savedHorizon:saved.path.length,replacement,rankingPreferred,pendingLCompletionPreserved,resetExactPrefixExtension,delayPrevented:Boolean(!options.disableTimelyScoring&&rankingPreferred&&!replacement&&!pendingLCompletionPreserved),
    freshSettled:Boolean(fresh?.qualified&&fresh.assessment.right.entry?.status!=='unresolved-budget'),savedSettled:Boolean(saved?.qualified&&saved.assessment.right.entry?.status!=='unresolved-budget')};
   if(!replacement)best=commitment;
  }
@@ -2050,7 +2064,7 @@ function resetDispatch(raw,options={}){
   if(preference)return finish(retained,preference);
  }
  if(now()<ordinaryDeadline&&tracker.nodes<ordinaryLimit){
-  const ordinary=ordinaryPlanRequest(raw,{...probe,maxNodes:Math.max(0,ordinaryLimit-tracker.nodes-256)});tracker.nodes+=ordinary.metrics?.nodes||0;ordinaryExhausted=Boolean(ordinary.evidence?.budgetExhausted)||ordinary.status==='budget-exhausted';
+  const ordinary=ordinaryPlanRequest(raw,{...probe,[resetScoringExtension]:true,maxNodes:Math.max(0,ordinaryLimit-tracker.nodes-256)});tracker.nodes+=ordinary.metrics?.nodes||0;ordinaryExhausted=Boolean(ordinary.evidence?.budgetExhausted)||ordinary.status==='budget-exhausted';
   const preference=resetOrdinaryPreference(raw,ordinary,summary,false,probe,tracker);ordinaryUsed=tracker.nodes;
   if(preference)return finish(ordinary,preference);
  }

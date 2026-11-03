@@ -91,3 +91,15 @@ scans already-enumerated ranked candidates within the same budget rather than
 allowing failed top-ranked certificates to hide a lower-ranked valid prefix.
 The three public-history regression fixtures document actual development misses;
 they are not special-case seed or board inputs to production logic.
+
+### Literal saved-prefix scoring extension
+
+Only inside the private pre-entry Reset comparison, a fresh longer scoring
+route may survive ordinary commitment retention when it literally begins with
+the entire originally saved, checked prefix: every event and action witness
+must match. Its additional public suffix must contain an actual TSD, preserve
+the resource goal and scoring promises, and pass the existing qualification and
+final admission checks within the same budget. Normal ordinary ranking is not
+changed. A same-result but different action tape is not this exception.
+Reordering a saved Center payment, even to the same cells one lock later, is
+explicitly excluded and remains a player-review question.

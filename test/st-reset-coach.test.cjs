@@ -106,3 +106,24 @@ test('Reset ordinary probe charges nonzero resource verification work exactly on
  const retained=box.module.exports.revalidate(f.initial,f.ordinaryCommitment.advice,{...options,budgetTracker:tracker});assert.ok(retained);assert.equal(tracker.nodes,retained.metrics.nodes,'Resource verification is included in the shared tracker, not only returned metrics');
  const result=box.module.exports.plan(f.initial,options),literalCost=result.continuation.reduce((sum,p)=>sum+p.witness.length,0);assert.equal(result.evidence.resetConsideration.preference.kind,'retained-support-repair');assert.equal(result.metrics.nodes,tracker.nodes+literalCost);assert.equal(result.metrics.resetOrdinaryProbe.nodes,result.metrics.nodes);
 });
+test('Reset comparison preserves a literal saved prefix extended to a certified visible TSD',()=>{
+ const f=require('./support/st-reset-exact-prefix-scoring.json'),options={resourceContext:f.resourceContext,patternHistory:f.patternHistory,commitment:f.originalCommitment,openingPhase:false,depth:3,width:8,maxNodes:45000,deadline:Infinity};
+ const saved=f.originalCommitment.advice.continuation,result=P.plan(f.initial,options);
+ assert.ok(result.target,result.reason);assert.equal(result.evidence.resetConsideration?.preference?.kind,'certified-visible-TSD');assert.equal(result.metrics.commitmentComparison.resetExactPrefixExtension,true);
+ for(const [i,p]of saved.entries()){assert.deepEqual(result.continuation[i].event,p.event);assert.deepEqual(result.continuation[i].witness,p.witness);}
+ assert.ok(result.continuation.length>saved.length);assert.ok(result.continuation.some(p=>p.event.type==='T'&&p.event.lines===2&&p.event.spin==='full'));assert.ok(result.metrics.nodes<=45000);
+ let state=R.createState(f.initial);for(const p of result.continuation){const r=R.replay(state,p.witness);assert.equal(r.valid,true);assert.deepEqual(r.events,[p.event]);state=r.state;}
+});
+test('Reset exact-prefix exception cannot reorder a saved Center payment or use a public opt-in flag',()=>{
+ const f=require('./support/st-reset-reordered-scoring-control.json'),options={resourceContext:f.resourceContext,patternHistory:f.patternHistory,commitment:f.originalCommitment,openingPhase:false,depth:3,width:8,maxNodes:45000,deadline:Infinity,resetExactPrefixExtension:true};
+ assert.equal(f.originalCommitment.advice.continuation[0].event.type,'L');assert.equal(f.capturedAdvice.continuation[0].event.type,'J');
+ const result=P.plan(f.initial,options);assert.notEqual(result.evidence.resetConsideration?.preference?.kind,'certified-visible-TSD');assert.equal(result.metrics.resetOrdinaryProbe.selected,false);assert.ok(result.metrics.nodes<=45000);
+});
+test('Reset exact-prefix scoring cannot trust changed saved events or witnesses, disabled HOLD or expired budget',()=>{
+ const f=require('./support/st-reset-exact-prefix-scoring.json'),options={resourceContext:f.resourceContext,patternHistory:f.patternHistory,commitment:f.originalCommitment,openingPhase:false,depth:3,width:8,maxNodes:45000,deadline:Infinity};
+ for(const mutation of ['witness','event','same-result-witness']){const saved=clone(f.originalCommitment);if(mutation==='witness')saved.advice.continuation[0].witness=['HD'];else if(mutation==='event')saved.advice.continuation[0].event.cells[0][0]=0;else {saved.advice.continuation[0].witness=['R','L',...saved.advice.continuation[0].witness];assert.deepEqual(R.replay(f.initial,saved.advice.continuation[0].witness).events,[f.originalCommitment.advice.continuation[0].event]);}
+  const a=P.plan(f.initial,{...options,commitment:saved});assert.notEqual(a.metrics.commitmentComparison?.resetExactPrefixExtension,true);assert.ok(a.metrics.nodes<=45000);
+ }
+ const noHold=P.plan(f.initial,{...options,allowHold:false});assert.notEqual(noHold.metrics.commitmentComparison?.resetExactPrefixExtension,true);assert.ok((noHold.continuation||[]).every(p=>!p.witness.includes('HOLD')));
+ const expired=P.plan(f.initial,{...options,now:()=>123,deadline:123});assert.equal(expired.target,null);assert.ok(expired.metrics.nodes<=45000);
+});
