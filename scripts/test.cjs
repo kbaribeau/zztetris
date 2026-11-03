@@ -49,9 +49,9 @@ async function main() {
       if (!probe.directory?.startsWith(compileCache + path.sep)) throw new Error('Child compile cache did not use the private run directory');
     }
     // Parent watchdog also bounds a child stuck in synchronous product code.
-    // Regional-model regressions add real bounded searches; retain the tighter
-    // per-file deadline below while allowing the larger serial suite to finish.
-    deadline = setTimeout(() => controller.abort(new Error('Suite exceeded 300 seconds')), 300000);
+    // The expanded serial suite can exceed five minutes. Keep the tighter
+    // per-file deadline and product search budgets; allow ten minutes overall.
+    deadline = setTimeout(() => controller.abort(new Error('Suite exceeded 600 seconds')), 600000);
     const stream = run({ files: result.testFiles, concurrency: 1, timeout: 15000, signal: controller.signal });
     for (const outcome of ['pass', 'fail']) stream.on(`test:${outcome}`, data => {
       const file = path.relative(root, data.file || '');
