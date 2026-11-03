@@ -258,7 +258,7 @@ function advicePresentation(path,assessment={},construction=null){
    // S's exact supported targets, never infer a different later pair or trust
    // a copied completed-in-prefix label after its L step has been removed.
    if(first.event.type==='S'&&pair?.status==='completed-in-checked-prefix')pair=null;
-   let alternatives=facts.structure.center.completions.filter(c=>c.piece===partner&&c.resultStatus==='level'&&c.patternSupport==='reference-supported').map(c=>c.cells);
+   let alternatives=facts.structure.center.completions.filter(c=>S.centerPairCompletion(first.event.type,c)&&c.resultStatus==='level'&&c.patternSupport==='reference-supported').map(c=>c.cells);
    for(let i=1;i<path.length;i++){
     const next=path[i];if(next.event.lines){if(first.event.type!=='S')break;const rows=next.event.clearedRows||[];alternatives=alternatives.map(cells=>cells.map(([x,y])=>[x,rows.includes(y)?-1:y+rows.filter(r=>r>y).length])).filter(cells=>cells.every(([,y])=>y>=0));continue;}
     if(next.event.cells.some(([x])=>x>=4&&x<7)){
@@ -2005,10 +2005,10 @@ function planCore(raw,options={}){
    const next=best.path[i];
    if(next.event.lines!==0)break;
    if(next.event.cells.some(([x])=>x>=4&&x<=6)){
-    const completion=facts.structure.center.completions.find(c=>c.piece===orderedPartner&&c.resultStatus==='level'&&c.patternSupport==='reference-supported'&&cellKey(c.cells)===cellKey(next.event.cells));
+    const completion=facts.structure.center.completions.find(c=>S.centerPairCompletion(first.event.type,c)&&c.resultStatus==='level'&&c.patternSupport==='reference-supported'&&cellKey(c.cells)===cellKey(next.event.cells));
     if(centerOnly(next)&&next.event.type===orderedPartner&&completion){
      facts.pairProgress={...facts.pairProgress,orderedPieces:[first.event.type,orderedPartner],step:1,status:'completed-in-checked-prefix',completionLock:i+1};
-     next.structuralEvidence.pairFamily=first.event.type+orderedPartner;
+     next.structuralEvidence.pairFamily=S.centerPairFamily(first.event.type,orderedPartner);
      next.structuralEvidence.pairProgress={orderedPieces:[first.event.type,orderedPartner],step:2,status:'completed',preparationCells:first.event.cells,completionCells:next.event.cells};
     }
     break;

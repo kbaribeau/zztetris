@@ -59,7 +59,7 @@ function repairPrefix(before,steps,options={}){
   debt=repairStep(state.board,r.state.board,p.event,debt,phase.pattern);
   const rows=p.event.clearedRows||[];
   stages=stages.map(c=>({...c,cells:c.cells.map(([x,y])=>[x,rows.includes(y)?-1:y+rows.filter(v=>v>y).length])})).filter(c=>c.cells.every(([,y])=>y>=0));
-  if(!p.event.lines&&p.event.cells.every(([x])=>x>=4&&x<7)&&S.CENTER_PAIRS[p.event.type])stages.push(...S.geometry(r.state.board,{notches:phase.pattern}).center.completions.filter(c=>c.piece===S.CENTER_PAIRS[p.event.type]&&c.resultStatus==='level'&&c.patternSupport==='reference-supported'));
+  if(!p.event.lines&&p.event.cells.every(([x])=>x>=4&&x<7)&&S.CENTER_PAIRS[p.event.type])stages.push(...S.geometry(r.state.board,{notches:phase.pattern}).center.completions.filter(c=>S.centerPairCompletion(p.event.type,c)&&c.resultStatus==='level'&&c.patternSupport==='reference-supported'));
   records.push({created,outstanding:debt.map(c=>c.slice())});state=r.state;notches=phase.pattern;
  }
  // A recognized ordered Center pair is a defined unfinished stage, not a

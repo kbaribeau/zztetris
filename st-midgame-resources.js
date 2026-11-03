@@ -5,7 +5,7 @@
 const clone=x=>JSON.parse(JSON.stringify(x)),key=c=>JSON.stringify(c.slice().sort(([x,y],[u,v])=>x-u||y-v));
 const tsd=e=>e.type==='T'&&e.spin==='full'&&e.lines===2&&S.canonicalClear(e);
 const left=e=>e.cells.every(([x])=>x<4),center=e=>e.cells.every(([x])=>x>=4&&x<7),nonRight=e=>e.cells.every(([x])=>x<7);
-const completions=(board,stages=[])=>S.geometry(board).center.completions.filter(c=>S.supportedCenterCompletion(c,stages)).map(c=>({piece:c.piece,cells:c.cells}));
+const completions=(board,stages=[],first=null)=>S.geometry(board).center.completions.filter(c=>S.supportedCenterCompletion(c,stages)&&(!first||S.centerPairCompletion(first,c))).map(c=>({piece:c.piece,cells:c.cells}));
 // Canonical planning supply shared by proof creation and retention. This adds
 // only the unique remaining public bag member, consumes that deduction once,
 // and never changes the observed history or invents its piece/bag identity.
@@ -67,8 +67,8 @@ function step(before,p,prior){
   return removed?null:{...p,alternatives,lost:Boolean(p.lost)||!alternatives.some(c=>c.cells.every(([,y])=>y>=0)&&after.some(a=>a.piece===c.piece&&key(a.cells)===key(c.cells)))};
  }).filter(Boolean);
  if(center(e)&&!e.lines&&S.CENTER_PAIRS[e.type]){
-  const alternatives=completions(p.state.board).filter(c=>c.piece===S.CENTER_PAIRS[e.type]);
-  if(alternatives.length&&!n.pendingCenter.some(p=>key(p.alternatives[0].cells)===key(alternatives[0].cells)))n.pendingCenter.push({rootId:piece.id,bag:piece.bag,family:e.type+S.CENTER_PAIRS[e.type],alternatives,created:true});
+  const alternatives=completions(p.state.board,[],e.type);
+  if(alternatives.length&&!n.pendingCenter.some(p=>key(p.alternatives[0].cells)===key(alternatives[0].cells)))n.pendingCenter.push({rootId:piece.id,bag:piece.bag,family:S.centerPairFamily(e.type),alternatives,created:true});
  }
  if(e.type==='L'&&piece.bag!==null){
   const paired=finished.find(p=>p.family==='SL');

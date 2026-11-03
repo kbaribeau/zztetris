@@ -139,7 +139,34 @@ function supportedCenterCompletion(c,stages=[]){
   p.alternatives.some(a=>a.piece==='L'&&key(a.cells)===key(c.cells)));
 }
 // The pair is an ordered construction, never inferred from one finishing piece.
-const CENTER_PAIRS=Object.freeze({L:'O',O:'J',S:'L',Z:'J'});
+const CENTER_PAIRS=Object.freeze({L:'O',O:'J',S:'L',Z:'J',J:'Z'});
+// Z/J is one resource/ledger family in either chronological order. Keep the
+// actual order separately in pairProgress and retain the real root identity.
+const centerPairFamily=(first,second=CENTER_PAIRS[first])=>first==='J'&&second==='Z'?'ZJ':second?first+second:null;
+const centerPairCompletion=(first,c)=>c.piece===CENTER_PAIRS[first]&&(first!=='J'||c.access==='hypothetical-spawn-right-tuck');
+// The J-first Z/J partial is not a straight-drop completion. Its exact three
+// rows sit on the same complete, phase-aligned base as the usual Z-first block.
+// Recognize it only with a real right-side tuck witness; a familiar mask cannot
+// waive a blocked corridor, a damaged lower base or a conflicting notch phase.
+function reversedZJCompletion(board,notches,h){
+ if(notches.status!=='established'||h[4]!==h[5]||h[4]!==h[6]+3)return null;
+ const top=40-h[4];if(top<R.PROFILE.spawn.y+1||top+2>=40||!notches.protectedRows.includes(top+2))return null;
+ const rows=board.slice(top,top+3).map(r=>r.slice(4,7).replace(/[^.]/g,'#'));
+ if(rows.join('/')!=='##./#../#..')return null;
+ for(let y=top+3;y<40;y++)for(let x=4;x<7;x++){
+  const blank=x===6&&notches.protectedRows.includes(y);
+  if((board[y][x]==='.')!==blank)return null;
+ }
+ const start=R.createState({board,active:'Z',canHold:false});if(!R.fits(board,start.active))return null;
+ const witness=['R','R','CW',...Array(top-1-R.PROFILE.spawn.y).fill('SD'),'L','HD'];
+ const r=R.replay(start,witness),e=r.events[0];
+ const expected=[[6,top],[5,top+1],[6,top+1],[5,top+2]];
+ if(!r.valid||r.events.length!==1||e.type!=='Z'||e.lines||e.topOut||e.cells.length!==4||
+  !expected.every(([x,y])=>e.cells.some(([u,v])=>x===u&&y===v))||
+  !advanceNotches(board,{state:r.state,event:e},notches).valid)return null;
+ return {piece:'Z',family:null,target:e.target,cells:e.cells,witness,access:'hypothetical-spawn-right-tuck',
+  resultProfile:[h[4],h[4],h[4]],resultStatus:'level',patternSupport:'reference-supported',preserveCells:e.cells.map(c=>c.slice())};
+}
 function localDrops(board,lo,hi,pieces){const out=[],seen=new Set();
  for(const type of pieces)for(let rotation=0;rotation<4;rotation++)for(let x=lo-2;x<=hi;x++){
   const cells=R.cells({type,x,y:0,rotation});if(cells.some(([cx])=>cx<lo||cx>hi))continue;
@@ -308,7 +335,9 @@ function geometry(board,options={}){const notches=options.notches??notchPattern(
  // reuse partner evidence from another phase (or from an unanchored board).
  const key=board.map(r=>r.replace(/[IJLOSTZX#]/g,'#')).join('')+JSON.stringify([notches.status,notches.anchorRow,notches.protectedRows,notches.blockedRows]);if(cache.has(key))return cache.get(key);
  const h=heights(board),left=h.slice(0,4),center=h.slice(4,7),right=h.slice(7),flatLeft=new Set(left).size===1,flatCenter=new Set(center).size===1;
+ const reversedZJ=flatCenter?null:reversedZJCompletion(board,notches,h);
  const centerCompletions=flatCenter?[]:completions(board,4,6,'SLOJZ',notches,h);
+ if(reversedZJ)centerCompletions.push(reversedZJ);
  const leftCompletions=flatLeft?[]:completions(board,0,3,'IJLOSTZ',undefined,h);
  const centerInternal=sealed(board,[4,5,6],h);const leftInternal=covered(board,[0,1,2,3],h);
  const [channel,pedestal,cap]=right,cycle=rightCycle(board,h);
@@ -316,7 +345,7 @@ function geometry(board,options={}){const notches=options.notches??notchPattern(
  // Excess right-wall discontinuity creates an extra repair obligation. It is
  // evidence against the small grammar, not proof of an inaccessible T slot.
  const renewalDebt=rightShape==='unrecognized'?Math.max(1,channel+Math.abs(cap-pedestal-1)):0;
- const motif=centerMotif(board),motifSupported=CENTER_MOTIFS.has(motif);
+ const motif=centerMotif(board),motifSupported=CENTER_MOTIFS.has(motif)||Boolean(reversedZJ);
  const centerStatus=flatCenter?'level':centerCompletions.some(c=>c.patternSupport==='reference-supported')?'supported-partner-completion':'unrecognized';
  // Regional maxima hide a deep well that prevents the scoring rows filling.
  // Permit a one-I-height offset; larger bottlenecks require concrete repair.
@@ -337,7 +366,7 @@ function allocate(obligations,supply){
  return{assignments:best,conflicts,matched:best.length,priorityScore:bestScore,arrivalEstimate:bestDelay,timing:'Distinct instances, essential-role priority and arrival estimates; execution still requires search.'};
 }
 function assess(stateOrBoard,options={}){const state=Array.isArray(stateOrBoard)?{board:stateOrBoard}:stateOrBoard,g=clone(geometry(state.board,options)),obligations=[];
- if(g.center.completions.length)obligations.push({kind:'center-partner',alternatives:[...new Set(g.center.completions.map(c=>c.piece))],completions:g.center.completions,note:'Exact straight-drop completion of the current center surface; keep completion cells free.'});
+ if(g.center.completions.length)obligations.push({kind:'center-partner',alternatives:[...new Set(g.center.completions.map(c=>c.piece))],completions:g.center.completions,note:'Exact replayed completion of the current center surface; keep completion cells free.'});
  if(!g.left.flat&&g.left.completions.length)obligations.push({kind:'left-surface',alternatives:[...new Set(g.left.completions.map(c=>c.piece))],completions:g.left.completions,note:'Optional left-surface improvement, not a mandatory immediate fill.'});
  if(g.right.shapeStatus==='staggered-scoring-wall')obligations.push({kind:'scoring-cycle',alternatives:['T'],completions:[],note:'Normal scoring-wall shape; actual T-spin entry and line completion require execution verification.'});
  if(g.right.cycle.cleanupColumns.length||g.right.cycle.prepareColumn!==null)obligations.unshift({kind:'right-cleanup-I',priority:'essential',alternatives:['I'],completions:[],columns:g.right.cycle.cleanupColumns.length?g.right.cycle.cleanupColumns:[g.right.cycle.prepareColumn],stage:g.right.cycle.cleanupColumns.length?'clear':'prepare',note:'Advance the recognized bottom-four-row cleanup without blocking the remaining scoring cycle.'});
@@ -370,8 +399,8 @@ function transition(before,p,afterStructure,options={}){const beforeNotches=opti
  const repaired=Math.max(0,prior.right.renewalDebt-after.right.renewalDebt)+Math.max(0,prior.left.covered-after.left.covered)+Math.max(0,prior.center.coveredInternal-after.center.coveredInternal);
  debt+=newlyCovered*3+regionalRepair*2-Math.min(8,repaired*2);
  const finish=prior.center.completions.find(c=>c.piece===type&&JSON.stringify(c.cells.slice().sort())===JSON.stringify(cells.slice().sort()));
- const partner=pure==='center'&&after.center.patternSupport==='reference-supported'&&after.center.status!=='unrecognized'?after.center.completions.find(c=>CENTER_PAIRS[type]===c.piece&&c.resultStatus==='level'&&c.patternSupport==='reference-supported'):null;
- const pairFamily=partner?type+partner.piece:null;
+ const partner=pure==='center'&&after.center.patternSupport==='reference-supported'&&after.center.status!=='unrecognized'?after.center.completions.find(c=>centerPairCompletion(type,c)&&c.resultStatus==='level'&&c.patternSupport==='reference-supported'):null;
+ const pairFamily=partner?centerPairFamily(type,partner.piece):null;
  const pairProgress=partner?{orderedPieces:[type,partner.piece],step:1,status:'partner-placement-checked',placedCells:cells,completion:partner}:null;
  // Spending the sole observed Z on optional work destroys a concrete cap
  // opportunity. A later bag guarantee is not a timely visible replacement.
@@ -392,5 +421,5 @@ function transition(before,p,afterStructure,options={}){const beforeNotches=opti
  const reason=allocation==='horizontal-left-I'?'Keep the left region flat.':allocation==='center-partner-preparation'?partner?'Start the ordered '+type+'/'+partner.piece+' center pair.':'Prepare the center; no ordered level-finishing pair has been established.':allocation==='center-completion'?'Complete the center pattern.':allocation==='scoring-double'?'Take the T-spin double and assess its rebuild.':allocation==='scoring-T-diversion'?'Diverts a T from the scoring role; another T may remain, but its timely use is not established.':allocation==='quad-preparation'?'Prepare the right-side I cleanup while keeping column eight open.':allocation==='quad-cleanup'?'Clear the scoring channel with a quad.':allocation==='unrecognized-role'?'This allocation needs additional regional repair evidence.':allocation==='right-cap-extension'?'Extends an existing cap; renewed entry still needs checking.':'Preserve a supported regional piece role.';
  return{reason,cycleViolations,pairFamily,pairProgress,pairEvidence:pairFamily?'ordered actual preparation plus checked level-finishing placement':null,opportunityCost,leftSubstitutes:substitutes,regions,crossRegion:regions.length>1,allocation,status:['unrecognized-role','scoring-T-diversion','right-cap-extension'].includes(allocation)?'requires-repair-evidence':'supported-local-role',dependencyDebt:debt,newlyCovered,regionalRepair,repairCredit:Math.min(8,repaired*2),note:'Crossing a boundary is not forbidden. Debt measures unsupported allocation and new structural repair burden; a later checked repair may repay it.'};
 }
-return Object.freeze({leftSurface,assess,transition,geometry,cavityFacts,cavityRepairDebt,instances,allocate,canonicalClear,centerFoundation,centerLevelBase,notchPattern,advanceNotches,supportedCenterCompletion,CENTER_PAIRS,leftSubstitutes,clearCache:()=>{cache.clear();substituteCache.clear();}});
+return Object.freeze({leftSurface,assess,transition,geometry,cavityFacts,cavityRepairDebt,instances,allocate,canonicalClear,centerFoundation,centerLevelBase,notchPattern,advanceNotches,supportedCenterCompletion,CENTER_PAIRS,centerPairFamily,centerPairCompletion,leftSubstitutes,clearCache:()=>{cache.clear();substituteCache.clear();}});
 });
