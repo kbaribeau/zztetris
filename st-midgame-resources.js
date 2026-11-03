@@ -23,7 +23,7 @@ function start(raw,summary={}){
   hangingS:(summary.hangingS?.evidence||[]).map(e=>({id:e.sId,bag:e.bag,known:true})),
   unclassifiedS:(summary.hangingS?.unclassified||[]).map(s=>({...clone(s),...(summary.center?.closed?.some(p=>p.family==='SL'&&p.rootId===s.sId&&p.status==='invalidated')?{invalidated:true}:{})})),
   hangingL:(summary.hangingL?.evidence||[]).map(e=>({id:e.lId,bag:e.bag,known:true})),unclassifiedL:clone(summary.hangingL?.unclassified||[]),violations:[],scoredTs:[],
-  originKey:JSON.stringify([summary.coverage?.status,observedSL,all,summary.center?.pending,summary.center?.debt,summary.hangingS?.evidence,summary.hangingS?.unclassified,summary.center?.closed?.filter(p=>p.status==='invalidated'),summary.hangingL?.evidence,summary.hangingL?.unclassified,summary.extraZ?.status,summary.extraZ?.remaining,summary.reset,summary.extraZ?.allocations?.map(a=>[a.at,a.pieceId]),summary.milestones?.maintenanceHandoff])};
+  originKey:JSON.stringify([summary.coverage?.status,observedSL,all,summary.center?.pending,summary.center?.debt,summary.hangingS?.evidence,summary.hangingS?.unclassified,summary.center?.closed?.filter(p=>p.status==='invalidated'),summary.hangingL?.evidence,summary.hangingL?.unclassified,summary.extraZ?.status,summary.extraZ?.allocations?.map(a=>[a.at,a.pieceId]),summary.milestones?.maintenanceHandoff].concat(summary.reset?.credits?.length||['active','invalid'].includes(summary.reset?.status)?[{reset:summary.reset,remaining:summary.extraZ?.remaining}]:[]))};
 }
 // Necessary piece-flow test, not a geometric placement proof. Enumerate HOLD
 // choices without spending a T; a partner behind two pending Ts is inaccessible.
