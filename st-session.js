@@ -2,7 +2,7 @@
  * restored. This format stores visible inputs, not hidden RNG or future bags. */
 (function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-bag'),require('./st-resource-history'),require('./st-pattern-history'),require('./st-planner'),require('./st-opening'),()=>require('./st-coach-config')):factory(root.STRules,root.STBag,root.STResourceHistory,root.STPatternHistory,root.STPlanner,root.STOpening,()=>root.STCoachConfig);if(typeof module==='object'&&module.exports)module.exports=api;else root.STSession=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,B,H,PH,P,O,C){
 'use strict';
-const FORMAT='zztetris-st-session',VERSION=1,ENGINE='st-coach-session-2026-10-31-delayed-J-v1';
+const FORMAT='zztetris-st-session',VERSION=1,ENGINE='st-coach-session-2026-11-03-reset-v1';
 // Transport-only download hint; never part of a position or coaching proof.
 const DEFAULT_EXPORT_FILENAME='st-lab-coaching-export.json';
 function exportFilename(value){

@@ -8,7 +8,7 @@ The last selected play mode is saved locally as `stLabMode`; unknown or retired 
 
 ## Play
 
-- The first badge above the field names the current session: **Opening** for partial construction, or **Mid-game** for the existing maintenance coaching path, without a visible “Coaching phase” caption. Mid-game is a display label, not a community-cycle classifier or a guarantee that advice is available. Only the checked opening handoff changes Opening to Mid-game; Undo and Restart restore the appropriate session. The phase does not change on a search miss, error or top-out. Placement explanations remain below the board. Community **Reset** detection is future work: finite repairs, quad cleanup and Restart are not labelled Reset.
+- The first badge above the field names **Opening**, **Mid-game**, or the separately selected **Reset** coach. Reset is available only from verified empty-origin late Midgame history. Its second actual zero-clear T wholly in Left ends the phase immediately, even if Midgame must rebuild support. Undo and session replay restore actual progress. A search miss, quad cleanup or Restart does not invent a Reset. Placement explanations remain below the board. See the [Reset contract](docs/st-reset-coach.md).
 - **Undo last placement** (configured Undo key, default T) restores the start of the previous completed placement, before its holds, moves and rotations. It also discards any movement of the current piece. Undo is available after a top-out or finite-queue exhaustion. The last 100 placements are retained; restart, mode changes and imports clear this history. Redo is not currently offered in the ST Lab.
 - Undo preserves the same generated piece sequence using a private append-only tape and rewindable cursor. It restores public bag evidence, stream position, opening phase and any saved coaching commitment, then requests fresh validation. Private tape/history never enter advice requests or exported snapshots; already-seen future pieces are not treated as currently visible. Late worker replies are rejected by worker identity and request/revision checks; a session import may preserve its saved revision for source-proof replay.
 
@@ -97,8 +97,7 @@ address two observed autoplay failures without claiming indefinite sustainabilit
 
 [Verified resource commitments](docs/st-cycle-resource-review.md) preserve checked
 T-scoring and I-Pocket routes across actual locks and fresh worker requests.
-This does not yet recognize the community Midgame/Reset cycle; the known Reset
-reference limitations are documented rather than hidden by a universal T rule.
+These ordinary commitments remain distinct from the separate [Reset coach](docs/st-reset-coach.md); its scoped two-T exception does not weaken ordinary scoring obligations.
 
 Ordinary replacement of an executable scoring commitment also preserves the
 lock timing of each required TSD and I-quad. A later score needs a fully checked,
@@ -207,12 +206,12 @@ Its source examples use [Shocky's guide](https://docs.google.com/document/d/1oqu
 and [retained replay placements](https://jstris.jezevec10.com/replay/26536180).
 Replay test supply is synthetic; original HOLD, preview and bag history are not
 claimed. Center/cross-region T observations remain unclassified by the observer; ordinary
-planner routes still require scoring Ts. Reset readiness follows Shocky’s
-Right-catching-up distinction, not queue pressure. The current conservative
-engineering envelope requires both Left and Center at most two rows above
-Right, and at most three rows apart; these are fixture-tested operational bounds,
-not universal thresholds stated by Shocky. The old high-Left source366 recovery
-is no longer eligible. No new Reset allowance or general Reset coach is enabled.
+planner routes still require scoring Ts. These diagnostics and the old finite-repair
+selection envelope are not the new Reset coach. With complete verified empty-origin
+history, the separate coach considers either-region support/arrival risk in late
+Midgame, persists actual progress, and conserves Z balance through observed
+identities and allocations. It never promotes these synthetic source windows into
+trusted Reset history. See [Reset scope and accounting](docs/st-reset-coach.md).
 
 Hanging-S identification accounts for each observed L's consumption independently
 of its regional label, including Left/Center crossings. If its same-bag S is still
