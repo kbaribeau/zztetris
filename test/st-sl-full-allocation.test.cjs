@@ -11,15 +11,23 @@ function node(q,a,details){return{path:path(q,a.continuation),state:path(q,a.con
  centerContinuity:details.centerContinuity,dependencyDebt:details.dependencyDebt,entryDebt:details.entryDebt,resources:M.checkPath(q.observation,a.continuation,summary(q)).resource,
  notchValid:true,qualified:true,continuationChecked:true,cycleDebt:0,centerDebt:[],cavityDebt:[],key:'comparison-test'};}
 function comparisonPair(){const q=fixture.equal,a=plan('equal'),m=a.metrics.supportedSLPreference,c=node(q,a,m.comparison.candidate),r=node(q,m.referenceAdmission,m.comparison.reference);return{q,a,c,r,opts:{candidateDraw:P.publicDrawHorizon(q.observation,c.path,summary(q)),referenceDraw:P.publicDrawHorizon(q.observation,r.path,summary(q)),initialResources:M.start(q.observation,summary(q))}};}
-function moduleWith(replacements){const module={exports:{}},requireAt=require('node:module').createRequire(require.resolve('../st-planner'));
- vm.runInNewContext(fs.readFileSync(require.resolve('../st-planner'),'utf8'),{module,exports:module.exports,require:n=>replacements[n]||requireAt(n),Date,performance,globalThis:{}});return module.exports;}
+function moduleWith(replacements,observeIncumbent=null,observeAdmissionCall=()=>{}){const module={exports:{}},requireAt=require('node:module').createRequire(require.resolve('../st-planner'));
+ let source=fs.readFileSync(require.resolve('../st-planner'),'utf8');
+ if(observeIncumbent){const seam='preference.incumbentAdmission=admission(incumbent);';assert.equal(source.split(seam).length,2);source=source.replace(seam,seam+'observeIncumbent(incumbent,base.metrics.nodes);');
+  const call='[supportedSLAdmission]:admitSupportedSL';assert.equal(source.split(call).length,2);source=source.replace(call,'[supportedSLAdmission]:(...args)=>{observeAdmissionCall();return admitSupportedSL(...args);}');}
+ vm.runInNewContext(source,{module,exports:module.exports,require:n=>replacements[n]||requireAt(n),Date,performance,globalThis:{},observeIncumbent,observeAdmissionCall});return module.exports;}
 
 test('SL full allocation: default-on pays actual visible L and improves existing Left at equal public horizon',()=>{
  const q=fixture.equal,a=plan('equal'),off=plan('equal',true),m=a.metrics.supportedSLPreference;
  assert.equal(off.metrics.supportedSLPreference,undefined);assert.equal(m.selected,true);assert.equal(m.reason,'strict-left-allocation-gain');assert.equal(m.referenceSource,'exact-incumbent');
- assert.deepEqual(a.continuation.map(p=>p.event.type),['S','Z','L']);assert.deepEqual(off.continuation.map(p=>p.event.type),['L','Z','O']);
+ assert.deepEqual(a.continuation.map(p=>p.event.type),['S','Z','L']);path(q,off.continuation);
  assert.equal(m.comparison.candidateHorizon,3);assert.equal(m.comparison.referenceHorizon,3);assert.deepEqual(m.comparison.candidateDraw.drawn,m.comparison.referenceDraw.drawn);
- assert.equal(m.comparison.candidate.leftScore,7);assert.equal(m.comparison.reference.leftScore,5.4);assert(m.comparison.candidate.structuralScore<m.comparison.reference.structuralScore);
+ // Recompute Left quality from replayed endpoints and the checked resource
+ // ledger, rather than binding the reference to one historical L/Z/O route.
+ const leftScore=advice=>{const end=path(q,advice.continuation).at(-1).state,geometry=S.geometry(end.board),resources=M.checkPath(q.observation,advice.continuation,summary(q)).resource;
+  return require('../st-left-context').evaluate(end,{resources,center:geometry.center,right:geometry.right}).score;};
+ assert.equal(m.comparison.candidate.leftScore,leftScore(a));assert.equal(m.comparison.reference.leftScore,leftScore(off));assert(leftScore(a)>leftScore(off));
+ assert(m.comparison.candidate.structuralScore<m.comparison.reference.structuralScore,'Left gain remains explicit even when the other structural score is lower');
  assert.deepEqual(m.incumbentPrefix,m.referencePrefix);assert.deepEqual(m.incumbentAdmission.continuation,off.continuation);assert.equal(m.referenceAdmission.evidence.gapAccess.reachable,true);
  assert(a.metrics.nodes<=45000);assert.equal(a.metrics.completedBeamDepth,off.metrics.completedBeamDepth);assert(P.revalidate(q.observation,a,options(q)));
  const resources=M.start(q.observation,summary(q)),visible=[resources.active,resources.hold,...resources.queue];assert(visible.some(p=>p?.id===m.paidL.id&&p.type==='L'));assert(m.paidL.id>0);assert(m.firstS.id>0);assert.equal(m.paymentLock,3);
@@ -66,9 +74,14 @@ test('SL horizons: untouched uniquely forced public tail is not a hidden extra d
  const sum=RH.resolve(state,RH.start(state)),extended=M.extendForced(state),r=R.replay(extended,['HD']);assert(r.valid);const draw=P.publicDrawHorizon(state,[{witness:['HD'],event:r.events[0],state:r.state}],sum);assert(draw);assert.equal(draw.draws,1);assert.equal(draw.queue.length,3);
 });
 test('SL optional failure: deadline exhaustion returns exact privately admitted incumbent without a second proof',()=>{
- const q=fixture.equal,baseline=plan('equal',true);let clock=0,attempts=0;
- const api=moduleWith({'./st-midgame-resources.js':{...M,repair:(s,r,o)=>{if(o.acceptStep){attempts++;clock=1500;return{valid:null,visited:127,status:'resource-repair-budget'};}return M.repair(s,r,o);}}});
- const actual=api.plan(q.observation,{...options(q),now:()=>clock,deadline:1500});assert(attempts>0);assert.equal(actual.metrics.supportedSLPreference.selected,false);assert.deepEqual(withoutMetrics(actual),withoutMetrics(baseline));assert.equal(actual.metrics.nodes,baseline.metrics.nodes+127);assert(actual.metrics.nodes<=45000);
+ const q=fixture.equal;let clock=0,attempts=0,incumbent,admittedNodes,admissions=0,admissionCalls=0,proofsAfterDeadline=0;
+ const access=require('../st-access');
+ const api=moduleWith({'./st-midgame-resources.js':{...M,repair:(s,r,o)=>{if(clock>=1500)proofsAfterDeadline++;if(o.acceptStep){attempts++;clock=1500;return{valid:null,visited:127,status:'resource-repair-budget'};}return M.repair(s,r,o);}},
+  './st-access.js':{...access,prefix:(...args)=>{if(clock>=1500)proofsAfterDeadline++;return access.prefix(...args);}}},
+  (advice,nodes)=>{admissions++;assert.equal(clock,0);incumbent=clone(advice);admittedNodes=nodes;},()=>{admissionCalls++;assert.equal(clock,0,'No second admission after the deadline');});
+ const actual=api.plan(q.observation,{...options(q),now:()=>clock,deadline:1500});
+ assert.equal(admissions,1);assert.equal(admissionCalls,1);assert.equal(attempts,1);assert.equal(proofsAfterDeadline,0);assert.equal(actual.metrics.supportedSLPreference.selected,false);
+ assert.deepEqual(withoutMetrics(actual),withoutMetrics(incumbent));assert.equal(actual.metrics.nodes,admittedNodes+127);assert(actual.metrics.nodes<=45000);
 });
 test('SL optional failure: copied positive repair flag and candidate certificate failure cannot replace incumbent',()=>{
  const q=fixture.short,baseline=plan('short',true);let calls=0;

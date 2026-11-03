@@ -1,4 +1,5 @@
 'use strict';
+const equivalent=require('./support/st-equivalent-s.cjs');
 const test=require('node:test'),assert=require('node:assert/strict'),R=require('../st-rules'),P=require('../st-planner'),L=require('../st-left-context'),RH=require('../st-resource-history'),M=require('../st-midgame-resources'),Session=require('../st-session'),harness=require('./support/st-risk-harness.cjs'),fixture=require('./fixtures/risky-d-j17.json');
 const clone=x=>JSON.parse(JSON.stringify(x));
 const placement=(s,w)=>{const r=R.replay(s,w);assert.ok(r.valid);assert.equal(r.events.length,1);return{state:r.state,event:r.events[0],target:r.events[0].target,witness:w};};
@@ -43,6 +44,6 @@ test('risky D / spending the immediate J in Center leaves a delayed Left exit ri
 });
 
 test('risky D / real R1 decision and serialized Worker prefer a supported alternative to J17 risk',()=>{
- const s=origin(),opts={...options(s),depth:3,width:8,maxNodes:45000,timeMs:1500},direct=P.decide(s.state,{...opts,now:()=>0,deadline:Infinity});assert.ok(direct.target);assert.equal(direct.recommendation.kind,'supported');assert.deepEqual(direct.target,{type:'S',x:4,y:26,rotation:0});assert.equal(direct.metrics.riskFallback,undefined,'An existing supported choice skips risk fallback');
+ const s=origin(),opts={...options(s),depth:3,width:8,maxNodes:45000,timeMs:1500},direct=P.decide(s.state,{...opts,now:()=>0,deadline:Infinity});assert.ok(direct.target);assert.equal(direct.recommendation.kind,'supported');equivalent.sPlacement(direct.continuation[0].event,[[5,27],[6,27],[4,28],[5,28]]);assert.equal(direct.metrics.riskFallback,undefined,'An existing supported choice skips risk fallback');
  const request=JSON.parse(JSON.stringify({type:'plan',id:17,observation:s.state,previous:null,commitment:null,options:opts})),actual=require('../scripts/lib/st-simulation.cjs').workerPlanner()(request);assert.equal(actual.recommendation.kind,'supported');assert.deepEqual(actual.target,direct.target);assert.ok(actual.metrics.nodes<=45000);assert.equal(R.replay(s.state,actual.witness).valid,true);assert.equal(actual.recommendation.hazards.length,0);
 });

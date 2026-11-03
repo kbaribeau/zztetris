@@ -1,0 +1,104 @@
+{
+  "description": "Reviewed o-before-double routes before and after effort-neutral ranking; fixed legal alternatives, not planner-selection oracles.",
+  "sourceCommits": {
+    "baseline": "070b4c2f8fa5ec4d5a58cd42955716acaf56b676",
+    "effortNeutral": "bc9120b56b4dffdfbd19721683799574c9cb230b"
+  },
+  "routes": {
+    "baseline": {
+      "witnesses": [
+        [
+          "L",
+          "L",
+          "HD"
+        ],
+        [
+          "R",
+          "R",
+          "R",
+          "CW",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "CW",
+          "HD"
+        ],
+        [
+          "HOLD",
+          "L",
+          "L",
+          "L",
+          "CCW",
+          "L",
+          "HD"
+        ],
+        [
+          "L",
+          "L",
+          "HD"
+        ]
+      ],
+      "pieces": [
+        "O",
+        "T",
+        "I",
+        "J"
+      ],
+      "firstTsdLock": 2,
+      "tsds": 1,
+      "cycle": true
+    },
+    "effortNeutral": {
+      "witnesses": [
+        [
+          "HOLD",
+          "L",
+          "L",
+          "L",
+          "CCW",
+          "L",
+          "HD"
+        ],
+        [
+          "HOLD",
+          "L",
+          "L",
+          "HD"
+        ],
+        [
+          "R",
+          "R180",
+          "HD"
+        ],
+        [
+          "L",
+          "L",
+          "HD"
+        ]
+      ],
+      "pieces": [
+        "I",
+        "O",
+        "S",
+        "J"
+      ],
+      "firstTsdLock": null,
+      "tsds": 0,
+      "cycle": false
+    }
+  }
+}

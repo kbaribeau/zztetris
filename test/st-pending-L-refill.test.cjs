@@ -1,4 +1,5 @@
 'use strict';
+const equivalent=require('./support/st-equivalent-s.cjs');
 const test=require('node:test'),assert=require('node:assert/strict');
 const P=require('../st-planner'),M=require('../st-midgame-resources'),H=require('../st-resource-history'),R=require('../st-rules'),q=require('./fixtures/pending-L-visible-stage.json'),f=require('./fixtures/pending-L-refill.json'),clone=x=>JSON.parse(JSON.stringify(x));
 const bounds={maxNodes:45000,now:()=>0,deadline:Infinity};
@@ -7,7 +8,7 @@ function lifecycle(){const a=P.decide(q.observation,{...q.options,...bounds}),fi
  return{a,s,b,n,result:P.decide(f.afterT.observation,{...f.afterT.options,...bounds,commitment:{observation:f.afterT.observation,advice:n}})};}
 let saved;
 test('pending L refill / actual S25 T26 refill preserves checked waiting candidate and accommodates new public T',()=>{
- saved=lifecycle();const {a,s,b,n,result}=saved;assert.deepEqual(a.target,{type:'S',x:4,y:22,rotation:0});assert.equal(s.continuation.length,2);assert.equal(n.continuation.length,1);assert.equal(result.target.type,'I');assert.equal(result.continuation.length,1);assert.ok(result.metrics.nodes<=45000);
+ saved=lifecycle();const {a,s,b,n,result}=saved;equivalent.sPlacement(a.continuation[0].event,[[5,23],[6,23],[4,24],[5,24]]);assert.equal(s.continuation.length,2);assert.equal(n.continuation.length,1);assert.equal(result.target.type,'I');assert.equal(result.continuation.length,1);assert.ok(result.metrics.nodes<=45000);
  assert.ok(s.evidence.pendingLStage.hintReplayed>=4);assert.ok(n.evidence.pendingLStage.hintReplayed>=5);assert.equal(result.evidence.pendingLStage.waiting.at(-1).event.type,'T');assert.equal(result.evidence.pendingLStage.waiting.at(-1).event.lines,2);
  const replay=R.replay(f.afterT.observation,[...result.continuation,...result.evidence.pendingLStage.waiting].flatMap(p=>p.witness));assert.ok(replay.valid);assert.equal(replay.state.active,null);assert.equal(replay.state.queue.length,0);assert.equal(replay.state.hold,'Z');assert.equal(result.evidence.pendingLStage.arrival,'not-established');
 });

@@ -21,7 +21,7 @@ test('st-advice/controlled empty-hold S/L route names its checked pair precisely
  const plan=controlled.plan(observation,opts);assert.equal(plan.continuation.length,3);
  verifyEmptyOrder(plan.continuation);
  const pair=plan.continuation.find(p=>p.structuralEvidence.pairFamily==='SL');assert.ok(pair);
- assert.deepEqual(pair.structuralEvidence.pairProgress.orderedPieces,['S','L']);
+ assert.deepEqual(Array.from(pair.structuralEvidence.pairProgress.orderedPieces),['S','L']);
  assert.doesNotMatch(plan.reason,/S or L|L\/O pair|O\/J pair/);
 });
 test('st-advice/accepted empty-hold orders retain distinct legacy hold mechanics',()=>{
