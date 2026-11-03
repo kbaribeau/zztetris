@@ -75,7 +75,7 @@ test('st-center-phase/existing incomplete center constructions retain replayable
  const controlled=require('./support/st-controlled-placements.cjs')(observation,Object.values(orders));
  const plan=controlled.plan(observation,{depth:3,width:8,maxNodes:45000});
  const pair=plan.continuation.find(p=>p.structuralEvidence.pairFamily==='SL');assert.ok(pair);
- assert.deepEqual(pair.structuralEvidence.pairProgress.orderedPieces,['S','L']);
+ assert.deepEqual(Array.from(pair.structuralEvidence.pairProgress.orderedPieces),['S','L']);
  const finish=plan.continuation.find(p=>p.event.type==='L'&&p.event.cells.every(([x])=>x>=4&&x<=6));assert.ok(finish);
  assert.equal(new Set(finish.structuralEvidence.structure.center.profile).size,1);
 });

@@ -9,6 +9,10 @@ const clone=x=>JSON.parse(JSON.stringify(x));
 const config={deadline:Infinity,maxNodes:45000,patternHistory:f.patternHistory};
 const saved=()=>({observation:clone(f.observation),advice:{target:f.event.target,witness:f.witness,continuation:[clone(f.savedStep)],evidence:clone(f.savedEvidence)}});
 function checked(a,s=f.observation){assert.ok(a.target,a.reason);const r=R.replay(s,a.witness);assert.ok(r.valid);assert.deepEqual(r.events,[a.continuation[0].event]);assert.equal(a.continuation.length,1);return r;}
+// Fresh non-T selection may use an equivalent S rotation; the reviewed cells
+// and event remain the oracle. Existing commitments below retain exact targets.
+const cells=xs=>xs.map(p=>p.slice()).sort(([x,y],[u,v])=>x-u||y-v);
+function sameStage(event){assert.deepEqual({...event,target:undefined,cells:cells(event.cells)},{...f.event,target:undefined,cells:cells(f.event.cells)});}
 
 test('original delayed partner with held T is not a certified Center preparation',()=>{
  const a=P.plan(original.observation,{deadline:Infinity,maxNodes:45000});
@@ -52,7 +56,8 @@ test('level-two re-entry preserves the already committed actual S stage, not sta
 });
 
 test('level-two re-entry discovers the same checked action without history or future knowledge',()=>{
- const a=P.plan(f.observation,{deadline:Infinity,maxNodes:45000});checked(a);assert.deepEqual(a.continuation[0].event,f.event);
+ const a=P.plan(f.observation,{deadline:Infinity,maxNodes:45000});const replay=checked(a);sameStage(replay.events[0]);
+ const historical=R.replay(f.observation,f.witness);assert.ok(historical.valid);assert.deepEqual(replay.state.board,historical.state.board);assert.deepEqual([replay.state.active,replay.state.hold,replay.state.queue,replay.state.canHold],[historical.state.active,historical.state.hold,historical.state.queue,historical.state.canHold]);
  const extra={...clone(f.observation),hiddenQueue:['T','I','Z'],seed:9,mode:'Reset'};
  const b=P.plan(extra,{deadline:Infinity,maxNodes:45000});assert.deepEqual(b.continuation,a.continuation);assert.deepEqual(b.witness,a.witness);
  assert.equal(a.evidence.commitmentRetained,false);assert.equal(a.evidence.endpointTEntry,'not-established');
@@ -97,7 +102,8 @@ test('level-two re-entry requires completed actual-pose enumeration and honors H
  for(const opts of [{maxNodes:0},{maxNodes:1},{timeMs:0,deadline:undefined}]){
   const a=P.plan(f.observation,{...config,...opts});assert.equal(a.target,null);assert.equal(a.status,'budget-exhausted');assert.equal(a.metrics.levelBaseReentry.selected,false);assert.ok(a.metrics.nodes<=(opts.maxNodes??45000));
  }
- const moved=R.move(R.createState(f.observation),'R'),a=P.plan(moved,config);checked(a,moved);assert.deepEqual(a.witness,['HD']);
+ const root=P.plan(f.observation,config);checked(root);assert.ok(root.witness.length>1);
+ const moved=R.move(R.createState(f.observation),root.witness[0]),a=P.plan(moved,config);sameStage(checked(a,moved).events[0]);
  const held=R.move(R.createState(f.observation),'HOLD'),b=P.plan(held,config);checked(b,held);assert.equal(b.witness[0],'HOLD');
  const blocked=P.plan(held,{...config,allowHold:false});assert.equal(blocked.target,null);
  const noHold=R.move(R.createState({...f.observation,rules:'st-zero-v1'}),'HOLD');assert.equal(noHold.canHold,false);assert.equal(P.plan(noHold,config).target,null);
@@ -105,9 +111,9 @@ test('level-two re-entry requires completed actual-pose enumeration and honors H
 
 test('level-two re-entry retains its exact goal through movement and HOLD, then retires after the lock',()=>{
  for(const start of [R.createState(f.observation),R.move(R.createState(f.observation),'HOLD')]){
-  let s=start,a=P.decide(s,config);checked(a,s);let commitment={observation:clone(s),advice:clone(a)};
-  while(a.witness.length>1){const action=a.witness[0];s=R.move(s,action);const advanced=P.advance(s,a,action,config);assert.ok(advanced);
-   a=P.decide(s,{...config,previous:advanced,commitment});checked(a,s);assert.equal(a.evidence.commitmentRetained,true);assert.deepEqual(a.target,f.event.target);
+  let s=start,a=P.decide(s,config);sameStage(checked(a,s).events[0]);const selectedTarget=clone(a.target);let commitment={observation:clone(s),advice:clone(a)};
+  while(a.witness.length>1){const action=a.witness[0],remaining=a.witness.slice(1);s=R.move(s,action);const advanced=P.advance(s,a,action,config);assert.ok(advanced);
+   a=P.decide(s,{...config,previous:advanced,commitment});checked(a,s);assert.equal(a.evidence.commitmentRetained,true);assert.deepEqual(a.target,selectedTarget);assert.deepEqual(a.witness,remaining);
    commitment={observation:clone(s),advice:clone(a)};
   }
   const r=R.replay(s,a.witness);assert.equal(P.continueCommitment(s,r.state,a,r.events[0],config),null);
@@ -141,9 +147,10 @@ test('st-lab level-two re-entry survives fresh worker movement, lock and Undo re
   const all=[];g.window.Worker=class{constructor(){all.push(this);}postMessage(m){this.message=clone(m);}terminate(){this.terminated=true;}respond(result){this.onmessage({data:{type:'result',id:this.message.id,revision:this.message.observation.revision,result}});}};
   g.element('#st-snapshot').value=JSON.stringify(f.observation);g.click('#st-import');
   const respond=()=>{g.advance(40);const worker=all.at(-1),m=worker.message,a=P.decide(m.observation,{...m.options,timeMs:undefined,previous:m.previous,commitment:m.commitment});checked(a,m.observation);worker.respond(a);return{m,a};};
-  const first=respond();assert.equal(first.m.commitment,null);assert.deepEqual(first.a.target,f.event.target);
-  g.window.stLab.act('R');const moved=respond();assert.ok(moved.m.commitment);assert.equal(moved.a.evidence.commitmentRetained,true);assert.deepEqual(moved.a.witness,['HD']);
-  g.window.stLab.act('HD');g.advance(40);assert.equal(all.at(-1).message.commitment,null);assert.equal(all.at(-1).message.options.openingPhase,false);
-  g.window.stLab.act('UNDO');const restored=respond();assert.ok(restored.m.commitment);assert.deepEqual(restored.a.target,f.event.target);assert.equal(restored.a.evidence.verifiedLocks,1);
+  const first=respond();assert.equal(first.m.commitment,null);sameStage(first.a.continuation[0].event);
+  const selectedTarget=clone(first.a.target);let current=first;assert.ok(current.a.witness.length>1);
+  while(current.a.witness.length>1){const [action,...remaining]=current.a.witness;g.window.stLab.act(action);current=respond();assert.ok(current.m.commitment);assert.equal(current.a.evidence.commitmentRetained,true);assert.deepEqual(current.a.target,selectedTarget);assert.deepEqual(current.a.witness,remaining);}
+  assert.deepEqual(current.a.witness,['HD']);g.window.stLab.act('HD');g.advance(40);assert.equal(all.at(-1).message.commitment,null);assert.equal(all.at(-1).message.options.openingPhase,false);
+  g.window.stLab.act('UNDO');const restored=respond();assert.ok(restored.m.commitment);assert.deepEqual(restored.a.target,selectedTarget);assert.deepEqual(restored.a.witness,first.a.witness);assert.deepEqual(restored.m.observation.active,first.m.observation.active);assert.deepEqual(restored.m.observation.board,first.m.observation.board);assert.equal(restored.a.evidence.verifiedLocks,1);
  });
 });

@@ -2,6 +2,7 @@
 const {SEARCH_TIME_MS}=require('../st-coach-config');
 const test=require('node:test'),assert=require('node:assert/strict');
 const R=require('../st-rules'),S=require('../st-structure'),P=require('../st-planner'),F=require('../st-fixtures'),LC=require('../st-left-context');
+const equivalent=require('./support/st-equivalent-s.cjs');
 const I=require('./support/st-user-cleanup-i.json');
 const alternatives=require('./support/st-accepted-cycle-alternatives.json');
 const config={depth:3,width:8,maxNodes:45000};
@@ -9,7 +10,7 @@ function replay(s,a){assert.ok(a.target,a.reason);for(const p of a.continuation)
 for(const id of ['restore-the-right-cap','center-before-quad-cleanup','double-above-the-cleanup-i'])for(const timed of [false,true])test(`cycle regression: ${id}, ${timed?`production ${SEARCH_TIME_MS}ms`:'full bounded search'}`,()=>{
  const f=F.get(id),a=P.plan(f.observation,{...config,...(timed?{timeMs:SEARCH_TIME_MS}:{})});
  replay(R.createState(f.observation),a);
- assert.deepEqual(a.target,R.replay(R.createState(f.observation),f.expectations.referenceWitness).events[0].target);
+ equivalent.event(a.continuation[0].event,R.replay(R.createState(f.observation),f.expectations.referenceWitness).events[0]);
  assert.equal(a.hold,f.expectations.referenceWitness.includes('HOLD'));
  if(!timed){assert.equal(a.metrics.completeDepth,3);assert.equal(a.evidence.budgetExhausted,false);}
  assert.deepEqual(a.continuation[0].structuralEvidence.cycleViolations,[]);
@@ -34,7 +35,7 @@ for(const timed of [false,true])test(`cycle: inherited D is exited before the sa
  // Preserve the original I-column10/column8/Z-access mechanics independently
  // of the supported selector. This old snapshot already has D and no next J.
  assertCleanupPreparation(before,{state:literal.state,event:literal.events[0]});assert.equal(LC.isD(before.board),true);assert.equal(LC.isD(literal.state.board),true);assert.equal(LC.immediateJStarts(literal.state).length,0);
- const a=P.plan(I,{...config,...(timed?{timeMs:SEARCH_TIME_MS}:{})});replay(before,a);assert.deepEqual(a.target,{type:'S',x:2,y:23,rotation:3});assert.equal(a.hold,true);
+ const a=P.plan(I,{...config,...(timed?{timeMs:SEARCH_TIME_MS}:{})});replay(before,a);equivalent.sPlacement(a.continuation[0].event,[[2,24],[2,25],[3,25],[3,26]]);assert.equal(a.hold,true);
  const exit=R.replay(before,a.witness).state;assert.equal(LC.isD(exit.board),false,'The supported S actually exits inherited D');
  const second=a.continuation[1],r=R.replay(exit,second.witness);assert.ok(r.valid);assert.deepEqual(second.target,literal.events[0].target);assertCleanupPreparation(exit,{state:r.state,event:r.events[0]});assert.equal(second.structuralEvidence.allocation,'quad-preparation');
 });

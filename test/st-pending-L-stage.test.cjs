@@ -1,4 +1,5 @@
 'use strict';
+const equivalent=require('./support/st-equivalent-s.cjs');
 const test=require('node:test'),assert=require('node:assert/strict');
 const R=require('../st-rules'),S=require('../st-structure'),A=require('../st-access'),M=require('../st-midgame-resources'),H=require('../st-resource-history'),PH=require('../st-pattern-history'),P=require('../st-planner');
 const route=require('./fixtures/covered-repair-plan.json').ordinaryCenter,q=require('./fixtures/pending-L-visible-stage.json'),clone=x=>JSON.parse(JSON.stringify(x));
@@ -17,7 +18,7 @@ test('pending L / exact player seven-lock route passes full admission without pr
  assert.equal(a.evidence.pendingLStage.target.access,'conditional-fresh-L-only');
 });
 test('pending L / actual root selects cleaner Center S among certified searched choices, with unresolved alternatives disclosed',()=>{
- const a=P.decide(q.observation,{...q.options,...bounds});assert.deepEqual(a.target,{type:'S',x:4,y:22,rotation:0});assert.ok(a.metrics.nodes<=45000);
+ const a=P.decide(q.observation,{...q.options,...bounds});equivalent.sPlacement(a.continuation[0].event,[[5,23],[6,23],[4,24],[5,24]]);assert.ok(a.metrics.nodes<=45000);
  assert.equal(a.evidence.pendingLStage.waiting.length,4);assert.equal(a.evidence.pendingLSelection.horizon,3);assert.equal(a.evidence.pendingLSelection.globallyOptimal,false);
  assert.ok(a.evidence.pendingLSelection.higherRankedUnresolved>0);assert.equal(a.evidence.searchIncomplete,true);
  const joined=[...a.continuation,...a.evidence.pendingLStage.waiting],r=R.replay(q.observation,joined.flatMap(p=>p.witness));assert.equal(r.valid,true);assert.equal(r.events.reduce((n,e)=>n+e.lines,0),6);

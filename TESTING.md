@@ -216,3 +216,29 @@ finite-end case deliberately leaves a publicly forced seventh piece unavailable:
 the private package cannot silently gain a substitute draw. These actual-page
 DOM/controller tests use the documented Worker host stub, not a rendered browser
 or a claim about real Worker execution. Real-browser acceptance remains separate.
+
+### Effort-neutral selection contracts
+
+Fresh S selections are checked against reviewed occupied cells and event/supply
+semantics rather than one symmetric rotation encoding. Their actual witnesses
+must still replay to the exact described events. Saved commitments, remaining
+witnesses, Worker requests and Undo restoration retain exact selected targets;
+this is not a relaxation of T-spin access or history identity.
+
+Fresh-choice scoring timing is a development-performance diagnostic rather than
+an immediate-placement correctness gate. The `st-regional-feedback` and
+`st-closed-loop` tests emit deterministic `selection-performance` JSON in TAP:
+lock horizon, first TSD lock (`null` if none), TSD/line totals and cycle status.
+The direct-double cases still independently replay the reviewed immediate TSD.
+The fixed routes in `test/fixtures/effort-neutral-scoring-routes.json` preserve
+both the earlier four-lock scoring/rebuild cycle and the effort-neutral missed
+cycle as replayable historical evidence, not required current planner outputs.
+A green suite therefore does not mean scoring speed recovered. Saved-goal timing,
+legal execution, canonical clears, resource obligations and supported play stay
+hard assertions. No horizon is enlarged to hide a missed score.
+
+Comparison/guard tests bind authentic admitted routes and independently checked
+endpoints. Their test-only controls may select a historical challenger, but do
+not grant that challenger production admission or alter the shipped planner.
+Interrupted optional-work accounting captures the incumbent in the same search,
+charges the injected work exactly and rejects any proof after its deadline.

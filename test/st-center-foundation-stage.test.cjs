@@ -83,6 +83,18 @@ test('center preparation with no accessible finishing L is not retained as a sup
 test('Center goal veto / isolated historical challenger cannot spend the visible L and recreate a waiting goal',()=>{
  const load=require('./support/st-center-goal-d-isolated.cjs'),c=timelyControl();
  const run=api=>{const saved=api.continueCommitment(c.origin,c.after,c.advice,c.event);assert.ok(saved);return api.plan(c.after,{maxNodes:45000,now:()=>0,deadline:Infinity,commitment:{observation:c.after,advice:saved}});};
- const kept=run(load());assert.equal(kept.metrics.commitmentComparison.pendingLCompletionPreserved,true);assert.equal(kept.metrics.commitmentComparison.replacement,false);assert.deepEqual(kept.target,{type:'S',x:4,y:27,rotation:0});
+ let comparison;
+ const kept=run(load({observeComparison:value=>{comparison=value;}}));
+ assert.equal(comparison.rankingPreferred,true);assert.equal(comparison.replacement,true,'The challenger would otherwise replace the saved goal');
+ const {fresh,commitment}=comparison;
+ assert.equal(fresh.resourceRepair.waitingStage,true);assert(commitment.resources.pendingCenter.some(p=>p.family==='SL'));
+ assert.equal(commitment.resourceRepair.valid,true);assert.notEqual(commitment.resourceRepair.waitingStage,true);assert.equal(commitment.resourceRepair.status,'visible-Center-and-S-repair');
+ assert(commitment.resourceRepair.path.some(p=>p.event.type==='L'));
+ // Both sides are real executable paths, even though this isolated guard test
+ // deliberately controls the unrelated D gate and ranking preference.
+ for(const candidate of [fresh,commitment]){const replay=R.replay(c.after,candidate.path.flatMap(p=>p.witness));assert.ok(replay.valid);assert.deepEqual(replay.events,candidate.path.map(p=>p.event));}
+ const completion=R.replay(commitment.state,commitment.resourceRepair.path.flatMap(p=>p.witness));assert.ok(completion.valid);assert(completion.events.some(p=>p.type==='L'));
+ assert.equal(kept.metrics.commitmentComparison.pendingLCompletionPreserved,true);assert.equal(kept.metrics.commitmentComparison.replacement,false);assert.deepEqual(kept.target,{type:'S',x:4,y:27,rotation:0});
  const mutant=run(load({disablePreservation:true}));assert.equal(mutant.metrics.commitmentComparison.pendingLCompletionPreserved,false);assert.equal(mutant.metrics.commitmentComparison.replacement,true,'Disabling the real preservation guard must expose the bad waiting replacement');
+ assert.deepEqual(mutant.target,fresh.path[0].event.target);
 });

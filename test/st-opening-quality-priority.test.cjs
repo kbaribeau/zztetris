@@ -1,6 +1,7 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const P=require('../st-planner'),R=require('../st-rules'),B=require('../st-bag'),H=require('../st-resource-history');
+const equivalent=require('./support/st-equivalent-s.cjs');
 const fixture=require('./fixtures/opening-z-allocation.json'),clone=x=>JSON.parse(JSON.stringify(x));
 // These are the actual public preview suffixes observed after locks 17–21 in
 // the retained branch, not generator input or a planner-visible hidden future.
@@ -37,19 +38,19 @@ function oldGoal(raw,base){
 test('opening quality priority: fresh worker keeps Right cap and Center completion, then actually accommodates held S',()=>{
  const a=observed(18);assert.equal(a.summary.extraZ.status,'unknown');
  for(const i of [2,3,4]){
-  const q=a.request(i),advice=freshWorker(q);assert.deepEqual(advice.target,fixture.steps[i].event.target);assert.ok(advice.metrics.nodes<=45000);assert.equal(advice.evidence.resourceObligations.status,'checked');assert.equal(advice.evidence.gapAccess.reachable,true);
+  const q=a.request(i),advice=freshWorker(q);equivalent.event(advice.continuation[0].event,fixture.steps[i].event);assert.ok(advice.metrics.nodes<=45000);assert.equal(advice.evidence.resourceObligations.status,'checked');assert.equal(advice.evidence.gapAccess.reachable,true);
   assert.equal(a.summary.extraZ.status,'unknown','A projected route does not mutate the observed baseline');assert.equal(advice.evidence.structure.openingQuality.baselineGranted,false);
   if(i===4){assert.equal(advice.witness[0],'HOLD');assert.equal(advice.holdCount,1);}
   a.execute(advice.witness,reveals[i],{handoff:advice.phase==='maintenance'&&Boolean(advice.evidence.openingHandoff)});
-  assert.deepEqual(a.state.lastEvent,fixture.steps[i].event);
+  equivalent.event(a.state.lastEvent,fixture.steps[i].event);
  }
  assert.equal(a.summary.extraZ.status,'available');assert.equal(a.summary.extraZ.baseline.at,21);assert.equal(a.summary.openingAllocation.firstTsdAt,18);assert.equal(a.summary.hangingS.status,'none-observed');assert.equal(a.summary.hangingL.status,'none-observed');assert.equal(a.summary.center.pending.length,0);
 });
 
 test('opening quality priority: legal growth remains revalidatable, but same-horizon saved TSD goal prefers resolved quality',()=>{
- const a=observed(),q=a.request(),fresh=decide(q);assert.deepEqual(fresh.target,fixture.steps[4].event.target);
+ const a=observed(),q=a.request(),fresh=decide(q);equivalent.event(fresh.continuation[0].event,fixture.steps[4].event);
  const old=oldGoal(q.observation,fresh);assert.equal(P.resourceGoal(old.continuation),true);assert.ok(P.revalidate(q.observation,old,{...q.options,...bounds}),'Ranking does not turn the old legal L route into a forbidden action');
- const selected=decide({...q,commitment:{observation:q.observation,advice:old}});assert.deepEqual(selected.target,fixture.steps[4].event.target);assert.ok(selected.metrics.nodes<=45000);
+ const selected=decide({...q,commitment:{observation:q.observation,advice:old}});equivalent.event(selected.continuation[0].event,fixture.steps[4].event);assert.ok(selected.metrics.nodes<=45000);
  assert.equal(selected.metrics.commitmentComparison.replacement,true);assert.equal(selected.metrics.commitmentComparison.freshHorizon,3);assert.equal(selected.metrics.commitmentComparison.savedHorizon,3);assert.equal(selected.metrics.commitmentComparison.freshGoalLocks,3);assert.equal(selected.metrics.commitmentComparison.freshSettled,true);assert.equal(selected.metrics.commitmentComparison.savedSettled,true);
  assert.equal(P.resourceGoalPrefix(selected.continuation,old.continuation),3,'The old scoring goal is still paid, not replaced by an earlier S-only prefix');
  const bounded=decide({...q,commitment:{observation:q.observation,advice:old}},{maxNodes:4000});assert.deepEqual(bounded.target,old.target);assert.equal(bounded.metrics.commitmentComparison.replacement,false);assert.ok(bounded.metrics.nodes<=4000);assert.ok(P.resourceGoalPrefix(bounded.continuation,old.continuation)!==null);

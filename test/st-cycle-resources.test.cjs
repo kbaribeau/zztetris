@@ -1,6 +1,6 @@
 'use strict';
 const {SEARCH_TIME_MS}=require('../st-coach-config');
-const test=require('node:test'),assert=require('node:assert/strict');
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const R=require('../st-rules'),P=require('../st-planner'),S=require('../st-structure');
 const cases=require('./support/st-cycle-resources.json');
 const config={depth:3,width:8,maxNodes:45000,timeMs:SEARCH_TIME_MS,now:()=>0};
@@ -85,12 +85,34 @@ for(const original of require('./support/st-commitment-comparison.json')){const 
  const suffix=P.continueCommitment(c.before,c.snapshot,c.previous,c.event);assert.ok(suffix);
  // Fixed node budget removes host-timing noise from this policy regression.
  const a=P.plan(c.snapshot,{...config,now:()=>0,commitment:{observation:c.snapshot,advice:suffix}});
- assert.ok(a.target,a.reason);assert.deepEqual(a.target,c.name==='quad goal before trailing filler'?suffix.target:c.expectedTarget);assert.equal(a.metrics.commitmentComparison.replacement,c.name!=='quad goal before trailing filler');
+ assert.ok(a.target,a.reason);
+ // Neutral effort ranking now keeps this exact saved I route: the historical
+ // alternative is no longer preferred. The inverse, real replacement control
+ // below still exercises the same-horizon replacement branch.
+ assert.deepEqual(a.target,suffix.target);assert.equal(a.metrics.commitmentComparison.replacement,false);
+ if(c.name==='equal-length scoring alternatives'){assert.equal(a.metrics.commitmentComparison.rankingPreferred,false);assert.deepEqual(a.continuation.map(p=>p.event),suffix.continuation.map(p=>p.event));}
  assert.equal(a.metrics.commitmentComparison.freshHorizon,a.metrics.commitmentComparison.savedHorizon);
  assert.equal(a.metrics.commitmentComparison.freshSettled,true);assert.equal(a.metrics.commitmentComparison.savedSettled,true);
  assert.ok(P.resourceGoalPrefix(a.continuation,suffix.continuation));
- let s=P.observe(c.snapshot);for(const step of a.continuation){const r=R.replay(s,step.witness);assert.ok(r.valid);assert.ok(S.canonicalClear(r.events[0]));s=r.state;}
+ let s=P.observe(c.snapshot);for(const step of a.continuation){const r=R.replay(s,step.witness);assert.ok(r.valid);assert.deepEqual(r.events,[step.event]);assert.ok(S.canonicalClear(r.events[0]));s=r.state;}
 });}
+test('same-horizon commitment replacement: a certified alternative can replace a lower-ranked saved scoring route',()=>{
+ const c=require('./support/st-commitment-comparison.json')[0],module={exports:{}};
+ // Admit the previously reviewed alternate I placement using real rules and
+ // proofs. Restrict only root enumeration, not rank, resource or safety checks.
+ vm.runInNewContext(fs.readFileSync(require.resolve('../st-planner'),'utf8'),{module,Date,performance,require:id=>id==='./st-rules.js'?{...R,placements:(state,options)=>{
+  const found=R.placements(state,options);return JSON.stringify(state.board)===JSON.stringify(c.snapshot.board)?{...found,placements:found.placements.filter(p=>JSON.stringify(p.target)===JSON.stringify(c.expectedTarget))}:found;
+ }}:require(id.replace('./','../'))});
+ const saved=JSON.parse(JSON.stringify(module.exports.plan(c.snapshot,{...config,deadline:Infinity})));
+ assert.deepEqual(saved.target,c.expectedTarget);assert.equal(saved.continuation.length,3);assert.ok(P.revalidate(c.snapshot,saved,{...config,deadline:Infinity}));
+ const a=P.plan(c.snapshot,{...config,deadline:Infinity,commitment:{observation:c.snapshot,advice:saved}}),m=a.metrics.commitmentComparison;
+ assert.ok(a.target,a.reason);assert.notDeepEqual(a.target,saved.target);assert.equal(m.rankingPreferred,true);assert.equal(m.replacement,true);
+ assert.equal(m.freshHorizon,m.savedHorizon);assert.equal(m.freshHorizon,3);assert.equal(m.freshSettled,true);assert.equal(m.savedSettled,true);
+ assert.ok(P.resourceGoalPrefix(a.continuation,saved.continuation));assert.equal(m.scoringTiming.allowed,true);assert.deepEqual(m.scoringTiming.delayed,[]);
+ for(const advice of [saved,a]){let state=P.observe(c.snapshot);for(const step of advice.continuation){const r=R.replay(state,step.witness);assert.ok(r.valid);assert.deepEqual(r.events,[step.event]);assert.ok(S.canonicalClear(r.events[0]));state=r.state;}}
+ const schedule=advice=>advice.continuation.flatMap((p,i)=>p.event.spin==='full'&&p.event.lines===2?[i+1]:[]);
+ assert.deepEqual(schedule(saved),[3]);assert.deepEqual(schedule(a),schedule(saved));
+});
 test('original quad suffix cannot promise an O hidden behind a T bottleneck',()=>{
  const c=require('./support/st-commitment-comparison.json')[1];assert.equal(P.continueCommitment(c.before,c.snapshot,c.previous,c.event),null);
  const control=comparisonControl(c),suffix=P.continueCommitment(control.before,control.snapshot,control.previous,control.event);assert.ok(suffix);
