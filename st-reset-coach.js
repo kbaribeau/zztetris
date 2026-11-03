@@ -102,7 +102,9 @@ function plan(raw,options={}){
   next.sort((a,b)=>b.resource.resetProgress-a.resource.resetProgress||b.score-a.score||a.path.length-b.path.length||a.path[0].witness.length-b.path[0].witness.length);
   // Certify before spending the rest of the beam budget. A validated incumbent
   // survives incomplete deeper exploration; no unchecked fallback is admitted.
-  for(const n of next.slice(0,width)){
+  // Beam width limits expansion, not certification of already-enumerated
+  // candidates. Failed proofs must not hide a lower-ranked valid incumbent.
+  for(const n of next){
    if(now()>=deadline||visited>=limit)break;
    if(best&&(n.resource.resetProgress<best.node.resource.resetProgress||n.resource.resetProgress===best.node.resource.resetProgress&&n.score<=best.node.score))continue;
    const verified=check(raw,n.path,{...options,deadline,now,maxNodes:Math.max(0,limit-visited)});visited+=verified.visited;

@@ -2016,8 +2016,50 @@ function planCore(raw,options={}){
 }
 function plan(raw,options={}){return queryRequest(()=>planRequest(raw,options));}
 function queryRequest(run){if(!R.withQueries)return run();return R.withQueries(()=>{const result=run();result.metrics={...result.metrics,queries:R.queryMetrics()};return result;});}
-function planRequest(raw,options={}){
- if(options.openingPhase!==true){const reset=Reset.plan(raw,options);if(reset)return reset;}
+// A height-risk trigger permits consideration; it does not revoke an actual
+// public scoring proof or an exact retained repair that removes the deficit.
+function resetOrdinaryPreference(raw,advice,summary,retained,options,tracker){
+ if(!advice?.target||advice.evidence?.strategy==='reset-coach'||advice.recommendation?.kind==='risky')return null;
+ let state=observe(raw),tsd=false;
+ for(const step of advice.continuation||[]){
+  if(options.allowHold===false&&step.witness?.includes('HOLD'))return null;
+  const cost=step.witness?.length||0;if(options.now()>=options.deadline||tracker.nodes+cost>options.maxNodes)return null;tracker.nodes+=cost;
+  const replay=R.replay(state,step.witness);if(!replay.valid||replay.events.length!==1)return null;
+  const event=replay.events[0];if(event.type==='T'&&!(event.lines===2&&event.spin==='full'))return null;
+  if(event.type==='T')tsd=true;state=replay.state;
+ }
+ if(tsd)return{kind:'certified-visible-TSD',retained};
+ const after=retained?Reset.consider(state,summary):null;
+ return after?.status==='ordinary-preferred'&&after.deficit?.left===0&&after.deficit?.center===0?{kind:'retained-support-repair',retained:true,afterDeficit:after.deficit}:null;
+}
+function resetDispatch(raw,options={}){
+ if(options.openingPhase===true)return null;
+ const summary=resourceSummary(raw,options),decision=Reset.consider(raw,summary);
+ if(!['candidate','active'].includes(decision.status))return null;
+ if(decision.status==='active')return Reset.plan(raw,options);
+ const now=options.now||(()=>Date.now()),began=now(),deadline=options.deadline??(options.timeMs===undefined?Infinity:began+options.timeMs),limit=options.maxNodes??45000;
+ // Reserve 20% of nodes and one third of the available time for Reset. This
+ // is a bounded pre-entry comparison, never a new budget or hidden future.
+ const ordinaryLimit=Math.floor(limit*0.8),ordinaryDeadline=Number.isFinite(deadline)?Math.min(deadline,began+Math.max(0,deadline-began)*2/3):Infinity,tracker={nodes:0};
+ const probe={...options,now,deadline:ordinaryDeadline,maxNodes:ordinaryLimit},saved=options.commitment?.advice||options.previous;
+ const finish=(result,preference=null)=>({...result,metrics:{...result.metrics,nodes:tracker.nodes,elapsedMs:now()-began,resetOrdinaryProbe:{nodes:ordinaryUsed,limit:ordinaryLimit,budgetExhausted:ordinaryExhausted,selected:Boolean(preference),preference}},evidence:{...result.evidence,...(preference?{resetConsideration:{...decision,status:'ordinary-proof-preferred',preference}}:{})}});
+ let ordinaryUsed=0,ordinaryExhausted=false;
+ if(saved?.evidence?.strategy!=='reset-coach'&&saved?.target&&now()<ordinaryDeadline&&ordinaryLimit>0){
+  const retained=revalidate(raw,saved,{...probe,budgetTracker:tracker});
+  const preference=retained&&resetOrdinaryPreference(raw,retained,summary,true,probe,tracker);ordinaryUsed=tracker.nodes;
+  if(preference)return finish(retained,preference);
+ }
+ if(now()<ordinaryDeadline&&tracker.nodes<ordinaryLimit){
+  const ordinary=ordinaryPlanRequest(raw,{...probe,maxNodes:Math.max(0,ordinaryLimit-tracker.nodes-256)});tracker.nodes+=ordinary.metrics?.nodes||0;ordinaryExhausted=Boolean(ordinary.evidence?.budgetExhausted)||ordinary.status==='budget-exhausted';
+  const preference=resetOrdinaryPreference(raw,ordinary,summary,false,probe,tracker);ordinaryUsed=tracker.nodes;
+  if(preference)return finish(ordinary,preference);
+ }
+ ordinaryExhausted=ordinaryExhausted||now()>=ordinaryDeadline||tracker.nodes>=ordinaryLimit;
+ const reset=Reset.plan(raw,{...options,now,deadline,maxNodes:Math.max(0,limit-tracker.nodes)});tracker.nodes+=reset.metrics?.nodes||0;
+ return finish(reset);
+}
+function planRequest(raw,options={}){const reset=resetDispatch(raw,options);return reset||ordinaryPlanRequest(raw,options);}
+function ordinaryPlanRequest(raw,options={}){
  options={...options,[resourceRepairCache]:new Map(),[pendingLHint]:options.previous?.evidence?.pendingLStage??options.commitment?.advice?.evidence?.pendingLStage??options.pendingLHint};
  const now=options.now||(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs);
  // Only this synchronous invocation can reuse its own fully checked ordinary
@@ -2455,7 +2497,7 @@ function decideRequest(raw,options={}){
  options={...options,now,deadline};
  const savedReset=options.commitment?.advice?.evidence?.strategy==='reset-coach'?options.commitment.advice:options.previous?.evidence?.strategy==='reset-coach'?options.previous:null;
  if(savedReset){const retained=Reset.retain(raw,savedReset,{...options,budgetTracker,maxNodes:limit});if(retained)return{...retained,metrics:{...retained.metrics,nodes:budgetTracker.nodes,revalidationNodes:budgetTracker.nodes}};}
- if(options.openingPhase!==true){const reset=Reset.plan(raw,{...options,maxNodes:Math.max(0,limit-budgetTracker.nodes)});if(reset)return{...reset,metrics:{...reset.metrics,nodes:(reset.metrics?.nodes||0)+budgetTracker.nodes,revalidationNodes:budgetTracker.nodes}};}
+ {const reset=resetDispatch(raw,{...options,maxNodes:Math.max(0,limit-budgetTracker.nodes)});if(reset)return{...reset,metrics:{...reset.metrics,nodes:(reset.metrics?.nodes||0)+budgetTracker.nodes,revalidationNodes:budgetTracker.nodes}};}
  const previous=savedReset?null:options.previous;
  const recovery=options.handoffRecovery?{attempted:true,retained:false,nodes:0,reason:options.commitment?'existing-commitment':'not-checked'}:null;
  const recovered=recovery&&!options.commitment?retainHandoffRecovery(raw,{...options,budgetTracker,maxNodes:limit},recovery):null;
