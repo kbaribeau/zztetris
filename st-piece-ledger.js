@@ -8,7 +8,7 @@ const freeze=x=>{if(x&&typeof x==='object'&&!Object.isFrozen(x)){Object.values(x
 const seal=x=>{freeze(x);trusted.add(x);return x;};
 const view=s=>({rules:s.rules,board:s.board.slice(),active:s.active?clone(s.active):null,hold:s.hold??null,queue:s.queue.slice(),canHold:s.canHold,streamCursor:s.streamCursor||0,topOut:Boolean(s.topOut)});
 const key=cells=>JSON.stringify(cells.slice().sort(([ax,ay],[bx,by])=>ax-bx||ay-by));
-const completion=board=>S.geometry(board).center.completions.filter(c=>c.resultStatus==='level'&&c.patternSupport==='reference-supported').map(c=>({piece:c.piece,cells:clone(c.cells)}));
+const completion=(board,first=null)=>S.geometry(board).center.completions.filter(c=>c.resultStatus==='level'&&c.patternSupport==='reference-supported'&&(!first||S.centerPairCompletion(first,c))).map(c=>({piece:c.piece,cells:clone(c.cells)}));
 const matches=(a,b)=>a.piece===b.type&&key(a.cells)===key(b.cells);
 const translate=(cells,rows)=>cells.map(([x,y])=>[x,rows.includes(y)?-1:y+rows.filter(r=>r>y).length]);
 function invalid(raw,reason){let observation=null;try{observation=view(raw);}catch{}return seal({version:1,coverage:'invalid',reason,observation});}
@@ -48,8 +48,8 @@ function observeStructure(h,before,after,e,p){
  if(['S','L'].includes(p.type)&&left)h.structure.left[p.type]++;
  let started=false;
  if(center&&S.CENTER_PAIRS[p.type]){
-  const alternatives=afterAvailable.filter(c=>c.piece===S.CENTER_PAIRS[p.type]);
-  if(alternatives.length&&!remaining.some(old=>same(old.alternatives,alternatives))){remaining.push({root:clone(p),family:p.type+S.CENTER_PAIRS[p.type],alternatives});started=true;}
+  const alternatives=completion(after.board,p.type);
+  if(alternatives.length&&!remaining.some(old=>same(old.alternatives,alternatives))){remaining.push({root:clone(p),family:S.centerPairFamily(p.type),alternatives});started=true;}
  }
  if(['S','L'].includes(p.type)&&!left&&!paired&&!started)unresolved(h,p,'This S/L allocation has no recognized Left or Center pairing accommodation.');
  h.structure.pending=remaining;

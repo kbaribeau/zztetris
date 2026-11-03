@@ -101,7 +101,7 @@ test('existing cap recommendation reserves Z for the right and verifies its rene
 test('existing quad rebuild labels L then O by ordered geometry, not by finishing-piece lookup',()=>{
  const s=state('after-quad'),p=placements('after-quad').find(p=>p.event.type==='L'&&p.event.cells.every(([x])=>x>=4&&x<=6)&&S.transition(s,p).pairFamily==='LO');assert.ok(p);
  const t=S.transition(s,p);assert.deepEqual(t.pairProgress.orderedPieces,['L','O']);assert.equal(t.pairProgress.step,1);assert.equal(t.pairProgress.completion.resultStatus,'level');
- assert.deepEqual(S.CENTER_PAIRS,{L:'O',O:'J',S:'L',Z:'J'});
+ assert.deepEqual(S.CENTER_PAIRS,{L:'O',O:'J',S:'L',Z:'J',J:'Z'});
 });
 test('existing cap rebuild does not call an arbitrary right Z a completed cap',()=>{
  const s=state('cap-rebuild'),wrong=R.placements(s).placements.find(p=>p.event.type==='Z'&&p.event.cells.every(([x])=>x>=7)&&S.geometry(p.state.board).right.shapeStatus==='unrecognized');assert.ok(wrong);
