@@ -16,6 +16,12 @@ This initial canonical subset only diverts non-clearing Ts entirely into the Lef
 
 Opening remains active until an actual canonical scoring clear is replay-verified against its preceding public pose, the resulting geometry has balanced Left cells, a supported Center motif and established notches, the aligned lower Center has no non-notch vacancies below its shared surface, and maintenance produces an executable continuation from the newly visible state. A mere slot or height threshold is insufficient. The legacy maintenance check shares the deadline and reserves at most 12,000 nodes from the opening budget; its reserved allowance is reported separately from visited nodes. A failed handoff retains opening or honestly abstains. A narrowly admitted shared-budget recovery is described below.
 
+### Experimental forecast-first revalidation
+
+On the forecast-first experiment branch, an opening advice that has already found a public post-clear maintenance prefix can carry that route transiently across its exact executed inputs. After the matching actual clear, the existing handoff geometry/allocation gates still apply. The route is then rebuilt from the actual public state and current resource/pattern histories, with ordinary structural, endpoint-entry, resource, covered-repair and access checks. No saved admission flags are trusted. Construction-specific and pending-L-selection exceptions are not reused by this route.
+
+This attempt and fresh-search fallback share the existing 200 ms / 12,000-node handoff allowance, including failed proof work. `metrics.handoffWork.legacy.forecast` reports attempts, retention, charged nodes and reason; `source` distinguishes forecast reuse from fresh search. The envelope contains only observed inputs and is discarded on deviation, Undo, reset, import or successful handoff. It is not exported. This changes proof order, not the handoff geometry or ordinary placement policy; finite revalidation is not a promise of sustained play.
+
 ### Observed Hanging-S handoff recovery
 
 The original 12,000-node / 200-ms probe runs first. A successful original prefix
