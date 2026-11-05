@@ -20,7 +20,7 @@ const clone = x => JSON.parse(JSON.stringify(x));
 // intentionally omits that field from its worker message. Match that boundary.
 function publicObservation(state){const observation=P.observe(state);delete observation.lastEvent;return observation;}
 const digest = x => crypto.createHash('sha256').update(typeof x === 'string' ? x : JSON.stringify(x)).digest('hex');
-const SOURCE_FILES = ['st-coach-config.js', 'st-rules.js', 'st-bag.js', 'st-structure.js', 'st-paired-repair.js', 'st-access.js', 'st-pattern-history.js', 'st-left-foundation.js', 'st-left-context.js', 'st-midgame-coaches.js','st-reset-coach.js', 'st-planner.js', 'st-opening-patterns.js','st-opening-continuations.js','st-opening-sources.js','st-source-scoring.js', 'st-opening.js', 'st-reset-policy.js','st-resource-history.js', 'st-midgame-resources.js', 'st-worker.js', 'st-lab.js', 'st-session.js', 'st-fixtures.js', 'scripts/lib/st-simulation.cjs', 'scripts/lib/st-left-shape-metrics.cjs', 'scripts/lib/st-coach-entry-metrics.cjs', 'scripts/lib/st-evaluation.cjs', 'scripts/evaluate-st-protocol.cjs', 'scripts/simulate-st.cjs'];
+const SOURCE_FILES = ['st-coach-config.js', 'st-rules.js', 'st-bag.js', 'st-structure.js', 'st-paired-repair.js', 'st-access.js', 'st-pattern-history.js', 'st-left-foundation.js', 'st-left-context.js', 'st-midgame-coaches.js','st-reset-coach.js', 'st-planner.js', 'st-opening-patterns.js','st-opening-continuations.js','st-opening-sources.js','st-source-scoring.js', 'st-opening.js', 'st-reset-policy.js','st-resource-history.js', 'st-midgame-resources.js', 'st-worker.js', 'st-lab.js', 'st-session.js', 'st-fixtures.js', 'scripts/lib/st-simulation.cjs', 'scripts/lib/st-simulation-runner.cjs', 'scripts/lib/st-left-shape-metrics.cjs', 'scripts/lib/st-coach-entry-metrics.cjs', 'scripts/lib/st-evaluation.cjs', 'scripts/evaluate-st-protocol.cjs', 'scripts/simulate-st.cjs'];
 const CONFIG = Object.freeze({depth:3, width:8, maxNodes:45000, timeMs:SEARCH_TIME_MS});
 const PRESETS = Object.freeze({quick:{seeds:[10331, 20333], locks:24}, research:{seeds:Array.from({length:16}, (_,i) => 810001 + i * 997), locks:500}});
 const RNG_VERSION = 'mulberry32-seven-bag-v1';
@@ -60,7 +60,7 @@ function makeInput(scenario, seed, locks, {withOrigins=false}={}) {
   if(withOrigins)input.pieceOrigins={schemaVersion:1,initialBagKnown:scenario==='empty',futureFirstBag:initialRemainder?0:1,futureFirstSlot:initialRemainder?7-initialRemainder:0};
   return input;
 }
-function workerPlanner({timeoutMs=2500}={}) {
+function workerPlanner({timeoutMs=2500,disableSearchTimeout=false}={}) {
   const sources=Object.fromEntries(SOURCE_FILES.filter(f=>f.endsWith('.js')&&fs.existsSync(path.join(root,f))).map(f=>[f,new vm.Script(fs.readFileSync(path.join(root,f),'utf8'),{filename:f})]));
   return request => {
     let response;
@@ -69,7 +69,10 @@ function workerPlanner({timeoutMs=2500}={}) {
     sources['st-worker.js'].runInContext(context,{timeout:timeoutMs});
     // Fresh context mirrors the page's fresh Worker and prevents cache/timer leakage.
     context.request=clone(request);
-    new vm.Script('self.onmessage({data:request})').runInContext(context,{timeout:timeoutMs});
+    // Infinity is installed only inside this simulation realm, after JSON cloning.
+    // Artifacts retain timeMs:null; browser worker defaults are never changed.
+    const invoke=(disableSearchTimeout?'request.options={...(request.options||{}),timeMs:Infinity};':'')+'self.onmessage({data:request})';
+    new vm.Script(invoke).runInContext(context,disableSearchTimeout?{}:{timeout:timeoutMs});
     if(!response || response.id!==request.id || response.revision!==request.observation.revision)throw Error('Worker protocol mismatch');
     if(response.type==='error')throw Error('Planner worker: '+response.message);
     if(response.type!=='result')throw Error('Unexpected worker response');
@@ -158,7 +161,7 @@ function createSession(input, api=P) {
     }
   };
 }
-function runEpisode(input, {config=CONFIG, planner=workerPlanner(), onRecord=()=>{}, api=P}={}) {
+function runEpisode(input, {config=CONFIG, planner=workerPlanner({disableSearchTimeout:config.timeMs===null}), onRecord=()=>{}, api=P}={}) {
   const session=createSession(input,api), started=performance.now();
   const summary={schemaVersion:1,scenario:input.scenario,seed:input.seed,inputHash:input.inputHash,cap:input.locks,config,stop:'lock-cap',censored:true,locks:0,lines:0,tsds:0,quads:0,invalidRecommendations:0,budgetHits:0,firstTsdAt:null,firstQuadAt:null,rebuildAfterTsdEvents:0,holds:0,nodes:0,peakHeight:boardMetrics(session.state).height,profile:[],latencies:[]};
   summary.reset={starts:[],completions:[],firstCompletion:null,postFirstLines:null,postFirstLocks:null,intervals:[]};

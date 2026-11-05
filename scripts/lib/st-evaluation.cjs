@@ -42,7 +42,7 @@ function validateProtocol(raw,{legacy=false}={}){
  return freeze(p);
 }
 const pairs=p=>p.cohorts.flatMap(c=>c.pairs.map(x=>({...x,cohort:c.id})));
-const manifestExecution=m=>({config:m.config,locks:m.locks,rng:m.rng,lane:m.lane,execution:m.execution,episodeMs:m.episodeMs,node:m.node});
+const manifestExecution=m=>({config:m.config,locks:m.locks,rng:m.rng,lane:m.lane,execution:m.execution,episodeMs:m.episodeMs,node:m.node,...(m.lane==='diagnostic-wall-clock'?{parallel:m.parallel,decisionWatchdogMs:m.decisionWatchdogMs}:{})});
 function bindProtocol(raw,side,actualSources,actualExecution,inputs){
  const p=validateProtocol(raw);check(['baseline','candidate'].includes(side),'Choose baseline or candidate');equal(actualSources,p.sources[side],'Protocol source mismatch');equal(actualExecution,p.execution,'Protocol execution mismatch');
  const expected=pairs(p).map(x=>x.inputHash).sort(),actual=inputs.map(hash).sort();equal(actual,expected,'Protocol inputs missing, duplicated or mismatched');

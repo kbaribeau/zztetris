@@ -30,7 +30,10 @@ exit code. No acceptance thresholds are supplied by the tool.
    each child checks its actual config, sources and input again before execution.
    A mismatch aborts. `protocol.json` and the binding are retained with the run.
    Changed source during execution invalidates evidence. The protocol must use
-   the actual Node runtime. Timed search is not deterministic across hosts/load.
+   the actual Node runtime. Diagnostic `--parallel N` (N > 1) and
+   `--no-search-timeout` runs cannot bind this production-only protocol. Their
+   manifests and normalized observations retain the diagnostic lane, concurrency
+   and watchdog settings, and cannot be evaluated as production acceptance. Timed search is not deterministic across hosts/load.
 3. The simulator emits `observations.json` **after all timed children end**.
    Existing manifests and summaries remain unchanged except additive binding
    metadata. Normalization does not spend the planner's search budget. Root,
