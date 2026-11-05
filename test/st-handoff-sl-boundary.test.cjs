@@ -119,3 +119,17 @@ test('handoff SL: shared recovery gating uses boundary facts even when opening d
  const module={exports:{}};vm.runInNewContext(fs.readFileSync(require.resolve('../st-opening'),'utf8'),{module,require:id=>id==='./st-planner'?planner:id==='./st-resource-history'?history:require(id.replace('./','../')),Date});
  const result=module.exports.plan(q.observation,{...q.options,deadline:1500,now:()=>0});assert.equal(calls,2);assert.equal(result.evidence.openingHandoff.recovery,'shared-after-legacy-budget-miss');assert.equal(result.metrics.nodes,32848);
 });
+test('handoff SL: complete H01 planner admission and actual continuation use the same boundary ledger',()=>{
+ const f=require('./fixtures/opening-handoff-sl-h01.json'),options={resourceContext:f.resourceContext,openingPhase:true,openingClear:f.openingClear,maxNodes:45000,deadline:Infinity,now:()=>0};
+ const before=clone(options.resourceContext),advice=P.decide(f.position,options);
+ assert.ok(advice.target,advice.reason);assert.equal(advice.phase,'maintenance');assert.equal(advice.evidence.openingHandoff.status,'checked-after-actual-clear');assert.equal(advice.evidence.resourceObligations.status,'checked');
+ let state=f.position,history=H.markHandoff(H.importContext(state,f.resourceContext),state);
+ const boundary=H.resolve(state,history),binding=M.start(M.extendForced(state),boundary).originKey;
+ assert.equal(advice.evidence.resourceObligations.binding,binding,'Outer admission cannot restore stale opening pairing evidence');assert.deepEqual(ids(boundary,'L'),[17]);assert.deepEqual(boundary.hangingS.unclassified,[]);
+ assert.equal(P.revalidate(state,clone(advice),{...options,openingPhase:false}),null,'Copied phase/handoff labels cannot rebase an unmarked request');
+ assert.ok(P.revalidate(state,clone(advice),{...options,openingPhase:false,resourceContext:H.exportContext(state,history)})?.target,'Controller-marked history revalidates normally');
+ const checked=M.checkPath(state,advice.continuation,boundary);assert.equal(checked.valid,true);
+ for(const step of advice.continuation)for(const action of step.witness){const next=R.move(state,action);assert.notEqual(next,state);history=H.applyAction(history,state,action,next);state=next;}
+ const after=H.resolve(state,history);assert.equal(after.coverage.status,'complete');assert.deepEqual(checked.resource.hangingS.map(p=>p.id),ids(after,'S'));assert.deepEqual(checked.resource.hangingL.map(p=>p.id),ids(after,'L'));
+ assert.deepEqual(options.resourceContext,before,'Successful planning still cannot mutate the controller ledger');
+});
