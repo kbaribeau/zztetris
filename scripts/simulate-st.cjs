@@ -4,10 +4,21 @@ const fs=require('node:fs'),path=require('node:path'),os=require('node:os');
 const {spawnSync,execFileSync}=require('node:child_process');
 const E=require('./lib/st-simulation.cjs');
 const V=require('./lib/st-evaluation.cjs');
-const ROOT=path.resolve(__dirname,'..'),MAX_FILE=64*1024*1024;
+const ROOT=path.resolve(__dirname,'..'),MAX_FILE=64*1024*1024,MAX_TRACE_FILE=512*1024*1024;
 const json=file=>{if(fs.statSync(file).size>MAX_FILE)throw Error('Artifact exceeds 64 MiB: '+file);return JSON.parse(fs.readFileSync(file,'utf8'));};
 const write=(file,value)=>fs.writeFileSync(file,JSON.stringify(value,null,2)+'\n');
 function readTrace(file){if(fs.statSync(file).size>MAX_FILE)throw Error('Trace exceeds 64 MiB');return fs.readFileSync(file,'utf8').trim().split('\n').filter(Boolean).map(line=>JSON.parse(line));}
+// Long runs use bounded streaming reads; legacy eager readTrace stays at 64 MiB.
+function* streamTrace(file){
+  if(fs.statSync(file).size>MAX_TRACE_FILE)throw Error('Trace exceeds 512 MiB');
+  const fd=fs.openSync(file,'r'),buffer=Buffer.alloc(64*1024);
+  const decoder=new(require('node:string_decoder').StringDecoder)('utf8');let pending='';
+  try{
+    for(;;){const n=fs.readSync(fd,buffer,0,buffer.length,null);if(!n)break;pending+=decoder.write(buffer.subarray(0,n));let newline;
+      while((newline=pending.indexOf('\n'))>=0){const line=pending.slice(0,newline);pending=pending.slice(newline+1);if(line.trim())yield JSON.parse(line);}}
+    pending+=decoder.end();if(pending.trim())yield JSON.parse(pending);
+  }finally{fs.closeSync(fd);}
+}
 function integer(value,name,min,max){const n=Number(value);if(!Number.isSafeInteger(n)||n<min||n>max)throw Error(`${name} must be an integer ${min}..${max}`);return n;}
 function parse(args) {
   const out={};
@@ -55,18 +66,19 @@ function child(specPath) {
   if(spec.evaluationBinding)V.validateBoundEpisode(spec.evaluationBinding,E.sourceHashes(),{...spec.execution,config:spec.config},input);
   fs.writeFileSync(trace,'');
   try {
-    const summary=E.runEpisode(input,{config:spec.config,onRecord:record=>{const line=JSON.stringify(record)+'\n';bytes+=Buffer.byteLength(line);if(bytes>MAX_FILE)throw Object.assign(Error('Trace reached 64 MiB limit'),{code:'ARTIFACT_LIMIT'});fs.appendFileSync(trace,line);}});
+    const summary=E.runEpisode(input,{config:spec.config,onRecord:record=>{const line=JSON.stringify(record)+'\n';bytes+=Buffer.byteLength(line);if(bytes>MAX_TRACE_FILE)throw Object.assign(Error('Trace reached 512 MiB limit'),{code:'ARTIFACT_LIMIT'});fs.appendFileSync(trace,line);}});
     write(path.join(spec.directory,'summary.json'),summary);
   } catch(error) {
     write(path.join(spec.directory,'error.json'),{stop:error.code==='ARTIFACT_LIMIT'?'artifact-limit':'runner-error',message:error.stack});process.exitCode=1;
   }
 }
 function fallback(directory,input,result) {
-  const records=fs.existsSync(path.join(directory,'trace.jsonl'))?readTrace(path.join(directory,'trace.jsonl')):[];
-  const steps=records.filter(r=>r.kind==='lock'),last=steps.at(-1),errFile=path.join(directory,'error.json');
+  const trace=path.join(directory,'trace.jsonl'),profile=[];let last;
+  if(fs.existsSync(trace))for(const record of streamTrace(trace))if(record.kind==='lock'){last=record;profile.push(record.metrics);}
+  const errFile=path.join(directory,'error.json');
   const detail=fs.existsSync(errFile)?json(errFile):{message:result.error?.message||result.stderr||result.signal};
   const stop=result.error?.code==='ETIMEDOUT'?'wall-cap':detail.stop||'runner-error';
-  return{schemaVersion:1,scenario:input.scenario,seed:input.seed,inputHash:input.inputHash,cap:input.locks,stop,censored:stop==='wall-cap',locks:steps.length,lines:last?.metrics.lines||0,tsds:last?.metrics.tsds||0,quads:last?.metrics.quads||0,profile:steps.map(s=>s.metrics),detail,...(last?.coachEntries?{partialCoachMetrics:{coachEntries:last.coachEntries,currentCoach:last.currentCoach,coachTransitions:last.coachTransitions,coachHistoryScope:last.coachHistoryScope,throughLock:last.lock,reason:"Last retained lock only; terminal dispatcher ownership may be unobserved."}}:{})};
+  return{schemaVersion:1,scenario:input.scenario,seed:input.seed,inputHash:input.inputHash,cap:input.locks,stop,censored:stop==='wall-cap',locks:profile.length,lines:last?.metrics.lines||0,tsds:last?.metrics.tsds||0,quads:last?.metrics.quads||0,profile,detail,...(last?.coachEntries?{partialCoachMetrics:{coachEntries:last.coachEntries,currentCoach:last.currentCoach,coachTransitions:last.coachTransitions,coachHistoryScope:last.coachHistoryScope,throughLock:last.lock,reason:"Last retained lock only; terminal dispatcher ownership may be unobserved."}}:{})};
 }
 function exportMinoLedgers(directory,episodes){
   // Deliberately after every timed episode, never between planning requests.
@@ -87,7 +99,7 @@ function main(args=process.argv.slice(2)) {
   if(o.child){child(o.child);return;}
   if(process.version!=='v24.22.0')throw Error('Use Node 24.22.0 from .nvmrc; current '+process.version);
   if(o.compare){const report=compare(...o.compare.map(d=>json(path.join(d,'manifest.json'))));console.log(JSON.stringify(report,null,2));return report;}
-  if(o.replay){const dir=path.resolve(o.replay),result=E.replayRecords(json(path.join(dir,'input.json')),readTrace(path.join(dir,'trace.jsonl')));console.log(JSON.stringify(result,null,2));return result;}
+  if(o.replay){const dir=path.resolve(o.replay),result=E.replayRecords(json(path.join(dir,'input.json')),streamTrace(path.join(dir,'trace.jsonl')));console.log(JSON.stringify(result,null,2));return result;}
   if(o.lane&&o.lane!=='production')throw Error('Only --lane production is supported. Nested wall timers are not controlled; no deterministic-budget claim.');
   const preset=o.preset||'quick';if(!E.PRESETS[preset])throw Error('Unknown preset '+preset);
   const p=E.PRESETS[preset],scenario=o.scenario||'empty';if(!['empty','stable','both'].includes(scenario))throw Error('Unknown scenario '+scenario);
@@ -126,4 +138,4 @@ function main(args=process.argv.slice(2)) {
   return manifest;
 }
 if(require.main===module){try{main();}catch(error){console.error(error.stack);process.exitCode=1;}}
-module.exports={parse,compare,main,failure,readTrace,configuration,exportMinoLedgers};
+module.exports={parse,compare,main,failure,readTrace,streamTrace,configuration,exportMinoLedgers};
