@@ -58,20 +58,22 @@ test('undo: a real saved cycle route is revalidated rather than displayed from h
  assert.ok(P.cycleResources(checked.continuation).tsds>0);assert.equal(g.window.stLab.result,null);all.at(-1).respond(checked);assert.deepEqual(clone(g.window.stLab.result.target),checked.target);
 }));
 test('undo: actual opening scoring clear and checked handoff can be undone back into opening',()=>withPage('st-lab.html',{},g=>{
- const P=require('../st-planner'),f=require('./support/st-undo-opening.json'),all=workers(g);
+ const P=require('../st-planner'),H=require('../st-resource-history'),f=require('./support/st-undo-opening.json'),all=workers(g);
  // Feed the recorded private bags through the real UI generator, not through planner input.
  const randomValues=[];for(const desired of f.bags){const bag=[...'IJLOSTZ'];for(let i=6;i>0;i--){const j=bag.indexOf(desired[i]);assert.ok(j<=i);randomValues.push((j+.25)/(i+1));[bag[i],bag[j]]=[bag[j],bag[i]];}}
  g.window.Math.random=()=>{assert.ok(randomValues.length);return randomValues.shift();};select(g,'empty');
  for(const witness of f.witnesses)for(const action of witness)g.window.stLab.act(action);
  const after=request(g,all);assert.deepEqual(same(after.observation),same(f.afterClear));assert.equal(after.options.openingClear.event.lines,2);
  assert.equal(g.element('#st-phase-name').textContent,'Opening','the actual clear alone does not finish the opening');
+ const boundary=H.resolve(after.observation,H.markHandoff(H.importContext(after.observation,after.options.resourceContext),after.observation));
  const handoff=P.decide(after.observation,{...after.options,timeMs:undefined});assert.equal(handoff.phase,'maintenance');assert.equal(handoff.evidence.openingHandoff.status,'checked-after-actual-clear');all.at(-1).respond(handoff);
+ assert.deepEqual(clone(g.window.stLab.resources),boundary,'Accepted first midgame advice keeps the same handoff resource ledger');
  assert.equal(g.element('#st-fixture').value,'empty','coaching phase can change without changing play mode');
  assert.equal(g.element('#st-phase').dataset.phase,'maintenance');assert.equal(g.element('#st-phase-name').textContent,'Mid-game');
- g.window.stLab.act('UNDO');const before=request(g,all);assert.deepEqual(same(before.observation),same(f.beforeClear));assert.equal(before.options.openingPhase,true);assert.equal(before.options.openingClear,null);assert.equal(before.commitment,null);
+ g.window.stLab.act('UNDO');const before=request(g,all);assert.deepEqual(same(before.observation),same(f.beforeClear));assert.equal(before.options.openingPhase,true);assert.equal(before.options.openingClear,null);assert.equal(before.commitment,null);assert.equal(g.window.stLab.resources.milestones.maintenanceHandoff,null);
  assert.equal(g.element('#st-phase').dataset.phase,'opening');assert.equal(g.element('#st-phase-name').textContent,'Opening');
  for(const action of f.witnesses.at(-1))g.window.stLab.act(action);const again=request(g,all);assert.deepEqual(same(again.observation),same(f.afterClear));assert.equal(again.options.openingClear.event.lines,2);
- all.at(-1).respond(P.decide(again.observation,{...again.options,timeMs:undefined}));assert.equal(g.element('#st-phase-name').textContent,'Mid-game');
+ all.at(-1).respond(P.decide(again.observation,{...again.options,timeMs:undefined}));assert.equal(g.element('#st-phase-name').textContent,'Mid-game');assert.deepEqual(clone(g.window.stLab.resources),boundary,'Undo and replay rederive identical boundary obligations');
  g.click('#st-reset');assert.equal(g.element('#st-phase-name').textContent,'Opening','restart restores the opening origin');
 }));
 

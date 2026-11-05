@@ -257,3 +257,14 @@ handback). The real Reset-ledger replay verifies that the second qualifying T
 returns to early midgame. These metrics are simulation-only; no policy input,
 ranking or planner budget is changed. See `docs/st-evaluation-contract.md` for
 per-run and cohort reporting and unavailable legacy measurements.
+
+`st-handoff-sl-boundary.test.cjs` checks the opening-to-maintenance S/L boundary:
+all used/unused combinations, arbitrary opening regions, original bag identities
+through repeated HOLD, two simultaneous S obligations, deferred reveals, exact
+H01 public history, unchanged board repair facts, worker/session transport and
+the prospective context supplied to fresh/forecast/recovery planning. It also
+makes explicit that a tape's phase marker is an input, not authentication of the
+original decision. The actual page's handoff/Undo/replay case in `st-undo.test.cjs`
+checks the same resource ledger before and after restoration. These accounting
+checks and the existing recovery-budget tests are separate from timed strategic
+simulation evidence.

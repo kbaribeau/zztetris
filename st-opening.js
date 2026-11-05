@@ -666,7 +666,11 @@ function checkedForecast(state,candidate,event,options,work){
 
 function handoff(state,proof,options,work=null,recovery=false){
  if(work)Object.assign(work,{eligible:false,nodes:0,status:'not-eligible'});
- const P=getPlanner(),summary=options.resourceContext?RH.resolve(state,RH.importContext(state,options.resourceContext)):null;
+ const P=getPlanner(),history=options.resourceContext?RH.importContext(state,options.resourceContext):null;
+ // Evaluate the first maintenance move with the same boundary ledger that the
+ // controller will retain on acceptance. Failed probes never mark live history.
+ const maintenance=history?RH.markHandoff(history,state):null,summary=maintenance?RH.resolve(state,maintenance):null;
+ if(maintenance)options={...options,resourceContext:RH.exportContext(state,maintenance)||options.resourceContext};
  // A first double does not erase an observed opening-Z obligation. Unknown
  // imported history retains the legacy actual-clear/geometry handoff path.
  if(summary?.openingAllocation?.requiredNonRightZ===1)return null;
@@ -726,9 +730,10 @@ function plan(raw,options={}){
  // lengthen a successful old prefix and thereby invent a new retained goal.
  const legacy={},recovery={};let accepted=handoff(state,options.openingClear,{...options,maxNodes:limit,deadline},legacy);
  const handoffWork={legacy,recovery,requestNodes:limit};base.metrics.nodes=legacy.nodes;base.metrics.handoffWork=handoffWork;
- if(!accepted&&legacy.eligible&&legacy.status==='budget-exhausted'&&historicalHandoff&&observedSummary.hangingS?.status==='hanging'&&!observedSummary.hangingS.unclassified?.length){
-  const live=[observedSummary.instances?.active,observedSummary.instances?.hold,...(observedSummary.instances?.queue||[])].filter(Boolean);
-  const owed=observedSummary.hangingS.evidence.filter(e=>Number.isInteger(e.sId)&&e.sId>0&&Number.isInteger(e.bag)&&e.bag>=0&&live.some(p=>p.id===e.sId&&p.type==='S'));
+ const boundarySummary=options.resourceContext?RH.resolve(state,RH.markHandoff(RH.importContext(state,options.resourceContext),state)):null;
+ if(!accepted&&legacy.eligible&&legacy.status==='budget-exhausted'&&historicalHandoff&&boundarySummary.hangingS?.status==='hanging'&&!boundarySummary.hangingS.unclassified?.length){
+  const live=[boundarySummary.instances?.active,boundarySummary.instances?.hold,...(boundarySummary.instances?.queue||[])].filter(Boolean);
+  const owed=boundarySummary.hangingS.evidence.filter(e=>Number.isInteger(e.sId)&&e.sId>0&&Number.isInteger(e.bag)&&e.bag>=0&&live.some(p=>p.id===e.sId&&p.type==='S'));
   const remaining=Math.max(0,limit-base.metrics.nodes),fallbackNodes=Math.ceil(remaining/3),recoveryNodes=remaining-fallbackNodes;
   const ms=Math.max(0,deadline-now()),end=Number.isFinite(deadline)?deadline-ms/3:deadline;
   if(owed.length===1&&recoveryNodes&&now()<end){
@@ -934,7 +939,7 @@ function plan(raw,options={}){
   // invented and this conditional proof never changes the live session.
   let virtual=state,history=options.patternHistory||P.startPatternHistory(state),resources=options.resourceContext?RH.importContext(state,options.resourceContext):RH.start(state);
   for(const step of node.path)for(const action of step.witness){const before=virtual,r=R.replay(before,[action]);virtual=r.state;resources=RH.applyAction(resources,before,action,virtual);if(action==='HD')history=P.updatePatternHistory(history,before,virtual,r.events[0]);}
-  const resourceContext=RH.exportContext(node.state,resources);
+  const resourceContext=RH.exportContext(node.state,RH.markHandoff(resources,node.state));
   const result=P.plan(node.state,{...options,patternHistory:history,resourceContext,disableOpening:true,openingPhase:false,openingClear:null,openingRepair:null,previous:null,commitment:null,constructionPrevious:null,deadline,maxNodes:allowance});
   const spent=result.metrics?.nodes||0;probeNodes+=spent;base.metrics.nodes+=spent;
   probeResults.push({status:result.target?'verified':'unknown-bounded-search',locks:node.path.length,nodes:spent});

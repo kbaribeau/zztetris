@@ -242,28 +242,34 @@ function importContext(raw,context){
   validatedContexts.set(context,{signature,history});return history;
  }catch{return invalid(raw,'Could not validate resource replay context.');}
 }
+// Opening allocation has no S/L pairing requirement. At the exact maintenance
+// boundary, an unused piece inherits only its own bag partner's consumed status.
+// A held piece keeps its observed bag, even after newer bags become active.
+function openingPartnerUsed(h,p){const at=h.milestones.maintenanceHandoff?.at;return at!==undefined&&p?.allocation&&p.allocation.at<=at;}
 function hanging(h){
  if(!h.fresh)return{status:'unknown',evidence:[],reason:'Earlier S/L allocations and identities are unknown; geometry alone cannot establish surplus.'};
  const since=0,bags=new Map(),evidence=[],unclassified=[];
  for(const p of Object.values(h.pieces)){if(!'SL'.includes(p.type))continue;const b=bags.get(p.bag)||{};b[p.type]=p;bags.set(p.bag,b);}
  for(const [bag,{S:s,L:l}] of bags){
   if(!l?.allocation)continue;
+  const inherited=openingPartnerUsed(h,l);
+  if(inherited&&openingPartnerUsed(h,s))continue;
   const pending=s&&h.center.pending.some(p=>p.family==='SL'&&p.rootId===s.id);
   // An opener foundation S already consumed before this L is not retroactive
   // debt. A still-pending exact SL root, however, survives a diverted L.
   const owedAtDiversion=pending||s&&h.center.closed.some(p=>p.family==='SL'&&p.rootId===s.id&&p.at>=l.allocation.at);
   const foundationEnd=Math.min(h.milestones.sourcePattern?.at??Infinity,h.milestones.firstTsd?.at??Infinity,h.milestones.maintenanceHandoff?.at??Infinity);
-  if(s?.allocation?.region==='center'&&s.allocation.at<=foundationEnd&&s.allocation.at<l.allocation.at&&!owedAtDiversion&&!s.pair)continue;
+  if(!inherited&&s?.allocation?.region==='center'&&s.allocation.at<=foundationEnd&&s.allocation.at<l.allocation.at&&!owedAtDiversion&&!s.pair)continue;
   const disposed=s&&(s.allocation?.region==='left'||s.pair?.family==='SL');
   if(disposed)continue;
   // A consumed L is unavailable to its own S even when it crosses the
   // Left/Center boundary. Region classification is not piece accounting.
-  const diverted=l.allocation.cells.every(([x])=>x<7)&&!(l.pair?.family==='SL'&&l.pair.rootId===s?.id);
+  const diverted=inherited||l.allocation.cells.every(([x])=>x<7)&&!(l.pair?.family==='SL'&&l.pair.rootId===s?.id);
   // A positively recognized first-bag source foundation retains its existing
   // opening allocation policy; it is not a maintenance disposal certificate.
   const reviewedFoundation=bag===0&&h.milestones.sourcePattern?.at===7&&s?.allocation?.at<=7;
   if(diverted&&s?.allocation&&!h.center.pending.some(p=>p.family==='SL'&&p.rootId===s.id)){unclassified.push({bag,sId:s.id,lId:l.id,...(s.allocation.requiresAccommodation&&!reviewedFoundation?{requiresAccommodation:true}:{}),reason:'The previously surplus S was placed in an unreviewed allocation; whether it was accommodated is unknown.'});continue;}
-  if(diverted)evidence.push({bag,sId:s?.id??null,lId:l.id,at:l.allocation.at,...(!s?{deferred:true}:{}),reason:l.pair?.family==='SL'?'The L completed a different observed S.':'The L was allocated outside its observed S/L pair.'});
+  if(diverted)evidence.push({bag,sId:s?.id??null,lId:l.id,at:l.allocation.at,...(!s?{deferred:true}:{}),reason:inherited?'The same-bag L was used during opening while this S remained unused at handoff.':l.pair?.family==='SL'?'The L completed a different observed S.':'The L was allocated outside its observed S/L pair.'});
   else if(l.allocation.region!=='center'||l.pair?.family!=='SL')unclassified.push({bag,lId:l.id,reason:'The L allocation has no reviewed S/L role.'});
  }
  const lostProfile=profileLost(h);
@@ -278,14 +284,16 @@ function hangingL(h){
  for(const p of Object.values(h.pieces)){if(!'SL'.includes(p.type))continue;const b=bags.get(p.bag)||{};b[p.type]=p;bags.set(p.bag,b);}
  for(const [bag,{S:s,L:l}] of bags){
   if(!s?.allocation)continue;
+  const inherited=openingPartnerUsed(h,s);
+  if(inherited&&openingPartnerUsed(h,l))continue;
   if(l?.allocation?.region==='left'||['SL','LO'].includes(l?.pair?.family))continue;
-  const paired=s.pair?.family==='SL',at=paired?s.pair.at:s.allocation.at;
+  const paired=s.pair?.family==='SL',at=!inherited&&paired?s.pair.at:s.allocation.at;
   if(l?.allocation&&l.allocation.at<at)continue;
-  const diverted=s.allocation.region==='left'||paired&&s.pair.partnerId!==l?.id;
+  const diverted=inherited||s.allocation.region==='left'||paired&&s.pair.partnerId!==l?.id;
   if(!diverted)continue;
   const pendingLO=h.center.pending.some(p=>p.family==='LO'&&p.rootId===l?.id);
   if(l?.allocation&&!pendingLO){unclassified.push({bag,lId:l.id,sId:s.id,reason:'The previously surplus L was placed in an unreviewed accommodation; no L repair strategy is inferred.'});continue;}
-  evidence.push({bag,lId:l?.id??null,sId:s.id,at,...(!l?{deferred:true}:{}),...(pendingLO?{pendingAccommodation:'LO'}:{}),reason:paired?'The S completed a pair with a different observed L.':'The S was accommodated on Left instead of using its observed L.'});
+  evidence.push({bag,lId:l?.id??null,sId:s.id,at,...(!l?{deferred:true}:{}),...(pendingLO?{pendingAccommodation:'LO'}:{}),reason:inherited?'The same-bag S was used during opening while this L remained unused at handoff.':paired?'The S completed a pair with a different observed L.':'The S was accommodated on Left instead of using its observed L.'});
  }
  const lostProfile=profileLost(h);
  return{status:lostProfile||evidence.length>1?'out-of-profile':evidence.length?'hanging':unclassified.length?'unknown':'none-observed',evidence,unclassified,since:0,reason:evidence.length?'Observed surplus L identity; pending Center SL and repair capability are separate facts.':'No supported Hanging-L event in the observed interval; no symmetric L repair strategy is assumed.'};
