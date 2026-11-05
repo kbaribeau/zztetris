@@ -594,6 +594,76 @@ function retainScoring(raw,previous,options={},action=null){
  }finally{if(options.budgetTracker)options.budgetTracker.nodes+=visited;}
 }
 
+// A forecast is transient public routing data, never an admission certificate.
+// Its exact executed prefix is checked again inside the handoff's shared budget.
+const forecastVersion=1;
+function forecastSteps(path,max=7){
+ if(!Array.isArray(path)||!path.length||path.length>max)return null;
+ const result=[];for(const p of path){
+  if(!Array.isArray(p.witness)||!p.witness.length||p.witness.length>256||p.witness.at(-1)!=='HD'||p.witness.slice(0,-1).includes('HD')||p.witness.some(a=>!['L','R','CW','CCW','R180','SD','HD','HOLD'].includes(a)))return null;
+  if(!p.event?.target||!Array.isArray(p.event.cells)||p.event.cells.length!==4||!Array.isArray(p.event.clearedRows)||p.event.clearedRows.length>4||p.event.cells.some(c=>!Array.isArray(c)||c.length!==2||c.some(v=>!Number.isInteger(v))))return null;
+  const t=p.event.target,target={type:t.type,x:t.x,y:t.y,rotation:t.rotation};
+  const event={type:p.event.type,target,cells:clone(p.event.cells),lines:p.event.lines,clearedRows:clone(p.event.clearedRows),spin:p.event.spin,topOut:p.event.topOut};
+  result.push({witness:clone(p.witness),event,target,hold:p.witness.includes('HOLD'),holdCount:p.witness.filter(a=>a==='HOLD').length});
+ }return result;
+}
+function captureForecast(raw,advice){
+ try{
+  const forecast=advice?.evidence?.opening?.handoffCandidate;
+  if(forecast?.status!=='verified-public-post-clear-continuation')return null;
+  const path=forecastSteps(advice.continuation,4),continuation=forecastSteps(forecast.continuation);
+  if(!path||!continuation||!path.at(-1).event.lines||!S.canonicalClear(path.at(-1).event))return null;
+  const origin=getPlanner().observe(raw);if(R.validate(origin).length||origin.queue.length>6)return null;
+  const candidate={version:forecastVersion,origin,path,continuation,actions:[],observation:origin,complete:false};
+  return JSON.stringify(candidate).length<=131072?clone(candidate):null;
+ }catch{return null;}
+}
+function forecastAction(candidate,index){let offset=index;for(const step of candidate.path){if(offset<step.witness.length)return step.witness[offset];offset-=step.witness.length;}return null;}
+function advanceForecast(candidate,before,after,action){
+ try{
+  if(candidate?.version!==forecastVersion||candidate.complete||!Array.isArray(candidate.actions)||candidate.actions.length>=1024||forecastAction(candidate,candidate.actions.length)!==action)return null;
+  const P=getPlanner(),start=P.observe(before),end=P.observe(after);
+  if(!sourcePublicMatch(candidate.observation,start))return null;
+  const r=R.replay(start,[action]);if(!r.valid||end.queue.length>6||end.queue.length>start.queue.length||end.queue.length<r.state.queue.length)return null;
+  r.state.revision=end.revision;
+  if(!sourcePublicMatch(r.state,end))return null;
+  const actions=[...candidate.actions,{action,revealed:end.queue.slice(r.state.queue.length)}];
+  const complete=!forecastAction(candidate,actions.length);
+  if(action==='HD'){
+   const index=actions.filter(a=>a.action==='HD').length-1;
+   if(JSON.stringify(r.events[0])!==JSON.stringify(candidate.path[index]?.event))return null;
+  }
+  return{...candidate,actions,observation:end,complete};
+ }catch{return null;}
+}
+function checkedForecast(state,candidate,event,options,work){
+ const now=options.now,deadline=options.deadline,limit=options.maxNodes;
+ const fail=reason=>{work.reason=reason;return null;};
+ try{
+  if(candidate?.version!==forecastVersion||candidate.complete!==true||!event)return fail('no-completed-forecast');
+  const path=forecastSteps(candidate.path,4),steps=forecastSteps(candidate.continuation);
+  if(!path||!steps||!Array.isArray(candidate.actions)||candidate.actions.length>1024||JSON.stringify(candidate).length>131072)return fail('candidate-shape');
+  const origin=getPlanner().observe(candidate.origin);if(R.validate(origin).length||origin.queue.length>6)return fail('origin');
+  let replay={version:forecastVersion,origin,path,continuation:steps,actions:[],observation:origin,complete:false};
+  for(const recorded of candidate.actions){
+   if(now()>=deadline||work.nodes+2>limit)return fail('shared-budget');work.nodes+=2;
+   if(!Array.isArray(recorded.revealed)||recorded.revealed.length>1)return fail('reveals');
+   const r=R.replay(replay.observation,[recorded.action]);if(!r.valid)return fail('actual-prefix');
+   const after={...r.state,revision:replay.observation.revision+1,queue:[...r.state.queue,...recorded.revealed]};
+   for(const piece of recorded.revealed){if(!'IJLOSTZ'.includes(piece)||piece.length!==1)return fail('reveals');if(after.bag)after.bag=B.consume(after.bag,piece);}
+   replay=advanceForecast(replay,replay.observation,after,recorded.action);if(!replay)return fail('actual-prefix');
+  }
+  // Revision is a UI freshness counter, not proof of action identity. The
+  // executed public prefix, active pose, draws and bag state are the binding.
+  replay.observation.revision=state.revision;
+  if(!replay.complete||!sourcePublicMatch(replay.observation,state)||JSON.stringify(path.at(-1).event)!==JSON.stringify(event))return fail('different-actual-clear');
+  const inner={attempted:true,retained:false,nodes:0,reason:'not-checked'};
+  const result=getPlanner().revalidateOpeningForecast(state,steps,{...options,maxNodes:Math.max(0,limit-work.nodes)},inner);
+  work.nodes+=inner.nodes;work.reason=inner.reason;work.retained=Boolean(result);
+  return result;
+ }catch{return fail('invalid-candidate');}
+}
+
 function handoff(state,proof,options,work=null,recovery=false){
  if(work)Object.assign(work,{eligible:false,nodes:0,status:'not-eligible'});
  const P=getPlanner(),summary=options.resourceContext?RH.resolve(state,RH.importContext(state,options.resourceContext)):null;
@@ -615,9 +685,14 @@ function handoff(state,proof,options,work=null,recovery=false){
  if(!allowance)return null;
  const end=recovery?deadline:Math.min(deadline,now()+200);
  if(work)Object.assign(work,{eligible:true,allocatedNodes:allowance,deadline:Number.isFinite(end)?end:null});
- const result=P.plan(state,{...options,disableOpening:true,openingPhase:false,openingClear:null,previous:null,commitment:null,constructionPrevious:null,maxNodes:allowance,deadline:end});
- const spent=result?.metrics?.nodes||0;if(work)Object.assign(work,{nodes:spent,status:result?.status||'no-result'});
- if(!result?.target||spent>allowance)return null;
+ const started=now(),forecast={attempted:!recovery&&Boolean(options.openingForecast),retained:false,nodes:0,reason:'not-present'};
+ let result=forecast.attempted?checkedForecast(state,options.openingForecast,event,{...options,now,maxNodes:allowance,deadline:end},forecast):null;
+ const source=result?'forecast-revalidated':'fresh-search';
+ if(!result)result=P.plan(state,{...options,openingForecast:null,disableOpening:true,openingPhase:false,openingClear:null,previous:null,commitment:null,constructionPrevious:null,maxNodes:Math.max(0,allowance-forecast.nodes),deadline:end});
+ const spent=forecast.nodes+(source==='fresh-search'?(result?.metrics?.nodes||0):0);
+ if(work)Object.assign(work,{nodes:spent,status:result?.status||'no-result',source,forecast,elapsedMs:now()-started});
+ if(result)result={...result,metrics:{...result.metrics,nodes:spent}};
+ if(!result?.target||spent>allowance||(source==='forecast-revalidated'&&now()>=end))return null;
  // This recovery does not introduce a general new filler/commitment goal.
  // Accept only an immediate, actually executed payment of a still-live known S.
  if(recovery){
@@ -633,6 +708,7 @@ function handoff(state,proof,options,work=null,recovery=false){
 
  const evidence=event?{status:'checked-after-actual-clear',event:clone(event),balance:f.parity}:{status:'checked-after-observed-opening-quality',firstTsdAt:summary.openingAllocation.firstTsdAt,qualityAt:summary.extraZ.baseline.qualityAt,balance:f.parity};
  if(recovery)evidence.recovery='shared-after-legacy-budget-miss';
+ if(source==='forecast-revalidated')evidence.forecast={status:'revalidated-after-actual-clear',version:forecastVersion};
  return{...result,phase:'maintenance',evidence:{...result.evidence,openingHandoff:evidence},reason:(event?'Opening handoff checked after the clear. ':'Opening handoff checked after observed allocation and quality completion. ')+result.reason};
 }
 function plan(raw,options={}){
@@ -938,5 +1014,5 @@ function validateSessionState(raw,session,{maxNodes=45000,timeMs=1500,now=()=>Da
  return{session:result,warnings};
 }
 
-return Object.freeze({retainScoring,validateSessionState,balance,features,facts,repairEndpoint,foundationTargets,foundationTransition,foundationWitnesses,handoffGeometry,handoff,plan,retainSource,startSession,updateSession,acceptResult,repairCertificate,closureCertificate,checkedRepair,goalPaid});
+return Object.freeze({retainScoring,validateSessionState,balance,features,facts,repairEndpoint,foundationTargets,foundationTransition,foundationWitnesses,handoffGeometry,handoff,plan,retainSource,startSession,updateSession,acceptResult,repairCertificate,closureCertificate,checkedRepair,goalPaid,captureForecast,advanceForecast});
 });

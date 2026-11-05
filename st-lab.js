@@ -18,6 +18,8 @@
   let suggestedFileName=STSession.DEFAULT_EXPORT_FILENAME;
   let state, origin, future=[], futureCursor=0, generated=false, privatePractice=false, observed=null, openingPhase=false, openingClear=null, openingRepair=null, openingSource=null, patternHistory=null, resourceHistory=null, resourceOriginBag=null, pieceLedger=null;
   let undoHistory=[], turnStart=null, resetDiagnosticCache=null;
+  // Transient public-only forecast candidate. Never checkpoint or export it.
+  let openingForecast=null;
   let worker=null, requestId=0, debounce=null, watchdog=null, revision=0;
   let result=null, previous=null, commitment=null, pendingLHint=null, coachStatus='idle', coachMessage='';
   // One actual-lock routing candidate, not a commitment or imported authority.
@@ -129,6 +131,7 @@
             recoveryOrigin=null;pendingHandoffRecovery=null;coachStatus='invalid-witness';coachMessage='The suggested move failed validation, so it is not shown.';result=null;render();return;
           }
           result=candidate || null;pendingHandoffRecovery=null;
+          openingForecast=STPlanner.captureOpeningForecast(observation(),result)||openingForecast;
           if(result?.target&&result.evidence?.strategy==='reset-coach')resourceHistory=STResourceHistory.beginReset(resourceHistory,observation());
           const recovery=STPlanner.captureHandoffRecovery(observation(),result,STResourceHistory.exportContext(observation(),resourceHistory));
           // Revalidation during the same first piece must not replace the
@@ -136,6 +139,7 @@
           if(recovery)recoveryOrigin=recovery;
           else if(!recoveryOrigin||result?.evidence?.openingHandoff?.recovery!=='shared-after-legacy-budget-miss'||JSON.stringify(result.target)!==JSON.stringify(recoveryOrigin.advice.target))recoveryOrigin=null;
           const wasOpening=openingPhase;const phase=STPlanner.acceptOpeningResult({active:openingPhase,clear:openingClear,repair:openingRepair,source:openingSource},result);openingPhase=phase.active;openingClear=phase.clear;openingRepair=phase.repair||null;openingSource=phase.source||null;
+          if(!openingPhase)openingForecast=null;
           if(wasOpening&&!openingPhase&&resourceHistory)resourceHistory=STResourceHistory.markHandoff(resourceHistory,observation());
           coachStatus=result?.status || 'no-supported-continuation-found';
           coachMessage=result?.reason || 'No supported ST sequence was found within this search.';
@@ -153,7 +157,7 @@
         };
         activeWorker.postMessage({type:'plan',id,observation:observation(),previous:previous?clone(previous):null,
           commitment:commitment?clone(commitment):null,
-          options:{...(pendingLHint?{pendingLHint:clone(pendingLHint)}:{}),resourceContext:STResourceHistory.exportContext(observation(),resourceHistory),...(pendingHandoffRecovery?{handoffRecovery:clone(pendingHandoffRecovery)}:{}),...searchSettings,patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null}});
+          options:{...(openingForecast?{openingForecast:clone(openingForecast)}:{}),...(pendingLHint?{pendingLHint:clone(pendingLHint)}:{}),resourceContext:STResourceHistory.exportContext(observation(),resourceHistory),...(pendingHandoffRecovery?{handoffRecovery:clone(pendingHandoffRecovery)}:{}),...searchSettings,patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null}});
         watchdog=setTimeout(()=>{
           if(worker!==activeWorker)return;
           cancel();recoveryOrigin=null;pendingHandoffRecovery=null;result=null;coachStatus='budget-exhausted';coachMessage='The coach timed out. A valid continuation may still exist.';render();
@@ -192,7 +196,7 @@
     }
   }
   function resetState(input,{tail=[],random=false,history=null,note='',keepOrigin=false,opening=false,counterLabel='Lines since start',suggestedFileName:filename=STSession.DEFAULT_EXPORT_FILENAME}={}) {
-    cancel();stopRepeating();recoveryOrigin=null;pendingHandoffRecovery=null;future=tail.slice();futureCursor=0;undoHistory=[];turnStart=null;generated=random;privatePractice=false;observed=history?.slice() || null;openingPhase=opening;openingClear=null;openingRepair=null;
+    cancel();stopRepeating();recoveryOrigin=null;pendingHandoffRecovery=null;future=tail.slice();futureCursor=0;undoHistory=[];turnStart=null;generated=random;privatePractice=false;observed=history?.slice() || null;openingPhase=opening;openingClear=null;openingRepair=null;openingForecast=null;
     state=STRules.migrateState({...clone(input),revision:++revision});
     const errors=STRules.validate(state);if(errors.length)throw new Error(errors.join('; '));
     if(state.queue.length>6){future.unshift(...state.queue.slice(6));state={...state,queue:state.queue.slice(0,6)};}
@@ -229,7 +233,7 @@
     commitment=saved.commitment?clone(saved.commitment):null;pendingLHint=saved.pendingLHint?clone(saved.pendingLHint):null;lockCount=saved.lockCount;clearedLines=saved.clearedLines;
     // Never resurrect displayed advice or an old worker response. The saved
     // proof is only a candidate for replay against this restored public state.
-    previous=null;result=null;turnStart=null;recoveryOrigin=null;pendingHandoffRecovery=null;
+    previous=null;result=null;turnStart=null;recoveryOrigin=null;pendingHandoffRecovery=null;openingForecast=null;
     setText($('st-game-status'),`Placement undone. ${lockCount} piece${lockCount===1?'':'s'} locked.`);
     requestPlan();render();
   }
@@ -253,6 +257,7 @@
     }
     // Active movement does not expose pieces; only draws shorten the preview.
     replenish();
+    if(openingForecast)openingForecast=STPlanner.advanceOpeningForecast(openingForecast,beforeAction,observation(),action);
     resourceHistory=STResourceHistory.applyAction(resourceHistory,beforeAction,action,{...observation(),lastEvent:state.lastEvent});
     pieceLedger=STPieceLedger.applyAction(pieceLedger,beforeAction,action,{...observation(),lastEvent:state.lastEvent});
     if(locked){
@@ -265,6 +270,7 @@
         ?STPlanner.continueCommitment(commitment.observation,observation(),commitment.advice,state.lastEvent,{patternHistory,resourceContext:STResourceHistory.exportContext(observation(),resourceHistory)}):null;
       commitment=suffix?{observation:clone(observation()),advice:clone(suffix)}:null;
     }
+    if(!openingPhase)openingForecast=null;
     const advanced=!locked&&displayed?STPlanner.advance(observation(),displayed,action,{patternHistory,openingPhase,openingSource,resourceContext:STResourceHistory.exportContext(observation(),resourceHistory)}):null;
     if(advanced){result=advanced;previous=advanced;coachMessage=advanced.reason;coachStatus=advanced.status;}
     requestPlan({retain:Boolean(advanced)});render();
@@ -417,7 +423,7 @@
     const envelope=STSession.create(prepared.state,prepared);
     // All untrusted parsing/proof checks have completed before touching the live
     // controller. Worker identity guards, not revision uniqueness, reject old replies.
-    cancel();stopRepeating();recoveryOrigin=null;pendingHandoffRecovery=null;
+    cancel();stopRepeating();recoveryOrigin=null;pendingHandoffRecovery=null;openingForecast=null;
     suggestedFileName=envelope.suggestedFileName;
     state=STRules.createState(prepared.state);revision=state.revision;
     future=tail?.slice()||[];futureCursor=0;generated=false;privatePractice=tail!==null;observed=null;undoHistory=[];turnStart=null;
