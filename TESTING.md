@@ -148,6 +148,13 @@ The suite remains independently runnable with `npm test`. Repository-specific ga
 
 ## Closed-loop simulations
 
+`st-visible-left-repair.test.cjs` covers the observed deep-Left J repair through
+Center/Right preparation, exact piece and landing goals, movement/HOLD and
+post-lock retention, changed public supply, stale/forged claims, budget limits,
+and retirement after actual repair. A fresh production-budget Worker VM checks
+discovery separately from recorded replay. These finite cases do not establish
+general policy improvement; use the paired simulation contract below.
+
 Use the separate [ST simulation runner](docs/st-simulation.md) for bounded seeded play, replayable action traces, and matched comparisons. It is opt-in and is not part of `npm test`; a lock cap is censored evidence, not proof of indefinite play.
 
 Use `--parallel 4` for routine diagnostic simulation batches. For example,

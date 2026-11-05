@@ -593,6 +593,28 @@ are replayed across movement, HOLD, actual reveals and line-clear translation.
 These engineered bounds and finite certificates are not a guarantee of sustained
 play or a Reset policy.
 
+### Visible J Left repair
+
+The existing Left geometry recognizer can identify a J partial repair of a deep
+deficit without adding covered cells or exceeding the old Left peak. An actual
+replay of that landing with a known piece identity is an ordinary resource goal,
+not a promise based on preview membership. Goal comparison protects the same J
+and cells; movement, HOLD and post-lock continuation rebuild those facts from
+current public history. The goal survives intermediate Center completion and
+retires when J lands. Later ordinary balancing receives no waiting credit.
+
+After ordinary admission, a width-four optional search can check up to seven
+literal-public locks through non-scoring Center/Right preparations to that J.
+It shares the original deadline and uses at most 12,000 remaining nodes. It does
+not use a forced unseen bag member, move the target through a clear, replace a
+saved commitment or scoring/Pocket goal, or relax cap precedence. Every step
+and endpoint retain ordinary resource, notch, Center, covered-cell and movement
+checks. Selection also requires better Left roughness than the incumbent, no
+increased height or sealing, supported Center continuity, and no lost verified
+T entry. Interrupted or unsuccessful optional work preserves the incumbent.
+These are conservative finite-proof bounds, not a general instruction to grow
+Center while waiting for J or a guarantee of continued play.
+
 ### Contextual explained-risk allocation
 
 The experimental decision layer can compare an explicit D-risk placement with
