@@ -32,15 +32,75 @@ The production lane uses the page's maintenance configuration: depth 3, width 8,
 
 **Fixed seeds do not make current search deterministic.** Nested repairs and certificates use wall-clock deadlines too. `--lane deterministic` is deliberately rejected. Node-only budgets or a fake outer clock would not establish control of all nested timers. Timed runs may diverge across machines, load or repetitions; compare serially under controlled conditions and retain all outcomes.
 
-The default child-process wall watchdog is `locks × (1500 + 1750) + 5000` milliseconds per episode. Override with `--episode-ms N`; reaching it is reported as a censored `wall-cap`, not a top-out or successful lock cap. A separate 2.5-second VM watchdog catches stuck individual decisions. Each child has a 512 MiB V8 heap cap; traces are limited to 512 MiB and native replay/failure recovery streams their records. JSON artifacts and the legacy eager trace reader retain a 64 MiB limit; optional analyzers may have their own smaller limits. The runner executes episodes serially. Do not run it concurrently with other performance experiments.
+The default child-process wall watchdog is `locks × (1500 + 1750) + 5000` milliseconds per episode. Override with `--episode-ms N`; reaching it is reported as a censored `wall-cap`, not a top-out or successful lock cap. A separate 2.5-second VM watchdog catches stuck individual decisions. Each child has a 512 MiB V8 heap cap; traces are limited to 512 MiB and native replay/failure recovery streams their records. JSON artifacts and the legacy eager trace reader retain a 64 MiB limit; optional analyzers may have their own smaller limits. The runner executes episodes serially by default. Do not run production-budget comparisons concurrently with other performance experiments. The explicit diagnostic options below do not change browser defaults.
 
 Runtime is workload dependent: two 24-lock episodes imply at most 48 ordinary decisions, whose temporary nominal 1500-ms budgets alone total 72 seconds, plus loading, validation and other overhead. Early abstention reduces work. This is budget arithmetic, **not a measured performance guarantee**. A historical 750-ms dirty-tree calibration on 2026-10-23 (Node 24.20.0, cloud host) completed the default quick preset in 24.45 seconds: both seeds reached the 24-lock cap. This is one diagnostic sample, not a portable timing promise or strategy acceptance. The largest measured decision, including VM overhead, was about 803 ms, so the nominal 750-ms search budget is not a hard end-to-end latency limit. The research preset can take hours. Calibrate on the target machine before adopting a routine. No automated schedule or CI configuration is installed.
+
+## Parallel and no-search-timeout diagnostics
+
+```sh
+# At most four episode processes at once, still using the production search timer:
+npm run sim:st -- --preset research --parallel 4
+# Remove the outer 1500 ms search deadline and the 2500 ms decision VM cutoff:
+npm run sim:st -- --seeds 123,456 --locks 100 --parallel 2 --no-search-timeout
+# Give slower diagnostic episodes a larger, still finite process watchdog:
+npm run sim:st -- --seeds 123,456 --locks 100 --parallel 2 --no-search-timeout --episode-ms 1200000
+```
+
+`--parallel N` accepts integers 1–32 and defaults to 1. Each episode remains a
+separate process with its own input, trace, summary, heap cap, and watchdog.
+The requested order of scenarios and seeds is retained in the final manifest,
+regardless of completion order. Queue time does not consume an episode's
+watchdog. Run directories have collision-resistant suffixes, including repeated
+invocations in one process. Concurrency cannot exceed the number of inputs;
+choose a small value appropriate to the host's CPU and memory. Each child may
+use up to 512 MiB of V8 heap, plus native memory. Parallelism is across episodes,
+not within a single search or episode; `--rerun` contains one episode.
+
+`--no-search-timeout` is simulation-only. It records `config.timeMs: null` and
+`decisionWatchdogMs: null`, then installs an infinite outer deadline inside the
+fresh simulation worker realm. It removes the **decision invocation's** 2.5-second
+VM cutoff so a legitimate node-bounded search is not silently stopped there.
+VM initialization/imports retain their 2.5-second safety limits. Node, depth,
+width, production-internal proof limits and nested wall timers are unchanged.
+The browser still uses 1500 ms, and future runs without the flag keep the normal
+search and VM limits. This mode is **not deterministic** and does not mean every
+search or the whole episode is unbounded.
+
+The independent episode process watchdog remains mandatory. Without an explicit
+`--episode-ms`, it keeps the ordinary `locks × (1500 + 1750) + 5000` default even
+when the search timer is disabled. Increase it explicitly if the diagnostic work
+requires more time, up to 7,200,000 ms (two hours) per episode. A stuck decision
+is killed by this process watchdog and reported as `wall-cap`. Heap, trace and
+output limits also remain active. SIGINT/SIGTERM stop queued work, terminate
+active children, wait for their exit, and retain incomplete manifests and traces.
+Source changes stop queued work and invalidate affected results. Other episode
+failures remain visible and do not erase completed or queued cohort members.
+A truncated/corrupt failed-child trace retains its valid prefix for failure
+accounting, with an explicit artifact-recovery warning. Original trace/error
+bytes are preserved, and a replaced child summary is retained as
+`summary.child.json`. This recovery never relaxes strict action replay.
+
+Parallel runs and timeout-disabled runs are marked `diagnostic-wall-clock` in
+manifests, observations and reports. They cannot be combined with `--lane
+production` or a production-only `--protocol`. `--parallel 1` remains serial
+production execution. `--compare` requires matched concurrency, timeout mode,
+decision watchdog and episode watchdog as well as existing input/config checks;
+matched diagnostic comparisons are descriptive, **not production-budget
+acceptance evidence**. CPU contention changes how much work fits inside real
+deadlines, and nested timers still affect timeout-disabled searches. For policy
+acceptance or latency claims, rerun serially with ordinary timeouts on the same
+host under controlled load. Retain all attempts, not only favorable outcomes.
+
+The options apply to new runs and `--rerun`, not action replay, comparison, or
+internal child invocations. Rerun keeps saved inputs/caps but uses the options
+of the new command, so repeat the diagnostic flags explicitly when desired.
 
 ## Results and stop reasons
 
 Artifacts default to already-ignored `test-results/simulation/<run-id>/`. Use `--out /retained/directory` for durable storage. Each run contains:
 
-- `manifest.json`: full commit/dirty status, source hashes, lockfile hash, Node/platform/CPU, RNG version, config, seeds, caps and outcomes.
+- `manifest.json`: full commit/dirty status, source hashes, lockfile hash, Node/platform/CPU, RNG version, config, concurrency, decision/episode watchdogs, seeds, caps and outcomes.
 - `report.md`: short human-readable outcome list.
 - One directory per scenario/seed: `input.json` with the initial public state and **private evaluator stream**, `trace.jsonl`, `summary.json`, and invocation `spec.json`.
 
@@ -107,7 +167,7 @@ npm run sim:st -- --rerun test-results/simulation/RUN/empty-10331
 npm run sim:st -- --compare BASELINE_RUN_DIRECTORY CANDIDATE_RUN_DIRECTORY
 ```
 
-Compare complete manifests with identical public/private inputs, caps, budgets and execution protocol. Run each revision from an isolated checkout, serially, retaining its artifacts. Compare reports keep empty and stable cohorts separate, report paired wins/ties/losses, restricted mean placements through the common cap, median stop placement when reached, and an exploratory seed-level bootstrap interval for the paired placement delta. They also compare lines and height at each pair's shared placement horizon.
+Compare complete manifests with identical public/private inputs, caps, budgets, concurrency, watchdogs and execution protocol. Run each revision from an isolated checkout, serially, retaining its artifacts. Compare reports keep empty and stable cohorts separate, report paired wins/ties/losses, restricted mean placements through the common cap, median stop placement when reached, and an exploratory seed-level bootstrap interval for the paired placement delta. They also compare lines and height at each pair's shared placement horizon.
 
 Safety/infrastructure failures and wall-censored pairs are rejected as a quality comparison instead of silently dropped. Inspect those artifacts directly. Small development samples do not establish generalization; thousands of correlated locks are not thousands of independent seeds. Repeat production-budget experiments to expose timing sensitivity and retain unfavorable runs.
 
@@ -115,7 +175,7 @@ A historical example explains the need: a parity repair looked locally cleaner y
 
 ## Relationship to unit and browser tests
 
-`npm test` still runs the focused rules, hold, bag-information, certificates, regression, UI/worker races, settings and navigation suites. `test/st-simulation.test.cjs` checks the runner itself with cheap controlled advice and real rules; this does not launch the research workload. Simulations replace repeated ad hoc scratch scripts and manual strategy playthroughs, not these independent assertions. Minimize discovered failures into named regression fixtures. Keep change-triggered real-browser checks for visual/input/Worker fidelity.
+`npm test` still runs the focused rules, hold, bag-information, certificates, regression, UI/worker races, settings and navigation suites. `test/st-simulation.test.cjs` checks the runner itself with cheap controlled advice and real rules; this does not launch the research workload. `test/st-simulation-runner.test.cjs` covers bounded scheduling, ordered outputs, unique directories, process failures/watchdogs/cancellation, simulation-only timeout translation, CLI artifacts and compatibility guards using tiny controlled inputs. Simulations replace repeated ad hoc scratch scripts and manual strategy playthroughs, not these independent assertions. Minimize discovered failures into named regression fixtures. Keep change-triggered real-browser checks for visual/input/Worker fidelity.
 
 ## Regional material and original-bag accounting
 
