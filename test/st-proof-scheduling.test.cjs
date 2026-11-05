@@ -44,15 +44,23 @@ for(const f of require('./fixtures/scheduling-selection-roots.json'))test(`proof
  // Two roots include a uniquely deduced final bag member. Producer and
  // retention now normalize that same public supply; no binding is ignored.
  // This intentionally fixes their former exact-context retention rejection.
- const retained=P.revalidate(q.observation,a,options);assert.ok(retained?.target);
+ // The controller records an accepted opening handoff before retaining its
+ // advice. Revalidation must use that same boundary, not the opening context.
+ let retentionOptions=options;
+ if(a.phase==='maintenance'&&a.evidence?.openingHandoff){
+  const H=require('../st-resource-history'),history=H.importContext(q.observation,options.resourceContext);
+  retentionOptions={...options,openingPhase:false,resourceContext:H.exportContext(q.observation,H.markHandoff(history,q.observation))};
+  assert.equal(P.revalidate(q.observation,a,options),null,'An unmarked context cannot retain a boundary-bound handoff');
+ }
+ const retained=P.revalidate(q.observation,a,retentionOptions);assert.ok(retained?.target);
  assert.deepEqual(retained.target,a.target);assert.deepEqual(retained.continuation.map(p=>p.event),a.continuation.map(p=>p.event));
  let normalized=M.extendForced(R.createState(q.observation));
  for(const step of retained.continuation){const replay=R.replay(normalized,step.witness);assert.equal(replay.valid,true);assert.deepEqual(replay.events,[step.event]);normalized=replay.state;
   assert.equal(JSON.stringify([normalized.rules,normalized.board,normalized.hold,normalized.canHold,normalized.queue,normalized.bag??null,normalized.active?.type]),step.resultContext,'Every retained result context uses the same exact public deduction');
  }
  const forged=JSON.parse(JSON.stringify(a));forged.evidence.resourceObligations.binding+='forged';
- assert.equal(P.revalidate(q.observation,forged,options),null,'A resource binding is still mandatory when supplied');
- assert.equal(P.revalidate({...q.observation,hold:q.observation.hold==='T'?'I':'T'},a,{...options,maxNodes:0}),null);
+ assert.equal(P.revalidate(q.observation,forged,retentionOptions),null,'A resource binding is still mandatory when supplied');
+ assert.equal(P.revalidate({...q.observation,hold:q.observation.hold==='T'?'I':'T'},a,{...retentionOptions,maxNodes:0}),null);
  const r=R.replay(q.observation,a.continuation.flatMap(p=>p.witness));assert.equal(r.valid,true);assert.equal(r.events.length,a.metrics.certifiedHorizon);
  if(f.seed===2449482139)assert.equal(a.metrics.proofScheduling.enabled,false,'Internal subprobe retains original allocation');
 });
