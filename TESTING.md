@@ -150,6 +150,13 @@ The suite remains independently runnable with `npm test`. Repository-specific ga
 
 Use the separate [ST simulation runner](docs/st-simulation.md) for bounded seeded play, replayable action traces, and matched comparisons. It is opt-in and is not part of `npm test`; a lock cap is censored evidence, not proof of indefinite play.
 
+Use `--parallel 4` for routine diagnostic simulation batches. For example,
+`npm run sim:st -- --preset quick --scenario both --parallel 4` supplies four
+episodes. This recommendation does not change the CLI's serial default or the
+production acceptance requirement: use one worker with ordinary timeouts and
+controlled host load for those measurements. See the runner guide for the
+optional `--no-search-timeout` mode and host-specific calibration limits.
+
 
 ### Serial-suite compilation cache
 

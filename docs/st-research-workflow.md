@@ -14,6 +14,12 @@ instead of copying a Markdown report format. The
 execution, replay and existing comparison commands. Read current budgets and
 runtime from the source, not historical examples.
 
+For routine diagnostic simulation batches, use four parallel episode workers
+(`--parallel 4`) as recommended in the simulation contract. Use
+`--no-search-timeout` only as an explicit diagnostic choice. Parallel results
+remain descriptive: CPU contention and nested wall timers can change decisions.
+The production acceptance procedure below remains serial with ordinary timeouts.
+
 For an engine change, freeze sources, actual inputs, cohorts, explicit metrics,
 thresholds, uncertainty rules, budgets and stopping caps before the first planner
 call. Run matched baseline/candidate serially from isolated worktrees. Inspected

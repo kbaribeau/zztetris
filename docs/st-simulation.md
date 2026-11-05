@@ -2,14 +2,22 @@
 
 Run from the repository root with the pinned Node 24.22.0 and existing npm installation. No browser, server, new npm dependencies or schedule is required.
 
+**Use four parallel episode workers (`--parallel 4`) for routine diagnostic
+simulation batches.** Pass the flag explicitly: the CLI default remains one
+worker. Production-budget acceptance and latency measurements still require
+serial runs with ordinary timeouts; see the [diagnostic limits below](#parallel-and-no-search-timeout-diagnostics).
+
 ```sh
-npm run sim:st -- --preset quick
-npm run sim:st -- --preset quick --scenario both
-npm run sim:st -- --preset research
-npm run sim:st -- --seeds 123,456 --locks 100 --scenario stable
+npm run sim:st -- --preset quick --parallel 4
+npm run sim:st -- --preset quick --scenario both --parallel 4
+npm run sim:st -- --preset research --parallel 4
+npm run sim:st -- --seeds 123,456 --locks 100 --scenario stable --parallel 4
 ```
 
 The default is **empty-board play**. `stable` starts at the public `marathon-rebuild` fixture but samples a seeded valid continuation, **not its fixed demo tail**. `both` reports these as separate cohorts. Development quick seeds are 10331 and 20333, with a 24-lock cap. Research uses sixteen explicitly listed seeds and 500-lock caps. Those seeds are not permanently held out once inspected or used for tuning; curate a separate untouched list for validation. All seeds and caps are written to the manifest.
+
+Concurrency is capped by the number of episodes. The default quick preset has
+only two, so it uses at most two workers; `quick --scenario both` has four.
 
 The quick preset is a bounded smoke test, not full opening/sustainability acceptance. Research's several hundred locks make longer failures observable, but neither preset proves indefinite survival or a full Reset. Count actual events, not only elapsed locks. Seventy locks is too short to certify the latter. Historical reference candidate positions are not executable certificates.
 
@@ -32,7 +40,7 @@ The production lane uses the page's maintenance configuration: depth 3, width 8,
 
 **Fixed seeds do not make current search deterministic.** Nested repairs and certificates use wall-clock deadlines too. `--lane deterministic` is deliberately rejected. Node-only budgets or a fake outer clock would not establish control of all nested timers. Timed runs may diverge across machines, load or repetitions; compare serially under controlled conditions and retain all outcomes.
 
-The default child-process wall watchdog is `locks × (1500 + 1750) + 5000` milliseconds per episode. Override with `--episode-ms N`; reaching it is reported as a censored `wall-cap`, not a top-out or successful lock cap. A separate 2.5-second VM watchdog catches stuck individual decisions. Each child has a 512 MiB V8 heap cap; traces are limited to 512 MiB and native replay/failure recovery streams their records. JSON artifacts and the legacy eager trace reader retain a 64 MiB limit; optional analyzers may have their own smaller limits. The runner executes episodes serially by default. Do not run production-budget comparisons concurrently with other performance experiments. The explicit diagnostic options below do not change browser defaults.
+The default child-process wall watchdog is `locks × (1500 + 1750) + 5000` milliseconds per episode. Override with `--episode-ms N`; reaching it is reported as a censored `wall-cap`, not a top-out or successful lock cap. A separate 2.5-second VM watchdog catches stuck individual decisions. Each child has a 512 MiB V8 heap cap; traces are limited to 512 MiB and native replay/failure recovery streams their records. JSON artifacts and the legacy eager trace reader retain a 64 MiB limit; optional analyzers may have their own smaller limits. Without `--parallel`, the runner executes episodes serially; use the recommended `--parallel 4` for diagnostic batches. Do not run production-budget comparisons concurrently with other performance experiments. The explicit diagnostic options below do not change browser defaults.
 
 Runtime is workload dependent: two 24-lock episodes imply at most 48 ordinary decisions, whose temporary nominal 1500-ms budgets alone total 72 seconds, plus loading, validation and other overhead. Early abstention reduces work. This is budget arithmetic, **not a measured performance guarantee**. A historical 750-ms dirty-tree calibration on 2026-10-23 (Node 24.20.0, cloud host) completed the default quick preset in 24.45 seconds: both seeds reached the 24-lock cap. This is one diagnostic sample, not a portable timing promise or strategy acceptance. The largest measured decision, including VM overhead, was about 803 ms, so the nominal 750-ms search budget is not a hard end-to-end latency limit. The research preset can take hours. Calibrate on the target machine before adopting a routine. No automated schedule or CI configuration is installed.
 
@@ -41,11 +49,30 @@ Runtime is workload dependent: two 24-lock episodes imply at most 48 ordinary de
 ```sh
 # At most four episode processes at once, still using the production search timer:
 npm run sim:st -- --preset research --parallel 4
-# Remove the outer 1500 ms search deadline and the 2500 ms decision VM cutoff:
-npm run sim:st -- --seeds 123,456 --locks 100 --parallel 2 --no-search-timeout
+# Optional diagnostic mode: remove the outer search deadline and decision VM cutoff:
+npm run sim:st -- --preset quick --scenario both --parallel 4 --no-search-timeout
 # Give slower diagnostic episodes a larger, still finite process watchdog:
-npm run sim:st -- --seeds 123,456 --locks 100 --parallel 2 --no-search-timeout --episode-ms 1200000
+npm run sim:st -- --preset quick --scenario both --parallel 4 --no-search-timeout --episode-ms 1200000
+# Production-budget acceptance: one worker, ordinary search/VM timeouts:
+npm run sim:st -- --preset research --parallel 1 --lane production
 ```
+
+Four workers are the recommended starting point, not a portable optimum. The
+retained `parallel-calibration-2026-11-05` experiment at source
+`8849725b0fd4f653e9910f099be983c2a862371d` measured **3.04× wall/lock throughput**
+for `--parallel 4 --no-search-timeout` versus the matching serial no-timeout mode
+on that cloud host (Node 24.22.0). Across two repetitions of eight seeds in each
+of the empty and stable cohorts, all 32 episode observations agreed under the
+declared selected action/outcome signature. This is host-specific diagnostic
+evidence, not full advice/history equality, determinism, or proof that disabling
+the timeout itself makes search faster. Nested wall timers remain active.
+
+Keep `--no-search-timeout` an explicit diagnostic choice. Parallel CPU contention
+can change time-limited decisions and stop outcomes; a shorter batch is not
+necessarily equivalent work or better play. The wider calibration included an
+unresolved strict native replay mismatch in an eight-worker timed run. Retain
+replay failures separately from successful action-ledger checks and do not use
+this calibration as production acceptance.
 
 `--parallel N` accepts integers 1–32 and defaults to 1. Each episode remains a
 separate process with its own input, trace, summary, heap cap, and watchdog.
@@ -53,8 +80,8 @@ The requested order of scenarios and seeds is retained in the final manifest,
 regardless of completion order. Queue time does not consume an episode's
 watchdog. Run directories have collision-resistant suffixes, including repeated
 invocations in one process. Concurrency cannot exceed the number of inputs;
-choose a small value appropriate to the host's CPU and memory. Each child may
-use up to 512 MiB of V8 heap, plus native memory. Parallelism is across episodes,
+start with four workers and reduce this on CPU- or memory-constrained hosts.
+Each child may use up to 512 MiB of V8 heap, plus native memory. Parallelism is across episodes,
 not within a single search or episode; `--rerun` contains one episode.
 
 `--no-search-timeout` is simulation-only. It records `config.timeMs: null` and
