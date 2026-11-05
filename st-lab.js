@@ -293,13 +293,17 @@
     }
     return resetDiagnosticCache.value;
   }
-  function renderResourceBadge(id,status,label,reason,observedStatus,terminal) {
+  function renderResourceBadge(id,status,label,reason,observedStatus,terminal,count=null) {
     const badge=$(id);
-    if(badge.dataset.state!==status)badge.dataset.state=status;
-    const observed=String(status===observedStatus);
+    // S/L counts remain observed facts even outside the reviewed strategy profile.
+    const active=count===null?status===observedStatus:count>0;
+    const displayStatus=count!==null&&active?observedStatus:status;
+    if(badge.dataset.state!==displayStatus)badge.dataset.state=displayStatus;
+    const observed=String(active);
     if(badge.dataset.observed!==observed)badge.dataset.observed=observed;
-    $(id+'-piece').hidden=status==='out-of-profile';
-    setText($(id+'-symbol'),status==='unknown'?'?':status==='out-of-profile'?'≠':'');
+    $(id+'-piece').hidden=displayStatus==='out-of-profile';
+    setText($(id+'-symbol'),displayStatus==='unknown'?'?':displayStatus==='out-of-profile'?'≠':'');
+    if(count!==null)label+=`; confirmed count: ${count}`;
     const detail=`${terminal?'Game ended; historical facts only. ':''}${label}. ${reason} Actual observed allocation, not a planned continuation.`;
     if(badge.getAttribute('aria-label')!==label)badge.setAttribute('aria-label',label);
     setText($(id+'-detail'),detail);
@@ -335,8 +339,8 @@
     const sLabel={hanging:'observed surplus','none-observed':'none observed in the checked interval',unknown:'unknown history or allocation','out-of-profile':'outside the reviewed source profile'}[resources.hangingS.status];
     const lLabel={hanging:'observed surplus','none-observed':'none observed in the checked interval',unknown:'unknown history or allocation','out-of-profile':'outside the reviewed source profile'}[resources.hangingL.status];
     const zLabel=resources.reset?.status==='active'?`Reset in progress; observed balance ${resources.extraZ.remaining}`:resources.extraZ.status==='available'&&resources.extraZ.remaining>1?`${resources.extraZ.remaining} remaining in the verified balance`:{available:'unused in the verified interval',used:'used in the verified interval',unknown:'eligibility unknown','out-of-profile':'outside the reviewed source profile'}[resources.extraZ.status];
-    renderResourceBadge('st-hanging-s',resources.hangingS.status,`Hanging S: ${sLabel}`,resources.hangingS.reason||resources.coverage.reason,'hanging',resources.terminal);
-    renderResourceBadge('st-hanging-l',resources.hangingL.status,`Hanging L: ${lLabel}`,`${resources.hangingL.reason||resources.coverage.reason} A normal Center SL awaiting its L is separate; no L repair strategy is implied.`,'hanging',resources.terminal);
+    renderResourceBadge('st-hanging-s',resources.hangingS.status,`Hanging S: ${sLabel}`,resources.hangingS.reason||resources.coverage.reason,'hanging',resources.terminal,resources.hangingS.evidence.length);
+    renderResourceBadge('st-hanging-l',resources.hangingL.status,`Hanging L: ${lLabel}`,`${resources.hangingL.reason||resources.coverage.reason} A normal Center SL awaiting its L is separate; no L repair strategy is implied.`,'hanging',resources.terminal,resources.hangingL.evidence.length);
     renderResourceBadge('st-extra-z',resources.extraZ.status,`Extra Z: ${zLabel}`,resources.extraZ.reason||resources.coverage.reason,'used',resources.terminal);
     $('st-resource-terminal').hidden=!resources.terminal;
     const centerLabel=resources.center?`${resources.center.pending.length} pending, ${resources.center.debt.length} diverted`:'unknown';

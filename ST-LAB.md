@@ -168,13 +168,17 @@ show both improvements and later-play regressions. Sustained play is not certifi
 
 Above the field, four equal badges show the current phase value, Hanging S,
 Hanging L and Extra Z in two rows, with no inline resource-status words. The S/L/Z silhouettes are grey
-outlines until a Hanging S/L is observed or Extra Z is actually used; then the
+outlines until the confirmed Hanging S/L count is greater than zero or Extra Z is actually used; then the
 silhouette fills and the badge gains a double
 contour. Eligibility alone does not highlight Extra Z. A separate **?** beside
 the grey outline means unknown history, not confirmed absent or unused;
 **≠** replaces the silhouette and a dashed edge marks evidence outside the
-reviewed source profile. Hover or keyboard-focus a badge for its description,
-including its observed interval and limitations. Escape dismisses that detail
+reviewed source profile when there is no confirmed Hanging S/L to show. Any
+positive S/L count, including multiple pieces, keeps its silhouette active;
+profile limitations remain in the detail without changing planner eligibility.
+Hover or keyboard-focus a badge for its description, including the confirmed
+S/L count, observed interval and limitations. Zero confirmed pieces with unknown
+history is not proof of absence. Escape dismisses that detail
 until refocus or pointer re-entry. The badges stay
 visible with advice hidden. On game end, they describe historical facts only.
 

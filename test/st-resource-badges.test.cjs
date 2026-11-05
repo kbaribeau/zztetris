@@ -12,15 +12,23 @@ const badge=(g,id,status,observed)=>{
  assert.equal(g.element('#'+id+'-symbol').textContent,status==='unknown'?'?':status==='out-of-profile'?'≠':'');
  assert.equal(g.element('#'+id+'-name').textContent,{'st-hanging-s':'Hanging S','st-hanging-l':'Hanging L','st-extra-z':'Extra Z'}[id]);
  assert.ok(g.element('#'+id+'-detail').textContent.startsWith(el.getAttribute('aria-label'))||g.element('#'+id+'-detail').textContent.startsWith('Game ended; historical facts only.'));
+ if(id!=='st-extra-z'){
+  const count=g.window.stLab.resources[id==='st-hanging-s'?'hangingS':'hangingL'].evidence.length;
+  for(const text of [el.getAttribute('aria-label'),g.element('#'+id+'-detail').textContent])assert.match(text,new RegExp(`confirmed count: ${count}(?:\\D|$)`));
+  assert.equal(observed,count>0);
+ }
 };
 function select(g,value){g.element('#st-fixture').value=value;g.element('#st-fixture').dispatchEvent(new g.window.Event('change'));}
 function imported(g,state){g.element('#st-snapshot').value=JSON.stringify(state);g.click('#st-import');assert.match(g.element('#st-import-status').textContent,/Snapshot imported/);}
 // Reproduce retained public test supply through the real controller's shuffle,
 // not by injecting a resource sidecar or replacing its resolver.
-function play(g,n,until){
- const f=require('./support/st-resource-trial-'+n+'.json'),stream=[f.initial.active.type,...f.initial.queue,...f.steps.flatMap(s=>s.revealed)],random=[];
+function freshStream(g,stream){
+ const random=[];
  for(let k=0;k<stream.length;k+=7){const desired=stream.slice(k,k+7);desired.push(...'IJLOSTZ'.split('').filter(p=>!desired.includes(p)));const a='IJLOSTZ'.split('');for(let i=6;i>0;i--){const j=a.indexOf(desired[i]);assert.ok(j<=i);random.push((j+.25)/(i+1));[a[i],a[j]]=[a[j],a[i]];}}
  g.window.Math.random=()=>random.length?random.shift():.5;select(g,'empty');
+}
+function play(g,n,until){
+ const f=require('./support/st-resource-trial-'+n+'.json');freshStream(g,[f.initial.active.type,...f.initial.queue,...f.steps.flatMap(s=>s.revealed)]);
  const run={f,index:0,locks:0};advance(g,run,until);return run;
 }
 function advance(g,run,until){for(;run.index<run.f.steps.length&&run.locks<until;run.index++){const s=run.f.steps[run.index];g.window.stLab.act(s.action);if(s.action==='HD')run.locks++;}}
@@ -90,9 +98,39 @@ test('resource badges: an identical imported board loses history; restarts and m
  play(g,1,24);g.tap('KeyR');badge(g,'st-hanging-s','none-observed',false);badge(g,'st-hanging-l','none-observed',false);badge(g,'st-extra-z','unknown',false);
  play(g,1,24);select(g,'marathon-rebuild');badge(g,'st-hanging-s','unknown',false);badge(g,'st-extra-z','unknown',false);
 }));
-test('resource badges: outside-profile uses a distinct mark and never implies confirmed absence',()=>withPage('st-lab.html',hidden,g=>{
- play(g,5,Infinity);badge(g,'st-hanging-s','out-of-profile',false);badge(g,'st-extra-z','unknown',false);
+test('resource badges: outside-profile keeps confirmed hanging pieces active and retains its caveat in details',()=>withPage('st-lab.html',hidden,g=>{
+ play(g,5,Infinity);assert.ok(g.window.stLab.resources.hangingS.evidence.length>0);
+ assert.equal(g.window.stLab.resources.hangingS.status,'out-of-profile');badge(g,'st-hanging-s','hanging',true);badge(g,'st-extra-z','unknown',false);
  assert.match(g.element('#st-hanging-s').getAttribute('aria-label'),/outside the reviewed source profile/);
+}));
+for(const type of ['S','L'])test(`resource badges: Hanging ${type} count 0, 1 and 2 follows actual allocations, HOLD, repayment and Undo`,()=>withPage('st-lab.html',hidden,g=>{
+ const partner=type==='S'?'L':'S',key='hanging'+type,id='st-hanging-'+type.toLowerCase(),pieceId=type.toLowerCase()+'Id';
+ // Two legal seven-bags: retain the first S/L in HOLD and allocate both of
+ // its partners on Left. The second surplus identity arrives in preview.
+ // Literal fillers test accounting, not recommended strategy or eligibility.
+ freshStream(g,[type,partner,...'IJOTZ',partner,...'IJOTZ',type]);
+ const check=(ids,status)=>{
+  assert.deepEqual(clone(g.window.stLab.resources[key].evidence.map(e=>e[pieceId])),ids);
+  badge(g,id,status,ids.length>0);
+  if(ids.length)assert.equal(g.window.getComputedStyle(g.element('#'+id)).color,'rgb(221, 190, 255)');
+ };
+ check([],'none-observed');g.window.stLab.act('HOLD');check([],'none-observed');
+ const witnesses=[['L','L','L','HD'],['CW','R','R','R','HD'],['HD'],['L','L','L','HD'],['R','R','R','HD'],['HD'],['L','L','L','HD']];
+ for(let i=0;i<witnesses.length;i++){
+  for(const action of witnesses[i])g.window.stLab.act(action);
+  check(i===6?[1,14]:[1],'hanging');
+ }
+ assert.equal(g.window.stLab.resources[key].status,'out-of-profile','Display count must not alter planner/profile semantics');
+ assert.match(g.element('#'+id+'-detail').textContent,/outside the reviewed source profile/);
+ assert.equal(g.snapshot().hold,type);assert.ok(g.snapshot().queue.includes(type));
+ g.window.stLab.act('UNDO');check([1],'hanging');
+ for(const action of witnesses[6])g.window.stLab.act(action);check([1,14],'hanging');
+ g.window.stLab.act('HOLD');check([1,14],'hanging');
+ for(const action of ['L','L','L','HD'])g.window.stLab.act(action);check([14],'hanging');
+ g.window.stLab.act('UNDO');check([1,14],'hanging');
+ imported(g,g.snapshot());check([],'unknown');
+ g.click('#st-reset');check([],'unknown');
+ select(g,'empty');check([],'none-observed');
 }));
 test('resource badges: advice hidden, hypothetical worker allocations, stale/error results never replace actual history',()=>withPage('st-lab.html',hidden,g=>{
  play(g,1,24);const state=g.snapshot(),facts=clone(g.window.stLab.resources);
