@@ -42,6 +42,7 @@ test('handoff bookkeeping (covered-geometry isolated): marker and copied proof f
  const noMarker=actual();delete noMarker.advice.evidence.openingHandoff.recovery;rejected(noMarker,'candidate-shape');
  const noHistory=actual();noHistory.options.handoffRecovery.resourceContext=null;rejected(noHistory,'resource-history');
  const stale=actual();stale.options.resourceContext=stale.options.handoffRecovery.resourceContext;rejected(stale,'resource-history');
+ const staleBinding=actual();staleBinding.advice.evidence.resourceObligations.binding=fixture.advice.evidence.resourceObligations.binding;rejected(staleBinding,'origin-resource-binding');
  const forged=actual();forged.advice.evidence.resourceObligations.binding+='forged';rejected(forged,'origin-resource-binding');
  const wrongId=actual(),binding=JSON.parse(wrongId.advice.evidence.resourceObligations.binding);binding[2].find(p=>p.id===21).id=25;wrongId.advice.evidence.resourceObligations.binding=JSON.stringify(binding);rejected(wrongId,'origin-resource-binding');
  const marked=actual({mark:false});rejected(marked,'history-not-connected');

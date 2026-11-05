@@ -1,12 +1,14 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
-const P=require('./support/repair-isolated-planner.cjs').planner(),R=require('../st-rules'),B=require('../st-bag'),H=require('../st-resource-history'),Session=require('../st-session'),{withPage}=require('./support/page.cjs');
+const P=require('./support/repair-isolated-planner.cjs').planner(),R=require('../st-rules'),B=require('../st-bag'),H=require('../st-resource-history'),M=require('../st-midgame-resources'),Session=require('../st-session'),{withPage}=require('./support/page.cjs');
 const fixture=require('./fixtures/forced-bag-resource-binding.json'),clone=x=>JSON.parse(JSON.stringify(x));
 function setup(g){g.window.STPlanner=P;const all=[];g.window.Worker=class{constructor(){all.push(this);}postMessage(m){this.message=clone(m);}terminate(){}respond(result){this.onmessage({data:{type:'result',id:this.message.id,revision:this.message.observation.revision,result}});}};
  const f=clone(fixture),history=H.importContext(f.observation,f.options.resourceContext),origin=f.options.resourceContext.origin;
  const envelope=Session.create(f.observation,{resourceHistory:history,resourceOriginBag:B.fromObserved({observed:[origin.active.type,...origin.queue],startPhase:0}),patternHistory:f.options.patternHistory,openingPhase:true});
  g.element('#st-snapshot').value=JSON.stringify(envelope);g.click('#st-import');g.advance(40);assert.match(g.element('#st-import-status').textContent,/Session imported/);
- const advice=f.advice;advice.phase='maintenance';advice.evidence.openingHandoff={status:'checked-after-observed-opening-quality',recovery:'shared-after-legacy-budget-miss'};all.at(-1).respond(advice);return{all,advice,originContext:f.options.resourceContext};}
+ // The archived routing fixture receives freshly derived boundary evidence,
+ // just as the actual first maintenance planner now provides.
+ const advice=f.advice;advice.evidence.resourceObligations.binding=M.start(M.extendForced(f.observation),H.resolve(f.observation,H.markHandoff(history,f.observation))).originKey;advice.phase='maintenance';advice.evidence.openingHandoff={status:'checked-after-observed-opening-quality',recovery:'shared-after-legacy-budget-miss'};all.at(-1).respond(advice);return{all,advice,originContext:f.options.resourceContext};}
 test('handoff UI transport (covered-geometry isolated): actual first HOLD/movement/refill carries original evidence once to the next real worker request',()=>withPage('st-lab.html',{},g=>{
  const {all,advice,originContext}=setup(g);assert.equal(all.at(-1).message.options.handoffRecovery,undefined);
  g.window.stLab.act(advice.witness[0]);g.advance(40);const mid=all.at(-1).message;assert(mid.previous);all.at(-1).respond(mid.previous);
