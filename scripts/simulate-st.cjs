@@ -66,7 +66,7 @@ function fallback(directory,input,result) {
   const steps=records.filter(r=>r.kind==='lock'),last=steps.at(-1),errFile=path.join(directory,'error.json');
   const detail=fs.existsSync(errFile)?json(errFile):{message:result.error?.message||result.stderr||result.signal};
   const stop=result.error?.code==='ETIMEDOUT'?'wall-cap':detail.stop||'runner-error';
-  return{schemaVersion:1,scenario:input.scenario,seed:input.seed,inputHash:input.inputHash,cap:input.locks,stop,censored:stop==='wall-cap',locks:steps.length,lines:last?.metrics.lines||0,tsds:last?.metrics.tsds||0,quads:last?.metrics.quads||0,profile:steps.map(s=>s.metrics),detail};
+  return{schemaVersion:1,scenario:input.scenario,seed:input.seed,inputHash:input.inputHash,cap:input.locks,stop,censored:stop==='wall-cap',locks:steps.length,lines:last?.metrics.lines||0,tsds:last?.metrics.tsds||0,quads:last?.metrics.quads||0,profile:steps.map(s=>s.metrics),detail,...(last?.coachEntries?{partialCoachMetrics:{coachEntries:last.coachEntries,currentCoach:last.currentCoach,coachTransitions:last.coachTransitions,coachHistoryScope:last.coachHistoryScope,throughLock:last.lock,reason:"Last retained lock only; terminal dispatcher ownership may be unobserved."}}:{})};
 }
 function exportMinoLedgers(directory,episodes){
   // Deliberately after every timed episode, never between planning requests.
@@ -120,7 +120,7 @@ function main(args=process.argv.slice(2)) {
   }
   manifest.finishedAt=new Date().toISOString();manifest.complete=manifest.episodes.length===inputs.length;manifest.exitCode=process.exitCode||0;write(manifestPath,manifest);
   // Normalize only after every timed child has ended, outside planner budgets.
-  const lines=['# ST simulation',`Revision: ${manifest.commit}${manifest.dirty?' (dirty; diagnostic only)':''}`,`Lane: ${manifest.lane}; fixed seeds do not imply deterministic search.`,...manifest.episodes.map(e=>`- ${e.scenario}, seed ${e.seed}: ${e.locks}/${e.cap} locks, ${e.lines} lines; ${e.stop}${e.censored?' (censored)':''}.`),'','No capped run certifies indefinite sustainability or a full Reset. Recorded-action replay verifies actions; rerun asks the current timed engine again.'];fs.writeFileSync(path.join(directory,'report.md'),lines.join('\n')+'\n');
+  const lines=['# ST simulation',`Revision: ${manifest.commit}${manifest.dirty?' (dirty; diagnostic only)':''}`,`Lane: ${manifest.lane}; fixed seeds do not imply deterministic search.`,...manifest.episodes.map(e=>`- ${e.scenario}, seed ${e.seed}: ${e.locks}/${e.cap} locks, ${e.lines} lines; ${e.stop}${e.censored?' (censored)':''}.`),'','## Observed coach entries',...V.coachEntryReport(manifest.episodes.map(e=>({label:e.scenario+', seed '+e.seed,currentCoach:e.currentCoach,coachHistoryScope:e.coachHistoryScope,measurements:Object.fromEntries(Object.entries(V.COACH_ENTRY_METRICS).map(([metric,coach])=>[metric,e.coachEntries?.[coach]??null]))}))), '','No capped run certifies indefinite sustainability or a full Reset. Recorded-action replay verifies actions; rerun asks the current timed engine again.'];fs.writeFileSync(path.join(directory,'report.md'),lines.join('\n')+'\n');
   if(o['mino-ledger']){manifest.regionalMinoAnalysis={mode:'offline-after-all-episodes',episodes:exportMinoLedgers(directory,manifest.episodes),finishedAt:new Date().toISOString()};manifest.exitCode=process.exitCode||0;write(manifestPath,manifest);}
   fs.writeFileSync(path.join(directory,'observations.json'),V.stringify(V.normalize(manifest,inputs)));
   return manifest;

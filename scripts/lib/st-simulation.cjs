@@ -13,13 +13,14 @@ const S = require('../../st-structure');
 const H = require('../../st-resource-history');
 const F = require('../../st-fixtures');
 const LS = require('./st-left-shape-metrics.cjs');
+const CE = require('./st-coach-entry-metrics.cjs');
 const root = path.resolve(__dirname, '../..');
 const clone = x => JSON.parse(JSON.stringify(x));
 // P.observe normalizes through createState, which adds lastEvent:null; the page
 // intentionally omits that field from its worker message. Match that boundary.
 function publicObservation(state){const observation=P.observe(state);delete observation.lastEvent;return observation;}
 const digest = x => crypto.createHash('sha256').update(typeof x === 'string' ? x : JSON.stringify(x)).digest('hex');
-const SOURCE_FILES = ['st-coach-config.js', 'st-rules.js', 'st-bag.js', 'st-structure.js', 'st-paired-repair.js', 'st-access.js', 'st-pattern-history.js', 'st-left-foundation.js', 'st-left-context.js', 'st-midgame-coaches.js','st-reset-coach.js', 'st-planner.js', 'st-opening-patterns.js','st-opening-continuations.js','st-opening-sources.js','st-source-scoring.js', 'st-opening.js', 'st-reset-policy.js','st-resource-history.js', 'st-midgame-resources.js', 'st-worker.js', 'st-lab.js', 'st-session.js', 'st-fixtures.js', 'scripts/lib/st-simulation.cjs', 'scripts/lib/st-left-shape-metrics.cjs', 'scripts/lib/st-evaluation.cjs', 'scripts/evaluate-st-protocol.cjs', 'scripts/simulate-st.cjs'];
+const SOURCE_FILES = ['st-coach-config.js', 'st-rules.js', 'st-bag.js', 'st-structure.js', 'st-paired-repair.js', 'st-access.js', 'st-pattern-history.js', 'st-left-foundation.js', 'st-left-context.js', 'st-midgame-coaches.js','st-reset-coach.js', 'st-planner.js', 'st-opening-patterns.js','st-opening-continuations.js','st-opening-sources.js','st-source-scoring.js', 'st-opening.js', 'st-reset-policy.js','st-resource-history.js', 'st-midgame-resources.js', 'st-worker.js', 'st-lab.js', 'st-session.js', 'st-fixtures.js', 'scripts/lib/st-simulation.cjs', 'scripts/lib/st-left-shape-metrics.cjs', 'scripts/lib/st-coach-entry-metrics.cjs', 'scripts/lib/st-evaluation.cjs', 'scripts/evaluate-st-protocol.cjs', 'scripts/simulate-st.cjs'];
 const CONFIG = Object.freeze({depth:3, width:8, maxNodes:45000, timeMs:SEARCH_TIME_MS});
 const PRESETS = Object.freeze({quick:{seeds:[10331, 20333], locks:24}, research:{seeds:Array.from({length:16}, (_,i) => 810001 + i * 997), locks:500}});
 const RNG_VERSION = 'mulberry32-seven-bag-v1';
@@ -108,7 +109,7 @@ function createSession(input, api=P) {
   return {
     get resources(){return H.resolve(publicObservation(state),resourceHistory);}, get state(){return state;}, get cursor(){return cursor;}, get opening(){return clone(opening);},
     request(id,options) { const {handoffRecovery:ignored,pendingLHint:ignoredHint,...settings}=options||{};return {type:'plan',id,observation:publicObservation(state),previous:previous?clone(previous):null,commitment:commitment?clone(commitment):null,options:{...settings,...(pendingLHint?{pendingLHint:clone(pendingLHint)}:{}),...(pendingHandoffRecovery?{handoffRecovery:clone(pendingHandoffRecovery)}:{}),resourceContext:H.exportContext(publicObservation(state),resourceHistory),patternHistory:patternHistory?clone(patternHistory):null,openingPhase:opening.active,openingSource:opening.source?clone(opening.source):null,openingClear:opening.clear?clone(opening.clear):null,openingRepair:opening.repair?clone(opening.repair):null}}; },
-    execute(advice) {
+    execute(advice,{onCoach=()=>{}}={}) {
       const proof=validateAdvice(state,advice);
       const requiredDraws=state.queue.length-proof.state.queue.length;
       if(input.future.length-cursor<requiredDraws)throw Object.assign(Error('Private stream cannot replenish this witness; no actions applied'),{code:'INPUT_EXHAUSTED'});
@@ -117,6 +118,8 @@ function createSession(input, api=P) {
       if(advice.evidence?.strategy==='reset-coach')resourceHistory=H.beginReset(resourceHistory,publicObservation(state));
       const wasOpening=opening.active;opening=api.acceptOpeningResult(opening,advice);
       if(wasOpening&&!opening.active)resourceHistory=H.markHandoff(resourceHistory,publicObservation(state));
+      const coachBeforeLock=CE.phase(opening,H.resolve(publicObservation(state),resourceHistory));
+      onCoach(coachBeforeLock,false);
       previous={...clone(advice),revision:state.revision};pendingLHint=advice.evidence?.pendingLStage?clone(advice.evidence.pendingLStage):null;
 
       commitment=advice.recommendation?.kind!=='risky'&&!advice.evidence?.opening && (advice.evidence?.strategy==='reset-coach'||api.resourceGoal(advice.continuation||[])) ? {observation:clone(publicObservation(state)),advice:clone(advice)} : null;
@@ -129,6 +132,7 @@ function createSession(input, api=P) {
         replenish();
         resourceHistory=H.applyAction(resourceHistory,before,action,{...publicObservation(state),lastEvent:state.lastEvent});
         if(action==='HD') {
+          onCoach(CE.phase(opening,H.resolve(publicObservation(state),resourceHistory)),true);
           event=clone(state.lastEvent); previous=null;
           pendingHandoffRecovery=recovery?{...clone(recovery),actualEvent:clone(event)}:null;
           patternHistory=api.updatePatternHistory(patternHistory,before,publicObservation(state),event);
@@ -146,14 +150,16 @@ function createSession(input, api=P) {
       assert.deepEqual(event,clone(proof.events[0]));
       assert.deepEqual(state.board,proof.state.board);
       assert.deepEqual(R.validate(state),[]);
-      return {event,actions};
+      return {event,actions,coachBeforeLock};
     }
   };
 }
 function runEpisode(input, {config=CONFIG, planner=workerPlanner(), onRecord=()=>{}, api=P}={}) {
   const session=createSession(input,api), started=performance.now();
-  const summary={schemaVersion:1,scenario:input.scenario,seed:input.seed,inputHash:input.inputHash,cap:input.locks,config,stop:'lock-cap',censored:true,locks:0,lines:0,tsds:0,quads:0,invalidRecommendations:0,budgetHits:0,openingCompletedAt:null,firstTsdAt:null,firstQuadAt:null,rebuildAfterTsdEvents:0,holds:0,nodes:0,peakHeight:boardMetrics(session.state).height,profile:[],latencies:[]};
+  const summary={schemaVersion:1,scenario:input.scenario,seed:input.seed,inputHash:input.inputHash,cap:input.locks,config,stop:'lock-cap',censored:true,locks:0,lines:0,tsds:0,quads:0,invalidRecommendations:0,budgetHits:0,firstTsdAt:null,firstQuadAt:null,rebuildAfterTsdEvents:0,holds:0,nodes:0,peakHeight:boardMetrics(session.state).height,profile:[],latencies:[]};
   summary.reset={starts:[],completions:[],firstCompletion:null,postFirstLines:null,postFirstLocks:null,intervals:[]};
+  const coaches=CE.create(CE.phase(session.opening,session.resources),{imported:input.scenario!=='empty'});
+  const record=value=>onRecord({...value,...coaches.snapshot()});
   const leftShapes=LS.create(session.state.board);
   let notches=S.notchPattern(session.state.board), cavityDebt=[], centerDebt=[], awaitingRebuild=false;
   const stop=(kind,detail)=>{summary.stop=kind;summary.censored=false;summary.detail=detail;};
@@ -163,13 +169,17 @@ function runEpisode(input, {config=CONFIG, planner=workerPlanner(), onRecord=()=
     const request=session.request(lock+1,config), before=publicObservation(session.state), preAssessment=P.assess(before.board);
     let advice, elapsedMs;
     try {const t=performance.now();advice=planner(request);elapsedMs=performance.now()-t;}
-    catch(error){stop(error.code==='ERR_SCRIPT_EXECUTION_TIMEOUT'?'planner-timeout':'planner-error',error.message);onRecord({kind:'stop',lock,request,error:summary.detail});break;}
+    catch(error){stop(error.code==='ERR_SCRIPT_EXECUTION_TIMEOUT'?'planner-timeout':'planner-error',error.message);record({kind:'stop',lock,request,error:summary.detail});break;}
     summary.latencies.push(elapsedMs);
-    if(!advice?.target){stop('abstention',{status:advice?.status||'missing-result',reason:advice?.reason});onRecord({kind:'stop',lock,request,advice,elapsedMs});break;}
-    try {validateAdvice(session.state,advice);}catch(error){summary.invalidRecommendations++;stop('invalid-recommendation',error.message);onRecord({kind:'stop',lock,request,advice,error:error.message});break;}
+    // The final dispatcher result owns the request even when it abstains.
+    // Ordinary probes and projected Reset assessments do not enter a coach.
+    if(advice?.evidence?.strategy==='reset-coach')coaches.enter('reset',summary.locks,'reset-dispatch');
+    if(!advice?.target){stop('abstention',{status:advice?.status||'missing-result',reason:advice?.reason});record({kind:'stop',lock,request,advice,elapsedMs});break;}
+    try {validateAdvice(session.state,advice);}catch(error){summary.invalidRecommendations++;stop('invalid-recommendation',error.message);record({kind:'stop',lock,request,advice,error:error.message});break;}
     let actual;
-    try {actual=session.execute(advice);}catch(error){stop(error.code==='INPUT_EXHAUSTED'?'input-exhausted':'execution-error',error.message);onRecord({kind:'stop',lock,request,advice,error:error.message});break;}
+    try {actual=session.execute(advice,{onCoach:(coach,locked)=>coaches.enter(coach,summary.locks+Number(locked),locked?'actual-lock':'accepted-handoff')});}catch(error){stop(error.code==='INPUT_EXHAUSTED'?'input-exhausted':'execution-error',error.message);record({kind:'stop',lock,request,advice,error:error.message});break;}
     summary.locks++;
+    coaches.enter(CE.phase(session.opening,session.resources),summary.locks,'actual-lock');
     const after=publicObservation(session.state), metrics=boardMetrics(after), assessment=P.assess(after.board),event=actual.event;
     metrics.leftShape=LS.classify(after.board);LS.add(leftShapes,metrics.leftShape);
     const check=S.advanceNotches(before.board,{state:session.state,event},notches), fresh=S.notchPattern(after.board);
@@ -189,16 +199,16 @@ function runEpisode(input, {config=CONFIG, planner=workerPlanner(), onRecord=()=
     if(awaitingRebuild&&event.lines===0&&metrics.regionalSupport){summary.rebuildAfterTsdEvents++;awaitingRebuild=false;}
     summary.holds+=advice.witness.filter(a=>a==='HOLD').length;summary.nodes+=advice.metrics?.nodes||0;
     summary.budgetHits+=Number(Boolean(advice.evidence?.budgetExhausted));summary.peakHeight=Math.max(summary.peakHeight,metrics.height);
-    if(request.options.openingPhase&&!session.opening.active&&summary.openingCompletedAt===null)summary.openingCompletedAt=lock;
     const profile={lock:summary.locks,lines:summary.lines,tsds:summary.tsds,quads:summary.quads,...metrics,centerDebt:centerDebt.length,cavityDebt:cavityDebt.length};
     summary.profile.push(profile);
-    onRecord({kind:'lock',lock:summary.locks,request,advice,elapsedMs,event,actions:actual.actions,after,opening:session.opening,draws:session.cursor,metrics:profile,flags,phaseDiagnostic:{fresh,inherited:check.pattern,rawMismatch:fresh.anchorRow!==check.pattern.anchorRow||fresh.status!==check.pattern.status}});
+    record({kind:'lock',lock:summary.locks,request,advice,elapsedMs,event,actions:actual.actions,after,opening:session.opening,draws:session.cursor,metrics:profile,flags,phaseDiagnostic:{fresh,inherited:check.pattern,rawMismatch:fresh.anchorRow!==check.pattern.anchorRow||fresh.status!==check.pattern.status}});
     notches=check.pattern;
     if(session.state.topOut){stop('top-out');break;}
     if(flags.some(f=>f==='noncanonical-clear'||f==='notch-transition')){stop('policy-violation',flags);break;}
   }
   if(summary.reset.firstCompletion){summary.reset.postFirstLines=summary.lines-summary.reset.firstCompletion.lines;summary.reset.postFirstLocks=summary.locks-summary.reset.firstCompletion.completedAt;}
   summary.reset.finalStatus=session.resources.reset?.status??'unknown';summary.reset.finalProgress=session.resources.reset?.progress??null;
+  Object.assign(summary,coaches.snapshot());
   summary.leftShapes=LS.finish(leftShapes);
   summary.elapsedMs=performance.now()-started;summary.final=boardMetrics(session.state);summary.finalObservation=publicObservation(session.state);
   const times=summary.latencies.slice().sort((a,b)=>a-b);

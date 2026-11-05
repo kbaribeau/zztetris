@@ -248,3 +248,12 @@ endpoints. Their test-only controls may select a historical challenger, but do
 not grant that challenger production admission or alter the shipped planner.
 Interrupted optional-work accounting captures the incumbent in the same search,
 charges the injected work exactly and rejects any proof after its deadline.
+
+### Simulation coach entries
+
+`test/st-coach-entry-metrics.test.cjs` checks actual entry counters (including
+immediate abstention, repeated cycles, import compatibility and final-lock Reset
+handback). The real Reset-ledger replay verifies that the second qualifying T
+returns to early midgame. These metrics are simulation-only; no policy input,
+ranking or planner budget is changed. See `docs/st-evaluation-contract.md` for
+per-run and cohort reporting and unavailable legacy measurements.
