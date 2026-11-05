@@ -15,7 +15,7 @@ for(const f of fixtures)test(`proof scheduling: old seed ${f.seed} route cannot 
  const strict=P.plan(q.observation,options);assert.equal(strict.target,null);assert.ok(['no-supported-continuation-found','budget-exhausted'].includes(strict.status));
  const a=P.decide(q.observation,options);assertRisk(q.observation,a);
  if(f.seed===2449480001){assert.deepEqual(a.target,{type:'L',x:1,y:24,rotation:2});assert.equal(a.recommendation.riskBasis,'uncertified-follow-up-only');assert.deepEqual(a.recommendation.hazards.map(h=>h.code),['continuation-unverified']);assert.equal(a.recommendation.search.incomplete,true);}
- else{assert.deepEqual(a.target,{type:'L',x:0,y:21,rotation:2});assert.deepEqual(a.recommendation.hazards.find(h=>h.code==='unresolved-covered-cells').cells,[[3,28]]);assert.ok(a.recommendation.hazards.some(h=>h.code==='allocation-history-unknown'));}
+ else{assert.deepEqual(a.target,{type:'L',x:0,y:21,rotation:2});assert.deepEqual(a.recommendation.hazards.find(h=>h.code==='unresolved-covered-cells').cells,[[3,28]]);assert.equal(a.recommendation.hazards.some(h=>h.code==='allocation-history-unknown'),false,'Consumed opening S/L does not create a historical pairing warning');assert.deepEqual(summary.hangingS.unclassified,[]);assert.ok([2,6].every(id=>summary.allocations.find(p=>p.pieceId===id).at<=summary.milestones.maintenanceHandoff.at),'The formerly unclassified S6 and same-bag L2 were both consumed before handoff');}
 
 });
 test('proof scheduling: deliberately unfinished access remains unknown, never a supported certificate',()=>{
