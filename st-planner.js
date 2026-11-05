@@ -137,7 +137,7 @@ function dPatternExitAdmission(before,p,options={}){
 // Successful completion witnesses may be reused only inside one synchronous plan.
 // Bind the actual pose, inventory, resource identities and phase; caller evidence
 // never supplies this private cache and failed/budget-limited probes are not saved.
-const resourceRepairCache=Symbol('resource-repair-cache'),rightCapAdmission=Symbol('right-cap-admission'),supportedSLAdmission=Symbol('supported-SL-admission');
+const resourceRepairCache=Symbol('resource-repair-cache'),rightCapAdmission=Symbol('right-cap-admission'),supportedSLAdmission=Symbol('supported-SL-admission'),openingHandoffBoundary=Symbol('opening-handoff-boundary');
 function resourceRepair(state,resource,options){
  options={...options,waitingHint:options[pendingLHint]??null};
  const cache=options[resourceRepairCache],key=JSON.stringify([observe(state),M.binding(resource),options.notches,options.coveredDebt||[],Boolean(resource.pendingLDiverted),Boolean(options[pendingLStageDisabled]),options.waitingHint]);
@@ -1055,7 +1055,11 @@ function planCore(raw,options={}){
  if(s.topOut)return{...base,status:'no-supported-continuation-found',reason:'This position has topped out. Reset to continue.'};
  if(!s.active)return{...base,status:'insufficient-known-pieces',reason:'This snapshot has no active piece. Import another position or reset.'};
  const observedPattern=H.resolve(s,options.patternHistory);if(['invalid-history','broken'].includes(observedPattern.status))return{...base,status:'no-supported-continuation-found',reason:observedPattern.status==='broken'?'A recognized T-slot opening in column 7 is filled. The coach does not support repairing this pattern yet.':'The recorded scoring-pattern evidence could not be verified. Reset or import a fresh snapshot before continuing.'};
- if(!options.disableOpening&&(options.openingPhase||s.board.every(r=>r==='..........'))){const opening=typeof module==='object'&&module.exports?require('./st-opening.js'):globalThis.STOpening;return opening.plan(s,{...options,deadline});}
+ if(!options.disableOpening&&(options.openingPhase||s.board.every(r=>r==='..........'))){
+  const opening=typeof module==='object'&&module.exports?require('./st-opening.js'):globalThis.STOpening,result=opening.plan(s,{...options,deadline});
+  if(result?.target&&result.phase==='maintenance'&&result.evidence?.openingHandoff)options[openingHandoffBoundary]?.(result);
+  return result;
+ }
  if(options.resourceContext&&resourceSummary(s,options).coverage.status==='invalid')return{...base,status:'no-supported-continuation-found',reason:'The observed resource history could not be verified for this position.'};
  // Actual repair obligations come from authenticated history, not a pinned
  // old witness. Fresh alternatives must certify those same current cells.
@@ -2092,7 +2096,11 @@ function ordinaryPlanRequest(raw,options={}){
  // Only an internal producer can register a fallback, and registration itself
  // performs the full final boundary check within this request's shared budget.
  const checkOpeningFallback=candidate=>{const checked=finalCheck(candidate);if(checked?.target){retainedFallback=checked;retainedSignature=JSON.stringify([observe(raw),{...checked,metrics:undefined}]);}return checked;};
- const result=planCore(raw,{...options,deadline,normalOpeningDecision,checkOpeningFallback,admitMaintenance,[rightCapAdmission]:admitRightCap,[supportedSLAdmission]:admitSupportedSL});
+ let handoffResult=null;
+ const result=planCore(raw,{...options,deadline,normalOpeningDecision,checkOpeningFallback,admitMaintenance,[rightCapAdmission]:admitRightCap,[supportedSLAdmission]:admitSupportedSL,[openingHandoffBoundary]:candidate=>{handoffResult=candidate;}});
+ // Only the actual opening producer in this invocation can carry its boundary
+ // into outer final admission. Imported/copied phase labels cannot opt into it.
+ if(result===handoffResult&&options.resourceContext){const state=observe(raw),history=RH.markHandoff(RH.importContext(state,options.resourceContext),state);options={...options,resourceContext:RH.exportContext(state,history)||options.resourceContext};}
  if(result===ordinaryFallback&&sameOrdinary()||result===retainedFallback&&sameRetained()||capAdmissions.has(result)&&capAdmissions.get(result)===capSignature(result)||slAdmissions.has(result)&&slAdmissions.get(result)===slSignature(result))return result;
  const checked=finalCheck(result);
  if(!checked?.target&&maintenanceFallback&&signature(maintenanceFallback)===maintenanceSignature){
