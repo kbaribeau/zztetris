@@ -9,6 +9,9 @@ function actual({mark=true,actualWitness=null}={}){
  const f=clone(fixture),origin=R.createState(f.observation),advice=f.advice;
  advice.phase='maintenance';advice.evidence.openingHandoff={status:'checked-after-actual-clear',recovery:'shared-after-legacy-budget-miss'};
  let state=origin,history=H.importContext(origin,f.options.resourceContext),pattern=PH.start(origin),event;
+ // This stored route is a policy-isolated candidate, rebuilt under the current
+ // handoff boundary rather than trusting its historical serialized binding.
+ advice.evidence.resourceObligations.binding=M.start(M.extendForced(origin),H.resolve(origin,H.markHandoff(history,origin))).originKey;
  if(mark)history=H.markHandoff(history,state);
  for(const action of actualWitness||advice.witness){const before=state;state=R.move(state,action);
   if(action==='HD'){event=state.lastEvent;state={...state,queue:[...state.queue,f.nextPublicReveal],bag:B.consume(state.bag,f.nextPublicReveal)};pattern=PH.update(pattern,before,state,event);}

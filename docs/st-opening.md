@@ -73,3 +73,33 @@ Development evidence is seed 502609459 before O6. Forcing only the checked O-cen
 ### Cavity-analysis cost
 
 Opening transition checks reuse a request-private minimal `sealedCells` assessment instead of computing unrelated geometric T slots. Full and minimal assessments implement the same top-connected four-neighbor air definition. The ordinary full assessment retains its prior implementation; only the opening-only query uses the optimized flood, isolating maintenance search timing from this change. A per-call 400-cell queue marks cells on enqueue, with explicit row boundaries; output remains x-major. Minimal analysis scans empty cells without computing heights: every empty cell above a column's first occupied cell has a straight path to the top. Independent equivalence tests cover both implementations. This is an exact flood optimization, not tetromino reachability, a new gap exemption, or a strategic ranking change. Independent frozen full-assessment and fixed-node advice comparisons accompany regression tests for boundaries, sealed/side-accessible pockets and buffer isolation.
+
+### S/L accounting at maintenance entry
+
+Opening placements need not form S/L pairs. Immediately before the first
+maintenance probe, the observed lock history is interpreted at the proposed
+handoff boundary. For each original observed bag, both S and L already locked
+means no inherited hanging-piece obligation; exactly one locked means its unused
+counterpart is hanging; neither locked means no inherited obligation. HOLD is
+unused and keeps its original bag identity. An older held S and a current-bag S
+can therefore both be hanging. Two or more retain the existing `out-of-profile`
+label while all identities remain tracked; this does not broaden repair policy.
+
+This settles allocation bookkeeping, not the board. Exact Center targets,
+diverted-partner debt, covered cells and other repair facts remain. Actual
+post-handoff placements use the existing identity-specific accommodation rules.
+Unknown origins stay unknown; an as-yet-unobserved counterpart stays deferred
+until its actual reveal. No private future or arrival order is inferred.
+
+Forecast-first validation, fresh probing, shared-budget recovery and hypothetical
+post-clear forecasts use the same boundary ledger. A failed probe does not change
+live history. Acceptance retains that marker, and Undo and session replay derive
+the same result. The action-tape schema is unchanged; the coach compatibility
+stamp changes so older cached advice is discarded while replayable history stays.
+
+`handoffAtAction` is a recorded phase-transition input, not an authenticated proof
+that this was the only possible handoff time or that a coach approved it. Imported
+action tapes can describe alternative phase histories. Changing that input
+changes which locks belong to opening, but cannot rewrite actual allocations or
+certify repaired Center/covered geometry. Normal planner admission still checks
+its own resource, structural and access evidence.

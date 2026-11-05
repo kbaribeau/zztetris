@@ -2376,17 +2376,20 @@ function retainHandoffRecovery(raw,options,work){
   const actualSteps=currentContext.steps.slice(priorContext.steps.length);
   if(priorContext.handoffAtAction!==null||currentContext.handoffAtAction!==priorContext.steps.length||!same(priorContext.origin,currentContext.origin)||priorContext.fresh!==currentContext.fresh||!actualSteps.length||actualSteps.length>256||actualSteps.at(-1).action!=='HD'||actualSteps.slice(0,-1).some(s=>s.action==='HD')||!same(currentContext.steps.slice(0,priorContext.steps.length),priorContext.steps)||summary.locks!==priorSummary.locks+1||summary.milestones?.maintenanceHandoff?.at!==priorSummary.locks)return fail('history-not-connected');
   if(priorSummary.openingAllocation?.status!=='verified-first-tsd'||priorSummary.openingAllocation.requiredNonRightZ!==0||!priorSummary.extraZ?.baseline||!['available','used'].includes(priorSummary.extraZ.status)||!openingModule().handoffGeometry(origin))return fail('source-eligibility');
-  const known=priorSummary.hangingS?.evidence?.[0];
+  // The retained advice was checked against the prospective boundary ledger,
+  // while transport deliberately records the connected pre-handoff history.
+  const boundaryHistory=RH.markHandoff(RH.importContext(origin,priorContext),origin),boundaryContext=RH.exportContext(origin,boundaryHistory),boundarySummary=RH.resolve(origin,boundaryHistory);
+  const known=boundarySummary.hangingS?.evidence?.[0];
   const live=(view,id)=>[view.instances?.active,view.instances?.hold,...(view.instances?.queue||[])].find(p=>p?.id===id&&p.type==='S');
-  if(priorSummary.hangingS?.status!=='hanging'||priorSummary.hangingS.evidence.length!==1||priorSummary.hangingS.unclassified?.length||!Number.isInteger(known?.sId)||known.sId<=0||!Number.isInteger(known.bag)||known.bag<0||!live(priorSummary,known.sId)||summary.hangingS?.status!=='hanging'||summary.hangingS.unclassified?.length||!summary.hangingS.evidence.some(s=>s.sId===known.sId&&s.bag===known.bag&&s.lId===known.lId)||!live(summary,known.sId))return fail('known-S-identity');
-  if(advice.evidence.resourceObligations?.status!=='checked'||advice.evidence.resourceObligations.binding!==resourceBinding(origin,{resourceContext:priorContext}))return fail('origin-resource-binding');
+  if(boundarySummary.hangingS?.status!=='hanging'||boundarySummary.hangingS.evidence.length!==1||boundarySummary.hangingS.unclassified?.length||!Number.isInteger(known?.sId)||known.sId<=0||!Number.isInteger(known.bag)||known.bag<0||!live(boundarySummary,known.sId)||summary.hangingS?.status!=='hanging'||summary.hangingS.unclassified?.length||!summary.hangingS.evidence.some(s=>s.sId===known.sId&&s.bag===known.bag&&s.lId===known.lId)||!live(summary,known.sId))return fail('known-S-identity');
+  if(advice.evidence.resourceObligations?.status!=='checked'||advice.evidence.resourceObligations.binding!==resourceBinding(origin,{resourceContext:boundaryContext}))return fail('origin-resource-binding');
   const rootPattern=H.resolve(origin,null),currentPattern=H.resolve(state,options.patternHistory);
   if(rootPattern.status!=='established'||currentPattern.status!=='established')return fail('pattern-history');
   if(!spend(actualSteps.length+steps.reduce((n,p)=>n+p.witness.length,0)))return fail('shared-budget');
   // Reconstruct ordinary structural and resource policy, rather than accepting
   // serialized cycleDebt, pair or gapAccess claims from the old advice.
   const makeInitial=(s,view,notches)=>{const a=assess(s.board);a.state=extendForced(s);a.notches=notches;a.resources=M.start(a.state,view);return a;};
-  const initial=makeInitial(origin,priorSummary,rootPattern);let node=null,first=null;
+  const initial=makeInitial(origin,boundarySummary,rootPattern);let node=null,first=null;
   for(const step of steps){const before=node?.state??initial.state,r=R.replay(before,step.witness);if(!r.valid||r.events.length!==1||!same(r.events[0],step.event)||!S.canonicalClear(r.events[0])||step.resultContext!==context(r.state))return fail('origin-prefix');
    node=nodeFor({state:r.state,event:r.events[0],target:r.events[0].target,witness:step.witness,hold:step.hold,holdCount:holdCount(step),...policyWitnesses(before)},node,initial,0);if(!first)first=node;
    if(!node.notchValid||node.cycleDebt||node.assessment.maxHeight>=20)return fail('origin-policy');
@@ -2395,7 +2398,7 @@ function retainHandoffRecovery(raw,options,work){
   let actual=origin;for(const step of actualSteps){const next=R.move(actual,step.action);if(next===actual)return fail('actual-lock');actual={...next,queue:[...next.queue,...step.revealed]};for(const piece of step.revealed)if(actual.bag)actual={...actual,bag:B.consume(actual.bag,piece)};}
   if(!same(actual.lastEvent,candidate.actualEvent)||!same(first.path[0].event,actual.lastEvent)||!sameConstructionResult(first.state,state)||context(actual)!==context(state)||!same(actual.active,state.active)||actual.streamCursor!==state.streamCursor)return fail('actual-lock');
   const phase=first.notches;if(phase.status!==currentPattern.status||phase.anchorRow!==currentPattern.anchorRow||!same(phase.protectedRows,currentPattern.protectedRows))return fail('pattern-history');
-  const priorOptions={...options,resourceContext:priorContext,patternHistory:null,maxNodes:left()};
+  const priorOptions={...options,resourceContext:boundaryContext,patternHistory:null,maxNodes:left()};
   const oldResource=checkedResourceEndpoint(origin,steps,priorOptions);if(!oldResource.valid)return fail('origin-resource-proof');
   const oldAccess=A.prefix(origin,steps,{now,deadline,maxNodes:left(),notches:rootPattern});tracker.nodes+=oldAccess.visited;
   if(oldAccess.reachable!==true)return fail('origin-access');
