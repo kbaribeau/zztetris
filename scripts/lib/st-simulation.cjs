@@ -95,7 +95,7 @@ function boardMetrics(state) {
 }
 function createSession(input, api=P) {
   if(typeof api.startOpeningSession!=='function')throw Error('Shared opening session API is not available');
-  let state=R.createState(clone(input.initial)), cursor=0, commitment=null, previous=null, pendingLHint=null, pendingHandoffRecovery=null;
+  let state=R.createState(clone(input.initial)), cursor=0, commitment=null, previous=null, pendingLHint=null, pendingHandoffRecovery=null, openingForecast=null;
   let patternHistory=api.startPatternHistory(publicObservation(state));
   let resourceHistory=H.start(publicObservation(state),{fresh:input.scenario==='empty'});
   let opening=api.startOpeningSession(publicObservation(state),{emptyMode:input.scenario==='empty'});
@@ -108,15 +108,17 @@ function createSession(input, api=P) {
   }
   return {
     get resources(){return H.resolve(publicObservation(state),resourceHistory);}, get state(){return state;}, get cursor(){return cursor;}, get opening(){return clone(opening);},
-    request(id,options) { const {handoffRecovery:ignored,pendingLHint:ignoredHint,...settings}=options||{};return {type:'plan',id,observation:publicObservation(state),previous:previous?clone(previous):null,commitment:commitment?clone(commitment):null,options:{...settings,...(pendingLHint?{pendingLHint:clone(pendingLHint)}:{}),...(pendingHandoffRecovery?{handoffRecovery:clone(pendingHandoffRecovery)}:{}),resourceContext:H.exportContext(publicObservation(state),resourceHistory),patternHistory:patternHistory?clone(patternHistory):null,openingPhase:opening.active,openingSource:opening.source?clone(opening.source):null,openingClear:opening.clear?clone(opening.clear):null,openingRepair:opening.repair?clone(opening.repair):null}}; },
+    request(id,options) { const {handoffRecovery:ignored,pendingLHint:ignoredHint,openingForecast:ignoredForecast,...settings}=options||{};return {type:'plan',id,observation:publicObservation(state),previous:previous?clone(previous):null,commitment:commitment?clone(commitment):null,options:{...settings,...(openingForecast?{openingForecast:clone(openingForecast)}:{}),...(pendingLHint?{pendingLHint:clone(pendingLHint)}:{}),...(pendingHandoffRecovery?{handoffRecovery:clone(pendingHandoffRecovery)}:{}),resourceContext:H.exportContext(publicObservation(state),resourceHistory),patternHistory:patternHistory?clone(patternHistory):null,openingPhase:opening.active,openingSource:opening.source?clone(opening.source):null,openingClear:opening.clear?clone(opening.clear):null,openingRepair:opening.repair?clone(opening.repair):null}}; },
     execute(advice,{onCoach=()=>{}}={}) {
       const proof=validateAdvice(state,advice);
       const requiredDraws=state.queue.length-proof.state.queue.length;
       if(input.future.length-cursor<requiredDraws)throw Object.assign(Error('Private stream cannot replenish this witness; no actions applied'),{code:'INPUT_EXHAUSTED'});
       pendingHandoffRecovery=null;
+      if(typeof api.captureOpeningForecast==='function')openingForecast=api.captureOpeningForecast(publicObservation(state),advice)||openingForecast;
       const recovery=typeof api.captureHandoffRecovery==='function'?api.captureHandoffRecovery(publicObservation(state),advice,H.exportContext(publicObservation(state),resourceHistory)):null;
       if(advice.evidence?.strategy==='reset-coach')resourceHistory=H.beginReset(resourceHistory,publicObservation(state));
       const wasOpening=opening.active;opening=api.acceptOpeningResult(opening,advice);
+      if(!opening.active)openingForecast=null;
       if(wasOpening&&!opening.active)resourceHistory=H.markHandoff(resourceHistory,publicObservation(state));
       const coachBeforeLock=CE.phase(opening,H.resolve(publicObservation(state),resourceHistory));
       onCoach(coachBeforeLock,false);
@@ -130,6 +132,7 @@ function createSession(input, api=P) {
         if(next===state)throw Error('Witness action did not execute: '+action);
         state={...next,revision:state.revision+1};
         replenish();
+        if(openingForecast)openingForecast=typeof api.advanceOpeningForecast==='function'?api.advanceOpeningForecast(openingForecast,before,publicObservation(state),action):null;
         resourceHistory=H.applyAction(resourceHistory,before,action,{...publicObservation(state),lastEvent:state.lastEvent});
         if(action==='HD') {
           onCoach(CE.phase(opening,H.resolve(publicObservation(state),resourceHistory)),true);
@@ -137,6 +140,7 @@ function createSession(input, api=P) {
           pendingHandoffRecovery=recovery?{...clone(recovery),actualEvent:clone(event)}:null;
           patternHistory=api.updatePatternHistory(patternHistory,before,publicObservation(state),event);
           opening=api.updateOpeningSession(opening,before,publicObservation(state),event);
+          if(!opening.active)openingForecast=null;
           const suffix=commitment?api.continueCommitment(commitment.observation,publicObservation(state),commitment.advice,event,{patternHistory,resourceContext:H.exportContext(publicObservation(state),resourceHistory)}):null;
           commitment=suffix?{observation:clone(publicObservation(state)),advice:clone(suffix)}:null;
           displayed=null;

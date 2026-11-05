@@ -2258,6 +2258,78 @@ function revalidate(raw,previous,options={}){
  const repair=checkedCoveredRepair(s,continuation,options,previous.evidence?.coveredRepairPlan);if(!repair)return null;
  return{...previous,revision:s.revision,hold:p.hold,holdCount:holdCount(p),witness:p.witness,continuation:repair.steps,evidence:{...previous.evidence,pendingLSelection:null,coveredRepair:repair.proof,coveredRepairPlan:repair.plan,pendingLStage:pendingLProof(resources.repair),resourceObligations:{status:'checked',binding:resourceBinding(s,options),delayedDPlans:resources.delayedDPlans}},...pendingLPresentation(continuation,previous.assessment,previous.evidence?.construction,resources.repair,resources.delayedDPlans),metrics:{...previous.metrics,certifiedHorizon:continuation.length,nodes:enumeration.visited+resources.visited+access.visited,revalidationNodes:enumeration.visited+resources.visited,gapAccessNodes:access.visited},retained:true};
 }
+// A forecast transports an ordinary route, never a saved certificate. Rebuild
+// every policy fact from the actual public root and authenticated histories.
+// This checks one bounded candidate; it does not search for another route.
+function revalidateOpeningForecast(raw,steps,options={},work={}){
+ Object.assign(work,{attempted:true,retained:false,nodes:0,reason:'not-checked'});
+ const now=options.now||(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs),limit=options.maxNodes??45000;
+ const tracker={nodes:0},external=options.budgetTracker;
+ const left=()=>Math.max(0,limit-tracker.nodes),fail=reason=>{work.reason=reason;return null;};
+ const spend=units=>{if(now()>=deadline||units>left())return false;tracker.nodes+=units;return true;};
+ try{
+  if(now()>=deadline||limit<=0)return fail('shared-budget');
+  if(!Array.isArray(steps)||!steps.length||steps.length>7)return fail('candidate-shape');
+  for(const p of steps){
+   if(!p||!Array.isArray(p.witness)||!p.witness.length||p.witness.length>256||p.witness.at(-1)!=='HD'||p.witness.slice(0,-1).includes('HD')||p.witness.some(a=>typeof a!=='string'))return fail('candidate-shape');
+   if(options.allowHold===false&&p.witness.includes('HOLD'))return fail('hold-disabled');
+   // These families require their own origin-bound construction certificates.
+   if(p.structuralEvidence?.leftFoundation||p.structuralEvidence?.leftSupport||p.structuralEvidence?.scoringFoundation||p.construction)return fail('construction-candidate');
+  }
+  const state=observe(raw);
+  if(R.validate(state).length||state.bag&&B.validate(state.bag).length||state.topOut||!state.active||state.queue.length>6)return fail('observation');
+  const summary=resourceSummary(state,options),pattern=H.resolve(state,options.patternHistory);
+  if(options.resourceContext&&!['complete','partial'].includes(summary.coverage?.status))return fail('resource-history');
+  if(['invalid-history','broken'].includes(pattern.status))return fail('pattern-history');
+  // Do not materialize speculative future draws. Each replay starts with the
+  // real active/hold/preview and stops naturally at that public boundary.
+  const readAssessment=createAssessmentReader(),initial=readAssessment(state.board);
+  Object.assign(initial,{state,notches:pattern,coveredRepair:summary.coveredRepair,coveredStages:summary.center?.pending,resources:M.start(state,summary),dPending:summary.dPattern?.pending===true,ordinarySAllocationEnabled:!options.disableOrdinarySAllocation,disableDelayedJPlan:Boolean(options.disableDelayedJPlan)});
+  if(!initial.maintenanceScope)return fail('ordinary-scope');
+  let node=null;
+  for(const saved of steps){
+   if(!spend(saved.witness.length))return fail('shared-budget');
+   const before=node?.state??state,witness=saved.witness.slice(),r=R.replay(before,witness);
+   if(!r.valid||r.events.length!==1||r.state.topOut||!S.canonicalClear(r.events[0]))return fail('candidate-replay');
+   if(saved.event&&JSON.stringify(saved.event)!==JSON.stringify(r.events[0]))return fail('candidate-event');
+   const p={state:r.state,event:r.events[0],target:r.events[0].target,witness,hold:witness.includes('HOLD'),holdCount:witness.filter(a=>a==='HOLD').length,...policyWitnesses(before)};
+   if(!ordinaryRightEligible(p.event)||!ordinaryCenterEligible(before,p,node?.notches??pattern))return fail('ordinary-placement');
+   node=nodeFor(p,node,initial,0,readAssessment);
+   if(!node.notchValid||node.cycleDebt||node.assessment.maxHeight>=20)return fail('ordinary-policy');
+  }
+  if(!certifiedCavities(node)||!node.assessment.regionalSupport)return fail('ordinary-endpoint');
+  if(!node.qualified){
+   if(now()>=deadline||!left())return fail('shared-budget');
+   const access=R.tDoubleAccess(node.state.board,{now,deadline,maxNodes:left()});tracker.nodes+=access.visited;
+   if(!access.complete||now()>=deadline||tracker.nodes>limit)return fail('endpoint-entry-budget');
+   node.qualified=true;
+   node.assessment.right.entry={status:access.reachable===true?'reachable-if-T-available':'unreachable',witness:access.witness||null,target:access.event?.target||null};
+   if(access.reachable===false){node.structuralScore-=16;node.rank[3]=Math.floor(node.structuralScore/4);node.assessment.structure.blockedEntryRepair=16;}
+   node.rank[4]=node.baseEstimateRank+(access.reachable===true?1:0);
+   node.assessment.obligations=node.assessment.obligations.map(o=>o.kind!=='T-slot'?o:({...o,status:access.reachable===true&&o.at[0]===access.event.target.x&&o.at[1]===access.event.target.y?'entry-verified-arrival-unresolved':access.reachable===false?'entry-blocked':'unresolved',note:'Counterfactual T entry is checked separately from whether a T arrives in time.'}));
+  }
+  const replayUnits=steps.reduce((n,p)=>n+p.witness.length,0);
+  if(!spend(replayUnits))return fail('shared-budget');
+  const repair=checkedCoveredRepair(state,node.path,{...options,now,deadline},null);
+  if(!repair)return fail('covered-repair');
+  node.path=repair.steps;
+  const continuation=node.path.map(p=>({target:p.target,hold:p.hold,holdCount:holdCount(p),witness:p.witness,event:p.event,resultContext:context(p.state),structuralEvidence:p.structuralEvidence})),first=continuation[0];
+  const evidence={strategy:'canonical-right-ST',cycleDebt:node.cycleDebt,cycleResources:cycleResources(node.path),futureNotches:node.notches,verifiedLocks:continuation.length,knownPieceHorizon:state.queue.length+1,regionalSupport:node.assessment.regionalSupport,cavityRepair:{status:'verified-prefix-repaired',outstandingCells:node.cavityDebt},structure:node.assessment.structure,claim:'Finite executable prefix; continued play is not guaranteed.'};
+  const candidate={status:'recommended-with-verified-prefix',revision:state.revision,context:context(state),target:first.target,witness:first.witness,hold:first.hold,holdCount:first.holdCount,continuation,assessment:node.assessment,evidence,metrics:{nodes:0,depth:continuation.length,completeDepth:0,certifiedHorizon:0},...advicePresentation(continuation,node.assessment)};
+  // Reserve the bounded replay passes in revalidate as well as charging its
+  // enumeration/resource/access work, including unsuccessful proof attempts.
+  if(!spend(replayUnits*6))return fail('shared-budget');
+  const checked=revalidate(state,candidate,{...options,now,deadline,maxNodes:left(),budgetTracker:tracker});
+  if(!checked)return fail(now()>=deadline||!left()?'shared-budget':'ordinary-revalidation');
+  // Pending-L waiting is admitted only by an actual same-horizon comparison.
+  // A transported forecast contains no authority for that special selection.
+  if(checked.evidence?.pendingLStage)return fail('pending-L-selection-required');
+  if(now()>=deadline||tracker.nodes>limit)return fail('shared-budget');
+  checked.metrics={...checked.metrics,nodes:tracker.nodes,revalidationNodes:tracker.nodes};
+  work.retained=true;work.reason='ordinary-prefix-revalidated';return checked;
+ }catch{return fail('invalid-candidate');}
+ finally{work.nodes=tracker.nodes;if(external)external.nodes+=tracker.nodes;}
+}
 // Shared UI/simulator transport helper. This bounded copy is only a routing
 // candidate: no resource identity, historical status or certificate is trusted.
 function captureHandoffRecovery(raw,advice,resourceContext){
@@ -2344,6 +2416,8 @@ function retainHandoffRecovery(raw,options,work){
  }catch{return fail('invalid-candidate');}
  finally{work.nodes=tracker.nodes-start;}
 }
+function captureOpeningForecast(raw,advice){return openingModule().captureForecast(raw,advice);}
+function advanceOpeningForecast(candidate,before,after,action){return openingModule().advanceForecast(candidate,before,after,action);}
 function openingModule(){return typeof module==='object'&&module.exports?require('./st-opening.js'):globalThis.STOpening;}
 function startOpeningSession(raw,options){return openingModule().startSession(raw,options);}
 function updateOpeningSession(session,before,after,event){return openingModule().updateSession(session,before,after,event);}
@@ -2523,5 +2597,5 @@ function decideRequest(raw,options={}){
  return budgetTracker.nodes||recovery?{...result,metrics:{...result.metrics,nodes:(result.metrics?.nodes||0)+budgetTracker.nodes,revalidationNodes:budgetTracker.nodes,...(recovery?{handoffRecovery:recovery}:{})}}:result;
 }
 
-return Object.freeze({dPatternAdmission,checkedCoveredRepair,pendingSLAllocationComparison,qualifiedSLTailOrder,compareSLTail,visibleSLTailComparison,ordinarySAllocationComparison,slAllocationStep,placedResource,certifyStrongestAllocation,publicDrawHorizon,exactAllocationPrefix,supportedSLComparison,preserveExtraZ,orderContinuations,advicePresentation,observe,assess,plan,decide,captureHandoffRecovery,resetSelection,startPatternHistory:H.start,updatePatternHistory:H.update,resolvePatternHistory:H.resolve,gapAccess:A.check,checkAccessPrefix:A.prefix,startOpeningSession,updateOpeningSession,acceptOpeningResult,revalidate,advance,cavityRepairDebt,continueCommitment,cycleResources,resourceGoal,resourceGoalPrefix,scoringSchedule,scoringReplacement,centerReservationStep,centerContinuityStep,ordinaryCenterEligible,ordinaryRightEligible});
+return Object.freeze({dPatternAdmission,checkedCoveredRepair,pendingSLAllocationComparison,qualifiedSLTailOrder,compareSLTail,visibleSLTailComparison,ordinarySAllocationComparison,slAllocationStep,placedResource,certifyStrongestAllocation,publicDrawHorizon,exactAllocationPrefix,supportedSLComparison,preserveExtraZ,orderContinuations,advicePresentation,observe,assess,plan,decide,captureHandoffRecovery,resetSelection,startPatternHistory:H.start,updatePatternHistory:H.update,resolvePatternHistory:H.resolve,gapAccess:A.check,checkAccessPrefix:A.prefix,startOpeningSession,updateOpeningSession,acceptOpeningResult,captureOpeningForecast,advanceOpeningForecast,revalidateOpeningForecast,revalidate,advance,cavityRepairDebt,continueCommitment,cycleResources,resourceGoal,resourceGoalPrefix,scoringSchedule,scoringReplacement,centerReservationStep,centerContinuityStep,ordinaryCenterEligible,ordinaryRightEligible});
 });
