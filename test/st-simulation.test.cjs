@@ -51,7 +51,7 @@ test('simulation/capped actual-action run replays without rerunning search',()=>
  assert.equal(result.stop,'lock-cap');assert.equal(result.censored,true);assert.equal(result.locks,2);
  const replay=E.replayRecords(input,records,stub);assert.equal(replay.verified,true);assert.equal(replay.locks,2);
  assert.deepEqual(replay.finalObservation,result.finalObservation);
- const corrupt=E.clone(records);corrupt[0].after.hold='T';assert.throws(()=>E.replayRecords(input,corrupt,stub));
+ const corrupt=E.clone(records);corrupt.find(r=>r.kind==='lock').after.hold='T';assert.throws(()=>E.replayRecords(input,corrupt,stub));
 });
 test('simulation/worker protocol executes actual entry code and fresh globals without a search',()=>{
  const planner=E.workerPlanner(),state=E.makeInput('empty',1,1).initial;state.topOut=true;
