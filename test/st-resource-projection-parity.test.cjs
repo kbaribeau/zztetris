@@ -32,6 +32,7 @@ test('resource projection: Reset cannot certify newly unclassified known Hanging
  assert.ok(retained?.target,'An already uncertain root may continue without pretending the past L was repaired');assert.deepEqual(retained.evidence.resourceObligations.unclassifiedL,p.unclassifiedL);assert.deepEqual(retained.evidence.resourceObligations.unclassifiedS,[]);
 });
 test('resource disclosure: repeated presentation is immutable and does not duplicate or keep a stale warning',()=>{
+ const cleanInput={target:{type:'J'},evidence:{resourceObligations:{unclassifiedS:[],unclassifiedL:[]}}};assert.equal(M.discloseAdvice(cleanInput),cleanInput,'No uncertainty must preserve the exact admitted incumbent');
  const input={target:{type:'J'},reason:'Checked finite prefix.',recommendation:{kind:'supported',hazards:[]},evidence:{resourceObligations:{unclassifiedS:[{sId:85,bag:12}],unclassifiedL:[]}}},saved=copy(input);
  const once=M.discloseAdvice(input),twice=M.discloseAdvice(once);assert.deepEqual(input,saved);assert.deepEqual(twice,once);assert.equal(twice.recommendation.hazards.length,1);assert.match(twice.reason,/S85/);
  const clean=M.discloseAdvice({...once,evidence:{...once.evidence,resourceObligations:{unclassifiedS:[],unclassifiedL:[]}}});assert.equal(clean.reason,input.reason);assert.deepEqual(clean.recommendation.hazards,[]);const partial=M.discloseAdvice({...input,evidence:{resourceObligations:{unclassifiedS:[{lId:86,bag:12}],unclassifiedL:[]}}});assert.match(partial.reason,/S \(bag 12, L86\)/);

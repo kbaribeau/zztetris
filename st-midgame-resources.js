@@ -28,6 +28,7 @@ function discloseAdvice(result){
  const resources=result?.evidence?.resourceObligations;
  if(!result?.target||!resources||result.recommendation?.kind==='risky')return result;
  const identities=['S','L'].flatMap(kind=>(resources['unclassified'+kind]||[]).map(p=>{const id=p[kind==='S'?'sId':'lId'];const partnerKind=kind==='S'?'L':'S',partner=p[partnerKind==='S'?'sId':'lId'];return id==null?kind+' (bag '+p.bag+(partner==null?'':', '+partnerKind+partner)+')':kind+id;}));
+ if(!identities.length&&!result.evidence.resourceDisclosure)return result;
  const prior=result.evidence.resourceDisclosure,reason=prior&&result.reason?.endsWith(prior.detail)?result.reason.slice(0,-prior.detail.length).trimEnd():result.reason;
  const hazards=(result.recommendation?.hazards||[]).filter(p=>p.code!=='unclassified-SL-accommodation');
  const detail=identities.length?'Unresolved accommodation: '+identities.join(', ')+'. These identities remain tracked; this finite prefix does not certify their repair.':null;
