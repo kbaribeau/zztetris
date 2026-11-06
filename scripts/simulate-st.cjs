@@ -106,7 +106,12 @@ function recoverTracking(){
         if(record.kind==='summary'&&record.summary?.locks!==throughLock)throw Error('Tracking summary does not match retained lock boundary');
         for(const event of record.trackingEvents||[]){
           const boundary=record.kind==='lock'?record.lock:throughLock;
-          if(!['lock','handoff','reset'].includes(event.stage)||event.lock>boundary||record.kind==='lock'&&event.stage==='lock'&&event.lock!==record.lock)throw Error('Tracking event does not match retained row lock boundary');
+          // An action event belongs to the witness being executed, not a claim
+          // that HD completed. A stop/final drain may retain its next attempt.
+          const valid=event.stage==='action'
+            ? event.lock===(record.kind==='lock'?boundary:boundary+1)
+            : ['lock','handoff','reset'].includes(event.stage)&&event.lock<=boundary&&!(record.kind==='lock'&&event.stage==='lock'&&event.lock!==record.lock);
+          if(!valid)throw Error('Tracking event does not match retained row lock boundary');
         }
         for(const event of record?.trackingEvents||[])metrics.record(event);
         if(record?.kind==='lock')throughLock=record.lock;

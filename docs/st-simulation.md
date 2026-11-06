@@ -156,8 +156,14 @@ resource ledger; they are not emitted from hypothetical search nodes or imports.
 change. Only anomalies emit events: normal obligation creation and payment do
 not produce a second stream of bookkeeping records. An event identifies its
 `code`, `stage`, and executed-run `lock`, with small optional identity
-and detail fields. A single condition that remains present does not emit again
-until it clears and reappears. A lock or terminal stop row carries
+and detail fields. Coverage is checked on every actual input: non-HD inputs use
+the lightweight `action` stage, while HD keeps the full `lock` check and its
+pre-HD public projection. An `action` event's `lock` identifies the witness being
+executed, even if a later error prevents that lock from completing. On a stop or
+final-drain row it must be exactly one above the completed-lock boundary; it
+does not advance `throughLock` or claim a completed lock. Movement checks do not
+clear deduplicated lock issues. A single condition that remains present does not
+emit again until it clears and reappears. A lock or terminal stop row carries
 `trackingEvents` only when new events occurred; an event already written on a
 lock is not repeated on the stop row. The final summary row may drain any
 remaining new events once; its embedded aggregate is never recounted.

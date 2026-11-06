@@ -20,12 +20,15 @@ function paidOrExempt(before,after,p,kind,stage){
  }
  return false;
 }
-function transitionIssues(before,after,stage){
- const issues=[],add=(code,identity,details)=>issues.push({code,...(identity?{identity}:{}),...(details?{details}:{} )});
+function coverageIssues(before,after){
  if(usable(before)&&(!usable(after)||before.coverage.status==='complete'&&after.coverage.status!=='complete')){
-  add('coverage-degraded',null,{before:before.coverage.status,after:after?.coverage?.status??'unavailable'});return issues;
+  return[{code:'coverage-degraded',details:{before:before.coverage.status,after:after?.coverage?.status??'unavailable'}}];
  }
- if(!usable(before)||!usable(after))return issues;
+ return[];
+}
+function transitionIssues(before,after,stage){
+ const issues=coverageIssues(before,after),add=(code,identity,details)=>issues.push({code,...(identity?{identity}:{}),...(details?{details}:{} )});
+ if(issues.length||!usable(before)||!usable(after))return issues;
  // History is append-only in a forward actual session. Undo/restart is a new
  // observation boundary, not a transition through this monitor.
  for(const p of before.observedSL||[])if(!after.observedSL?.some(q=>q.id===p.id&&q.type===p.type&&q.bag===p.bag))add('observed-identity-lost',{type:p.type,id:p.id,bag:p.bag});
@@ -106,6 +109,11 @@ function create(){
   health(){return observerFailure?{status:'failed',firstFailure:clone(observerFailure)}:{status:'ok'};},
   subscribe(listener){if(typeof listener!=='function')throw Error('Tracking subscriber must be a function');listeners.add(listener);return()=>listeners.delete(listener);},
   transition(before,after,{stage,lock=after?.locks??before?.locks??0}={}){checked(stage,lock,()=>transitionIssues(before,after,stage));},
+  // Actual non-HD inputs can exhaust history before the next lock. Inspect only
+  // the local history coverage flags, without classifying resources per input.
+  // Keep their dedup stage separate so movement cannot clear active lock issues.
+  // lock identifies the witness being executed, even if its HD never completes.
+  actionCoverage(beforeHistory,afterHistory,{lock=(beforeHistory?.locks??0)+1}={}){checked('action',lock,()=>coverageIssues(beforeHistory,afterHistory));},
   // Only call once the real HD succeeded. Replaying that single public action
   // excludes new hidden draws; HOLD reveals already belong to beforeRaw.
   executedLock(beforeRaw,beforeHistory,afterRaw,afterHistory,event,{lock=(beforeHistory?.locks??0)+1}={}){

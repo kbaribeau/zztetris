@@ -154,6 +154,9 @@ function createSession(input, api=P) {
           commitment=suffix?{observation:clone(publicObservation(state)),advice:clone(suffix)}:null;
           displayed=null;
         } else {
+          // Emit immediately: a later controller error must not hide coverage
+          // lost on this actual input. HD retains its full pre-HD projection.
+          tracking.actionCoverage(priorHistory,resourceHistory,{lock});
           const advanced=displayed?api.advance(publicObservation(state),displayed,action,{patternHistory,openingPhase:opening.active,openingSource:opening.source,resourceContext:H.exportContext(publicObservation(state),resourceHistory)}):null;
           if(advanced){displayed=advanced;previous=advanced;}
           else displayed=null;

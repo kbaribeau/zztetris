@@ -125,8 +125,14 @@ test('tracking recovery: event stages and lock boundaries reject future or misat
   {...locks[1],trackingEvents:[{...event('future-handoff',3),stage:'handoff'}]},
   {...locks[1],trackingEvents:[{...event('future-reset',3),stage:'reset'}]},
   {...locks[1],trackingEvents:[{...event('unknown-stage',2),stage:'future-stage'}]},
+  {...locks[1],trackingEvents:[{...event('earlier-action',1),stage:'action'}]},
+  {...locks[1],trackingEvents:[{...event('future-action',3),stage:'action'}]},
   {kind:'stop',lock:1,trackingEvents:[event('future-stop',2)]},
+  {kind:'stop',lock:1,trackingEvents:[{...event('earlier-stop-action',1),stage:'action'}]},
+  {kind:'stop',lock:1,trackingEvents:[{...event('valid-before-invalid',2),stage:'action'},{...event('future-stop-action',3),stage:'action'}]},
   {kind:'summary',summary:{...summary,locks:1},trackingEvents:[event('future-final-drain',2)]},
+  {kind:'summary',summary:{...summary,locks:1},trackingEvents:[{...event('earlier-final-action',1),stage:'action'}]},
+  {kind:'summary',summary:{...summary,locks:1},trackingEvents:[{...event('future-final-action',3),stage:'action'}]},
  ];
  for(const row of malformed){
   const recovered=failed(dir,input,[marker,locks[0],row]);
@@ -136,6 +142,14 @@ test('tracking recovery: event stages and lock boundaries reject future or misat
  const boundaryEvents=[{...event('previous-handoff',1),stage:'handoff'},{...event('same-lock-reset',2),stage:'reset'},event('current-lock',2)];
  const valid=failed(dir,input,[marker,locks[0],{...locks[1],trackingEvents:boundaryEvents},{kind:'stop',lock:2,trackingEvents:[{...event('earlier-reset',1),stage:'reset'},event('current-stop',2)]}]);
  assert.equal(valid.tracking.total,6);assert.equal(valid.tracking.throughLock,2);assert.doesNotMatch(valid.tracking.reason,/does not match/);
+});
+
+test('tracking recovery: action events retain attempted locks without advancing completed boundaries',t=>{
+ const {input,locks,summary}=recorded(),dir=temporary(t),action={...event('coverage-degraded',2),stage:'action'};
+ for(const row of [{...locks[1],trackingEvents:[action]},{kind:'stop',lock:1,trackingEvents:[action]},{kind:'summary',summary:{...summary,locks:1},trackingEvents:[action]}]){
+  const recovered=failed(dir,input,[marker,locks[0],row]);
+  assert.equal(recovered.tracking.total,1);assert.deepEqual(recovered.tracking.examples,[action]);assert.equal(recovered.tracking.throughLock,row.kind==='lock'?2:1);assert.doesNotMatch(recovered.tracking.reason,/does not match/);
+ }
 });
 
 test('tracking recovery: stored counters and status claims never replace authenticated public history',t=>{

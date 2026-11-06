@@ -6,7 +6,7 @@ function fresh(types=['S','L','I','J','O','T','Z']){
  let state=R.createState({active:types[0],queue:types.slice(1),streamCursor:1}),history=H.start(state,{fresh:true});
  const events=[],monitor=T.create();monitor.subscribe(e=>events.push(e));
  return{events,monitor,get state(){return state;},get history(){return history;},get summary(){return H.resolve(state,history);},
-  play(witness){for(const action of witness){const before=state,prior=history;state=R.move(state,action);assert.notEqual(state,before);history=H.applyAction(history,before,action,state);if(action==='HD')monitor.executedLock(before,prior,state,history,state.lastEvent);}},
+  play(witness){for(const action of witness){const before=state,prior=history;state=R.move(state,action);assert.notEqual(state,before);history=H.applyAction(history,before,action,state);if(action==='HD')monitor.executedLock(before,prior,state,history,state.lastEvent);else monitor.actionCoverage(prior,history);}},
   handoff(){const before=H.resolve(state,history);history=H.markHandoff(history,state);monitor.transition(before,H.resolve(state,history),{stage:'handoff'});},
  };
 }
@@ -22,7 +22,7 @@ test('tracking events: loss of known or uncertain S/L is detected once until rec
   const a=fresh(kind==='L'?['S','L','I','J','O','T','Z']:['L','S','I','J','O','T','Z']);a.play(left);
   let before=a.summary;if(unknown){before=copy(before);before['hanging'+kind].unclassified=before['hanging'+kind].evidence;before['hanging'+kind].evidence=[];}
   const broken=copy(before);broken['hanging'+kind].evidence=[];broken['hanging'+kind].unclassified=[];
-  a.monitor.check(before,broken);a.monitor.check(before,broken);assert.equal(a.events.length,1);assert.equal(a.events[0].code,'obligation-lost');assert.equal(a.events[0].identity.type,kind);
+  a.monitor.check(before,broken);a.play(['CW']);a.monitor.check(before,broken);assert.equal(a.events.length,1);assert.equal(a.events[0].code,'obligation-lost');assert.equal(a.events[0].identity.type,kind);
   a.monitor.check(before,before);a.monitor.check(before,broken);assert.equal(a.events.length,2,'A newly recurring loss is a new event');
  }
 });
@@ -73,8 +73,17 @@ test('tracking events: exact allocation mutations and duplicate projected identi
  const a=fresh();a.play(left);const before=a.summary,after=copy(before);after.allocations[0].region='center';a.monitor.check(before,after);assert.equal(a.events[0].code,'allocation-history-changed');const projected=M.start(a.state,before);projected.hangingL.push({...projected.hangingL[0]});a.monitor.check(before,before,{projected});assert.equal(a.events[1].code,'projection-mismatch');assert.equal(a.events[1].details.projectedCount,2);assert.equal(a.events[1].details.actualCount,1);
 });
 
-test('tracking events: actual resource history limit reports coverage loss at the executed lock, not a generic check error',()=>{
- const a=fresh();a.play(left);while(a.history.actions<H.limits.actions)a.play([a.history.actions%2?'CCW':'CW']);assert.equal(a.history.locks,1);a.play(['HD']);assert.equal(a.history.coverage.status,'truncated');assert.equal(a.events.length,1);assert.equal(a.events[0].code,'coverage-degraded');assert.equal(a.events[0].lock,2);assert.equal(T.status(a.summary,{throughLock:2}).obligations,null);
+for(const witness of [['HD'],['CW','HD'],['HOLD','HD']])test(`tracking events: actual history limit on ${witness[0]} reports coverage loss once without fictitious piece losses`,()=>{
+ const a=fresh();a.play(left);while(a.history.actions<H.limits.actions)a.play([a.history.actions%2?'CCW':'CW']);assert.equal(a.history.locks,1);a.play(witness);assert.equal(a.history.coverage.status,'truncated');assert.equal(a.events.length,1);assert.equal(a.events[0].code,'coverage-degraded');assert.equal(a.events[0].lock,2);assert.equal(a.events[0].stage,witness[0]==='HD'?'lock':'action');assert.equal(T.status(a.summary,{throughLock:2}).obligations,null);
+ a.play(['CW','HD']);assert.equal(a.events.length,1,'Later unavailable actions and locks do not duplicate the loss');
 });
 
 test('tracking events: a failed sole subscriber leaves explicit unhealthy instrumentation',()=>{const a=fresh();a.play(left);const monitor=T.create(),before=a.summary,broken=copy(before);broken.hangingL.evidence=[];monitor.subscribe(()=>{throw undefined;});assert.doesNotThrow(()=>monitor.check(before,broken));assert.equal(monitor.health().status,'failed');assert.equal(monitor.health().firstFailure.lock,1);});
+
+test('tracking events: action coverage is lightweight, nonblocking and independent of lock issue dedup',()=>{
+ const monitor=T.create(),events=[],before={coverage:{status:'complete'},get allocations(){throw Error('Do not classify movement');}},after={coverage:{status:'truncated'}};
+ monitor.subscribe(e=>events.push(e));monitor.subscribe(()=>{throw Error('Action observer failed');});
+ assert.doesNotThrow(()=>monitor.actionCoverage(before,after,{lock:9}));
+ assert.deepEqual(events.map(e=>e.code),['coverage-degraded','tracking-observer-failed']);assert.ok(events.every(e=>e.stage==='action'&&e.lock===9));assert.equal(monitor.health().status,'failed');
+ monitor.actionCoverage(before,after,{lock:9});assert.equal(events.length,2);monitor.actionCoverage(before,before,{lock:9});monitor.actionCoverage(before,after,{lock:9});assert.equal(events.length,3);
+});
