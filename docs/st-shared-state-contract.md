@@ -1,6 +1,6 @@
 # Shared obligation state contract and migration plan
 
-Status: Updated draft for Kevin's review. No implementation or gameplay-policy change is authorized by this document.
+Status: Implementation started on November 6, 2026 following Kevin's approval. This contract preserves existing gameplay policy; see [migration progress](st-shared-state-migration.md) for implemented scope and remaining work.
 
 Source baseline: `022290b4f10917f6f1831a03c7c907f84f5d356a`, inspected November 6, 2026. Source references describe that baseline, not a completed migration.
 
@@ -412,7 +412,7 @@ Exit: one source of current facts, no lifetime history dependency, no cap that c
 - Matched bounded simulations with frozen seeds, metrics, caps and baseline/candidate revisions. Routine diagnostic batches may use four workers; production timing comparisons remain controlled/serial. A stopped simulation is censored evidence, not a memory-bound test by itself.
 - Monitor performance, but do not make optimization or a performance threshold a merge blocker. State-lifetime correctness and lost obligations are correctness requirements, not deferred performance work.
 
-No implementation, tests or simulations have been performed for this document update.
+The contract was independently reviewed before implementation. Subsequent code, validation and remaining phases are recorded in [migration progress](st-shared-state-migration.md).
 
 ## Expected codebase simplification
 

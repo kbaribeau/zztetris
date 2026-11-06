@@ -1,6 +1,6 @@
 /* Public, observed resource history. Planning context is accepted only by replay.
  * Histories are immutable local capabilities, not trusted imported JSON. */
-(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-structure'),require('./st-opening-patterns'),require('./st-access'),require('./st-reset-policy')):factory(root.STRules,root.STStructure,root.STSourcePatterns,root.STAccess,root.STResetPolicy);if(typeof module==='object'&&module.exports)module.exports=api;else root.STResourceHistory=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,S,Patterns,A,ResetPolicy){
+(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-structure'),require('./st-opening-patterns'),require('./st-access'),require('./st-reset-policy'),require('./st-public-inventory'),require('./st-center-obligations')):factory(root.STRules,root.STStructure,root.STSourcePatterns,root.STAccess,root.STResetPolicy,root.STPublicInventory,root.STCenterObligations);if(typeof module==='object'&&module.exports)module.exports=api;else root.STResourceHistory=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,S,Patterns,A,ResetPolicy,Inventory,Center){
 'use strict';
 const transport=new WeakMap(),exported=new WeakMap(),localContexts=new WeakMap(),validatedContexts=new WeakMap();
 const trusted=new WeakSet(),clone=x=>JSON.parse(JSON.stringify(x)),same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
@@ -10,7 +10,6 @@ const freeze=x=>{if(x&&typeof x==='object'&&!Object.isFrozen(x)){Object.values(x
 const seal=h=>{freeze(h);trusted.add(h);return h;};
 const view=o=>({rules:o.rules,board:o.board.slice(),active:o.active?clone(o.active):null,hold:o.hold??null,canHold:o.canHold,queue:o.queue.slice(),streamCursor:o.streamCursor||0,topOut:Boolean(o.topOut)});
 const bound=(h,o)=>{try{return trusted.has(h)&&h.observation&&R.validate(o).length===0&&same(h.observation,view(o));}catch{return false;}};
-const cellsKey=c=>JSON.stringify(c.slice().sort(([ax,ay],[bx,by])=>ax-bx||ay-by));
 const heights=b=>Array.from({length:10},(_,x)=>{const y=b.findIndex(r=>r[x]!=='.');return y<0?0:40-y;});
 // Shared skyline fact only; history never imports preference or exit proofs.
 const leftD=S.leftSurface.isD;
@@ -19,56 +18,29 @@ const tsd=e=>e.type==='T'&&e.spin==='full'&&e.lines===2&&canonical(e);
 const whole=e=>e.cells.every(([x])=>x<4)?'left':e.cells.every(([x])=>x>=4&&x<7)?'center':e.cells.every(([x])=>x<7)?'left-center':e.cells.every(([x])=>x>=7)?'right':'cross-right';
 function cap(board){const h=heights(board),top=40-h[9];return h[7]===0&&h[8]>=2&&h[9]===h[8]+1&&board.slice(40-h[8]).every(r=>r[8]!=='.')&&board[top][9]!=='.'&&board[top+1][9]!=='.'&&board.slice(top+2).every(r=>r[9]==='.');}
 function quality(board,counts){const h=heights(board);return h[4]===h[5]&&h[5]===h[6]&&counts.S===counts.L&&Math.abs(Math.max(...h.slice(0,4))-Math.max(...h.slice(4,7)))<=3;}
-function addPiece(h,type,ageKnown=true){const id=h.nextId++,order=h.observedCount++;h.pieces[id]={id,type,observedOrder:ageKnown?order:null,bag:h.fresh?Math.floor(order/7):null,allocation:null,pair:null};return id;}
+// Compatibility archive only: live identity assignment belongs to the small
+// public inventory. Historical allocation/pair consumers are migrated separately.
+function retainPiece(h,p){h.pieces[p.id]={...p,allocation:null,pair:null};}
+function syncInventory(h,inventory){h.inventory=inventory;h.nextId=inventory.nextId;h.observedCount=inventory.nextId-1;h.active=inventory.active?.id??null;h.hold=inventory.hold?.id??null;h.queue=inventory.queue.map(p=>p.id);}
 function invalid(raw,reason,status='invalid'){let observation=null;try{observation=view(raw);}catch{}return seal({schemaVersion:1,coverage:{status,reason},observation,actions:0,locks:0});}
 function start(raw,{fresh=false}={}){
- try{if(R.validate(raw).length)return invalid(raw,'Invalid public origin.');const o=view(raw);
+ try{if(R.validate(raw).length)return invalid(raw,'Invalid public origin.');const o=view(raw),inventory=Inventory.start(raw,{fresh});if(inventory.status!=='available')return invalid(raw,inventory.reason);
   // Only the caller's actual new empty session may establish observed bag zero.
   // Imported snapshots, including forged flags, use the default unknown origin.
-  fresh=Boolean(fresh&&o.board.every(r=>r==='..........')&&o.active&&o.hold===null&&o.streamCursor===1&&o.queue.length===6&&new Set([o.active.type,...o.queue]).size===7);
+  fresh=inventory.originKnown;
   const h={schemaVersion:1,coverage:{status:fresh?'complete':'partial',reason:fresh?'Observed from a local empty seven-bag start.':'Earlier placements and held-piece age are unknown.'},observation:o,fresh,nextId:1,observedCount:0,pieces:{},active:null,hold:null,queue:[],actions:0,locks:0,allocations:[],pairs:[],dPattern:{pending:false,createdAt:null},center:{pending:[],debt:[],closed:[]},coveredRepair:{cells:[],notches:S.notchPattern(o.board)},milestones:{sourcePattern:null,firstTsd:null,maintenanceHandoff:null},opening:{counts:{S:0,L:0,T:0,Z:0,TNonRight:0,ZNonRight:0,ZRight:0},violations:[],cap:null,quality:null,allocation:null,completedAt:null},extraZ:{baseline:null,allocations:[],departures:[]},reset:{status:'inactive',progress:0,startedAt:null,completedAt:null,episodes:[],credits:[]}};
-  if(o.active)h.active=addPiece(h,o.active.type,fresh);if(o.hold)h.hold=addPiece(h,o.hold,false);h.queue=o.queue.map(type=>addPiece(h,type,fresh));
+  for(const p of [inventory.active,inventory.hold,...inventory.queue].filter(Boolean))retainPiece(h,p);syncInventory(h,inventory);
   // Imported geometry is factual even though its producing piece identity is not.
   h.center.pending=initialPending(o.board);
   const result=seal(h);transport.set(result,{origin:o,fresh,parent:null,step:null,length:0,handoffAtAction:null,resetAtActions:[]});return result;
  }catch{return invalid(raw,'Could not validate public origin.');}
 }
-function completionList(board,stages=[],first=null){return S.geometry(board).center.completions.filter(c=>S.supportedCenterCompletion(c,stages)&&(!first||S.centerPairCompletion(first,c))).map(c=>({piece:c.piece,cells:clone(c.cells)}));}
-function initialPending(board){const alternatives=completionList(board);return alternatives.length?[{id:'origin',rootId:null,family:null,createdAt:0,alternatives}]:[];}
-function matching(c,e){return c.piece===e.type&&cellsKey(c.cells)===cellsKey(e.cells);}
-function translate(cells,rows){return cells.map(([x,y])=>[x,rows.includes(y)?-1:y+rows.filter(r=>r>y).length]);}
+function initialPending(board){return Center.start(board).pending;}
+const translate=Center.translate;
 function updateCenter(h,before,after,e,id){
- const rows=e.clearedRows||[],prior=[...h.center.pending,...h.center.debt];
- const movedPrior=prior.map(p=>({...p,alternatives:p.alternatives.map(c=>({...c,cells:translate(c.cells,rows)}))}));
- const available=completionList(before.board,prior),afterAvailable=completionList(after.board,movedPrior);
- const completed=available.filter(c=>matching(c,e));
- const old=h.center.pending,remaining=[];
- for(const p of old){
-  const supported=p.alternatives.filter(c=>available.some(a=>a.piece===c.piece&&cellsKey(a.cells)===cellsKey(c.cells)));
-  const finished=supported.some(c=>matching(c,e));
-  if(finished){
-   h.center.closed.push({...p,status:'fulfilled',at:h.locks,partnerId:id});
-   if(p.rootId!==null&&p.family){const pair={family:p.family,rootId:p.rootId,partnerId:id,at:h.locks};h.pairs.push(pair);h.pieces[p.rootId].pair=pair;h.pieces[id].pair=pair;}
-   continue;
-  }
-  if(supported.some(c=>c.piece===e.type)&&!completed.length&&!h.center.debt.some(d=>d.id===p.id))h.center.debt.push({...clone(p),divertedAt:h.locks,divertedPieceId:id});
-  const moved=p.alternatives.map(c=>({...c,cells:translate(c.cells,rows)}));
-  const live=moved.filter(c=>c.cells.every(([,y])=>y>=0)&&afterAvailable.some(a=>a.piece===c.piece&&cellsKey(a.cells)===cellsKey(c.cells)));
-  if(live.length)remaining.push({...p,alternatives:live});else h.center.closed.push({...p,status:'invalidated',at:h.locks,reason:rows.some(y=>p.alternatives.some(c=>c.cells.some(([,cy])=>cy===y)))?'Clear removed target cells.':'Exact supported completion is no longer present.'});
- }
- const nextDebt=[];
- for(const d of h.center.debt){
-  if(d.alternatives.some(c=>matching(c,e))&&completed.length){h.center.closed.push({...d,status:'debt-fulfilled',at:h.locks,partnerId:id});continue;}
-  const moved=d.alternatives.map(c=>({...c,cells:translate(c.cells,rows)}));
-  const live=moved.filter(c=>c.cells.every(([,y])=>y>=0)&&afterAvailable.some(a=>a.piece===c.piece&&cellsKey(a.cells)===cellsKey(c.cells)));
-  if(live.length)nextDebt.push({...d,alternatives:live});else h.center.closed.push({...d,status:'debt-invalidated',at:h.locks,reason:'The original supported target was lost, not repaid.'});
- }
- h.center.debt=nextDebt;
- if(whole(e)==='center'&&S.CENTER_PAIRS[e.type]){
-  const alternatives=completionList(after.board,[],e.type);
-  if(alternatives.length&&!remaining.some(p=>same(p.alternatives,alternatives)))remaining.push({id:'piece-'+id,rootId:id,family:S.centerPairFamily(e.type),createdAt:h.locks,alternatives});
- }
- h.center.pending=remaining;
+ const result=Center.apply({pending:h.center.pending,debt:h.center.debt},before.board,after.board,e,{pieceId:id,at:h.locks});
+ h.center={...result.state,closed:[...h.center.closed,...result.effects]};
+ for(const pair of result.pairs){h.pairs.push(pair);h.pieces[pair.rootId].pair=pair;h.pieces[id].pair=pair;}
 }
 // Credit is a conserved allocation fact attached to an actual T identity, never
 // a fixed award on phase completion. Right cap/access remains a separate duty.
@@ -155,11 +127,9 @@ function applyAction(history,before,action,after){
   // Movement cannot alter accumulated allocations. Share frozen facts rather
   // than copying the entire run on every key repeat; lock updates remain private.
   const h=action==='HD'?clone(history):{...history,queue:history.queue.slice()};h.actions++;
-  const draw=()=>{const id=h.queue.shift();if(id===undefined)throw Error('Missing observed draw identity');return id;};
+  const inventory=Inventory.applyAction(history.inventory,before,action,after);if(inventory.status!=='available')return invalid(after,inventory.reason);
   const lockedId=h.active;
-  if(action==='HOLD'){
-   if(h.hold!==null){const held=h.hold;h.hold=h.active;h.active=held;}else{h.hold=h.active;h.active=draw();}
-  }else if(action==='HD'){
+  if(action==='HD'){
    const e=expected.lastEvent,knownSurplus=e.type==='S'&&hanging(history).evidence.some(s=>s.sId===lockedId);h.locks++;
    const allocation={at:h.locks,pieceId:lockedId,type:e.type,region:whole(e),cells:clone(e.cells),lines:e.lines,spin:e.spin,clearedRows:e.clearedRows.slice()};
    h.allocations.push(allocation);h.pieces[lockedId].allocation=allocation;
@@ -177,25 +147,24 @@ function applyAction(history,before,action,after){
    // Reconstruct only an observed known-to-unreviewed transition. This flag
    // is derived from replay, never accepted from a serialized summary.
    if(knownSurplus&&allocation.region!=='left'&&h.pieces[lockedId].pair?.family!=='SL'&&!h.center.pending.some(p=>p.family==='SL'&&p.rootId===lockedId))allocation.requiresAccommodation=true;
-   h.active=expected.active?draw():null;
   }
-  const added=av.queue.slice(ev.queue.length);if(added.length){if(action!=='HD')h.pieces={...h.pieces};h.queue.push(...added.map(type=>addPiece(h,type,h.fresh)));}
+  const added=av.queue.slice(ev.queue.length);if(added.length){if(action!=='HD')h.pieces={...h.pieces};for(const p of inventory.queue)if(p.id>=history.nextId)retainPiece(h,p);}
+  syncInventory(h,inventory);
   if(h.active!==null&&h.pieces[h.active].type!==av.active?.type||h.hold!==null&&h.pieces[h.hold].type!==av.hold||!same(h.queue.map(id=>h.pieces[id].type),av.queue))return invalid(after,'Observed identity continuity failed.');
-  // Known bag grouping comes only from actual observed draw order, never locks/7.
-  if(h.fresh&&added.length){const bags=new Map();for(const p of Object.values(h.pieces)){const set=bags.get(p.bag)||new Set();if(set.has(p.type))return invalid(after,'Observed stream contradicts the known seven-bag origin.');set.add(p.type);bags.set(p.bag,set);}}
+  // The public adapter validates only the incremental observed bag frontier.
   h.observation=av;const result=seal(h),prior=transport.get(history);
   if(prior)transport.set(result,{origin:prior.origin,fresh:prior.fresh,parent:prior,step:{action,revealed:added.slice()},length:prior.length+1,handoffAtAction:prior.handoffAtAction,resetAtActions:prior.resetAtActions});
   return result;
  }catch{return invalid(after,'Could not replay the observed resource event.');}
 }
-function markHandoff(history,raw){if(!bound(history,raw)||!history.pieces)return invalid(raw,'Untrusted maintenance handoff history.');if(history.milestones.maintenanceHandoff)return history;const h=clone(history);h.milestones.maintenanceHandoff={at:h.locks};const result=seal(h),prior=transport.get(history);if(prior)transport.set(result,{...prior,handoffAtAction:prior.length});return result;}
+function markHandoff(history,raw){if(!bound(history,raw)||!history.pieces)return invalid(raw,'Untrusted maintenance handoff history.');if(history.milestones.maintenanceHandoff)return history;const h={...clone(history),inventory:history.inventory};h.milestones.maintenanceHandoff={at:h.locks};const result=seal(h),prior=transport.get(history);if(prior)transport.set(result,{...prior,handoffAtAction:prior.length});return result;}
 function beginReset(history,raw){
  if(!bound(history,raw)||!history.pieces||!history.fresh||history.coverage.status!=='complete')return invalid(raw,'Reset requires complete observed empty-origin history.');
  if(history.reset.status==='active')return history;
  const summary=resolve(raw,history);
  if(summary.extraZ.status!=='used'||summary.extraZ.remaining!==0||profileLost(history)||ResetPolicy?.consider(raw,summary)?.status!=='candidate')return invalid(raw,'Reset handoff is not eligible from this observed state.');
  const prior=transport.get(history);if(!prior)return invalid(raw,'Reset requires replayable history.');
- const h=clone(history);h.reset={...h.reset,status:'active',progress:0,startedAt:h.locks,completedAt:null,inheritedCovered:clone(h.coveredRepair.cells)};
+ const h={...clone(history),inventory:history.inventory};h.reset={...h.reset,status:'active',progress:0,startedAt:h.locks,completedAt:null,inheritedCovered:clone(h.coveredRepair.cells)};
  const result=seal(h);transport.set(result,{...prior,resetAtActions:[...prior.resetAtActions,prior.length]});return result;
 }
 // A cloneable proof consists only of the public origin, actual inputs and newly
@@ -322,8 +291,7 @@ function openingAllocation(h){
 }
 function publicBag(h){
  if(!h.fresh||h.coverage.status!=='complete')return {status:'unknown',remainingTypes:null};
- const bag=Math.floor(h.observedCount/7),seen=new Set(Object.values(h.pieces).filter(p=>p.bag===bag).map(p=>p.type));
- return {status:'known',remainingTypes:['I','J','L','O','S','T','Z'].filter(type=>!seen.has(type)),scope:'After all observed draws, including the current preview; HOLD does not consume a draw.'};
+ return {status:'known',remainingTypes:Inventory.remainingTypes(h.inventory),scope:'After all observed draws, including the current preview; HOLD does not consume a draw.'};
 }
 function resolve(raw,history){
  if(!bound(history,raw))return{coverage:{status:'invalid',reason:'Missing, forged, or stale local event history.'},openingAllocation:openingAllocation(),hangingS:{status:'unknown',evidence:[]},hangingL:{status:'unknown',evidence:[]},extraZ:{status:'unknown',baseline:null,allocations:[]}};

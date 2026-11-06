@@ -1,11 +1,11 @@
 /* Ordinary-midgame resource obligations. Public, replay-validated identities,
  * not a new Reset recognizer and never a hidden-piece or fresh-allowance guess. */
-(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-structure'),require('./st-bag'),require('./st-access'),require('./st-resource-history')):factory(root.STRules,root.STStructure,root.STBag,root.STAccess,root.STResourceHistory);if(typeof module==='object'&&module.exports)module.exports=api;else root.STMidgameResources=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,S,B,A,H){
+(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-structure'),require('./st-bag'),require('./st-access'),require('./st-resource-history'),require('./st-center-obligations')):factory(root.STRules,root.STStructure,root.STBag,root.STAccess,root.STResourceHistory,root.STCenterObligations);if(typeof module==='object'&&module.exports)module.exports=api;else root.STMidgameResources=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,S,B,A,H,Center){
 'use strict';
 const clone=x=>JSON.parse(JSON.stringify(x)),key=c=>JSON.stringify(c.slice().sort(([x,y],[u,v])=>x-u||y-v));
 const tsd=e=>e.type==='T'&&e.spin==='full'&&e.lines===2&&S.canonicalClear(e);
 const left=e=>e.cells.every(([x])=>x<4),center=e=>e.cells.every(([x])=>x>=4&&x<7),nonRight=e=>e.cells.every(([x])=>x<7);
-const completions=(board,stages=[],first=null)=>S.geometry(board).center.completions.filter(c=>S.supportedCenterCompletion(c,stages)&&(!first||S.centerPairCompletion(first,c))).map(c=>({piece:c.piece,cells:c.cells}));
+const completions=Center.completions;
 // Canonical planning supply shared by proof creation and retention. This adds
 // only the unique remaining public bag member, consumes that deduction once,
 // and never changes the observed history or invents its piece/bag identity.
@@ -73,8 +73,8 @@ function step(before,p,prior){
  const piece=n.active,e=p.event;if(!piece||piece.type!==e.type){reject('piece-identity-mismatch');return n;}
  if(e.type==='T'){if(n.resetActive){if(e.lines===0&&left(e)&&n.resetProgress<2){n.resetProgress++;if(n.extraZRemaining!==null)n.extraZRemaining++;if(n.resetProgress===2)n.resetActive=false;}else reject('reset-T-must-be-zero-clear-Left');}else if(tsd(e))n.scoredTs.push(piece.id);else reject('ordinary-T-must-score');}
  if(e.type==='Z'){if(nonRight(e)){if(n.extraZRemaining!==null? n.extraZRemaining<=0:n.extraZ!=='available')reject('extra-Z-not-available');if(n.extraZRemaining!==null)n.extraZRemaining--;n.extraZ=n.extraZRemaining>0?'available':'used';}else if(!e.cells.every(([x])=>x>=8))reject('ordinary-Z-outside-reviewed-Right-role');}
- const available=completions(before.board,n.pendingCenter),matches=c=>c.piece===e.type&&key(c.cells)===key(e.cells);
- const finished=n.pendingCenter.filter(p=>!p.lost&&p.alternatives.some(c=>matches(c)&&available.some(a=>a.piece===c.piece&&key(a.cells)===key(c.cells))));
+ const centerFacts=Center.frame(before.board,p.state.board,e,n.pendingCenter);
+ const finished=n.pendingCenter.filter(target=>Center.inspect(target,centerFacts).finished);
  // Projection-only diagnostic: a proposed route may not spend a usable
  // pending partner elsewhere and then claim the absent-partner waiting exception.
  if(e.type==='L'&&prior.pendingCenter.some(p=>p.family==='SL'&&!p.lost&&!finished.some(f=>f.rootId===p.rootId)))n.pendingLDiverted=true;
@@ -83,15 +83,12 @@ function step(before,p,prior){
  // completion, discharges that identity. A same-bag label alone is not enough.
  const completedS=finished.filter(p=>p.family==='SL').map(p=>p.rootId);
  n.hangingS=n.hangingS.filter(s=>!(leftS&&s.id===piece.id)&&!completedS.includes(s.id));
- const cleared=e.clearedRows||[],translate=cells=>cells.map(([x,y])=>[x,cleared.includes(y)?-1:y+cleared.filter(r=>r>y).length]);
- const movedPending=n.pendingCenter.map(p=>({...p,alternatives:p.alternatives.map(c=>({...c,cells:translate(c.cells)}))}));
- const after=completions(p.state.board,movedPending);
- n.pendingCenter=n.pendingCenter.filter(p=>!finished.includes(p)).map(p=>{
-  const alternatives=p.alternatives.map(c=>({...c,cells:translate(c.cells)}));
-  // Losing a supported partner is debt, not completion. Keep its exact cells
-  // until filled by that partner or removed entirely by an actual clear.
-  const removed=alternatives.every(c=>c.cells.every(([,y])=>y<0));
-  return removed?null:{...p,alternatives,lost:Boolean(p.lost)||!alternatives.some(c=>c.cells.every(([,y])=>y>=0)&&after.some(a=>a.piece===c.piece&&key(a.cells)===key(c.cells)))};
+ // Keep rejected-route target diagnostics outside the shared factual state.
+ // Actual accounting removes an invalidated target; this route must remember
+ // that it lost one, and cannot revive it by a later exact-looking placement.
+ n.pendingCenter=n.pendingCenter.filter(target=>!finished.includes(target)).map(target=>{
+  const result=Center.inspect(target,centerFacts);
+  return result.removed?null:{...target,alternatives:result.alternatives,lost:Boolean(target.lost)||!result.live.length};
  }).filter(Boolean);
  if(center(e)&&!e.lines&&S.CENTER_PAIRS[e.type]){
   const alternatives=completions(p.state.board,[],e.type);

@@ -16,7 +16,7 @@
   window.ctrlsPopup=()=>window.open('controls.html','popup','width=1200,height=800');
   const context=$('b').getContext('2d');
   let suggestedFileName=STSession.DEFAULT_EXPORT_FILENAME;
-  let state, origin, future=[], futureCursor=0, generated=false, privatePractice=false, observed=null, openingPhase=false, openingClear=null, openingRepair=null, openingSource=null, patternHistory=null, resourceHistory=null, resourceOriginBag=null, pieceLedger=null;
+  let state, origin, future=[], futureCursor=0, generated=false, privatePractice=false, openingPhase=false, openingClear=null, openingRepair=null, openingSource=null, patternHistory=null, resourceHistory=null, resourceOriginBag=null, pieceLedger=null;
   let undoHistory=[], turnStart=null, resetDiagnosticCache=null;
   // Transient public-only forecast candidate. Never checkpoint or export it.
   let openingForecast=null;
@@ -179,7 +179,7 @@
         if(!generated){
           // A unique observable remainder is knowledge, not hidden lookahead.
           const forced=!privatePractice&&frontier?STBag.forcedNext(frontier):null;
-          if(forced){state={...state,queue:[...state.queue,forced]};added.push(forced);}
+          if(forced){state={...state,queue:[...state.queue,forced]};added.push(forced);frontier=STBag.consume(frontier,forced);}
           break;
         }
         future.push(...bag());
@@ -187,20 +187,17 @@
       const type=future[futureCursor++];state={...state,queue:[...state.queue,type]};added.push(type);
       if(frontier)frontier=STBag.consume(frontier,type);
     }
-    if(observed){
-      observed.push(...added);
-      state={...state,bag:STBag.fromObserved({observed:observed.slice(),startPhase:0})};
-    } else if(added.length && state.bag) {
-      let knowledge=state.bag;for(const piece of added)knowledge=STBag.consume(knowledge,piece);
-      state={...state,bag:knowledge};
-    }
+    if(added.length&&frontier)state={...state,bag:frontier};
   }
   function resetState(input,{tail=[],random=false,history=null,note='',keepOrigin=false,opening=false,counterLabel='Lines since start',suggestedFileName:filename=STSession.DEFAULT_EXPORT_FILENAME}={}) {
-    cancel();stopRepeating();recoveryOrigin=null;pendingHandoffRecovery=null;future=tail.slice();futureCursor=0;undoHistory=[];turnStart=null;generated=random;privatePractice=false;observed=history?.slice() || null;openingPhase=opening;openingClear=null;openingRepair=null;openingForecast=null;
+    cancel();stopRepeating();recoveryOrigin=null;pendingHandoffRecovery=null;future=tail.slice();futureCursor=0;undoHistory=[];turnStart=null;generated=random;privatePractice=false;openingPhase=opening;openingClear=null;openingRepair=null;openingForecast=null;
     state=STRules.migrateState({...clone(input),revision:++revision});
     const errors=STRules.validate(state);if(errors.length)throw new Error(errors.join('; '));
     if(state.queue.length>6){future.unshift(...state.queue.slice(6));state={...state,queue:state.queue.slice(0,6)};}
     suggestedFileName=STSession.exportFilename(filename);
+    // The initial finite history seeds knowledge once. Each actual public reveal
+    // consumes the frontier; Undo already restores it in the state snapshot.
+    if(history)state={...state,bag:STBag.fromObserved({observed:history,startPhase:0})};
     replenish();searchSettings=STSession.defaults();resourceOriginBag=state.bag?clone(state.bag):null;openingSource=STPlanner.startOpeningSession(observation(),{emptyMode:random&&opening}).source;patternHistory=STPlanner.startPatternHistory(observation());resourceHistory=STResourceHistory.start(observation(),{fresh:random&&opening});pieceLedger=STPieceLedger.start(observation(),{fresh:random&&opening});previous=null;result=null;commitment=null;pendingLHint=null;lockCount=0;clearedLines=0;lineLabel=counterLabel;
     if(!keepOrigin)origin={input:clone(input),options:{tail:tail.slice(),random,history:history?.slice()||null,note,opening,counterLabel,suggestedFileName}};
     setText($('st-position-note'),note);setText($('st-game-status'),'');requestPlan();render();
@@ -219,7 +216,7 @@
       {random:true,opening:true,history:[active,...initial],note:'Empty-board opening practice. The coach checks partial construction using visible pieces; completing the opening is not guaranteed.'});
   }
   function checkpoint() {
-    return {state:clone(state),futureCursor,observed:observed?.slice()||null,
+    return {state:clone(state),futureCursor,
       resourceHistory,resourceOriginBag,pieceLedger,patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null,
       commitment:commitment?clone(commitment):null,pendingLHint:pendingLHint?clone(pendingLHint):null,lockCount,clearedLines};
   }
@@ -228,7 +225,7 @@
     cancel();stopRepeating();
     const saved=undoHistory.pop();
     state={...clone(saved.state),revision:++revision};futureCursor=saved.futureCursor;
-    observed=saved.observed?.slice()||null;openingPhase=saved.openingPhase;openingSource=saved.openingSource?clone(saved.openingSource):null;openingClear=saved.openingClear?clone(saved.openingClear):null;openingRepair=saved.openingRepair?clone(saved.openingRepair):null;
+    openingPhase=saved.openingPhase;openingSource=saved.openingSource?clone(saved.openingSource):null;openingClear=saved.openingClear?clone(saved.openingClear):null;openingRepair=saved.openingRepair?clone(saved.openingRepair):null;
     patternHistory=saved.patternHistory?clone(saved.patternHistory):null;resourceHistory=saved.resourceHistory;resourceOriginBag=saved.resourceOriginBag;pieceLedger=saved.pieceLedger;
     commitment=saved.commitment?clone(saved.commitment):null;pendingLHint=saved.pendingLHint?clone(saved.pendingLHint):null;lockCount=saved.lockCount;clearedLines=saved.clearedLines;
     // Never resurrect displayed advice or an old worker response. The saved
@@ -430,7 +427,7 @@
     cancel();stopRepeating();recoveryOrigin=null;pendingHandoffRecovery=null;openingForecast=null;
     suggestedFileName=envelope.suggestedFileName;
     state=STRules.createState(prepared.state);revision=state.revision;
-    future=tail?.slice()||[];futureCursor=0;generated=false;privatePractice=tail!==null;observed=null;undoHistory=[];turnStart=null;
+    future=tail?.slice()||[];futureCursor=0;generated=false;privatePractice=tail!==null;undoHistory=[];turnStart=null;
     resourceHistory=prepared.resourceHistory;resourceOriginBag=prepared.resourceOriginBag;
     pieceLedger=STPieceLedger.start(observation());patternHistory=prepared.patternHistory;
     openingPhase=prepared.openingPhase;openingSource=prepared.openingSource;openingClear=prepared.openingClear;openingRepair=prepared.openingRepair;
