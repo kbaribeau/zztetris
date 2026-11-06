@@ -184,8 +184,8 @@ function exportContext(raw,history){
 // Legacy replay omitted bag knowledge, which lives separately in the session
 // position. Restore the current partial-origin frontier without inventing ages.
 function restorePublicKnowledge(history,raw){
- if(history.inventory?.originKnown||!raw.bag)return history;
- const inventory=Inventory.withKnowledge(history.inventory,raw.bag);
+ if(history.inventory?.originKnown)return history;
+ const inventory=Inventory.withKnowledge(history.inventory,raw.bag??null);
  if(inventory.status!=='available')return invalid(raw,inventory.reason);
  if(inventory===history.inventory)return history;
  const result=seal({...history,inventory}),prior=transport.get(history);

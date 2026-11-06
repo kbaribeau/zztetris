@@ -121,3 +121,14 @@ test('public inventory: legacy partial-origin replay restores current forced-pub
  assert.equal(advanced.coverage.status,'partial');assert.equal(reveal.revealed[0].type,'Z');assert.equal(reveal.revealed[0].bag,null);assert.deepEqual(advanced.inventory.knowledge,B.consume(bag,'Z'));
  const other={...state,bag:B.fromObserved({observed:[...'IJLOSZ'],startPhase:0})};assert.equal(B.forcedNext(H.importContext(other,context).inventory.knowledge),'T','A cached legacy context cannot hide changed current bag facts');
 });
+test('public inventory: partial-origin import cache clears deliberately absent current bag knowledge',()=>{
+ const state=R.createState({active:'I',hold:'O',queue:[...'JLOST'],streamCursor:100,bag:B.fromObserved({observed:[...'IJLOST'],startPhase:0})}),original=H.start(state),local=H.exportContext(state,original);
+ const absent={...state};delete absent.bag;
+ for(const context of [local,clone(local)])for(const raw of [absent,{...absent,bag:null}]){
+  const known=H.importContext(state,context);assert.equal(B.forcedNext(known.inventory.knowledge),'Z');
+  const cleared=H.importContext(raw,context);assert.equal(cleared.inventory.knowledge,null,'Current absence must override earlier cached partial-origin knowledge');assert.deepEqual(live(cleared.inventory),live(known.inventory));assert.deepEqual(H.resolve(raw,cleared),H.resolve(state,known));assert.deepEqual(H.exportContext(raw,cleared),local);
+  assert.deepEqual(H.importContext(state,context).inventory.knowledge,state.bag,'Later explicitly supplied knowledge can be restored without changing subjects');
+ }
+ const fresh=first(),freshHistory=H.start(fresh,{fresh:true}),freshContext=clone(H.exportContext(fresh,freshHistory));
+ assert.deepEqual(H.importContext(fresh,freshContext).inventory.knowledge,freshHistory.inventory.knowledge,'Known fresh origin keeps its independently observed seven-bag frontier');
+});
