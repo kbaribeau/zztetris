@@ -26,10 +26,20 @@ Old notch tapes remain a compatibility input. They still validate under their or
 
 Notch tests cover canonical TSD/quad translation, newly established phases, sticky broken facts, trusted import, invalid shapes, legacy tampering, page/Worker transport and Undo. A 1,000-lock manual O-only cycle retains fixed-size current facts beyond the former tape limit. Independent comparison found 375 identical phase results across 365 locks and ten legacy conversions. Newly added source files are included in simulation source hashes and the worker loader; missing/changed dependency hashes fail frozen-source binding.
 
+## Third checkpoint: isolated S/L and opening account reducers
+
+`st-sl-obligations.js` implements current same-bag counterpart consequences separately from production consumers. A consumed counterpart remains only while an unconsumed counterpart, exact Center target, unresolved first-bag decision or live caller reference can still distinguish it. Once those distinctions end, unresolved consequences move into fixed type/severity counters. Compaction is not payment. Operation-local classification effects preserve a newly uncertain identity even when it immediately becomes an aggregate, so later consumer migration can still distinguish inherited uncertainty from a new loss.
+
+The component preserves the existing asymmetric S/L policies, foundation and first-bag exemptions, foreign-bag payment ordering, pending LO accommodation and exactly-once opening handoff rebase. Trusted snapshots validate their current shape and internal references without proving their history or consulting a board. No live-record count limit is imposed. Numeric representation failures are explicit rather than silently rounding or dropping a consequence.
+
+`st-opening-obligations.js` implements temporary allocation/quality duties, the mandatory opening Z, a net conserved Z balance, sticky eligibility facts and only the active Reset duty. Each actual qualifying Left T credits one Z. Completion emits an effect and retires that Reset's temporary identity and inherited-covered-cell references; it does not award two more credits or retain an episode list. Current facts import directly. Current public identity and exactly-once delivery, Reset selection, unknown-origin observation diagnostics and historical display totals remain caller responsibilities.
+
+These two components are deliberately **not loaded by the page, worker or simulator yet**. They are phase-three building blocks, not replacement planner authorities. Their tests compare canonical current facts against the old classifier over literal transitions and public replays, plus lifecycle size checks. Aggregate uncertainty cannot simply replace the old identity arrays in admission or beam keys. Those consumers and effect-based monitoring must migrate together before production compaction is enabled.
+
 ## Remaining migration
 
-The whole migration is not complete. In particular, S/L residual counterpart state, opening/Z/Reset accounts, safety/Left-goal ownership, trusted complete session snapshots, inverse receipts and effect-based monitoring still need their planned migration and retirement checks. The legacy resource action/lock caps and allocation tape still exist. Do not describe this checkpoint as cap-free resource accounting or as completed trusted session import.
+The whole migration is not complete. In particular, production S/L and opening/Z/Reset consumers, coupled factual orchestration, safety/Left-goal ownership, trusted complete session snapshots, inverse receipts and effect-based monitoring still need their planned migration and retirement checks. The legacy resource action/lock caps and allocation tape still exist. Do not describe this checkpoint as cap-free resource accounting or as completed trusted session import.
 
-Subsequent work must remove compatibility archives rather than leave the new components as wrappers over old history indefinitely. A compact S/L residual-state component is under development independently; it is not yet a planner or actual-accounting authority.
+Subsequent work must remove compatibility archives rather than leave the new components as wrappers over old history indefinitely. The standalone S/L and opening account components are not yet planner or actual-accounting authorities.
 
 Full-suite and end-of-block validation results will be recorded after the implementation checkpoint is stable. No real-browser rendering or production-performance acceptance is claimed by these component tests.
