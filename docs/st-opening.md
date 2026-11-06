@@ -25,7 +25,8 @@ This attempt and fresh-search fallback share the existing 200 ms / 12,000-node h
 ### Observed Hanging-S handoff recovery
 
 The original 12,000-node / 200-ms probe runs first. A successful original prefix
-is returned unchanged; extra search does not lengthen it into a different goal.
+is preserved as the checked fallback. The separate fresh-maintenance decision
+below may replace it; Hanging-S recovery never lengthens a successful prefix.
 Only its budget exhaustion, together with replay-complete historical opening
 allocation and quality, can trigger recovery for one still-live, known Hanging S.
 Unknown or unclassified S accounting does not qualify. Recovery uses two thirds
@@ -103,3 +104,25 @@ action tapes can describe alternative phase histories. Changing that input
 changes which locks belong to opening, but cannot rewrite actual allocations or
 certify repaired Center/covered geometry. Normal planner admission still checks
 its own resource, structural and access evidence.
+
+### Fresh supported maintenance selection
+
+At an eligible handoff, the ordinary planner first fully admits the existing
+forecast or legacy maintenance prefix against the marked boundary ledger. It
+then offers a fresh supported maintenance decision the remaining outer request
+nodes and original deadline. The fresh request has no opening forecast, previous
+advice, or commitment. Ordinary maintenance owns piece allocation and finite
+repair goals; the handoff has no J-specific rule.
+
+A completed supported decision is authoritative, rather than being required to
+dominate every endpoint measure of a shorter forecast. Risky placement and Reset
+selection are excluded. The separate Hanging-S recovery route keeps its exact
+required payment. If fresh work cannot finish, the already admitted fallback
+survives unchanged, with all attempted work included in total node accounting.
+`metrics.handoffWork.fresh` records its attempt, remaining allowance, spent nodes
+and selection; fresh advice never claims its selected route was a revalidated
+forecast. Only the actual opening producer in the current invocation can enable
+this step; imported phase/evidence labels cannot authorize it.
+
+These are finite proof and budget contracts. E01 is an inspected development
+regression, not evidence of general survival improvement.

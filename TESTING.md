@@ -282,3 +282,11 @@ original decision. The actual page's handoff/Undo/replay case in `st-undo.test.c
 checks the same resource ledger before and after restoration. These accounting
 checks and the existing recovery-budget tests are separate from timed strategic
 simulation evidence.
+
+`st-fresh-maintenance-handoff.test.cjs` covers generic fresh supported selection
+after an eligible, fully admitted handoff: marked resource history, shared
+remaining budgets, forecast fallback, provenance, no Reset dispatch, and exact
+finite J-goal retention with actual movements and newly public supply. A second
+eligible position checks delegation without requiring that repair. Production
+Worker execution is separate from component deadline controls; paired finite
+simulations and real-browser checks remain separate acceptance evidence.

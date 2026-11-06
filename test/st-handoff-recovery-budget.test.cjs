@@ -25,8 +25,8 @@ test('handoff recovery budget: zero, expired and reduced caller allowances remai
  for(const o of [{maxNodes:0,deadline:1500},{maxNodes:45000,deadline:0}]){const a=O.plan(q.observation,{...q.options,...o,now:()=>0});assert.equal(a.target,null);assert.equal(a.metrics.nodes,0);}assert.equal(calls,0);
  const a=O.plan(q.observation,{...q.options,maxNodes:12000,deadline:Infinity,now:()=>0});assert.equal(calls,1);assert.equal(a.metrics.nodes,12000);assert.equal(a.target,null);
 });
-test('handoff recovery budget: actual old positive handoff cannot grow into a different retained commitment',()=>{
- const f=require('./fixtures/legacy-handoff-prefix.json'),q=f.request,a=P.decide(q.observation,{...q.options,previous:q.previous,commitment:q.commitment,deadline:Infinity,now:()=>0});
+test('handoff recovery budget: disabled fresh handoff preserves the exact old positive prefix',()=>{
+ const f=require('./fixtures/legacy-handoff-prefix.json'),q=f.request,a=P.decide(q.observation,{...q.options,disableFreshHandoff:true,previous:q.previous,commitment:q.commitment,deadline:Infinity,now:()=>0});
  assert(a.target);assert.equal(a.phase,'maintenance');assert.equal(a.evidence.openingHandoff.recovery,undefined);assert.deepEqual(a.continuation.map(p=>p.event),f.advice.continuation.map(p=>p.event));assert.equal(P.resourceGoal(a.continuation),false);assert.equal(a.metrics.handoffWork.recovery.nodes,undefined);assert(a.metrics.nodes<=45000);E.validateAdvice(q.observation,a);
 });
 test('handoff production budget: real worker uses a safe ordinary alternative instead of archived unsafe observed-S payment',()=>{

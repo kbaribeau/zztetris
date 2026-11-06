@@ -137,7 +137,7 @@ function dPatternExitAdmission(before,p,options={}){
 // Successful completion witnesses may be reused only inside one synchronous plan.
 // Bind the actual pose, inventory, resource identities and phase; caller evidence
 // never supplies this private cache and failed/budget-limited probes are not saved.
-const resourceRepairCache=Symbol('resource-repair-cache'),rightCapAdmission=Symbol('right-cap-admission'),supportedSLAdmission=Symbol('supported-SL-admission'),openingHandoffBoundary=Symbol('opening-handoff-boundary');
+const resourceRepairCache=Symbol('resource-repair-cache'),rightCapAdmission=Symbol('right-cap-admission'),supportedSLAdmission=Symbol('supported-SL-admission'),openingHandoffBoundary=Symbol('opening-handoff-boundary'),supportedMaintenanceOnly=Symbol('supported-maintenance-only');
 function resourceRepair(state,resource,options){
  options={...options,waitingHint:options[pendingLHint]??null};
  const cache=options[resourceRepairCache],key=JSON.stringify([observe(state),M.binding(resource),options.notches,options.coveredDebt||[],Boolean(resource.pendingLDiverted),Boolean(options[pendingLStageDisabled]),options.waitingHint]);
@@ -1119,7 +1119,7 @@ function planCore(raw,options={}){
  const resetDecision=resetCandidate(s,initial);
  base.evidence={resetSelection:resetDecision};
  const reentry=levelBaseReentry(s,initial,base,{...options,now,deadline},readAssessment);if(reentry){reentry.evidence={...reentry.evidence,resetSelection:{...resetDecision,status:reentry.target?'ordinary-rebuild-preferred':'uncertified',reason:reentry.target?'A checked one-lock Center rebuild takes precedence over paired-T recovery.':'The one-lock Center rebuild was not certified; this does not authorize paired-T recovery.'}};reentry.metrics.elapsedMs=Date.now()-started;return reentry;}
- if(!options.disableConstruction&&resetDecision.status==='candidate'&&X){
+ if(!options.disableConstruction&&!options[supportedMaintenanceOnly]&&resetDecision.status==='candidate'&&X){
   const repair=X.search(s,{timeMs:Math.max(0,Math.min(680,deadline-now()-70)),maxNodes:Math.max(0,(options.maxNodes??45000)-base.metrics.nodes)});base.metrics.nodes+=repair.search?.visited||0;
   if(repair.valid){const tracker={nodes:0},advice=constructionAdvice(s,{origin:observe(s),steps:repair.continuation.map(p=>({witness:p.witness})),consumed:0},deadline,now,Math.max(0,(options.maxNodes??45000)-base.metrics.nodes),tracker);base.metrics.nodes+=tracker.nodes;if(advice){advice.metrics.search=repair.search;advice.metrics.nodes=base.metrics.nodes;advice.metrics.elapsedMs=now()-started;return advice;}}
  }
@@ -2137,7 +2137,26 @@ function ordinaryPlanRequest(raw,options={}){
   // incumbent's cheaper metrics. No imported certificate supplies authority.
   return{...maintenanceFallback,metrics:{...checked.metrics,...(checked.metrics?.usage?{usage:{...checked.metrics.usage,selected:maintenanceFallback.metrics.usage?.selected??null}}:{}),firstCertified:result.metrics?.firstCertified,admissionAttempts:result.metrics?.admissionAttempts,admissionFailures:result.metrics?.admissionFailures,certifiedHorizon:maintenanceFallback.continuation.length,certifiedFallback:{selected:true,locks:maintenanceFallback.continuation.length}},evidence:{...maintenanceFallback.evidence,budgetExhausted:checked.status==='budget-exhausted'||Boolean(result.evidence?.budgetExhausted),searchIncomplete:true}};
  }
- return supportPreference(scoringPreference(checked));
+ return handoffPreference(supportPreference(scoringPreference(checked)));
+ function handoffPreference(incumbent){
+  // Only this invocation's opening producer can authorize the transition. The
+  // fallback has already passed final admission against the marked ledger.
+  // A serialized handoff label cannot opt into fresh planning or proof reuse.
+  if(result!==handoffResult||!incumbent?.target||options.disableFreshHandoff||incumbent.evidence?.openingHandoff?.recovery)return incumbent;
+  const limit=options.maxNodes??45000,spent=incumbent.metrics?.nodes||0,remaining=Math.max(0,limit-spent),started=now();
+  const telemetry={attempted:false,selected:false,nodes:0,remainingNodes:remaining,deadline:Number.isFinite(deadline)?deadline:null,reason:'shared-budget'};
+  const finish=chosen=>({...chosen,metrics:{...chosen.metrics,nodes:spent+telemetry.nodes,elapsedMs:(incumbent.metrics?.elapsedMs||0)+Math.max(0,now()-started),handoffWork:{...incumbent.metrics?.handoffWork,fresh:telemetry}}});
+  if(!remaining||now()>=deadline)return finish(incumbent);
+  telemetry.attempted=true;
+  const fresh=supportedMaintenanceDecision(raw,{...options,maxNodes:remaining,deadline,now});
+  telemetry.nodes=fresh.metrics?.nodes||0;telemetry.status=fresh.status;
+  if(!fresh.target||fresh.recommendation?.kind!=='supported'||fresh.evidence?.strategy==='reset-coach'||telemetry.nodes>remaining||now()>=deadline){telemetry.reason='fresh-decision-unavailable';return finish(incumbent);}
+  // This is a fresh decision, not a ranking claim against a short forecast.
+  // Ordinary maintenance owns its priorities and exact finite repair goals.
+  const handoff={...incumbent.evidence.openingHandoff,decision:'fresh-supported-maintenance'};delete handoff.forecast;
+  telemetry.selected=true;telemetry.reason='fresh-supported-maintenance';
+  return finish({...fresh,phase:'maintenance',evidence:{...fresh.evidence,openingHandoff:handoff},reason:(handoff.event?'Opening handoff checked after the clear. ':'Opening handoff checked after observed allocation and quality completion. ')+fresh.reason});
+ }
  function scoringPreference(checked){
   // This separate finite goal is considered only AFTER the ordinary incumbent
   // has passed final admission. Optional work cannot starve or revoke it.
@@ -2700,7 +2719,18 @@ function contextualRiskPreference(raw,supported,options,collector){
  return riskyFallback(raw,supported,options,{...collector,placements},comparison);
 }
 
-function decide(raw,options={}){return queryRequest(()=>{const now=options.now||(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs),collector={key:null,placements:null,complete:false,started:Date.now()};try{collector.key=stateKey(extendForced(observe(raw)));}catch{}options={...options,now,deadline,[riskRootCollector]:collector};const initial=decideRequest(raw,options);if(initial.evidence?.strategy==='reset-coach')return initial;const result=visibleLeftRepair(raw,reservedPiecePlan(raw,initial,options,collector),options,collector);return result.target?classifySupported(contextualRiskPreference(raw,result,options,collector)):riskyFallback(raw,result,options,collector);});}
+// The handoff may use the ordinary supported selector, but not its separate
+// risky fallback, contextual risk preference or Reset dispatcher. It starts
+// without the just-completed opening route or any serialized routing hint.
+function supportedMaintenanceDecision(raw,options){
+ const collector={key:null,placements:null,complete:false,started:Date.now()};try{collector.key=stateKey(extendForced(observe(raw)));}catch{}
+ options={...options,disableOpening:true,openingPhase:false,openingClear:null,openingSource:null,openingRepair:null,openingForecast:null,handoffRecovery:null,previous:null,commitment:null,constructionPrevious:null,pendingLHint:null,[supportedMaintenanceOnly]:true,[riskRootCollector]:collector};
+ const initial=ordinaryPlanRequest(raw,options);
+ return classifySupported(supportedPreferences(raw,initial,options,collector));
+}
+function supportedPreferences(raw,initial,options,collector){return visibleLeftRepair(raw,reservedPiecePlan(raw,initial,options,collector),options,collector);}
+
+function decide(raw,options={}){return queryRequest(()=>{const now=options.now||(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs),collector={key:null,placements:null,complete:false,started:Date.now()};try{collector.key=stateKey(extendForced(observe(raw)));}catch{}options={...options,now,deadline,[riskRootCollector]:collector};const initial=decideRequest(raw,options);if(initial.evidence?.strategy==='reset-coach')return initial;const result=supportedPreferences(raw,initial,options,collector);return result.target?classifySupported(contextualRiskPreference(raw,result,options,collector)):riskyFallback(raw,result,options,collector);});}
 function decideRequest(raw,options={}){
  const now=options.now||(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs),budgetTracker={nodes:0},limit=options.maxNodes??45000;
  options={...options,now,deadline};
