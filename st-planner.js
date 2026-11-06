@@ -2365,7 +2365,7 @@ function revalidate(raw,previous,options={}){
   const resource=checkedResourceEndpoint(s,refreshed.continuation,constructionPolicyOptions(refreshed,{...options,maxNodes:Math.max(0,(options.maxNodes??8000)-tracker.nodes)}));tracker.nodes+=resource.visited||0;if(!resource.valid)return null;
   const access=A.prefix(s,refreshed.continuation,{...options,notches:H.resolve(s,options.patternHistory),maxNodes:Math.max(0,(options.maxNodes??8000)-tracker.nodes)});if(options.budgetTracker)options.budgetTracker.nodes+=access.visited;
   if(['left-support','left-scoring-foundation'].includes(previous.evidence.construction.kind)&&(now()>=options.deadline||tracker.nodes+access.visited>(options.maxNodes??8000)))return null;
-  return access.reachable===true?{...refreshed,retained:true,metrics:{...refreshed.metrics,certifiedHorizon:refreshed.continuation.length,nodes:tracker.nodes+access.visited,revalidationNodes:tracker.nodes,gapAccessNodes:access.visited}}:null;
+  return access.reachable===true?{...refreshed,retained:true,metrics:{...refreshed.metrics,certifiedHorizon:refreshed.continuation.length,nodes:tracker.nodes+access.visited,revalidationNodes:tracker.nodes,gapAccessNodes:access.visited},evidence:{...refreshed.evidence,resourceObligations:{status:'checked',binding:resourceBinding(s,options),delayedDPlans:resource.delayedDPlans,checkedIExits:resource.checkedIExits,...resourceFacts(resource.resource)}}}:null;
  }
 
  const enumeration=R.placements(extendForced(s),{maxNodes:options.maxNodes??8000,deadline:options.deadline,now:options.now});
