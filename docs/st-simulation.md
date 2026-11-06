@@ -205,9 +205,11 @@ from embedded summary totals. Their
 scope is always `retained-prefix`, even when the last line is syntactically
 complete: the process may have performed more work before termination. A
 malformed event row stops counting before that entire row; the summary explains
-the smaller retained boundary. Lock-stage events must match their lock row;
-handoff/Reset events cannot name a later lock. Stop and final-drain events cannot
-exceed the retained lock boundary. Missing or unsupported initial instrumentation,
+the smaller retained boundary. Lock-stage and action-stage events must match
+their lock row; handoff/Reset events cannot name a later lock. On stop and
+final-drain rows, lock/handoff/Reset events cannot exceed the retained completed
+lock boundary. Action-stage events instead must name exactly the next attempted
+lock, without advancing the completed `throughLock` boundary. Missing or unsupported initial instrumentation,
 including legacy traces, produces `scope: "unavailable"` with `total: null` and
 `counts: null`, not a fabricated zero. An instrumented prefix with no events
 can accurately report zero for that prefix only.
