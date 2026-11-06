@@ -2145,11 +2145,11 @@ function ordinaryPlanRequest(raw,options={}){
   if(result!==handoffResult||!incumbent?.target||options.disableFreshHandoff||incumbent.evidence?.openingHandoff?.recovery)return incumbent;
   const limit=options.maxNodes??45000,spent=incumbent.metrics?.nodes||0,remaining=Math.max(0,limit-spent),started=now();
   const telemetry={attempted:false,selected:false,nodes:0,remainingNodes:remaining,deadline:Number.isFinite(deadline)?deadline:null,reason:'shared-budget'};
-  const finish=chosen=>({...chosen,metrics:{...chosen.metrics,nodes:spent+telemetry.nodes,elapsedMs:(incumbent.metrics?.elapsedMs||0)+Math.max(0,now()-started),handoffWork:{...incumbent.metrics?.handoffWork,fresh:telemetry}}});
+  const finish=chosen=>({...chosen,metrics:{...chosen.metrics,nodes:spent+telemetry.nodes,elapsedMs:(incumbent.metrics?.elapsedMs||0)+Math.max(0,now()-started),...(incumbent.metrics?.usage?{usage:{...incumbent.metrics.usage,selected:{...incumbent.metrics.usage.selected,locks:chosen.continuation.length}}}:{}),handoffWork:{...incumbent.metrics?.handoffWork,fresh:telemetry}}});
   if(!remaining||now()>=deadline)return finish(incumbent);
   telemetry.attempted=true;
   const fresh=supportedMaintenanceDecision(raw,{...options,maxNodes:remaining,deadline,now});
-  telemetry.nodes=fresh.metrics?.nodes||0;telemetry.status=fresh.status;
+  telemetry.nodes=fresh.metrics?.nodes||0;telemetry.status=fresh.status;if(fresh.metrics?.usage)telemetry.usage=fresh.metrics.usage;
   if(!fresh.target||fresh.recommendation?.kind!=='supported'||fresh.evidence?.strategy==='reset-coach'||telemetry.nodes>remaining||now()>=deadline){telemetry.reason='fresh-decision-unavailable';return finish(incumbent);}
   // This is a fresh decision, not a ranking claim against a short forecast.
   // Ordinary maintenance owns its priorities and exact finite repair goals.
