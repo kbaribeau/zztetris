@@ -19,7 +19,7 @@ test('absent replacement I, forged payment, clear and exhausted budget earn no s
  const broken=proofAdvice();broken.evidence.construction.steps.pop();assert.equal(P.revalidate(q.observation,broken,fullOptions(q)),null);
 });
 test('actual HOLD, each movement and each lock rederive the original finite construction',()=>{
- const q=fixture.finite;let state=clone(q.observation),history=RH.importContext(state,q.options.resourceContext),patterns=q.options.patternHistory,advice=P.revalidate(state,proofAdvice(),fullOptions(q));assert(advice);
+ const q=fixture.finite;let state=clone(q.observation),history=RH.importContext(state,q.options.resourceContext),patterns=q.options.patternHistory,advice=P.revalidate(state,proofAdvice(),fullOptions(q));assert(advice);assert.equal(advice.evidence.resourceObligations.status,'checked');assert.ok(Array.isArray(advice.evidence.resourceObligations.unclassifiedS));assert.ok(Array.isArray(advice.evidence.resourceObligations.unclassifiedL));
  let held=false,locks=0;while(advice){const before=clone(state),original=advice,inputs=advice.witness.slice();
   for(const action of inputs){const prior=state;state=R.move(state,action);history=RH.applyAction(history,prior,action,state);const options={...config,patternHistory:patterns,resourceContext:RH.exportContext(state,history)};
    if(action==='HD'){patterns=PH.update(patterns,prior,state,state.lastEvent);locks++;advice=P.continueCommitment(before,state,original,state.lastEvent,{...options,patternHistory:patterns});}

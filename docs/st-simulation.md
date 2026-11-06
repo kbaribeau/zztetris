@@ -234,3 +234,18 @@ protocol hashes, never worker requests. `phase-cap` is a right-censored stop;
 `detail` records its reason and actual handoff boundary. Scoring a TSD does not
 itself count as handoff. Compare handoff rates and shared-horizon outcomes,
 not raw length as survival superiority when arms stop at different phase caps.
+
+### Projected obligation evidence
+
+Midgame projections retain observed S/L allocations and pairing history, including
+already consumed identities. Actual history and projected paths use the same S/L
+classifier. Returned ordinary, Reset, retained and risky advice includes pending,
+hanging and unclassified identities. A checked finite prefix is not a certificate
+that an unclassified accommodation was repaired; advice explicitly names those
+unresolved identities. Ordinary admission is unchanged. Reset refuses a step that
+turns a currently known hanging identity into unclassified accommodation, while
+carrying and disclosing uncertainty already present at entry.
+
+Recorded traces permit projected-versus-actual comparison. The ordinary simulation
+summary still has no dedicated resource-degradation aggregate or automatic gate;
+use a separate source-bound audit before claiming preservation across a run.

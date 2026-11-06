@@ -272,7 +272,7 @@ function hanging(h){
   if(diverted)evidence.push({bag,sId:s?.id??null,lId:l.id,at:l.allocation.at,...(!s?{deferred:true}:{}),reason:inherited?'The same-bag L was used during opening while this S remained unused at handoff.':l.pair?.family==='SL'?'The L completed a different observed S.':'The L was allocated outside its observed S/L pair.'});
   else if(l.allocation.region!=='center'||l.pair?.family!=='SL')unclassified.push({bag,lId:l.id,reason:'The L allocation has no reviewed S/L role.'});
  }
- const lostProfile=profileLost(h);
+ const lostProfile=h.profileLost??profileLost(h);
  return{status:lostProfile||evidence.length>1?'out-of-profile':evidence.length?'hanging':unclassified.length?'unknown':'none-observed',evidence,unclassified,since,reason:evidence.length?'Source-backed observed surplus; exact Center completion debt is a separate fact.':'No supported Hanging-S event in the reviewed interval; this is not proof of globally balanced arbitrary play.'};
 }
 // L identification is deliberately not a mirrored repair strategy. A supported
@@ -295,8 +295,20 @@ function hangingL(h){
   if(l?.allocation&&!pendingLO){unclassified.push({bag,lId:l.id,sId:s.id,reason:'The previously surplus L was placed in an unreviewed accommodation; no L repair strategy is inferred.'});continue;}
   evidence.push({bag,lId:l?.id??null,sId:s.id,at,...(!l?{deferred:true}:{}),...(pendingLO?{pendingAccommodation:'LO'}:{}),reason:inherited?'The same-bag S was used during opening while this L remained unused at handoff.':paired?'The S completed a pair with a different observed L.':'The S was accommodated on Left instead of using its observed L.'});
  }
- const lostProfile=profileLost(h);
+ const lostProfile=h.profileLost??profileLost(h);
  return{status:lostProfile||evidence.length>1?'out-of-profile':evidence.length?'hanging':unclassified.length?'unknown':'none-observed',evidence,unclassified,since:0,reason:evidence.length?'Observed surplus L identity; pending Center SL and repair capability are separate facts.':'No supported Hanging-L event in the observed interval; no symmetric L repair strategy is assumed.'};
+}
+// Pure classification shared with hypothetical planning. This returns no trusted
+// history capability: callers still authenticate public action tapes separately.
+function advanceSLMilestones(prior,board,event,at){
+ const milestones=clone(prior);
+ if(!milestones.firstTsd&&tsd(event))milestones.firstTsd={at};
+ if(!milestones.sourcePattern){const match=Patterns?.patterns?.find(p=>same(board,Array(40-p.rows.length).fill('..........').concat(p.rows)));if(match)milestones.sourcePattern={at,id:match.id};}
+ return milestones;
+}
+function classifySL(facts){
+ const h={fresh:facts.fresh,pieces:facts.pieces,center:facts.center,milestones:facts.milestones,profileLost:Boolean(facts.profileLost)};
+ return{hangingS:hanging(h),hangingL:hangingL(h)};
 }
 function openingAllocation(h){
  const unknown={status:'unknown',counts:null,requiredNonRightZ:null,requiredNonRightT:null,firstTsdAt:null,completedAt:null,qualityAt:null,checkpoint:null};
@@ -321,5 +333,5 @@ function resolve(raw,history){
  const account=zAccount(h),extraStatus=!h.extraZ.baseline?'unknown':profileLost(h)?'out-of-profile':h.reset.status==='active'||account.remaining===0?'used':'available';
  return{schemaVersion:1,terminal:Boolean(h.observation.topOut),coverage:clone(h.coverage),actions:h.actions,locks:h.locks,dPattern:clone(h.dPattern),reset:clone(h.reset),publicBag:publicBag(h),openingAllocation:openingAllocation(h),instances:{active:instance(h.active),hold:instance(h.hold),queue:h.queue.map(instance)},observedSL:h.fresh?Object.values(h.pieces).filter(p=>'SL'.includes(p.type)).map(p=>({id:p.id,type:p.type,bag:p.bag})):[],flow:{ageKnown:h.fresh,oldestFirst:[h.active,h.hold,...h.queue].filter(id=>id!==null).map(instance).sort((a,b)=>(a.observedOrder??Infinity)-(b.observedOrder??Infinity))},center,coveredRepair:clone(h.coveredRepair),hangingS:hanging(h),hangingL:hangingL(h),extraZ:{status:extraStatus,...clone(h.extraZ),...account,reason:!h.extraZ.baseline?'First TSD and source pattern are not sufficient: the source allocation/quality baseline must be verified.':'Conserved opening allowance plus actual Reset Left-T identities minus all subsequent non-Right Z allocations. Current Right duties remain independent.'},milestones:clone(h.milestones),allocations:clone(h.allocations),pairs:clone(h.pairs),source:{url:SOURCE,sections:['2','3.2','7','8','9','10']},note:'Observed resource evidence; planner validates replay context separately. Reset markers and allocations are replay-validated; no fixed completion allowance is granted.'};
 }
-return Object.freeze({start,applyAction,markHandoff,beginReset,resolve,exportContext,importContext,limits:Object.freeze({actions:MAX_ACTIONS,locks:MAX_LOCKS})});
+return Object.freeze({start,applyAction,markHandoff,beginReset,resolve,exportContext,importContext,classifySL,advanceSLMilestones,limits:Object.freeze({actions:MAX_ACTIONS,locks:MAX_LOCKS})});
 });

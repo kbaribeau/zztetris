@@ -19,7 +19,7 @@ test('visible Left repair / normal decision executes an identified J after Cente
  assert.ok(S.geometry(s.board).left.completions.some(c=>c.piece==='J'&&key(c.cells)===key(goal.cells)));
  const baseline=P.decide(s,{...opts(),disableVisibleLeftRepair:true});
  assert.ok(a.assessment.maxHeight<=baseline.assessment.maxHeight);assert.ok(a.assessment.left.roughness<baseline.assessment.left.roughness);
- assert.equal(a.evidence.strategy,'canonical-right-ST');assert.equal(a.evidence.pendingLSelection,undefined);assert.equal(a.evidence.preparationProof,undefined);
+ assert.equal(a.evidence.strategy,'canonical-right-ST');assert.deepEqual(a.evidence.resourceObligations.unclassifiedS.map(p=>p.sId),[15]);assert.match(a.reason,/S15/);assert.ok(a.recommendation.hazards.some(h=>h.code==='unclassified-SL-accommodation'),'Finite J repair is not a claim that the historical S accommodation was repaired');assert.equal(a.evidence.pendingLSelection,undefined);assert.equal(a.evidence.preparationProof,undefined);
  const r=R.replay(s,a.continuation.flatMap(p=>p.witness));assert.ok(r.valid);assert.equal(r.events.length,4);assert.ok(r.events.every(S.canonicalClear));
  assert.deepEqual(S.geometry(r.state.board).left.profile,goal.resultProfile);assert.ok(P.revalidate(s,a,opts()));
 });
