@@ -647,6 +647,22 @@ Center and a second J in Left. No reset detection or benchmark change is part
 of this implementation. The general 85-line target is post-first-reset, not
 an acceptance target for these experimental branches or opener-root samples.
 
+### Checked I exit and visible J allocation
+
+A bounded ordinary continuation may now use a literal immediately playable I
+as the actual next lock inside its carried route to leave D, provided it adds
+no covered cells, preserves notch/cycle/resource
+checks, stays at most 16 rows high and does not compete with Right-I preparation
+or cleanup. This is an engineered certificate, not a broader interpretation of
+Shocky's immediate-J advice. See [Left admission](docs/st-left-context.md#checked-immediate-i-alternative).
+
+A small shared-budget discovery pass can prefer J Left when another identified
+visible J actually pays the existing O/J Center target and the original Hanging S
+is accommodated. It protects an immediately executable TSD by scoring first,
+retains the checked suffix and original S identity using the existing commitment
+mechanism. Ordinary fresh beam D admission is unchanged. It does not
+promise unknown arrivals or continued survival after that finite route.
+
 ### Coaching-session download names
 
 `Export coaching session` requests a JSON download of the **current played session**; it does not replace the import textarea. The browser/user controls the final name and destination (including duplicate-file renaming). Optional top-level `suggestedFileName` on a visible snapshot, `zztetris-st-session`, or `zztetris-st-practice` supplies the default download name. A practice wrapper's name overrides its nested session name. Missing/invalid names use `st-lab-coaching-export.json`; names are bounded, stripped of path/control characters and given a `.json` suffix. Old imports remain supported with no schema-version change.

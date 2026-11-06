@@ -10,14 +10,14 @@ function ordinaryRightEligible(event){return !event.cells.some(([x])=>x>=7)||['Z
 // The shared construction presenter also serves the existing paired-T recovery.
 // Only a freshly replay-verified, Reset-eligible proof receives this private
 // scope. No serialized construction kind or caller option can exempt a route.
-const resetScoringExtension=Symbol('reset-scoring-extension'),pairedResetProofs=new WeakSet(),pairedResetScope=Symbol('paired-reset-scope'),pendingLStageDisabled=Symbol('pending-L-stage-disabled'),pendingLSelections=new WeakSet(),pendingLHint=Symbol('pending-L-replay-hint');
+const resetScoringExtension=Symbol('reset-scoring-extension'),pairedResetProofs=new WeakSet(),pairedResetScope=Symbol('paired-reset-scope'),pendingLStageDisabled=Symbol('pending-L-stage-disabled'),pendingLSelections=new WeakSet(),pendingLHint=Symbol('pending-L-replay-hint'),checkedIExitTarget=Symbol('checked-I-exit-target'),iAllocationGoals=Symbol('I-allocation-goals');
 function constructionPolicyOptions(advice,options){return{...options,[pairedResetScope]:pairedResetProofs.has(advice?.evidence?.construction),[pendingLStageDisabled]:Boolean(advice?.evidence?.construction)};}
 function resourceSummary(raw,options={}){return RH.resolve(raw,options.resourceContext?RH.importContext(raw,options.resourceContext):RH.start(raw));}
 function ordinaryResourceCheck(raw,path,options={}){const summary=resourceSummary(raw,options);if(options.resourceContext&&summary.coverage?.status==='invalid')return{valid:false,reason:'invalid-resource-context'};return M.checkPath(raw,path,summary);}
 function checkedResourceEndpoint(raw,path,options={}){const result=resourceEndpointCore(raw,path,options);if(options.budgetTracker)options.budgetTracker.nodes+=(result.visited||0);return result;}
 function resourceEndpointCore(raw,path,options={}){
  const checked=ordinaryResourceCheck(raw,path,options);if(!checked.valid&&(options[pendingLStageDisabled]||checked.reason!=='center-partner-blocked-by-T-or-unseen'||!M.pendingLStageEligible(checked.state,checked.resource)))return{...checked,visited:0};
- let visited=0;const delayedDPlans=[];const now=options.now||(()=>Date.now()),deadline=options.deadline??Infinity,limit=options.maxNodes??45000;
+ let visited=0;const delayedDPlans=[],checkedIExits=[];const now=options.now||(()=>Date.now()),deadline=options.deadline??Infinity,limit=options.maxNodes??45000;
 
  const observed=resourceSummary(raw,options);
  let dPending=observed.dPattern?.pending===true,centerDeparture=false,virtual=extendForced(observe(raw)),notches=H.resolve(observe(raw),options.patternHistory),projected=M.start(virtual,observed);for(const [index,step] of path.entries()){const r=R.replay(virtual,step.witness);if(!r.valid||r.events.length!==1)return{...checked,valid:false,visited,reason:'invalid-resource-witness'};if(!options[pairedResetScope]&&!ordinaryRightEligible(r.events[0]))return{...checked,valid:false,visited,reason:'ordinary-right-requires-Z-T-I'};const phase=S.advanceNotches(virtual.board,{state:r.state,event:r.events[0]},notches);if(!phase.valid)return{...checked,valid:false,visited,reason:'invalid-resource-repair-phase'};notches=phase.pattern;
@@ -33,9 +33,11 @@ function resourceEndpointCore(raw,path,options={}){
     exit.events[0].cells.every(([x])=>x<4)&&!L.isD(exit.state.board)&&
     JSON.stringify(exit.events[0])===JSON.stringify(path[index+1].event);
    if(!executedExit){
-    const dAdmission=dPatternExitAdmission(virtual,{state:r.state,event:r.events[0],witness:step.witness},{...options,notches,maxNodes:Math.max(0,limit-visited),deadline,now,resource:projected});visited+=dAdmission.visited;
+    const executedI=exit?.valid&&exit.events.length===1&&exit.events[0].type==='I'&&exit.events[0].cells.every(([x])=>x<4)&&!L.isD(exit.state.board)&&JSON.stringify(exit.events[0])===JSON.stringify(path[index+1].event);
+    const dAdmission=dPatternExitAdmission(virtual,{state:r.state,event:r.events[0],witness:step.witness},{...options,disableCheckedIExit:options.disableCheckedIExit||!executedI,[checkedIExitTarget]:executedI?{event:exit.events[0],pieceId:placedResource(M.step(virtual,{state:r.state,event:r.events[0],witness:step.witness},projected),path[index+1].witness)?.id}:null,notches,maxNodes:Math.max(0,limit-visited),deadline,now,resource:projected});visited+=dAdmission.visited;
     if(!dAdmission.valid)return{...checked,valid:false,visited,reason:dAdmission.reason};
     if(dAdmission.delayedPlan)delayedDPlans.push({afterLock:index+1,...dAdmission.delayedPlan});
+    if(dAdmission.iExit)checkedIExits.push({afterLock:index+1,...dAdmission.iExit});
    }
   }
   const next=M.step(virtual,{...step,state:r.state,event:r.events[0]},projected),event=r.events[0];
@@ -66,7 +68,7 @@ function resourceEndpointCore(raw,path,options={}){
   if(!replay?.valid||replay.events.length!==1||replay.events[0].type!=='T'||replay.events[0].spin!=='full'||replay.events[0].lines!==2)return{...checked,valid:false,visited,reason:'pending-T-collision-without-score'};
  }
  const repair=resourceRepair(checked.state,checked.resource,{...options,notches,coveredDebt:restoration.outstandingCells,maxNodes:Math.min(4000,Math.max(0,limit-visited)),deadline,now});visited+=repair.visited;
- return{...checked,valid:repair.valid===true,reason:repair.valid===true?null:repair.status,visited,repair,delayedDPlans};
+ return{...checked,valid:repair.valid===true,reason:repair.valid===true?null:repair.status,visited,repair,delayedDPlans,checkedIExits};
 }
 // Chapter 3.3's D caveat is an admission condition, not a reward. This
 // bounded certificate uses post-creation public inventory and an actual J
@@ -100,11 +102,56 @@ function immediateDPatternExitAdmission(before,p,options={}){
   if(visited>=limit||now()>=deadline)return{valid:false,complete:false,visited,reason:'D-J-exit-budget-unfinished'};
  }
 }
+// The guide's immediate-J caveat is conservative. A literal immediate I may
+// instead leave D when an exact legal exit has four rows of visible headroom,
+// creates no covered cells, and does not compete with observed Right-I work.
+// The 16-row bound is an engineered safety limit, not a community shape tier.
+function immediateIStarts(state,options={}){
+ const out=[];let current=state;
+ for(let count=0;count<=(options.allowHold===false?0:2);count++){
+  if(!current.active||current.topOut)break;
+  if(current.active.type==='I')out.push({state:current,witness:Array(count).fill('HOLD')});
+  const next=R.move(current,'HOLD');if(next===current)break;current=next;
+ }
+ return out;
+}
+function immediateIExitEligible(state,options={}){
+ const geometry=S.geometry(state.board,{notches:options.notches});
+ return !options.disableCheckedIExit&&L.isD(state.board)&&geometry.right.cycle.prepareColumn===null&&!geometry.right.cycle.cleanupColumns.length&&assess(state.board).maxHeight<=16&&immediateIStarts(state,options).length>0;
+}
+function immediateIDPatternExitAdmission(before,p,options={}){
+ const now=options.now||(()=>Date.now()),deadline=options.deadline??Infinity,limit=options.maxNodes??4000;
+ const actual=R.replay(before,p.witness);if(!actual.valid||actual.events.length!==1||JSON.stringify(actual.events[0])!==JSON.stringify(p.event)||JSON.stringify(actual.state.board)!==JSON.stringify(p.state.board))return{valid:false,complete:true,visited:0,reason:'D-I-invalid-creation-witness'};
+ p={...p,state:actual.state,event:actual.events[0]};
+ if(!immediateIExitEligible(p.state,options))return{valid:false,complete:true,visited:0,reason:'D-I-exit-ineligible'};
+ const prior=options.resource?M.step(before,p,options.resource):M.start(p.state,resourceSummary(p.state,options)),notches=options.notches??S.notchPattern(p.state.board);
+ let visited=0,complete=true;
+ for(const start of immediateIStarts(p.state,options)){
+  let accepted=null;
+  const enumeration=R.placements(start.state,{allowHold:false,now,deadline,maxNodes:Math.max(0,limit-visited),stopWhen:q=>{
+   if(options[checkedIExitTarget]&&JSON.stringify(q.event)!==JSON.stringify(options[checkedIExitTarget].event))return false;
+   if(q.event.type!=='I'||q.event.lines||q.event.topOut||!q.event.cells.every(([x])=>x<4)||L.isD(q.state.board)||assess(q.state.board).maxHeight>16)return false;
+   const exit={...q,witness:[...start.witness,...q.witness],hold:start.witness.length>0,holdCount:start.witness.length},phase=S.advanceNotches(p.state.board,exit,notches);
+   if(!phase.valid||S.transition(p.state,{...exit,...policyWitnesses(p.state)},undefined,{notches}).cycleViolations.length||A.newlyCovered(p.state.board,q.state.board,q.event,phase.pattern).length||S.cavityRepairDebt(S.cavityFacts(p.state.board),S.cavityFacts(q.state.board),q.event).length)return false;
+   const piece=placedResource(prior,exit.witness),next=M.step(p.state,exit,prior);
+   if(options[checkedIExitTarget]&&piece?.id!==options[checkedIExitTarget].pieceId)return false;
+   if(piece?.type!=='I'||!Number.isInteger(piece.id)||piece.id<=0||next.violations.length)return false;
+   accepted={exit,next,phase,piece};return true;
+  }});visited+=enumeration.visited;
+  if(!enumeration.complete&&!accepted)complete=false;
+  if(!accepted)continue;
+  const repair=M.repair(accepted.exit.state,accepted.next,{...options,notches:accepted.phase.pattern,now,deadline,maxNodes:Math.max(0,limit-visited),acceptStep:(s,q)=>!L.createsD(s.board,q.state.board)});visited+=repair.visited;
+  if(repair.valid&&visited<=limit&&now()<deadline)return{valid:true,complete:true,visited,reason:'immediate-executable-I-exit',exit:accepted.exit,iExit:{pieceId:accepted.piece.id,cells:clone(accepted.exit.event.cells),maximumHeight:assess(accepted.exit.state.board).maxHeight,claim:'Checked immediate public I exit with headroom and no outstanding Right-I demand; finite resource repair only.'}};
+  if(repair.valid===null)complete=false;
+ }
+ return{valid:false,complete,visited,reason:complete?'D-I-exit-unproved':'D-I-exit-budget-unfinished'};
+}
 // A delayed J is supported only via one concrete, authenticated Center
 // payment that leaves Left unchanged, followed by the old strict J proof.
 // No arbitrary waiting search or preview-type promise supplies permission.
 function dPatternExitAdmission(before,p,options={}){
- const immediate=immediateDPatternExitAdmission(before,p,options);
+ let immediate=immediateDPatternExitAdmission(before,p,options);
+ if(!immediate.valid&&immediateIExitEligible(p.state,options)){const alternative=immediateIDPatternExitAdmission(before,p,{...options,maxNodes:Math.max(0,(options.maxNodes??4000)-(immediate.visited||0))});if(alternative.valid)return{...alternative,visited:(immediate.visited||0)+alternative.visited};immediate={...immediate,visited:(immediate.visited||0)+alternative.visited,...(alternative.complete===false?{complete:false,reason:alternative.reason}:{})};}
  if(immediate.valid||options.disableDelayedJPlan||immediate.reason!=='D-created-without-immediate-J')return immediate;
  const now=options.now||(()=>Date.now()),deadline=options.deadline??Infinity,limit=options.maxNodes??4000;
  let visited=immediate.visited||0;if(now()>=deadline||visited>=limit)return{...immediate,complete:false,visited,reason:'D-J-exit-budget-unfinished'};
@@ -370,6 +417,19 @@ function leftRepairStep(before,p,resource){
  const geometry=S.geometry(before.board).left,target=geometry.completions.find(c=>c.piece==='J'&&c.resultStatus==='partial-repair'&&centerCellsKey(c.cells)===centerCellsKey(e.cells));
  return target?{pieceId:piece.id,piece:'J',cells:clone(target.cells),beforeProfile:geometry.profile.slice(),resultProfile:target.resultProfile.slice()}:null;
 }
+// A checked allocation may carry an exact already-observed Hanging S job.
+// Like the J repair label, this is rederived from actual identity and cells;
+// serialized labels never manufacture permission or a new hanging obligation.
+function hangingSAccommodationStep(p,resource){
+ const event=p.event,piece=resource&&placedResource(resource,p.witness||[]);
+ return event.type==='S'&&!event.lines&&event.cells.every(([x])=>x<4)&&piece?.id>0&&resource.hangingS.some(q=>q.id===piece.id)?{pieceId:piece.id,piece:'S',cells:clone(event.cells)}:null;
+}
+function hangingSGoalKeys(path){let rows=Array.from({length:40},(_,y)=>y);const keys=[];
+ for(const p of path){const g=p.structuralEvidence?.hangingSAccommodation;
+  if(g?.piece==='S'&&Number.isInteger(g.pieceId)&&g.pieceId>0&&Array.isArray(g.cells)&&g.cells.length===4&&g.cells.every(c=>Array.isArray(c)&&c.length===2&&Number.isInteger(c[0])&&c[0]>=0&&c[0]<4&&Number.isInteger(c[1])&&rows[c[1]]!=null))keys.push(g.pieceId+':'+centerCellsKey(g.cells.map(([x,y])=>[x,rows[y]])));
+  const cleared=p.event.clearedRows||[];rows=[...Array(cleared.length).fill(null),...rows.filter((_,y)=>!cleared.includes(y))];
+ }return keys;
+}
 function leftRepairKeys(path){let rows=Array.from({length:40},(_,y)=>y);const keys=[];
  for(const p of path){const g=p.structuralEvidence?.leftRepair;
   if(g?.piece==='J'&&Number.isInteger(g.pieceId)&&g.pieceId>0&&Array.isArray(g.cells)&&g.cells.length===4&&g.cells.every(c=>Array.isArray(c)&&c.length===2&&Number.isInteger(c[0])&&c[0]>=0&&c[0]<4&&Number.isInteger(c[1])&&rows[c[1]]!=null))keys.push(g.pieceId+':'+centerCellsKey(g.cells.map(([x,y])=>[x,rows[y]])));
@@ -379,11 +439,12 @@ function leftRepairKeys(path){let rows=Array.from({length:40},(_,y)=>y);const ke
 // Serialized goal labels are not certificates. Rebuild the actual identity
 // and landing at every retention boundary, including partial HOLD execution.
 function refreshLeftRepairs(raw,path,options){
- if(!path.some(p=>p.structuralEvidence?.leftRepair||p.event.type==='J'&&!p.event.lines&&p.event.cells.every(([x])=>x<4)))return path;
+ if(!path.some(p=>p.structuralEvidence?.leftRepair||p.structuralEvidence?.hangingSAccommodation||p.event.type==='J'&&!p.event.lines&&p.event.cells.every(([x])=>x<4)))return path;
  let state=extendForced(observe(raw)),resource=M.start(state,resourceSummary(raw,options));const result=[];
  for(const p of path){const replay=R.replay(state,p.witness);if(!replay.valid||replay.events.length!==1)return null;
   const step={...p,state:replay.state,event:replay.events[0]},goal=leftRepairStep(state,step,resource),saved=p.structuralEvidence?.leftRepair;
   if(saved&&JSON.stringify(saved)!==JSON.stringify(goal))return null;
+  const savedS=p.structuralEvidence?.hangingSAccommodation;if(savedS&&JSON.stringify(savedS)!==JSON.stringify(hangingSAccommodationStep(step,resource)))return null;
   result.push({...p,structuralEvidence:{...p.structuralEvidence,leftRepair:goal}});resource=M.step(state,step,resource);state=replay.state;
  }return result;
 }
@@ -508,13 +569,13 @@ function cycleResources(path){
  return {leftRepairs:leftRepairKeys(path).length,leftFoundations:path.filter(p=>p.structuralEvidence?.leftFoundation?.completed).length,centerPreparations:centerStageKeys(path).length,centerCompletions:centerGoalKeys(path).length,locks:path.length,lines:events.reduce((n,e)=>n+e.lines,0),materialDelta:4*path.length-10*events.reduce((n,e)=>n+e.lines,0),tsds,quads,pocket,outstandingPocket,
   tFillers:events.filter(e=>e.type==='T'&&!e.lines).length,iFillers:events.filter(e=>e.type==='I'&&!e.lines&&e.cells.some(([x])=>x<7)).length};
 }
-function resourceGoal(path){const r=cycleResources(path);return r.tsds+r.quads+r.pocket+r.centerCompletions+r.centerPreparations+r.leftFoundations+r.leftRepairs>0||path.some(p=>p.structuralEvidence?.coveredRepair?.required);}
+function resourceGoal(path){const r=cycleResources(path);return r.tsds+r.quads+r.pocket+r.centerCompletions+r.centerPreparations+r.leftFoundations+r.leftRepairs>0||hangingSGoalKeys(path).length>0||path.some(p=>p.structuralEvidence?.coveredRepair?.required);}
 // Compare only the resources protected by the outstanding goal. Incidental I
 // use on a T-only route is not an I reservation. Trailing post-goal filler must
 // not make an otherwise equivalent proof appear longer or more wasteful.
 function resourceGoalPrefix(path,goal){
  const centerGoals=centerGoalKeys(goal),primary=cycleResources(goal),stageGoals=primary.tsds+primary.quads+primary.pocket+primary.centerCompletions?[]:centerStageKeys(goal),hasCenter=prefix=>centerGoals.every(key=>centerGoalKeys(prefix).includes(key))&&stageGoals.every(key=>centerStageKeys(prefix).includes(key));
- const leftGoals=leftRepairKeys(goal),repairRequired=goal.some(p=>p.structuralEvidence?.coveredRepair?.required),hasRepair=prefix=>{if(!leftGoals.every(key=>leftRepairKeys(prefix).includes(key)))return false;if(!repairRequired)return true;const end=prefix.at(-1)?.structuralEvidence?.coveredRepair;return Boolean(prefix.some(p=>p.structuralEvidence?.coveredRepair?.required)&&end&&(!end.outstanding.length||end.stage));};
+ const leftGoals=leftRepairKeys(goal),hangingGoals=hangingSGoalKeys(goal),repairRequired=goal.some(p=>p.structuralEvidence?.coveredRepair?.required),hasRepair=prefix=>{if(!leftGoals.every(key=>leftRepairKeys(prefix).includes(key))||!hangingGoals.every(key=>hangingSGoalKeys(prefix).includes(key)))return false;if(!repairRequired)return true;const end=prefix.at(-1)?.structuralEvidence?.coveredRepair;return Boolean(prefix.some(p=>p.structuralEvidence?.coveredRepair?.required)&&end&&(!end.outstanding.length||end.stage));};
  const required=cycleResources(goal),fulfils=a=>a.tsds>=required.tsds&&a.quads>=required.quads&&a.outstandingPocket+Math.max(0,a.quads-required.quads)>=required.outstandingPocket;
  let b=required;for(let length=1;length<=goal.length;length++){const prefix=cycleResources(goal.slice(0,length));if(fulfils(prefix)&&hasCenter(goal.slice(0,length))&&hasRepair(goal.slice(0,length))){b=prefix;break;}}
  for(let length=1;length<=path.length;length++){
@@ -558,6 +619,7 @@ function committedNode(s,proof,roots,initial,readAssessment=assess){
  if(!proof?.observation||!proof.advice?.continuation?.length)return null;
  let origin;try{origin=observe(proof.observation);}catch{return null;}if(R.validate(origin).length)return null;
  const steps=proof.advice.continuation;if(steps.length>7||!resourceGoal(steps))return null;
+ initial={...initial,checkedIExitRoute:true,protectHangingSGoals:steps.some(p=>p.structuralEvidence?.hangingSAccommodation)};
  const expected=R.replay(origin,steps[0].witness);if(!expected.valid||expected.events.length!==1)return null;
  let first=roots.find(p=>JSON.stringify(p.event)===JSON.stringify(expected.events[0])&&sameObservedResult(expected.state,p.state));
  // A budget-truncated enumeration must not discard an already executable
@@ -566,8 +628,10 @@ function committedNode(s,proof,roots,initial,readAssessment=assess){
  if(!first||!ordinaryRightEligible(first.event))return null;const rootIndex=roots.indexOf(first),flags=policyWitnesses(s);
  first={...first,availableCap:first.availableCap||flags.availableCap,availableCleanupPreparation:first.availableCleanupPreparation||flags.availableCleanupPreparation};
  let n=nodeFor(first,null,initial,rootIndex,readAssessment);
+ const matchesS=(saved,actual)=>!saved.structuralEvidence?.hangingSAccommodation||JSON.stringify(saved.structuralEvidence.hangingSAccommodation)===JSON.stringify(actual.structuralEvidence?.hangingSAccommodation);
+ if(!matchesS(steps[0],n.path[0]))return null;
  for(const step of steps.slice(1)){const r=R.replay(n.state,step.witness);if(!r.valid||r.events.length!==1||JSON.stringify(r.events[0])!==JSON.stringify(step.event)||!ordinaryRightEligible(r.events[0]))return null;
-  n=nodeFor({state:r.state,event:r.events[0],target:r.events[0].target,witness:step.witness,hold:step.witness.includes('HOLD'),...policyWitnesses(n.state)},n,initial,n.rootIndex,readAssessment);
+  n=nodeFor({state:r.state,event:r.events[0],target:r.events[0].target,witness:step.witness,hold:step.witness.includes('HOLD'),...policyWitnesses(n.state)},n,initial,n.rootIndex,readAssessment);if(!matchesS(step,n.path.at(-1)))return null;
  }
  const repair=A.repairPrefix(s,n.path,{notches:initial.notches,initialDebt:initial.coveredRepair?.cells,stages:initial.coveredStages});
  if(!repair.valid)return null;
@@ -706,7 +770,7 @@ function continueCommitment(before,after,advice,actualEvent=after?.lastEvent,opt
   const resources=checkedResourceEndpoint(after,suffix.continuation,constructionPolicyOptions(suffix,{...options,now,deadline,maxNodes:Math.max(0,maxNodes-suffix.metrics.nodes)}));suffix.metrics.nodes+=resources.visited||0;if(!resources.valid)return null;
   const access=A.prefix(observe(after),suffix.continuation,{notches:H.resolve(after,options.patternHistory),deadline,now,maxNodes:Math.max(0,maxNodes-suffix.metrics.nodes)});suffix.metrics.nodes+=access.visited;if(access.reachable!==true)return null;
   if(['left-support','left-scoring-foundation'].includes(advice.evidence.construction.kind)&&(now()>=deadline||suffix.metrics.nodes>maxNodes))return null;
-  return{...suffix,metrics:{...suffix.metrics,certifiedHorizon:suffix.continuation.length},evidence:{...suffix.evidence,resourceObligations:{status:'checked',binding:resources.resource.originKey,delayedDPlans:resources.delayedDPlans}}};
+  return{...suffix,metrics:{...suffix.metrics,certifiedHorizon:suffix.continuation.length},evidence:{...suffix.evidence,resourceObligations:{status:'checked',binding:resources.resource.originKey,delayedDPlans:resources.delayedDPlans,checkedIExits:resources.checkedIExits}}};
  }
  if(!advice?.continuation?.length||advice.continuation.length<2)return null;
  let origin,s;try{origin=observe(before);s=observe(after);}catch{return null;}if(R.validate(origin).length||R.validate(s).length)return null;
@@ -728,14 +792,14 @@ function continueCommitment(before,after,advice,actualEvent=after?.lastEvent,opt
   const centerReservation=centerReservationStep(current,{event:r.events[0],state:r.state},centerDebt,notches);centerDebt=centerReservation.debt;
   const previousState=current,previousNotches=notches,check=S.advanceNotches(current.board,{event:r.events[0],state:r.state},notches),a=assess(r.state.board);if(!check.valid||a.maxHeight>=20)return null;
   debt=cavityRepairDebt(prior,a,r.events[0],debt);if(!continuation.length&&debt.length)return null;notches=check.pattern;prior=a;current=r.state;
-  continuation.push({...step,resultContext:context(current),structuralEvidence:{...S.transition(previousState,{event:r.events[0],state:r.state},S.assess(r.state,{notches}),{notches:previousNotches}),structure:S.assess(r.state,{notches}),centerReservation,leftRepair:step.structuralEvidence?.leftRepair??null}});
+  continuation.push({...step,resultContext:context(current),structuralEvidence:{...S.transition(previousState,{event:r.events[0],state:r.state},S.assess(r.state,{notches}),{notches:previousNotches}),structure:S.assess(r.state,{notches}),centerReservation,leftRepair:step.structuralEvidence?.leftRepair??null,...(step.structuralEvidence?.hangingSAccommodation?{hangingSAccommodation:step.structuralEvidence.hangingSAccommodation}:{})}});
  }
  continuation=refreshLeftRepairs(s,continuation,options);if(!continuation)return null;
  const bounds={...options,maxNodes:options.maxNodes??12000,deadline:options.deadline??Date.now()+150},resources=checkedResourceEndpoint(s,continuation,bounds);if(!resources.valid)return null;
  if(debt.length||centerDebt.length||!prior.regionalSupport||!resourceGoal(continuation)&&!pendingPlan)return null;
  const repair=checkedCoveredRepair(s,continuation,options,pendingPlan);if(!repair)return null;
  const head=continuation[0],access=A.prefix(s,continuation,{...bounds,notches:H.resolve(s,options.patternHistory),maxNodes:Math.max(0,bounds.maxNodes-resources.visited)});if(access.reachable!==true)return null;return {...advice,target:head.target,witness:head.witness,hold:head.witness.includes('HOLD'),holdCount:holdCount(head),continuation:repair.steps,context:context(s),revision:s.revision,metrics:{...advice.metrics,certifiedHorizon:continuation.length,revalidationNodes:resources.visited+access.visited},
-  ...pendingLPresentation(continuation,prior,null,resources.repair,resources.delayedDPlans),evidence:{...advice.evidence,pendingLSelection:null,coveredRepair:repair.proof,coveredRepairPlan:repair.plan,pendingLStage:pendingLProof(resources.repair),cycleResources:cycleResources(continuation),commitmentRetained:true,resourceObligations:{status:'checked',binding:resourceBinding(s,options),delayedDPlans:resources.delayedDPlans}}};
+  ...pendingLPresentation(continuation,prior,null,resources.repair,resources.delayedDPlans),evidence:{...advice.evidence,checkedIAllocation:null,pendingLSelection:null,coveredRepair:repair.proof,coveredRepairPlan:repair.plan,pendingLStage:pendingLProof(resources.repair),cycleResources:cycleResources(continuation),commitmentRetained:true,resourceObligations:{status:'checked',binding:resourceBinding(s,options),delayedDPlans:resources.delayedDPlans,checkedIExits:resources.checkedIExits}}};
 }
 function context(s){return JSON.stringify([s.rules,s.board,s.hold,s.canHold,s.queue,s.bag??null,s.active?.type]);}
 function stateKey(s){return JSON.stringify([s.rules,s.board,s.active,s.hold,s.canHold,s.queue,s.bag??null]);}
@@ -968,7 +1032,7 @@ function nodeFor(p,parent,initial,rootIndex,readAssessment=assess){
  // Search eligibility only: the endpoint proof must replay exact Center
  // payment and strict J exit. A matching preview type alone never certifies.
  const delayedCandidate=initial.disableDelayedJPlan!==true&&resources?.queue[0]?.type==='J'&&resources.pendingCenter.some(q=>Number.isInteger(q.rootId)&&q.rootId>0&&!q.lost&&q.alternatives.some(a=>a.piece===p.state.active?.type));
- if(dPending&&!L.immediateJStarts(p.state).length&&!delayedCandidate)transition.cycleViolations.push('D-without-immediate-J');
+ if(dPending&&!L.immediateJStarts(p.state).length&&!delayedCandidate&&!(initial.checkedIExitRoute&&immediateIExitEligible(p.state,{notches:notchCheck.pattern,disableCheckedIExit:initial.disableCheckedIExit})))transition.cycleViolations.push('D-without-immediate-J');
  const slAllocation=slAllocationStep(before,p,parent?.resources??initial.resources,resources,priorNotches,parent?.slAllocation);
  // A prepared scoring cavity is an access obligation, not just an endpoint
  // bonus. Losing its geometry without clearing is a repair commitment; a later
@@ -990,7 +1054,8 @@ function nodeFor(p,parent,initial,rootIndex,readAssessment=assess){
  assessment.leftContext=leftContext;
  assessment.structure.headroomRisk=headroomRisk;
  const tsds=path.filter(v=>v.event.spin==='full'&&v.event.lines===2).length;
- p.structuralEvidence={...transition,leftRepair:leftRepairStep(before,p,parent?.resources??initial.resources),centerPartnerDeficitBefore:(parent?.assessment??initial).center.partnerDeficit,centerPartnerDeficitAfter:assessment.center.partnerDeficit,placedPiece:p.event.type,structure,dependencyDebt,entryDebt,nonclearScoringGeometryLost:losesEntry,centerReservation,cavityRepair:{status:cavityDebt.length?'requires-executed-repair':'no-outstanding-new-internal-cavity',cells:cavityDebt}};
+ const sGoal=initial.protectHangingSGoals?hangingSAccommodationStep(p,parent?.resources??initial.resources):null;
+ p.structuralEvidence={...transition,...(sGoal?{hangingSAccommodation:sGoal}:{}),leftRepair:leftRepairStep(before,p,parent?.resources??initial.resources),centerPartnerDeficitBefore:(parent?.assessment??initial).center.partnerDeficit,centerPartnerDeficitAfter:assessment.center.partnerDeficit,placedPiece:p.event.type,structure,dependencyDebt,entryDebt,nonclearScoringGeometryLost:losesEntry,centerReservation,cavityRepair:{status:cavityDebt.length?'requires-executed-repair':'no-outstanding-new-internal-cavity',cells:cavityDebt}};
  // General source/queue preferences only break ties after the numeric
  // priorities, including executed TSD and verified entry. The
  // replay-bound pending-opening quality preference is compared separately,
@@ -1092,7 +1157,7 @@ function planCore(raw,options={}){
  // Actual repair obligations come from authenticated history, not a pinned
  // old witness. Fresh alternatives must certify those same current cells.
  const summary=resourceSummary(s,options);s=extendForced(s);
- const readAssessment=createAssessmentReader(),initial=readAssessment(s.board);initial.state=s;initial.notches=H.resolve(s,options.patternHistory);initial.coveredRepair=summary.coveredRepair;initial.coveredStages=summary.center?.pending;initial.resources=M.start(s,summary);initial.dPending=summary.dPattern?.pending===true;initial.ordinarySAllocationEnabled=!options.disableOrdinarySAllocation;initial.disableDelayedJPlan=Boolean(options.disableDelayedJPlan);
+ const readAssessment=createAssessmentReader(),initial=readAssessment(s.board);initial.state=s;initial.notches=H.resolve(s,options.patternHistory);initial.coveredRepair=summary.coveredRepair;initial.coveredStages=summary.center?.pending;initial.resources=M.start(s,summary);initial.dPending=summary.dPattern?.pending===true;initial.ordinarySAllocationEnabled=!options.disableOrdinarySAllocation;initial.disableDelayedJPlan=Boolean(options.disableDelayedJPlan);initial.disableCheckedIExit=Boolean(options.disableCheckedIExit);
  initial.extraZPreservable=summary.coverage?.status==='complete'&&summary.extraZ?.status==='available'&&Boolean(summary.extraZ.baseline);
  initial.openingQualityPending=summary.coverage?.status==='complete'&&summary.openingAllocation?.status==='verified-first-tsd'&&summary.extraZ?.status==='unknown'&&summary.extraZ.baseline===null&&!summary.extraZ.allocations.length&&!summary.extraZ.departures.length&&!summary.center.closed.some(p=>p.status==='debt-invalidated'&&p.at>=summary.openingAllocation.firstTsdAt);
  if(!options.disableConstruction&&options.constructionPrevious?.evidence?.construction){const tracker={nodes:0},retained=revalidate(['left-support','left-scoring-foundation'].includes(options.constructionPrevious.evidence.construction.kind)?observe(raw):s,options.constructionPrevious,{...options,deadline,budgetTracker:tracker,maxNodes:Math.min(8000,Math.max(0,(options.maxNodes??45000)-base.metrics.nodes))});base.metrics.nodes+=tracker.nodes;if(retained){retained.metrics.nodes=base.metrics.nodes;return retained;}}
@@ -2216,7 +2281,7 @@ function ordinaryPlanRequest(raw,options={}){
    if(result.metrics.usage?.scope==='maintenance')result.metrics.usage={...result.metrics.usage,selected:null,families:Object.fromEntries(Object.entries(result.metrics.usage.families).map(([name,family])=>[name,'selected'in family?{...family,selected:0}:family]))};
    return{...result,status:'no-supported-continuation-found',metrics:{...result.metrics,certifiedHorizon:0},target:null,witness:[],continuation:[],reason:resource.reason==='unresolved-covered-cells'?'No supported restoration plan for the actual newly covered cells was verified.':'No ordinary-midgame route preserving the observed T, Z and Center obligations was verified.',evidence:{...result.evidence,...(resource.coveredRepair?{coveredRepair:resource.coveredRepair}:{}),resourceObligations:{status:'rejected',reason:resource.reason}}};
   }
-  result={...result,reason:result.reason+(resource.delayedDPlans.length?' A public Center completion followed by J Left has been checked for the D surface.':'')+(resource.repair?.waitingStage?' The exact Center L target remains pending; the visible intervening pieces have a checked waiting route. L arrival is not yet established.':''),evidence:{...result.evidence,pendingLStage:pendingLProof(resource.repair),resourceObligations:{status:'checked',binding:resource.resource.originKey,delayedDPlans:resource.delayedDPlans,extraZ:resource.resource.extraZ,pendingCenter:resource.resource.pendingCenter,hangingS:resource.resource.hangingS,unclassifiedS:resource.resource.unclassifiedS,hangingL:resource.resource.hangingL}}};
+  result={...result,reason:result.reason+(resource.checkedIExits.length?' A visible I has a checked exit from Left D, with headroom and no competing Right-I demand.':'')+(resource.delayedDPlans.length?' A public Center completion followed by J Left has been checked for the D surface.':'')+(resource.repair?.waitingStage?' The exact Center L target remains pending; the visible intervening pieces have a checked waiting route. L arrival is not yet established.':''),evidence:{...result.evidence,pendingLStage:pendingLProof(resource.repair),resourceObligations:{status:'checked',binding:resource.resource.originKey,delayedDPlans:resource.delayedDPlans,checkedIExits:resource.checkedIExits,extraZ:resource.resource.extraZ,pendingCenter:resource.resource.pendingCenter,hangingS:resource.resource.hangingS,unclassifiedS:resource.resource.unclassifiedS,hangingL:resource.resource.hangingL}}};
  }
  if(!result.evidence?.opening){
   const repair=checkedCoveredRepair(raw,result.continuation||[],{...options,deadline},result.evidence?.coveredRepairPlan);
@@ -2265,7 +2330,7 @@ function advance(raw,previous,action,options={}){
   const bounds={...options,now,deadline,maxNodes:Math.max(0,limit-tracker.nodes)},resources=checkedResourceEndpoint(state,refreshed.continuation,constructionPolicyOptions(refreshed,bounds));tracker.nodes+=resources.visited||0;if(!resources.valid)return null;
   const access=A.prefix(state,refreshed.continuation,{...bounds,notches:H.resolve(state,options.patternHistory),maxNodes:Math.max(0,limit-tracker.nodes)});tracker.nodes+=access.visited;
   if(access.reachable!==true||['left-support','left-scoring-foundation'].includes(previous.evidence.construction.kind)&&(now()>=deadline||tracker.nodes>limit))return null;
-  return{...refreshed,retained:true,metrics:{...refreshed.metrics,certifiedHorizon:refreshed.continuation.length,revalidationNodes:tracker.nodes},evidence:{...refreshed.evidence,resourceObligations:{status:'checked',binding:resourceBinding(state,options),delayedDPlans:resources.delayedDPlans}}};
+  return{...refreshed,retained:true,metrics:{...refreshed.metrics,certifiedHorizon:refreshed.continuation.length,revalidationNodes:tracker.nodes},evidence:{...refreshed.evidence,resourceObligations:{status:'checked',binding:resourceBinding(state,options),delayedDPlans:resources.delayedDPlans,checkedIExits:resources.checkedIExits}}};
  }
  let steps=previous.continuation.map((step,i)=>({...step,witness:i?step.witness:witness,hold:i?step.hold:witness.includes('HOLD'),holdCount:i?holdCount(step):witness.filter(a=>a==='HOLD').length}));
  let current=extendForced(state),notches=H.resolve(state,options.patternHistory);if(notches.status==='invalid-history'||notches.status==='broken')return null;for(const step of steps){const replay=R.replay(current,step.witness);
@@ -2280,7 +2345,7 @@ function advance(raw,previous,action,options={}){
  const repair=checkedCoveredRepair(state,steps,options,previous.evidence?.coveredRepairPlan);if(!repair)return null;
  return{...previous,revision:state.revision,context:context(state),witness,hold:witness.includes('HOLD'),holdCount:witness.filter(a=>a==='HOLD').length,continuation:repair.steps,
   ...pendingLPresentation(steps,previous.assessment,previous.evidence?.construction,resources.repair,resources.delayedDPlans),retained:true,metrics:{...previous.metrics,certifiedHorizon:steps.length,revalidationNodes:resources.visited+access.visited},
-  evidence:{...previous.evidence,cycleResources:cycleResources(repair.steps),pendingLSelection:null,coveredRepair:repair.proof,coveredRepairPlan:repair.plan,pendingLStage:pendingLProof(resources.repair),knownPieceHorizon:state.queue.length+1,resourceObligations:{status:'checked',binding:resourceBinding(state,options),delayedDPlans:resources.delayedDPlans}}};
+  evidence:{...previous.evidence,checkedIAllocation:null,cycleResources:cycleResources(repair.steps),pendingLSelection:null,coveredRepair:repair.proof,coveredRepairPlan:repair.plan,pendingLStage:pendingLProof(resources.repair),knownPieceHorizon:state.queue.length+1,resourceObligations:{status:'checked',binding:resourceBinding(state,options),delayedDPlans:resources.delayedDPlans,checkedIExits:resources.checkedIExits}}};
 }
 function revalidate(raw,previous,options={}){
  if(previous?.evidence?.strategy==='reset-coach')return Reset.retain(raw,previous,options);
@@ -2313,7 +2378,7 @@ function revalidate(raw,previous,options={}){
  if(!repairedPrefix(s,continuation))return null;
  const access=A.prefix(s,continuation,{...options,notches:H.resolve(s,options.patternHistory),maxNodes:Math.max(0,(options.maxNodes??8000)-enumeration.visited-resources.visited)});if(options.budgetTracker)options.budgetTracker.nodes+=access.visited;if(access.reachable!==true)return null;
  const repair=checkedCoveredRepair(s,continuation,options,previous.evidence?.coveredRepairPlan);if(!repair)return null;
- return{...previous,revision:s.revision,hold:p.hold,holdCount:holdCount(p),witness:p.witness,continuation:repair.steps,evidence:{...previous.evidence,cycleResources:cycleResources(repair.steps),pendingLSelection:null,coveredRepair:repair.proof,coveredRepairPlan:repair.plan,pendingLStage:pendingLProof(resources.repair),resourceObligations:{status:'checked',binding:resourceBinding(s,options),delayedDPlans:resources.delayedDPlans}},...pendingLPresentation(continuation,previous.assessment,previous.evidence?.construction,resources.repair,resources.delayedDPlans),metrics:{...previous.metrics,certifiedHorizon:continuation.length,nodes:enumeration.visited+resources.visited+access.visited,revalidationNodes:enumeration.visited+resources.visited,gapAccessNodes:access.visited},retained:true};
+ return{...previous,revision:s.revision,hold:p.hold,holdCount:holdCount(p),witness:p.witness,continuation:repair.steps,evidence:{...previous.evidence,checkedIAllocation:null,cycleResources:cycleResources(repair.steps),pendingLSelection:null,coveredRepair:repair.proof,coveredRepairPlan:repair.plan,pendingLStage:pendingLProof(resources.repair),resourceObligations:{status:'checked',binding:resourceBinding(s,options),delayedDPlans:resources.delayedDPlans,checkedIExits:resources.checkedIExits}},...pendingLPresentation(continuation,previous.assessment,previous.evidence?.construction,resources.repair,resources.delayedDPlans),metrics:{...previous.metrics,certifiedHorizon:continuation.length,nodes:enumeration.visited+resources.visited+access.visited,revalidationNodes:enumeration.visited+resources.visited,gapAccessNodes:access.visited},retained:true};
 }
 // A forecast transports an ordinary route, never a saved certificate. Rebuild
 // every policy fact from the actual public root and authenticated histories.
@@ -2341,7 +2406,7 @@ function revalidateOpeningForecast(raw,steps,options={},work={}){
   // Do not materialize speculative future draws. Each replay starts with the
   // real active/hold/preview and stops naturally at that public boundary.
   const readAssessment=createAssessmentReader(),initial=readAssessment(state.board);
-  Object.assign(initial,{state,notches:pattern,coveredRepair:summary.coveredRepair,coveredStages:summary.center?.pending,resources:M.start(state,summary),dPending:summary.dPattern?.pending===true,ordinarySAllocationEnabled:!options.disableOrdinarySAllocation,disableDelayedJPlan:Boolean(options.disableDelayedJPlan)});
+  Object.assign(initial,{state,notches:pattern,coveredRepair:summary.coveredRepair,coveredStages:summary.center?.pending,resources:M.start(state,summary),dPending:summary.dPattern?.pending===true,ordinarySAllocationEnabled:!options.disableOrdinarySAllocation,disableDelayedJPlan:Boolean(options.disableDelayedJPlan),disableCheckedIExit:Boolean(options.disableCheckedIExit),checkedIExitRoute:true,protectHangingSGoals:options[iAllocationGoals]===true});
   if(!initial.maintenanceScope)return fail('ordinary-scope');
   let node=null;
   for(const saved of steps){
@@ -2495,7 +2560,7 @@ function riskyDAdmission(before,p,resource,options){
  // The current silhouette is observable even if its creator is unknown. Only
  // this explicit risk channel may continue it without the strict J certificate.
  if(!L.isD(p.state.board))return{valid:true,visited:0,hazards:[]};
- const checked=dPatternExitAdmission(before,p,{...options,resource});
+ const checked=dPatternExitAdmission(before,p,{...options,disableCheckedIExit:true,resource});
  if(checked.valid)return{...checked,hazards:[]};
  const hazards=L.dDependencies(p.state,checked,{resources:M.step(before,p,resource),geometry:S.geometry(p.state.board,{notches:options.notches})});
  return{...checked,valid:true,visited:checked.visited||0,hazards};
@@ -2620,7 +2685,7 @@ function visibleLeftRepair(raw,incumbent,options,collector){
      const first=steps[0],presentation=advicePresentation(steps,child.assessment);
      return finish({...incumbent,...presentation,target:first.target,witness:first.witness,hold:first.hold,holdCount:holdCount(first),continuation:repair.steps,assessment:child.assessment,
       reason:presentation.reason,
-      evidence:{strategy:'canonical-right-ST',cycleResources:cycleResources(steps),verifiedLocks:steps.length,cycleDebt:0,futureNotches:child.notches,structure:child.assessment.structure,knownPieceHorizon:state.queue.length+1,regionalSupport:true,cavityRepair:{status:'verified-prefix-repaired',outstandingCells:child.cavityDebt},initialSealed:initial.sealed,endpointSealed:child.assessment.sealed,endpointTEntry:child.assessment.right.entry.status,coveredRepair:repair.proof,coveredRepairPlan:repair.plan,resourceObligations:{status:'checked',binding:resourceBinding(state,options),delayedDPlans:resources.delayedDPlans},gapAccess:access,claim:'Finite executable J-Left repair; continued play is not guaranteed.'},metrics:{...incumbent.metrics,certifiedHorizon:steps.length}});
+      evidence:{strategy:'canonical-right-ST',cycleResources:cycleResources(steps),verifiedLocks:steps.length,cycleDebt:0,futureNotches:child.notches,structure:child.assessment.structure,knownPieceHorizon:state.queue.length+1,regionalSupport:true,cavityRepair:{status:'verified-prefix-repaired',outstandingCells:child.cavityDebt},initialSealed:initial.sealed,endpointSealed:child.assessment.sealed,endpointTEntry:child.assessment.right.entry.status,coveredRepair:repair.proof,coveredRepairPlan:repair.plan,resourceObligations:{status:'checked',binding:resourceBinding(state,options),delayedDPlans:resources.delayedDPlans,checkedIExits:resources.checkedIExits},gapAccess:access,claim:'Finite executable J-Left repair; continued play is not guaranteed.'},metrics:{...incumbent.metrics,certifiedHorizon:steps.length}});
     }
     if(eligible(child).length)children.push(child);return null;
    };
@@ -2728,6 +2793,63 @@ function supportedMaintenanceDecision(raw,options){
  const initial=ordinaryPlanRequest(raw,options);
  return classifySupported(supportedPreferences(raw,initial,options,collector));
 }
+// Prefer a complete allocation when two observed J instances can serve Left
+// and an existing O/J Center debt, while the original Hanging S is actually
+// accommodated. Discovery reuses the finite resource-repair search; ordinary
+// replay admission remains the authority. No guessed J or I enters this plan.
+function checkedIExitAllocation(raw,options,work){
+ if(options.disableCheckedIExit||options.disableCheckedIAllocation||options.openingPhase!==false||options.allowHold===false||options.commitment||options.previous)return null;
+ let state;try{state=observe(raw);if(R.validate(state).length||state.bag&&B.validate(state.bag).length)return null;}catch{return null;}
+ const publicTypes=[state.active?.type,state.hold,...state.queue];if(publicTypes.filter(t=>t==='J').length<2||!publicTypes.includes('I')||![state.active?.type,state.hold].includes('J'))return null;
+ const summary=resourceSummary(state,options),resource=M.start(state,summary),notches=H.resolve(state,options.patternHistory);
+ const live=[resource.active,resource.hold,...resource.queue].filter(Boolean),js=live.filter(p=>p.type==='J'&&p.id>0),is=live.filter(p=>p.type==='I'&&p.id>0),pending=resource.pendingCenter;
+ if(!['complete','partial'].includes(summary.coverage?.status)||summary.coveredRepair?.cells.length||resource.violations.length||resource.resetActive||pending.length!==1||pending[0].family!=='OJ'||pending[0].lost||!Number.isInteger(pending[0].rootId)||pending[0].rootId<=0||!resource.hangingS.length||js.length<2||!is.length||![state.active?.type,state.hold].includes('J')||assess(state.board).maxHeight>16)return null;
+ if(['candidate','active'].includes(Reset.consider(state,summary).status))return null;
+ const now=options.now,deadline=options.deadline,cap=Math.min(16000,Math.floor((options.maxNodes??45000)/2));
+ Object.assign(work,{attempted:true,nodes:0,selected:false,nodeCap:cap,reason:'no-checked-allocation'});
+ const remaining=()=>Math.max(0,cap-work.nodes),available=()=>remaining()>0&&now()<deadline;
+ const enumerate=s=>{const e=R.placements(s,{now,deadline,maxNodes:remaining()});work.nodes+=e.visited;return e;};
+ if(!available())return null;
+ const roots=enumerate(state);if(!roots.complete)return null;
+ // An immediate real TSD is protected. Its translated Left allocation can be
+// checked afterwards without delaying this score.
+ const scores=roots.placements.filter(p=>p.event.type==='T'&&p.event.spin==='full'&&p.event.lines===2);
+ const prefixes=scores.length?scores.map(p=>[p]):[[]],seeds=[];
+ for(const prefix of prefixes){
+  if(!available())break;
+  const before=prefix.at(-1)?.state??state,prior=prefix.length?M.step(state,prefix[0],resource):resource;
+  const placements=prefix.length?enumerate(before):roots;
+  for(const p of placements.placements){
+   if(p.event.type!=='J'||p.event.lines||!p.event.cells.every(([x])=>x<4))continue;
+   const instance=placedResource(prior,p.witness),phase=S.advanceNotches(before.board,p,prefix.length?S.advanceNotches(state.board,prefix[0],notches).pattern:notches),next=M.step(before,p,prior);
+   if(!js.some(j=>j.id===instance?.id)||!phase.valid||next.violations.length||next.pendingCenter.length!==1||next.pendingCenter[0].rootId!==pending[0].rootId||next.pendingCenter[0].lost||A.newlyCovered(before.board,p.state.board,p.event,phase.pattern).length||S.cavityRepairDebt(S.cavityFacts(before.board),S.cavityFacts(p.state.board),p.event).length||assess(p.state.board).maxHeight>16)continue;
+   seeds.push({state:p.state,resource:next,notches:phase.pattern,path:[...prefix,p],pieceId:instance.id,score:assess(p.state.board).left.roughness});
+  }
+ }
+ seeds.sort((a,b)=>a.score-b.score);
+ for(const seed of seeds.slice(0,4)){
+  if(!available())break;
+  const repair=M.repair(seed.state,seed.resource,{now,deadline,maxNodes:remaining(),depth:7-seed.path.length,notches:seed.notches,acceptStep:(before,p,phase)=>{
+   // This discovery family claims an actual immediate I exit, not a generic
+   // D waiver. Distinct Center J payment is checked by the live ledger.
+   if(L.isD(before.board))return p.event.type==='I'&&!L.isD(p.state.board)&&immediateIExitEligible(before,{...options,notches:phase})&&assess(p.state.board).maxHeight<=16;
+   return !L.isD(p.state.board)||immediateIExitEligible(p.state,{...options,notches:phase});
+  }});work.nodes+=repair.visited;
+  if(!repair.valid||!available())continue;
+  const path=[...seed.path,...repair.path],dExit=path.find((p,i)=>i&&L.isD(path[i-1].state.board)&&p.event.type==='I'&&!L.isD(p.state.board));
+  if(!dExit)continue;
+  let cursor=state,ledger=resource;const payments=[];
+  for(const p of path){const piece=placedResource(ledger,p.witness),next=M.step(cursor,p,ledger);if(ledger.pendingCenter.some(q=>q.rootId===pending[0].rootId)&&!next.pendingCenter.some(q=>q.rootId===pending[0].rootId))payments.push(piece?.id);ledger=next;cursor=p.state;}
+  if(payments.length!==1||payments[0]===seed.pieceId||!js.some(j=>j.id===payments[0])||ledger.pendingCenter.length||ledger.hangingS.length||ledger.violations.length)continue;
+  const validation={};const checked=revalidateOpeningForecast(state,path,{...options,[iAllocationGoals]:true,maxNodes:remaining()},validation);work.nodes+=validation.nodes||0;
+  if(!checked||work.nodes>cap||now()>=deadline)continue;
+  work.selected=true;work.reason='actual-J-Left-S-accommodation-I-exit-and-distinct-Center-J';
+  const plan={leftJId:seed.pieceId,centerRootId:pending[0].rootId,centerJId:payments[0],hangingSIds:resource.hangingS.map(p=>p.id),iExitLock:path.indexOf(dExit)+1,claim:'Only this checked visible allocation is promised; future play is not established.'};
+  checked.reason+=' Use this J on Left; a distinct visible J completes Center in the checked I-exit route.';
+  return{...checked,evidence:{...checked.evidence,checkedIAllocation:plan},metrics:{...checked.metrics,nodes:work.nodes,checkedIAllocation:clone(work)}};
+ }
+ return null;
+}
 function supportedPreferences(raw,initial,options,collector){return visibleLeftRepair(raw,reservedPiecePlan(raw,initial,options,collector),options,collector);}
 
 function decide(raw,options={}){return queryRequest(()=>{const now=options.now||(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs),collector={key:null,placements:null,complete:false,started:Date.now()};try{collector.key=stateKey(extendForced(observe(raw)));}catch{}options={...options,now,deadline,[riskRootCollector]:collector};const initial=decideRequest(raw,options);if(initial.evidence?.strategy==='reset-coach')return initial;const result=supportedPreferences(raw,initial,options,collector);return result.target?classifySupported(contextualRiskPreference(raw,result,options,collector)):riskyFallback(raw,result,options,collector);});}
@@ -2744,7 +2866,8 @@ function decideRequest(raw,options={}){
  if(previous?.evidence?.construction)options={...options,constructionPrevious:previous};
  const retained=!options.commitment&&previous?revalidate(raw,previous,{...options,budgetTracker,maxNodes:Math.max(0,limit-budgetTracker.nodes)}):null;
  if(retained&&!retained.evidence?.pendingLStage)return recovery?{...retained,metrics:{...retained.metrics,nodes:budgetTracker.nodes,revalidationNodes:budgetTracker.nodes,handoffRecovery:recovery}}:retained;
- const result=plan(raw,{...options,handoffRecovery:null,maxNodes:Math.max(0,limit-budgetTracker.nodes)});
+ const allocationWork={};const allocation=checkedIExitAllocation(raw,{...options,maxNodes:Math.max(0,limit-budgetTracker.nodes)},allocationWork);budgetTracker.nodes+=allocationWork.nodes||0;if(allocation)return{...allocation,metrics:{...allocation.metrics,nodes:budgetTracker.nodes}};
+ const result=plan(raw,{...options,handoffRecovery:null,maxNodes:Math.max(0,limit-budgetTracker.nodes)});if(allocationWork.attempted)result.metrics={...result.metrics,checkedIAllocation:allocationWork};
  return budgetTracker.nodes||recovery?{...result,metrics:{...result.metrics,nodes:(result.metrics?.nodes||0)+budgetTracker.nodes,revalidationNodes:budgetTracker.nodes,...(recovery?{handoffRecovery:recovery}:{})}}:result;
 }
 

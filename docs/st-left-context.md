@@ -85,11 +85,13 @@ strong enough to override existing structural or input-effort preferences.
 ## D-pattern creation admission
 
 Shocky's Chapter 3.3 warns against making the D silhouette `[0,1,1,0]`
-unless a J is coming immediately. The supported ordinary-midgame channel treats
-this as a hard condition, separately from the existing two-lock preference score.
+unless a J is coming immediately. The supported ordinary-midgame channel requires
+a checked exit, separately from the existing two-lock preference score. The
+source-backed J certificate and the bounded engineered I alternative below
+are distinct claims.
 Creation is detected from actual before/after Left skylines, including covered
-columns and clear transitions. Current D geometry also requires an immediate
-usable J for a supported continuation even when the creator is unknown; this
+columns and clear transitions. Current D geometry also requires a checked
+exit for a supported continuation even when the creator is unknown; this
 does not invent a past promise or forbid a move that actually leaves D.
 The separate [explicit risk fallback](st-risk-recommendations.md) may recommend
 a legal D continuation without that certificate, with its unresolved J, competing
@@ -118,6 +120,38 @@ it. Importing D as the initial board does not invent a past promise. Serialized
 summary flags are not authority; context is reconstructed through actual input
 replay, including HOLD/draw boundaries. This narrow D obligation is separate
 from general covered-cell repair tracking.
+
+### Checked immediate I alternative
+
+A literal active or held I (including actual empty-HOLD flow) can instead exit
+D in one lock. This is an engineered extension, not a new community tier. The
+real witness must stay wholly on Left, clear no rows, leave D, preserve notch
+and cycle rules, and introduce no covered cells or internal cavity. The whole
+board must stay at most 16 rows high, leaving four visible rows of headroom.
+Observed Right-I preparation or cleanup demand excludes the alternative. The
+exact positive public I identity and a bounded resource-repair proof are
+required; a delayed, forced-but-unseen, duplicated or imagined I is not credit.
+The exit must actually occur as the very next lock inside the certified prefix;
+a D-ending prefix cannot borrow this as hypothetical support. Ordinary fresh
+beam ranking and one-placement risky advice retain the original J-only boundary.
+An unfinished proof stays unknown. All admission and retention checks recompute
+this evidence from actual public state; serialized exit labels grant no rights.
+
+A narrowly scoped discovery pass can prefer a complete Left/Center allocation
+when two distinct observed Js can pay separate jobs: J Left, actual accommodation
+of an original Hanging S, a checked immediate I exit, and payment of the original
+O/J Center obligation by the other J. It reuses the finite resource-repair search
+and ordinary full-prefix revalidation. A real immediately available TSD is
+performed first. Search uses at most four Left seeds, seven locks and 16,000
+nodes, within the existing shared 45,000-node/1500-ms request budget. Unsuccessful
+work is charged before ordinary search continues. No new private input, Reset
+permission, indefinite waiting, or guarantee beyond the checked prefix is added.
+Root-relative allocation labels are cleared on movement/retention. Fresh exit
+proofs, the existing exact Center goal, and a replay-validated original Hanging-S
+identity/cell goal preserve the executable suffix. These S goals are introduced
+only by complete allocation discovery, not generic fresh beam ranking. A fresh
+alternative without matching goal evidence cannot replace the retained route;
+this conservative comparison may retain it over an otherwise safe commutation.
 
 ## Early and late logical coaches
 

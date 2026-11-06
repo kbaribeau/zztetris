@@ -82,8 +82,8 @@ test('covered repair / ordinary admission retains a real temporary roof through 
  const board=R.emptyBoard();for(let y=36;y<40;y++)board[y]='XXXXXXX...';board[37]='XXXXXX....';
  const witnesses=[['L','L','L','HD'],[...Array(16).fill('SD'),'L','HD']];
  // The old supply physically fills the roof, but its finishing L creates D
- // with no immediate J. Keep both facts instead of waiving the new D gate.
- const old=R.createState({board,active:'S',queue:['L','O','I']}),oldSteps=path(old,witnesses);
+ // with neither immediate J nor I. Keep both facts instead of waiving the D gate.
+ const old=R.createState({board,active:'S',queue:['L','O','T']}),oldSteps=path(old,witnesses);
  const oldCertificate=P.checkedCoveredRepair(old,oldSteps);assert.ok(oldCertificate);
  const oldAdvice={target:oldSteps[0].target,witness:oldSteps[0].witness,hold:false,continuation:oldCertificate.steps,context:JSON.stringify([old.rules,old.board,old.hold,old.canHold,old.queue,null,old.active.type]),evidence:{coveredRepairPlan:oldCertificate.plan,coveredRepair:oldCertificate.proof}};
  assert.equal(P.revalidate(old,oldAdvice,{maxNodes:45000}),null,'Actual full admission does not waive the finishing D merely because its roof was repaired');
