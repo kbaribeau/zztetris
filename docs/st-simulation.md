@@ -148,6 +148,74 @@ Abstention, top-out and caps are measured policy outcomes; the command does not 
 
 Metrics include placements, cleared lines, TSDs/quads and first occurrences, opening handoff after N prior locks, supported nonclearing rebuild events after TSDs, holds, planning nodes/time/budget hits, peak/end height, mean skyline height, occupied mass divided by ten (filled-row equivalents), parity and center/cavity debt. A rebuild event is not a certified full cycle. New cavity debt is logged diagnostically, not automatically declared an illegal placement. Fresh-versus-inherited phase disagreement is also diagnostic; it is not automatically an actually blocked notch.
 
+## Resource-tracking diagnostics
+
+The runner subscribes to shared resource-transition diagnostics at the actual
+simulation session boundary. These inspect the coach projection and canonical
+resource ledger; they are not emitted from hypothetical search nodes or imports. This is not a second ledger, a planning input, or a strategy
+change. Only anomalies emit events: normal obligation creation and payment do
+not produce a second stream of bookkeeping records. An event identifies its
+`code`, `stage`, and executed-run `lock`, with small optional identity
+and detail fields. A single condition that remains present does not emit again
+until it clears and reappears. A lock or terminal stop row carries
+`trackingEvents` only when new events occurred; an event already written on a
+lock is not repeated on the stop row. The final summary row may drain any
+remaining new events once; its embedded aggregate is never recounted.
+
+Each new trace begins with one `{ "kind": "tracking-start", "schemaVersion": 1 }`
+record. It establishes that an empty anomaly stream was actually instrumented.
+Recorded-action replay continues to consume only `kind: "lock"` rows. Trace
+consumers must select rows by kind rather than assuming the first row is a lock.
+There are no repeated full resource snapshots on every lock.
+
+Each completed episode includes two separate summary fields:
+
+- `tracking`: schema version 1, `scope: "entire-run"`, a `throughLock` boundary,
+  exact `total` and per-code `counts`, the first eight bounded `examples`, and
+  `examplesOmitted`. Counts keep increasing after the example limit. Example
+  strings, nested arrays/objects and depth are capped independently of the
+  event count. These examples are diagnostics, not a replacement for the raw
+  trace. A failed event subscriber makes totals unavailable rather than falsely
+  reporting zero anomalies.
+- `finalObligations`: the shared final status check, with `scope: "current"`,
+  resource-history coverage, terminal state and outstanding resource facts.
+  Known S/L identities and unclassified obligations remain separate; Center
+  pending/debt, extra-Z allowance, covered repair and Reset status retain their
+  own meanings. Imported or uncertain history remains partial or unknown.
+  `obligations: null` means unavailable, never zero outstanding obligations.
+  A caught mid-execution error reports partial status through the authenticated
+  resource boundary, which can exceed the runner's completed-lock count.
+
+Console lines and `report.md` show a compact anomaly count and final status,
+including scope/coverage and selected outstanding counts. Detailed identities
+and bounded examples remain in `summary.json`; they are not dumped into the
+human-readable report. Neither zero anomalies nor a status snapshot certifies
+policy quality or indefinitely sustainable play.
+
+If a child is interrupted or its summary is invalid, failure recovery streams
+the retained trace without modifying the original bytes. Counts are rebuilt
+from each retained lock/stop event and any final summary-row drain once, not
+from embedded summary totals. Their
+scope is always `retained-prefix`, even when the last line is syntactically
+complete: the process may have performed more work before termination. A
+malformed event row stops counting before that entire row; the summary explains
+the smaller retained boundary. Lock-stage events must match their lock row;
+handoff/Reset events cannot name a later lock. Stop and final-drain events cannot
+exceed the retained lock boundary. Missing or unsupported initial instrumentation,
+including legacy traces, produces `scope: "unavailable"` with `total: null` and
+`counts: null`, not a fabricated zero. An instrumented prefix with no events
+can accurately report zero for that prefix only.
+
+Recovered resource status is separate from event-count recovery. The runner
+imports the public resource context from a retained lock's request, replays the
+recorded public actions/reveals and verifies the resulting state. It reports
+the last authenticated lock with `scope: "partial"` and its `throughLock`,
+never as the final current state. If no retained lock can be authenticated,
+including interruption before the first lock, final status is explicitly
+unavailable. This recovery does not rerun the planner, trust advertised counts,
+or relax ordinary strict action replay. Raw traces, partial artifacts and test
+evidence belong outside Git; only minimized regression fixtures are committed.
+
 ## Left-shape observations
 
 Each newly simulated episode includes `summary.leftShapes`: counts for all twelve
@@ -246,6 +314,7 @@ unresolved identities. Ordinary admission is unchanged. Reset refuses a step tha
 turns a currently known hanging identity into unclassified accommodation, while
 carrying and disclosing uncertainty already present at entry.
 
-Recorded traces permit projected-versus-actual comparison. The ordinary simulation
-summary still has no dedicated resource-degradation aggregate or automatic gate;
-use a separate source-bound audit before claiming preservation across a run.
+Recorded traces permit projected-versus-actual comparison. Simulation summaries
+now aggregate shared resource-tracking anomalies and retain a final status check,
+as described above. These diagnostics do not impose an automatic admission or
+strategy gate; use source-bound evidence before claiming preservation across a run.

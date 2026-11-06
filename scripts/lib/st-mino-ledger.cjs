@@ -44,8 +44,9 @@ function analyze(input,records,{origins=null,windowSizes=[7,14,28]}={}){
  }
  reconcile();
  let terminal=null,summary=null,seenSummary=false;
- for(const record of records){
+ for(const [index,record] of records.entries()){
   assert.ok(record&&typeof record==='object','Invalid trace record');assert.equal(seenSummary,false,'Record follows terminal summary');
+  if(record.kind==='tracking-start'){assert.equal(index,0,'Tracking marker must be the first record');assert.equal(record.schemaVersion,1,'Unsupported tracking marker schema');continue;}
   if(record.kind==='summary'){assert.ok(record.summary&&typeof record.summary==='object'&&!Array.isArray(record.summary),'Invalid terminal summary');seenSummary=true;summary=record.summary;continue;}
   if(record.kind==='stop'){assert.equal(summary,null,'Stop follows terminal summary');assert.equal(terminal,null,'Duplicate stop record');assert.equal(record.lock,locks,'Stop lock count differs');assert.deepEqual(record.request?.observation,publicState(state),'Terminal request diverged');terminal={lock:record.lock,status:record.advice?.status||record.error||null,hasTarget:Boolean(record.advice?.target),hasError:Boolean(record.error)};continue;}
   assert.equal(record.kind,'lock','Unsupported record kind');assert.equal(summary,null,'Lock follows terminal summary');assert.equal(terminal,null,'Lock follows terminal stop');assert.equal(record.lock,locks+1,'Missing or out-of-order lock');
