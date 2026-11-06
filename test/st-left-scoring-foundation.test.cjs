@@ -70,7 +70,10 @@ test('newly revealed public singleton is not retroactive proof supply',()=>{
  for(const action of a.witness){const before=state;state=R.move(state,action);if(action==='HD'){state={...state,queue:[...state.queue,'O'],bag:B.consume(state.bag,'O')};patterns=PH.update(patterns,before,state,state.lastEvent);}history=RH.applyAction(history,before,action,state);}
  const options={...config,openingPhase:false,patternHistory:patterns,resourceContext:RH.exportContext(state,history)},suffix=P.continueCommitment(q.observation,state,a,state.lastEvent,options);assert(suffix);assert.deepEqual(suffix.evidence.construction.origin.queue,['Z','T','L','J','S','I']);assert.equal(state.queue.length,6);
  const forged=clone(suffix);forged.evidence.construction.origin.queue.push('O');assert.equal(P.revalidate(state,forged,options),null);
- const broken=clone(options);broken.patternHistory.origin[34]='..........';assert.equal(P.revalidate(state,suffix,broken),null);
+ assert.equal(patterns.version,PH.VERSION);assert.equal(patterns.origin,undefined,'live retained-plan state no longer carries its past board');
+ const beforeLock=R.replay(q.observation,a.witness.slice(0,-1)).state,legacy=clone(q.options.patternHistory);legacy.steps.push({pose:clone(beforeLock.active),event:clone(state.lastEvent)});
+ assert.notEqual(PH.resolve(state,legacy).status,'invalid-history','old retained-plan fixtures remain supported');
+ const broken={...options,patternHistory:legacy};broken.patternHistory.origin[34]='..........';assert.equal(P.revalidate(state,suffix,broken),null);
 });
 test('actual first-step HOLD adaptation cannot override a no-HOLD caller',()=>{
  const steps=clone(fixture.steps);steps[2].witness=steps[2].witness.slice(3);assert(!steps.some(p=>p.witness.includes('HOLD')));const advice=proofAdvice(steps),before=fixture.observation,state=R.move(before,'HOLD'),history=RH.applyAction(RH.importContext(before,fixture.options.resourceContext),before,'HOLD',state),options={...opts,resourceContext:RH.exportContext(state,history),commitment:{observation:clone(before),advice}};

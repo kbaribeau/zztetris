@@ -41,7 +41,10 @@ function apply(current,before,after,event,{pieceId,at}={}){
    if(p.rootId!==null&&p.family)pairs.push({family:p.family,rootId:p.rootId,partnerId:pieceId,at});
    continue;
   }
-  if(result.supported.some(c=>c.piece===event.type)&&!facts.completed.length&&!debt.some(d=>d.id===p.id))debt.push({...clone(p),divertedAt:at,divertedPieceId:pieceId});
+  if(result.supported.some(c=>c.piece===event.type)&&!facts.completed.length&&!debt.some(d=>d.id===p.id)){
+   const diverted={...clone(p),divertedAt:at,divertedPieceId:pieceId};debt.push(diverted);
+   effects.push({...clone(diverted),status:'diverted',at});
+  }
   if(result.live.length)pending.push({...p,alternatives:result.live});
   else effects.push({...p,status:'invalidated',at,reason:facts.rows.some(y=>p.alternatives.some(c=>c.cells.some(([,cy])=>cy===y)))?'Clear removed target cells.':'Exact supported completion is no longer present.'});
  }
@@ -54,7 +57,10 @@ function apply(current,before,after,event,{pieceId,at}={}){
  }
  if(event.cells.every(([x])=>x>=4&&x<7)&&S.CENTER_PAIRS[event.type]){
   const alternatives=completions(after,[],event.type);
-  if(alternatives.length&&!pending.some(p=>JSON.stringify(p.alternatives)===JSON.stringify(alternatives)))pending.push({id:'piece-'+pieceId,rootId:pieceId,family:S.centerPairFamily(event.type),createdAt:at,alternatives});
+  if(alternatives.length&&!pending.some(p=>JSON.stringify(p.alternatives)===JSON.stringify(alternatives))){
+   const created={id:'piece-'+pieceId,rootId:pieceId,family:S.centerPairFamily(event.type),createdAt:at,alternatives};
+   pending.push(created);effects.push({...clone(created),status:'created',at});
+  }
  }
  return{state:{pending,debt:nextDebt},effects,pairs};
 }

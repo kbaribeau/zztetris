@@ -26,7 +26,9 @@ test('actual quad preserves established pattern even when fresh recognition lose
  assert.equal(pattern.anchorRow,38);assert.equal(pattern.status,'established');assert.notEqual(S.notchPattern(p.state.board).status,'established');
  const bad=placement(F.after.observation,F.after.witness);assert.equal(S.advanceNotches(p.state.board,bad,pattern).valid,false);
  const a=P.plan(F.after.observation,{patternHistory:h,maxNodes:45000});if(a.target)assert.equal(S.advanceNotches(p.state.board,placement(F.after.observation,a.witness),pattern).valid,true);
- assert.equal(H.resolve(p.state,{...h,origin:R.emptyBoard()}).status,'invalid-history');assert.equal(H.resolve(p.state,{...h,steps:[null]}).status,'invalid-history');
+ const legacy={origin:s.board.slice(),steps:[{pose:pre.active,event:p.event}]};
+ assert.equal(H.resolve(p.state,legacy).anchorRow,38);assert.equal(h.version,H.VERSION);assert.equal(h.origin,undefined);assert.equal(h.steps,undefined);
+ assert.equal(H.resolve(p.state,{...legacy,origin:R.emptyBoard()}).status,'invalid-history');assert.equal(H.resolve(p.state,{...legacy,steps:[null]}).status,'invalid-history');
  assert.equal(H.resolve(p.state,null).status,S.notchPattern(p.state.board).status);
 });
 test('real page retains phase across manual quad, undo and cosmetic inputs, but resets imported provenance',()=>require('./support/page.cjs').withPage('st-lab.html',{},g=>{

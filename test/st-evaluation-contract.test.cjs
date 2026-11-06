@@ -38,6 +38,16 @@ test('evaluation/source input execution and duplicate pair mismatches are reject
  const b=clone(f.b);b.episodes[1]=b.episodes[0];assert.throws(()=>V.normalize(b,f.inputs),/Duplicate/);
  const o=f.normalized();o[1].provenance.sources['st-planner.js']='0'.repeat(64);assert.throws(()=>V.evaluate(f.p,...o,[f.receipt]),/source hash mismatch/);
 });
+test('evaluation/shared-state dependency changes cannot escape frozen source binding',()=>{
+ const f=fixture();
+ for(const file of ['st-public-inventory.js','st-center-obligations.js']){
+  assert.match(f.p.sources.candidate[file],/^[a-f0-9]{64}$/,file+' must be included in new simulation manifests');
+  const changed={...f.p.sources.candidate,[file]:'0'.repeat(64)};
+  assert.throws(()=>V.bindProtocol(f.p,'candidate',changed,f.p.execution,f.inputs),/source mismatch/);
+  const omitted={...f.p.sources.candidate};delete omitted[file];
+  assert.throws(()=>V.bindProtocol(f.p,'candidate',omitted,f.p.execution,f.inputs),/source mismatch/);
+ }
+});
 test('evaluation/child validates exact binding before planner execution',()=>{
  const f=fixture();assert.doesNotThrow(()=>V.validateBoundEpisode(f.a.evaluationBinding,f.a.sources,f.p.execution,f.inputs[0]));
  const changed=clone(f.inputs[0]);changed.future[0]=changed.future[0]==='I'?'J':'I';assert.throws(()=>V.validateBoundEpisode(f.a.evaluationBinding,f.a.sources,f.p.execution,changed),/input mismatch/);

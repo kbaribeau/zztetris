@@ -1,11 +1,11 @@
 /* Current public identities and seven-bag frontier only. No generator, old
  * pieces, allocation facts, action tape or Undo stack belongs in this adapter.
- * The resource-history owner is a temporary migration bridge; the controller
- * will supply this inventory directly when obligation consumers are migrated. */
+ * Controllers own snapshots and pass one-operation transitions to consumers.
+ * Legacy resource replay constructs the same transitions as a temporary bridge. */
 (function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-bag')):factory(root.STRules,root.STBag);if(typeof module==='object'&&module.exports)module.exports=api;else root.STPublicInventory=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,B){
 'use strict';
 const TYPES='IJLOSTZ',ALL=127,ACTIONS=['L','R','SD','HD','HOLD','CW','CCW','R180'];
-const trusted=new WeakSet(),same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+const trusted=new WeakSet(),transitions=new WeakMap(),same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const freeze=x=>{if(x&&typeof x==='object'&&!Object.isFrozen(x)){Object.values(x).forEach(freeze);Object.freeze(x);}return x;};
 const seal=x=>{freeze(x);trusted.add(x);return x;};
 const invalid=reason=>seal({schemaVersion:1,status:'invalid',reason});
@@ -42,26 +42,41 @@ function start(raw,{fresh=false}={}){
 function bound(h,raw){
  try{return trusted.has(h)&&h.status==='available'&&R.validate(raw).length===0&&h.streamCursor===raw.streamCursor&&(h.active?.type??null)===(raw.active?.type??null)&&(h.hold?.type??null)===(raw.hold??null)&&same(h.queue.map(p=>p.type),raw.queue);}catch{return false;}
 }
-function applyAction(inventory,before,action,after){
- if(!bound(inventory,before))return invalid('Missing or mismatched public inventory.');
+// Receipts are current-operation capabilities, not a journal. The weak entry
+// retains only boundary signatures; neither inventory holds its predecessor.
+const boundary=(s,lock=false)=>{
+ const a=s.active,r=a?.lastRotation,active=a?{type:a.type,x:a.x,y:a.y,rotation:a.rotation,lastRotation:r?{from:r.from,to:r.to,kickIndex:r.kickIndex}:null}:null;
+ return JSON.stringify([{...view(s),active},s.revision,knowledge(s.bag),lock?s.lastEvent??null:null]);
+};
+function transition(inventory,before,action,after){
+ const failed=reason=>freeze({status:'invalid',reason,next:invalid(reason)});
+ if(!bound(inventory,before))return failed('Missing or mismatched public inventory.');
  try{
-  if(!ACTIONS.includes(action)||R.validate(after).length||after.queue.length>6)return invalid('Invalid public transition.');
+  if(!ACTIONS.includes(action)||R.validate(after).length||after.queue.length>6)return failed('Invalid public transition.');
   const initial=R.createState(before),expected=R.move(initial,action),ev=view(expected),av=view(after);
-  if(!same({...ev,queue:[]},{...av,queue:[]})||!same(av.queue.slice(0,ev.queue.length),ev.queue))return invalid('Public action, draw or reveal does not replay.');
-  if(action==='HD'&&expected!==initial&&(!expected.lastEvent||!same(expected.lastEvent,after.lastEvent??expected.lastEvent)))return invalid('Public lock event does not replay.');
-  if(expected===initial)return same(view(before),av)?inventory:invalid('A rejected input cannot reveal supply.');
+  if(!same({...ev,queue:[]},{...av,queue:[]})||!same(av.queue.slice(0,ev.queue.length),ev.queue))return failed('Public action, draw or reveal does not replay.');
+  if(action==='HD'&&expected!==initial&&(!expected.lastEvent||!same(expected.lastEvent,after.lastEvent??expected.lastEvent)))return failed('Public lock event does not replay.');
+  const finish=(next,accepted,locked=null,revealed=[])=>{
+   const result=freeze({status:'available',prior:inventory,next,action,accepted,locked,revealed});
+   transitions.set(result,{before:boundary(before),after:boundary(after,action==='HD')});return result;
+  };
+  if(expected===initial)return same(view(before),av)?finish(inventory,false):failed('A rejected input cannot reveal supply.');
   const added=av.queue.slice(ev.queue.length);
-  if(action!=='HOLD'&&action!=='HD'&&!added.length)return inventory;
-  const h={...inventory,queue:inventory.queue.slice(),streamCursor:after.streamCursor};
+  if(action!=='HOLD'&&action!=='HD'&&!added.length)return finish(inventory,true);
+  const h={...inventory,queue:inventory.queue.slice(),streamCursor:after.streamCursor},revealed=[];
   const draw=()=>{const p=h.queue.shift();if(!p)throw Error('Missing observed draw identity.');return p;};
   if(action==='HOLD'){
    if(h.hold)[h.active,h.hold]=[h.hold,h.active];else{h.hold=h.active;h.active=draw();}
   }else if(action==='HD')h.active=expected.active?draw():null;
-  for(const type of added){h.queue.push(add(h,type));if(h.knowledge)h.knowledge=B.consume(h.knowledge,type);}
-  if((h.active?.type??null)!==(av.active?.type??null)||(h.hold?.type??null)!==av.hold||!same(h.queue.map(p=>p.type),av.queue))return invalid('Public identity continuity failed.');
-  return seal(h);
- }catch(error){return invalid(error.message||'Could not apply public transition.');}
+  for(const type of added){const p=add(h,type);h.queue.push(p);revealed.push(p);if(h.knowledge)h.knowledge=B.consume(h.knowledge,type);}
+  if((h.active?.type??null)!==(av.active?.type??null)||(h.hold?.type??null)!==av.hold||!same(h.queue.map(p=>p.type),av.queue))return failed('Public identity continuity failed.');
+  return finish(seal(h),true,action==='HD'?inventory.active:null,revealed);
+ }catch(error){return failed(error.message||'Could not apply public transition.');}
 }
+function matchesTransition(operation,current,before,action,after){
+ try{const saved=transitions.get(operation);return Boolean(saved&&operation.prior===current&&operation.action===action&&saved.before===boundary(before)&&saved.after===boundary(after,action==='HD'));}catch{return false;}
+}
+function applyAction(inventory,before,action,after){return transition(inventory,before,action,after).next;}
 // Imported facts are trusted after shape/reference validation, not replayed or
 // downgraded because their history is absent. Only current fields are retained.
 function importState(raw){
@@ -80,7 +95,15 @@ function importState(raw){
   return seal(h);
  }catch(error){return invalid(error.message||'Could not import public inventory.');}
 }
+// A legacy session stores public bag knowledge beside its resource replay.
+// Reattach that current fact without changing identities or replaying its past.
+function withKnowledge(h,value){
+ try{
+  if(!trusted.has(h)||h.status!=='available')return invalid('Missing public inventory.');
+  const next=knowledge(value);return same(h.knowledge,next)?h:seal({...h,knowledge:next});
+ }catch(error){return invalid(error.message||'Invalid public bag knowledge.');}
+}
 function exportState(h){return trusted.has(h)&&h.status==='available'?JSON.parse(JSON.stringify(h)):null;}
 function remainingTypes(h){return trusted.has(h)&&h.status==='available'&&h.frontier?[...TYPES].filter(t=>!(h.frontier.seenMask&bit(t))):null;}
-return Object.freeze({start,applyAction,bound,exportState,importState,remainingTypes});
+return Object.freeze({start,transition,matchesTransition,applyAction,bound,withKnowledge,exportState,importState,remainingTypes});
 });

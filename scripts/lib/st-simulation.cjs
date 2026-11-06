@@ -11,6 +11,7 @@ const B = require('../../st-bag');
 const P = require('../../st-planner');
 const S = require('../../st-structure');
 const H = require('../../st-resource-history');
+const Inventory = require('../../st-public-inventory');
 const Tracking = require('../../st-resource-tracking');
 const TrackingMetrics = require('./st-tracking-metrics.cjs');
 const F = require('../../st-fixtures');
@@ -22,7 +23,7 @@ const clone = x => JSON.parse(JSON.stringify(x));
 // intentionally omits that field from its worker message. Match that boundary.
 function publicObservation(state){const observation=P.observe(state);delete observation.lastEvent;return observation;}
 const digest = x => crypto.createHash('sha256').update(typeof x === 'string' ? x : JSON.stringify(x)).digest('hex');
-const SOURCE_FILES = ['st-coach-config.js', 'st-rules.js', 'st-bag.js', 'st-structure.js', 'st-paired-repair.js', 'st-access.js', 'st-pattern-history.js', 'st-left-foundation.js', 'st-left-context.js', 'st-midgame-coaches.js','st-reset-coach.js', 'st-planner.js', 'st-opening-patterns.js','st-opening-continuations.js','st-opening-sources.js','st-source-scoring.js', 'st-opening.js', 'st-reset-policy.js','st-resource-history.js', 'st-midgame-resources.js', 'st-resource-tracking.js', 'st-worker.js', 'st-lab.js', 'st-session.js', 'st-fixtures.js', 'scripts/lib/st-simulation.cjs', 'scripts/lib/st-simulation-runner.cjs', 'scripts/lib/st-left-shape-metrics.cjs', 'scripts/lib/st-coach-entry-metrics.cjs', 'scripts/lib/st-tracking-metrics.cjs', 'scripts/lib/st-evaluation.cjs', 'scripts/evaluate-st-protocol.cjs', 'scripts/simulate-st.cjs'];
+const SOURCE_FILES = ['st-coach-config.js', 'st-rules.js', 'st-bag.js', 'st-structure.js', 'st-paired-repair.js', 'st-access.js', 'st-pattern-history.js', 'st-left-foundation.js', 'st-left-context.js', 'st-midgame-coaches.js','st-reset-coach.js', 'st-planner.js', 'st-opening-patterns.js','st-opening-continuations.js','st-opening-sources.js','st-source-scoring.js', 'st-opening.js', 'st-reset-policy.js','st-public-inventory.js','st-center-obligations.js','st-resource-history.js', 'st-midgame-resources.js', 'st-resource-tracking.js', 'st-worker.js', 'st-lab.js', 'st-session.js', 'st-fixtures.js', 'scripts/lib/st-simulation.cjs', 'scripts/lib/st-simulation-runner.cjs', 'scripts/lib/st-left-shape-metrics.cjs', 'scripts/lib/st-coach-entry-metrics.cjs', 'scripts/lib/st-tracking-metrics.cjs', 'scripts/lib/st-evaluation.cjs', 'scripts/evaluate-st-protocol.cjs', 'scripts/simulate-st.cjs'];
 const CONFIG = Object.freeze({depth:3, width:8, maxNodes:45000, timeMs:SEARCH_TIME_MS});
 const PRESETS = Object.freeze({quick:{seeds:[10331, 20333], locks:24}, research:{seeds:Array.from({length:16}, (_,i) => 810001 + i * 997), locks:500}});
 const RNG_VERSION = 'mulberry32-seven-bag-v1';
@@ -102,7 +103,8 @@ function createSession(input, api=P) {
   if(typeof api.startOpeningSession!=='function')throw Error('Shared opening session API is not available');
   let state=R.createState(clone(input.initial)), cursor=0, commitment=null, previous=null, pendingLHint=null, pendingHandoffRecovery=null, openingForecast=null;
   let patternHistory=api.startPatternHistory(publicObservation(state));
-  let resourceHistory=H.start(publicObservation(state),{fresh:input.scenario==='empty'});
+  let publicInventory=Inventory.start(publicObservation(state),{fresh:input.scenario==='empty'});
+  let resourceHistory=H.start(publicObservation(state),{fresh:input.scenario==='empty',inventory:publicInventory});
   const tracking=Tracking.create();
   let opening=api.startOpeningSession(publicObservation(state),{emptyMode:input.scenario==='empty'});
   function replenish() {
@@ -115,6 +117,7 @@ function createSession(input, api=P) {
   return {
     onTrackingEvent:listener=>tracking.subscribe(listener),
     get trackingHealth(){return tracking.health();},
+    get publicInventory(){return Inventory.exportState(publicInventory);},
     get resources(){return H.resolve(publicObservation(state),resourceHistory);}, get state(){return state;}, get cursor(){return cursor;}, get opening(){return clone(opening);},
     request(id,options) { const {handoffRecovery:ignored,pendingLHint:ignoredHint,openingForecast:ignoredForecast,...settings}=options||{};return {type:'plan',id,observation:publicObservation(state),previous:previous?clone(previous):null,commitment:commitment?clone(commitment):null,options:{...settings,...(openingForecast?{openingForecast:clone(openingForecast)}:{}),...(pendingLHint?{pendingLHint:clone(pendingLHint)}:{}),...(pendingHandoffRecovery?{handoffRecovery:clone(pendingHandoffRecovery)}:{}),resourceContext:H.exportContext(publicObservation(state),resourceHistory),patternHistory:patternHistory?clone(patternHistory):null,openingPhase:opening.active,openingSource:opening.source?clone(opening.source):null,openingClear:opening.clear?clone(opening.clear):null,openingRepair:opening.repair?clone(opening.repair):null}}; },
     execute(advice,{onCoach=()=>{},lock=resourceHistory.locks+1}={}) {
@@ -141,7 +144,11 @@ function createSession(input, api=P) {
         state={...next,revision:state.revision+1};
         replenish();
         if(openingForecast)openingForecast=typeof api.advanceOpeningForecast==='function'?api.advanceOpeningForecast(openingForecast,before,publicObservation(state),action):null;
-        resourceHistory=H.applyAction(resourceHistory,before,action,{...publicObservation(state),lastEvent:state.lastEvent});
+        const after={...publicObservation(state),lastEvent:state.lastEvent},inventoryTransition=Inventory.transition(publicInventory,before,action,after);
+        // Do not undo an executed piece if accounting becomes unavailable. The
+        // current public identity flow is controller-owned, even after a cap.
+        publicInventory=inventoryTransition.next;
+        resourceHistory=H.applyAction(resourceHistory,before,action,after,{inventoryTransition});
         if(action==='HD') {
           tracking.executedLock(before,priorHistory,publicObservation(state),resourceHistory,state.lastEvent,{lock});
           onCoach(CE.phase(opening,H.resolve(publicObservation(state),resourceHistory)),true);

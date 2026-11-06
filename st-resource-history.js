@@ -23,11 +23,11 @@ function quality(board,counts){const h=heights(board);return h[4]===h[5]&&h[5]==
 function retainPiece(h,p){h.pieces[p.id]={...p,allocation:null,pair:null};}
 function syncInventory(h,inventory){h.inventory=inventory;h.nextId=inventory.nextId;h.observedCount=inventory.nextId-1;h.active=inventory.active?.id??null;h.hold=inventory.hold?.id??null;h.queue=inventory.queue.map(p=>p.id);}
 function invalid(raw,reason,status='invalid'){let observation=null;try{observation=view(raw);}catch{}return seal({schemaVersion:1,coverage:{status,reason},observation,actions:0,locks:0});}
-function start(raw,{fresh=false}={}){
- try{if(R.validate(raw).length)return invalid(raw,'Invalid public origin.');const o=view(raw),inventory=Inventory.start(raw,{fresh});if(inventory.status!=='available')return invalid(raw,inventory.reason);
+function start(raw,{fresh=false,inventory:providedInventory}={}){
+ try{if(R.validate(raw).length)return invalid(raw,'Invalid public origin.');const o=view(raw),inventory=providedInventory??Inventory.start(raw,{fresh});if(!Inventory.bound(inventory,raw))return invalid(raw,inventory?.reason||'Missing or mismatched initial public inventory.');
   // Only the caller's actual new empty session may establish observed bag zero.
   // Imported snapshots, including forged flags, use the default unknown origin.
-  fresh=inventory.originKnown;
+  fresh=Boolean(fresh&&inventory.originKnown&&o.board.every(r=>r==='..........')&&o.active&&o.hold===null&&o.streamCursor===1&&o.queue.length===6&&new Set([o.active.type,...o.queue]).size===7);
   const h={schemaVersion:1,coverage:{status:fresh?'complete':'partial',reason:fresh?'Observed from a local empty seven-bag start.':'Earlier placements and held-piece age are unknown.'},observation:o,fresh,nextId:1,observedCount:0,pieces:{},active:null,hold:null,queue:[],actions:0,locks:0,allocations:[],pairs:[],dPattern:{pending:false,createdAt:null},center:{pending:[],debt:[],closed:[]},coveredRepair:{cells:[],notches:S.notchPattern(o.board)},milestones:{sourcePattern:null,firstTsd:null,maintenanceHandoff:null},opening:{counts:{S:0,L:0,T:0,Z:0,TNonRight:0,ZNonRight:0,ZRight:0},violations:[],cap:null,quality:null,allocation:null,completedAt:null},extraZ:{baseline:null,allocations:[],departures:[]},reset:{status:'inactive',progress:0,startedAt:null,completedAt:null,episodes:[],credits:[]}};
   for(const p of [inventory.active,inventory.hold,...inventory.queue].filter(Boolean))retainPiece(h,p);syncInventory(h,inventory);
   // Imported geometry is factual even though its producing piece identity is not.
@@ -39,7 +39,9 @@ function initialPending(board){return Center.start(board).pending;}
 const translate=Center.translate;
 function updateCenter(h,before,after,e,id){
  const result=Center.apply({pending:h.center.pending,debt:h.center.debt},before.board,after.board,e,{pieceId:id,at:h.locks});
- h.center={...result.state,closed:[...h.center.closed,...result.effects]};
+ // The compatibility archive contains only closed facets. Creation/diversion
+ // effects are current-operation facts, not additional historical closures.
+ h.center={...result.state,closed:[...h.center.closed,...result.effects.filter(e=>!['created','diverted'].includes(e.status))]};
  for(const pair of result.pairs){h.pairs.push(pair);h.pieces[pair.rootId].pair=pair;h.pieces[id].pair=pair;}
 }
 // Credit is a conserved allocation fact attached to an actual T identity, never
@@ -114,7 +116,7 @@ function observeOpening(h,before,after,e){
   h.extraZ.baseline={at:h.locks,firstTsdAt:o.allocation.at,allocationCompletedAt:o.completedAt,qualityAt:h.locks,capAt:o.allocation.capAt,counts:clone(c),source:SOURCE,scope:'Observed third-T first TSD, mandatory non-Right opening Z and balanced flat-Center checkpoint; the Z may precede or follow that clear, and later canonical TSDs do not erase the debt. No optional Z allocation, non-scoring T diversion, profile departure or invalidated Center debt intervenes, and no unresolved Center or S/L obligation remains. Three-row height tolerance is an engineering interpretation.'};
  }
 }
-function applyAction(history,before,action,after){
+function applyAction(history,before,action,after,{inventoryTransition}={}){
  if(!bound(history,before))return invalid(after,'Missing, forged, or stale local event history.');
  if(!['complete','partial'].includes(history.coverage.status))return invalid(after,history.coverage.reason,history.coverage.status);
  if(history.actions>=MAX_ACTIONS||history.locks>=MAX_LOCKS)return invalid(after,'Observed history limit reached; cumulative resources cannot be re-anchored from a board.','truncated');
@@ -123,12 +125,13 @@ function applyAction(history,before,action,after){
   const initial=R.createState(before),expected=R.move(initial,action),ev=view(expected),av=view(after);
   if(!same({...ev,queue:[]},{...av,queue:[]})||!same(av.queue.slice(0,ev.queue.length),ev.queue)||av.queue.length>6)return invalid(after,'Action, draw, or resulting state does not replay.');
   if(action==='HD'&&(!expected.lastEvent||!same(expected.lastEvent,after.lastEvent??expected.lastEvent)))return invalid(after,'Lock event does not replay.');
+  const operation=inventoryTransition===undefined?Inventory.transition(history.inventory,before,action,after):inventoryTransition;
+  if(!Inventory.matchesTransition(operation,history.inventory,before,action,after))return invalid(after,operation?.reason||'Missing, stale or mismatched public inventory transition.');
   if(expected===initial)return same(view(before),av)?history:invalid(after,'A rejected input cannot change observations.');
   // Movement cannot alter accumulated allocations. Share frozen facts rather
   // than copying the entire run on every key repeat; lock updates remain private.
   const h=action==='HD'?clone(history):{...history,queue:history.queue.slice()};h.actions++;
-  const inventory=Inventory.applyAction(history.inventory,before,action,after);if(inventory.status!=='available')return invalid(after,inventory.reason);
-  const lockedId=h.active;
+  const inventory=operation.next,lockedId=operation.locked?.id??h.active;
   if(action==='HD'){
    const e=expected.lastEvent,knownSurplus=e.type==='S'&&hanging(history).evidence.some(s=>s.sId===lockedId);h.locks++;
    const allocation={at:h.locks,pieceId:lockedId,type:e.type,region:whole(e),cells:clone(e.cells),lines:e.lines,spin:e.spin,clearedRows:e.clearedRows.slice()};
@@ -148,7 +151,7 @@ function applyAction(history,before,action,after){
    // is derived from replay, never accepted from a serialized summary.
    if(knownSurplus&&allocation.region!=='left'&&h.pieces[lockedId].pair?.family!=='SL'&&!h.center.pending.some(p=>p.family==='SL'&&p.rootId===lockedId))allocation.requiresAccommodation=true;
   }
-  const added=av.queue.slice(ev.queue.length);if(added.length){if(action!=='HD')h.pieces={...h.pieces};for(const p of inventory.queue)if(p.id>=history.nextId)retainPiece(h,p);}
+  const added=operation.revealed.map(p=>p.type);if(added.length){if(action!=='HD')h.pieces={...h.pieces};for(const p of operation.revealed)retainPiece(h,p);}
   syncInventory(h,inventory);
   if(h.active!==null&&h.pieces[h.active].type!==av.active?.type||h.hold!==null&&h.pieces[h.hold].type!==av.hold||!same(h.queue.map(id=>h.pieces[id].type),av.queue))return invalid(after,'Observed identity continuity failed.');
   // The public adapter validates only the incremental observed bag frontier.
@@ -178,9 +181,19 @@ function exportContext(raw,history){
  const context=freeze({schemaVersion:1,origin:clone(tail.origin),fresh:tail.fresh,steps,handoffAtAction:tail.handoffAtAction,...(tail.resetAtActions.length?{resetAtActions:tail.resetAtActions.slice()}:{})});
  exported.set(history,context);localContexts.set(context,history);return context;
 }
+// Legacy replay omitted bag knowledge, which lives separately in the session
+// position. Restore the current partial-origin frontier without inventing ages.
+function restorePublicKnowledge(history,raw){
+ if(history.inventory?.originKnown||!raw.bag)return history;
+ const inventory=Inventory.withKnowledge(history.inventory,raw.bag);
+ if(inventory.status!=='available')return invalid(raw,inventory.reason);
+ if(inventory===history.inventory)return history;
+ const result=seal({...history,inventory}),prior=transport.get(history);
+ if(prior)transport.set(result,prior);return result;
+}
 function importContext(raw,context){
  try{
-  const local=localContexts.get(context);if(local&&bound(local,raw))return local;
+  const local=localContexts.get(context);if(local&&bound(local,raw))return restorePublicKnowledge(local,raw);
   if(!context||context.schemaVersion!==1||!Array.isArray(context.steps)||context.steps.length>MAX_ACTIONS||typeof context.fresh!=='boolean')return invalid(raw,'Missing or invalid resource replay context.');
   const marker=context.handoffAtAction,resetMarkers=context.resetAtActions??[];
   if(!Array.isArray(resetMarkers)||resetMarkers.some((n,i)=>!Number.isInteger(n)||n<0||n>context.steps.length||(i>0&&n<=resetMarkers[i-1])))return invalid(raw,'Invalid Reset decision markers.');
@@ -190,7 +203,7 @@ function importContext(raw,context){
   // replay, and recheck the complete proof bytes so later mutation cannot keep
   // the authority of a previously valid clone. Observation binding still applies.
   const signature=JSON.stringify([context.origin,context.fresh,context.steps,marker,resetMarkers]),cached=validatedContexts.get(context);
-  if(cached&&cached.signature===signature&&bound(cached.history,raw))return cached.history;
+  if(cached&&cached.signature===signature&&bound(cached.history,raw))return restorePublicKnowledge(cached.history,raw);
   let state=R.createState(context.origin),history=start(state,{fresh:context.fresh});
   if(!history.pieces||context.fresh&&!history.fresh)return invalid(raw,'Resource origin cannot establish the claimed observed history.');
   if(marker===0)history=markHandoff(history,state);
@@ -208,6 +221,7 @@ function importContext(raw,context){
    if(resetMarkers.includes(i+1)){if(history.reset.status==='active')return invalid(raw,'Repeated Reset marker during an active Reset.');history=beginReset(history,state);if(!history.pieces)return invalid(raw,'Reset decision marker failed validation.');}
   }
   if(!bound(history,raw))return invalid(raw,'Resource replay does not match the current public observation.');
+  history=restorePublicKnowledge(history,raw);if(!history.inventory)return history;
   validatedContexts.set(context,{signature,history});return history;
  }catch{return invalid(raw,'Could not validate resource replay context.');}
 }

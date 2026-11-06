@@ -86,3 +86,38 @@ test('public inventory: legacy allocation history consumes adapter subjects with
  assert.ok(Object.keys(history.pieces).length>live(history.inventory).length,'Unmigrated obligations retain their separate legacy historical source');
  const marked=H.markHandoff(history,state);assert.equal(marked.inventory,history.inventory);assert.equal(I.bound(marked.inventory,state),true);
 });
+
+test('public inventory: one-operation bundle carries exact lock and reveal subjects without retaining a state chain',()=>{
+ const before=first(),current=I.start(before,{fresh:true}),raw=R.move(before,'HD'),after={...raw,queue:[...raw.queue,'S']};
+ const operation=I.transition(current,before,'HD',after);
+ assert.equal(operation.prior,current);assert.equal(operation.locked,current.active);assert.equal(operation.accepted,true);assert.equal(operation.next.active,current.queue[0]);assert.equal(operation.revealed.length,1);assert.equal(operation.revealed[0],operation.next.queue.at(-1));assert.deepEqual(operation.revealed[0],{id:8,type:'S',observedOrder:7,bag:1});
+ assert.equal(I.matchesTransition(operation,current,before,'HD',after),true);assert.equal(Object.isFrozen(operation),true);assert.equal(Object.isFrozen(operation.revealed),true);assert.equal('prior' in operation.next,false);assert.equal('operation' in operation.next,false);
+ const h=H.start(before,{fresh:true,inventory:current}),updated=H.applyAction(h,before,'HD',after,{inventoryTransition:operation});
+ assert.equal(updated.inventory,operation.next,'Supplied identity flow is consumed directly, not independently advanced again');assert.equal(updated.allocations[0].pieceId,operation.locked.id);assert.equal(updated.pieces[8].type,'S');
+});
+test('public inventory: receipts bind the exact current snapshot, accepted input and public revision boundary',()=>{
+ const before=first(),current=I.start(before,{fresh:true}),after=R.move(before,'R'),op=I.transition(current,before,'R',after);
+ assert.equal(op.next,current,'Movement does not replace the inventory');assert.equal(op.locked,null);assert.deepEqual(op.revealed,[]);
+ for(const [candidate,inventory,a,action,b] of [[clone(op),current,before,'R',after],[op,I.importState(I.exportState(current)),before,'R',after],[op,current,before,'L',after],[op,current,{...before,revision:5},'R',{...after,revision:6}],[op,current,before,'R',{...after,bag:{remaining:[0],observedCount:7,provenance:'known-phase'}}]])assert.equal(I.matchesTransition(candidate,inventory,a,action,b),false);
+ const h=H.start(before,{fresh:true,inventory:current});assert.equal(H.applyAction(h,{...before,revision:5},'R',{...after,revision:6},{inventoryTransition:op}).coverage.status,'invalid');
+ const accepted=H.applyAction(h,before,'R',after,{inventoryTransition:op});assert.equal(accepted.coverage.status,'complete');
+ const left=R.move(after,'L'),back=I.transition(current,after,'L',left),returned=H.applyAction(accepted,after,'L',left,{inventoryTransition:back});
+ assert.equal(returned.inventory,current);assert.equal(H.applyAction(returned,left,'R',R.move(left,'R'),{inventoryTransition:op}).coverage.status,'invalid','Returning to the same pose cannot reuse an older operation');
+ const restored=I.importState(I.exportState(current)),restoredOperation=I.transition(restored,before,'R',after);assert.equal(restoredOperation.status,'available','Trusted snapshot import needs no prior operation capability');
+});
+test('public inventory: rejected inputs produce no lock/reveal effect and stale accounting never changes actual gameplay',()=>{
+ const before=R.createState({active:'O',queue:[]}),atWall={...before,active:{...before.active,x:-1}},current=I.start(atWall),noop=I.transition(current,atWall,'L',atWall);
+ assert.equal(noop.accepted,false);assert.equal(noop.next,current);assert.equal(noop.locked,null);assert.deepEqual(noop.revealed,[]);
+ const state=first(),inventory=I.start(state,{fresh:true}),h=H.start(state,{fresh:true,inventory}),locked=R.move(state,'HD'),after={...locked,queue:[...locked.queue,'S']},actual=clone(after),operation=I.transition(inventory,state,'HD',after);
+ const bad=H.applyAction(h,state,'HD',after,{inventoryTransition:noop});assert.equal(bad.coverage.status,'invalid');assert.deepEqual(after,actual);assert.equal(operation.next.active.id,2);
+ const next=R.move(after,'HOLD'),following=I.transition(operation.next,after,'HOLD',{...next,queue:[...next.queue,'L']});assert.equal(following.status,'available');assert.equal(following.next.hold.id,2);assert.equal(following.next.active.id,3);
+});
+test('public inventory: legacy partial-origin replay restores current forced-public knowledge without inventing prior bag identities',()=>{
+ const bag=B.fromObserved({observed:[...'IJLOST'],startPhase:0}),state=R.createState({active:'I',hold:'O',queue:[...'JLOST'],streamCursor:100,bag}),h=H.start(state),context=clone(H.exportContext(state,h));
+ const imported=H.importContext(state,context);assert.equal(imported.coverage.status,'partial');assert.deepEqual(imported.inventory.knowledge,bag);assert.equal(B.forcedNext(imported.inventory.knowledge),'Z');assert.ok(live(imported.inventory).every(p=>p.bag===null&&p.observedOrder===null));
+ assert.deepEqual(H.resolve(state,imported),H.resolve(state,h));
+ const raw=R.move(state,'HOLD'),next={...raw,queue:raw.queue.slice()},operation=I.transition(imported.inventory,state,'HOLD',next);assert.equal(operation.status,'available');assert.deepEqual(operation.next.knowledge,bag);assert.equal(H.applyAction(imported,state,'HOLD',next,{inventoryTransition:operation}).coverage.status,'partial');
+ const heldHistory=H.applyAction(imported,state,'HOLD',next,{inventoryTransition:operation}),lock=R.move(next,'HD'),revealed={...lock,queue:[...lock.queue,'Z'],bag:B.consume(bag,'Z')},reveal=I.transition(operation.next,next,'HD',revealed),advanced=H.applyAction(heldHistory,next,'HD',revealed,{inventoryTransition:reveal});
+ assert.equal(advanced.coverage.status,'partial');assert.equal(reveal.revealed[0].type,'Z');assert.equal(reveal.revealed[0].bag,null);assert.deepEqual(advanced.inventory.knowledge,B.consume(bag,'Z'));
+ const other={...state,bag:B.fromObserved({observed:[...'IJLOSZ'],startPhase:0})};assert.equal(B.forcedNext(H.importContext(other,context).inventory.knowledge),'T','A cached legacy context cannot hide changed current bag facts');
+});

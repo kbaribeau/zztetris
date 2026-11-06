@@ -1,5 +1,6 @@
-/* Portable session evidence. JSON is untrusted; derived resource flags are never
- * restored. This format stores visible inputs, not hidden RNG or future bags. */
+/* Portable session inputs: resource tapes are replay-checked, current notch
+ * facts are trusted, and future advice is independently validated. No hidden
+ * RNG or future bags are stored. */
 (function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-bag'),require('./st-resource-history'),require('./st-pattern-history'),require('./st-planner'),require('./st-opening'),()=>require('./st-coach-config')):factory(root.STRules,root.STBag,root.STResourceHistory,root.STPatternHistory,root.STPlanner,root.STOpening,()=>root.STCoachConfig);if(typeof module==='object'&&module.exports)module.exports=api;else root.STSession=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,B,H,PH,P,O,C){
 'use strict';
 const FORMAT='zztetris-st-session',VERSION=1,ENGINE='st-coach-session-2026-11-05-handoff-sl-v1';
@@ -54,7 +55,7 @@ function validateBag(context,originBag,current){
 }
 function create(state,{resourceHistory,resourceOriginBag=null,patternHistory=null,openingPhase=false,openingSource=null,openingClear=null,openingRepair=null,previous=null,commitment=null,pendingLHint=null,search=defaults(),suggestedFileName=DEFAULT_EXPORT_FILENAME}={}){
  const observation=position(state),resourceContext=H.exportContext(observation,resourceHistory),coverage=H.resolve(observation,resourceHistory).coverage;
- const result={format:FORMAT,schemaVersion:VERSION,engineVersion:ENGINE,suggestedFileName:exportFilename(suggestedFileName),position:observation,search:settings(search),coaching:{resourceContext:resourceContext?clone(resourceContext):null,resourceOriginBag:resourceContext?clone(resourceOriginBag):null,resourceCoverage:clone(coverage),patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null,previous:previous?portableAdvice(previous):null,commitment:commitment?portableCommitment(commitment):null,pendingLHint:portablePendingLHint(pendingLHint)}};
+ const result={format:FORMAT,schemaVersion:VERSION,engineVersion:ENGINE,suggestedFileName:exportFilename(suggestedFileName),position:observation,search:settings(search),coaching:{resourceContext:resourceContext?clone(resourceContext):null,resourceOriginBag:resourceContext?clone(resourceOriginBag):null,resourceCoverage:clone(coverage),patternHistory:PH.snapshot(observation,patternHistory),openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null,previous:previous?portableAdvice(previous):null,commitment:commitment?portableCommitment(commitment):null,pendingLHint:portablePendingLHint(pendingLHint)}};
  bounded(result);return result;
 }
 function prepare(input){
@@ -64,8 +65,8 @@ function prepare(input){
  const warnings=differentCoach?['Imported a session from a different coach version. Validated history and settings are preserved; advice will be recomputed.']:[];let resourceHistory,resourceOriginBag=null;
  if(c.resourceContext){resourceHistory=H.importContext(state,c.resourceContext);const coverage=H.resolve(state,resourceHistory).coverage;if(!['complete','partial'].includes(coverage.status))throw Error('Invalid resource replay: '+coverage.reason);validateBag(c.resourceContext,c.resourceOriginBag,state);resourceOriginBag=clone(c.resourceOriginBag);}
  else{resourceHistory=H.start(state);resourceOriginBag=state.bag?clone(state.bag):null;warnings.push('Resource history is unavailable; prior S/L/Z allocations remain unknown.');}
- const patternHistory=c.patternHistory?clone(c.patternHistory):null;
- if(PH.resolve(state,patternHistory).status==='invalid-history')throw Error('Pattern history does not replay to the position.');
+ const patternHistory=PH.snapshot(state,c.patternHistory);
+ if(PH.resolve(state,patternHistory).status==='invalid-history')throw Error('Invalid notch checkpoint or legacy pattern history.');
  const opening=O.validateSessionState(state,{active:c.openingPhase,source:c.openingSource??null,clear:c.openingClear??null,repair:c.openingRepair??null},search);warnings.push(...opening.warnings);
  if(c.resourceContext&&H.resolve(state,resourceHistory).milestones?.maintenanceHandoff&&opening.session.active)throw Error('Opening phase contradicts the recorded maintenance handoff.');
  let previous=null,commitment=null;const pendingLHint=differentCoach?null:portablePendingLHint(c.pendingLHint);

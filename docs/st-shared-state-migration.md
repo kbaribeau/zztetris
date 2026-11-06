@@ -5,19 +5,31 @@ This records implementation of the [shared obligation contract](st-shared-state-
 ## First checkpoint: current inventory and Center transitions
 
 - `st-public-inventory.js` owns live identity assignment, active/HOLD/preview flow and the incremental public bag frontier. It has no old-piece table, action tape or generator access. A portable current snapshot is imported directly after shape/reference checks, without provenance replay.
-- Legacy resource accounting consumes these subjects and retains its old historical allocation/pair archive while those consumers are migrated. The inventory is temporarily held by that compatibility layer; full controller-supplied ownership is not complete.
+- Legacy resource accounting consumes these subjects and retains its old historical allocation/pair archive while those consumers are migrated. At this first checkpoint the inventory was temporarily held by that compatibility layer. The second checkpoint below moves ownership to the real callers.
 - The page controller no longer accumulates an `observed[]` draw history merely to recompute bag knowledge. Initial public knowledge is seeded once, each actual reveal advances it, and existing caller snapshots restore it on Undo.
-- `st-center-obligations.js` updates current exact Center targets and diversion debts, returning this operation's closure/pair effects separately. No closure archive is retained in its state. Actual accounting uses that reducer; projected routes share its geometry/payment facts while retaining their own lost-target admission diagnostics.
+- `st-center-obligations.js` updates current exact Center targets and diversion debts, returning this operation's creation, diversion, closure and pair effects separately. No closure archive is retained in its state. Actual accounting uses that reducer; projected routes share its geometry/payment facts while retaining their own lost-target admission diagnostics.
 - Payment, diversion and invalidation remain distinct. A genuine replacement pays the pending and diverted facets once without inventing a second pair. Old resource-summary fields and coaching policies remain compatible.
 
 Focused coverage includes HOLD age and original bags, unknown/deferred/forced supply, trusted inventory snapshots, invalid flows, immutable Undo branches, actual controller reveal/restart/Undo, exact Center payment versus diversion, loss, and same-state repeated cycles. New inventory tests cross 4,200 movement inputs and 700 locks without retaining past identities; the Center component returns to empty current state after each of 1,000 equivalent settlement cycles. These are component lifetime tests, not claims of long simulated survival.
 
 Independent baseline comparisons found identical full resource summaries after 2,066 trial actions and 65 existing replay contexts. Separate frozen-source comparisons covered 142 actual locks and 109 full projected resource states, including S85/L86, Reset L37 and the translated pending-L continuation. Generated comparison scripts and evidence remain outside Git.
 
+## Second checkpoint: caller ownership and compact notch state
+
+The page controller and simulator now own the current public inventory. Each accepted input produces one bounded transition receipt containing the prior/next inventory, locked subject and newly revealed subjects. Resource accounting consumes that receipt rather than applying identity flow again. Receipts bind to the actual public boundary and revision; they are not a journal and are not stored inside the next inventory. Legacy resource replay uses the same adapter internally until its transport is replaced.
+
+The caller checkpoints inventory directly for Undo. Session installation restores the imported live inventory, including public bag knowledge for partial origins, without turning a deduced next type into an invented original bag. Current inventory continues across the legacy accounting cap or an accounting failure; an executed legal move is not rolled back. New tests exercise copied/stale receipts, reused numeric IDs on a new Undo branch, real page and simulator flow, and continued draws after the existing action/lock limits.
+
+`st-pattern-history.js` keeps its public API but emits compact version-2 notch checkpoints: current status, anchor, blocked rows and diagnostic source. Protected rows are derived from the current anchor. Live play no longer stores origin boards or a lock tape and no longer has the old 128-lock limit. The supplied current facts are trusted without proving their history; shape checks and future movement/strategy checks remain.
+
+Old notch tapes remain a compatibility input. They still validate under their original finite contract, then session import/export and the next live update replace them with current facts. The outer session schema stays at version one with a versioned nested checkpoint; an older tape-only reader rejects the new payload rather than silently re-anchoring it. Full resource session accounting is still legacy/replay-backed.
+
+Notch tests cover canonical TSD/quad translation, newly established phases, sticky broken facts, trusted import, invalid shapes, legacy tampering, page/Worker transport and Undo. A 1,000-lock manual O-only cycle retains fixed-size current facts beyond the former tape limit. Independent comparison found 375 identical phase results across 365 locks and ten legacy conversions. Newly added source files are included in simulation source hashes and the worker loader; missing/changed dependency hashes fail frozen-source binding.
+
 ## Remaining migration
 
 The whole migration is not complete. In particular, S/L residual counterpart state, opening/Z/Reset accounts, safety/Left-goal ownership, trusted complete session snapshots, inverse receipts and effect-based monitoring still need their planned migration and retirement checks. The legacy resource action/lock caps and allocation tape still exist. Do not describe this checkpoint as cap-free resource accounting or as completed trusted session import.
 
-The next checkpoint will replace the separate live notch tape with a compact current phase checkpoint while preserving a legacy import adapter. Subsequent work must remove compatibility archives rather than leave the new components as wrappers over old history indefinitely.
+Subsequent work must remove compatibility archives rather than leave the new components as wrappers over old history indefinitely. A compact S/L residual-state component is under development independently; it is not yet a planner or actual-accounting authority.
 
 Full-suite and end-of-block validation results will be recorded after the implementation checkpoint is stable. No real-browser rendering or production-performance acceptance is claimed by these component tests.

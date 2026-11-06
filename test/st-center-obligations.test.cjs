@@ -17,6 +17,7 @@ test('shared Center: exact J then Z creates and retires one live duty without hi
  assert.deepEqual(created.state,{pending:[{id:'piece-1',rootId:1,family:'ZJ',createdAt:1,alternatives:[{piece:'Z',cells:literalZ}]}],debt:[]});
  const paid=C.apply(created.state,j.state.board,z.state.board,z.event,{pieceId:2,at:2});
  assert.deepEqual(paid.state,{pending:[],debt:[]});
+ assert.deepEqual(created.effects.map(e=>[e.status,e.rootId,e.at]),[['created',1,1]]);
  assert.deepEqual(paid.pairs,[{family:'ZJ',rootId:1,partnerId:2,at:2}]);
  assert.deepEqual(paid.effects.map(e=>[e.status,e.rootId,e.partnerId]),[['fulfilled',1,2]]);
  assert.deepEqual(C.start(before.board),root);
@@ -38,7 +39,9 @@ test('shared Center: same type elsewhere is diversion, never exact target paymen
  assert.equal(result.state.pending.length,1);assert.equal(result.state.debt.length,1);
  assert.equal(result.state.debt[0].divertedPieceId,2);
  assert.deepEqual(result.state.pending[0].alternatives,[{piece:'Z',cells:literalZ}]);
- assert.deepEqual(result.pairs,[]);assert.deepEqual(result.effects,[]);
+ assert.deepEqual(result.pairs,[]);assert.deepEqual(result.effects.map(e=>[e.status,e.rootId,e.divertedPieceId]),[['diverted',1,2]]);
+ const again=C.apply(result.state,j.state.board,away.state.board,away.event,{pieceId:3,at:3});
+ assert.equal(again.effects.some(e=>e.status==='diverted'),false,'An already-diverted live facet is not created again');
 });
 test('shared Center: exact replacement pays pending and diverted facets with only one pair',()=>{
  const {j,z,created}=example(),snapshot=clone(created.state);
@@ -78,5 +81,5 @@ test('shared Center: equivalent settled cycles do not retain events, identities 
   const paid=C.apply(created.state,j.state.board,z.state.board,z.event,{pieceId:cycle*2+2,at:cycle*2+2});
   current=paid.state;assert.deepEqual(current,{pending:[],debt:[]});
  }
- assert.equal(JSON.stringify(current),' {"pending":[],"debt":[]}'.trim());
+ assert.equal(JSON.stringify(current),'{"pending":[],"debt":[]}');
 });

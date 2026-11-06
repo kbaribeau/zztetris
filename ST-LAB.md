@@ -287,7 +287,8 @@ The session contains:
 - `engineVersion`: an explicit coach compatibility identifier. Bump this when a
   behavior/proof-contract change invalidates saved advice or commitments.
   A different coach version produces a warning and discards those candidates;
-  validated history and supported search settings can still be imported.
+  supported current facts, legacy history and search settings can still be
+  imported.
   It is a compatibility version, not a Git SHA or a signature.
 - `position`: rules, board, exact active pose/rotation evidence, HOLD, six-piece
   preview, bag frontier, stream cursor, top-out and revision.
@@ -295,24 +296,42 @@ The session contains:
   currently supported production configuration is accepted; imports cannot
   enlarge budgets or install clock/deadline callbacks.
 - `coaching`: replay-backed resource context and its original bag frontier,
-  pattern history, opener phase/source/clear/repair, previous advice and retained
-  construction commitment. Hanging S/L and Extra Z are reconstructed from replay,
+  current notch checkpoint, opener phase/source/clear/repair, previous advice and
+  retained construction commitment. Hanging S/L and Extra Z are reconstructed from replay,
   not restored from editable status flags.
 
 `st-session.js` checks input size/depth, versions, the complete resource replay,
-its bag frontier, pattern history and bounded opener certificates before the
-controller changes state. Imported previous advice is only a bounded candidate;
+its bag frontier, notch checkpoint shape or legacy notch tape, and bounded opener
+certificates before the controller changes state. Imported previous advice is only a bounded candidate;
 its old witness can be stale after movement, and the existing planner performs
 normal retention/resource/access validation before any target is displayed.
 Commitment witnesses are checked at their recorded origin, preserving legal
 mid-piece target re-enumeration. Invalid/stale opener metadata or malformed
 candidates are discarded with a visible warning. Invalid position, resource or
-pattern evidence rejects the import without changing the current game/worker.
+pattern payload rejects the import without changing the current game/worker.
+
+The nested `coaching.patternHistory` field now carries a version 2 **trusted
+current notch checkpoint**: status, anchor row, blocked rows and a diagnostic
+source. Reserved rows are derived from the current anchor. No origin board,
+piece/lock tape or historical witness is needed to import these facts. Actual
+locks still apply the same notch transition rules, including sticky broken
+state, canonical TSD consumption and clear translation. Legacy `{origin, steps}`
+notch tapes are replay-checked and immediately converted on session import or
+export; malformed tapes still reject. Their 128-lock import limit does not apply
+to live current checkpoints.
+
+The outer session schema remains version 1 and the coach compatibility identifier
+is unchanged: retained plan metadata can still use legacy notch tapes, and
+future advice receives the same checks. Older readers that only understand
+notch tapes reject non-null version 2 checkpoints rather than silently
+reconstructing their phase from the board. This is a nested format extension,
+not backward-readable output. Plain position imports still establish facts
+from their board and do not restore embedded coaching state.
 
 Unknown or truncated resource history remains unknown. The existing resource
 replay limits (4,096 actions / 512 locks) still apply; this feature does **not**
-replace them with a trusted compact checkpoint. A valid replay proves a coherent
-constructed history, not who played it. There are no imported capability tokens,
+replace resource accounting with a trusted compact checkpoint. A valid replay
+proves a coherent constructed history, not who played it. There are no imported capability tokens,
 no authenticity claims from hashes, and no inferred Extra-Z allowance.
 
 Session install is atomic after validation, cancels the old worker and preserves

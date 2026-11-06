@@ -16,7 +16,7 @@
   window.ctrlsPopup=()=>window.open('controls.html','popup','width=1200,height=800');
   const context=$('b').getContext('2d');
   let suggestedFileName=STSession.DEFAULT_EXPORT_FILENAME;
-  let state, origin, future=[], futureCursor=0, generated=false, privatePractice=false, openingPhase=false, openingClear=null, openingRepair=null, openingSource=null, patternHistory=null, resourceHistory=null, resourceOriginBag=null, pieceLedger=null;
+  let state, origin, future=[], futureCursor=0, generated=false, privatePractice=false, openingPhase=false, openingClear=null, openingRepair=null, openingSource=null, patternHistory=null, resourceHistory=null, publicInventory=null, resourceOriginBag=null, pieceLedger=null;
   let undoHistory=[], turnStart=null, resetDiagnosticCache=null;
   // Transient public-only forecast candidate. Never checkpoint or export it.
   let openingForecast=null;
@@ -198,7 +198,7 @@
     // The initial finite history seeds knowledge once. Each actual public reveal
     // consumes the frontier; Undo already restores it in the state snapshot.
     if(history)state={...state,bag:STBag.fromObserved({observed:history,startPhase:0})};
-    replenish();searchSettings=STSession.defaults();resourceOriginBag=state.bag?clone(state.bag):null;openingSource=STPlanner.startOpeningSession(observation(),{emptyMode:random&&opening}).source;patternHistory=STPlanner.startPatternHistory(observation());resourceHistory=STResourceHistory.start(observation(),{fresh:random&&opening});pieceLedger=STPieceLedger.start(observation(),{fresh:random&&opening});previous=null;result=null;commitment=null;pendingLHint=null;lockCount=0;clearedLines=0;lineLabel=counterLabel;
+    replenish();searchSettings=STSession.defaults();resourceOriginBag=state.bag?clone(state.bag):null;openingSource=STPlanner.startOpeningSession(observation(),{emptyMode:random&&opening}).source;patternHistory=STPlanner.startPatternHistory(observation());publicInventory=STPublicInventory.start(observation(),{fresh:random&&opening});resourceHistory=STResourceHistory.start(observation(),{fresh:random&&opening,inventory:publicInventory});pieceLedger=STPieceLedger.start(observation(),{fresh:random&&opening});previous=null;result=null;commitment=null;pendingLHint=null;lockCount=0;clearedLines=0;lineLabel=counterLabel;
     if(!keepOrigin)origin={input:clone(input),options:{tail:tail.slice(),random,history:history?.slice()||null,note,opening,counterLabel,suggestedFileName}};
     setText($('st-position-note'),note);setText($('st-game-status'),'');requestPlan();render();
   }
@@ -217,7 +217,7 @@
   }
   function checkpoint() {
     return {state:clone(state),futureCursor,
-      resourceHistory,resourceOriginBag,pieceLedger,patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null,
+      resourceHistory,publicInventory,resourceOriginBag,pieceLedger,patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null,
       commitment:commitment?clone(commitment):null,pendingLHint:pendingLHint?clone(pendingLHint):null,lockCount,clearedLines};
   }
   function undo() {
@@ -226,7 +226,7 @@
     const saved=undoHistory.pop();
     state={...clone(saved.state),revision:++revision};futureCursor=saved.futureCursor;
     openingPhase=saved.openingPhase;openingSource=saved.openingSource?clone(saved.openingSource):null;openingClear=saved.openingClear?clone(saved.openingClear):null;openingRepair=saved.openingRepair?clone(saved.openingRepair):null;
-    patternHistory=saved.patternHistory?clone(saved.patternHistory):null;resourceHistory=saved.resourceHistory;resourceOriginBag=saved.resourceOriginBag;pieceLedger=saved.pieceLedger;
+    patternHistory=saved.patternHistory?clone(saved.patternHistory):null;resourceHistory=saved.resourceHistory;publicInventory=saved.publicInventory;resourceOriginBag=saved.resourceOriginBag;pieceLedger=saved.pieceLedger;
     commitment=saved.commitment?clone(saved.commitment):null;pendingLHint=saved.pendingLHint?clone(saved.pendingLHint):null;lockCount=saved.lockCount;clearedLines=saved.clearedLines;
     // Never resurrect displayed advice or an old worker response. The saved
     // proof is only a candidate for replay against this restored public state.
@@ -255,7 +255,11 @@
     // Active movement does not expose pieces; only draws shorten the preview.
     replenish();
     if(openingForecast)openingForecast=STPlanner.advanceOpeningForecast(openingForecast,beforeAction,observation(),action);
-    resourceHistory=STResourceHistory.applyAction(resourceHistory,beforeAction,action,{...observation(),lastEvent:state.lastEvent});
+    const afterAction={...observation(),lastEvent:state.lastEvent},inventoryTransition=STPublicInventory.transition(publicInventory,beforeAction,action,afterAction);
+    // Actual gameplay is already committed. Accounting failure cannot roll back
+    // its lock, draw or reveal, and legacy history limits do not stop live flow.
+    publicInventory=inventoryTransition.next;
+    resourceHistory=STResourceHistory.applyAction(resourceHistory,beforeAction,action,afterAction,{inventoryTransition});
     pieceLedger=STPieceLedger.applyAction(pieceLedger,beforeAction,action,{...observation(),lastEvent:state.lastEvent});
     if(locked){
       patternHistory=STPlanner.updatePatternHistory(patternHistory,beforeLock,observation(),state.lastEvent);
@@ -428,7 +432,7 @@
     suggestedFileName=envelope.suggestedFileName;
     state=STRules.createState(prepared.state);revision=state.revision;
     future=tail?.slice()||[];futureCursor=0;generated=false;privatePractice=tail!==null;undoHistory=[];turnStart=null;
-    resourceHistory=prepared.resourceHistory;resourceOriginBag=prepared.resourceOriginBag;
+    resourceHistory=prepared.resourceHistory;publicInventory=resourceHistory.inventory||STPublicInventory.start(observation());resourceOriginBag=prepared.resourceOriginBag;
     pieceLedger=STPieceLedger.start(observation());patternHistory=prepared.patternHistory;
     openingPhase=prepared.openingPhase;openingSource=prepared.openingSource;openingClear=prepared.openingClear;openingRepair=prepared.openingRepair;
     previous=prepared.previous;commitment=prepared.commitment;pendingLHint=prepared.pendingLHint;searchSettings=prepared.search;
@@ -463,7 +467,7 @@
   });
   for(const mode of playModes){const option=document.createElement('option');option.value=mode.id;option.textContent=mode.label;$('st-fixture').append(option);}
   setText($('st-key-help'),actions.map((action,i)=>`${config[i]}: ${action.toLowerCase()}`).join(' · ')+' · Set bindings in Game Settings.');
-  window.stLab=Object.freeze({render,act,loadFixture,snapshot:()=>clone(observation()),exportSession:()=>clone(exportSession()),get resources(){return STResourceHistory.resolve(observation(),resourceHistory);},get pieceLedger(){return STPieceLedger.resolve(observation(),pieceLedger);},get resetEvidence(){return clone(resetDiagnostics());},get result(){return result?clone(result):null;}});
+  window.stLab=Object.freeze({render,act,loadFixture,snapshot:()=>clone(observation()),exportSession:()=>clone(exportSession()),get publicInventory(){return STPublicInventory.exportState(publicInventory);},get resources(){return STResourceHistory.resolve(observation(),resourceHistory);},get pieceLedger(){return STPieceLedger.resolve(observation(),pieceLedger);},get resetEvidence(){return clone(resetDiagnostics());},get result(){return result?clone(result):null;}});
   let savedMode;try{savedMode=localStorage.getItem(modeKey);}catch{ /* Fall back to the stable stack. */ }
   chooseMode(savedMode,{persist:false});
   if(savedMode && !playModes.some(m=>m.id===savedMode))rememberMode(stableId);
