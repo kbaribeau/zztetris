@@ -152,16 +152,20 @@ function sourceRootFor(seed){
 test('source scoring v2: new actual lock may replace only the unexecuted goal suffix with a root-reproved complete A prefix',()=>{
  const session=sourceRootFor(2026103510),root=session.request(15,config),initial=P.decide(root.observation,root.options);
  assert.deepEqual(initial.continuation.map(p=>p.event.type),['O','J','T']);
- const oldRoute=clone(initial.evidence.opening.scoringPlan.source.scoringRoute),oldJ=clone(initial.continuation[1].target);
+ const oldRoute=clone(initial.evidence.opening.scoringPlan.source.scoringRoute),oldJ=clone(initial.continuation[1]);
  session.execute(initial);const request=session.request(16,config),replacement=P.decide(request.observation,request.options);
  assert.equal(replacement.metrics.sourceScoring.replacement,true);
  assert.deepEqual(replacement.continuation.map(p=>p.event.type),['J','T']);
- assert.deepEqual(replacement.target,{type:'J',x:2,y:29,rotation:3});assert.notDeepEqual(replacement.target,oldJ);
+ // Allocation conservation now keeps the same J cells. Require a genuinely
+ // replaced input suffix so this still exercises connected goal rebinding,
+ // rather than weakening the test into a replay of the unchanged old route.
+ assert.deepEqual(replacement.target,{type:'J',x:0,y:30,rotation:3});assert.deepEqual(replacement.target,oldJ.target);
+ assert.deepEqual(replacement.continuation[0].event,oldJ.event);assert.notDeepEqual(replacement.witness,oldJ.witness);
  const source=replacement.evidence.opening.scoringPlan.source,route=source.scoringRoute;
  assert.deepEqual(route.origin,oldRoute.origin);assert.deepEqual(route.steps[0],oldRoute.steps[0]);
  assert.deepEqual(source.scoringSteps,request.options.openingSource.scoringSteps);assert.equal(route.steps.length,3);
  const full=R.replay(route.origin,route.steps.flatMap(p=>p.witness));assert.ok(full.valid&&full.state.active);assert.equal(full.events.at(-1).lines,2);
- assert.deepEqual(full.state.board,Array(31).fill('..........').concat(['....LLL...','...JLSS...','...JSS....','..JJJJJ...','..OOOOJ...','ZZOOOO....','IZZTIOO...','ITTTIOO...','LLLJJJS.Z.']));
+ assert.deepEqual(full.state.board,Array(31).fill('..........').concat(['....LLL...','....LSS...','.J..SS....','.J..JJJ...','JJOOOOJ...','ZZOOOO....','IZZTIOO...','ITTTIOO...','LLLJJJS.Z.']));
  const accepted=P.acceptOpeningResult(session.opening,replacement);assert.ok(accepted.source);assert.equal(accepted.source.scoringDecisionOffset,1);
  const repeat=P.plan(request.observation,{...request.options,openingSource:accepted.source});assert.equal(repeat.metrics.sourceScoring.ordinaryReplan,false);assert.deepEqual(repeat.target,replacement.target);
  const options={...request.options,openingSource:accepted.source};assert.ok(P.revalidate(request.observation,replacement,options));

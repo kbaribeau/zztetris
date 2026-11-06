@@ -161,9 +161,24 @@ function createSession(input, api=P) {
     }
   };
 }
+// Evaluator-only cap; never added to a public planner request.
+function validatePhaseCap(input) {
+  if(input.phaseCap===undefined)return;
+  const c=input.phaseCap;
+  if(!c||Object.keys(c).sort().join(',')!=='openingLocks,postHandoffLocks'||input.scenario!=='empty'||!Number.isSafeInteger(c.openingLocks)||c.openingLocks<1||!Number.isSafeInteger(c.postHandoffLocks)||c.postHandoffLocks<1||input.locks!==c.openingLocks+c.postHandoffLocks)throw Error('Invalid phase cap');
+}
+function phaseCapStatus(input,locks,transitions) {
+  if(!input.phaseCap)return null;
+  const handoff=transitions.find(t=>t.coach!=='opening');
+  const handoffAfterLock=handoff?.afterLock??null;
+  const reason=handoff? (locks>=handoffAfterLock+input.phaseCap.postHandoffLocks?'post-handoff-lock-cap':null):(locks>=input.phaseCap.openingLocks?'opening-lock-cap':null);
+  return {reason,handoffAfterLock,...input.phaseCap};
+}
 function runEpisode(input, {config=CONFIG, planner=workerPlanner({disableSearchTimeout:config.timeMs===null}), onRecord=()=>{}, api=P}={}) {
+  validatePhaseCap(input);
   const session=createSession(input,api), started=performance.now();
   const summary={schemaVersion:1,scenario:input.scenario,seed:input.seed,inputHash:input.inputHash,cap:input.locks,config,stop:'lock-cap',censored:true,locks:0,lines:0,tsds:0,quads:0,invalidRecommendations:0,budgetHits:0,firstTsdAt:null,firstQuadAt:null,rebuildAfterTsdEvents:0,holds:0,nodes:0,peakHeight:boardMetrics(session.state).height,profile:[],latencies:[]};
+  if(input.phaseCap)summary.phaseCap=clone(input.phaseCap);
   summary.reset={starts:[],completions:[],firstCompletion:null,postFirstLines:null,postFirstLocks:null,intervals:[]};
   const coaches=CE.create(CE.phase(session.opening,session.resources),{imported:input.scenario!=='empty'});
   const record=value=>onRecord({...value,...coaches.snapshot()});
@@ -212,6 +227,8 @@ function runEpisode(input, {config=CONFIG, planner=workerPlanner({disableSearchT
     notches=check.pattern;
     if(session.state.topOut){stop('top-out');break;}
     if(flags.some(f=>f==='noncanonical-clear'||f==='notch-transition')){stop('policy-violation',flags);break;}
+    const boundary=phaseCapStatus(input,summary.locks,coaches.snapshot().coachTransitions);
+    if(boundary?.reason){summary.stop='phase-cap';summary.censored=true;summary.detail=boundary;record({kind:'stop',lock:summary.locks,detail:boundary});break;}
   }
   if(summary.reset.firstCompletion){summary.reset.postFirstLines=summary.lines-summary.reset.firstCompletion.lines;summary.reset.postFirstLocks=summary.locks-summary.reset.firstCompletion.completedAt;}
   summary.reset.finalStatus=session.resources.reset?.status??'unknown';summary.reset.finalProgress=session.resources.reset?.progress??null;
@@ -244,4 +261,4 @@ function replayRecords(input, records, api=P) {
   }
   return {mode:'recorded-action-replay',locks,verified:true,finalObservation:publicObservation(session.state),ignoredVolatileRequestFields:['commitment.advice.metrics.elapsedMs'],ignoredVolatileActionFields:['adviceAdvanced'],adviceAdvanceMismatches,note:'No planner search rerun; exact actions/events/draws/public state and non-timing request data are checked. Regenerated commitment duration and wall-clock display-retention flags are excluded from equality; every display-retention difference is reported. This verifies rapid uninterrupted recorded witnesses, not slower interactive replanning.'};
 }
-module.exports={publicObservation,CONFIG,PRESETS,RNG_VERSION,SOURCE_FILES,clone,digest,random,sourceHashes,makeInput,workerPlanner,validateAdvice,boardMetrics,createSession,runEpisode,replayRecords};
+module.exports={validatePhaseCap,phaseCapStatus,publicObservation,CONFIG,PRESETS,RNG_VERSION,SOURCE_FILES,clone,digest,random,sourceHashes,makeInput,workerPlanner,validateAdvice,boardMetrics,createSession,runEpisode,replayRecords};

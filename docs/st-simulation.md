@@ -221,3 +221,16 @@ Use `--protocol FILE --side baseline|candidate` for binding before execution, an
 The [executable evaluation contract](st-evaluation-contract.md) owns validation,
 explicit aggregate criteria, independent correctness receipts and legacy adapters.
 Existing manifests, summaries and commands remain supported.
+
+## Opening-bounded experimental evaluation
+
+For an empty-start opening experiment, `--locks 100 --opening-locks 80
+--post-handoff-locks 20` stops at 80 locks if still in Opening, otherwise at
+20 actual locks after the first observed non-Opening controller transition.
+Earlier abstention/top-out/safety failures remain unchanged. Both flags are
+required, their positive values must sum to `--locks`, and stable starts are
+rejected. The evaluator-only `input.phaseCap` travels with saved inputs and
+protocol hashes, never worker requests. `phase-cap` is a right-censored stop;
+`detail` records its reason and actual handoff boundary. Scoring a TSD does not
+itself count as handoff. Compare handoff rates and shared-horizon outcomes,
+not raw length as survival superiority when arms stop at different phase caps.
