@@ -290,3 +290,10 @@ finite J-goal retention with actual movements and newly public supply. A second
 eligible position checks delegation without requiring that repair. Production
 Worker execution is separate from component deadline controls; paired finite
 simulations and real-browser checks remain separate acceptance evidence.
+
+`st-opening-third-t.test.cjs` checks ordinary visible first-double route retention
+through actual input/reveal history, separately from post-clear handoff proof.
+It includes invalid original supply, event/action/bag/history changes, budget
+expiry, immutable routing, preserved legacy forecast payload and rejection of
+construction-only forecasts by maintenance admission. The minimized fixture
+contains public observation/history and visible witnesses, not a private stream.

@@ -126,3 +126,26 @@ this step; imported phase/evidence labels cannot authorize it.
 
 These are finite proof and budget contracts. E01 is an inspected development
 regression, not evidence of general survival improvement.
+
+### Retaining the visible first-double route
+
+Once complete public resource history verifies the two non-Right Ts and the
+opening Z allocation, an ordinary checked route to the first Right T-spin double
+can survive replanning after its preparatory locks. This does not change opening
+ranking or reserve a future piece that has not been revealed.
+
+The transient forecast preserves the original visible route, exact actual
+inputs and newly public draws. Revalidation replays the original route without
+later reveals, binds the consumed actions to the current pose and bag, and
+replays the remaining witnesses with the current identity-bearing resource
+ledger. The final first-double allocation and access checks must succeed within
+a 2,000-node/120-ms slice of the existing request allowance. Failure leaves the
+remaining request budget to ordinary opening search. The original height and
+broken-notch guards still apply.
+
+A failed hypothetical maintenance probe does not invalidate this construction
+route. A completed construction forecast cannot authorize maintenance; the
+ordinary actual-clear or observed-quality handoff checks remain separate. When
+a route already carries a checked maintenance forecast, that separate payload
+is preserved. Deviation, Undo and imports use the existing transient forecast
+lifecycle rather than granting a new persisted session capability.
