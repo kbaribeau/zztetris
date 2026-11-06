@@ -5,6 +5,8 @@ const crypto = require('node:crypto');
 const { withPage } = require('./support/page.cjs');
 const R = require('../st-rules');
 const H = require('../st-resource-history');
+const PH = require('../st-pattern-history');
+const PATTERN_BASELINE = require('./support/st-resource-history-ui-patterns.json');
 const clone = value => JSON.parse(JSON.stringify(value));
 const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const resources = g => clone(g.window.stLab.resources);
@@ -38,7 +40,11 @@ const allocationFacts = diagnostic => ({ locks: diagnostic.locks, center: diagno
 // 7401810 (tree 2edd62c6), seed 42, with the exact actions below. These are
 // observable worker-message hashes, not source-code snapshots. No planner is
 // mocked to change the message content. The new replay context is checked
-// independently, while every pre-existing message field retains this oracle.
+// independently. The current-notch migration intentionally changes only
+// options.patternHistory. Its semantic facts are compared with the separately
+// frozen old implementation's output; replacing that one transport field with
+// its captured legacy payload then retains every original request hash below.
+// No current product code generates the expected facts or legacy payloads.
 const BASELINE_REQUESTS = [
   'f879a37bd203cac5f8e7ba4f1000d47616df377c95c79ed01dd6b0dfa8022c9e',
   '1e9afa3d8e835a04f60661abf25f6e6f9983bbdc3794f11040f41a2561695952',
@@ -58,13 +64,21 @@ const BASELINE_REQUESTS = [
   '9340dd798a2a444ef24ebd562ebc1c53ee005ea47f6848f6c3ba2245f3c2f3a7',
 ];
 
-test('resource history UI: replay context is validated while prior worker fields remain identical through HOLD, locks, Undo, branch, restarts and import', () => withPage('st-lab.html', { seed: 42 }, g => {
+test('resource history UI: replay context and current notch facts preserve prior worker semantics through HOLD, locks, Undo, branch, restarts and import', () => withPage('st-lab.html', { seed: 42 }, g => {
   const all = workers(g), actual = [];
   const capture = () => {
     const message=request(g,all),proof=message.options.resourceContext;
     assert.ok(proof,'Every active observation carries its bounded replay context');
     assert.deepEqual(H.resolve(message.observation,H.importContext(message.observation,proof)),resources(g));
-    const prior=clone(message);delete prior.options.resourceContext;actual.push(hash(prior));
+    const frozen=PATTERN_BASELINE.patterns[PATTERN_BASELINE.requestPatterns[actual.length]];
+    assert.ok(frozen,'Every captured request has an independent legacy notch oracle');
+    const current=message.options.patternHistory;
+    assert.equal(current.version,2);assert.equal('origin' in current,false);assert.equal('steps' in current,false);
+    assert.deepEqual(PH.resolve(message.observation,current),frozen.facts,
+      `Current notch semantics changed at request ${actual.length}`);
+    const prior=clone(message);delete prior.options.resourceContext;
+    prior.options.patternHistory=clone(frozen.legacy);
+    actual.push(hash(prior));
   };
   select(g, 'empty'); capture();
   for (const action of ['HOLD', 'L', 'CW', 'HD', 'HOLD', 'HOLD', 'R', 'HD', 'UNDO', 'R180', 'HD']) {
@@ -74,6 +88,7 @@ test('resource history UI: replay context is validated while prior worker fields
   g.tap('KeyR'); capture();
   select(g, 'marathon-rebuild'); capture();
   g.click('#st-export'); g.click('#st-import'); capture();
+  assert.equal(PATTERN_BASELINE.requestPatterns.length,BASELINE_REQUESTS.length);
   assert.deepEqual(actual, BASELINE_REQUESTS);
   const message = all.at(-1).message;
   for (const section of [message, message.observation, message.options]) {

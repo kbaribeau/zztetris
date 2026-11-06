@@ -75,7 +75,11 @@ test('coach entries: simulation counts Reset completion on its final capped lock
  const file=path.resolve(__dirname,'../scripts/lib/st-simulation.cjs'),req=createRequire(file),f=require('./support/st-reset-live-cycle.json');
  // Inject only an authenticated prior root history for this lifecycle fixture;
  // ordinary stable imports intentionally have no such prior authority.
- const box={module:{exports:{}},__dirname:path.dirname(file),performance,require:n=>n==='node:assert/strict'?{...assert,deepEqual:(a,b,...rest)=>assert.deepEqual(E.clone(a),E.clone(b),...rest)}:n==='../../st-resource-history'?{...H,start:state=>H.importContext(state,E.clone(f.resourceContext))}:req(n)};
+ const rootHistory=H.importContext(R.createState(f.initial),E.clone(f.resourceContext));
+ // The controller now owns public identities. Seed the same authenticated
+ // current inventory as the historical root, rather than creating unrelated
+ // stable-origin identities for this explicitly resumed-session fixture.
+ const box={module:{exports:{}},__dirname:path.dirname(file),performance,require:n=>n==='node:assert/strict'?{...assert,deepEqual:(a,b,...rest)=>assert.deepEqual(E.clone(a),E.clone(b),...rest)}:n==='../../st-resource-history'?{...H,start:()=>rootHistory}:n==='../../st-public-inventory'?{...req(n),start:()=>rootHistory.inventory}:req(n)};
  vm.runInNewContext(fs.readFileSync(file,'utf8'),box,{filename:file});const Sim=box.module.exports;
  const input={scenario:'stable',seed:0,initial:f.initial,locks:f.steps.length,future:f.steps.flatMap(s=>s.actions.flatMap(a=>a.revealed)),inputHash:'test-real-reset-history'};
  let index=0;
