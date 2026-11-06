@@ -73,6 +73,12 @@ test('opening accounts: a later real TSD cannot erase the still-unpaid mandatory
  assert.equal(a.position.lastEvent.lines,2);assert.equal(a.state.mandatoryZ,true);assert.equal(a.state.z.uncredited,'none');
  a.lock(['HOLD',...opening.steps[0].witness.slice(1)]);assert.equal(a.state.mandatoryZ,false);assert.equal(a.state.z.uncredited,'none');assert.equal(a.state.z.remaining,null);
 });
+test('opening accounts: noncanonical Z clear is a debit, not payment, and cannot erase mandatory work',()=>{
+ const a=recorded();a.lock(['L','L','L','HD']);a.lock(opening.steps[1].witness);
+ const bad=lock(a.state,'Z',100,{event:{lines:1,clearedRows:[39]}});
+ assert.equal(bad.state.mandatoryZ,true);assert.equal(bad.state.z.uncredited,'one');assert.equal(bad.state.opening,null);assert.equal(O.resolve(bad.state).openingAllocation.status,'out-of-profile');assert.ok(bad.effects.some(e=>e.status==='optional-Z-debited'));
+ const paid=lock(bad.state,'Z',101);assert.equal(paid.state.mandatoryZ,false);assert.equal(paid.state.z.uncredited,'one');assert.equal(paid.state.z.remaining,null);assert.equal(O.resolve(paid.state).openingAllocation.status,'verified-first-tsd');assert.ok(paid.effects.some(e=>e.status==='opening-Z-paid'));
+});
 test('opening accounts: optional Z permanently retires delayed quality but not verified allocation',()=>{
  const a=recorded();for(const i of [0,1])a.lock(opening.steps[i].witness);a.lock(['L','L','CW','HD']);
  assert.equal(a.state.opening,null);assert.equal(a.state.z.uncredited,'one');assert.ok(a.last.effects.some(e=>e.status==='quality-disqualified'));
@@ -125,6 +131,18 @@ test('opening accounts: real Right Z during Reset is not an optional debit',()=>
  const a=trial(1,24,isolatedHistory());a.begin();a.lock(['L','L','L','HD']);for(let i=0;i<3;i++)a.lock(['HD']);a.lock(['CW','R','R','R','R','HD']);assert.equal(a.state.z.remaining,1);
  a.lock(['L','L','L','HD']);assert.equal(a.state.z.remaining,2);assert.equal(a.state.reset.status,'inactive');
 });
+test('opening accounts: actual completed Reset can be spent and entered again without an episode archive',()=>{
+ const f=require('./support/st-reset-live-cycle.json'),a=replay(f.resourceContext.origin,{historyAPI:isolatedHistory()}).load(f.resourceContext);a.begin();
+ for(const step of f.steps)for(const action of step.actions)a.act(action.action,action.revealed);
+ assert.equal(a.state.z.remaining,2);assert.deepEqual(a.state.reset,{status:'inactive'});
+ const continuation=[
+  [['CW','L','L','HD'],'Z'],[['CW','L','L','L','L','HD'],'I'],
+  [['L','L','HD'],'J'],[['CW','L','L','HD'],'L'],[['R','HD'],'S'],
+  [['L','L','L','L','HD'],'Z'],[['HOLD','R180','L','L','L','HD'],'T'],[['R','HD'],'I'],
+ ];
+ for(const [witness,revealed]of continuation)for(const action of witness)a.act(action,action==='HD'?[revealed]:[]);
+ assert.equal(a.state.z.remaining,0);const begun=a.begin();assert.equal(begun.state.z.remaining,0);assert.equal(begun.state.reset.remaining,2);assert.equal(begun.state.reset.firstTId,null);
+});
 test('opening accounts: Reset overspend and a non-Left or scoring T invalidate without repair',()=>{
  const a=trial(1,24,isolatedHistory());a.begin();a.act('HOLD');for(let i=0;i<5;i++)a.lock(['HD']);assert.equal(a.state.z.remaining,-1);assert.equal(a.state.reset.status,'invalid');a.lock(['L','L','L','HD']);assert.equal(a.state.z.remaining,-1);
  const b=trial(1,24,isolatedHistory());b.begin();b.lock(['HD']);assert.equal(b.state.reset.status,'invalid');assert.equal(b.state.z.remaining,0);
@@ -153,6 +171,14 @@ test('opening accounts: trusted compact imports need structure, not provenance o
  const active=O.beginReset(established(),{candidate:true}).state,one=lock(active,'T',73001,{bag:10000}).state;
  const portable=O.importState(JSON.parse(JSON.stringify(one)));assert.deepEqual(lock(portable,'T',73002,{bag:10001}).state.z,{remaining:2,uncredited:'none'});
  for(const mutate of [s=>s.schemaVersion=2,s=>s.z.remaining=NaN,s=>s.z.uncredited='invented',s=>s.history=[],s=>s.opening={kind:'quality',imbalance:0,oldBags:[]},s=>s.reset={status:'active',remaining:1,firstTId:null,inheritedCovered:[]},s=>s.reset={status:'active',remaining:2,firstTId:null,inheritedCovered:[[10,40]]}]){const bad=copy(established());mutate(bad);assert.throws(()=>O.importState(bad),TypeError);}
+});
+test('opening accounts: a fresh realm continues a trusted half-Reset snapshot without replay',()=>{
+ const one=lock(O.beginReset(established(),{candidate:true}).state,'T',99).state;
+ const file=path.resolve(__dirname,'../st-opening-obligations.js'),box={module:{exports:{}},require:createRequire(file)};vm.runInNewContext(fs.readFileSync(file,'utf8'),box);const fresh=box.module.exports;
+ const imported=fresh.importState(JSON.parse(JSON.stringify(O.exportState(one))));
+ const e={type:'T',cells:poses.T,lines:0,spin:'none',clearedRows:[],topOut:false};
+ const next=fresh.transition(imported,{kind:'lock',piece:{id:101,type:'T',bag:1},event:e,centerEffects:[]},{before:{board:empty()},after:{board:empty(),topOut:false,center:{pending:[],debt:[]},sl:clearSL(),coveredCells:[]}});
+ assert.deepEqual(copy(next.state.reset),{status:'inactive'});assert.equal(next.state.z.remaining,2);assert.equal(next.effects.filter(e=>e.status==='reset-T-credited').length,1);
 });
 test('opening accounts: actual imported X boards and more than four cleared rows remain accepted facts',()=>{
  const board=empty();for(let y=35;y<40;y++)board[y]='XXXXXXXXXX';
