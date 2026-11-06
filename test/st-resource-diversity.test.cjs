@@ -3,7 +3,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const R=require('../st-rules'),M=require('../st-midgame-resources');
 // Expose only the private scheduling seam. These synthetic nodes test beam
 // sampling, not legality, supported strategy, or a substitute repair proof.
-const source=fs.readFileSync(require.resolve('../st-planner'),'utf8').replace('return Object.freeze({dPatternAdmission,','return Object.freeze({diversify,dPatternAdmission,');
+const source=fs.readFileSync(require.resolve('../st-planner'),'utf8').replace('return Object.freeze({dPatternAdmission,','return Object.freeze({historyDiversityEnabled,diversify,dPatternAdmission,');
 const mod={exports:{}};vm.runInNewContext(source,{module:mod,require:createRequire(require.resolve('../st-planner')),Date,performance});
 const diversify=mod.exports.diversify,clone=x=>JSON.parse(JSON.stringify(x));
 function node(key,type='L',at=43,rootIndex=0){
@@ -30,4 +30,12 @@ test('resource diversity: current identities, obligations, and violations stay d
 });
 test('resource diversity: no collisions retain original scheduling and nonordinary scope',()=>{
  const nodes=cohort();nodes[1].state.board[38]='.I........';for(const width of [1,2,3,4])assert.deepEqual(keys(diversify(nodes,width,true)),keys(diversify(nodes,width,false)));assert.deepEqual(keys(diversify(cohort(),2)),['a','b'],'existing other search families keep their default');
+});
+
+test('resource diversity: activation requires complete consumed history and observed handoff',()=>{
+ const enabled=mod.exports.historyDiversityEnabled,state=R.createState({active:'S',queue:['L']});
+ assert.equal(enabled(M.start(state)),false);
+ assert.equal(enabled({slHistory:null}),false);
+ assert.equal(enabled({slHistory:{milestones:{maintenanceHandoff:null}}}),false);
+ assert.equal(enabled({slHistory:{milestones:{maintenanceHandoff:{at:20}}}}),true);
 });

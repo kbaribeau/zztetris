@@ -1086,6 +1086,9 @@ function nodeFor(p,parent,initial,rootIndex,readAssessment=assess){
 // constraints should not crowd out other positions in the bounded ordinary beam.
 // Never use this key for deduplication, certificate reuse, or resource equality.
 // Full latent histories and exact bindings remain on every selected node.
+// Only complete observed histories after actual maintenance handoff use this
+// scheduling rule; opening probes and partial-history searches retain theirs.
+function historyDiversityEnabled(resources){return Boolean(resources?.slHistory?.milestones?.maintenanceHandoff);}
 function diversityKey(n){return nodeKey({...n,resources:n.resources?{...n.resources,slHistory:null,initialUnclassified:null,introducedUnclassified:null}:null});}
 function diversify(nodes,width,spreadHistory=false){const sorted=[...nodes].sort(compare),chosen=[],roots=new Set(),groups=new Set(),surfaces=new Set(),surfaceKeys=new Map();
  const surface=n=>{if(!surfaceKeys.has(n))surfaceKeys.set(n,diversityKey(n));return surfaceKeys.get(n);};
@@ -1538,7 +1541,7 @@ function planCore(raw,options={}){
  base.metrics.completedBeamDepth=root.complete?1:0;
  remember(best);
  // References only: do not change ordinary beam generation or proof scheduling.
- let layer=diversify(frontier,width,true),comparisonLayer=frontier;const completedSLLayers=root.complete?[frontier]:[];
+ let layer=diversify(frontier,width),comparisonLayer=frontier;const completedSLLayers=root.complete?[frontier]:[];
  for(let depth=2;depth<=maxDepth&&!stopped&&layer.length;depth++){
   const next=[],seen=new Map();let complete=true;
   for(const n of layer){if(!n.state.active)continue;expandedRoots.add(n.rootIndex);const e=enumerate(n.state);if(!e.complete)complete=false;
@@ -1560,7 +1563,7 @@ function planCore(raw,options={}){
     if(screeningComplete)base.metrics.completeDepth=depth;
    }
   }
-  layer=diversify(next,width,true);
+  layer=diversify(next,width,historyDiversityEnabled(initial.resources));
  }
  if(cleanupCommitment&&(!best||!coversResourceGoal(best,cleanupCommitment)))best=cleanupCommitment;
  let comparisonSaved=commitment;
