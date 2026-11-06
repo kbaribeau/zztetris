@@ -65,7 +65,7 @@ test('checked I / fresh serialized Worker discovers the same public allocation w
 
 test('checked I / one-placement fallback does not borrow an unexecuted I exit',()=>{
  const f=require('./fixtures/contextual-risk-S.json'),state=R.createState(f.observation),o={...options(),resourceContext:RH.exportContext(state,RH.start(state)),patternHistory:P.startPatternHistory(state)},a=P.decide(state,o);
- assert.equal(a.target.type,'S');assert.equal(a.recommendation.kind,'risky');assert.equal(a.evidence.resourceObligations,undefined);assert.equal(P.revalidate(state,a,o),null);assert(R.replay(state,a.continuation.flatMap(p=>p.witness)).valid);
+ assert.equal(a.target.type,'S');assert.equal(a.recommendation.kind,'risky');assert.equal(a.evidence.resourceObligations.status,'unverified');assert.equal(a.evidence.resourceObligations.checkedIExits,undefined);assert.ok(Array.isArray(a.evidence.resourceObligations.unclassifiedS));assert.ok(Array.isArray(a.evidence.resourceObligations.unclassifiedL));assert.equal(P.revalidate(state,a,o),null);assert(R.replay(state,a.continuation.flatMap(p=>p.witness)).valid);
 });
 
 test('checked I / an unexecuted exit cannot support a D-ending prefix or alter ordinary fresh ranking',()=>{

@@ -7,7 +7,7 @@ test('Reset coach: actual known late history admits Left-only support risk with 
  assert.equal(summary.extraZ.status,'used');assert.equal(decision.status,'candidate');assert.ok(decision.deficit.left>0);assert.equal(decision.deficit.center,0);
  assert.equal([f.state.active.type,f.state.hold,...f.state.queue].filter(x=>x==='T').length,1);
  const advice=P.plan(f.state,{resourceContext:f.resourceContext,deadline:Infinity,maxNodes:45000,openingPhase:false});
- assert.ok(advice.target,advice.reason);assert.equal(advice.evidence.strategy,'reset-coach');assert.ok(Q.qualifies(advice.continuation[0].event));assert.ok(C.check(f.state,advice.continuation,{resourceContext:f.resourceContext,deadline:Infinity}).valid);
+ assert.ok(advice.target,advice.reason);assert.ok(Array.isArray(advice.evidence.resourceObligations.unclassifiedS));assert.ok(Array.isArray(advice.evidence.resourceObligations.unclassifiedL));assert.equal(advice.evidence.strategy,'reset-coach');assert.ok(Q.qualifies(advice.continuation[0].event));assert.ok(C.check(f.state,advice.continuation,{resourceContext:f.resourceContext,deadline:Infinity}).valid);
  assert.equal(H.resolve(f.state,f.history).reset.status,'inactive','Planning does not mutate actual progress');
 });
 test('Reset policy: Center-only risk includes lower scoring-row column seven; supported, early and unknown controls decline',()=>{

@@ -38,7 +38,7 @@ function transition(n,p){
  const structural=S.transition(n.state,{...p,availableCleanupPreparation:cleanupAvailable(n.state,n.allowHold)},undefined,{notches:n.notches});
  if(structural.cycleViolations.some(v=>!(Q.qualifies(e)&&v==='spent-scoring-T-without-double')))return null;
  const resource=M.step(n.state,p,n.resource);
- if(resource.violations.length||resource.pendingCenter.some(d=>d.lost&&!n.resource.pendingCenter.some(old=>old.rootId===d.rootId&&old.lost)))return null;
+ if(resource.violations.length||['S','L'].some(kind=>resource['unclassified'+kind].some(p=>n.resource['hanging'+kind].some(old=>old.id!==null&&old.id===p[kind==='S'?'sId':'lId'])))||resource.pendingCenter.some(d=>d.lost&&!n.resource.pendingCenter.some(old=>old.rootId===d.rootId&&old.lost)))return null;
  const path=[...n.path,{witness:p.witness.slice(),event:clone(e),target:clone(e.target),hold:p.witness.includes('HOLD'),structuralEvidence:structural}];
  const score=L.evaluate(p.state,{resources:resource}).score;
  return{state:p.state,allowHold:n.allowHold,notches:phase.pattern,resource,path,score:score+geom.supportEstimate,done:resource.resetProgress===2};
@@ -84,7 +84,7 @@ function advice(raw,verified,metrics={}){
   reason:Q.qualifies(first.event)?`Reset: place T ${progress+1} of 2 wholly in Left without clearing lines.`:'Reset: keep the stack playable while waiting for the remaining Left T placement.',
   recommendation:{kind:'supported',hazards:[],claim:'Checked finite public prefix; unseen supply and indefinite survival are not promised.'},
   metrics:{nodes:verified.visited,roots:0,rootExpanded:0,depth:n.path.length,completeDepth:0,elapsedMs:0,certifiedHorizon:n.path.length,...metrics},
-  evidence:{strategy:'reset-coach',budgetExhausted:Boolean(metrics.budgetExhausted),resetSelection:verified.start.decision,reset:{progress,projectedProgress:n.resource.resetProgress,completion:'second-actual-Left-zero-clear-T',entry:verified.start.decision.status==='candidate'},verifiedLocks:n.path.length,knownPieceHorizon:raw.queue.length+1,cycleDebt:0,gapAccess:verified.access,coveredRepair:verified.repair,resourceObligations:{status:'checked',remainingZ:n.resource.extraZRemaining,pendingCenter:clone(n.resource.pendingCenter),hangingS:clone(n.resource.hangingS),hangingL:clone(n.resource.hangingL)},claim:'Reset completes on the second qualifying actual T lock. Midgame then owns rebuilding.'}};
+  evidence:{strategy:'reset-coach',budgetExhausted:Boolean(metrics.budgetExhausted),resetSelection:verified.start.decision,reset:{progress,projectedProgress:n.resource.resetProgress,completion:'second-actual-Left-zero-clear-T',entry:verified.start.decision.status==='candidate'},verifiedLocks:n.path.length,knownPieceHorizon:raw.queue.length+1,cycleDebt:0,gapAccess:verified.access,coveredRepair:verified.repair,resourceObligations:{status:'checked',remainingZ:n.resource.extraZRemaining,pendingCenter:clone(n.resource.pendingCenter),hangingS:clone(n.resource.hangingS),hangingL:clone(n.resource.hangingL),unclassifiedS:clone(n.resource.unclassifiedS),unclassifiedL:clone(n.resource.unclassifiedL)},claim:'Reset completes on the second qualifying actual T lock. Midgame then owns rebuilding.'}};
 }
 function plan(raw,options={}){
  const start=entry(raw,options);if(!start.history)return null;
@@ -129,5 +129,5 @@ function continuation(before,after,previous,event,options={}){
  const steps=previous.continuation.slice(1),first=steps[0];
  return retain(after,{...previous,target:first.target,witness:first.witness,continuation:steps,evidence:{...previous.evidence,gapAccess:{...previous.evidence.gapAccess,steps:previous.evidence.gapAccess.steps.slice(1)}}},options);
 }
-return Object.freeze({plan,check,retain,continuation,consider:Q.consider});
+return Object.freeze({plan:(...args)=>M.discloseAdvice(plan(...args)),check,retain:(...args)=>M.discloseAdvice(retain(...args)),continuation:(...args)=>M.discloseAdvice(continuation(...args)),consider:Q.consider});
 });

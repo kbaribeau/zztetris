@@ -49,7 +49,7 @@ test('Hanging-S identification: an unreviewed crossing S remains unknown rather 
  const afterS=execute(before,s.witness);
  const l=R.placements(afterS.state,{allowHold:false,maxNodes:45000}).placements.find(p=>p.event.type==='L'&&p.event.cells.every(([x])=>x<7));assert.ok(l);
  const afterL=execute(afterS,l.witness);assert.equal(afterL.summary.hangingS.status,'unknown');assert.deepEqual(observedIds(afterL.summary),[]);assert.ok(afterL.summary.hangingS.unclassified.some(p=>p.sId===20));
- assert.deepEqual(ids(M.checkPath(before.state,[s,l],d).resource),[]);
+ const checked=M.checkPath(before.state,[s,l],d);assert.deepEqual(ids(checked.resource),[]);assert.deepEqual(checked.resource.unclassifiedS,afterL.summary.hangingS.unclassified,'Consumed allocations and pair state update inside the same projected prefix');assert.equal(M.newUnclassified(checked.resource),true);
 });
 test('Hanging-S identification: held S plus two preview S pieces does not fabricate imported placement history',()=>{
  const state=R.createState({rules:'st-zero-v2',board:[...Array(32).fill('..........'),'....LOO...','.SS.LOO...','SSOOLL....','LJOOLOO...','LJJJLOO...','IJSLOOJ.Z.','SSLLLSS.Z.','IJLLOOJ.Z.'],active:{type:'I',x:3,y:17,rotation:0,lastRotation:null},hold:'S',canHold:true,queue:['S','Z','J','L','Z','S'],revision:640,streamCursor:60,bag:{remaining:[43],observedCount:66,provenance:'known-phase'}});

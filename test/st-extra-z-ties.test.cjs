@@ -67,7 +67,7 @@ test('Extra-Z ties: unresolved access, repair and resource obligations cannot wi
 });
 test('Extra-Z ties: held Z and differing piece or history identities do not imply equivalence',()=>{
  const edits=[n=>n.resources.hold.id++,n=>n.resources.active.id++,n=>n.resources.hold.bag++,n=>n.resources.queue.push({type:'Z',id:9}),
- n=>n.resources.scoredTs=[99],n=>n.resources.originKey='other root'];
+ n=>n.resources.scoredTs=[99],n=>n.resources.originKey='other root',n=>n.resources.slHistory={pieces:{5:{id:5,type:'S',allocation:{region:'left-center'},pair:null}}}];
  for(const edit of edits){const a=node('a'),z=node('z','available');edit(z);assert.deepEqual(order([z,a]),['a','z']);}
  const a=node('a','used'),z=node('z','unknown');assert.deepEqual(order([z,a]),['a','z'],'physical Z remains irrelevant with unknown permission');
 });
