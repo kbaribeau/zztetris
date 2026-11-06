@@ -64,6 +64,18 @@ function allocationRank(path,required,pending=[]){
  }
  return [allocation,0,-diverted,-obligations.length];
 }
+// Retain only the authenticated two-non-Right-T opening allocation. A
+// transported scoring route is construction evidence, never handoff authority.
+function thirdTReady(summary){return summary?.coverage?.status==='complete'&&summary.openingAllocation?.status==='ready-for-first-tsd'&&summary.openingAllocation.counts?.T===2;}
+function thirdTPathRank(path){
+ let scored=false;
+ for(const {event:e}of path){
+  if(scored)break;
+  if(e.type==='T'){if(e.lines===2&&e.spin==='full'&&e.cells.every(([x])=>x>=6)&&e.cells.some(([x])=>x>=7))scored=true;else return -1;}
+  if(e.type==='Z'&&e.cells.some(([x])=>x<7))return -1;
+ }
+ return scored?1:0;
+}
 function rank(f,event,path){
  const low=Math.min(...f.heights.slice(0,7)),high=Math.max(...f.heights.slice(0,7));
  const centerSpan=Math.max(...f.center)-Math.min(...f.center),gap=Math.abs(Math.max(...f.left)-Math.max(...f.center));
@@ -610,11 +622,12 @@ function forecastSteps(path,max=7){
 function captureForecast(raw,advice){
  try{
   const forecast=advice?.evidence?.opening?.handoffCandidate;
-  if(forecast?.status!=='verified-public-post-clear-continuation')return null;
-  const path=forecastSteps(advice.continuation,4),continuation=forecastSteps(forecast.continuation);
-  if(!path||!continuation||!path.at(-1).event.lines||!S.canonicalClear(path.at(-1).event))return null;
+  const scoring=forecast?.status!=='verified-public-post-clear-continuation'&&advice?.evidence?.opening?.firstTsdPrefix?.status==='checked-visible-first-tsd';
+  if(!scoring&&forecast?.status!=='verified-public-post-clear-continuation')return null;
+  const path=forecastSteps(scoring?firstScoringPrefix(advice.continuation):advice.continuation,4),continuation=scoring?null:forecastSteps(forecast.continuation);
+  if(!path||!scoring&&!continuation||!path.at(-1).event.lines||!S.canonicalClear(path.at(-1).event))return null;
   const origin=getPlanner().observe(raw);if(R.validate(origin).length||origin.queue.length>6)return null;
-  const candidate={version:forecastVersion,origin,path,continuation,actions:[],observation:origin,complete:false};
+  const candidate={version:forecastVersion,...(scoring?{kind:'construction-first-tsd'}:{}),origin,path,continuation,actions:[],observation:origin,complete:false};
   return JSON.stringify(candidate).length<=131072?clone(candidate):null;
  }catch{return null;}
 }
@@ -636,11 +649,65 @@ function advanceForecast(candidate,before,after,action){
   return{...candidate,actions,observation:end,complete};
  }catch{return null;}
 }
+// Transient routing only. Replay both the originally visible route and every
+// actual action/reveal, then prove the remaining scoring prefix with the live
+// authenticated resource ledger. No post-clear maintenance proof is required.
+function checkedFirstTsd(state,candidate,options,work){
+ const now=options.now,deadline=options.deadline,limit=options.maxNodes;
+ const fail=reason=>{work.reason=reason;return null;},spend=n=>{if(now()>=deadline||work.nodes+n>limit)return false;work.nodes+=n;return true;};
+ try{
+  if(candidate?.kind&&candidate.kind!=='construction-first-tsd'||candidate?.version!==forecastVersion||candidate.complete!==false)return fail('no-live-scoring-prefix');
+  if(!options.resourceContext)return fail('unknown-allocation');
+  const resources=RH.importContext(state,options.resourceContext),summary=RH.resolve(state,resources);
+  if(!thirdTReady(summary))return fail('allocation-not-ready');
+  const path=forecastSteps(candidate.path,4),origin=getPlanner().observe(candidate.origin);
+  if(!path||!Array.isArray(candidate.actions)||candidate.actions.length>1024||JSON.stringify(candidate).length>131072||R.validate(origin).length||B.validate(origin.bag).length||B.validate(state.bag).length||origin.rules!==state.rules||origin.queue.length>6||thirdTPathRank(path)!==1)return fail('candidate-shape');
+  let virtual=origin,notches=S.notchPattern(origin.board);const original=[];
+  for(const step of path){
+   if(!spend(step.witness.length+1))return fail('shared-budget');
+   const r=R.replay(virtual,step.witness);if(!r.valid||r.events.length!==1||JSON.stringify(r.events[0])!==JSON.stringify(step.event))return fail('original-route');
+   const phase=validStep(virtual.board,{state:r.state,event:r.events[0]},notches);if(!phase)return fail('original-policy');
+   original.push({...step,board:r.state.board});virtual=r.state;notches=phase;
+  }
+  if(firstScoringPrefix(original)?.length!==original.length||original.slice(0,-1).some(p=>p.event.lines))return fail('not-first-scoring-route');
+  let replay={version:forecastVersion,kind:'construction-first-tsd',origin,path,continuation:null,actions:[],observation:origin,complete:false};
+  for(const record of candidate.actions){
+   if(!spend(2)||!Array.isArray(record.revealed)||record.revealed.length>1)return fail('shared-budget-or-reveals');
+   const r=R.replay(replay.observation,[record.action]);if(!r.valid)return fail('actual-prefix');
+   const after={...r.state,revision:replay.observation.revision+1,queue:[...r.state.queue,...record.revealed]};
+   for(const piece of record.revealed){if(typeof piece!=='string'||piece.length!==1||!'IJLOSTZ'.includes(piece))return fail('reveals');if(after.bag)after.bag=B.consume(after.bag,piece);}
+   replay=advanceForecast(replay,replay.observation,after,record.action);if(!replay)return fail('actual-prefix');
+  }
+  replay.observation.revision=state.revision;
+  if(replay.complete||!sourcePublicMatch(replay.observation,state))return fail('different-actual-state');
+  const locks=replay.actions.filter(a=>a.action==='HD').length,lastLock=replay.actions.findLastIndex(a=>a.action==='HD'),movement=replay.actions.length-lastLock-1;
+  const remaining=clone(path.slice(locks));if(!remaining.length)return fail('empty-route');
+  remaining[0].witness=remaining[0].witness.slice(movement);
+  let history=resources;virtual=state;notches=getPlanner().resolvePatternHistory(state,options.patternHistory);
+  for(const step of remaining){
+   if(!spend(3*step.witness.length+1))return fail('shared-budget');
+   const r=R.replay(virtual,step.witness);if(!r.valid||r.events.length!==1||JSON.stringify(r.events[0])!==JSON.stringify(step.event))return fail('remaining-route');
+   const phase=validStep(virtual.board,{state:r.state,event:r.events[0]},notches);if(!phase)return fail('remaining-policy');
+   for(const action of step.witness){const before=virtual;virtual=R.move(before,action);history=RH.applyAction(history,before,action,virtual);}
+   Object.assign(step,{board:virtual.board,hold:step.witness.includes('HOLD'),holdCount:step.witness.filter(a=>a==='HOLD').length});notches=phase;
+  }
+  const endpoint=RH.resolve(virtual,history);
+  if(endpoint.coverage.status!=='complete'||endpoint.openingAllocation.status!=='verified-first-tsd'||endpoint.openingAllocation.counts.T!==3||endpoint.openingAllocation.counts.TNonRight!==2||endpoint.openingAllocation.counts.ZNonRight!==1)return fail('resource-allocation');
+  // Replay work in the access checker is charged as well as its search nodes.
+  if(!spend(remaining.reduce((n,p)=>n+p.witness.length,0)))return fail('shared-budget');
+  const access=getPlanner().checkAccessPrefix(state,remaining,{notches:getPlanner().resolvePatternHistory(state,options.patternHistory),now,deadline,maxNodes:Math.max(0,limit-work.nodes)});work.nodes+=access.visited||0;
+  if(access.reachable!==true||now()>=deadline||work.nodes>limit)return fail('access-or-budget');
+  const first=remaining[0];work.reason='visible-first-tsd-revalidated';work.retained=true;
+  return{status:'recommended-with-verified-prefix',revision:state.revision,phase:'opening',target:first.target,hold:first.hold,holdCount:first.holdCount,witness:first.witness,continuation:remaining,retained:true,
+   reason:'Continue the checked visible route to the first Right T-spin double. The normal handoff is checked only after the actual clear.',assessment:getPlanner().assess(virtual.board),sources:[],metrics:{nodes:work.nodes,depth:0,completeDepth:0},
+   evidence:{opening:{status:'retained-visible-first-tsd-prefix',initial:facts(state.board),endpoint:facts(virtual.board,notches),repair:null,handoffCandidate:null,unresolved:[]},knownPieceHorizon:state.queue.length+1}};
+ }catch{return fail('invalid-candidate');}
+}
 function checkedForecast(state,candidate,event,options,work){
  const now=options.now,deadline=options.deadline,limit=options.maxNodes;
  const fail=reason=>{work.reason=reason;return null;};
  try{
-  if(candidate?.version!==forecastVersion||candidate.complete!==true||!event)return fail('no-completed-forecast');
+  if(candidate?.kind==='construction-first-tsd'||candidate?.version!==forecastVersion||candidate.complete!==true||!event)return fail('no-completed-forecast');
   const path=forecastSteps(candidate.path,4),steps=forecastSteps(candidate.continuation);
   if(!path||!steps||!Array.isArray(candidate.actions)||candidate.actions.length>1024||JSON.stringify(candidate).length>131072)return fail('candidate-shape');
   const origin=getPlanner().observe(candidate.origin);if(R.validate(origin).length||origin.queue.length>6)return fail('origin');
@@ -756,12 +823,17 @@ function plan(raw,options={}){
  const reserved=Math.max(0,legacyReserve-base.metrics.nodes);base.metrics.handoffReservedNodes=reserved;
  if(base.metrics.nodes>=limit||now()>=deadline)return{...base,status:'budget-exhausted',metrics:{...base.metrics,elapsedMs:now()-started}};
  const initial=P.assess(state.board),initialFacts=facts(state.board,P.resolvePatternHistory(state,options.patternHistory));
+ if(initial.maxHeight>=20||initialFacts.notches.status==='broken')return{...base,reason:'This opening needs a repair outside the supported construction search.'};
  const observed=observedSummary?.openingAllocation;
+ if(!options.disableFirstTsdRetention&&options.openingForecast?.complete===false){
+  const work={nodes:0,retained:false,reason:'not-checked'},retained=checkedFirstTsd(state,options.openingForecast,{...options,now,deadline:Math.min(deadline,now()+120),maxNodes:Math.min(2000,Math.max(0,limit-reserved-base.metrics.nodes))},work);
+  base.metrics.nodes+=work.nodes;base.metrics.firstTsdRetention=work;
+  if(retained)return{...retained,metrics:{...base.metrics,...retained.metrics,nodes:base.metrics.nodes,elapsedMs:now()-started}};
+ }
  const allocationRequired=!options.disableOpeningAllocation&&observed?.requiredNonRightZ===1&&(observed.requiredNonRightT===0||observed.firstTsdAt!==null&&observed.counts.TNonRight===2)&&['pending','pending-opening-z'].includes(observed.status)&&observed.counts.T>=2&&['staggered-scoring-wall','cap-preparation'].includes(initialFacts.right);
  const qualityPending=observedSummary?.coverage?.status==='complete'&&observed?.status==='verified-first-tsd'&&observedSummary.extraZ?.status==='unknown'&&!observedSummary.extraZ.baseline&&!observedSummary.extraZ.allocations.length&&!observedSummary.extraZ.departures.length&&!observedSummary.center.closed.some(p=>p.status==='debt-invalidated'&&p.at>=observed.firstTsdAt)?observedSummary.center.pending:[];
  base.metrics.openingAllocation={requiredNonRightZ:allocationRequired?1:null};
  base.metrics.openingAllocation.pendingCenterPartners=qualityPending.length;
- if(initial.maxHeight>=20||initialFacts.notches.status==='broken')return{...base,reason:'This opening needs a repair outside the supported construction search.'};
  if(!base.metrics.nodes&&!options.disableOpeningSources&&!options.disableSourceScoring&&!options.openingClear&&!options.openingRepair&&!options.commitment&&options.openingSource?.continuationSteps?.length===7){
   const scored=sourceScoring(state,options,initialFacts.notches,deadline,now,Math.max(0,limit-reserved-base.metrics.nodes));
   if(scored){scored.metrics={...scored.metrics,handoffWork};return scored;}
@@ -979,7 +1051,7 @@ function plan(raw,options={}){
  const reason=hold+(retained?'Continue the checked construction repair. ':'')+allocationReason+(first.event.lines?`Take the checked ${first.event.lines===4?'Tetris':'T-spin double'} while building the opening.`:`Place ${first.event.type} in the ${region} to build the ST opening.`)+` Checked ${best.path.length} legal placement${best.path.length===1?'':'s'} using only visible pieces. `+(pending.length?pending.join('; ').replace(/^./,c=>c.toUpperCase())+'. ':'This prefix has balanced Left minos and a level Center. ')+ (best.handoffContinuation?'This prefix reaches a checked maintenance continuation; the handoff will be rechecked after the actual clear. ':'')+'This is partial construction, not a completed opening or proof of future piece availability.';
  if(best.path.some(p=>p.foundationStage))base.metrics.foundationStageSelected=true;
  const sources=[{id:'SHOCKY-OPENING',label:"Shocky's ST Stacking Guide",url:'https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit',section:'Chapters 1–4: regions, construction and mino parity',scope:'Community background for opening construction. The coach checks this finite prefix; the guide does not certify this exact move or future availability.'}];
- return{...base,status:'recommended-with-verified-prefix',target:first.target,hold:first.hold,holdCount:first.holdCount,witness:first.witness,continuation:best.path,reason,sources,assessment:P.assess(best.state.board),evidence:{opening:{status:'partial-construction',initial:initialFacts,endpoint:end,unresolved:pending,repair,handoffCandidate:best.handoffContinuation?{status:'verified-public-post-clear-continuation',continuation:best.handoffContinuation}:null},knownPieceHorizon:state.queue.length+1}};
+ return{...base,status:'recommended-with-verified-prefix',target:first.target,hold:first.hold,holdCount:first.holdCount,witness:first.witness,continuation:best.path,reason,sources,assessment:P.assess(best.state.board),evidence:{opening:{status:'partial-construction',initial:initialFacts,endpoint:end,unresolved:pending,repair,...(!options.disableFirstTsdRetention&&thirdTReady(observedSummary)&&thirdTPathRank(firstScoringPrefix(best.path)||[])===1?{firstTsdPrefix:{status:'checked-visible-first-tsd'}}:{}),handoffCandidate:best.handoffContinuation?{status:'verified-public-post-clear-continuation',continuation:best.handoffContinuation}:null},knownPieceHorizon:state.queue.length+1}};
 }
 
 // Session imports carry evidence, never a trusted source-family flag. Reuse the
