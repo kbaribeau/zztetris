@@ -1082,12 +1082,20 @@ function nodeFor(p,parent,initial,rootIndex,readAssessment=assess){
  if(openingQualityProgress!==null)assessment.structure.openingQuality={status:'pending-observed-quality',projectedUnresolved:-openingQualityProgress,baselineGranted:false};
  return{dPending,resources,slAllocation,ordinarySAllocationEnabled:initial.ordinarySAllocationEnabled===true,extraZPreservable:initial.extraZPreservable===true,openingQualityProgress,centerContinuity,centerContinuityDebt,state:p.state,path,notches:notchCheck.pattern,notchValid:notchCheck.valid,assessment,rank,structuralScore,dependencyDebt,entryDebt,cycleDebt,cavityDebt,coveredRepairDebt,centerDebt,baseEstimateRank:rank[4],qualified:!assessment.right.slots.length,rootIndex,key:JSON.stringify(path[0].target)+':'+holdCount(path[0])};
 }
-function diversify(nodes,width){const sorted=[...nodes].sort(compare),chosen=[],roots=new Set(),groups=new Set();
- // Protect meaningfully different construction families, not just top-scoring
- // near-identical surfaces. This is diversity, not a canned move template.
- for(const n of sorted){const first=n.path[0],g=[first.target.type,holdCount(first),n.assessment.right.slots.length>0].join(':');if(!groups.has(g)){chosen.push(n);roots.add(n.rootIndex);groups.add(g);if(chosen.length===width)return chosen;}}
- for(const n of sorted)if(!roots.has(n.rootIndex)){chosen.push(n);roots.add(n.rootIndex);if(chosen.length===width)return chosen;}
- const keys=new Set(chosen.map(n=>nodeKey(n)));for(const n of sorted)if(!keys.has(nodeKey(n))){chosen.push(n);keys.add(nodeKey(n));if(chosen.length===width)break;}return chosen;}
+// Scheduling only: histories with the same current position and live resource
+// constraints should not crowd out other positions in the bounded ordinary beam.
+// Never use this key for deduplication, certificate reuse, or resource equality.
+// Full latent histories and exact bindings remain on every selected node.
+function diversityKey(n){return nodeKey({...n,resources:n.resources?{...n.resources,slHistory:null,initialUnclassified:null,introducedUnclassified:null}:null});}
+function diversify(nodes,width,spreadHistory=false){const sorted=[...nodes].sort(compare),chosen=[],roots=new Set(),groups=new Set(),surfaces=new Set(),surfaceKeys=new Map();
+ const surface=n=>{if(!surfaceKeys.has(n))surfaceKeys.set(n,diversityKey(n));return surfaceKeys.get(n);};
+ const add=n=>{chosen.push(n);roots.add(n.rootIndex);if(spreadHistory)surfaces.add(surface(n));return chosen.length===width;};
+ for(const n of sorted){const first=n.path[0],g=[first.target.type,holdCount(first),n.assessment.right.slots.length>0].join(':');if(!groups.has(g)&&(!spreadHistory||!surfaces.has(surface(n)))){groups.add(g);if(add(n))return chosen;}}
+ for(const n of sorted)if(!roots.has(n.rootIndex)&&(!spreadHistory||!surfaces.has(surface(n)))){if(add(n))return chosen;}
+ if(spreadHistory)for(const n of sorted)if(!surfaces.has(surface(n))){if(add(n))return chosen;}
+ const exact=new Set(chosen.map(n=>nodeKey(n)));for(const n of sorted){const key=nodeKey(n);if(!exact.has(key)){exact.add(key);if(add(n))return chosen;}}
+ return chosen;
+}
 // An exact level-two Center is a construction state, not generic maintenance
 // readiness. Admit only a checked one-lock return to the existing strict shape
 // contract. Neither assess(), opening handoff nor the ordinary beam is widened.
@@ -1530,7 +1538,7 @@ function planCore(raw,options={}){
  base.metrics.completedBeamDepth=root.complete?1:0;
  remember(best);
  // References only: do not change ordinary beam generation or proof scheduling.
- let layer=diversify(frontier,width),comparisonLayer=frontier;const completedSLLayers=root.complete?[frontier]:[];
+ let layer=diversify(frontier,width,true),comparisonLayer=frontier;const completedSLLayers=root.complete?[frontier]:[];
  for(let depth=2;depth<=maxDepth&&!stopped&&layer.length;depth++){
   const next=[],seen=new Map();let complete=true;
   for(const n of layer){if(!n.state.active)continue;expandedRoots.add(n.rootIndex);const e=enumerate(n.state);if(!e.complete)complete=false;
@@ -1552,7 +1560,7 @@ function planCore(raw,options={}){
     if(screeningComplete)base.metrics.completeDepth=depth;
    }
   }
-  layer=diversify(next,width);
+  layer=diversify(next,width,true);
  }
  if(cleanupCommitment&&(!best||!coversResourceGoal(best,cleanupCommitment)))best=cleanupCommitment;
  let comparisonSaved=commitment;
