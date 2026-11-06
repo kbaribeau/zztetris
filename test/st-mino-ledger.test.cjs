@@ -87,3 +87,12 @@ test('mino ledger/CLI exports bounded JSON and three CSVs without changing sourc
  }finally{fs.rmSync(dir,{recursive:true,force:true});}
  assert.deepEqual(require('../scripts/simulate-st.cjs').parse(['--mino-ledger']),{'mino-ledger':true});assert.throws(()=>require('../scripts/simulate-st.cjs').main(['--mino-ledger','--replay','unused']),/post-processing/);assert.throws(()=>CLI.parse(['--episode']),/Missing/);assert.throws(()=>CLI.parse(['--unknown']),/Unknown/);assert.throws(()=>L.analyze(input,[],{windowSizes:[0]}),/rolling/);assert.throws(()=>L.analyze(input,Array.from({length:2001},()=>({kind:'lock'}))),/2000/);
 });
+
+test('mino ledger/tracking instrumentation header preserves independent accounting and stays strictly versioned',()=>{
+ const header={kind:'tracking-start',schemaVersion:1},rows=recorded.baseline.slice(0,2),plain=L.analyze(input,rows,{origins});
+ assert.deepEqual(L.analyze(input,[header,...rows],{origins}),plain);
+ assert.throws(()=>L.analyze(input,[{...header,schemaVersion:2},...rows],{origins}),/tracking marker schema/);
+ assert.throws(()=>L.analyze(input,[header,header,...rows],{origins}),/first record/);
+ assert.throws(()=>L.analyze(input,[rows[0],header,rows[1]],{origins}),/first record/);
+ assert.throws(()=>L.analyze(input,[{kind:'unknown-diagnostic'},...rows],{origins}),/Unsupported record kind/);
+});
