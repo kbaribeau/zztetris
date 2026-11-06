@@ -18,7 +18,8 @@ test('opening usage: actual-clear handoff reports its verified selection without
  const a=P.plan(f.after,{...options,openingPhase:true,openingClear:session.clear,usageTelemetry:true});
  assert.equal(a.phase,'maintenance');assert.equal(a.metrics.usage.selected.path,'actual-clear-handoff');
  assert.equal(a.metrics.usage.families.handoff.actualClearProvided,1);assert.equal(a.metrics.usage.families.handoff.selected,1);
- assert.equal(a.metrics.usage.selected.scoreComponents,undefined);
+ assert.equal(a.metrics.usage.selected.scoreComponents,undefined);assert.equal(a.metrics.usage.selected.locks,a.continuation.length);
+ assert.equal(a.metrics.handoffWork.fresh.selected,true);assert.equal(a.metrics.handoffWork.fresh.usage.scope,'maintenance','Fresh maintenance counters stay separate from the outer handoff selection');
 });
 test('opening usage: foundation-stage counters separate checked paths from retained goals without changing selection',()=>{
  const f=require('./support/st-opening-foundation-stage.json'),O=require('../st-opening');
