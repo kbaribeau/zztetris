@@ -176,3 +176,11 @@ transitions. Historical raw summaries remain readable, without filling missing
 counters with zeros. A process-killed episode may retain `partialCoachMetrics`
 through its last written lock; these are not complete cohort measurements and
 are deliberately excluded from the complete `coachEntries` aggregate.
+
+Optional empty-start `input.phaseCap: {openingLocks, postHandoffLocks}` requires
+positive integer bounds summing to `input.locks`. It is bound by the complete
+input hash. Phase-bounded runs use `phase-cap` censoring and validate the stop
+against the actual coach transition ledger. The binary `openingHandoff` metric
+is one if an initially Opening run has an observed non-Opening transition, zero
+if none, and null for imports/missing history. It permits explicit no-regression
+handoff-rate criteria without equating TSD count to completed opening obligations.

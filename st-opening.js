@@ -825,6 +825,8 @@ function plan(raw,options={}){
  const initial=P.assess(state.board),initialFacts=facts(state.board,P.resolvePatternHistory(state,options.patternHistory));
  if(initial.maxHeight>=20||initialFacts.notches.status==='broken')return{...base,reason:'This opening needs a repair outside the supported construction search.'};
  const observed=observedSummary?.openingAllocation;
+ const conserveAllocation=!options.disableOpeningAllocationConservation&&thirdTReady(observedSummary);
+ const allocationRoot=conserveAllocation?RH.importContext(state,options.resourceContext):null;
  if(!options.disableFirstTsdRetention&&options.openingForecast?.complete===false){
   const work={nodes:0,retained:false,reason:'not-checked'},retained=checkedFirstTsd(state,options.openingForecast,{...options,now,deadline:Math.min(deadline,now()+120),maxNodes:Math.min(2000,Math.max(0,limit-reserved-base.metrics.nodes))},work);
   base.metrics.nodes+=work.nodes;base.metrics.firstTsdRetention=work;
@@ -864,8 +866,41 @@ function plan(raw,options={}){
  // not generic construction under an existing cap or a partner-arrival claim.
  const tieEligible=!options.disableOpeningRootTies&&!options.openingRepair&&!saved&&depth===3&&initialFacts.right==='cleared-base'&&initialFacts.centerStatus==='supported-partner-completion'&&initialFacts.notches.status==='established'&&S.notchPattern(state.board).status==='established'&&S.notchPattern(state.board).anchorRow===initialFacts.notches.anchorRow&&initialFacts.center.some(h=>h>0)&&initialFacts.baseDebt>0&&!initialFacts.buriedCenterVacancies.length&&!initialFacts.leftCovered&&initialFacts.parity===0;
  const stageMetrics={examined:0,attempted:0,verified:0,queued:0,nodes:0,unknown:0};base.metrics.foundationStages=stageMetrics;if(usage)usage.families.foundationStage={...stageMetrics,selectedPath:0,retainedGoal:0};
+ // Preserve an authenticated completed opening allocation through the actual
+ // public actions, including retained repairs. This is conservation, not a
+ // bonus for an early TSD and never handoff authority. Other opening debts,
+ // geometry, access and the normal post-clear handoff remain independent.
+ const allocationWork={enabled:conserveAllocation,checked:0,rejected:0,unknown:0,nodes:0};
+ base.metrics.openingAllocation.conservation=allocationWork;
+ const allocationSafe=(node,parent=null,bounds={})=>{
+  if(!conserveAllocation)return true;
+  if(node.allocationProof)return node.allocationProof.safe;
+  if(parent?.allocationProof?.fulfilled){node.allocationProof=parent.allocationProof;return true;}
+  const from=parent?.allocationProof?.history?parent.state:state;
+  let virtual=from,history=parent?.allocationProof?.history||allocationRoot;
+  const path=parent?.allocationProof?.history?node.path.slice(parent.path.length):node.path;
+  allocationWork.checked++;const projectionStarted=base.metrics.nodes;
+  const fail=unknown=>{if(unknown&&(now()>=searchDeadline||base.metrics.nodes+reserved+2>searchLimit))stopped=true;allocationWork[unknown?'unknown':'rejected']++;node.allocationProof={safe:false,unknown};return false;};
+  for(const step of path){
+   for(const action of step.witness){
+    if(now()>=Math.min(searchDeadline,bounds.deadline??Infinity)||base.metrics.nodes+reserved+2>searchLimit||base.metrics.nodes-projectionStarted+2>(bounds.maxNodes??Infinity))return fail(true);
+    // Charge both the action and the resource ledger's independent replay.
+    base.metrics.nodes+=2;allocationWork.nodes+=2;
+    const before=virtual;virtual=R.move(before,action);history=RH.applyAction(history,before,action,virtual);
+   }
+   if(JSON.stringify(virtual.lastEvent)!==JSON.stringify(step.event))return fail(false);
+   const summary=RH.resolve(virtual,history),a=summary.openingAllocation;
+   if(summary.coverage.status!=='complete'||a.counts?.TNonRight!==2||a.counts?.ZNonRight!==1)return fail(false);
+   if(a.firstTsdAt!==null){
+    if(a.status!=='verified-first-tsd'||a.counts.T!==3)return fail(false);
+    node.allocationProof={safe:true,fulfilled:true};return true;
+   }
+   if(a.status!=='ready-for-first-tsd'||a.counts.T!==2)return fail(false);
+  }
+  node.allocationProof={safe:true,fulfilled:false,history};return true;
+ };
  const accessSafe=(node,bounds={})=>{if(node.accessProof?.reachable===true||node.accessProof?.reachable===false){if(usage)usage.access.cacheHits++;return node.accessProof.reachable;}const proof=P.checkAccessPrefix(state,node.path,{notches:initialFacts.notches,deadline:Math.min(deadline,bounds.deadline??Infinity),now,maxNodes:Math.min(bounds.maxNodes??Infinity,Math.max(0,limit-reserved-base.metrics.nodes))});base.metrics.nodes+=proof.visited;base.metrics.gapAccessNodes=(base.metrics.gapAccessNodes||0)+proof.visited;node.accessProof=proof;if(usage){usage.access.checked++;usage.access[proof.reachable===true?'witnessed':proof.reachable===false?'rejected':'unknown']++;}return proof.reachable===true;};
- if(saved&&!accessSafe(saved))saved=null;if(usage)usage.families.retainedRepair.verified=Number(Boolean(saved));
+ if(saved&&(!allocationSafe(saved)||!accessSafe(saved)))saved=null;if(usage)usage.families.retainedRepair.verified=Number(Boolean(saved));
  for(let d=0;d<searchDepth;d++){
   const nodes=stagedNext;stagedNext=[];if(closure&&d===4)nodes.push(closure.node);
   for(const parent of beam){
@@ -880,14 +915,17 @@ function plan(raw,options={}){
     const step={board:p.state.board,target:p.event.target,witness:p.witness,event:p.event,hold:p.witness.includes('HOLD'),holdCount:p.witness.filter(a=>a==='HOLD').length};
     if(usage){usage.families.ordinary.admitted++;usage.families.ordinary.ranked++;}
     const path=[...parent.path,step],key=JSON.stringify([p.state.board.map(r=>r.replace(/[IJLOSTZX#]/g,'#')),p.state.active?.type,p.state.hold,p.state.queue,notch.pattern]);
-    nodes.push({state:p.state,path,f,notches:notch.pattern,key,rank:rank(f,p.event,path),allocationRank:allocationRank(path,allocationRequired,qualityPending)});
+    const node={state:p.state,path,f,notches:notch.pattern,key,rank:rank(f,p.event,path),allocationRank:allocationRank(path,allocationRequired,qualityPending)};
+    if(allocationSafe(node,parent))nodes.push(node);
    }
   }
   if(!nodes.length)break;
   // Staged/closure and retained families use the same authenticated root
   // obligation as ordinary nodes; no family silently receives a neutral rank.
   for(const node of nodes)node.allocationRank=allocationRank(node.path,allocationRequired,qualityPending);
-  const unique=[...new Map(nodes.sort(compare).reverse().map(n=>[n.key,n])).values()].sort(compare);
+  const safeNodes=nodes.filter(node=>allocationSafe(node));
+  if(!safeNodes.length)break;
+  const unique=[...new Map(safeNodes.sort(compare).reverse().map(n=>[n.key,n])).values()].sort(compare);
   if(usage)usage.families.ordinary.deduplicatedRanked+=unique.length;
   for(const node of unique){if(now()>=deadline){stopped=true;break;}if(node.path.at(-1).event.lines&&handoffGeometry(node.state)&&(!allocationRequired||node.allocationRank[0]===1))clearCandidates.push(node);if(saved&&node.path.length===saved.path.length&&goalPaid(state,node.path,saved.goal,initialFacts.notches))repairCandidates.push(node);}
   best=unique.find(node=>now()<deadline&&accessSafe(node,tieExtension?{deadline:searchDeadline,maxNodes:Math.max(0,searchLimit-reserved-base.metrics.nodes)}:{}))||best;base.metrics.depth=d+1;if(!stopped)base.metrics.completeDepth=d+1;
@@ -940,7 +978,7 @@ function plan(raw,options={}){
      if(now()>=stageDeadline||base.metrics.nodes+reserved>=searchLimit)break;
      const pattern=validStep(parent.state.board,p,parent.notches,stageFacts),stage=pattern&&foundationTransition(parent.state.board,p,parent.notches);if(!stage)continue;
      const step={board:p.state.board,target:p.event.target,witness:p.witness,event:p.event,hold:p.witness.includes('HOLD'),holdCount:p.witness.filter(a=>a==='HOLD').length,foundationStage:stage},path=[...parent.path,step],f=rawFacts.features(p.state.board),key=JSON.stringify([p.state.board.map(r=>r.replace(/[IJLOSTZX#]/g,'#')),p.state.active?.type,p.state.hold,p.state.queue,pattern]);
-     const node={state:p.state,path,f,notches:pattern,key,rank:rank(f,p.event,path),allocationRank:allocationRank(path,allocationRequired,qualityPending)},beforeAccess=base.metrics.nodes,access=accessSafe(node,{deadline:stageDeadline,maxNodes:Math.max(0,2000-stageMetrics.nodes)});stageMetrics.nodes+=base.metrics.nodes-beforeAccess;if(!access){if(node.accessProof?.reachable===null)stageMetrics.unknown++;continue;}stageMetrics.verified++;stages.push(node);
+     const node={state:p.state,path,f,notches:pattern,key,rank:rank(f,p.event,path),allocationRank:allocationRank(path,allocationRequired,qualityPending)},beforeAccess=base.metrics.nodes,allocation=allocationSafe(node,parent,{deadline:stageDeadline,maxNodes:Math.max(0,2000-stageMetrics.nodes)}),access=allocation&&accessSafe(node,{deadline:stageDeadline,maxNodes:Math.max(0,2000-stageMetrics.nodes-(base.metrics.nodes-beforeAccess))});stageMetrics.nodes+=base.metrics.nodes-beforeAccess;if(!access){if(node.accessProof?.reachable===null)stageMetrics.unknown++;continue;}stageMetrics.verified++;stages.push(node);
     }
    }
    if(stages.length){stagedNext=[stages.sort(compare)[0]];stageMetrics.queued++;}
@@ -953,7 +991,7 @@ function plan(raw,options={}){
    for(const parent of chosen){
     if(now()>=end||metrics.nodes>=bounds)break;metrics.attempted++;
     const found=closureWitness(state,parent,{deadline:end,now,maxNodes:bounds-metrics.nodes,notches:initialFacts.notches,raw:rawFacts});metrics.nodes+=found.visited;base.metrics.nodes+=found.visited;if(found.unknown)metrics.unknown++;
-    for(const node of found.candidates){node.allocationRank=allocationRank(node.path,allocationRequired,qualityPending);const beforeAccess=base.metrics.nodes,ok=accessSafe(node,{deadline:end,maxNodes:Math.max(0,bounds-metrics.nodes)});metrics.nodes+=base.metrics.nodes-beforeAccess;if(ok){metrics.verified++;candidates.push(node);}}
+    for(const node of found.candidates){node.allocationRank=allocationRank(node.path,allocationRequired,qualityPending);const beforeAccess=base.metrics.nodes,allocation=allocationSafe(node,null,{deadline:end,maxNodes:Math.max(0,bounds-metrics.nodes)}),ok=allocation&&accessSafe(node,{deadline:end,maxNodes:Math.max(0,bounds-metrics.nodes-(base.metrics.nodes-beforeAccess))});metrics.nodes+=base.metrics.nodes-beforeAccess;if(ok){metrics.verified++;candidates.push(node);}}
     if(candidates.length)break;
    }
    if(candidates.length){closure={node:candidates.sort(compare)[0],nominal:best,clearCount:clearCandidates.length,repairCount:repairCandidates.length};searchDepth=5;

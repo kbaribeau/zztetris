@@ -29,7 +29,7 @@ function parse(args) {
     if(key==='--help'){out.help=true;continue;}
     if(key==='--usage-telemetry'||key==='--mino-ledger'||key==='--no-search-timeout'){out[key.slice(2)]=true;continue;}
     if(key==='--compare'){out.compare=[args[++i],args[++i]];if(out.compare.some(x=>!x||x.startsWith('--')))throw Error('--compare requires two run directories');continue;}
-    if(!['--preset','--scenario','--seeds','--locks','--out','--replay','--rerun','--episode-ms','--lane','--child','--protocol','--side','--parallel'].includes(key))throw Error('Unknown option '+key);
+    if(!['--preset','--scenario','--seeds','--locks','--out','--replay','--rerun','--episode-ms','--lane','--child','--protocol','--side','--parallel','--opening-locks','--post-handoff-locks'].includes(key))throw Error('Unknown option '+key);
     const value=args[++i];if(!value||value.startsWith('--'))throw Error('Missing value for '+key);out[key.slice(2)]=value;
   }
   return out;
@@ -47,7 +47,7 @@ function compare(a,b) {
   const pairs=[];
   for(const y of b.episodes) {
     const key=y.scenario+':'+y.seed,x=am.get(key);
-    if(!x||x.inputHash!==y.inputHash)throw Error('Private/public episode inputs differ: '+key);
+    if(!x||x.inputHash!==y.inputHash||JSON.stringify(x.phaseCap??null)!==JSON.stringify(y.phaseCap??null))throw Error('Private/public episode inputs differ: '+key);
     if(failure(x)||failure(y)||x.stop==='wall-cap'||y.stop==='wall-cap')throw Error('Cannot summarize policy quality with infrastructure/safety failures or unequal wall censoring: '+key);
     const horizon=Math.min(x.locks,y.locks),px=x.profile[horizon-1],py=y.profile[horizon-1];
     pairs.push({key,scenario:y.scenario,baselineLocks:x.locks,candidateLocks:y.locks,delta:y.locks-x.locks,baselineStop:x.stop,candidateStop:y.stop,commonHorizon:horizon,commonLinesDelta:horizon?py.lines-px.lines:0,commonHeightDelta:horizon?py.height-px.height:null,commonMeanSkylineDelta:horizon?py.meanSkylineHeight-px.meanSkylineHeight:null,commonOccupiedRowsDelta:horizon?py.occupiedRowsEquivalent-px.occupiedRowsEquivalent:null});
@@ -103,7 +103,7 @@ function recoverSummary(directory,input,result){
   const file=path.join(directory,'summary.json');
   if(!result.error&&result.status===0&&fs.existsSync(file))try{
     const summary=json(file);
-    if(summary.schemaVersion!==1||summary.scenario!==input.scenario||summary.seed!==input.seed||summary.inputHash!==input.inputHash||summary.cap!==input.locks||!V.STOPS.includes(summary.stop)||!Number.isSafeInteger(summary.locks)||summary.locks<0||summary.locks>input.locks||!Array.isArray(summary.profile)||summary.profile.length!==summary.locks||summary.censored!==['lock-cap','wall-cap'].includes(summary.stop))throw Error('Invalid or mismatched child summary');
+    if(summary.schemaVersion!==1||summary.scenario!==input.scenario||summary.seed!==input.seed||summary.inputHash!==input.inputHash||summary.cap!==input.locks||!V.STOPS.includes(summary.stop)||!Number.isSafeInteger(summary.locks)||summary.locks<0||summary.locks>input.locks||!Array.isArray(summary.profile)||summary.profile.length!==summary.locks||summary.censored!==['phase-cap','lock-cap','wall-cap'].includes(summary.stop))throw Error('Invalid or mismatched child summary');
     return summary;
   }catch(error){result={...result,error:Object.assign(Error('Invalid child summary: '+error.message),{code:'INVALID_SUMMARY'})};}
   preserveChildSummary(directory);
@@ -125,7 +125,7 @@ function main(args=process.argv.slice(2)) {
   const config=protocol?protocol.execution.config:configuration(o);
   if(protocol&&o['usage-telemetry'])throw Error('Protocol owns telemetry configuration');
   if(Boolean(protocol)!==Boolean(o.side))throw Error('--protocol and --side must be supplied together');
-  if(protocol&&(o.replay||o.rerun||o.compare||o.child||o.seeds||o.scenario||o.locks||o.preset))throw Error('Protocol owns cohort, roots and caps; do not override them');
+  if(protocol&&(o.replay||o.rerun||o.compare||o.child||o.seeds||o.scenario||o.locks||o.preset||o['opening-locks']||o['post-handoff-locks']))throw Error('Protocol owns cohort, roots and caps; do not override them');
   if(['compare','replay','rerun','child'].filter(key=>o[key]).length>1)throw Error('Choose one of --compare, --replay or --rerun');
   if(o.help){console.log(`ST closed-loop evaluation (Node 24.22.0; no browser/dependencies)\n\nnpm run sim:st -- --preset quick [--scenario empty|stable|both]\nnpm run sim:st -- --preset research [--seeds 1,2] [--locks 500]\nnpm run sim:st -- --replay test-results/simulation/RUN/empty-1\nnpm run sim:st -- --rerun test-results/simulation/RUN/empty-1\nnpm run sim:st -- --compare BASELINE_RUN CANDIDATE_RUN\n\nProtocol: --protocol protocol.json --side baseline|candidate (protocol owns the input cohort).\nOptions: --out parent-directory, --episode-ms wall-watchdog, --lane production, --usage-telemetry, --mino-ledger.\nDiagnostic options: --parallel N (1..32, default 1), --no-search-timeout.\n--no-search-timeout removes the 1500 ms planner deadline and 2500 ms decision VM cutoff.\nNode/depth/width limits, nested production timers and the episode watchdog remain.\nParallel or timeout-disabled runs are diagnostic; no deterministic or production-budget claim.\nMino ledgers are offline exports after all timed episodes; use minos:st for existing traces.\nUsage counters are opt-in and recorded in run configuration; measure overhead before timed comparisons.\nDefault: serial production wall-clock lane; fixed seeds are not deterministic search.\nQuick: 2 development seeds × 24 locks. Research: 16 seeds × 500 locks.\nDefaults start empty. Stable uses the public marathon-rebuild position with a seeded valid continuation, not its fixed demo tail.\nAbstention is a measured outcome, not a failing command or a top-out. Safety/runner failures exit nonzero.`);return;}
   if(o.child){child(o.child);return;}
@@ -141,8 +141,12 @@ function main(args=process.argv.slice(2)) {
   const seeds=o.seeds?o.seeds.split(',').map(v=>integer(v,'seed',0,4294967295)):p.seeds;
   if(!seeds.length||seeds.length>100||new Set(seeds).size!==seeds.length)throw Error('Provide 1..100 distinct seeds');
   const rerun=o.rerun?json(path.join(path.resolve(o.rerun),'input.json')):null;
-  if(rerun&&(o.seeds||o.scenario||o.locks))throw Error('--rerun preserves recorded input and cap; do not override seeds/scenario/locks');
+  if(rerun&&(o.seeds||o.scenario||o.locks||o['opening-locks']||o['post-handoff-locks']))throw Error('--rerun preserves recorded input and cap; do not override seeds/scenario/locks');
   const inputs=protocol?V.pairs(protocol).map(p=>p.input):rerun?[rerun]:(scenario==='both'?['empty','stable']:[scenario]).flatMap(s=>seeds.map(seed=>E.makeInput(s,seed,locks)));
+  if(o['opening-locks']||o['post-handoff-locks']){
+    if(!o['opening-locks']||!o['post-handoff-locks'])throw Error('Both phase cap options are required');
+    for(const input of inputs){input.phaseCap={openingLocks:integer(o['opening-locks'],'opening-locks',1,2000),postHandoffLocks:integer(o['post-handoff-locks'],'post-handoff-locks',1,2000)};E.validatePhaseCap(input);}
+  }
   const cap=protocol?protocol.execution.locks:rerun?rerun.locks:locks,episodeMs=integer(o['episode-ms']||(protocol?protocol.execution.episodeMs:null)||Math.ceil(cap*((config.timeMs??E.CONFIG.timeMs)+1750)+5000),'episode-ms',100,7200000);
   const directory=Runner.createRunDirectory(path.resolve(o.out||path.join(ROOT,'test-results/simulation'))),id=path.basename(directory);
   const git=(...a)=>execFileSync('git',a,{cwd:ROOT,encoding:'utf8'}).trim();
