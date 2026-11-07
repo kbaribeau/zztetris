@@ -142,12 +142,10 @@ function reduce(current,operation,context,projected=false){
  validateContext(context);
  if(projected?current.domain!=='projection':current.domain!==undefined)throw Error('Invalid S/L transition domain.');
  if(!['lock','observe','handoff'].includes(operation?.kind))throw Error('Unknown S/L operation.');
- // Projected callers arrive only through projectTransition's detached import.
- // Actual callers still own current, so every actual result must copy it.
- if(current.status!=='known')return{state:projected?current:clone(current),effects:[]};
+ if(current.status!=='known')return{state:clone(current),effects:[]};
  if(!context.before.inventory.originKnown||!context.after.inventory.originKnown||!context.before.inventory.frontier||!context.after.inventory.frontier)throw Error('Known S/L facts require known public identities and frontier.');
- if(operation.kind==='handoff'&&current.handoff)return{state:projected?current:clone(current),effects:[]};
- const before=classify(current,context.before),state=projected?current:clone(current),effects=[];
+ if(operation.kind==='handoff'&&current.handoff)return{state:clone(current),effects:[]};
+ const before=classify(current,context.before),state=clone(current),effects=[];
  if(operation.kind==='handoff'){
   state.handoff=true;state.foundationOpen=false;
   if([...state.uncertainty.S,...state.uncertainty.L].some(n=>n!==0))effects.push({status:'opening-exempted',counts:clone(state.uncertainty)});
