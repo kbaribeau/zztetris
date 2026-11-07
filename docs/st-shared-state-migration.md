@@ -44,6 +44,8 @@ The actual adapter consumes the controller's authentic one-operation inventory r
 
 The shared transition applies exact Center payment/loss first, then S/L classification, then opening/Z/Reset consequences. Safety uses the existing notch and covered-repair rules. Observed non-D to D transitions create the same D duty as before; importing D geometry does not fabricate that observation. Handoff rebases S/L exactly once, without erasing Center duties or changing the Z account. Reset completion emits its factual effect and retires its temporary duty.
 
+`resolve(current, {position, inventory})` reads one unified current status without storing another ledger. It exposes each component's known, unknown and unclassified facts, current targets and safety duties, with no historical capacity, retired identities or completed episodes. Missing or mismatched public context is an explicit error. Run termination, cap/censoring and coverage-through-lock metadata remain caller-owned.
+
 This envelope is also **not loaded by production consumers yet**. It establishes a common factual path; it is not a route-admission implementation. A hypothetical baseline credit does not authorize an ordinary route to spend that credit. Pending-target loss, proposed L diversion, request-root uncertainty, Reset completion and other route-only consequences still need explicit consumer adapters. Unknown-origin diagnostic policy is not broadened here.
 
 ## Remaining migration and retirement order

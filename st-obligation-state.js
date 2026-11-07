@@ -140,5 +140,17 @@ function project(current,{inventory,position,witness,boundary={},references=[]})
  }
  return{state,effects:out,position:s,inventory:inv,locked};
 }
-return Object.freeze({VERSION,start,transition,applyActual,project,importState,exportState:importState});
+// Current factual status only, not run scope, termination, admission or a
+// historical ledger. Missing/mismatched caller context is an explicit error:
+// absence must never become a claim of complete or known-empty accounting.
+// Imported duties remain authoritative; this reads, never reconciles them
+// against board provenance or mutates/compacts the supplied current state.
+function resolve(current,{position,inventory}={}){
+ const state=importState(current);check(I.bound(inventory,position),'status requires matching current public position/inventory');
+ if(state.availability==='known')check(inventory.originKnown,'known status requires known public supply');
+ const account=O.resolve(state.account,{board:position.board}),sl=SL.resolve(state.sl,{inventory,center:state.center,profileLost:account.profileLost});
+ return{availability:state.availability,center:state.center,...sl,...account,
+  coveredRepair:{cells:state.safety.coveredCells,notches:PH.resolve(position,state.safety.notches)},dPattern:{pending:state.dPending}};
+}
+return Object.freeze({VERSION,start,transition,applyActual,project,resolve,importState,exportState:importState});
 });

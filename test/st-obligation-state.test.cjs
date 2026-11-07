@@ -171,3 +171,39 @@ test('shared state: a known progressed inventory cannot reset existing duties th
  const saved=Q.importState(copy(x.state));assert.deepEqual(saved,x.state,'Existing known facts remain supported through explicit trusted import');
  const invalid=copy(saved);invalid.safety.coveredCells=[[7,39]];assert.throws(()=>Q.importState(invalid),/Left\/Center covered/);
 });
+
+test('shared status: current public facts compose the component selectors without historical totals',()=>{
+ for(const at of [7,14,15,24]){
+  const x=trial(1,at),state=freeze(copy(x.state)),position=freeze(copy(x.position)),saved=copy({state,position,inventory:x.inventory}),status=Q.resolve(state,{position,inventory:x.inventory});
+  const account=O.resolve(state.account,{board:position.board}),sl=SL.resolve(state.sl,{inventory:x.inventory,center:state.center,profileLost:account.profileLost});
+  assert.deepEqual(status,{availability:'known',center:state.center,...sl,...account,coveredRepair:{cells:state.safety.coveredCells,notches:PH.resolve(position,state.safety.notches)},dPattern:{pending:state.dPending}});
+  assert.deepEqual({state,position,inventory:x.inventory},saved);assert.equal('coverage'in status,false);assert.equal('terminal'in status,false);assert.equal('effects'in status,false);assert.equal('capacity'in status.extraZ,false);assert.equal('episodes'in status.reset,false);
+  status.center.pending.length=0;status.coveredRepair.cells.push([0,39]);status.hangingS.aggregate[0]++;assert.deepEqual(state,saved.state,'Returned current facts are independent copies');
+ }
+});
+test('shared status: missing or mismatched caller context cannot claim complete accounting',()=>{
+ const position=first(),inventory=I.start(position,{fresh:true}),state=Q.start(position,{inventory});
+ for(const supplied of [undefined,{}, {position}, {inventory}, {position,inventory:copy(inventory)}, {position:{...position,queue:[]},inventory}])assert.throws(()=>Q.resolve(state,supplied),/status requires matching/);
+ const unknown=I.start(position);assert.throws(()=>Q.resolve(state,{position,inventory:unknown}),/known status requires known/);
+ assert.deepEqual(Q.resolve(state,{position,inventory}),Q.resolve(Q.importState(copy(state)),{position,inventory}));
+});
+test('shared status: unknown origins stay unknown while trusted current safety and D duties remain visible',()=>{
+ const position=R.createState({active:'O',queue:['T']}),inventory=I.start(position),state=Q.start(position,{inventory});
+ state.safety.notches={version:2,status:'broken',anchorRow:34,blockedRows:[34],source:'trusted-current'};state.safety.coveredCells=[[1,37]];state.dPending=true;
+ const imported=Q.importState(copy(state)),status=Q.resolve(imported,{position,inventory});
+ assert.equal(status.availability,'unknown');assert.equal(status.hangingS.status,'unknown');assert.equal(status.hangingL.status,'unknown');assert.equal(status.openingAllocation.status,'unknown');assert.equal(status.extraZ.status,'unknown');assert.equal(status.extraZ.baseline,false);
+ assert.deepEqual(status.coveredRepair.cells,[[1,37]]);assert.equal(status.coveredRepair.notches.status,'broken');assert.equal(status.coveredRepair.notches.anchorRow,34);assert.deepEqual(status.dPattern,{pending:true});assert.deepEqual(imported,state);
+});
+test('shared status: active Reset progress is current and disappears after actual completion',()=>{
+ const x=trial(1,24);x.begin();let status=Q.resolve(x.state,context(x));assert.deepEqual(status.reset,{status:'active',progress:0});assert.equal(status.extraZ.remaining,0);
+ x.lock(['L','L','L','HD']);status=Q.resolve(x.state,context(x));assert.deepEqual(status.reset,{status:'active',progress:1});assert.equal(status.extraZ.remaining,1);
+ for(let n=0;n<4;n++)x.lock(['HD']);x.lock(['L','L','L','HD']);status=Q.resolve(x.state,context(x));assert.deepEqual(status.reset,{status:'inactive',progress:0});assert.equal(status.extraZ.remaining,1);assert.deepEqual(Object.keys(status.reset),['status','progress']);
+});
+
+test('shared status: available current facts preserve aggregate uncertainty and independent unknown Z status',()=>{
+ const position=first(),inventory=I.start(position,{fresh:true}),snapshot=Q.start(position,{inventory});
+ snapshot.sl.uncertainty={S:[1,2,3,4],L:[5]};const state=Q.importState(snapshot),saved=copy(state),status=Q.resolve(state,{position,inventory});
+ assert.equal(status.availability,'known');assert.equal(status.hangingS.status,'unknown');assert.equal(status.hangingL.status,'unknown');assert.deepEqual(status.hangingS.aggregate,[1,2,3,4]);assert.deepEqual(status.hangingL.aggregate,[5]);assert.equal(status.hangingS.unclassifiedCount,10);assert.equal(status.hangingL.unclassifiedCount,5);
+ for(const kind of ['S','L']){assert.deepEqual(status['hanging'+kind].evidence,[]);assert.deepEqual(status['hanging'+kind].unclassified,[]);}
+ assert.equal(status.extraZ.status,'unknown');assert.equal(status.extraZ.remaining,null);assert.deepEqual(Q.resolve(state,{position,inventory}),status);assert.deepEqual(state,saved);
+});
