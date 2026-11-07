@@ -23,7 +23,7 @@
   let worker=null, requestId=0, debounce=null, watchdog=null, revision=0;
   let result=null, previous=null, commitment=null, pendingLHint=null, coachStatus='idle', coachMessage='';
   // One actual-lock routing candidate, not a commitment or imported authority.
-  let recoveryOrigin=null, pendingHandoffRecovery=null;
+  let recoveryOrigin=null, recoveryExecution=null, pendingHandoffRecovery=null;
   let searchSettings=STSession.defaults();
   let selectedId=null, lockCount=0, clearedLines=0, lineLabel='Lines since start';
   const repeating=new Map();
@@ -124,11 +124,11 @@
         activeWorker.onmessage=({data})=>{
           if(worker!==activeWorker || data?.id!==id || data.revision!==state.revision || currentRevision!==state.revision)return;
           clearTimeout(watchdog);watchdog=null;activeWorker.terminate();worker=null;
-          if(data.type==='error'){recoveryOrigin=null;pendingHandoffRecovery=null;coachStatus='worker-error';coachMessage='The coach could not evaluate this position. You can still practice manually.';result=null;render();return;}
+          if(data.type==='error'){recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;coachStatus='worker-error';coachMessage='The coach could not evaluate this position. You can still practice manually.';result=null;render();return;}
           if(data.type!=='result')return;
           const candidate=data.result;
           if(candidate?.target && !safeTarget(candidate)){
-            recoveryOrigin=null;pendingHandoffRecovery=null;coachStatus='invalid-witness';coachMessage='The suggested move failed validation, so it is not shown.';result=null;render();return;
+            recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;coachStatus='invalid-witness';coachMessage='The suggested move failed validation, so it is not shown.';result=null;render();return;
           }
           result=candidate || null;pendingHandoffRecovery=null;
           openingForecast=STPlanner.captureOpeningForecast(observation(),result)||openingForecast;
@@ -136,11 +136,11 @@
           const recovery=STPlanner.captureHandoffRecovery(observation(),result,STResourceHistory.exportContext(observation(),resourceHistory));
           // Revalidation during the same first piece must not replace the
           // pre-handoff origin with an already-marked mid-piece ledger.
-          if(recovery)recoveryOrigin=recovery;
-          else if(!recoveryOrigin||result?.evidence?.openingHandoff?.recovery!=='shared-after-legacy-budget-miss'||JSON.stringify(result.target)!==JSON.stringify(recoveryOrigin.advice.target))recoveryOrigin=null;
+          if(recovery){recoveryOrigin=recovery;recoveryExecution=STHandoffContinuity.start(observation(),publicInventory);}
+          else if(!recoveryOrigin||result?.evidence?.openingHandoff?.recovery!=='shared-after-legacy-budget-miss'||JSON.stringify(result.target)!==JSON.stringify(recoveryOrigin.advice.target)){recoveryOrigin=null;recoveryExecution=null;}
           const wasOpening=openingPhase;const phase=STPlanner.acceptOpeningResult({active:openingPhase,clear:openingClear,repair:openingRepair,source:openingSource},result);openingPhase=phase.active;openingClear=phase.clear;openingRepair=phase.repair||null;openingSource=phase.source||null;
           if(!openingPhase)openingForecast=null;
-          if(wasOpening&&!openingPhase&&resourceHistory)resourceHistory=STResourceHistory.markHandoff(resourceHistory,observation());
+          if(wasOpening&&!openingPhase&&resourceHistory){resourceHistory=STResourceHistory.markHandoff(resourceHistory,observation());recoveryExecution=STHandoffContinuity.markHandoff(recoveryExecution,observation(),publicInventory);}
           coachStatus=result?.status || 'no-supported-continuation-found';
           coachMessage=result?.reason || 'No supported ST sequence was found within this search.';
           if(result?.target){
@@ -153,17 +153,17 @@
         activeWorker.onerror=event=>{
           event.preventDefault?.();
           if(worker!==activeWorker)return;
-          cancel();recoveryOrigin=null;pendingHandoffRecovery=null;coachStatus='worker-error';coachMessage='The coach could not start. You can still practice manually.';result=null;render();
+          cancel();recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;coachStatus='worker-error';coachMessage='The coach could not start. You can still practice manually.';result=null;render();
         };
         activeWorker.postMessage({type:'plan',id,observation:observation(),previous:previous?clone(previous):null,
           commitment:commitment?clone(commitment):null,
           options:{...(openingForecast?{openingForecast:clone(openingForecast)}:{}),...(pendingLHint?{pendingLHint:clone(pendingLHint)}:{}),resourceContext:STResourceHistory.exportContext(observation(),resourceHistory),...(pendingHandoffRecovery?{handoffRecovery:clone(pendingHandoffRecovery)}:{}),...searchSettings,patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null}});
         watchdog=setTimeout(()=>{
           if(worker!==activeWorker)return;
-          cancel();recoveryOrigin=null;pendingHandoffRecovery=null;result=null;coachStatus='budget-exhausted';coachMessage='The coach timed out. A valid continuation may still exist.';render();
+          cancel();recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;result=null;coachStatus='budget-exhausted';coachMessage='The coach timed out. A valid continuation may still exist.';render();
         },2500);
       } catch {
-        cancel();recoveryOrigin=null;pendingHandoffRecovery=null;result=null;coachStatus='worker-unavailable';coachMessage='The coach could not start. You can still practice manually.';render();
+        cancel();recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;result=null;coachStatus='worker-unavailable';coachMessage='The coach could not start. You can still practice manually.';render();
       }
     },40);
   }
@@ -190,7 +190,7 @@
     if(added.length&&frontier)state={...state,bag:frontier};
   }
   function resetState(input,{tail=[],random=false,history=null,note='',keepOrigin=false,opening=false,counterLabel='Lines since start',suggestedFileName:filename=STSession.DEFAULT_EXPORT_FILENAME}={}) {
-    cancel();stopRepeating();recoveryOrigin=null;pendingHandoffRecovery=null;future=tail.slice();futureCursor=0;undoHistory=[];turnStart=null;generated=random;privatePractice=false;openingPhase=opening;openingClear=null;openingRepair=null;openingForecast=null;
+    cancel();stopRepeating();recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;future=tail.slice();futureCursor=0;undoHistory=[];turnStart=null;generated=random;privatePractice=false;openingPhase=opening;openingClear=null;openingRepair=null;openingForecast=null;
     state=STRules.migrateState({...clone(input),revision:++revision});
     const errors=STRules.validate(state);if(errors.length)throw new Error(errors.join('; '));
     if(state.queue.length>6){future.unshift(...state.queue.slice(6));state={...state,queue:state.queue.slice(0,6)};}
@@ -230,7 +230,7 @@
     commitment=saved.commitment?clone(saved.commitment):null;pendingLHint=saved.pendingLHint?clone(saved.pendingLHint):null;lockCount=saved.lockCount;clearedLines=saved.clearedLines;
     // Never resurrect displayed advice or an old worker response. The saved
     // proof is only a candidate for replay against this restored public state.
-    previous=null;result=null;turnStart=null;recoveryOrigin=null;pendingHandoffRecovery=null;openingForecast=null;
+    previous=null;result=null;turnStart=null;recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;openingForecast=null;
     setText($('st-game-status'),`Placement undone. ${lockCount} piece${lockCount===1?'':'s'} locked.`);
     requestPlan();render();
   }
@@ -248,7 +248,6 @@
     state={...next,revision:++revision};
     if(locked){undoHistory.push(turnStart);if(undoHistory.length>100)undoHistory.shift();turnStart=null;lockCount++;previous=null;
       const event=state.lastEvent;
-      pendingHandoffRecovery=recoveryOrigin?{...clone(recoveryOrigin),actualEvent:clone(event)}:null;recoveryOrigin=null;
       clearedLines+=event?.lines||0;
       setText($('st-game-status'),event?.topOut?'Top out. Undo the placement or reset to try again.':`${event?.lines||0} lines cleared${event?.spin&&event.spin!=='none'?` · ${event.spin} T-spin`:''}. ${lockCount} piece${lockCount===1?'':'s'} locked.`);
     }
@@ -260,6 +259,12 @@
     // its lock, draw or reveal, and legacy history limits do not stop live flow.
     publicInventory=inventoryTransition.next;
     resourceHistory=STResourceHistory.applyAction(resourceHistory,beforeAction,action,afterAction,{inventoryTransition});
+    recoveryExecution=STHandoffContinuity.advance(recoveryExecution,beforeAction,action,afterAction,inventoryTransition);
+    if(locked){
+      const continuity=STHandoffContinuity.exportConnected(recoveryExecution);
+      pendingHandoffRecovery=recoveryOrigin&&continuity?{...clone(recoveryOrigin),actualEvent:clone(state.lastEvent),continuity}:null;
+      recoveryOrigin=null;recoveryExecution=null;
+    }
     pieceLedger=STPieceLedger.applyAction(pieceLedger,beforeAction,action,{...observation(),lastEvent:state.lastEvent});
     if(locked){
       patternHistory=STPlanner.updatePatternHistory(patternHistory,beforeLock,observation(),state.lastEvent);
@@ -428,7 +433,7 @@
     const envelope=STSession.create(prepared.state,prepared);
     // All untrusted parsing/proof checks have completed before touching the live
     // controller. Worker identity guards, not revision uniqueness, reject old replies.
-    cancel();stopRepeating();recoveryOrigin=null;pendingHandoffRecovery=null;openingForecast=null;
+    cancel();stopRepeating();recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;openingForecast=null;
     suggestedFileName=envelope.suggestedFileName;
     state=STRules.createState(prepared.state);revision=state.revision;
     future=tail?.slice()||[];futureCursor=0;generated=false;privatePractice=tail!==null;undoHistory=[];turnStart=null;

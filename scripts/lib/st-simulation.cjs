@@ -12,6 +12,7 @@ const P = require('../../st-planner');
 const S = require('../../st-structure');
 const H = require('../../st-resource-history');
 const Inventory = require('../../st-public-inventory');
+const Handoff = require('../../st-handoff-continuity');
 const Tracking = require('../../st-resource-tracking');
 const TrackingMetrics = require('./st-tracking-metrics.cjs');
 const F = require('../../st-fixtures');
@@ -23,7 +24,7 @@ const clone = x => JSON.parse(JSON.stringify(x));
 // intentionally omits that field from its worker message. Match that boundary.
 function publicObservation(state){const observation=P.observe(state);delete observation.lastEvent;return observation;}
 const digest = x => crypto.createHash('sha256').update(typeof x === 'string' ? x : JSON.stringify(x)).digest('hex');
-const SOURCE_FILES = ['st-coach-config.js', 'st-rules.js', 'st-bag.js', 'st-structure.js', 'st-paired-repair.js', 'st-access.js', 'st-pattern-history.js', 'st-left-foundation.js', 'st-left-context.js', 'st-midgame-coaches.js','st-reset-coach.js', 'st-planner.js', 'st-opening-patterns.js','st-opening-continuations.js','st-opening-sources.js','st-source-scoring.js', 'st-opening.js', 'st-reset-policy.js','st-public-inventory.js','st-center-obligations.js','st-resource-history.js', 'st-obligation-admission.js', 'st-resource-search.js', 'st-midgame-resources.js', 'st-resource-tracking.js', 'st-worker.js', 'st-lab.js', 'st-session.js', 'st-fixtures.js', 'scripts/lib/st-simulation.cjs', 'scripts/lib/st-simulation-runner.cjs', 'scripts/lib/st-left-shape-metrics.cjs', 'scripts/lib/st-coach-entry-metrics.cjs', 'scripts/lib/st-tracking-metrics.cjs', 'scripts/lib/st-evaluation.cjs', 'scripts/evaluate-st-protocol.cjs', 'scripts/simulate-st.cjs'];
+const SOURCE_FILES = ['st-coach-config.js', 'st-rules.js', 'st-bag.js', 'st-structure.js', 'st-paired-repair.js', 'st-access.js', 'st-pattern-history.js', 'st-left-foundation.js', 'st-left-context.js', 'st-midgame-coaches.js','st-reset-coach.js', 'st-planner.js', 'st-opening-patterns.js','st-opening-continuations.js','st-opening-sources.js','st-source-scoring.js', 'st-opening.js', 'st-reset-policy.js','st-public-inventory.js','st-center-obligations.js','st-resource-history.js','st-handoff-continuity.js', 'st-obligation-admission.js', 'st-resource-search.js', 'st-midgame-resources.js', 'st-resource-tracking.js', 'st-worker.js', 'st-lab.js', 'st-session.js', 'st-fixtures.js', 'scripts/lib/st-simulation.cjs', 'scripts/lib/st-simulation-runner.cjs', 'scripts/lib/st-left-shape-metrics.cjs', 'scripts/lib/st-coach-entry-metrics.cjs', 'scripts/lib/st-tracking-metrics.cjs', 'scripts/lib/st-evaluation.cjs', 'scripts/evaluate-st-protocol.cjs', 'scripts/simulate-st.cjs'];
 const CONFIG = Object.freeze({depth:3, width:8, maxNodes:45000, timeMs:SEARCH_TIME_MS});
 const PRESETS = Object.freeze({quick:{seeds:[10331, 20333], locks:24}, research:{seeds:Array.from({length:16}, (_,i) => 810001 + i * 997), locks:500}});
 const RNG_VERSION = 'mulberry32-seven-bag-v1';
@@ -127,10 +128,11 @@ function createSession(input, api=P) {
       pendingHandoffRecovery=null;
       if(typeof api.captureOpeningForecast==='function')openingForecast=api.captureOpeningForecast(publicObservation(state),advice)||openingForecast;
       const recovery=typeof api.captureHandoffRecovery==='function'?api.captureHandoffRecovery(publicObservation(state),advice,H.exportContext(publicObservation(state),resourceHistory)):null;
+      let recoveryExecution=recovery?Handoff.start(publicObservation(state),publicInventory):null;
       if(advice.evidence?.strategy==='reset-coach'){const before=H.resolve(publicObservation(state),resourceHistory);resourceHistory=H.beginReset(resourceHistory,publicObservation(state));tracking.transition(before,H.resolve(publicObservation(state),resourceHistory),{stage:'reset'});}
       const wasOpening=opening.active;opening=api.acceptOpeningResult(opening,advice);
       if(!opening.active)openingForecast=null;
-      if(wasOpening&&!opening.active){const before=H.resolve(publicObservation(state),resourceHistory);resourceHistory=H.markHandoff(resourceHistory,publicObservation(state));tracking.transition(before,H.resolve(publicObservation(state),resourceHistory),{stage:'handoff'});}
+      if(wasOpening&&!opening.active){const before=H.resolve(publicObservation(state),resourceHistory);resourceHistory=H.markHandoff(resourceHistory,publicObservation(state));recoveryExecution=Handoff.markHandoff(recoveryExecution,publicObservation(state),publicInventory);tracking.transition(before,H.resolve(publicObservation(state),resourceHistory),{stage:'handoff'});}
       const coachBeforeLock=CE.phase(opening,H.resolve(publicObservation(state),resourceHistory));
       onCoach(coachBeforeLock,false);
       previous={...clone(advice),revision:state.revision};pendingLHint=advice.evidence?.pendingLStage?clone(advice.evidence.pendingLStage):null;
@@ -149,11 +151,13 @@ function createSession(input, api=P) {
         // current public identity flow is controller-owned, even after a cap.
         publicInventory=inventoryTransition.next;
         resourceHistory=H.applyAction(resourceHistory,before,action,after,{inventoryTransition});
+        recoveryExecution=Handoff.advance(recoveryExecution,before,action,after,inventoryTransition);
         if(action==='HD') {
           tracking.executedLock(before,priorHistory,publicObservation(state),resourceHistory,state.lastEvent,{lock});
           onCoach(CE.phase(opening,H.resolve(publicObservation(state),resourceHistory)),true);
           event=clone(state.lastEvent); previous=null;
-          pendingHandoffRecovery=recovery?{...clone(recovery),actualEvent:clone(event)}:null;
+          const continuity=Handoff.exportConnected(recoveryExecution);
+          pendingHandoffRecovery=recovery&&continuity?{...clone(recovery),actualEvent:clone(event),continuity}:null;recoveryExecution=null;
           patternHistory=api.updatePatternHistory(patternHistory,before,publicObservation(state),event);
           opening=api.updateOpeningSession(opening,before,publicObservation(state),event);
           if(!opening.active)openingForecast=null;

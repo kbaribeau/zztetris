@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const P=require('./support/repair-isolated-planner.cjs').planner(),R=require('../st-rules'),B=require('../st-bag'),H=require('../st-resource-history'),PH=require('../st-pattern-history'),M=require('../st-midgame-resources');
+const P=require('./support/repair-isolated-planner.cjs').planner(),R=require('../st-rules'),B=require('../st-bag'),H=require('../st-resource-history'),I=require('../st-public-inventory'),HC=require('../st-handoff-continuity'),PH=require('../st-pattern-history'),M=require('../st-midgame-resources');
 const fixture=require('./fixtures/forced-bag-resource-binding.json'),clone=x=>JSON.parse(JSON.stringify(x));
 const bounds={maxNodes:45000,deadline:Infinity,now:()=>0},context=s=>JSON.stringify([s.rules,s.board,s.hold,s.canHold,s.queue,s.bag??null,s.active?.type]);
 // Literal public pre20/finite Z→S proof from the earlier diagnostic. Only its
@@ -9,15 +9,17 @@ function actual({mark=true,actualWitness=null}={}){
  const f=clone(fixture),origin=R.createState(f.observation),advice=f.advice;
  advice.phase='maintenance';advice.evidence.openingHandoff={status:'checked-after-actual-clear',recovery:'shared-after-legacy-budget-miss'};
  let state=origin,history=H.importContext(origin,f.options.resourceContext),pattern=PH.start(origin),event;
+ let inventory=history.inventory,execution=HC.start(origin,inventory);
  // This stored route is a policy-isolated candidate, rebuilt under the current
  // handoff boundary rather than trusting its historical serialized binding.
  advice.evidence.resourceObligations.binding=M.start(M.extendForced(origin),H.resolve(origin,H.markHandoff(history,origin))).originKey;
- if(mark)history=H.markHandoff(history,state);
+ if(mark){history=H.markHandoff(history,state);execution=HC.markHandoff(execution,state,inventory);}
  for(const action of actualWitness||advice.witness){const before=state;state=R.move(state,action);
   if(action==='HD'){event=state.lastEvent;state={...state,queue:[...state.queue,f.nextPublicReveal],bag:B.consume(state.bag,f.nextPublicReveal)};pattern=PH.update(pattern,before,state,event);}
-  history=H.applyAction(history,before,action,state);
+  const receipt=I.transition(inventory,before,action,state);execution=HC.advance(execution,before,action,state,receipt);inventory=receipt.next;
+  history=H.applyAction(history,before,action,state,{inventoryTransition:receipt});
  }
- return{origin,state,history,event,advice,options:{...bounds,openingPhase:false,resourceContext:clone(H.exportContext(state,history)),patternHistory:pattern,handoffRecovery:{observation:origin,advice,resourceContext:f.options.resourceContext,actualEvent:event}}};
+ return{origin,state,history,event,advice,options:{...bounds,openingPhase:false,resourceContext:clone(H.exportContext(state,history)),patternHistory:pattern,handoffRecovery:{observation:origin,advice,resourceContext:f.options.resourceContext,actualEvent:event,continuity:HC.exportConnected(execution)}}};
 }
 function rejected(q,reason,options={}){
  const a=P.decide(q.state,{...q.options,maxNodes:64,...options});
@@ -111,4 +113,23 @@ test('handoff test seam: actual geometry module stays rejecting and malformed pr
  assert.equal(isolated.repairPrefix(q.origin,q.advice.continuation).valid,true);
  assert.equal(A.repairPrefix(q.origin,q.advice.continuation).valid,false);
  assert.equal(isolated.repairPrefix(q.origin,[{witness:['TELEPORT']}]).valid,false);
+});
+
+test('handoff bookkeeping (covered-geometry isolated): same-pose HOLD cycle counts actual execution without repeating it',()=>{
+ const q=actual({actualWitness:['HOLD','HOLD',...fixture.advice.witness]}),a=P.decide(q.state,q.options);
+ assert.equal(a.metrics.handoffRecovery.retained,true);assert.equal(q.options.handoffRecovery.continuity.actions,q.advice.witness.length+2);
+ assert.deepEqual(a.target,q.advice.continuation[1].target);assert.equal(a.evidence.handoffRecovery.sId,21);
+});
+
+test('handoff bookkeeping: no connector, copied boolean and wrong live identity cannot promote future advice',()=>{
+ const missing=actual();delete missing.options.handoffRecovery.continuity;rejected(missing,'history-not-connected');
+ const boolean=actual();boolean.options.handoffRecovery.continuity={marked:true};rejected(boolean,'history-not-connected');
+ const identity=actual();identity.options.handoffRecovery.continuity.currentSupply.active.id++;rejected(identity,'history-not-connected');
+ const expired=actual();expired.options.handoffRecovery.continuity.actions=257;rejected(expired,'history-not-connected');
+});
+
+test('handoff production Worker: controller-exported JSON remains subject to the unresolved-roof rejection',()=>{
+ const q=actual(),worker=require('../scripts/lib/st-simulation.cjs').workerPlanner();
+ const result=worker(clone({type:'plan',id:81,observation:q.state,previous:null,commitment:null,options:{...q.options,maxNodes:128,timeMs:1500}}));
+ assert.equal(result.metrics.handoffRecovery.retained,false);assert.equal(result.metrics.handoffRecovery.reason,'origin-resource-proof');assert(result.metrics.nodes<=128);
 });

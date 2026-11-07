@@ -1,5 +1,5 @@
 /* Milestone-one finite-information coach. No fixture IDs, seeds or hidden queues. */
-(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules.js'),require('./st-bag.js'),require('./st-structure.js'),require('./st-paired-repair.js'),require('./st-access.js'),require('./st-pattern-history.js'),require('./st-left-foundation.js'),require('./st-resource-history.js'),require('./st-midgame-resources.js'),require('./st-left-context.js'),require('./st-midgame-coaches.js'),require('./st-reset-coach.js')):factory(root.STRules,root.STBag,root.STStructure,root.STPairedRepair,root.STAccess,root.STPatternHistory,root.STLeftFoundation,root.STResourceHistory,root.STMidgameResources,root.STLeftContext,root.STMidgameCoaches,root.STResetCoach);if(typeof module==='object'&&module.exports)module.exports=api;else root.STPlanner=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,B,S,X,A,H,Y,RH,M,L,C,Reset){
+(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules.js'),require('./st-bag.js'),require('./st-structure.js'),require('./st-paired-repair.js'),require('./st-access.js'),require('./st-pattern-history.js'),require('./st-left-foundation.js'),require('./st-resource-history.js'),require('./st-midgame-resources.js'),require('./st-left-context.js'),require('./st-midgame-coaches.js'),require('./st-reset-coach.js'),require('./st-handoff-continuity.js')):factory(root.STRules,root.STBag,root.STStructure,root.STPairedRepair,root.STAccess,root.STPatternHistory,root.STLeftFoundation,root.STResourceHistory,root.STMidgameResources,root.STLeftContext,root.STMidgameCoaches,root.STResetCoach,root.STHandoffContinuity);if(typeof module==='object'&&module.exports)module.exports=api;else root.STPlanner=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,B,S,X,A,H,Y,RH,M,L,C,Reset,HC){
 'use strict';
 const coaches=C.create(L);
 const clone=x=>JSON.parse(JSON.stringify(x));
@@ -2504,11 +2504,11 @@ function retainHandoffRecovery(raw,options,work){
   const priorContext=candidate.resourceContext,currentContext=options.resourceContext;
   const priorSummary=resourceSummary(origin,{resourceContext:priorContext}),summary=resourceSummary(state,options);
   if(priorSummary.coverage?.status!=='complete'||summary.coverage?.status!=='complete'||!priorContext||!currentContext)return fail('resource-history');
-  // Follow an actual connected one-lock history, not necessarily the same
-  // movement route. Replaying its exact event/result below permits a legal
-  // detour, but never another HD, post-lock movement or guessed reveals.
-  const actualSteps=currentContext.steps.slice(priorContext.steps.length);
-  if(priorContext.handoffAtAction!==null||currentContext.handoffAtAction!==priorContext.steps.length||!same(priorContext.origin,currentContext.origin)||priorContext.fresh!==currentContext.fresh||!actualSteps.length||actualSteps.length>256||actualSteps.at(-1).action!=='HD'||actualSteps.slice(0,-1).some(s=>s.action==='HD')||!same(currentContext.steps.slice(0,priorContext.steps.length),priorContext.steps)||summary.locks!==priorSummary.locks+1||summary.milestones?.maintenanceHandoff?.at!==priorSummary.locks)return fail('history-not-connected');
+  // The controller's finite connector proves followed execution locally.
+  // Worker transport is current caller-owned fact, never imported advice or
+  // a route certificate. H remains the sole resource authority in this slice.
+  const continuity=candidate.continuity;
+  if(priorContext.handoffAtAction!==null||!HC.connected(continuity,origin,state,priorSummary.instances,summary.instances)||summary.locks!==priorSummary.locks+1||summary.milestones?.maintenanceHandoff?.at!==priorSummary.locks)return fail('history-not-connected');
   if(priorSummary.openingAllocation?.status!=='verified-first-tsd'||priorSummary.openingAllocation.requiredNonRightZ!==0||!priorSummary.extraZ?.baseline||!['available','used'].includes(priorSummary.extraZ.status)||!openingModule().handoffGeometry(origin))return fail('source-eligibility');
   // The retained advice was checked against the prospective boundary ledger,
   // while transport deliberately records the connected pre-handoff history.
@@ -2519,7 +2519,7 @@ function retainHandoffRecovery(raw,options,work){
   if(advice.evidence.resourceObligations?.status!=='checked'||advice.evidence.resourceObligations.binding!==resourceBinding(origin,{resourceContext:boundaryContext}))return fail('origin-resource-binding');
   const rootPattern=H.resolve(origin,null),currentPattern=H.resolve(state,options.patternHistory);
   if(rootPattern.status!=='established'||currentPattern.status!=='established')return fail('pattern-history');
-  if(!spend(actualSteps.length+steps.reduce((n,p)=>n+p.witness.length,0)))return fail('shared-budget');
+  if(!spend(continuity.actions+steps.reduce((n,p)=>n+p.witness.length,0)))return fail('shared-budget');
   // Reconstruct ordinary structural and resource policy, rather than accepting
   // serialized cycleDebt, pair or gapAccess claims from the old advice.
   const makeInitial=(s,view,notches)=>{const a=assess(s.board);a.state=extendForced(s);a.notches=notches;a.resources=M.start(a.state,view);return a;};
@@ -2529,8 +2529,7 @@ function retainHandoffRecovery(raw,options,work){
    if(!node.notchValid||node.cycleDebt||node.assessment.maxHeight>=20)return fail('origin-policy');
   }
   if(!certifiedCavities(node)||!node.assessment.regionalSupport)return fail('origin-policy');
-  let actual=origin;for(const step of actualSteps){const next=R.move(actual,step.action);if(next===actual)return fail('actual-lock');actual={...next,queue:[...next.queue,...step.revealed]};for(const piece of step.revealed)if(actual.bag)actual={...actual,bag:B.consume(actual.bag,piece)};}
-  if(!same(actual.lastEvent,candidate.actualEvent)||!same(first.path[0].event,actual.lastEvent)||!sameConstructionResult(first.state,state)||context(actual)!==context(state)||!same(actual.active,state.active)||actual.streamCursor!==state.streamCursor)return fail('actual-lock');
+  if(!HC.matchesEndpoint(continuity,state,candidate.actualEvent)||!same(first.path[0].event,continuity.event)||!sameConstructionResult(first.state,state))return fail('actual-lock');
   const phase=first.notches;if(phase.status!==currentPattern.status||phase.anchorRow!==currentPattern.anchorRow||!same(phase.protectedRows,currentPattern.protectedRows))return fail('pattern-history');
   const priorOptions={...options,resourceContext:boundaryContext,patternHistory:null,maxNodes:left()};
   const oldResource=checkedResourceEndpoint(origin,steps,priorOptions);if(!oldResource.valid)return fail('origin-resource-proof');

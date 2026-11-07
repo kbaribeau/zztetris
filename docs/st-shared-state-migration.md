@@ -82,6 +82,14 @@ Semantic comparisons intentionally exclude retired history from bindings: anonym
 
 Focused fault tests deliberately drop duties or effects, replace equal-count identities, forge resolution labels, double-credit Reset, mismatch projection, and exercise handoff, observer isolation and issue resolution/reappearance. These diagnostics do not change route admission. No actual player/simulator subscription is switched yet; the old history-based monitor remains until current lifecycle, transport and consumers move together.
 
+## Eighth checkpoint: finite actual handoff connection
+
+`st-handoff-continuity.js` replaces the production one-lock handoff-recovery connector's historical prefix comparisons and executed-suffix replay with a controller-owned finite receipt chain. Only the original/current public positions and inventory subjects, the accepted handoff marker, a bounded operation count and the one intervening lock survive. Authentic inventory receipts and local bag-knowledge progression bind each accepted operation, including HOLD and refills. The exported connection is trusted controller transport for a Worker, not a portable certificate or authenticated arbitrary JSON.
+
+This replaces only the actual execution connection. Known-S identity, original and current legacy resource eligibility, the finite future movement/access proofs, cavity and roof checks, and suffix revalidation remain unchanged. Undo, import, reset, stale/error boundaries and subsequent incompatible actions clear the transient connection. The existing accepted candidate survives compatible mid-piece replies without silently changing its root.
+
+Production resource state still comes from the old history authority. Persisted construction-plan continuity, current session transport, durable Left deficit ownership and caller-owned inverse Undo remain separate work. This checkpoint does not remove live history limits or change route admission. Focused tests include equal-letter HOLD, same-revision stale positions, malformed nested transport, supplied-bag divergence and a real unsafe-roof rejection. Isolated bookkeeping comparisons exclude timing only; they do not claim broader strategy equivalence.
+
 ## Remaining migration and retirement order
 
 The whole migration is not complete. Production still uses the legacy S/L and opening/Z/Reset authority, including its allocation tape and action/lock limits. Do not describe this checkpoint as cap-free resource accounting or completed trusted session import.
