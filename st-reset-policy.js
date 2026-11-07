@@ -1,5 +1,5 @@
 /* Reset consideration is a public support-risk test, not a placement proof.
- * The caller must obtain resources from replay-authenticated empty-origin history. */
+ * The caller supplies current known resource facts and observed inventory. */
 (function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-structure'),require('./st-bag')):factory(root.STRules,root.STStructure,root.STBag);if(typeof module==='object'&&module.exports)module.exports=api;else root.STResetPolicy=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,S,B){
 'use strict';
 const qualifies=e=>Boolean(e&&e.type==='T'&&e.lines===0&&e.cells?.length===4&&e.cells.every(([x])=>x>=0&&x<4));
@@ -7,7 +7,10 @@ function consider(raw,resources){
  const result=(status,reason,extra={})=>({policy:'late-support-arrival-risk-v1',status,reason,resourceRenewal:false,...extra});
  if(!raw||R.validate(raw).length||raw.bag&&B.validate(raw.bag).length)return result('invalid-observation','A valid public observation is required.');
  if(!raw.active||raw.topOut)return result('out-of-scope','A live position is required.');
- if(resources?.coverage?.status!=='complete'||!resources.extraZ?.baseline)return result('unknown-history','Reset requires verified empty-board opening and allocation history.');
+ // Only the finite old-format decoder may still supply a legacy summary.
+ // Current unavailable/unknown facts never borrow authority from old coverage.
+ const known=resources?.availability===undefined?resources?.coverage?.status==='complete':resources?.status==='available'&&resources.availability==='known';
+ if(!known||!resources.extraZ?.baseline)return result('unknown-history','Reset requires known current opening allocation and resource eligibility.');
  if(resources.reset?.status==='active')return result('active','Continue the selected Reset until its second qualifying T.',{progress:resources.reset.progress});
  if(resources.extraZ.status!=='used')return result('ordinary-preferred','Only late Midgame considers Reset.');
  const phase=S.notchPattern(raw.board);
@@ -25,9 +28,9 @@ function consider(raw,resources){
  let beforeT=raw.hold==='T'?0:visibleT>=0?visibleT:supply.length;
  let arrival=raw.hold==='T'?'held-T':visibleT>=0?'visible-T':'unseen-order-not-assumed';
  if(visibleT<0&&raw.hold!=='T'){
-  // Derive the bag frontier from authenticated observed identities, not raw
-  // imported bag metadata: replayed selection markers see the same evidence.
-  const remaining=resources.publicBag?.remainingTypes,forced=remaining?.length===1?remaining[0]:null;
+  // Use the observed inventory frontier, not raw imported bag metadata or
+  // a request-local synthetic forced subject.
+  const remaining=resources.availability===undefined?resources.publicBag?.remainingTypes:resources.observedRemainingTypes,forced=remaining?.length===1?remaining[0]:null;
   if(forced&&forced!=='T'){beforeT++;arrival='public-forced-non-T-before-unseen-T';}
  }
  // An optimistic cell capacity is a negative control, never a geometric

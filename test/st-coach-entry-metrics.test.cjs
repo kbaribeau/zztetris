@@ -64,26 +64,20 @@ test('coach entries: successful simulation locks retain phase counts and replay 
 });
 test('coach entries: accepted handoff survives a later execution failure',()=>{
  const input=E.makeInput('empty',13,1);
- const api={...P,acceptOpeningResult:()=>({active:false}),updatePatternHistory:()=>{throw Error('after actual lock');}};
+ const api={...P,acceptOpeningResult:()=>({active:false}),updateOpeningSession:()=>{throw Error('after actual lock');}};
  const summary=E.runEpisode(input,{api,planner:req=>{const p=R.replay(req.observation,['HD']);return{phase:'maintenance',target:p.events[0].target,witness:['HD'],hold:false,evidence:{openingHandoff:{}}};}});
  assert.equal(summary.stop,'execution-error');assert.equal(summary.final.mass,4);
  assert.deepEqual(summary.coachEntries,{...zero,opening:1,compatibility:1});
  assert.equal(summary.currentCoach,'compatibility');assert.equal(summary.coachTransitions.at(-1).afterLock,0,'Handoff precedes the failed lock processing');
 });
 test('coach entries: simulation counts Reset completion on its final capped lock',()=>{
- const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path'),{createRequire}=require('node:module');
- const file=path.resolve(__dirname,'../scripts/lib/st-simulation.cjs'),req=createRequire(file),f=require('./support/st-reset-live-cycle.json');
- // Inject only an authenticated prior root history for this lifecycle fixture;
- // ordinary stable imports intentionally have no such prior authority.
- const rootHistory=H.importContext(R.createState(f.initial),E.clone(f.resourceContext));
- // The controller now owns public identities. Seed the same authenticated
- // current inventory as the historical root, rather than creating unrelated
- // stable-origin identities for this explicitly resumed-session fixture.
- const box={module:{exports:{}},__dirname:path.dirname(file),performance,require:n=>n==='node:assert/strict'?{...assert,deepEqual:(a,b,...rest)=>assert.deepEqual(E.clone(a),E.clone(b),...rest)}:n==='../../st-resource-history'?{...H,start:()=>rootHistory}:n==='../../st-public-inventory'?{...req(n),start:()=>rootHistory.inventory}:req(n)};
- vm.runInNewContext(fs.readFileSync(file,'utf8'),box,{filename:file});const Sim=box.module.exports;
- const input={scenario:'stable',seed:0,initial:f.initial,locks:f.steps.length,future:f.steps.flatMap(s=>s.actions.flatMap(a=>a.revealed)),inputHash:'test-real-reset-history'};
+ const f=require('./support/st-reset-live-cycle.json'),Context=require('../st-obligation-context'),Legacy=require('../st-resource-legacy');
+ const converted=Legacy.convert(R.createState(f.initial),E.clone(f.resourceContext));assert.equal(converted.status,'available');
+ // Import the compact current checkpoint once. The runner owns all subsequent
+ // real receipts and Reset completion effects, including the final lock.
+ const input={scenario:'stable',seed:0,initial:f.initial,obligationContext:Context.exportState(converted.context),locks:f.steps.length,future:f.steps.flatMap(s=>s.actions.flatMap(a=>a.revealed)),inputHash:'test-real-reset-current'};
  let index=0;
- const summary=Sim.runEpisode(input,{api:{...P,startOpeningSession:()=>({active:false}),updateOpeningSession:s=>s,advance:()=>null,continueCommitment:()=>null},planner:request=>{
+ const summary=E.runEpisode(input,{api:{...P,startOpeningSession:()=>({active:false}),updateOpeningSession:s=>s,advance:()=>null,continueCommitment:()=>null},planner:request=>{
   const step=f.steps[index++],witness=step.actions.map(a=>a.action),p=R.replay(request.observation,witness);
   return{target:p.events[0].target,witness,hold:witness.includes('HOLD'),evidence:{strategy:'reset-coach'}};
  }});

@@ -1,9 +1,10 @@
-/* Portable session inputs: resource tapes are replay-checked, current notch
- * facts are trusted, and future advice is independently validated. No hidden
- * RNG or future bags are stored. */
-(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-bag'),require('./st-resource-history'),require('./st-pattern-history'),require('./st-planner'),require('./st-opening'),()=>require('./st-coach-config')):factory(root.STRules,root.STBag,root.STResourceHistory,root.STPatternHistory,root.STPlanner,root.STOpening,()=>root.STCoachConfig);if(typeof module==='object'&&module.exports)module.exports=api;else root.STSession=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,B,H,PH,P,O,C){
+/* Portable current obligation checkpoints. Version 1 tapes convert once in
+ * the isolated legacy reader; version 2 trusts structurally valid current facts.
+ * Future advice remains an independently checked candidate, never a certificate.
+ * No hidden generator, private future or lifetime accounting tape is stored. */
+(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-bag'),require('./st-obligation-context'),require('./st-resource-legacy'),require('./st-plan-continuity'),require('./st-pattern-history'),require('./st-planner'),require('./st-opening'),()=>require('./st-coach-config')):factory(root.STRules,root.STBag,root.STObligationContext,root.STResourceLegacy,root.STPlanContinuity,root.STPatternHistory,root.STPlanner,root.STOpening,()=>root.STCoachConfig);if(typeof module==='object'&&module.exports)module.exports=api;else root.STSession=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,B,Context,Legacy,PC,PH,P,O,C){
 'use strict';
-const FORMAT='zztetris-st-session',VERSION=1,ENGINE='st-coach-session-2026-11-05-handoff-sl-v1';
+const FORMAT='zztetris-st-session',VERSION=2,ENGINE='st-coach-session-2026-11-07-current-obligations-v1',PREVIOUS_ENGINE='st-coach-session-2026-11-05-handoff-sl-v1';
 // Transport-only download hint; never part of a position or coaching proof.
 const DEFAULT_EXPORT_FILENAME='st-lab-coaching-export.json';
 function exportFilename(value){
@@ -16,8 +17,8 @@ function exportFilename(value){
 const LIMITS=Object.freeze({bytes:4*1024*1024,depth:64,nodes:150000,witness:256,continuation:16});
 const clone=x=>JSON.parse(JSON.stringify(x)),same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 // Transient next-lock routing is not portable certificate authority.
-function portableAdvice(value){const result=clone(value);if(result.evidence?.openingHandoff)delete result.evidence.openingHandoff.recovery;return result;}
-function portableCommitment(value){const result=clone(value);if(result.advice)result.advice=portableAdvice(result.advice);return result;}
+function portableAdvice(value){const result=P.importCandidateResources(value);if(!result)return null;if(result.evidence?.openingHandoff)delete result.evidence.openingHandoff.recovery;return result;}
+function portableCommitment(value){const result=clone(value);if(result.advice)result.advice=portableAdvice(result.advice);return result.advice?result:null;}
 // Portable action-order suggestion only, never an executable certificate.
 function portablePendingLHint(h){try{
  if(!h||!Number.isInteger(h.rootId)||h.rootId<=0||R.validate(h.origin).length||!Array.isArray(h.target?.cells)||h.target.cells.length!==4||!Array.isArray(h.waiting)||h.waiting.length>7)return null;
@@ -46,38 +47,67 @@ function candidate(state,advice){
  for(const step of advice.continuation){const r=R.replay(current,step.witness);if(!r.valid||r.events.length!==1||!same(r.events[0],step.event))return false;current=r.state;}
  return true;
 }
-function validateBag(context,originBag,current){
- if(originBag!==null&&(!originBag||B.validate(originBag).length))throw Error('Invalid resource-origin bag evidence.');
- let bag=originBag?clone(originBag):null;
- if(context.fresh){const actual=B.fromObserved({observed:[context.origin.active.type,...context.origin.queue],startPhase:0});if(!same(actual,bag))throw Error('Resource origin does not match the claimed first bag.');}
- for(const step of context.steps)for(const t of step.revealed){if(bag){bag=B.consume(bag,t);if(B.validate(bag).length)throw Error('Resource draws contradict bag evidence.');}}
- if(!same(bag,current.bag??null))throw Error('Resource replay does not match current bag evidence.');
+function pairedContext(position,current){
+ const canonical=x=>Array.isArray(x)?x.map(canonical):x&&typeof x==='object'?Object.fromEntries(Object.keys(x).sort().map(k=>[k,canonical(x[k])])):x;
+ if(position.bag&&!same(canonical(position.bag),canonical(current.inventory.knowledge)))throw Error('Session public bag disagrees with current inventory knowledge.');
+ return current;
 }
-function create(state,{resourceHistory,resourceOriginBag=null,patternHistory=null,openingPhase=false,openingSource=null,openingClear=null,openingRepair=null,previous=null,commitment=null,pendingLHint=null,search=defaults(),suggestedFileName=DEFAULT_EXPORT_FILENAME}={}){
- const observation=position(state),resourceContext=H.exportContext(observation,resourceHistory),coverage=H.resolve(observation,resourceHistory).coverage;
- const result={format:FORMAT,schemaVersion:VERSION,engineVersion:ENGINE,suggestedFileName:exportFilename(suggestedFileName),position:observation,search:settings(search),coaching:{resourceContext:resourceContext?clone(resourceContext):null,resourceOriginBag:resourceContext?clone(resourceOriginBag):null,resourceCoverage:clone(coverage),patternHistory:PH.snapshot(observation,patternHistory),openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null,previous:previous?portableAdvice(previous):null,commitment:commitment?portableCommitment(commitment):null,pendingLHint:portablePendingLHint(pendingLHint)}};
+function currentContext(state,options){
+ if(Object.hasOwn(options,'obligationContext'))return pairedContext(state,Context.importState(options.obligationContext,{position:state}));
+ let current;
+ if(options.resourceHistory){const result=Legacy.fromHistory(state,options.resourceHistory,Object.hasOwn(options,'resourceOriginBag')?{resourceOriginBag:options.resourceOriginBag}:{});if(result.status!=='available')throw Error('Invalid resource replay: '+result.reason);current=result.context;}
+ else current=Context.start(state);
+ if(Object.hasOwn(options,'patternHistory')){const notches=PH.snapshot(state,options.patternHistory);if(PH.resolve(state,notches).status==='invalid-history')throw Error('Invalid notch checkpoint or legacy pattern history.');const snapshot=Context.exportState(current);snapshot.state.safety.notches=notches;current=Context.importState(snapshot,{position:state});}
+ return current;
+}
+function create(state,options={}){
+ const {patternHistory=null,planContinuity=null,openingPhase=false,openingSource=null,openingClear=null,openingRepair=null,previous=null,commitment=null,pendingLHint=null,search=defaults(),suggestedFileName=DEFAULT_EXPORT_FILENAME}=options;
+ const observation=position(state),current=currentContext(observation,options),savedPrevious=previous?portableAdvice(previous):null,savedCommitment=commitment?portableCommitment(commitment):null;
+ const proof=savedPrevious?.evidence?.construction||savedCommitment?.advice?.evidence?.construction;
+ const cursor=proof&&planContinuity?PC.importState(planContinuity,{position:observation,inventory:current.inventory,proof}):null;
+ const result={format:FORMAT,schemaVersion:VERSION,engineVersion:ENGINE,suggestedFileName:exportFilename(suggestedFileName),position:observation,search:settings(search),coaching:{obligationContext:Context.exportState(current),planContinuity:PC.exportState(cursor),patternHistory:current.status==='available'?clone(current.state.safety.notches):PH.snapshot(observation,patternHistory),openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null,previous:savedPrevious,commitment:savedCommitment,pendingLHint:portablePendingLHint(pendingLHint)}};
  bounded(result);return result;
 }
 function prepare(input){
- bounded(input);if(input?.format!==FORMAT||input.schemaVersion!==VERSION)throw Error('Unsupported session format version.');if(typeof input.engineVersion!=='string'||!input.engineVersion.trim())throw Error('Invalid coach provenance.');const differentCoach=input.engineVersion!==ENGINE;
- const state=position(input.position),search=settings(input.search),c=input.coaching;
+ bounded(input);if(input?.format!==FORMAT||![1,VERSION].includes(input.schemaVersion))throw Error('Unsupported session format version.');if(typeof input.engineVersion!=='string'||!input.engineVersion.trim())throw Error('Invalid coach provenance.');const differentCoach=![ENGINE,PREVIOUS_ENGINE].includes(input.engineVersion);
+ const state=position(input.position),search=settings(input.search),c=clone(input.coaching);
  if(!c||typeof c!=='object'||typeof c.openingPhase!=='boolean')throw Error('Missing session coaching state.');
- const warnings=differentCoach?['Imported a session from a different coach version. Validated history and settings are preserved; advice will be recomputed.']:[];let resourceHistory,resourceOriginBag=null;
- if(c.resourceContext){resourceHistory=H.importContext(state,c.resourceContext);const coverage=H.resolve(state,resourceHistory).coverage;if(!['complete','partial'].includes(coverage.status))throw Error('Invalid resource replay: '+coverage.reason);validateBag(c.resourceContext,c.resourceOriginBag,state);resourceOriginBag=clone(c.resourceOriginBag);}
- else{resourceHistory=H.start(state);resourceOriginBag=state.bag?clone(state.bag):null;warnings.push('Resource history is unavailable; prior S/L/Z allocations remain unknown.');}
- const patternHistory=PH.snapshot(state,c.patternHistory);
- if(PH.resolve(state,patternHistory).status==='invalid-history')throw Error('Invalid notch checkpoint or legacy pattern history.');
+ const warnings=differentCoach?['Imported a session from a different coach version. Current accounting and settings are preserved; advice will be recomputed.']:[];let obligationContext;
+ if(input.schemaVersion===VERSION){
+  if(Object.hasOwn(c,'resourceContext')||Object.hasOwn(c,'resourceHistory'))throw Error('Current session cannot contain legacy resource authority.');
+  obligationContext=pairedContext(state,Context.importState(c.obligationContext,{position:state}));
+ }else if(c.resourceContext){
+  const converted=Legacy.convert(state,c.resourceContext,{resourceOriginBag:c.resourceOriginBag??null});
+  if(converted.status!=='available')throw Error('Invalid resource replay: '+converted.reason);
+  obligationContext=converted.context;
+ }else{obligationContext=Context.start(state);warnings.push('Prior obligation accounting is unavailable; the current position starts with unknown earlier allocations.');}
+ let patternHistory;
+ if(input.schemaVersion===VERSION&&obligationContext.status==='available')patternHistory=clone(obligationContext.state.safety.notches);
+ else{const suppliedPattern=PH.snapshot(state,c.patternHistory);if(PH.resolve(state,suppliedPattern).status==='invalid-history')throw Error('Invalid notch checkpoint or legacy pattern history.');
+  // Fold the legacy notch checkpoint into the converted current authority
+  // once, then discard its witness. Native v2 sidecars never override it.
+  if(input.schemaVersion===1&&Object.hasOwn(c,'patternHistory')){const snapshot=Context.exportState(obligationContext);snapshot.state.safety.notches=suppliedPattern;obligationContext=Context.importState(snapshot,{position:state});}
+  patternHistory=obligationContext.status==='available'?clone(obligationContext.state.safety.notches):suppliedPattern;}
  const opening=O.validateSessionState(state,{active:c.openingPhase,source:c.openingSource??null,clear:c.openingClear??null,repair:c.openingRepair??null},search);warnings.push(...opening.warnings);
- if(c.resourceContext&&H.resolve(state,resourceHistory).milestones?.maintenanceHandoff&&opening.session.active)throw Error('Opening phase contradicts the recorded maintenance handoff.');
+ if(obligationContext.status==='available'&&obligationContext.state.sl.handoff&&opening.session.active)throw Error('Opening phase contradicts the current maintenance handoff.');
+ let legacyCursor=null;
+ if(input.schemaVersion===1&&!differentCoach&&c.resourceContext)for(const advice of [c.previous,c.commitment?.advice]){
+  const proof=advice?.evidence?.construction;if(!proof?.resourceContext)continue;
+  const converted=Legacy.planContinuity(state,c.resourceContext,proof);
+  if(converted.status==='available'){advice.evidence.construction=converted.proof;legacyCursor??=converted.planContinuity;}
+ }
  let previous=null,commitment=null;const pendingLHint=differentCoach?null:portablePendingLHint(c.pendingLHint);
  if(c.handoffRecovery||c.previous?.evidence?.openingHandoff?.recovery||c.commitment?.advice?.evidence?.openingHandoff?.recovery)warnings.push('Transient handoff routing was discarded; advice remains subject to fresh validation.');
  if(differentCoach&&(c.previous||c.commitment))warnings.push('Saved coach advice and construction commitments were discarded for fresh planning.');
  if(c.previous?.recommendation?.kind==='risky'||c.previous?.status==='recommended-risky-placement')warnings.push('Saved risky advice was discarded for fresh planning.');
  if(!differentCoach&&c.previous&&c.previous.recommendation?.kind!=='risky'&&c.previous.status!=='recommended-risky-placement'){try{if(candidateShape(c.previous))previous=portableAdvice(c.previous);}catch{}if(!previous)warnings.push('Stale or invalid previous advice was discarded.');}
  if(!differentCoach&&c.commitment&&c.commitment.advice?.recommendation?.kind!=='risky'&&c.commitment.advice?.status!=='recommended-risky-placement'){try{const origin=position(c.commitment.observation);if(candidate(origin,c.commitment.advice)&&(c.commitment.advice.evidence?.strategy==='reset-coach'||P.resourceGoal(c.commitment.advice.continuation)))commitment=portableCommitment(c.commitment);}catch{}if(!commitment)warnings.push('Stale or invalid construction commitment was discarded.');}
+ const proof=previous?.evidence?.construction||commitment?.advice?.evidence?.construction,payload=c.planContinuity??legacyCursor;
+ const planContinuity=proof&&payload?PC.importState(payload,{position:state,inventory:obligationContext.inventory,proof}):null;
+ if(payload&&!planContinuity)warnings.push('Saved construction cursor was discarded; future advice requires fresh validation.');
  // Candidates remain subject to the normal planner's resource, access, source
  // and construction revalidation. Import never displays them as advice.
- return{suggestedFileName:exportFilename(input.suggestedFileName),state,search,resourceHistory,resourceOriginBag,patternHistory,...{openingPhase:opening.session.active,openingSource:opening.session.source,openingClear:opening.session.clear,openingRepair:opening.session.repair},previous,commitment,pendingLHint,warnings};
+ return{suggestedFileName:exportFilename(input.suggestedFileName),state,search,obligationContext,planContinuity,patternHistory,...{openingPhase:opening.session.active,openingSource:opening.session.source,openingClear:opening.session.clear,openingRepair:opening.session.repair},previous,commitment,pendingLHint,warnings};
 }
 function parse(text){if(typeof text!=='string'||text.length>LIMITS.bytes)throw Error('Session exceeds size limit.');return prepare(JSON.parse(text));}
 return Object.freeze({FORMAT,VERSION,ENGINE,LIMITS,DEFAULT_EXPORT_FILENAME,exportFilename,defaults,create,prepare,parse});

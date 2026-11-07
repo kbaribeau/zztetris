@@ -83,7 +83,7 @@ test('tracking recovery: missing and legacy instrumentation stays unavailable, n
   assert.equal(recovered.tracking.scope,'unavailable');assert.equal(recovered.tracking.total,null);assert.equal(recovered.tracking.counts,null);
   assert.match(recovered.tracking.reason,/instrumentation/);
  }
- const noContext=clone(locks[0]);delete noContext.request.options.resourceContext;
+ const noContext=clone(locks[0]);delete noContext.request.options.obligationContext;
  const legacy=failed(dir,input,[noContext]);assert.equal(legacy.finalObligations.scope,'unavailable');assert.equal(legacy.finalObligations.obligations,null);
 });
 
@@ -152,19 +152,19 @@ test('tracking recovery: action events retain attempted locks without advancing 
  }
 });
 
-test('tracking recovery: stored counters and status claims never replace authenticated public history',t=>{
+test('tracking recovery: stored derived counters never replace the current checkpoint and retained actions',t=>{
  const {input,locks,summary}=recorded(1),dir=temporary(t),record=clone(locks[0]);
  const forged={coverage:{status:'complete'},locks:999,extraZ:{status:'available',remaining:999},hangingS:{status:'none-observed',known:[],unclassified:[]},hangingL:{status:'none-observed',known:[],unclassified:[]},center:{pending:[],debt:[]},reset:{status:'inactive',progress:999}};
  // These derived claims are not part of the replay proof. Valid proof bytes
  // must still produce the actual status, even beside contradictory counters.
- Object.assign(record.request.options.resourceContext,clone(forged));
+ assert.equal(record.request.options.resourceContext,undefined);
  record.metrics.resourceObligations=0;record.metrics.finalObligations=clone(forged);record.finalObligations=clone(forged);record.resourceSummary=clone(forged);
  const recovered=failed(dir,input,[marker,record,{kind:'summary',summary:{...summary,finalObligations:forged}}]);
  assert.equal(recovered.finalObligations.scope,'partial');assert.equal(recovered.finalObligations.throughLock,1);
  assert.deepEqual(recovered.finalObligations.obligations,summary.finalObligations.obligations);
  assert.notEqual(recovered.finalObligations.obligations.extraZ.remaining,999);assert.notEqual(recovered.finalObligations.obligations.reset.progress,999);
  // Removing the action proof cannot be repaired by retaining those claims.
- record.request.options.resourceContext=clone(forged);
+ record.request.options.obligationContext=clone(forged);
  const unavailable=failed(dir,input,[marker,record,{kind:'summary',summary:{...summary,finalObligations:forged}}]);
  assert.equal(unavailable.finalObligations.scope,'unavailable');assert.equal(unavailable.finalObligations.obligations,null);
 });
@@ -184,5 +184,12 @@ test('tracking recovery: completed legacy summaries are explicit and compact rep
  assert.equal(recovered.tracking.scope,'unavailable');assert.equal(recovered.finalObligations.scope,'unavailable');
  assert.match(CLI.trackingReport(recovered),/tracking unavailable; final status unavailable, obligations unavailable/);
  const text=CLI.trackingReport({...summary,tracking:{total:123,scope:'retained-prefix',throughLock:2,examples:[{details:'DO NOT PRINT THIS'}]}});
- assert.match(text,/123 anomalies \(retained prefix through lock 2\)/);assert.match(text,/final status current\/complete/);assert.doesNotMatch(text,/DO NOT PRINT THIS/);assert.ok(text.length<400);
+ assert.match(text,/123 anomalies \(retained prefix through lock 2\)/);assert.match(text,/final status current\/known/);assert.doesNotMatch(text,/DO NOT PRINT THIS/);assert.ok(text.length<400);
+});
+
+test('tracking recovery: trusted current facts need no allocation provenance before the retained lock',()=>{
+ const {locks}=recorded(1),record=clone(locks[0]),current=record.request.options.obligationContext;
+ current.inventory.nextId=100;current.state.center.pending=[{id:'imported-current-target',rootId:90,family:'OJ',alternatives:[{piece:'J',cells:[[4,28],[4,29],[5,29],[6,29]]}]}];
+ const status=E.recoverTrackingStatus(record);assert.equal(status.scope,'partial');assert.equal(status.throughLock,1);assert.equal(status.availability,'known');
+ assert.equal('steps'in current,false);assert.equal('allocations'in status.obligations,false);
 });

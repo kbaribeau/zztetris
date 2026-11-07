@@ -1,4 +1,4 @@
-/* UNWIRED migration seam: current factual consequences, not route permission.
+/* Shared current-state accounting: current factual consequences, not route permission.
  * The controller owns positions, public inventory, phase, exactly-once delivery
  * and Undo. closeFoundation and firstBagReview are explicit current caller
  * boundary facts; this module never invents lifetime milestone timestamps.
@@ -111,7 +111,11 @@ function reduce(current,operation,context,projected=false){
   // small replay is deliberately unnecessary in the pure factual function.
   center=C.apply(state.center,before.position.board,after.position.board,e,{pieceId:p.id});
   phase=S.advanceNotches(before.position.board,{state:after.position,event:e},PH.resolve(before.position,state.safety.notches));
-  safety={notches:notchSnapshot(phase.pattern),coveredCells:A.repairStep(before.position.board,after.position.board,e,state.safety.coveredCells,phase.pattern)};
+  // Preserve the existing current-notch diagnostic source when fresh geometry
+  // agrees with the carried phase. No historical replay or re-inference of a
+  // disagreeing imported phase is involved.
+  const fresh=S.notchPattern(after.position.board),selected=phase.pattern.status==='established'&&fresh.status==='established'&&phase.pattern.anchorRow===fresh.anchorRow?fresh:phase.pattern;
+  safety={notches:notchSnapshot(selected),coveredCells:A.repairStep(before.position.board,after.position.board,e,state.safety.coveredCells,phase.pattern)};
  }
  const slContext={before:{inventory:before.inventory,center:state.center},after:{inventory:after.inventory,center:center.state},references:context.references||[]};
  const closeFoundation=operation.closeFoundation||operation.kind==='lock'&&!state.account.firstTsd&&O.predicates.tsd(operation.event);

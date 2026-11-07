@@ -74,7 +74,7 @@ test('visible SL tail unfinished enumeration retains the exact already selected 
  const a=api.plan(fixture.observation,opts({now:()=>clock,deadline:1500}));assert(stopped);assert.equal(a.metrics.ordinarySAllocation.visibleTail.selected,false);assert.deepEqual(noMetrics(a),noMetrics(off));assert.equal(a.continuation.length,5);assert(a.metrics.nodes<=45000);
 });
 test('visible SL tail failed strongest terminal proof cannot select a weaker challenger or lose the prior SL',()=>{
- const off=plan(true);let rejected=0;const api=moduleWith({'./st-midgame-resources.js':{...M,checkPath:(raw,path,summary)=>{if(path.length===7){rejected++;return{valid:false,reason:'test-terminal-proof-rejected'};}return M.checkPath(raw,path,summary);}}});
+ const off=plan(true);let rejected=0;const api=moduleWith({'./st-obligation-resources.js':{...require('../st-obligation-resources'),checkPath:(raw,path,summary)=>{if(path.length===7){rejected++;return{valid:false,reason:'test-terminal-proof-rejected'};}return require('../st-obligation-resources').checkPath(raw,path,summary);}}});
  const a=api.plan(fixture.observation,opts());assert(rejected);assert.equal(a.metrics.ordinarySAllocation.visibleTail.selected,false);assert.deepEqual(noMetrics(a),noMetrics(off));
 });
 test('visible SL tail lifecycle: actual input and HOLD retain O→I cleanup after the L payment',()=>{

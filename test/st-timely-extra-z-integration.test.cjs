@@ -2,6 +2,7 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const P=require('../st-planner'),R=require('../st-rules'),H=require('../st-resource-history');
 const fixture=require('./fixtures/timely-scoring.json'),clone=x=>JSON.parse(JSON.stringify(x));
+const {allowanceResource}=require('./support/st-comparison-resources.cjs');
 
 // Abstract contract records, NOT physically replayable alternative routes.
 // Exercise both independent guards without claiming an Extra-Z policy benefit.
@@ -12,8 +13,7 @@ function record(key,path,extraZ='used'){
   rank:[1,1,0,10,2,-20,2,0],structuralScore:40,centerContinuity:0,openingQualityProgress:null,
   qualified:true,notchValid:true,cycleDebt:0,cavityDebt:[],centerDebt:[],dependencyDebt:0,entryDebt:0,
   assessment:{maxHeight:8,regionalSupport:true,sealed:0,covered:0,estimate:20,right:{},structure:{left:{covered:0}}},
-  resources:{extraZ,originKey:'abstract same verified root',active:{type:'I',id:5,bag:1},hold:{type:'Z',id:4,bag:1},queue:[],scoredTs:[3],
-   violations:[],pendingCenter:[],hangingS:[],hangingL:[],unclassifiedS:[],unclassifiedL:[]}};
+  resources:allowanceResource(extraZ)};
 }
 
 test('timely / Extra-Z contract: allowance cannot justify a delayed TSD or quad',()=>{

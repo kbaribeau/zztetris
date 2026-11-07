@@ -48,7 +48,7 @@ test('st-import-alert/session schema, settings and replay rejections remain atom
   [{...saved,search:{...saved.search,timeMs:99999}},'Unsupported session search settings; current coach settings are required.'],
   [{...saved,position:{...saved.position,board:[]}},'Invalid session position.'],
  ];
- const replay=clone(saved);replay.coaching.resourceContext.steps.push({action:'INVALID',revealed:[]});
+ const replay=clone(saved);replay.coaching.obligationContext.inventory.queue[0].id=-1;
  // The existing replay validator supplies the reason; the UI must preserve it,
  // not reinterpret or downgrade invalid history into an accepted warning.
  let replayMessage;try{g.window.STSession.prepare(replay);assert.fail('invalid replay accepted');}catch(error){replayMessage=error.message;}
@@ -69,7 +69,7 @@ test('st-import-alert/parser messages containing markup are rendered only as tex
 test('st-import-alert/success, accepted-session warnings, exports and mode changes clear only rejection presentation',()=>withPage('st-lab.html',{},g=>{
  const position=g.snapshot(),session=clone(g.window.stLab.exportSession());
  attempt(g,'{');attempt(g,position);notice(g,/^Snapshot imported\.$/);
- attempt(g,'{');attempt(g,{...session,engineVersion:'older-readable-coach'});notice(g,/^Session imported\..*different coach version.*history and settings are preserved/);
+ attempt(g,'{');attempt(g,{...session,engineVersion:'older-readable-coach'});notice(g,/^Session imported\..*different coach version.*accounting and settings are preserved/);
  assert.deepEqual(g.snapshot(),session.position,'accepted warning still installs validated position');
  attempt(g,'{');attempt(g,session);notice(g,/^Session imported\. Advice will be revalidated\.$/);
  for(const [button,pattern] of [['#st-export',/^Exported visible state only/],['#st-export-session',/^Download requested for the current coaching session/]]){

@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const P=require('../st-planner'),R=require('../st-rules'),B=require('../st-bag'),PH=require('../st-pattern-history'),RH=require('../st-resource-history'),M=require('../st-midgame-resources'),A=require('../st-access');
+const P=require('../st-planner'),R=require('../st-rules'),B=require('../st-bag'),PH=require('../st-pattern-history'),RH=require('../st-resource-history'),M=require('../st-obligation-resources'),Provider=require('../st-resource-provider'),A=require('../st-access');
 const fixture=require('./fixtures/fresh-maintenance-handoff.json'),clone=x=>JSON.parse(JSON.stringify(x));
 const request=()=>clone(fixture.request),options=q=>({...q.options,previous:q.previous,commitment:q.commitment,deadline:Infinity,now:()=>0});
 let cached;const advice=()=>clone(cached??=P.decide(request().observation,options(request())));
@@ -16,7 +16,8 @@ test('fresh handoff / ordinary maintenance discovers and admits the visible J de
  assert.deepEqual(a.continuation.at(-1).event.cells,[[0,34],[1,34],[0,35],[0,36]]);
  assert.ok(a.metrics.nodes<=45000);assert.equal(a.metrics.nodes,45000-a.metrics.handoffWork.fresh.remainingNodes+a.metrics.handoffWork.fresh.nodes);
  assert.equal(a.metrics.handoffWork.legacy.forecast.retained,true);assert.equal(a.evidence.openingHandoff.forecast,undefined,'Fresh advice must not claim the selected route was forecast-revalidated');
- assert.equal(a.evidence.resourceObligations.binding,M.start(M.extendForced(q.observation),RH.resolve(q.observation,marked(q))).originKey);
+ const boundary=Provider.projectHandoff(Provider.prepare(q.observation,q.options).frame);
+ assert.equal(a.evidence.resourceObligations.binding,M.rootBinding(Provider.startRoute(boundary)));
  assert.equal(P.revalidate(q.observation,a,{...options(q),openingPhase:false}),null,'The unmarked live ledger cannot borrow handoff labels');
  assert.ok(P.revalidate(q.observation,a,{...options(q),openingPhase:false,resourceContext:RH.exportContext(q.observation,marked(q))}));
  assert.deepEqual(q,before,'The planner never mutates the live request or history');

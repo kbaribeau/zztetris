@@ -1,5 +1,5 @@
 /* Compact opening allocation, conserved Z account and active Reset duty.
- * Standalone migration component. Production consumers are NOT wired here.
+ * Shared factual component; the controller and coaches own route selection.
  *
  * The caller authenticates each actual lock/public identity exactly once and
  * owns inventory, phase/Reset selection, Center/S/L/safety reducers and Undo.

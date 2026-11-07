@@ -40,7 +40,7 @@ test('evaluation/source input execution and duplicate pair mismatches are reject
 });
 test('evaluation/shared-state dependency changes cannot escape frozen source binding',()=>{
  const f=fixture();
- for(const file of ['st-public-inventory.js','st-center-obligations.js','st-obligation-admission.js','st-resource-search.js']){
+ for(const file of ['st-public-inventory.js','st-center-obligations.js','st-obligation-admission.js','st-resource-search.js','st-obligation-context.js','st-obligation-state.js','st-sl-obligations.js','st-opening-obligations.js','st-obligation-projection.js','st-obligation-route.js','st-obligation-assessment.js','st-obligation-resources.js','st-opening-eligibility.js','st-resource-provider.js','st-resource-legacy.js','st-obligation-tracking.js']){
   assert.match(f.p.sources.candidate[file],/^[a-f0-9]{64}$/,file+' must be included in new simulation manifests');
   const changed={...f.p.sources.candidate,[file]:'0'.repeat(64)};
   assert.throws(()=>V.bindProtocol(f.p,'candidate',changed,f.p.execution,f.inputs),/source mismatch/);

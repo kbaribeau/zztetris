@@ -72,6 +72,7 @@ function describe(raw,resources){
   };
 }
 function resolve(raw,history){
+  if(history?.schemaVersion===1&&['available','unavailable'].includes(history.status)&&history.inventory)return unavailable({status:'unavailable',scope:'historical'},'Historical allocation-window diagnostics are not retained in current obligation state.');
   try{
     const resources=Resources.resolve(raw,history);
     if(!['complete','partial'].includes(resources.coverage.status)||!resources.allocations)return unavailable(clone(resources.coverage),'Missing, stale, forged, truncated, or otherwise unavailable observed history.');

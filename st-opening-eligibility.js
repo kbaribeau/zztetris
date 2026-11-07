@@ -1,4 +1,4 @@
-/* UNWIRED opening/planner predicates over current obligation facts.
+/* Opening/planner predicates over current obligation facts.
  * No allocation/count/closure/milestone array is reconstructed. The caller
  * owns phase, disabled options, right-side geometry, legal route proof and
  * post-clear handoff search. These selectors confer none of that authority.

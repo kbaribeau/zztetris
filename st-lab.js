@@ -16,8 +16,15 @@
   window.ctrlsPopup=()=>window.open('controls.html','popup','width=1200,height=800');
   const context=$('b').getContext('2d');
   let suggestedFileName=STSession.DEFAULT_EXPORT_FILENAME;
-  let state, origin, future=[], futureCursor=0, generated=false, privatePractice=false, openingPhase=false, openingClear=null, openingRepair=null, openingSource=null, patternHistory=null, resourceHistory=null, publicInventory=null, resourceOriginBag=null, pieceLedger=null;
-  let undoHistory=[], turnStart=null, resetDiagnosticCache=null;
+  let state, origin, future=[], futureCursor=0, generated=false, privatePractice=false, openingPhase=false, openingClear=null, openingRepair=null, openingSource=null, patternHistory=null, obligationContext=null, pieceLedger=null;
+  let undoHistory=[], turnStart=null, resetDiagnosticCache=null, planContinuity=null, planProof=null;
+  let tracking=STObligationTracking.create();const trackingListeners=new Map();
+  function resetTracking(){tracking=STObligationTracking.create();for(const listener of trackingListeners.keys())trackingListeners.set(listener,tracking.subscribe(listener));}
+  function accountingFrame(current=obligationContext,position=observation()){return{status:current.status,state:current.state,reason:current.reason,view:STObligationContext.resolve(current,{position})};}
+  function adoptPlan(advice){const proof=advice?.evidence?.construction;if(!proof){planContinuity=null;planProof=null;return;}planContinuity=STPlanContinuity.importState(STPlanContinuity.exportState(planContinuity),{position:observation(),inventory:obligationContext.inventory,proof})||STPlanContinuity.start(observation(),obligationContext.inventory,proof);planProof=planContinuity?clone(proof):null;}
+  function resources(){return{...STObligationContext.resolve(obligationContext,{position:observation()}),terminal:Boolean(state.topOut||!state.active)};}
+  function installTransition(prior,before,transition,operation,lock=lockCount){obligationContext=transition.context;tracking.transition(accountingFrame(prior,before),accountingFrame(),{operation,effects:transition.effects,lock});if(obligationContext.status==='available')patternHistory=clone(obligationContext.state.safety.notches);}
+  function markAccounting(kind){if(obligationContext.status!=='available'||kind==='handoff'&&obligationContext.state.sl.handoff||kind==='begin-reset'&&obligationContext.state.account.reset.status==='active')return;const prior=obligationContext,before=observation(),transition=kind==='handoff'?STObligationContext.handoff(prior,{position:before}):STObligationContext.beginReset(prior,{position:before,candidate:true});installTransition(prior,before,transition,{kind});}
   // Transient public-only forecast candidate. Never checkpoint or export it.
   let openingForecast=null;
   let worker=null, requestId=0, debounce=null, watchdog=null, revision=0;
@@ -111,7 +118,7 @@
     if(!TrainingSettings.guideVisible){coachStatus='hidden';coachMessage='';render();return;}
     if(state.topOut){coachStatus='top-out';coachMessage='This position has topped out. Undo the placement or reset to continue.';render();return;}
     if(!state.active){coachStatus='insufficient-known-pieces';coachMessage=privatePractice?'The supplied private practice sequence has ended. Reset to replay it or import another session.':'The supplied queue has ended. Import another snapshot or reset.';render();return;}
-    if(typeof Worker!=='function'){result=null;coachStatus='worker-unavailable';coachMessage='Coaching is unavailable in this browser. You can still practice manually.';render();return;}
+    if(typeof Worker!=='function'){result=null;planContinuity=null;planProof=null;coachStatus='worker-unavailable';coachMessage='Coaching is unavailable in this browser. You can still practice manually.';render();return;}
     if(!retain){coachStatus='thinking';coachMessage='Checking the next moves…';}render();
     const currentRevision=state.revision;
     // Input bursts settle briefly; only one worker is alive. Termination cancels
@@ -124,23 +131,23 @@
         activeWorker.onmessage=({data})=>{
           if(worker!==activeWorker || data?.id!==id || data.revision!==state.revision || currentRevision!==state.revision)return;
           clearTimeout(watchdog);watchdog=null;activeWorker.terminate();worker=null;
-          if(data.type==='error'){recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;coachStatus='worker-error';coachMessage='The coach could not evaluate this position. You can still practice manually.';result=null;render();return;}
+          if(data.type==='error'){recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;planContinuity=null;planProof=null;coachStatus='worker-error';coachMessage='The coach could not evaluate this position. You can still practice manually.';result=null;render();return;}
           if(data.type!=='result')return;
           const candidate=data.result;
           if(candidate?.target && !safeTarget(candidate)){
-            recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;coachStatus='invalid-witness';coachMessage='The suggested move failed validation, so it is not shown.';result=null;render();return;
+            recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;planContinuity=null;planProof=null;coachStatus='invalid-witness';coachMessage='The suggested move failed validation, so it is not shown.';result=null;render();return;
           }
-          result=candidate || null;pendingHandoffRecovery=null;
+          result=candidate || null;pendingHandoffRecovery=null;adoptPlan(result);
           openingForecast=STPlanner.captureOpeningForecast(observation(),result)||openingForecast;
-          if(result?.target&&result.evidence?.strategy==='reset-coach')resourceHistory=STResourceHistory.beginReset(resourceHistory,observation());
-          const recovery=STPlanner.captureHandoffRecovery(observation(),result,STResourceHistory.exportContext(observation(),resourceHistory));
+          if(result?.target&&result.evidence?.strategy==='reset-coach')markAccounting('begin-reset');
+          const recovery=STPlanner.captureHandoffRecovery(observation(),result,STObligationContext.exportState(obligationContext));
           // Revalidation during the same first piece must not replace the
-          // pre-handoff origin with an already-marked mid-piece ledger.
-          if(recovery){recoveryOrigin=recovery;recoveryExecution=STHandoffContinuity.start(observation(),publicInventory);}
+          // pre-handoff origin with an already-marked mid-piece checkpoint.
+          if(recovery){recoveryOrigin=recovery;recoveryExecution=STHandoffContinuity.start(observation(),obligationContext.inventory);}
           else if(!recoveryOrigin||result?.evidence?.openingHandoff?.recovery!=='shared-after-legacy-budget-miss'||JSON.stringify(result.target)!==JSON.stringify(recoveryOrigin.advice.target)){recoveryOrigin=null;recoveryExecution=null;}
           const wasOpening=openingPhase;const phase=STPlanner.acceptOpeningResult({active:openingPhase,clear:openingClear,repair:openingRepair,source:openingSource},result);openingPhase=phase.active;openingClear=phase.clear;openingRepair=phase.repair||null;openingSource=phase.source||null;
           if(!openingPhase)openingForecast=null;
-          if(wasOpening&&!openingPhase&&resourceHistory){resourceHistory=STResourceHistory.markHandoff(resourceHistory,observation());recoveryExecution=STHandoffContinuity.markHandoff(recoveryExecution,observation(),publicInventory);}
+          if(wasOpening&&!openingPhase){markAccounting('handoff');recoveryExecution=STHandoffContinuity.markHandoff(recoveryExecution,observation(),obligationContext.inventory);}
           coachStatus=result?.status || 'no-supported-continuation-found';
           coachMessage=result?.reason || 'No supported ST sequence was found within this search.';
           if(result?.target){
@@ -153,17 +160,17 @@
         activeWorker.onerror=event=>{
           event.preventDefault?.();
           if(worker!==activeWorker)return;
-          cancel();recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;coachStatus='worker-error';coachMessage='The coach could not start. You can still practice manually.';result=null;render();
+          cancel();recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;planContinuity=null;planProof=null;coachStatus='worker-error';coachMessage='The coach could not start. You can still practice manually.';result=null;render();
         };
         activeWorker.postMessage({type:'plan',id,observation:observation(),previous:previous?clone(previous):null,
           commitment:commitment?clone(commitment):null,
-          options:{...(openingForecast?{openingForecast:clone(openingForecast)}:{}),...(pendingLHint?{pendingLHint:clone(pendingLHint)}:{}),resourceContext:STResourceHistory.exportContext(observation(),resourceHistory),...(pendingHandoffRecovery?{handoffRecovery:clone(pendingHandoffRecovery)}:{}),...searchSettings,patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null}});
+          options:{...(planContinuity?{planContinuity:STPlanContinuity.exportState(planContinuity)}:{}),...(openingForecast?{openingForecast:clone(openingForecast)}:{}),...(pendingLHint?{pendingLHint:clone(pendingLHint)}:{}),obligationContext:STObligationContext.exportState(obligationContext),...(pendingHandoffRecovery?{handoffRecovery:clone(pendingHandoffRecovery)}:{}),...searchSettings,patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null}});
         watchdog=setTimeout(()=>{
           if(worker!==activeWorker)return;
-          cancel();recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;result=null;coachStatus='budget-exhausted';coachMessage='The coach timed out. A valid continuation may still exist.';render();
+          cancel();recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;result=null;planContinuity=null;planProof=null;coachStatus='budget-exhausted';coachMessage='The coach timed out. A valid continuation may still exist.';render();
         },2500);
       } catch {
-        cancel();recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;result=null;coachStatus='worker-unavailable';coachMessage='The coach could not start. You can still practice manually.';render();
+        cancel();recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;result=null;planContinuity=null;planProof=null;coachStatus='worker-unavailable';coachMessage='The coach could not start. You can still practice manually.';render();
       }
     },40);
   }
@@ -190,7 +197,7 @@
     if(added.length&&frontier)state={...state,bag:frontier};
   }
   function resetState(input,{tail=[],random=false,history=null,note='',keepOrigin=false,opening=false,counterLabel='Lines since start',suggestedFileName:filename=STSession.DEFAULT_EXPORT_FILENAME}={}) {
-    cancel();stopRepeating();recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;future=tail.slice();futureCursor=0;undoHistory=[];turnStart=null;generated=random;privatePractice=false;openingPhase=opening;openingClear=null;openingRepair=null;openingForecast=null;
+    cancel();stopRepeating();planContinuity=null;planProof=null;recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;future=tail.slice();futureCursor=0;undoHistory=[];turnStart=null;generated=random;privatePractice=false;openingPhase=opening;openingClear=null;openingRepair=null;openingForecast=null;
     state=STRules.migrateState({...clone(input),revision:++revision});
     const errors=STRules.validate(state);if(errors.length)throw new Error(errors.join('; '));
     if(state.queue.length>6){future.unshift(...state.queue.slice(6));state={...state,queue:state.queue.slice(0,6)};}
@@ -198,7 +205,7 @@
     // The initial finite history seeds knowledge once. Each actual public reveal
     // consumes the frontier; Undo already restores it in the state snapshot.
     if(history)state={...state,bag:STBag.fromObserved({observed:history,startPhase:0})};
-    replenish();searchSettings=STSession.defaults();resourceOriginBag=state.bag?clone(state.bag):null;openingSource=STPlanner.startOpeningSession(observation(),{emptyMode:random&&opening}).source;patternHistory=STPlanner.startPatternHistory(observation());publicInventory=STPublicInventory.start(observation(),{fresh:random&&opening});resourceHistory=STResourceHistory.start(observation(),{fresh:random&&opening,inventory:publicInventory});pieceLedger=STPieceLedger.start(observation(),{fresh:random&&opening});previous=null;result=null;commitment=null;pendingLHint=null;lockCount=0;clearedLines=0;lineLabel=counterLabel;
+    replenish();searchSettings=STSession.defaults();openingSource=STPlanner.startOpeningSession(observation(),{emptyMode:random&&opening}).source;patternHistory=STPlanner.startPatternHistory(observation());obligationContext=STObligationContext.start(observation(),{fresh:random&&opening});patternHistory=clone(obligationContext.state.safety.notches);resetTracking();pieceLedger=STPieceLedger.start(observation(),{fresh:random&&opening});previous=null;result=null;commitment=null;pendingLHint=null;lockCount=0;clearedLines=0;lineLabel=counterLabel;
     if(!keepOrigin)origin={input:clone(input),options:{tail:tail.slice(),random,history:history?.slice()||null,note,opening,counterLabel,suggestedFileName}};
     setText($('st-position-note'),note);setText($('st-game-status'),'');requestPlan();render();
   }
@@ -216,8 +223,8 @@
       {random:true,opening:true,history:[active,...initial],note:'Empty-board opening practice. The coach checks partial construction using visible pieces; completing the opening is not guaranteed.'});
   }
   function checkpoint() {
-    return {state:clone(state),futureCursor,
-      resourceHistory,publicInventory,resourceOriginBag,pieceLedger,patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null,
+    return {state:clone(state),futureCursor,planContinuity:STPlanContinuity.exportState(planContinuity),planProof:planProof?clone(planProof):null,
+      obligationContext,pieceLedger,patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null,
       commitment:commitment?clone(commitment):null,pendingLHint:pendingLHint?clone(pendingLHint):null,lockCount,clearedLines};
   }
   function undo() {
@@ -226,7 +233,7 @@
     const saved=undoHistory.pop();
     state={...clone(saved.state),revision:++revision};futureCursor=saved.futureCursor;
     openingPhase=saved.openingPhase;openingSource=saved.openingSource?clone(saved.openingSource):null;openingClear=saved.openingClear?clone(saved.openingClear):null;openingRepair=saved.openingRepair?clone(saved.openingRepair):null;
-    patternHistory=saved.patternHistory?clone(saved.patternHistory):null;resourceHistory=saved.resourceHistory;publicInventory=saved.publicInventory;resourceOriginBag=saved.resourceOriginBag;pieceLedger=saved.pieceLedger;
+    patternHistory=saved.patternHistory?clone(saved.patternHistory):null;obligationContext=saved.obligationContext;resetTracking();planProof=saved.planProof?clone(saved.planProof):null;planContinuity=planProof?STPlanContinuity.importState(saved.planContinuity,{position:observation(),inventory:obligationContext.inventory,proof:planProof}):null;pieceLedger=saved.pieceLedger;
     commitment=saved.commitment?clone(saved.commitment):null;pendingLHint=saved.pendingLHint?clone(saved.pendingLHint):null;lockCount=saved.lockCount;clearedLines=saved.clearedLines;
     // Never resurrect displayed advice or an old worker response. The saved
     // proof is only a candidate for replay against this restored public state.
@@ -235,6 +242,7 @@
     requestPlan();render();
   }
   function act(action) {
+    try {
     if(action==='UNDO'){undo();return;}
     if(action==='RESET'){if(origin?.session){const saved=clone(origin.session);installSession(STSession.prepare(saved),origin.tail??null);}else if(origin)resetState(origin.input,{...origin.options,keepOrigin:true});return;}
     if(!state.active)return;
@@ -253,13 +261,15 @@
     }
     // Active movement does not expose pieces; only draws shorten the preview.
     replenish();
-    if(openingForecast)openingForecast=STPlanner.advanceOpeningForecast(openingForecast,beforeAction,observation(),action);
-    const afterAction={...observation(),lastEvent:state.lastEvent},inventoryTransition=STPublicInventory.transition(publicInventory,beforeAction,action,afterAction);
-    // Actual gameplay is already committed. Accounting failure cannot roll back
-    // its lock, draw or reveal, and legacy history limits do not stop live flow.
-    publicInventory=inventoryTransition.next;
-    resourceHistory=STResourceHistory.applyAction(resourceHistory,beforeAction,action,afterAction,{inventoryTransition});
+    const afterAction={...observation(),lastEvent:state.lastEvent},prior=obligationContext;
+    // Context owns the one current inventory and creates exactly one genuine
+    // receipt. Accepted gameplay still advances when accounting is unavailable.
+    const transition=STObligationContext.applyActual(prior,{before:beforeAction,action,after:afterAction});
+    const inventoryTransition=transition.receipt;
+    installTransition(prior,beforeAction,transition,locked?{kind:'lock',piece:inventoryTransition.locked,event:state.lastEvent}:{kind:'observe'},locked?lockCount:lockCount+1);
     recoveryExecution=STHandoffContinuity.advance(recoveryExecution,beforeAction,action,afterAction,inventoryTransition);
+    planContinuity=STPlanContinuity.advance(planContinuity,beforeAction,action,afterAction,inventoryTransition);
+    if(openingForecast)openingForecast=STPlanner.advanceOpeningForecast(openingForecast,beforeAction,observation(),action);
     if(locked){
       const continuity=STHandoffContinuity.exportConnected(recoveryExecution);
       pendingHandoffRecovery=recoveryOrigin&&continuity?{...clone(recoveryOrigin),actualEvent:clone(state.lastEvent),continuity}:null;
@@ -267,19 +277,25 @@
     }
     pieceLedger=STPieceLedger.applyAction(pieceLedger,beforeAction,action,{...observation(),lastEvent:state.lastEvent});
     if(locked){
-      patternHistory=STPlanner.updatePatternHistory(patternHistory,beforeLock,observation(),state.lastEvent);
+      if(obligationContext.status==='available')patternHistory=clone(obligationContext.state.safety.notches);
       if(openingPhase){const phase=STPlanner.updateOpeningSession({active:openingPhase,clear:openingClear,repair:openingRepair,source:openingSource},beforeLock,observation(),state.lastEvent);openingPhase=phase.active;openingClear=phase.clear;openingRepair=phase.repair||null;openingSource=phase.source||null;}
       // Keep the proof's original public observation, not an input-history
       // guess. The planner checks that the actual lock matches its first step,
       // then replays the suffix using only the newly visible observation.
       const suffix=commitment&&typeof STPlanner.continueCommitment==='function'
-        ?STPlanner.continueCommitment(commitment.observation,observation(),commitment.advice,state.lastEvent,{patternHistory,resourceContext:STResourceHistory.exportContext(observation(),resourceHistory)}):null;
-      commitment=suffix?{observation:clone(observation()),advice:clone(suffix)}:null;
+        ?STPlanner.continueCommitment(commitment.observation,observation(),commitment.advice,state.lastEvent,{patternHistory,obligationContext:STObligationContext.exportState(obligationContext),planContinuity:STPlanContinuity.exportState(planContinuity)}):null;
+      commitment=suffix?{observation:clone(observation()),advice:clone(suffix)}:null;adoptPlan(suffix);
     }
     if(!openingPhase)openingForecast=null;
-    const advanced=!locked&&displayed?STPlanner.advance(observation(),displayed,action,{patternHistory,openingPhase,openingSource,resourceContext:STResourceHistory.exportContext(observation(),resourceHistory)}):null;
+    const advanced=!locked&&displayed?STPlanner.advance(observation(),displayed,action,{patternHistory,openingPhase,openingSource,obligationContext:STObligationContext.exportState(obligationContext),planContinuity:STPlanContinuity.exportState(planContinuity)}):null;
     if(advanced){result=advanced;previous=advanced;coachMessage=advanced.reason;coachStatus=advanced.status;}
     requestPlan({retain:Boolean(advanced)});render();
+    } catch(error) {
+      // An accepted action may already have installed its current Context.
+      // Drop transient routing, never restart or reconstruct that authority.
+      cancel();recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;openingForecast=null;planContinuity=null;planProof=null;result=null;previous=null;
+      throw error;
+    }
   }
   function paintCell(ctx,x,y,type,size=20,outline=false) {
     ctx.fillStyle=colors[type]||'#999';ctx.strokeStyle=outline?'#aaa':'#222';ctx.lineWidth=outline?2:1;
@@ -294,12 +310,12 @@
     });
   }
   function resetDiagnostics() {
-    if(!resetDiagnosticCache||resetDiagnosticCache.state!==state||resetDiagnosticCache.history!==resourceHistory){
-      resetDiagnosticCache={state,history:resourceHistory,value:STResetDiagnostics.resolve(observation(),resourceHistory)};
+    if(!resetDiagnosticCache||resetDiagnosticCache.state!==state||resetDiagnosticCache.current!==obligationContext){
+      resetDiagnosticCache={state,current:obligationContext,value:STResetDiagnostics.resolve(observation(),obligationContext)};
     }
     return resetDiagnosticCache.value;
   }
-  function renderResourceBadge(id,status,label,reason,observedStatus,terminal,count=null) {
+  function renderResourceBadge(id,status,label,reason,observedStatus,terminal,count=null,uncertain=null,anonymous=null) {
     const badge=$(id);
     // S/L counts remain observed facts even outside the reviewed strategy profile.
     const active=count===null?status===observedStatus:count>0;
@@ -310,6 +326,7 @@
     $(id+'-piece').hidden=displayStatus==='out-of-profile';
     setText($(id+'-symbol'),displayStatus==='unknown'?'?':displayStatus==='out-of-profile'?'≠':'');
     if(count!==null)label+=`; confirmed count: ${count}`;
+    if(uncertain>0)label+=`; unresolved accommodation: ${uncertain}${anonymous>0?`; anonymous count: ${anonymous}`:''}`;
     const detail=`${terminal?'Game ended; historical facts only. ':''}${label}. ${reason} Actual observed allocation, not a planned continuation.`;
     if(badge.getAttribute('aria-label')!==label)badge.setAttribute('aria-label',label);
     setText($(id+'-detail'),detail);
@@ -319,7 +336,7 @@
     const visible=TrainingSettings.guideVisible;
     // This names the session's coaching path, not search success or a local
     // scoring-wall phase. A finite repair is not a detected community Reset.
-    const resetting=STResourceHistory.resolve(observation(),resourceHistory).reset?.status==='active';
+    const resetting=resources().reset?.status==='active';
     $('st-phase').dataset.phase=openingPhase?'opening':resetting?'reset':'maintenance';
     setText($('st-phase-name'),openingPhase?'Opening':resetting?'Reset':'Mid-game');
     setText($('st-phase-symbol'),openingPhase?'◌':'▦');
@@ -341,21 +358,20 @@
     $('st-status').hidden=!visible;$('st-diagnostics').hidden=!visible;
     if(visible){setText($('st-status'),`${coachMessage}`);$('st-status').dataset.result=coachStatus;}
     renderSources(visible);
-    const resources=STResourceHistory.resolve(observation(),resourceHistory);
-    const sLabel={hanging:'observed surplus','none-observed':'none observed in the checked interval',unknown:'unknown history or allocation','out-of-profile':'outside the reviewed source profile'}[resources.hangingS.status];
-    const lLabel={hanging:'observed surplus','none-observed':'none observed in the checked interval',unknown:'unknown history or allocation','out-of-profile':'outside the reviewed source profile'}[resources.hangingL.status];
-    const zLabel=resources.reset?.status==='active'?`Reset in progress; observed balance ${resources.extraZ.remaining}`:resources.extraZ.status==='available'&&resources.extraZ.remaining>1?`${resources.extraZ.remaining} remaining in the verified balance`:{available:'unused in the verified interval',used:'used in the verified interval',unknown:'eligibility unknown','out-of-profile':'outside the reviewed source profile'}[resources.extraZ.status];
-    renderResourceBadge('st-hanging-s',resources.hangingS.status,`Hanging S: ${sLabel}`,resources.hangingS.reason||resources.coverage.reason,'hanging',resources.terminal,resources.hangingS.evidence.length);
-    renderResourceBadge('st-hanging-l',resources.hangingL.status,`Hanging L: ${lLabel}`,`${resources.hangingL.reason||resources.coverage.reason} A normal Center SL awaiting its L is separate; no L repair strategy is implied.`,'hanging',resources.terminal,resources.hangingL.evidence.length);
-    renderResourceBadge('st-extra-z',resources.extraZ.status,`Extra Z: ${zLabel}`,resources.extraZ.reason||resources.coverage.reason,'used',resources.terminal);
-    $('st-resource-terminal').hidden=!resources.terminal;
-    const centerLabel=resources.center?`${resources.center.pending.length} pending, ${resources.center.debt.length} diverted`:'unknown';
-    setText($('st-resource-summary'),`${resources.terminal?'Game ended; historical facts only. ':''}Hanging S: ${sLabel}. Hanging L: ${lLabel}. Extra Z: ${zLabel}. Observed Center partners: ${centerLabel}. These are diagnostics, not placement instructions.`);
+    const currentResources=resources();
+    const s=currentResources.hangingS||{status:'unknown',evidence:[],unclassifiedCount:null},l=currentResources.hangingL||{status:'unknown',evidence:[],unclassifiedCount:null},z=currentResources.extraZ||{status:'unknown',remaining:null};
+    const sLabel={hanging:'observed surplus','none-observed':'none currently observed',unknown:'unknown current accounting','out-of-profile':'outside the reviewed source profile'}[s.status];
+    const lLabel={hanging:'observed surplus','none-observed':'none currently observed',unknown:'unknown current accounting','out-of-profile':'outside the reviewed source profile'}[l.status];
+    const zLabel=currentResources.reset?.status==='active'?`Reset in progress; observed balance ${z.remaining}`:z.status==='available'&&z.remaining>1?`${z.remaining} remaining in the current balance`:{available:'available in the current account',used:'spent in the current account',unknown:'eligibility unknown','out-of-profile':'outside the reviewed source profile'}[z.status];
+    renderResourceBadge('st-hanging-s',s.status,`Hanging S: ${sLabel}`,s.reason||currentResources.reason||'Current obligation facts.','hanging',currentResources.terminal,currentResources.status==='unavailable'?null:s.evidence.length,s.unclassifiedCount,s.aggregate?.reduce((a,b)=>a+b,0));
+    renderResourceBadge('st-hanging-l',l.status,`Hanging L: ${lLabel}`,`${l.reason||currentResources.reason||'Current obligation facts.'} A normal Center SL awaiting its L is separate; no L repair strategy is implied.`,'hanging',currentResources.terminal,currentResources.status==='unavailable'?null:l.evidence.length,l.unclassifiedCount,l.aggregate?.reduce((a,b)=>a+b,0));
+    renderResourceBadge('st-extra-z',z.status,`Extra Z: ${zLabel}`,z.reason||currentResources.reason||'Current obligation facts.','used',currentResources.terminal);
+    $('st-resource-terminal').hidden=!currentResources.terminal;
+    const centerLabel=currentResources.center?`${currentResources.center.pending.length} pending, ${currentResources.center.debt.length} diverted`:'unknown';
+    setText($('st-resource-summary'),`${currentResources.terminal?'Game ended; historical facts only. ':''}Hanging S: ${sLabel}. Hanging L: ${lLabel}. Extra Z: ${zLabel}. Observed Center partners: ${centerLabel}. Unclassified S/L accommodation: ${s.unclassifiedCount??'?'}/${l.unclassifiedCount??'?'}; anonymous counts do not name pieces. These are diagnostics, not placement instructions.`);
     const resetEvidence=resetDiagnostics();
-    const resetCount=resetEvidence.pairs.filter(p=>p.status==='reset-like-candidate').length;
-    const resetLabel=resetCount?`${resetCount} Reset-like diversion pair(s) observed; exact phase boundaries remain uncertain.`:resetEvidence.status==='unknown'?'Earlier Reset history is unknown.':resetEvidence.status==='no-reset-evidence'?'No Reset evidence observed.':'Observed T diversions are insufficient to identify a Reset.';
-    setText($('st-reset-summary'),resources.reset?.episodes?.length||resources.reset?.status==='active'?`Reset coach: ${resources.reset.status==='active'?`${resources.reset.progress} of 2 Left T placements completed`:`${resources.reset.episodes.length} completed`}. Remaining non-Right Z balance: ${resources.extraZ.remaining}.`:`Reset evidence: ${resetLabel} No allowance is renewed from diagnostic pairs.`);
-    setText($('st-diagnostic-text'),JSON.stringify({status:coachStatus,revision:state.revision,resources,resetEvidence,
+    setText($('st-reset-summary'),currentResources.reset?.status==='active'?`Reset coach: ${currentResources.reset.progress} of 2 Left T placements completed. Remaining non-Right Z balance: ${z.remaining}.`:`Current Reset: ${currentResources.reset?.status??'unavailable'}. Historical allocation-window diagnostics are unavailable from a current checkpoint.`);
+    setText($('st-diagnostic-text'),JSON.stringify({status:coachStatus,revision:state.revision,resources:currentResources,resetEvidence,
       ...(result?{metrics:result.metrics,evidence:result.evidence,horizon:result.horizon,continuation:result.continuation}:{}),
       note:'Only the shown sequence has been checked. Continued ST play is not guaranteed.'},null,2));
     context.clearRect(0,0,200,440);
@@ -425,22 +441,22 @@
   document.querySelectorAll('[data-action]').forEach(button=>button.addEventListener('click',()=>{act(button.dataset.action);button.blur();}));
   $('st-fixture').addEventListener('change',()=>{chooseMode($('st-fixture').value);$('st-fixture').blur();});
   function exportSession() {
-    return STSession.create(observation(),{resourceHistory,resourceOriginBag,patternHistory,openingPhase,openingSource,openingClear,openingRepair,previous,commitment,pendingLHint,search:searchSettings,suggestedFileName});
+    return STSession.create(observation(),{obligationContext,planContinuity:STPlanContinuity.exportState(planContinuity),patternHistory,openingPhase,openingSource,openingClear,openingRepair,previous,commitment,pendingLHint,search:searchSettings,suggestedFileName});
   }
   function installSession(prepared,tail=null) {
-    // Normalize before mutation: Reset must replay current, validated evidence,
+    // Normalize before mutation: Reset must restore the current checkpoint,
     // not an older envelope or discarded executable certificates.
     const envelope=STSession.create(prepared.state,prepared);
-    // All untrusted parsing/proof checks have completed before touching the live
+    // All current-shape and candidate checks have completed before touching the live
     // controller. Worker identity guards, not revision uniqueness, reject old replies.
     cancel();stopRepeating();recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;openingForecast=null;
     suggestedFileName=envelope.suggestedFileName;
     state=STRules.createState(prepared.state);revision=state.revision;
     future=tail?.slice()||[];futureCursor=0;generated=false;privatePractice=tail!==null;undoHistory=[];turnStart=null;
-    resourceHistory=prepared.resourceHistory;publicInventory=resourceHistory.inventory||STPublicInventory.start(observation());resourceOriginBag=prepared.resourceOriginBag;
+    obligationContext=prepared.obligationContext;resetTracking();
     pieceLedger=STPieceLedger.start(observation());patternHistory=prepared.patternHistory;
     openingPhase=prepared.openingPhase;openingSource=prepared.openingSource;openingClear=prepared.openingClear;openingRepair=prepared.openingRepair;
-    previous=prepared.previous;commitment=prepared.commitment;pendingLHint=prepared.pendingLHint;searchSettings=prepared.search;
+    previous=prepared.previous;commitment=prepared.commitment;planProof=clone(previous?.evidence?.construction||commitment?.advice?.evidence?.construction||null);planContinuity=planProof?STPlanContinuity.importState(prepared.planContinuity,{position:observation(),inventory:obligationContext.inventory,proof:planProof}):null;pendingLHint=prepared.pendingLHint;searchSettings=prepared.search;
     result=null;lockCount=0;clearedLines=0;lineLabel='Lines since import';selectedId=null;$('st-fixture').value='';
     origin={session:clone(envelope),tail:tail?.slice()??null};
     setText($('st-position-note'),privatePractice?'Imported coaching session with a finite private practice sequence. Only six preview pieces are shown to the coach. Restart restores this exact sequence; exports exclude the private tail.':'Imported coaching session. Only visible supply is restored; hidden future and Undo history are excluded.');
@@ -472,7 +488,7 @@
   });
   for(const mode of playModes){const option=document.createElement('option');option.value=mode.id;option.textContent=mode.label;$('st-fixture').append(option);}
   setText($('st-key-help'),actions.map((action,i)=>`${config[i]}: ${action.toLowerCase()}`).join(' · ')+' · Set bindings in Game Settings.');
-  window.stLab=Object.freeze({render,act,loadFixture,snapshot:()=>clone(observation()),exportSession:()=>clone(exportSession()),get publicInventory(){return STPublicInventory.exportState(publicInventory);},get resources(){return STResourceHistory.resolve(observation(),resourceHistory);},get pieceLedger(){return STPieceLedger.resolve(observation(),pieceLedger);},get resetEvidence(){return clone(resetDiagnostics());},get result(){return result?clone(result):null;}});
+  window.stLab=Object.freeze({render,act,loadFixture,snapshot:()=>clone(observation()),exportSession:()=>clone(exportSession()),get publicInventory(){return STPublicInventory.exportState(obligationContext.inventory);},get obligationContext(){return STObligationContext.exportState(obligationContext);},onTrackingEvent(listener){trackingListeners.get(listener)?.();trackingListeners.set(listener,tracking.subscribe(listener));return()=>{trackingListeners.get(listener)?.();trackingListeners.delete(listener);};},get resources(){return resources();},get pieceLedger(){return STPieceLedger.resolve(observation(),pieceLedger);},get resetEvidence(){return clone(resetDiagnostics());},get result(){return result?clone(result):null;}});
   let savedMode;try{savedMode=localStorage.getItem(modeKey);}catch{ /* Fall back to the stable stack. */ }
   chooseMode(savedMode,{persist:false});
   if(savedMode && !playModes.some(m=>m.id===savedMode))rememberMode(stableId);

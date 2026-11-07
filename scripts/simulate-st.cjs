@@ -7,7 +7,7 @@ const Runner=require('./lib/st-simulation-runner.cjs');
 const E=require('./lib/st-simulation.cjs');
 const V=require('./lib/st-evaluation.cjs');
 const TM=require('./lib/st-tracking-metrics.cjs');
-const T=require('../st-resource-tracking');
+const T=require('../st-obligation-tracking');
 const ROOT=path.resolve(__dirname,'..'),MAX_FILE=64*1024*1024,MAX_TRACE_FILE=512*1024*1024;
 const json=file=>{if(fs.statSync(file).size>MAX_FILE)throw Error('Artifact exceeds 64 MiB: '+file);return JSON.parse(fs.readFileSync(file,'utf8'));};
 const write=(file,value)=>fs.writeFileSync(file,JSON.stringify(value,null,2)+'\n');
@@ -84,8 +84,8 @@ function recoverTracking(){
       rows++;
       if(rows===1&&record?.kind==='tracking-start'&&record.schemaVersion===1){instrumented=true;return;}
       if(record?.kind==='lock'){
-        // The helper imports/replays public resource facts. It never asks the
-        // planner or trusts a stored obligation count as an authentication step.
+        // The helper trusts one current checkpoint and checks its finite
+        // recorded action tail. It never reconstructs lifetime history.
         try{
           if(record.lock!==++statusRows)throw Error('Noncontiguous retained lock label');
           lastStatus=E.recoverTrackingStatus(record);statusError=null;
@@ -110,7 +110,7 @@ function recoverTracking(){
           // that HD completed. A stop/final drain may retain its next attempt.
           const valid=event.stage==='action'
             ? event.lock===(record.kind==='lock'?boundary:boundary+1)
-            : ['lock','handoff','reset'].includes(event.stage)&&event.lock<=boundary&&!(record.kind==='lock'&&event.stage==='lock'&&event.lock!==record.lock);
+            : ['lock','handoff','begin-reset','reset'].includes(event.stage)&&event.lock<=boundary&&!(record.kind==='lock'&&event.stage==='lock'&&event.lock!==record.lock);
           if(!valid)throw Error('Tracking event does not match retained row lock boundary');
         }
         for(const event of record?.trackingEvents||[])metrics.record(event);
@@ -120,7 +120,7 @@ function recoverTracking(){
     finish(){
       const prefixReason='Recorded prefix only; interruption may omit events after its last retained row.';
       const tracking=instrumented?{...metrics.snapshot({scope:'retained-prefix',throughLock}),reason:reason?prefixReason+' '+reason:prefixReason}:TM.unavailable('Missing initial tracking-start schemaVersion 1 marker; legacy or missing instrumentation cannot establish zero anomalies.');
-      const finalObligations=lastStatus?{...lastStatus,scope:'partial',reason:'Last authenticated retained lock only; later actions and terminal status may be unobserved.'+(statusError?' Later lock could not be authenticated: '+statusError:'')}:T.status(null,{scope:'unavailable',reason:'No retained lock has authenticated resource status.'+(statusError?' '+statusError:'')});
+      const finalObligations=lastStatus?{...lastStatus,scope:'partial',reason:'Last authenticated retained lock only; later actions and terminal status may be unobserved.'+(statusError?' Later lock could not be authenticated: '+statusError:'')}:T.status({status:'unavailable',state:null,view:{availability:'unavailable'}},{scope:'unavailable',reason:'No retained lock has authenticated resource status.'+(statusError?' '+statusError:'')});
       return{tracking,finalObligations};
     }
   };
@@ -157,7 +157,7 @@ function recoverSummary(directory,input,result){
   if(!result.error&&result.status===0&&fs.existsSync(file))try{
     const summary=json(file);
     if(summary.schemaVersion!==1||summary.scenario!==input.scenario||summary.seed!==input.seed||summary.inputHash!==input.inputHash||summary.cap!==input.locks||!V.STOPS.includes(summary.stop)||!Number.isSafeInteger(summary.locks)||summary.locks<0||summary.locks>input.locks||!Array.isArray(summary.profile)||summary.profile.length!==summary.locks||summary.censored!==['phase-cap','lock-cap','wall-cap'].includes(summary.stop))throw Error('Invalid or mismatched child summary');
-    return{...summary,tracking:summary.tracking??TM.unavailable('Summary predates tracking instrumentation.'),finalObligations:summary.finalObligations??T.status(null,{scope:'unavailable',reason:'Summary does not retain an authenticated final resource status.'})};
+    return{...summary,tracking:summary.tracking??TM.unavailable('Summary predates tracking instrumentation.'),finalObligations:summary.finalObligations??T.status({status:'unavailable',state:null,view:{availability:'unavailable'}},{scope:'unavailable',reason:'Summary does not retain an authenticated final resource status.'})};
   }catch(error){result={...result,error:Object.assign(Error('Invalid child summary: '+error.message),{code:'INVALID_SUMMARY'})};}
   preserveChildSummary(directory);
   return fallback(directory,input,result);
@@ -168,7 +168,7 @@ function trackingReport(summary){
   const scope=status?.scope??'unavailable',boundary=scope==='partial'?` through lock ${status.throughLock}`:'';
   if(!obligations)return`tracking ${anomalies}; final status ${scope}${boundary}, obligations unavailable`;
   const count=values=>Array.isArray(values)?values.length:'?';
-  return`tracking ${anomalies}; final status ${scope}${boundary}/${status.coverage?.status??'unavailable'}: S/L ${count(obligations.hangingS?.known)}/${count(obligations.hangingL?.known)}, unclassified ${count(obligations.hangingS?.unclassified)}/${count(obligations.hangingL?.unclassified)}, Center ${count(obligations.center?.pending)} pending/${count(obligations.center?.debt)} debt, extra Z ${obligations.extraZ?.status??'unknown'} (${obligations.extraZ?.remaining??'?'}), Reset ${obligations.reset?.status??'unknown'}`;
+  return`tracking ${anomalies}; final status ${scope}${boundary}/${status.availability??status.coverage?.status??'unavailable'}: S/L ${count(obligations.hangingS?.evidence??obligations.hangingS?.known)}/${count(obligations.hangingL?.evidence??obligations.hangingL?.known)}, unclassified ${obligations.hangingS?.unclassifiedCount??count(obligations.hangingS?.unclassified)}/${obligations.hangingL?.unclassifiedCount??count(obligations.hangingL?.unclassified)}, Center ${count(obligations.center?.pending)} pending/${count(obligations.center?.debt)} debt, extra Z ${obligations.extraZ?.status??'unknown'} (${obligations.extraZ?.remaining??'?'}), Reset ${obligations.reset?.status??'unknown'}`;
 }
 function exportMinoLedgers(directory,episodes){
   // Deliberately after every timed episode, never between planning requests.

@@ -1,6 +1,7 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
 const R=require('../st-rules'),B=require('../st-bag'),H=require('../st-resource-history'),Session=require('../st-session'),Practice=require('../st-practice');
+const Context=require('../st-obligation-context');
 const clone=x=>JSON.parse(JSON.stringify(x));
 function session({known=true,queue=['J','L','O','S','T','Z']}={}){
  const state=R.createState({rules:R.PROFILE.id,board:R.emptyBoard(),active:{type:'I',x:3,y:17,rotation:0,lastRotation:null},hold:null,canHold:true,queue,streamCursor:1,...(known?{bag:B.fromObserved({observed:['I',...queue],startPhase:0})}:{})});
@@ -10,7 +11,7 @@ test('practice/package preserves the visible session and partial history without
  const saved=session(),tail=['T','O','I','J','L','S','Z'],packed=Practice.create(saved,tail),prepared=Practice.parse(JSON.stringify(packed));
  assert.equal(packed.format,Practice.FORMAT);assert.equal(packed.schemaVersion,1);assert.deepEqual(packed.session,saved);assert.deepEqual(packed.privatePractice.tail,tail);
  assert.deepEqual(prepared.session.state,saved.position);assert.deepEqual(prepared.tail,tail);
- assert.equal(H.resolve(prepared.session.state,prepared.session.resourceHistory).coverage.status,'partial');
+ assert.equal(Context.resolve(prepared.session.obligationContext,{position:prepared.session.state}).availability,'unknown');
  assert.deepEqual(Session.create(prepared.session.state,prepared.session),saved);
  tail[0]='Z';packed.privatePractice.tail[0]='Z';assert.equal(prepared.tail[0],'T','prepared tail is detached from inputs');
 });
@@ -22,7 +23,7 @@ test('practice/validates the whole private stream against the public bag frontie
  }
  const uncertain=session({known:false}),got=Practice.prepare(Practice.create(uncertain,['T','O','I','J','L','S','Z']));
  assert.equal(got.session.state.bag,undefined,'private validation never upgrades unknown public bag history');
- assert.equal(H.resolve(got.session.state,got.session.resourceHistory).extraZ.status,'unknown');
+ assert.equal(Context.resolve(got.session.obligationContext,{position:got.session.state}).extraZ.status,'unknown');
 });
 test('practice/rejects unsupported versions, malformed types, oversized streams and nested invalid sessions',()=>{
  const valid=Practice.create(session(),['T']);

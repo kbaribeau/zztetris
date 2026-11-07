@@ -2,6 +2,7 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const P=require('../st-planner'),R=require('../st-rules'),H=require('../st-resource-history'),M=require('../st-midgame-resources');
 const clone=x=>JSON.parse(JSON.stringify(x));
+const {allowanceResource}=require('./support/st-comparison-resources.cjs');
 // Synthetic comparison records isolate policy ordering, not a claimed legal
 // strategic route. Actual replay/history permission is checked separately below.
 function node(key,extraZ='used',patch={}){
@@ -9,8 +10,7 @@ function node(key,extraZ='used',patch={}){
  rank:[1,1,0,10,2,-20,0,0],structuralScore:40,centerContinuity:0,openingQualityProgress:null,
  continuationChecked:true,qualified:true,notchValid:true,cycleDebt:0,cavityDebt:[],centerDebt:[],dependencyDebt:0,entryDebt:0,
  assessment:{maxHeight:8,regionalSupport:true,sealed:0,covered:0,estimate:20,right:{}},
- resources:{extraZ,originKey:'same replay-validated root',active:{type:'I',id:5,bag:1},hold:{type:'Z',id:4,bag:1},queue:[],scoredTs:[3],
- violations:[],pendingCenter:[],hangingS:[],hangingL:[],unclassifiedS:[],unclassifiedL:[]},...patch};
+ resources:allowanceResource(extraZ),...patch};
 }
 const order=nodes=>P.orderContinuations(nodes).map(n=>n.key);
 test('Extra-Z ties: an otherwise equivalent whole continuation preserves available permission',()=>{
@@ -63,12 +63,15 @@ test('Extra-Z ties: unresolved access, repair and resource obligations cannot wi
  n=>n.path[0].structuralEvidence.cavityRepair.cells.push([1,1]),n=>n.assessment.right.entry={status:'unresolved-budget'},
  n=>n.resources.centerBlocked=true,n=>n.resources.tCollision=true,
  ...['violations','pendingCenter','hangingS','hangingL','unclassifiedS','unclassifiedL'].map(field=>n=>n.resources[field].push({}))];
- for(const edit of edits){const a=node('a'),z=node('z','available');edit(z);assert.deepEqual(order([z,a]),['a','z']);}
+ for(const edit of edits){const a=node('a'),z=node('z','available');z.resources=clone(z.resources);edit(z);assert.deepEqual(order([z,a]),['a','z']);}
 });
-test('Extra-Z ties: held Z and differing piece or history identities do not imply equivalence',()=>{
- const edits=[n=>n.resources.hold.id++,n=>n.resources.active.id++,n=>n.resources.hold.bag++,n=>n.resources.queue.push({type:'Z',id:9}),
- n=>n.resources.scoredTs=[99],n=>n.resources.originKey='other root',n=>n.resources.slHistory={pieces:{5:{id:5,type:'S',allocation:{region:'left-center'},pair:null}}}];
- for(const edit of edits){const a=node('a'),z=node('z','available');edit(z);assert.deepEqual(order([z,a]),['a','z']);}
+test('Extra-Z ties: aggregate uncertainty cannot earn preservation with empty named rows',()=>{
+ const a=node('a'),z=node('z','available');z.resources=clone(z.resources);z.resources.uncertainty.S.aggregate[0]=1;z.resources.uncertainty.S.count=1;assert.deepEqual(z.resources.unclassifiedS,[]);assert.deepEqual(order([z,a]),['a','z']);
+});
+test('Extra-Z ties: held Z and tampered current identity/resource views do not imply equivalence',()=>{
+ const edits=[n=>n.resources.hold={id:99,type:'Z',bag:null},n=>n.resources.active.id++,n=>n.resources.active.bag++,n=>n.resources.queue.push({type:'Z',id:9}),
+ n=>n.resources.scoredTs=[99],n=>n.resources.route.assessment.root.references.push(999),n=>n.resources.route.projection.state.sl.uncertainty.L[0]++];
+ for(const edit of edits){const a=node('a'),z=node('z','available');z.resources=clone(z.resources);edit(z);assert.deepEqual(order([z,a]),['a','z']);}
  const a=node('a','used'),z=node('z','unknown');assert.deepEqual(order([z,a]),['a','z'],'physical Z remains irrelevant with unknown permission');
 });
 test('Extra-Z ties: disjoint equivalence classes retain slots and deterministic within-status ties',()=>{

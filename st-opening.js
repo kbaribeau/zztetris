@@ -1,6 +1,6 @@
 /* Bounded opening construction, distinct from established-stack maintenance.
  * Only actual board, active/hold and six public previews enter this search. */
-(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-structure'),require('./st-paired-repair'),require('./st-opening-sources'),require('./st-bag'),require('./st-source-scoring'),require('./st-resource-history'),require('./st-midgame-resources'),()=>require('./st-planner')):factory(root.STRules,root.STStructure,root.STPairedRepair,root.STOpeningSources,root.STBag,root.STSourceScoring,root.STResourceHistory,root.STMidgameResources,()=>root.STPlanner);if(typeof module==='object'&&module.exports)module.exports=api;else root.STOpening=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,S,X,O,B,Q,RH,M,getPlanner){
+(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-structure'),require('./st-paired-repair'),require('./st-opening-sources'),require('./st-bag'),require('./st-source-scoring'),require('./st-resource-provider'),require('./st-obligation-resources'),()=>require('./st-planner')):factory(root.STRules,root.STStructure,root.STPairedRepair,root.STOpeningSources,root.STBag,root.STSourceScoring,root.STResourceProvider,root.STObligationResources,()=>root.STPlanner);if(typeof module==='object'&&module.exports)module.exports=api;else root.STOpening=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,S,X,O,B,Q,Provider,M,getPlanner){
 'use strict';
 const clone=x=>JSON.parse(JSON.stringify(x));
 function balance(board){let n=0;for(let y=0;y<40;y++)for(let x=0;x<4;x++)if(board[y][x]!=='.')n+=(x+y)%2?1:-1;return n;}
@@ -64,9 +64,9 @@ function allocationRank(path,required,pending=[]){
  }
  return [allocation,0,-diverted,-obligations.length];
 }
-// Retain only the authenticated two-non-Right-T opening allocation. A
-// transported scoring route is construction evidence, never handoff authority.
-function thirdTReady(summary){return summary?.coverage?.status==='complete'&&summary.openingAllocation?.status==='ready-for-first-tsd'&&summary.openingAllocation.counts?.T===2;}
+// Retain only the current two-non-Right-T opening allocation. A transported
+// scoring route is construction evidence, never handoff authority.
+function thirdTReady(frame){return Boolean(frame&&Provider.eligibility(frame).thirdTReady);}
 function thirdTPathRank(path){
  let scored=false;
  for(const {event:e}of path){
@@ -650,16 +650,16 @@ function advanceForecast(candidate,before,after,action){
  }catch{return null;}
 }
 // Transient routing only. Replay both the originally visible route and every
-// actual action/reveal, then prove the remaining scoring prefix with the live
-// authenticated resource ledger. No post-clear maintenance proof is required.
+// actual action/reveal, then prove the remaining scoring prefix with current
+// obligation facts. No post-clear maintenance proof is required.
 function checkedFirstTsd(state,candidate,options,work){
  const now=options.now,deadline=options.deadline,limit=options.maxNodes;
  const fail=reason=>{work.reason=reason;return null;},spend=n=>{if(now()>=deadline||work.nodes+n>limit)return false;work.nodes+=n;return true;};
  try{
   if(candidate?.kind&&candidate.kind!=='construction-first-tsd'||candidate?.version!==forecastVersion||candidate.complete!==false)return fail('no-live-scoring-prefix');
-  if(!options.resourceContext)return fail('unknown-allocation');
-  const resources=RH.importContext(state,options.resourceContext),summary=RH.resolve(state,resources);
-  if(!thirdTReady(summary))return fail('allocation-not-ready');
+  const input=Provider.prepare(state,options);
+  if(input.status!=='available')return fail('unknown-allocation');
+  if(!thirdTReady(input.frame))return fail('allocation-not-ready');
   const path=forecastSteps(candidate.path,4),origin=getPlanner().observe(candidate.origin);
   if(!path||!Array.isArray(candidate.actions)||candidate.actions.length>1024||JSON.stringify(candidate).length>131072||R.validate(origin).length||B.validate(origin.bag).length||B.validate(state.bag).length||origin.rules!==state.rules||origin.queue.length>6||thirdTPathRank(path)!==1)return fail('candidate-shape');
   let virtual=origin,notches=S.notchPattern(origin.board);const original=[];
@@ -683,16 +683,15 @@ function checkedFirstTsd(state,candidate,options,work){
   const locks=replay.actions.filter(a=>a.action==='HD').length,lastLock=replay.actions.findLastIndex(a=>a.action==='HD'),movement=replay.actions.length-lastLock-1;
   const remaining=clone(path.slice(locks));if(!remaining.length)return fail('empty-route');
   remaining[0].witness=remaining[0].witness.slice(movement);
-  let history=resources;virtual=state;notches=getPlanner().resolvePatternHistory(state,options.patternHistory);
+  let current=input.frame;virtual=state;notches=getPlanner().resolvePatternHistory(state,options.patternHistory);
   for(const step of remaining){
    if(!spend(3*step.witness.length+1))return fail('shared-budget');
    const r=R.replay(virtual,step.witness);if(!r.valid||r.events.length!==1||JSON.stringify(r.events[0])!==JSON.stringify(step.event))return fail('remaining-route');
    const phase=validStep(virtual.board,{state:r.state,event:r.events[0]},notches);if(!phase)return fail('remaining-policy');
-   for(const action of step.witness){const before=virtual;virtual=R.move(before,action);history=RH.applyAction(history,before,action,virtual);}
+   current=Provider.project(current,{witness:step.witness,event:step.event});virtual=current.position;
    Object.assign(step,{board:virtual.board,hold:step.witness.includes('HOLD'),holdCount:step.witness.filter(a=>a==='HOLD').length});notches=phase;
   }
-  const endpoint=RH.resolve(virtual,history);
-  if(endpoint.coverage.status!=='complete'||endpoint.openingAllocation.status!=='verified-first-tsd'||endpoint.openingAllocation.counts.T!==3||endpoint.openingAllocation.counts.TNonRight!==2||endpoint.openingAllocation.counts.ZNonRight!==1)return fail('resource-allocation');
+  if(!Provider.eligibility(current).thirdTComplete)return fail('resource-allocation');
   // Replay work in the access checker is charged as well as its search nodes.
   if(!spend(remaining.reduce((n,p)=>n+p.witness.length,0)))return fail('shared-budget');
   const access=getPlanner().checkAccessPrefix(state,remaining,{notches:getPlanner().resolvePatternHistory(state,options.patternHistory),now,deadline,maxNodes:Math.max(0,limit-work.nodes)});work.nodes+=access.visited||0;
@@ -733,15 +732,15 @@ function checkedForecast(state,candidate,event,options,work){
 
 function handoff(state,proof,options,work=null,recovery=false){
  if(work)Object.assign(work,{eligible:false,nodes:0,status:'not-eligible'});
- const P=getPlanner(),history=options.resourceContext?RH.importContext(state,options.resourceContext):null;
- // Evaluate the first maintenance move with the same boundary ledger that the
- // controller will retain on acceptance. Failed probes never mark live history.
- const maintenance=history?RH.markHandoff(history,state):null,summary=maintenance?RH.resolve(state,maintenance):null;
- if(maintenance)options={...options,resourceContext:RH.exportContext(state,maintenance)||options.resourceContext};
- // A first double does not erase an observed opening-Z obligation. Unknown
- // imported history retains the legacy actual-clear/geometry handoff path.
- if(summary?.openingAllocation?.requiredNonRightZ===1)return null;
- const historical=summary?.coverage?.status==='complete'&&summary.openingAllocation?.status==='verified-first-tsd'&&summary.extraZ?.baseline&&['available','used'].includes(summary.extraZ.status);
+ const P=getPlanner(),input=Provider.prepare(state,options);
+ if(input.status!=='available')return null;
+ // A prospective boundary rebases factual state only. It never marks the live
+ // context or starts ordinary assessment while opening Ts are still being built.
+ const maintenance=Provider.projectHandoff(input.frame),summary=Provider.facts(maintenance),eligibility=Provider.eligibility(maintenance);
+ // A first double does not erase a current opening-Z obligation. An unknown
+ // origin retains the existing actual-clear/geometry handoff path.
+ if(eligibility.mandatoryZPending)return null;
+ const historical=eligibility.historicalHandoff;
  let event=null;
  if(proof?.before&&proof.event){try{
   const before=P.observe(proof.before);if(!R.validate(before).length){const r=R.replay(before,['HD']),e=r.events[0];
@@ -756,10 +755,18 @@ function handoff(state,proof,options,work=null,recovery=false){
  if(!allowance)return null;
  const end=recovery?deadline:Math.min(deadline,now()+200);
  if(work)Object.assign(work,{eligible:true,allocatedNodes:allowance,deadline:Number.isFinite(end)?end:null});
+ // Forecast revalidation historically uses literal supply. A failed
+ // forecast and a fresh maintenance search are separate queries, each with
+ // one explicit root at this same prospective boundary.
+ options=Provider.withFrame(maintenance,options);
  const started=now(),forecast={attempted:!recovery&&Boolean(options.openingForecast),retained:false,nodes:0,reason:'not-present'};
- let result=forecast.attempted?checkedForecast(state,options.openingForecast,event,{...options,now,maxNodes:allowance,deadline:end},forecast):null;
+ let resource=forecast.attempted?Provider.startRoute(maintenance,{horizon:14,extendForced:false}):null;
+ let result=forecast.attempted?checkedForecast(state,options.openingForecast,event,{...options,resource,now,maxNodes:allowance,deadline:end},forecast):null;
  const source=result?'forecast-revalidated':'fresh-search';
- if(!result)result=P.plan(state,{...options,openingForecast:null,disableOpening:true,openingPhase:false,openingClear:null,previous:null,commitment:null,constructionPrevious:null,maxNodes:Math.max(0,allowance-forecast.nodes),deadline:end});
+ if(!result){
+  resource=Provider.startRoute(maintenance,{horizon:14});
+  result=P.plan(state,{...options,resource,openingForecast:null,disableOpening:true,openingPhase:false,openingClear:null,previous:null,commitment:null,constructionPrevious:null,maxNodes:Math.max(0,allowance-forecast.nodes),deadline:end});
+ }
  const spent=forecast.nodes+(source==='fresh-search'?(result?.metrics?.nodes||0):0);
  if(work)Object.assign(work,{nodes:spent,status:result?.status||'no-result',source,forecast,elapsedMs:now()-started});
  if(result)result={...result,metrics:{...result.metrics,nodes:spent}};
@@ -769,15 +776,15 @@ function handoff(state,proof,options,work=null,recovery=false){
  if(recovery){
   const path=result.continuation||[],live=[summary?.instances?.active,summary?.instances?.hold,...(summary?.instances?.queue||[])].filter(Boolean);
   const owed=(summary?.hangingS?.evidence||[]).filter(e=>Number.isInteger(e.sId)&&e.sId>0&&live.some(p=>p.id===e.sId&&p.type==='S'));
-  if(summary?.coverage?.status!=='complete'||summary?.hangingS?.status!=='hanging'||summary.hangingS.unclassified?.length||owed.length!==1||!Number.isInteger(owed[0].bag)||owed[0].bag<0||!path.length||path.length>2||path.at(-1).event?.type!=='S'||path.at(-1).event.lines!==0||!path.at(-1).event.cells.every(([x])=>x<4))return null;
-  const beforePayment=M.checkPath(state,path.slice(0,-1),summary),payment=M.checkPath(state,path,summary);
+  if(summary?.availability!=='known'||summary?.hangingS?.status!=='hanging'||summary.hangingS.unclassified?.length||summary.hangingS.aggregate?.some(n=>n>0)||owed.length!==1||!Number.isInteger(owed[0].bag)||owed[0].bag<0||!path.length||path.length>2||path.at(-1).event?.type!=='S'||path.at(-1).event.lines!==0||!path.at(-1).event.cells.every(([x])=>x<4))return null;
+  const beforePayment=M.checkPath(M.position(resource),path.slice(0,-1),resource),payment=M.checkPath(M.position(resource),path,resource);
   // M.step removes an identity on S→Left only for the S actually consumed.
   // Requiring it immediately beforehand excludes an already-paid first step
   // followed by a different same-letter filler presented as the payment.
-  if(!beforePayment.valid||beforePayment.resource.hangingS.length!==1||beforePayment.resource.hangingS[0].id!==owed[0].sId||beforePayment.resource.unclassifiedS.length||!payment.valid||payment.resource.hangingS.some(h=>h.id===owed[0].sId))return null;
+  if(!beforePayment.valid||beforePayment.resource.hangingS.length!==1||beforePayment.resource.hangingS[0].id!==owed[0].sId||beforePayment.resource.uncertainty.S.count||!payment.valid||payment.resource.hangingS.some(h=>h.id===owed[0].sId))return null;
  }
 
- const evidence=event?{status:'checked-after-actual-clear',event:clone(event),balance:f.parity}:{status:'checked-after-observed-opening-quality',firstTsdAt:summary.openingAllocation.firstTsdAt,qualityAt:summary.extraZ.baseline.qualityAt,balance:f.parity};
+ const evidence=event?{status:'checked-after-actual-clear',event:clone(event),balance:f.parity}:{status:'checked-after-observed-opening-quality',balance:f.parity};
  if(recovery)evidence.recovery='shared-after-legacy-budget-miss';
  if(source==='forecast-revalidated')evidence.forecast={status:'revalidated-after-actual-clear',version:forecastVersion};
  return{...result,phase:'maintenance',evidence:{...result.evidence,openingHandoff:evidence},reason:(event?'Opening handoff checked after the clear. ':'Opening handoff checked after observed allocation and quality completion. ')+result.reason};
@@ -791,14 +798,17 @@ function plan(raw,options={}){
  if(now()>=deadline||!limit)return{...base,status:'budget-exhausted'};
  const usage=options.usageTelemetry?{schemaVersion:1,scope:'opening',families:{ordinary:{enumerated:0,examined:0,admitted:0,ranked:0,deduplicatedRanked:0,budgetSkipped:0,selected:0},retainedRepair:{provided:Number(Boolean(options.openingRepair)),verified:0,selected:0},handoff:{actualClearProvided:Number(Boolean(options.openingClear)),probed:0,verified:0,selected:0}},rejections:{},access:{checked:0,witnessed:0,rejected:0,unknown:0,cacheHits:0},selected:null}:null;
  if(usage)base.metrics.usage=usage;
- const observedSummary=options.resourceContext?RH.resolve(state,RH.importContext(state,options.resourceContext)):null;
- const historicalHandoff=observedSummary?.coverage?.status==='complete'&&observedSummary.openingAllocation?.status==='verified-first-tsd'&&observedSummary.extraZ?.baseline&&['available','used'].includes(observedSummary.extraZ.status);
+ options=Provider.withOptions(state,options);
+ const input=options.resourceInput;
+ if(input.status!=='available')return{...base,reason:'Current resource accounting is unavailable.'};
+ const observedSummary=input.facts,openingEligibility=Provider.eligibility(input.frame);
+ const historicalHandoff=openingEligibility.historicalHandoff;
  // Preserve the exact established handoff path first. More search must not
  // lengthen a successful old prefix and thereby invent a new retained goal.
  const legacy={},recovery={};let accepted=handoff(state,options.openingClear,{...options,maxNodes:limit,deadline},legacy);
  const handoffWork={legacy,recovery,requestNodes:limit};base.metrics.nodes=legacy.nodes;base.metrics.handoffWork=handoffWork;
- const boundarySummary=options.resourceContext?RH.resolve(state,RH.markHandoff(RH.importContext(state,options.resourceContext),state)):null;
- if(!accepted&&legacy.eligible&&legacy.status==='budget-exhausted'&&historicalHandoff&&boundarySummary.hangingS?.status==='hanging'&&!boundarySummary.hangingS.unclassified?.length){
+ const boundarySummary=Provider.facts(Provider.projectHandoff(input.frame));
+ if(!accepted&&legacy.eligible&&legacy.status==='budget-exhausted'&&historicalHandoff&&boundarySummary.hangingS?.status==='hanging'&&!boundarySummary.hangingS.unclassified?.length&&!boundarySummary.hangingS.aggregate?.some(n=>n>0)){
   const live=[boundarySummary.instances?.active,boundarySummary.instances?.hold,...(boundarySummary.instances?.queue||[])].filter(Boolean);
   const owed=boundarySummary.hangingS.evidence.filter(e=>Number.isInteger(e.sId)&&e.sId>0&&Number.isInteger(e.bag)&&e.bag>=0&&live.some(p=>p.id===e.sId&&p.type==='S'));
   const remaining=Math.max(0,limit-base.metrics.nodes),fallbackNodes=Math.ceil(remaining/3),recoveryNodes=remaining-fallbackNodes;
@@ -813,7 +823,7 @@ function plan(raw,options={}){
   accepted.metrics={...accepted.metrics,nodes:base.metrics.nodes,handoffWork,elapsedMs:now()-started};
   // Do not switch phase on a two-lock recovery that the public controller
   // cannot carry through its bounded, pre-handoff routing envelope.
-  if(accepted.evidence.openingHandoff.recovery&&accepted.continuation.length===2&&!P.captureHandoffRecovery(state,accepted,options.resourceContext)){recovery.status='routing-candidate-unavailable';accepted=null;}
+  if(accepted.evidence.openingHandoff.recovery&&accepted.continuation.length===2&&(!input.context||!P.captureHandoffRecovery(state,accepted,Provider.exportActual(input)))){recovery.status='routing-candidate-unavailable';accepted=null;}
   else{if(usage){usage.families.handoff.verified=1;usage.families.handoff.selected=1;usage.selected={path:accepted.evidence.openingHandoff.status==='checked-after-actual-clear'?'actual-clear-handoff':'observed-quality-handoff',locks:accepted.continuation?.length||0};accepted.metrics={...accepted.metrics,usage};}return accepted;}
  }
  // Preserve old fallback capacity when no recovery was attempted, while logging
@@ -824,16 +834,16 @@ function plan(raw,options={}){
  if(base.metrics.nodes>=limit||now()>=deadline)return{...base,status:'budget-exhausted',metrics:{...base.metrics,elapsedMs:now()-started}};
  const initial=P.assess(state.board),initialFacts=facts(state.board,P.resolvePatternHistory(state,options.patternHistory));
  if(initial.maxHeight>=20||initialFacts.notches.status==='broken')return{...base,reason:'This opening needs a repair outside the supported construction search.'};
- const observed=observedSummary?.openingAllocation;
- const conserveAllocation=!options.disableOpeningAllocationConservation&&thirdTReady(observedSummary);
- const allocationRoot=conserveAllocation?RH.importContext(state,options.resourceContext):null;
+ const conserveAllocation=!options.disableOpeningAllocationConservation&&thirdTReady(input.frame);
+ const allocationRoot=conserveAllocation?input.frame:null;
  if(!options.disableFirstTsdRetention&&options.openingForecast?.complete===false){
   const work={nodes:0,retained:false,reason:'not-checked'},retained=checkedFirstTsd(state,options.openingForecast,{...options,now,deadline:Math.min(deadline,now()+120),maxNodes:Math.min(2000,Math.max(0,limit-reserved-base.metrics.nodes))},work);
   base.metrics.nodes+=work.nodes;base.metrics.firstTsdRetention=work;
   if(retained)return{...retained,metrics:{...base.metrics,...retained.metrics,nodes:base.metrics.nodes,elapsedMs:now()-started}};
  }
- const allocationRequired=!options.disableOpeningAllocation&&observed?.requiredNonRightZ===1&&(observed.requiredNonRightT===0||observed.firstTsdAt!==null&&observed.counts.TNonRight===2)&&['pending','pending-opening-z'].includes(observed.status)&&observed.counts.T>=2&&['staggered-scoring-wall','cap-preparation'].includes(initialFacts.right);
- const qualityPending=observedSummary?.coverage?.status==='complete'&&observed?.status==='verified-first-tsd'&&observedSummary.extraZ?.status==='unknown'&&!observedSummary.extraZ.baseline&&!observedSummary.extraZ.allocations.length&&!observedSummary.extraZ.departures.length&&!observedSummary.center.closed.some(p=>p.status==='debt-invalidated'&&p.at>=observed.firstTsdAt)?observedSummary.center.pending:[];
+ const eligibility=Provider.eligibility(input.frame,{right:initialFacts.right});
+ const allocationRequired=!options.disableOpeningAllocation&&eligibility.allocationRequired;
+ const qualityPending=eligibility.qualityPendingPartners;
  base.metrics.openingAllocation={requiredNonRightZ:allocationRequired?1:null};
  base.metrics.openingAllocation.pendingCenterPartners=qualityPending.length;
  if(!base.metrics.nodes&&!options.disableOpeningSources&&!options.disableSourceScoring&&!options.openingClear&&!options.openingRepair&&!options.commitment&&options.openingSource?.continuationSteps?.length===7){
@@ -866,7 +876,7 @@ function plan(raw,options={}){
  // not generic construction under an existing cap or a partner-arrival claim.
  const tieEligible=!options.disableOpeningRootTies&&!options.openingRepair&&!saved&&depth===3&&initialFacts.right==='cleared-base'&&initialFacts.centerStatus==='supported-partner-completion'&&initialFacts.notches.status==='established'&&S.notchPattern(state.board).status==='established'&&S.notchPattern(state.board).anchorRow===initialFacts.notches.anchorRow&&initialFacts.center.some(h=>h>0)&&initialFacts.baseDebt>0&&!initialFacts.buriedCenterVacancies.length&&!initialFacts.leftCovered&&initialFacts.parity===0;
  const stageMetrics={examined:0,attempted:0,verified:0,queued:0,nodes:0,unknown:0};base.metrics.foundationStages=stageMetrics;if(usage)usage.families.foundationStage={...stageMetrics,selectedPath:0,retainedGoal:0};
- // Preserve an authenticated completed opening allocation through the actual
+ // Preserve a current completed opening allocation through the actual
  // public actions, including retained repairs. This is conservation, not a
  // bonus for an early TSD and never handoff authority. Other opening debts,
  // geometry, access and the normal post-clear handoff remain independent.
@@ -876,28 +886,23 @@ function plan(raw,options={}){
   if(!conserveAllocation)return true;
   if(node.allocationProof)return node.allocationProof.safe;
   if(parent?.allocationProof?.fulfilled){node.allocationProof=parent.allocationProof;return true;}
-  const from=parent?.allocationProof?.history?parent.state:state;
-  let virtual=from,history=parent?.allocationProof?.history||allocationRoot;
-  const path=parent?.allocationProof?.history?node.path.slice(parent.path.length):node.path;
+  let current=parent?.allocationProof?.frame||allocationRoot;
+  const path=parent?.allocationProof?.frame?node.path.slice(parent.path.length):node.path;
   allocationWork.checked++;const projectionStarted=base.metrics.nodes;
   const fail=unknown=>{if(unknown&&(now()>=searchDeadline||base.metrics.nodes+reserved+2>searchLimit))stopped=true;allocationWork[unknown?'unknown':'rejected']++;node.allocationProof={safe:false,unknown};return false;};
   for(const step of path){
+   // Keep the existing action-work allowance. Factual projection checks the
+   // literal witness; ordinary admission must not reject opening non-scoring Ts.
    for(const action of step.witness){
     if(now()>=Math.min(searchDeadline,bounds.deadline??Infinity)||base.metrics.nodes+reserved+2>searchLimit||base.metrics.nodes-projectionStarted+2>(bounds.maxNodes??Infinity))return fail(true);
-    // Charge both the action and the resource ledger's independent replay.
     base.metrics.nodes+=2;allocationWork.nodes+=2;
-    const before=virtual;virtual=R.move(before,action);history=RH.applyAction(history,before,action,virtual);
    }
-   if(JSON.stringify(virtual.lastEvent)!==JSON.stringify(step.event))return fail(false);
-   const summary=RH.resolve(virtual,history),a=summary.openingAllocation;
-   if(summary.coverage.status!=='complete'||a.counts?.TNonRight!==2||a.counts?.ZNonRight!==1)return fail(false);
-   if(a.firstTsdAt!==null){
-    if(a.status!=='verified-first-tsd'||a.counts.T!==3)return fail(false);
-    node.allocationProof={safe:true,fulfilled:true};return true;
-   }
-   if(a.status!=='ready-for-first-tsd'||a.counts.T!==2)return fail(false);
+   try{current=Provider.project(current,{witness:step.witness,event:step.event});}catch{return fail(false);}
+   const result=Provider.conservationStep(current);
+   if(!result.safe)return fail(false);
+   if(result.fulfilled){node.allocationProof={safe:true,fulfilled:true};return true;}
   }
-  node.allocationProof={safe:true,fulfilled:false,history};return true;
+  node.allocationProof={safe:true,fulfilled:false,frame:current};return true;
  };
  const accessSafe=(node,bounds={})=>{if(node.accessProof?.reachable===true||node.accessProof?.reachable===false){if(usage)usage.access.cacheHits++;return node.accessProof.reachable;}const proof=P.checkAccessPrefix(state,node.path,{notches:initialFacts.notches,deadline:Math.min(deadline,bounds.deadline??Infinity),now,maxNodes:Math.min(bounds.maxNodes??Infinity,Math.max(0,limit-reserved-base.metrics.nodes))});base.metrics.nodes+=proof.visited;base.metrics.gapAccessNodes=(base.metrics.gapAccessNodes||0)+proof.visited;node.accessProof=proof;if(usage){usage.access.checked++;usage.access[proof.reachable===true?'witnessed':proof.reachable===false?'rejected':'unknown']++;}return proof.reachable===true;};
  if(saved&&(!allocationSafe(saved)||!accessSafe(saved)))saved=null;if(usage)usage.families.retainedRepair.verified=Number(Boolean(saved));
@@ -942,7 +947,7 @@ function plan(raw,options={}){
   // already-visible Z can be examined. Preserve one such competitor inside the
   // SAME beam width; it earns no completed-allocation rank until an actual
   // subsequent placement pays the Z. Final selection still needs checked access.
-  if(allocationRequired&&observed.firstTsdAt===null&&d+1<searchDepth){
+  if(allocationRequired&&!observedSummary.firstTsd&&d+1<searchDepth){
    const scoringFirst=expandable.find(n=>n.allocationRank?.[0]===0&&n.path.some(p=>p.event.type==='T'&&p.event.spin==='full'&&p.event.lines===2)&&[n.state.active?.type,n.state.hold].includes('Z'));
    if(scoringFirst&&!chosen.includes(scoringFirst)){if(chosen.length>=width)chosen.pop();chosen.push(scoringFirst);base.metrics.openingAllocation.scoringFirstRetained=(base.metrics.openingAllocation.scoringFirstRetained||0)+1;}
   }
@@ -1044,13 +1049,12 @@ function plan(raw,options={}){
   const key=JSON.stringify([node.state.board,node.state.active,node.state.hold,node.state.queue]);if(seen.has(key))continue;seen.add(key);
   if(probeResults.length>=2||now()>=deadline||base.metrics.nodes+reserved>=limit)break;
   const allowance=Math.min(6000-probeNodes,limit-reserved-base.metrics.nodes);if(allowance<=0)break;
-  // The hypothetical endpoint needs its own replay-bound history, not the
-  // root's now-stale worker context. Project only public actions; no draws are
-  // invented and this conditional proof never changes the live session.
-  let virtual=state,history=options.patternHistory||P.startPatternHistory(state),resources=options.resourceContext?RH.importContext(state,options.resourceContext):RH.start(state);
-  for(const step of node.path)for(const action of step.witness){const before=virtual,r=R.replay(before,[action]);virtual=r.state;resources=RH.applyAction(resources,before,action,virtual);if(action==='HD')history=P.updatePatternHistory(history,before,virtual,r.events[0]);}
-  const resourceContext=RH.exportContext(node.state,RH.markHandoff(resources,node.state));
-  const result=P.plan(node.state,{...options,patternHistory:history,resourceContext,disableOpening:true,openingPhase:false,openingClear:null,openingRepair:null,previous:null,commitment:null,constructionPrevious:null,deadline,maxNodes:allowance});
+  // Project the literal opening route without ordinary admission. Only the
+  // explicit hypothetical handoff begins a new maintenance request root.
+  let virtual=state,history=options.patternHistory||P.startPatternHistory(state),current=input.frame;
+  for(const step of node.path){const before=virtual;current=Provider.project(current,{witness:step.witness,event:step.event});virtual=current.position;history=P.updatePatternHistory(history,before,virtual,virtual.lastEvent);}
+  const maintenance=Provider.projectHandoff(current),resource=Provider.startRoute(maintenance,{horizon:14});
+  const result=P.plan(virtual,{...Provider.withFrame(maintenance,options,{supplied:true}),resource,patternHistory:history,disableOpening:true,openingPhase:false,openingClear:null,openingRepair:null,previous:null,commitment:null,constructionPrevious:null,deadline,maxNodes:allowance});
   const spent=result.metrics?.nodes||0;probeNodes+=spent;base.metrics.nodes+=spent;
   probeResults.push({status:result.target?'verified':'unknown-bounded-search',locks:node.path.length,nodes:spent});
   if(result.target){node.handoffContinuation=result.continuation;verified=node;break;}
@@ -1089,7 +1093,7 @@ function plan(raw,options={}){
  const reason=hold+(retained?'Continue the checked construction repair. ':'')+allocationReason+(first.event.lines?`Take the checked ${first.event.lines===4?'Tetris':'T-spin double'} while building the opening.`:`Place ${first.event.type} in the ${region} to build the ST opening.`)+` Checked ${best.path.length} legal placement${best.path.length===1?'':'s'} using only visible pieces. `+(pending.length?pending.join('; ').replace(/^./,c=>c.toUpperCase())+'. ':'This prefix has balanced Left minos and a level Center. ')+ (best.handoffContinuation?'This prefix reaches a checked maintenance continuation; the handoff will be rechecked after the actual clear. ':'')+'This is partial construction, not a completed opening or proof of future piece availability.';
  if(best.path.some(p=>p.foundationStage))base.metrics.foundationStageSelected=true;
  const sources=[{id:'SHOCKY-OPENING',label:"Shocky's ST Stacking Guide",url:'https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit',section:'Chapters 1–4: regions, construction and mino parity',scope:'Community background for opening construction. The coach checks this finite prefix; the guide does not certify this exact move or future availability.'}];
- return{...base,status:'recommended-with-verified-prefix',target:first.target,hold:first.hold,holdCount:first.holdCount,witness:first.witness,continuation:best.path,reason,sources,assessment:P.assess(best.state.board),evidence:{opening:{status:'partial-construction',initial:initialFacts,endpoint:end,unresolved:pending,repair,...(!options.disableFirstTsdRetention&&thirdTReady(observedSummary)&&thirdTPathRank(firstScoringPrefix(best.path)||[])===1?{firstTsdPrefix:{status:'checked-visible-first-tsd'}}:{}),handoffCandidate:best.handoffContinuation?{status:'verified-public-post-clear-continuation',continuation:best.handoffContinuation}:null},knownPieceHorizon:state.queue.length+1}};
+ return{...base,status:'recommended-with-verified-prefix',target:first.target,hold:first.hold,holdCount:first.holdCount,witness:first.witness,continuation:best.path,reason,sources,assessment:P.assess(best.state.board),evidence:{opening:{status:'partial-construction',initial:initialFacts,endpoint:end,unresolved:pending,repair,...(!options.disableFirstTsdRetention&&thirdTReady(input.frame)&&thirdTPathRank(firstScoringPrefix(best.path)||[])===1?{firstTsdPrefix:{status:'checked-visible-first-tsd'}}:{}),handoffCandidate:best.handoffContinuation?{status:'verified-public-post-clear-continuation',continuation:best.handoffContinuation}:null},knownPieceHorizon:state.queue.length+1}};
 }
 
 // Session imports carry evidence, never a trusted source-family flag. Reuse the

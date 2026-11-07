@@ -65,12 +65,12 @@ test('undo: actual opening scoring clear and checked handoff can be undone back 
  for(const witness of f.witnesses)for(const action of witness)g.window.stLab.act(action);
  const after=request(g,all);assert.deepEqual(same(after.observation),same(f.afterClear));assert.equal(after.options.openingClear.event.lines,2);
  assert.equal(g.element('#st-phase-name').textContent,'Opening','the actual clear alone does not finish the opening');
- const boundary=H.resolve(after.observation,H.markHandoff(H.importContext(after.observation,after.options.resourceContext),after.observation));
+ const C=require('../st-obligation-context'),marked=C.handoff(C.importState(after.options.obligationContext,{position:after.observation}),{position:after.observation}).context,boundary={...C.resolve(marked,{position:after.observation}),terminal:false};
  const handoff=P.decide(after.observation,{...after.options,timeMs:undefined});assert.equal(handoff.phase,'maintenance');assert.equal(handoff.evidence.openingHandoff.status,'checked-after-actual-clear');all.at(-1).respond(handoff);
  assert.deepEqual(clone(g.window.stLab.resources),boundary,'Accepted first midgame advice keeps the same handoff resource ledger');
  assert.equal(g.element('#st-fixture').value,'empty','coaching phase can change without changing play mode');
  assert.equal(g.element('#st-phase').dataset.phase,'maintenance');assert.equal(g.element('#st-phase-name').textContent,'Mid-game');
- g.window.stLab.act('UNDO');const before=request(g,all);assert.deepEqual(same(before.observation),same(f.beforeClear));assert.equal(before.options.openingPhase,true);assert.equal(before.options.openingClear,null);assert.equal(before.commitment,null);assert.equal(g.window.stLab.resources.milestones.maintenanceHandoff,null);
+ g.window.stLab.act('UNDO');const before=request(g,all);assert.deepEqual(same(before.observation),same(f.beforeClear));assert.equal(before.options.openingPhase,true);assert.equal(before.options.openingClear,null);assert.equal(before.commitment,null);assert.equal(g.window.stLab.obligationContext.state.sl.handoff,false);
  assert.equal(g.element('#st-phase').dataset.phase,'opening');assert.equal(g.element('#st-phase-name').textContent,'Opening');
  for(const action of f.witnesses.at(-1))g.window.stLab.act(action);const again=request(g,all);assert.deepEqual(same(again.observation),same(f.afterClear));assert.equal(again.options.openingClear.event.lines,2);
  all.at(-1).respond(P.decide(again.observation,{...again.options,timeMs:undefined}));assert.equal(g.element('#st-phase-name').textContent,'Mid-game');assert.deepEqual(clone(g.window.stLab.resources),boundary,'Undo and replay rederive identical boundary obligations');

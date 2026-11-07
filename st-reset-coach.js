@@ -1,14 +1,16 @@
 /* Separate, bounded Reset coach. A sustainable public prefix is not a promise
  * about an unseen bag. Completion is exclusively two actual Left zero-clear Ts. */
-(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-structure'),require('./st-access'),require('./st-resource-history'),require('./st-midgame-resources'),require('./st-reset-policy'),require('./st-left-context')):factory(root.STRules,root.STStructure,root.STAccess,root.STResourceHistory,root.STMidgameResources,root.STResetPolicy,root.STLeftContext);if(typeof module==='object'&&module.exports)module.exports=api;else root.STResetCoach=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,S,A,H,M,Q,L){
+(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-structure'),require('./st-access'),require('./st-resource-provider'),require('./st-obligation-resources'),require('./st-reset-policy'),require('./st-left-context')):factory(root.STRules,root.STStructure,root.STAccess,root.STResourceProvider,root.STObligationResources,root.STResetPolicy,root.STLeftContext);if(typeof module==='object'&&module.exports)module.exports=api;else root.STResetCoach=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,S,A,Provider,M,Q,L){
 'use strict';
 const clone=x=>JSON.parse(JSON.stringify(x));
 const context=s=>JSON.stringify([s.rules,s.board,s.hold,s.canHold,s.queue,s.bag??null,s.active?.type]);
 function entry(raw,options){
- const history=H.importContext(raw,options.resourceContext),summary=H.resolve(raw,history),decision=Q.consider(raw,summary);
- if(!['candidate','active'].includes(decision.status))return{decision};
- const selected=decision.status==='active'?history:H.beginReset(history,raw),resources=H.resolve(raw,selected);
- return resources.reset?.status==='active'?{decision,history:selected,summary:resources}: {decision};
+ const input=Provider.prepare(raw,options),decision=Q.consider(raw,input.facts);
+ if(input.status!=='available'||!['candidate','active'].includes(decision.status))return{decision};
+ const frame=decision.status==='active'?input.frame:Provider.projectBeginReset(input.frame,{candidate:true}),summary=Provider.facts(frame);
+ // Reset uses only its literal observed supply. Unlike ordinary maintenance,
+ // its historical search never appended a forced tail to the placement queue.
+ return summary.reset?.status==='active'?{decision,frame,summary,resource:Provider.startRoute(frame,{horizon:7,extendForced:false})}:{decision};
 }
 // Same bounded literal I-then-cap witness used by ordinary policyWitnesses.
 // Reset preserves cleanup-before-cap, not ordinary cap urgency on every filler.
@@ -37,11 +39,11 @@ function transition(n,p){
  if(S.cavityRepairDebt(S.cavityFacts(n.state.board),S.cavityFacts(p.state.board),e).length)return null;
  const structural=S.transition(n.state,{...p,availableCleanupPreparation:cleanupAvailable(n.state,n.allowHold)},undefined,{notches:n.notches});
  if(structural.cycleViolations.some(v=>!(Q.qualifies(e)&&v==='spent-scoring-T-without-double')))return null;
- const resource=M.step(n.state,p,n.resource);
+ let resource;try{resource=M.step(n.state,p,n.resource);}catch{return null;}
  if(resource.violations.length||M.resetLosesObligation(n.resource,resource))return null;
  const path=[...n.path,{witness:p.witness.slice(),event:clone(e),target:clone(e.target),hold:p.witness.includes('HOLD'),structuralEvidence:structural}];
  const score=L.evaluate(p.state,{resources:resource}).score;
- return{state:p.state,allowHold:n.allowHold,notches:phase.pattern,resource,path,score:score+geom.supportEstimate,done:resource.resetProgress===2};
+ return{state:p.state,allowHold:n.allowHold,notches:phase.pattern,resource,path,score:score+geom.supportEstimate,done:resource.resetCompleted};
 }
 // Replay supplied movement-access witnesses rather than enumerate on the UI
 // thread. Every newly roofed cell must be covered by an actual legal witness.
@@ -61,17 +63,18 @@ function replayAccess(raw,path,proofs,{deadline,now,maxNodes}){
  }
  return{reachable:true,visited,steps:records,status:'replayed-movement-access-witnesses'};
 }
-function check(raw,steps,options={}){
+function check(raw,steps,options={}){return checkEntry(raw,steps,options,entry(raw,options));}
+function checkEntry(raw,steps,options,start){
  const now=options.now||(()=>Date.now()),deadline=options.deadline??Infinity,limit=options.maxNodes??45000;
- const start=entry(raw,options);if(!start.history)return{valid:false,reason:'reset-not-admitted',visited:0};
+ if(!start.resource)return{valid:false,reason:'reset-not-admitted',visited:0};
  if(!Array.isArray(steps)||!steps.length||steps.length>7||steps.some(p=>!Array.isArray(p.witness)||p.witness.length>256||options.allowHold===false&&p.witness.includes('HOLD')))return{valid:false,reason:'reset-prefix-limit',visited:0};
- let n={state:R.createState(raw),allowHold:options.allowHold!==false,notches:S.notchPattern(raw.board),resource:M.start(raw,start.summary),path:[]},visited=0;
+ let n={state:R.createState(raw),allowHold:options.allowHold!==false,notches:S.notchPattern(raw.board),resource:start.resource,path:[]},visited=0;
  for(const [i,step]of steps.entries()){
   if(now()>=deadline||visited+(step.witness?.length||0)>limit)return{valid:false,reason:'reset-validation-budget',visited};visited+=step.witness?.length||0;
   const r=R.replay(n.state,step.witness);if(!r.valid||r.events.length!==1||step.event&&JSON.stringify(step.event)!==JSON.stringify(r.events[0]))return{valid:false,reason:'reset-witness-mismatch',visited};
   const next=transition(n,{state:r.state,event:r.events[0],witness:step.witness});if(!next||next.done&&i!==steps.length-1)return{valid:false,reason:'reset-transition-invalid',visited};n=next;
  }
- const inherited=new Set((start.summary.reset.inheritedCovered||[]).map(c=>c.join(','))),resetDebt=(start.summary.coveredRepair?.cells||[]).filter(c=>!inherited.has(c.join(',')));
+ const inherited=new Set((start.frame.state.account.reset.inheritedCovered||[]).map(c=>c.join(','))),resetDebt=(start.summary.coveredRepair?.cells||[]).filter(c=>!inherited.has(c.join(',')));
  const repair=A.repairPrefix(raw,n.path,{notches:S.notchPattern(raw.board),initialDebt:resetDebt,stages:start.summary.center?.pending});
  if(!repair.valid)return{valid:false,reason:repair.status,visited};
  const bounds={deadline,now,maxNodes:Math.max(0,limit-visited)},access=options.accessProof?replayAccess(raw,n.path,options.accessProof.steps,bounds):A.prefix(raw,n.path,bounds);visited+=access.visited;
@@ -84,13 +87,13 @@ function advice(raw,verified,metrics={}){
   reason:Q.qualifies(first.event)?`Reset: place T ${progress+1} of 2 wholly in Left without clearing lines.`:'Reset: keep the stack playable while waiting for the remaining Left T placement.',
   recommendation:{kind:'supported',hazards:[],claim:'Checked finite public prefix; unseen supply and indefinite survival are not promised.'},
   metrics:{nodes:verified.visited,roots:0,rootExpanded:0,depth:n.path.length,completeDepth:0,elapsedMs:0,certifiedHorizon:n.path.length,...metrics},
-  evidence:{strategy:'reset-coach',budgetExhausted:Boolean(metrics.budgetExhausted),resetSelection:verified.start.decision,reset:{progress,projectedProgress:n.resource.resetProgress,completion:'second-actual-Left-zero-clear-T',entry:verified.start.decision.status==='candidate'},verifiedLocks:n.path.length,knownPieceHorizon:raw.queue.length+1,cycleDebt:0,gapAccess:verified.access,coveredRepair:verified.repair,resourceObligations:{status:'checked',remainingZ:n.resource.extraZRemaining,pendingCenter:clone(n.resource.pendingCenter),hangingS:clone(n.resource.hangingS),hangingL:clone(n.resource.hangingL),unclassifiedS:clone(n.resource.unclassifiedS),unclassifiedL:clone(n.resource.unclassifiedL)},claim:'Reset completes on the second qualifying actual T lock. Midgame then owns rebuilding.'}};
+  evidence:{strategy:'reset-coach',budgetExhausted:Boolean(metrics.budgetExhausted),resetSelection:verified.start.decision,reset:{progress,projectedProgress:n.resource.resetProgress,completion:'second-actual-Left-zero-clear-T',entry:verified.start.decision.status==='candidate'},verifiedLocks:n.path.length,knownPieceHorizon:raw.queue.length+1,cycleDebt:0,gapAccess:verified.access,coveredRepair:verified.repair,resourceObligations:{status:'checked',remainingZ:n.resource.extraZRemaining,pendingCenter:clone(n.resource.pendingCenter),hangingS:clone(n.resource.hangingS),hangingL:clone(n.resource.hangingL),unclassifiedS:clone(n.resource.unclassifiedS),unclassifiedL:clone(n.resource.unclassifiedL),uncertainty:clone(n.resource.uncertainty)},claim:'Reset completes on the second qualifying actual T lock. Midgame then owns rebuilding.'}};
 }
 function plan(raw,options={}){
- const start=entry(raw,options);if(!start.history)return null;
+ const start=entry(raw,options);if(!start.resource)return null;
  const now=options.now||(()=>Date.now()),began=now(),deadline=options.deadline??(began+(options.timeMs??750)),limit=options.maxNodes??45000;
  const base={revision:raw.revision??0,target:null,witness:[],continuation:[],status:'no-supported-continuation-found',context:context(raw),reason:'No sustainable Reset prefix was certified within the public supply and budget.',metrics:{nodes:0,elapsedMs:0},evidence:{strategy:'reset-coach',resetSelection:start.decision,reset:{progress:start.summary.reset.progress},budgetExhausted:false}};
- let visited=0,beam=[{state:R.createState(raw),allowHold:options.allowHold!==false,resource:M.start(raw,start.summary),notches:S.notchPattern(raw.board),path:[]}],best=null;
+ let visited=0,beam=[{state:R.createState(raw),allowHold:options.allowHold!==false,resource:start.resource,notches:S.notchPattern(raw.board),path:[]}],best=null;
  const maxDepth=Math.min(7,Math.max(1,options.depth??3)),width=Math.min(8,Math.max(1,options.width??4));
  for(let depth=0;depth<maxDepth&&beam.length;depth++){
   const next=[];
@@ -107,7 +110,7 @@ function plan(raw,options={}){
   for(const n of next){
    if(now()>=deadline||visited>=limit)break;
    if(best&&(n.resource.resetProgress<best.node.resource.resetProgress||n.resource.resetProgress===best.node.resource.resetProgress&&n.score<=best.node.score))continue;
-   const verified=check(raw,n.path,{...options,deadline,now,maxNodes:Math.max(0,limit-visited)});visited+=verified.visited;
+   const verified=checkEntry(raw,n.path,{...options,deadline,now,maxNodes:Math.max(0,limit-visited)},start);visited+=verified.visited;
    if(verified.valid){best=verified;if(n.done)break;}
   }
   if(best?.node.done)break;

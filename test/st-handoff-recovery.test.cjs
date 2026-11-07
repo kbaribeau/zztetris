@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const P=require('./support/repair-isolated-planner.cjs').planner(),R=require('../st-rules'),B=require('../st-bag'),H=require('../st-resource-history'),I=require('../st-public-inventory'),HC=require('../st-handoff-continuity'),PH=require('../st-pattern-history'),M=require('../st-midgame-resources');
+const P=require('./support/repair-isolated-planner.cjs').planner(),R=require('../st-rules'),B=require('../st-bag'),H=require('../st-resource-history'),I=require('../st-public-inventory'),HC=require('../st-handoff-continuity'),PH=require('../st-pattern-history'),M=require('../st-midgame-resources'),Ctx=require('../st-obligation-context'),Legacy=require('../st-resource-legacy'),Provider=require('../st-resource-provider'),Current=require('../st-obligation-resources');
 const fixture=require('./fixtures/forced-bag-resource-binding.json'),clone=x=>JSON.parse(JSON.stringify(x));
 const bounds={maxNodes:45000,deadline:Infinity,now:()=>0},context=s=>JSON.stringify([s.rules,s.board,s.hold,s.canHold,s.queue,s.bag??null,s.active?.type]);
 // Literal public pre20/finite Z→S proof from the earlier diagnostic. Only its
@@ -9,21 +9,21 @@ function actual({mark=true,actualWitness=null}={}){
  const f=clone(fixture),origin=R.createState(f.observation),advice=f.advice;
  advice.phase='maintenance';advice.evidence.openingHandoff={status:'checked-after-actual-clear',recovery:'shared-after-legacy-budget-miss'};
  let state=origin,history=H.importContext(origin,f.options.resourceContext),pattern=PH.start(origin),event;
- let inventory=history.inventory,execution=HC.start(origin,inventory);
+ let current=Legacy.convert(origin,f.options.resourceContext).context;const prior=Ctx.exportState(current);let inventory=current.inventory,execution=HC.start(origin,inventory);
  // This stored route is a policy-isolated candidate, rebuilt under the current
  // handoff boundary rather than trusting its historical serialized binding.
- advice.evidence.resourceObligations.binding=M.start(M.extendForced(origin),H.resolve(origin,H.markHandoff(history,origin))).originKey;
- if(mark){history=H.markHandoff(history,state);execution=HC.markHandoff(execution,state,inventory);}
+ advice.evidence.resourceObligations.binding=Current.rootBinding(Provider.startRoute(Provider.projectHandoff(Provider.prepare(origin,{obligationContext:prior}))));
+ if(mark){history=H.markHandoff(history,state);current=Ctx.handoff(current,{position:state}).context;execution=HC.markHandoff(execution,state,inventory);}
  for(const action of actualWitness||advice.witness){const before=state;state=R.move(state,action);
   if(action==='HD'){event=state.lastEvent;state={...state,queue:[...state.queue,f.nextPublicReveal],bag:B.consume(state.bag,f.nextPublicReveal)};pattern=PH.update(pattern,before,state,event);}
   const receipt=I.transition(inventory,before,action,state);execution=HC.advance(execution,before,action,state,receipt);inventory=receipt.next;
-  history=H.applyAction(history,before,action,state,{inventoryTransition:receipt});
+  current=Ctx.applyActual(current,{before,action,after:state,receipt}).context;history=H.applyAction(history,before,action,state);
  }
- return{origin,state,history,event,advice,options:{...bounds,openingPhase:false,resourceContext:clone(H.exportContext(state,history)),patternHistory:pattern,handoffRecovery:{observation:origin,advice,resourceContext:f.options.resourceContext,actualEvent:event,continuity:HC.exportConnected(execution)}}};
+ return{origin,state,history,current,event,advice,options:{...bounds,openingPhase:false,obligationContext:Ctx.exportState(current),patternHistory:pattern,handoffRecovery:{observation:origin,advice,obligationContext:prior,actualEvent:event,continuity:HC.exportConnected(execution)}}};
 }
 function rejected(q,reason,options={}){
  const a=P.decide(q.state,{...q.options,maxNodes:64,...options});
- assert.equal(a.metrics.handoffRecovery.retained,false);if(reason)assert.equal(a.metrics.handoffRecovery.reason,reason);
+ if(!a.metrics.handoffRecovery){assert.equal(reason,'resource-state');assert.equal(a.target,null);assert.equal(a.evidence?.resourceObligations?.status,'unavailable');}else{assert.equal(a.metrics.handoffRecovery.retained,false);if(reason)assert.equal(a.metrics.handoffRecovery.reason,reason);}
  assert.ok(a.metrics.nodes<=(options.maxNodes??64));return a;
 }
 test('handoff bookkeeping (covered-geometry isolated): actual first lock/refill retains only its same observed S payment under the normal boundary',()=>{
@@ -42,18 +42,18 @@ test('handoff bookkeeping (covered-geometry isolated): actual first lock/refill 
 });
 test('handoff bookkeeping (covered-geometry isolated): marker and copied proof flags alone do not acquire source/history/binding authority',()=>{
  const noMarker=actual();delete noMarker.advice.evidence.openingHandoff.recovery;rejected(noMarker,'candidate-shape');
- const noHistory=actual();noHistory.options.handoffRecovery.resourceContext=null;rejected(noHistory,'resource-history');
- const stale=actual();stale.options.resourceContext=stale.options.handoffRecovery.resourceContext;rejected(stale,'resource-history');
+ const noHistory=actual();noHistory.options.handoffRecovery.obligationContext=null;rejected(noHistory,'resource-state');
+ const stale=actual();stale.options.obligationContext=stale.options.handoffRecovery.obligationContext;rejected(stale,'resource-state');
  const staleBinding=actual();staleBinding.advice.evidence.resourceObligations.binding=fixture.advice.evidence.resourceObligations.binding;rejected(staleBinding,'origin-resource-binding');
  const forged=actual();forged.advice.evidence.resourceObligations.binding+='forged';rejected(forged,'origin-resource-binding');
- const wrongId=actual(),binding=JSON.parse(wrongId.advice.evidence.resourceObligations.binding);binding[2].find(p=>p.id===21).id=25;wrongId.advice.evidence.resourceObligations.binding=JSON.stringify(binding);rejected(wrongId,'origin-resource-binding');
+ const wrongId=actual(),binding=JSON.parse(wrongId.advice.evidence.resourceObligations.binding);binding[1].hold.id=25;wrongId.advice.evidence.resourceObligations.binding=JSON.stringify(binding);rejected(wrongId,'origin-resource-binding');
  const marked=actual({mark:false});rejected(marked,'history-not-connected');
 });
 test('handoff bookkeeping (covered-geometry isolated): actual event, connected first witness, bag reveal and actual pose are mandatory',()=>{
  const event=actual();event.options.handoffRecovery.actualEvent={...event.event,lines:2};rejected(event,'actual-lock');
- const bag=actual();bag.state={...bag.state,bag:{...bag.state.bag,remaining:[2]}};rejected(bag,'actual-lock');
- const reveal=actual();reveal.state={...reveal.state,queue:[...reveal.state.queue.slice(0,-1),'J']};rejected(reveal,'resource-history');
- const moved=actual(),before=moved.state;moved.state=R.move(before,'R');moved.history=H.applyAction(moved.history,before,'R',moved.state);moved.options.resourceContext=H.exportContext(moved.state,moved.history);rejected(moved,'history-not-connected');
+ const bag=actual();bag.state={...bag.state,bag:{...bag.state.bag,remaining:[2]}};rejected(bag,'resource-state');
+ const reveal=actual();reveal.state={...reveal.state,queue:[...reveal.state.queue.slice(0,-1),'J']};rejected(reveal,'resource-state');
+ const moved=actual(),before=moved.state;moved.state=R.move(before,'R');moved.current=Ctx.applyActual(moved.current,{before,action:'R',after:moved.state}).context;moved.options.obligationContext=Ctx.exportState(moved.current);rejected(moved,'history-not-connected');
  const prefix=actual();prefix.advice.continuation[0].witness=prefix.advice.continuation[0].witness.slice(1);prefix.advice.witness=prefix.advice.continuation[0].witness;prefix.advice.hold=prefix.advice.continuation[0].hold=false;prefix.advice.holdCount=prefix.advice.continuation[0].holdCount=0;rejected(prefix,'origin-prefix');
 });
 test('handoff bookkeeping (covered-geometry isolated): no extra fillers, non-Left S, wrong witness or fabricated result context',()=>{
@@ -64,11 +64,11 @@ test('handoff bookkeeping (covered-geometry isolated): no extra fillers, non-Lef
  const result=actual();result.advice.continuation[1].resultContext+='forged';rejected(result,'origin-prefix');
  const flags=actual();flags.advice.continuation[1].hold=false;rejected(flags,'candidate-shape');
 });
-test('handoff bookkeeping (covered-geometry isolated): hidden/derived claims cannot substitute observed identities or supply',()=>{
- const q=actual();q.state.privateFuture=['S','S'];q.state.privateSeed=999;q.options.handoffRecovery.resourceContext.hangingS={status:'none-observed',evidence:[]};q.options.resourceContext.instances={hold:{id:25,type:'S',bag:3}};
+test('handoff bookkeeping: private fields cannot substitute public supply and malformed native current state fails explicitly',()=>{
+ const q=actual();q.state.privateFuture=['S','S'];q.state.privateSeed=999;
  const a=P.decide(q.state,q.options);assert.equal(a.metrics.handoffRecovery.retained,true);assert.equal(a.evidence.handoffRecovery.sId,21);
- const imported=actual();imported.options.resourceContext=H.exportContext(imported.state,H.start(imported.state));rejected(imported,'resource-history');
- const corrupt=actual();corrupt.options.resourceContext.steps.at(-1).action='TELEPORT';rejected(corrupt,'resource-history');
+ const imported=actual();imported.options.obligationContext=Ctx.exportState(Ctx.start(imported.state));rejected(imported,'resource-state');
+ const corrupt=actual();corrupt.options.obligationContext.state.sl.residuals='not-current-records';rejected(corrupt,'resource-state');
 });
 test('handoff bookkeeping (covered-geometry isolated): zero/expired/tiny budgets cannot reuse a cached or serialized certificate',()=>{
  const q=actual();
@@ -82,22 +82,22 @@ test('handoff bookkeeping (covered-geometry isolated): incomplete access is char
 });
 
 test('handoff bookkeeping (covered-geometry isolated): shared capture is a bounded public routing copy, not an eligibility certificate',()=>{
- const q=actual(),prior=q.options.handoffRecovery.resourceContext,captured=P.captureHandoffRecovery({...q.origin,privateFuture:['S'],privateSeed:1},q.advice,prior);
- assert.ok(captured);assert.equal(captured.observation.privateFuture,undefined);assert.equal(captured.observation.privateSeed,undefined);assert.deepEqual(captured.advice,q.advice);assert.deepEqual(captured.resourceContext,prior);
- assert.notEqual(captured.advice,q.advice);assert.notEqual(captured.resourceContext,prior);assert.equal(captured.resourceContext.handoffAtAction,null,'Capture precedes the actual handoff marker');
- assert.equal(P.captureHandoffRecovery(q.origin,q.advice,q.options.resourceContext),null,'An already-marked mid-piece reply must preserve, not replace, the original capture');
+ const q=actual(),prior=q.options.handoffRecovery.obligationContext,captured=P.captureHandoffRecovery({...q.origin,privateFuture:['S'],privateSeed:1},q.advice,prior);
+ assert.ok(captured);assert.equal(captured.observation.privateFuture,undefined);assert.equal(captured.observation.privateSeed,undefined);assert.deepEqual(captured.advice,q.advice);assert.deepEqual(captured.obligationContext,prior);
+ assert.notEqual(captured.advice,q.advice);assert.notEqual(captured.obligationContext,prior);assert.equal(captured.obligationContext.state.sl.handoff,false,'Capture precedes the actual handoff marker');
+ assert.equal(P.captureHandoffRecovery(q.origin,q.advice,q.options.obligationContext),null,'An already-marked mid-piece reply must preserve, not replace, the original capture');
  const ordinary=clone(q.advice);delete ordinary.evidence.openingHandoff.recovery;assert.equal(P.captureHandoffRecovery(q.origin,ordinary,prior),null);
  const long=clone(q.advice);long.continuation.push(clone(long.continuation[1]));assert.equal(P.captureHandoffRecovery(q.origin,long,prior),null);
  const cyclic=clone(q.advice);cyclic.loop=cyclic;assert.equal(P.captureHandoffRecovery(q.origin,cyclic,prior),null);
  const huge=clone(q.advice);huge.padding='x'.repeat(1048577);assert.equal(P.captureHandoffRecovery(q.origin,huge,prior),null);
- const hint=P.captureHandoffRecovery(q.origin,q.advice,null);assert.ok(hint,'Capture itself grants no history authority');q.options.handoffRecovery={...hint,actualEvent:q.event};rejected(q,'resource-history');
+ assert.equal(P.captureHandoffRecovery(q.origin,q.advice,null),null,'Unavailable current facts cannot create a handoff capture');
 });
 
 test('handoff bookkeeping (covered-geometry isolated): a different legal route to the same actual first lock preserves identity, not exact input tape',()=>{
  const q=actual({actualWitness:['L','R',...fixture.advice.witness]}),a=P.decide(q.state,q.options);
  assert.equal(a.metrics.handoffRecovery.retained,true);assert.equal(a.evidence.handoffRecovery.sId,21);assert.deepEqual(a.target,q.advice.continuation[1].target);
- assert.equal(q.options.resourceContext.steps.length,q.options.handoffRecovery.resourceContext.steps.length+q.advice.witness.length+2);
- const disconnected=actual();disconnected.options.handoffRecovery.resourceContext.steps[0].action='R';rejected(disconnected,'resource-history');
+ assert.equal(q.options.handoffRecovery.continuity.actions,q.advice.witness.length+2);
+ const disconnected=actual();disconnected.options.handoffRecovery.obligationContext.inventory.active.id++;rejected(disconnected,'resource-state');
 });
 
 test('handoff production: archived observed-S payment is rejected for its actual unresolved roof',()=>{

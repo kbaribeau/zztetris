@@ -1,4 +1,4 @@
-/* UNWIRED actual-boundary diagnostics for compact current obligations.
+/* Actual-boundary diagnostics for compact current obligations.
  *
  * transition(before, after, {operation, effects, lock, projected}) consumes ONE
  * accepted Context operation. Frames are {status, state, view, reason?}:

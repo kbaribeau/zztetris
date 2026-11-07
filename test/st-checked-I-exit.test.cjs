@@ -1,11 +1,12 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
 const R=require('../st-rules'),P=require('../st-planner'),RH=require('../st-resource-history'),M=require('../st-midgame-resources'),S=require('../st-structure'),L=require('../st-left-context'),Session=require('../st-session');
+const Provider=require('../st-resource-provider');
 const fixture=require('./fixtures/checked-I-D-exit.json'),clone=x=>JSON.parse(JSON.stringify(x));
 const root=()=>R.createState(fixture.observation),options=()=>({...clone(fixture.options),now:()=>0,deadline:Infinity,depth:3,width:8,maxNodes:45000});
 let cached;const advice=()=>clone(cached??=P.decide(root(),options()));
 function harness(){const fs=require('fs'),path=require('path'),vm=require('vm'),filename=require.resolve('../st-planner'),m={exports:{}};vm.runInNewContext(fs.readFileSync(filename,'utf8').replace('return Object.freeze({dPatternAdmission,','return Object.freeze({immediateIDPatternExitAdmission,immediateIExitEligible,checkedResourceEndpoint,'),{module:m,require:id=>require(path.resolve(path.dirname(filename),id)),Date,performance});return m.exports;}
-function creation(){let state=root(),h=RH.importContext(state,fixture.options.resourceContext),pattern=clone(fixture.options.patternHistory);for(const witness of fixture.userWitnesses.slice(0,3)){const before=state;for(const action of witness){const old=state;state=R.move(state,action);h=RH.applyAction(h,old,action,state);}pattern=P.updatePatternHistory(pattern,before,state,state.lastEvent);}const witness=fixture.userWitnesses[3],r=R.replay(state,witness);return{before:state,p:{state:r.state,event:r.events[0],witness},options:{...options(),patternHistory:pattern,notches:S.advanceNotches(state.board,{state:r.state,event:r.events[0]},P.resolvePatternHistory(state,pattern)).pattern,resource:M.start(state,RH.resolve(state,h)),resourceContext:RH.exportContext(state,h)}};}
+function creation(){let state=root(),h=RH.importContext(state,fixture.options.resourceContext),pattern=clone(fixture.options.patternHistory);for(const witness of fixture.userWitnesses.slice(0,3)){const before=state;for(const action of witness){const old=state;state=R.move(state,action);h=RH.applyAction(h,old,action,state);if(action==='HD')pattern=P.updatePatternHistory(pattern,old,state,state.lastEvent);}}const witness=fixture.userWitnesses[3],r=R.replay(state,witness);return{before:state,p:{state:r.state,event:r.events[0],witness},options:{...options(),patternHistory:pattern,notches:S.advanceNotches(state.board,{state:r.state,event:r.events[0]},P.resolvePatternHistory(state,pattern)).pattern,resource:Provider.startRoute(Provider.prepare(state,{resourceContext:RH.exportContext(state,h)}),{extendForced:false}),resourceContext:RH.exportContext(state,h)}};}
 test('checked I / fresh decision scores first then executes separate Left and Center J allocation',()=>{
  const a=advice();assert.equal(a.recommendation.kind,'supported');assert.equal(a.metrics.checkedIAllocation.selected,true);assert(a.metrics.nodes<=45000);assert.deepEqual(a.continuation.map(p=>p.event.type),['T','J','O','S','I','J']);assert.equal(a.continuation[0].event.lines,2);assert.equal(a.continuation[0].event.spin,'full');
  for(const p of a.continuation.slice(1,5))assert(p.event.cells.every(([x])=>x<4));assert(a.continuation[5].event.cells.every(([x])=>x>=4&&x<=6));
@@ -24,7 +25,7 @@ test('checked I / concrete D creation certifies held I and exact visible resourc
 });
 test('checked I / late, missing and invented I cannot substitute for an immediate public piece',()=>{
  const {before,p,options:o}=creation(),Q=harness();
- for(const patch of [{active:'O'},{active:'O',hiddenQueue:['I']},{active:'O',queue:['O','J','I'] }]){const state=R.createState({...before,...patch,bag:null}),r=R.replay(state,p.witness);assert(r.valid);assert.equal(Q.immediateIDPatternExitAdmission(state,{state:r.state,event:r.events[0],witness:p.witness},{...o,resource:M.start(state),resourceContext:null}).valid,false);}
+ for(const patch of [{active:'O'},{active:'O',hiddenQueue:['I']},{active:'O',queue:['O','J','I'] }]){const state=R.createState({...before,...patch,bag:null}),r=R.replay(state,p.witness);assert(r.valid);assert.equal(Q.immediateIDPatternExitAdmission(state,{state:r.state,event:r.events[0],witness:p.witness},{...o,resource:Provider.startRoute(Provider.prepare(state),{extendForced:false}),resourceContext:null}).valid,false);}
  const fake=clone(p);fake.witness=['HD'];assert.equal(Q.immediateIDPatternExitAdmission(before,fake,o).valid,false);
 });
 test('checked I / headroom, covered cells, Right preparation and occupied HOLD stay guarded',()=>{
@@ -37,7 +38,7 @@ test('checked I / headroom, covered cells, Right preparation and occupied HOLD s
  const {before,p,options:o}=creation();assert.equal(Q.immediateIDPatternExitAdmission(before,p,{...o,allowHold:false}).valid,false);
 });
 test('checked I / a currently executable Z cap cannot be postponed by a hypothetical I exit',()=>{
- const {before,p,options:o}=creation(),changed=R.createState({...before,queue:['Z',...before.queue.slice(1)],bag:null}),resource=clone(o.resource);resource.queue[0].type='Z';
+ const {before,p,options:o}=creation(),changed=R.createState({...before,queue:['Z',...before.queue.slice(1)],bag:null}),resource=Provider.startRoute(Provider.prepare(changed),{extendForced:false});
  const r=R.replay(changed,p.witness);assert(r.valid);assert.equal(r.state.active.type,'Z');assert.equal(r.state.hold,'I');assert(S.geometry(r.state.board).right.completions.some(c=>R.replay(r.state,c.witness).valid));
  const proof=harness().immediateIDPatternExitAdmission(changed,{state:r.state,event:r.events[0],witness:p.witness},{...o,resource,resourceContext:null});assert.equal(proof.valid,false);
 });
@@ -57,7 +58,7 @@ test('checked I / new public reveals retain the same finite commitment without f
 test('checked I / copied allocation evidence is cleared and full route is independently revalidated',()=>{
  const a=advice();a.evidence.checkedIAllocation={leftJId:-1,centerRootId:-1,centerJId:-1,iExitLock:0};const b=P.revalidate(root(),a,options());assert(b);assert.equal(b.evidence.checkedIAllocation,null);assert.equal(b.evidence.resourceObligations.checkedIExits.length,1);
  const broken=advice();broken.continuation[4].witness=['HD'];assert.equal(P.revalidate(root(),broken,options()),null);
- const saved=Session.create(root(),{...options(),resourceHistory:RH.importContext(root(),fixture.options.resourceContext),resourceOriginBag:fixture.resourceOriginBag,previous:a}),restored=Session.parse(JSON.stringify(saved));const c=P.revalidate(restored.state,restored.previous,{...options(),resourceContext:RH.exportContext(restored.state,restored.resourceHistory)});assert(c);assert.equal(c.evidence.checkedIAllocation,null);
+ const saved=Session.create(root(),{...options(),resourceHistory:RH.importContext(root(),fixture.options.resourceContext),resourceOriginBag:fixture.resourceOriginBag,previous:a}),restored=Session.parse(JSON.stringify(saved));const c=P.revalidate(restored.state,restored.previous,{...options(),resourceContext:undefined,obligationContext:restored.obligationContext});assert(c);assert.equal(c.evidence.checkedIAllocation,null);
 });
 test('checked I / fresh serialized Worker discovers the same public allocation within production budget',()=>{
  const worker=require('../scripts/lib/st-simulation.cjs').workerPlanner(),request=clone({type:'plan',id:250,observation:root(),previous:null,commitment:null,options:{...fixture.options,depth:3,width:8,maxNodes:45000,timeMs:1500}}),a=worker(request);assert.equal(a.recommendation.kind,'supported');assert.equal(a.metrics.checkedIAllocation.selected,true);assert.deepEqual(a.continuation.map(p=>p.event.type),['T','J','O','S','I','J']);assert(a.metrics.nodes<=45000);

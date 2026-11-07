@@ -1,6 +1,8 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
 const R=require('../st-rules'),B=require('../st-bag'),H=require('../st-resource-history'),M=require('../st-midgame-resources'),P=require('../st-planner');
+const N=require('../st-obligation-resources'),Provider=require('../st-resource-provider');
+const currentRoot=(state,options)=>Provider.startRoute(Provider.prepare(state,options));
 const fixture=require('./fixtures/forced-bag-resource-binding.json'),clone=x=>JSON.parse(JSON.stringify(x));
 const context=s=>JSON.stringify([s.rules,s.board,s.hold,s.canHold,s.queue,s.bag??null,s.active?.type]);
 const bounds={maxNodes:45000,deadline:Infinity,now:()=>0};
@@ -28,7 +30,7 @@ test('forced bag bookkeeping (covered-geometry isolated): archived prefix exact 
  assert.ok(retained?.target,'Previously rejected immediately at the raw resource binding');assert.equal(retained.retained,true);
  assert.deepEqual(retained.target,advice.target);assert.deepEqual(retained.continuation.map(p=>p.event),advice.continuation.map(p=>p.event));
  assert.equal(retained.context,context(state),'Observation binding remains raw, not a projected queue');
- assert.equal(retained.evidence.resourceObligations.binding,advice.evidence.resourceObligations.binding);
+ assert.equal(retained.evidence.resourceObligations.binding,N.rootBinding(currentRoot(state,options)));assert.notEqual(retained.evidence.resourceObligations.binding,advice.evidence.resourceObligations.binding,'Archived candidate is fully revalidated and rebound to current facts');
  assert.ok(tracker.nodes>0&&tracker.nodes<=45000,'Still performs finite reachability/resource/access validation');verifyPrefix(state,retained);
 });
 test('forced bag bookkeeping (covered-geometry isolated): HOLD identities and Undo restore the old binding',()=>{
@@ -57,16 +59,17 @@ test('forced bag binding: the next actual reveal gets its observed identity, not
  const wrong={...state,queue:[...state.queue.slice(0,-1),'J']};assert.equal(H.resolve(wrong,H.importContext(wrong,H.exportContext(state,history))).coverage.status,'invalid');
  assert.notEqual(actual.originKey,M.start(M.extendForced(initial),H.resolve(initial,H.importContext(initial,fixture.options.resourceContext))).originKey,'A real reveal requires a newly verified resource binding');
 });
-test('forced bag binding: wrong deduced piece, invented age, omitted binding inventory and forged history fail closed',()=>{
- const {state,options,advice}=observed();
- for(const mutate of [inventory=>inventory.at(-1).type='J',inventory=>inventory.at(-1).id=28,inventory=>inventory.at(-1).bag=3,inventory=>inventory.pop(),inventory=>inventory[0].id=25]){
-  const bad=clone(advice),binding=JSON.parse(bad.evidence.resourceObligations.binding);mutate(binding[2]);bad.evidence.resourceObligations.binding=JSON.stringify(binding);
-  const tracker={nodes:0};assert.equal(P.revalidate(state,bad,{...options,...bounds,budgetTracker:tracker}),null);assert.equal(tracker.nodes,0,'The exact binding guard must still reject before search');
+test('forced bag binding: forged current resource key and invalid legacy tape fail closed',()=>{
+ const {state,options,advice}=observed(),current={...clone(advice),evidence:{...advice.evidence,resourceObligations:{...advice.evidence.resourceObligations,binding:N.rootBinding(currentRoot(state,options))}}};
+ for(const suffix of ['forged',' ',':28',':unknown']){
+  const bad=clone(current);bad.evidence.resourceObligations.binding+=suffix;
+  const tracker={nodes:0};assert.equal(P.revalidate(state,bad,{...options,...bounds,budgetTracker:tracker}),null);assert.equal(tracker.nodes,0,'Current keys must reject before search');
  }
  const history=clone(options.resourceContext);history.steps[0].action='TELEPORT';assert.equal(H.resolve(state,H.importContext(state,history)).coverage.status,'invalid');
  assert.equal(P.revalidate(state,advice,{...options,...bounds,resourceContext:history}),null);
  const claims=clone(options.resourceContext);claims.instances={queue:[{id:28,type:'I',bag:3}]};claims.extraZ={status:'available'};
  assert.deepEqual(H.resolve(state,H.importContext(state,claims)),H.resolve(state,H.importContext(state,options.resourceContext)),'Serialized derived identities/allowances have no authority');
+ assert.equal(N.rootBinding(currentRoot(state,options)),Provider.binding(Provider.prepare(state,options)),'Current request binding is literal and does not invent a forced observed identity');
 });
 test('forced bag binding: changed public supply and forged result contexts do not inherit a certificate',()=>{
  const {state,options,advice}=observed();
@@ -112,7 +115,7 @@ test('forced bag binding: a real committed scoring suffix keeps normalized conte
  const suffix=P.continueCommitment(origin,state,advice,state.lastEvent,nextOptions);assert.ok(suffix?.target);
  assert.deepEqual(suffix.continuation.map(p=>p.event),advice.continuation.slice(1).map(p=>p.event));assert.equal(suffix.context,context(state));
  verifyPrefix(state,suffix);assert.ok(P.revalidate(state,suffix,nextOptions));
- const resources=M.checkPath(state,suffix.continuation,summary);assert.equal(resources.valid,true);assert.equal(suffix.evidence.resourceObligations.binding,resources.resource.originKey);
+ const resources=M.checkPath(state,suffix.continuation,summary);assert.equal(resources.valid,true);assert.equal(suffix.evidence.resourceObligations.binding,N.rootBinding(currentRoot(state,nextOptions)));
  const inventory=JSON.parse(resources.resource.originKey)[2];assert.deepEqual(inventory.at(-1),{id:-1,type:'Z',bag:null});
  assert.equal(P.continueCommitment(origin,state,advice,state.lastEvent,{...nextOptions,resourceContext:q.options.resourceContext}),null,'Pre-lock history cannot authenticate the executed suffix');
  const forged=clone(suffix);forged.evidence.resourceObligations.binding+='forged';assert.equal(P.revalidate(state,forged,nextOptions),null);

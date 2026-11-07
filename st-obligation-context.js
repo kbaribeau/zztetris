@@ -1,4 +1,4 @@
-/* UNWIRED controller seam. Own one current inventory and obligation payload,
+/* Controller-owned current accounting. Own one current inventory and obligation payload,
  * plus the bounded first-source/lock-seven boundary facts. No history, private
  * generator, phase, accepted plan, Undo stack or run/cap metadata lives here.
  *

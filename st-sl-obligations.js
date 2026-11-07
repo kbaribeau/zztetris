@@ -1,7 +1,7 @@
 /* Current S/L counterpart consequences, not a piece or closed-event history.
- * Standalone migration component: production history/planner consumers are NOT
- * wired to this schema. In particular, aggregate uncertainty is not a drop-in
- * replacement for their identity-set admission, binding or root comparisons.
+ * Shared factual component. Request assessment separately preserves exact
+ * identity distinctions needed for admission, binding and fixed-root comparison;
+ * aggregate counts alone do not replace those current relationships.
  *
  * The caller supplies public inventory, exact current Center duties, this
  * lock's Center effects/pairs and opening boundary facts. It owns validation of

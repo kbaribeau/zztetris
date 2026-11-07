@@ -15,7 +15,7 @@ function dropAtSide(g,index){for(let i=0;i<8;i++)g.window.stLab.act(index%2?'R':
 test('practice/page repeated imports are exact, cancel prior workers and retain only public worker inputs',()=>withPage('st-lab.html',{},g=>{
  const ws=workers(g),packed=packageFor(),old=ws.at(-1);importText(g,packed);assert.match(g.element('#st-import-status').textContent,/imported/i);assert.equal(old.terminated,true);g.advance(40);
  const first=ws.at(-1).message;assert.deepEqual(g.snapshot(),packed.session.position);assert.deepEqual(first.observation.queue,['J','L','O','S','T','Z']);noPrivate(first);
- assert.equal(g.window.stLab.resources.coverage.status,'partial');assert.equal(g.window.stLab.resources.extraZ.status,'unknown');
+ assert.equal(g.window.stLab.resources.availability,'unknown');assert.equal(g.window.stLab.resources.extraZ.status,'unknown');
  const pending=ws.at(-1);g.window.stLab.act('HD');importText(g,packed);assert.equal(pending.terminated,true);g.advance(40);assert.deepEqual(request(ws.at(-1).message),request(first));
  old.respond({reason:'STALE',status:'stale'});assert.equal(g.window.stLab.result,null);
  const alternate=packageFor(['O','T','Z','S','L','J','I']);importText(g,alternate);g.advance(40);assert.deepEqual(request(ws.at(-1).message),request(first),'different hidden tails cannot affect initial planning requests');
@@ -26,7 +26,7 @@ test('practice/page malformed and contradictory packages reject transactionally 
  const before=g.snapshot(),evidence=g.window.stLab.exportSession(),resources=clone(g.window.stLab.resources),current=ws.at(-1);
  const malformed=clone(packed);malformed.privatePractice.tail=['T','T'];
  const unsupported=clone(packed);unsupported.schemaVersion=99;
- const nested=clone(packed);nested.session.coaching.resourceContext.steps.push({action:'INVALID',revealed:[]});
+ const nested=clone(packed);nested.session.coaching.obligationContext.inventory.queue[0].id=-1;
  for(const bad of [malformed,unsupported,nested,'{not json']){
   const text=importText(g,bad);assert.match(g.element('#st-import-status').textContent,/rejected/i);assert.equal(g.element('#st-snapshot').value,text);
   assert.deepEqual(g.snapshot(),before);assert.deepEqual(g.window.stLab.exportSession(),evidence);assert.deepEqual(clone(g.window.stLab.resources),resources);assert.equal(current.terminated,undefined);assert.equal(g.element('#st-undo').disabled,false);

@@ -76,7 +76,7 @@ test('SL horizons: untouched uniquely forced public tail is not a hidden extra d
 test('SL optional failure: deadline exhaustion returns exact privately admitted incumbent without a second proof',()=>{
  const q=fixture.equal;let clock=0,attempts=0,incumbent,admittedNodes,admissions=0,admissionCalls=0,proofsAfterDeadline=0;
  const access=require('../st-access');
- const api=moduleWith({'./st-midgame-resources.js':{...M,repair:(s,r,o)=>{if(clock>=1500)proofsAfterDeadline++;if(o.acceptStep){attempts++;clock=1500;return{valid:null,visited:127,status:'resource-repair-budget'};}return M.repair(s,r,o);}},
+ const api=moduleWith({'./st-obligation-resources.js':{...require('../st-obligation-resources'),repair:(s,r,o)=>{if(clock>=1500)proofsAfterDeadline++;if(o.acceptStep){attempts++;clock=1500;return{valid:null,visited:127,status:'resource-repair-budget'};}return require('../st-obligation-resources').repair(s,r,o);}},
   './st-access.js':{...access,prefix:(...args)=>{if(clock>=1500)proofsAfterDeadline++;return access.prefix(...args);}}},
   (advice,nodes)=>{admissions++;assert.equal(clock,0);incumbent=clone(advice);admittedNodes=nodes;},()=>{admissionCalls++;assert.equal(clock,0,'No second admission after the deadline');});
  const actual=api.plan(q.observation,{...options(q),now:()=>clock,deadline:1500});
@@ -85,8 +85,8 @@ test('SL optional failure: deadline exhaustion returns exact privately admitted 
 });
 test('SL optional failure: copied positive repair flag and candidate certificate failure cannot replace incumbent',()=>{
  const q=fixture.short,baseline=plan('short',true);let calls=0;
- const api=moduleWith({'./st-midgame-resources.js':{...M,repair:(s,r,o)=>{if(o.acceptStep){calls++;return{valid:true,visited:0,path:[],status:'flag-without-payment'};}return M.repair(s,r,o);}}}),a=api.plan(q.observation,options(q));assert(calls);assert.equal(a.metrics.supportedSLPreference.selected,false);assert.deepEqual(withoutMetrics(a),withoutMetrics(baseline));
- const equal=fixture.equal;let reject=false;const access=require('../st-access');const failed=moduleWith({'./st-midgame-resources.js':{...M,repair:(s,r,o)=>{if(o.acceptStep)reject=true;return M.repair(s,r,o);}},'./st-access.js':{...access,prefix:(...args)=>reject?{reachable:null,visited:0,status:'unknown-test-certificate'}:access.prefix(...args)}}).plan(equal.observation,options(equal));
+ const api=moduleWith({'./st-obligation-resources.js':{...require('../st-obligation-resources'),repair:(s,r,o)=>{if(o.acceptStep){calls++;return{valid:true,visited:0,path:[],status:'flag-without-payment'};}return require('../st-obligation-resources').repair(s,r,o);}}}),a=api.plan(q.observation,options(q));assert(calls);assert.equal(a.metrics.supportedSLPreference.selected,false);assert.deepEqual(withoutMetrics(a),withoutMetrics(baseline));
+ const equal=fixture.equal;let reject=false;const access=require('../st-access');const failed=moduleWith({'./st-obligation-resources.js':{...require('../st-obligation-resources'),repair:(s,r,o)=>{if(o.acceptStep)reject=true;return require('../st-obligation-resources').repair(s,r,o);}},'./st-access.js':{...access,prefix:(...args)=>reject?{reachable:null,visited:0,status:'unknown-test-certificate'}:access.prefix(...args)}}).plan(equal.observation,options(equal));
  assert.equal(failed.metrics.supportedSLPreference.selected,false);assert.equal(failed.metrics.supportedSLPreference.reason,'candidate-certificate-unavailable');assert.deepEqual(withoutMetrics(failed),withoutMetrics(plan('equal',true)));
 });
 test('SL applicability: absent/invalid history, unavailable visible L, no HOLD and opening are not authority',()=>{
@@ -94,7 +94,7 @@ test('SL applicability: absent/invalid history, unavailable visible L, no HOLD a
  const state={...clone(q.observation),hold:'O',queue:q.observation.queue.map(t=>t==='L'?'O':t),bag:null},history=RH.start(state);assert.notEqual(P.plan(state,{...options(q),resourceContext:RH.exportContext(state,history)}).metrics.supportedSLPreference?.selected,true);
 });
 test('SL actual partial history stays partial and never mints Extra Z or a forced-L identity',()=>{
- const q=fixture.equal,s=summary(q),a=plan('equal'),m=a.metrics.supportedSLPreference;assert.equal(s.coverage.status,'partial');assert.equal(m.historyCoverage,'partial');assert.equal(m.firstS.bag,null);assert.equal(m.paidL.bag,null);assert.equal(s.extraZ.status,'unknown');assert.equal(a.evidence.resourceObligations.extraZ,'unknown');assert.equal(summary(q).coverage.status,'partial');
+ const q=fixture.equal,s=summary(q),a=plan('equal'),m=a.metrics.supportedSLPreference;assert.equal(s.coverage.status,'partial');assert.equal(m.resourceAvailability,'unknown');assert.equal(m.firstS.bag,null);assert.equal(m.paidL.bag,null);assert.equal(s.extraZ.status,'unknown');assert.equal(a.evidence.resourceObligations.extraZ,'unknown');assert.equal(summary(q).coverage.status,'partial');
  const raw={...clone(q.observation),hold:'O',queue:[],bag:B.fromObserved({observed:['I','J','O','S','T','Z'],startPhase:0})},history=RH.start(raw);assert.equal(B.forcedNext(raw.bag),'L');assert.notEqual(P.plan(raw,{...options(q),resourceContext:RH.exportContext(raw,history)}).metrics.supportedSLPreference?.selected,true);
 });
 test('SL optional repair filter can only reject and does not waive normal grammar',()=>{
@@ -140,7 +140,7 @@ test('SL retention: selected and directly certified translated paths keep the ac
 });
 test('SL session and actual page preserve selected proof through import, HOLD and Undo',()=>{
  const Session=require('../st-session'),q=fixture.equal,a=plan('equal'),history=RH.importContext(q.observation,q.options.resourceContext),saved=Session.create(q.observation,{resourceHistory:history,resourceOriginBag:q.resourceOriginBag,patternHistory:q.options.patternHistory,openingPhase:false,previous:a,search:Session.defaults()}),raw=JSON.stringify(saved),restored=Session.parse(raw);
- assert.deepEqual(restored.state,q.observation);assert.equal(Session.ENGINE,'st-coach-session-2026-11-05-handoff-sl-v1');
+ assert.deepEqual(restored.state,q.observation);assert.equal(Session.ENGINE,'st-coach-session-2026-11-07-current-obligations-v1');
  return require('./support/page.cjs').withPage('st-lab.html',{},g=>{
   const workers=[];g.window.Worker=class{constructor(){workers.push(this);}postMessage(message){this.message=clone(message);}terminate(){}respond(result){this.onmessage({data:{type:'result',id:this.message.id,revision:this.message.observation.revision,result:clone(result)}});}};
   g.element('#st-snapshot').value=raw;g.click('#st-import');assert.match(g.element('#st-import-status').textContent,/^Session imported\./);
@@ -152,7 +152,7 @@ test('SL session and actual page preserve selected proof through import, HOLD an
 });
 test('SL optional failure: exact remaining node-limit exhaustion retains incumbent with truthful cumulative nodes',()=>{
  const q=fixture.equal,baseline=plan('equal',true);let attempts=0;
- const api=moduleWith({'./st-midgame-resources.js':{...M,repair:(s,r,o)=>{if(o.acceptStep){attempts++;return{valid:null,visited:o.maxNodes,status:'resource-repair-budget'};}return M.repair(s,r,o);}}}),actual=api.plan(q.observation,options(q));
+ const api=moduleWith({'./st-obligation-resources.js':{...require('../st-obligation-resources'),repair:(s,r,o)=>{if(o.acceptStep){attempts++;return{valid:null,visited:o.maxNodes,status:'resource-repair-budget'};}return require('../st-obligation-resources').repair(s,r,o);}}}),actual=api.plan(q.observation,options(q));
  assert.equal(attempts,1);assert.equal(actual.metrics.nodes,45000);assert.equal(actual.metrics.supportedSLPreference.selected,false);assert.deepEqual(withoutMetrics(actual),withoutMetrics(baseline));
 });
 test('SL strongest reference: one unknown proof never falls through to a weaker exact-prefix descendant',()=>{

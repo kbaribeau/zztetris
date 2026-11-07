@@ -1,11 +1,11 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const R=require('../st-rules'),A=require('../st-access'),M=require('../st-midgame-resources'),{fixtures}=require('./support/st-fixtures.cjs');
+const R=require('../st-rules'),A=require('../st-access'),M=require('../st-obligation-resources'),{fixtures}=require('./support/st-fixtures.cjs');
 function probe({denyResource=false,expire=true}={}){
  const state=R.createState({board:fixtures.cap.before,active:'Z',hold:'T',queue:['O','I','J','L','S','T']});let clock=0,checks=0,callerCalls=0;
  const access={...A,prefix:(...args)=>{checks++;if(clock>=50)return{reachable:null,complete:false,visited:0,status:'unknown-access-budget'};const result=A.prefix(...args);if(expire&&checks===3)clock=100;return result;}};
- const resources={...M,checkPath:(...args)=>denyResource?{valid:false,reason:'controlled-resource-rejection',resource:M.start(args[0])}:M.checkPath(...args)};
- const mod={exports:{}};vm.runInNewContext(fs.readFileSync(require.resolve('../st-planner'),'utf8'),{module:mod,require:id=>id==='./st-access.js'?access:id==='./st-midgame-resources.js'?resources:require(id.replace('./','../')),Date,performance});
+ const resources={...M,checkPath:(...args)=>denyResource?{valid:false,reason:'controlled-resource-rejection',resource:args[2]}:M.checkPath(...args)};
+ const mod={exports:{}};vm.runInNewContext(fs.readFileSync(require.resolve('../st-planner'),'utf8'),{module:mod,require:id=>id==='./st-access.js'?access:id==='./st-obligation-resources.js'?resources:require(id.replace('./','../')),Date,performance});
  const result=mod.exports.plan(state,{depth:3,width:3,maxNodes:15000,deadline:50,now:()=>clock,admitMaintenance:()=>{callerCalls++;throw Error('untrusted callback');}});
  return{state,result,checks,callerCalls,P:mod.exports};
 }

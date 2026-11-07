@@ -13,10 +13,10 @@ test('session filename metadata is bounded, safe and backwards compatible',()=>{
  const pack=Practice.create(named,['I','J','L','O','S','T','Z'],{suggestedFileName:'R433-practice-export.json'});assert.equal(Practice.prepare(pack).session.suggestedFileName,'R433-practice-export.json');delete pack.suggestedFileName;assert.equal(Practice.prepare(pack).session.suggestedFileName,'R433.json');delete pack.session.suggestedFileName;assert.equal(Practice.prepare(pack).session.suggestedFileName,Session.DEFAULT_EXPORT_FILENAME);
  assert.throws(()=>Practice.prepare({...pack,unknown:true}),/properties/);
 });
-test('download exports current played history and retains name through hold, undo, restart and reimport',()=>withPage('st-lab.html',{},g=>{
+test('download exports current played obligations and retains name through hold, undo, restart and reimport',()=>withPage('st-lab.html',{},g=>{
  const requests=[];g.window.Worker=class{postMessage(m){requests.push(clone(m));}terminate(){}};
  install(g,sample('R433-frame21-coaching-export.json'));g.window.stLab.act('HD');g.window.stLab.act('HOLD');g.advance(40);
- const saved=download(g,'R433-frame21-coaching-export.json');assert.deepEqual(saved.position,g.snapshot());assert.notDeepEqual(saved.position,sample().position);assert(saved.coaching.resourceContext.steps.length>0);Session.prepare(saved);
+ const saved=download(g,'R433-frame21-coaching-export.json');assert.deepEqual(saved.position,g.snapshot());assert.notDeepEqual(saved.position,sample().position);assert(saved.coaching.obligationContext.inventory.nextId>1);assert.equal(saved.coaching.resourceContext,undefined);assert.equal(saved.coaching.obligationContext.steps,undefined);Session.prepare(saved);
  assert(!JSON.stringify(requests).includes('suggestedFileName'),'transport hint never reaches Worker');
  install(g,saved);assert.deepEqual(download(g,saved.suggestedFileName).position,saved.position);
  g.window.stLab.act('HD');g.window.stLab.act('UNDO');download(g,saved.suggestedFileName);g.window.stLab.act('RESET');assert.deepEqual(download(g,saved.suggestedFileName).position,saved.position);

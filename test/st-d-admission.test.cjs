@@ -53,15 +53,16 @@ test('D admission: full policy accepts actual immediate J exits, not only geomet
  assert.equal(R.replay(r.state,proof.exit.witness).valid,true);
 });
 test('D admission: one J cannot pay Left and Center; a distinct executable replacement can',()=>{
- const M=require('../st-midgame-resources');
+ const C=require('../st-obligation-context'),Provider=require('../st-resource-provider');
  const heights=[6,4,6,6,4,1,2,0,0,0],board=Array.from({length:40},(_,y)=>heights.map(h=>y>=40-h?'X':'.').join(''));
  const cells=[[5,36],[6,36],[5,37],[5,38]],witness=['L','L','L','CW','HD'];
  for(const replacement of [false,true]){
   const before=R.createState({board,active:'J',hold:'O',queue:replacement?['J','J','O']:['J','O']}),r=R.replay(before,witness);
   // Synthetic explicit pending Center obligation, not asserted historical OJ
   // provenance. Literal target is independently replayed in the positive arm.
-  const resource=M.start(before,{center:{pending:[{rootId:99,rootBag:null,family:'OJ',alternatives:[{piece:'J',cells}]}]}});
-  const proof=P.dPatternAdmission(before,{state:r.state,event:r.events[0],witness},{resource,now:()=>0,deadline:1,maxNodes:8000});
+  const current=C.exportState(C.start(before));current.inventory.nextId=100;current.state.center.pending=[{id:'explicit-current-OJ',rootId:99,family:'OJ',alternatives:[{piece:'J',cells}]}];
+  const input=Provider.prepare(before,{obligationContext:current}),resource=Provider.startRoute(input,{extendForced:false});
+  const proof=P.dPatternAdmission(before,{state:r.state,event:r.events[0],witness},{resource,resourceInput:input,now:()=>0,deadline:1,maxNodes:8000});
   assert.equal(proof.valid,replacement,proof.reason);
   if(replacement){const finish=R.replay(proof.exit.state,['CW','R','HD']);assert.equal(finish.valid,true);assert.deepEqual(finish.events[0].cells,cells);}
   else assert.equal(proof.reason,'D-J-exit-resources-unrepaired');

@@ -10,10 +10,12 @@ const {SEARCH_TIME_MS} = require('../../st-coach-config');
 const B = require('../../st-bag');
 const P = require('../../st-planner');
 const S = require('../../st-structure');
-const H = require('../../st-resource-history');
+const Context = require('../../st-obligation-context');
+const Legacy = require('../../st-resource-legacy');
 const Inventory = require('../../st-public-inventory');
 const Handoff = require('../../st-handoff-continuity');
-const Tracking = require('../../st-resource-tracking');
+const PlanContinuity = require('../../st-plan-continuity');
+const Tracking = require('../../st-obligation-tracking');
 const TrackingMetrics = require('./st-tracking-metrics.cjs');
 const F = require('../../st-fixtures');
 const LS = require('./st-left-shape-metrics.cjs');
@@ -24,7 +26,7 @@ const clone = x => JSON.parse(JSON.stringify(x));
 // intentionally omits that field from its worker message. Match that boundary.
 function publicObservation(state){const observation=P.observe(state);delete observation.lastEvent;return observation;}
 const digest = x => crypto.createHash('sha256').update(typeof x === 'string' ? x : JSON.stringify(x)).digest('hex');
-const SOURCE_FILES = ['st-coach-config.js', 'st-rules.js', 'st-bag.js', 'st-structure.js', 'st-paired-repair.js', 'st-access.js', 'st-pattern-history.js', 'st-left-foundation.js', 'st-left-context.js', 'st-midgame-coaches.js','st-reset-coach.js', 'st-planner.js', 'st-opening-patterns.js','st-opening-continuations.js','st-opening-sources.js','st-source-scoring.js', 'st-opening.js', 'st-reset-policy.js','st-public-inventory.js','st-center-obligations.js','st-resource-history.js','st-handoff-continuity.js', 'st-obligation-admission.js', 'st-resource-search.js', 'st-midgame-resources.js', 'st-resource-tracking.js', 'st-worker.js', 'st-lab.js', 'st-session.js', 'st-fixtures.js', 'scripts/lib/st-simulation.cjs', 'scripts/lib/st-simulation-runner.cjs', 'scripts/lib/st-left-shape-metrics.cjs', 'scripts/lib/st-coach-entry-metrics.cjs', 'scripts/lib/st-tracking-metrics.cjs', 'scripts/lib/st-evaluation.cjs', 'scripts/evaluate-st-protocol.cjs', 'scripts/simulate-st.cjs'];
+const SOURCE_FILES = ['st-lab.html','st-practice.js','st-reset-diagnostics.js','st-piece-ledger.js','st-plan-continuity.js','st-sl-obligations.js','st-opening-obligations.js','st-obligation-state.js','st-obligation-context.js','st-obligation-projection.js','st-obligation-assessment.js','st-obligation-route.js','st-obligation-resources.js','st-opening-eligibility.js','st-resource-legacy.js','st-resource-provider.js','st-obligation-tracking.js','st-coach-config.js', 'st-rules.js', 'st-bag.js', 'st-structure.js', 'st-paired-repair.js', 'st-access.js', 'st-pattern-history.js', 'st-left-foundation.js', 'st-left-context.js', 'st-midgame-coaches.js','st-reset-coach.js', 'st-planner.js', 'st-opening-patterns.js','st-opening-continuations.js','st-opening-sources.js','st-source-scoring.js', 'st-opening.js', 'st-reset-policy.js','st-public-inventory.js','st-center-obligations.js','st-resource-history.js','st-handoff-continuity.js', 'st-obligation-admission.js', 'st-resource-search.js', 'st-midgame-resources.js', 'st-resource-tracking.js', 'st-worker.js', 'st-lab.js', 'st-session.js', 'st-fixtures.js', 'scripts/lib/st-simulation.cjs', 'scripts/lib/st-simulation-runner.cjs', 'scripts/lib/st-left-shape-metrics.cjs', 'scripts/lib/st-coach-entry-metrics.cjs', 'scripts/lib/st-tracking-metrics.cjs', 'scripts/lib/st-evaluation.cjs', 'scripts/evaluate-st-protocol.cjs', 'scripts/simulate-st.cjs'];
 const CONFIG = Object.freeze({depth:3, width:8, maxNodes:45000, timeMs:SEARCH_TIME_MS});
 const PRESETS = Object.freeze({quick:{seeds:[10331, 20333], locks:24}, research:{seeds:Array.from({length:16}, (_,i) => 810001 + i * 997), locks:500}});
 const RNG_VERSION = 'mulberry32-seven-bag-v1';
@@ -100,14 +102,28 @@ function boardMetrics(state) {
   const mass=state.board.join('').replaceAll('.','').length;
   return {height:assessment.maxHeight, meanSkylineHeight:heights.reduce((a,b)=>a+b,0)/10, occupiedRowsEquivalent:mass/10, mass, sealed:assessment.sealed, leftSealed:assessment.leftSealed, parity, regionalSupport:assessment.regionalSupport, maintenanceScope:assessment.maintenanceScope};
 }
+function accountingFrame(current,position){return{status:current.status,state:current.state,reason:current.reason,view:Context.resolve(current,{position})};}
+function importCurrent(snapshot,position){const current=Context.importState(snapshot,{position});if(position.bag)assert.deepEqual(clone(position.bag),clone(current.inventory.knowledge),'Current public bag disagrees with supplied inventory');return current;}
 function createSession(input, api=P) {
   if(typeof api.startOpeningSession!=='function')throw Error('Shared opening session API is not available');
-  let state=R.createState(clone(input.initial)), cursor=0, commitment=null, previous=null, pendingLHint=null, pendingHandoffRecovery=null, openingForecast=null;
-  let patternHistory=api.startPatternHistory(publicObservation(state));
-  let publicInventory=Inventory.start(publicObservation(state),{fresh:input.scenario==='empty'});
-  let resourceHistory=H.start(publicObservation(state),{fresh:input.scenario==='empty',inventory:publicInventory});
-  const tracking=Tracking.create();
+  let state=R.createState(clone(input.initial)), cursor=0, commitment=null, previous=null, pendingLHint=null, pendingHandoffRecovery=null, openingForecast=null,planContinuity=null;
+  let current=Object.hasOwn(input,'obligationContext')?importCurrent(input.obligationContext,publicObservation(state)):Context.start(publicObservation(state),{fresh:input.scenario==='empty'});
+  let patternHistory=current.status==='available'?clone(current.state.safety.notches):null,actualLocks=0,actualLines=0;
+  const tracking=Tracking.create(),effectListeners=new Set();let effectFailure=null;
   let opening=api.startOpeningSession(publicObservation(state),{emptyMode:input.scenario==='empty'});
+  function adoptPlan(advice){const proof=advice?.evidence?.construction;planContinuity=proof?PlanContinuity.importState(PlanContinuity.exportState(planContinuity),{position:publicObservation(state),inventory:current.inventory,proof})||PlanContinuity.start(publicObservation(state),current.inventory,proof):null;}
+  function resources(){return{...Context.resolve(current,{position:publicObservation(state)}),instances:{active:current.inventory.active,hold:current.inventory.hold,queue:current.inventory.queue},terminal:Boolean(state.topOut||!state.active)};}
+  function installTransition(prior,before,transition,operation,lock){
+    current=transition.context;
+    if(current.status==='available')patternHistory=clone(current.state.safety.notches);
+    tracking.transition(accountingFrame(prior,before),accountingFrame(current,publicObservation(state)),{operation,effects:transition.effects,lock});
+    for(const listener of effectListeners)try{listener(clone({operation,effects:transition.effects,lock,lines:actualLines}));}catch(error){effectListeners.delete(listener);effectFailure??=String(error?.message??error);}
+  }
+  function mark(kind){
+    if(current.status!=='available'||kind==='handoff'&&current.state.sl.handoff||kind==='begin-reset'&&current.state.account.reset.status==='active')return;
+    const prior=current,before=publicObservation(state),transition=kind==='handoff'?Context.handoff(prior,{position:before}):Context.beginReset(prior,{position:before,candidate:true});
+    installTransition(prior,before,transition,{kind},actualLocks);
+  }
   function replenish() {
     while(state.queue.length<6) {
       if(cursor>=input.future.length)throw Object.assign(Error('Private input exhausted'),{code:'INPUT_EXHAUSTED'});
@@ -117,58 +133,56 @@ function createSession(input, api=P) {
   }
   return {
     onTrackingEvent:listener=>tracking.subscribe(listener),
-    get trackingHealth(){return tracking.health();},
-    get publicInventory(){return Inventory.exportState(publicInventory);},
-    get resources(){return H.resolve(publicObservation(state),resourceHistory);}, get state(){return state;}, get cursor(){return cursor;}, get opening(){return clone(opening);},
-    request(id,options) { const {handoffRecovery:ignored,pendingLHint:ignoredHint,openingForecast:ignoredForecast,...settings}=options||{};return {type:'plan',id,observation:publicObservation(state),previous:previous?clone(previous):null,commitment:commitment?clone(commitment):null,options:{...settings,...(openingForecast?{openingForecast:clone(openingForecast)}:{}),...(pendingLHint?{pendingLHint:clone(pendingLHint)}:{}),...(pendingHandoffRecovery?{handoffRecovery:clone(pendingHandoffRecovery)}:{}),resourceContext:H.exportContext(publicObservation(state),resourceHistory),patternHistory:patternHistory?clone(patternHistory):null,openingPhase:opening.active,openingSource:opening.source?clone(opening.source):null,openingClear:opening.clear?clone(opening.clear):null,openingRepair:opening.repair?clone(opening.repair):null}}; },
-    execute(advice,{onCoach=()=>{},lock=resourceHistory.locks+1}={}) {
+    onObligationEffect(listener){effectListeners.add(listener);return()=>effectListeners.delete(listener);},
+    get trackingHealth(){return effectFailure?{status:'failed',reason:effectFailure}:tracking.health();},
+    get publicInventory(){return Inventory.exportState(current.inventory);},
+    get obligationContext(){return Context.exportState(current);},
+    get frame(){return accountingFrame(current,publicObservation(state));},
+    get actualLocks(){return actualLocks;},
+    get resources(){return resources();}, get state(){return state;}, get cursor(){return cursor;}, get opening(){return clone(opening);},
+    request(id,options) { const {handoffRecovery:ignored,pendingLHint:ignoredHint,openingForecast:ignoredForecast,resourceContext:ignoredLegacy,obligationContext:ignoredCurrent,resourceInput:ignoredInput,planContinuity:ignoredPlan,...settings}=options||{};return {type:'plan',id,observation:publicObservation(state),previous:previous?clone(previous):null,commitment:commitment?clone(commitment):null,options:{...settings,...(planContinuity?{planContinuity:PlanContinuity.exportState(planContinuity)}:{}),...(openingForecast?{openingForecast:clone(openingForecast)}:{}),...(pendingLHint?{pendingLHint:clone(pendingLHint)}:{}),...(pendingHandoffRecovery?{handoffRecovery:clone(pendingHandoffRecovery)}:{}),obligationContext:Context.exportState(current),patternHistory:patternHistory?clone(patternHistory):null,openingPhase:opening.active,openingSource:opening.source?clone(opening.source):null,openingClear:opening.clear?clone(opening.clear):null,openingRepair:opening.repair?clone(opening.repair):null}}; },
+    execute(advice,{onCoach=()=>{},lock=actualLocks+1}={}) {
+      try{
       const proof=validateAdvice(state,advice);
       const requiredDraws=state.queue.length-proof.state.queue.length;
       if(input.future.length-cursor<requiredDraws)throw Object.assign(Error('Private stream cannot replenish this witness; no actions applied'),{code:'INPUT_EXHAUSTED'});
-      pendingHandoffRecovery=null;
+      pendingHandoffRecovery=null;adoptPlan(advice);
       if(typeof api.captureOpeningForecast==='function')openingForecast=api.captureOpeningForecast(publicObservation(state),advice)||openingForecast;
-      const recovery=typeof api.captureHandoffRecovery==='function'?api.captureHandoffRecovery(publicObservation(state),advice,H.exportContext(publicObservation(state),resourceHistory)):null;
-      let recoveryExecution=recovery?Handoff.start(publicObservation(state),publicInventory):null;
-      if(advice.evidence?.strategy==='reset-coach'){const before=H.resolve(publicObservation(state),resourceHistory);resourceHistory=H.beginReset(resourceHistory,publicObservation(state));tracking.transition(before,H.resolve(publicObservation(state),resourceHistory),{stage:'reset'});}
+      const recovery=typeof api.captureHandoffRecovery==='function'?api.captureHandoffRecovery(publicObservation(state),advice,Context.exportState(current)):null;
+      let recoveryExecution=recovery?Handoff.start(publicObservation(state),current.inventory):null;
+      if(advice.evidence?.strategy==='reset-coach')mark('begin-reset');
       const wasOpening=opening.active;opening=api.acceptOpeningResult(opening,advice);
       if(!opening.active)openingForecast=null;
-      if(wasOpening&&!opening.active){const before=H.resolve(publicObservation(state),resourceHistory);resourceHistory=H.markHandoff(resourceHistory,publicObservation(state));recoveryExecution=Handoff.markHandoff(recoveryExecution,publicObservation(state),publicInventory);tracking.transition(before,H.resolve(publicObservation(state),resourceHistory),{stage:'handoff'});}
-      const coachBeforeLock=CE.phase(opening,H.resolve(publicObservation(state),resourceHistory));
+      if(wasOpening&&!opening.active){mark('handoff');recoveryExecution=Handoff.markHandoff(recoveryExecution,publicObservation(state),current.inventory);}
+      const coachBeforeLock=CE.phase(opening,resources());
       onCoach(coachBeforeLock,false);
       previous={...clone(advice),revision:state.revision};pendingLHint=advice.evidence?.pendingLStage?clone(advice.evidence.pendingLStage):null;
-
       commitment=advice.recommendation?.kind!=='risky'&&!advice.evidence?.opening && (advice.evidence?.strategy==='reset-coach'||api.resourceGoal(advice.continuation||[])) ? {observation:clone(publicObservation(state)),advice:clone(advice)} : null;
       let displayed=advice, event=null;
       const actions=[];
       for(const action of advice.witness) {
-        const before=publicObservation(state),priorHistory=resourceHistory,next=R.move(state,action);
+        const before=publicObservation(state),prior=current,next=R.move(state,action);
         if(next===state)throw Error('Witness action did not execute: '+action);
         state={...next,revision:state.revision+1};
         replenish();
+        const after={...publicObservation(state),lastEvent:state.lastEvent},transition=Context.applyActual(prior,{before,action,after});
+        if(action==='HD'){actualLocks++;actualLines+=state.lastEvent.lines;}
+        installTransition(prior,before,transition,action==='HD'?{kind:'lock',piece:transition.receipt.locked,event:state.lastEvent}:{kind:'observe'},action==='HD'?actualLocks:actualLocks+1);
+        recoveryExecution=Handoff.advance(recoveryExecution,before,action,after,transition.receipt);
+        planContinuity=PlanContinuity.advance(planContinuity,before,action,after,transition.receipt);
         if(openingForecast)openingForecast=typeof api.advanceOpeningForecast==='function'?api.advanceOpeningForecast(openingForecast,before,publicObservation(state),action):null;
-        const after={...publicObservation(state),lastEvent:state.lastEvent},inventoryTransition=Inventory.transition(publicInventory,before,action,after);
-        // Do not undo an executed piece if accounting becomes unavailable. The
-        // current public identity flow is controller-owned, even after a cap.
-        publicInventory=inventoryTransition.next;
-        resourceHistory=H.applyAction(resourceHistory,before,action,after,{inventoryTransition});
-        recoveryExecution=Handoff.advance(recoveryExecution,before,action,after,inventoryTransition);
         if(action==='HD') {
-          tracking.executedLock(before,priorHistory,publicObservation(state),resourceHistory,state.lastEvent,{lock});
-          onCoach(CE.phase(opening,H.resolve(publicObservation(state),resourceHistory)),true);
+          onCoach(CE.phase(opening,resources()),true);
           event=clone(state.lastEvent); previous=null;
           const continuity=Handoff.exportConnected(recoveryExecution);
           pendingHandoffRecovery=recovery&&continuity?{...clone(recovery),actualEvent:clone(event),continuity}:null;recoveryExecution=null;
-          patternHistory=api.updatePatternHistory(patternHistory,before,publicObservation(state),event);
           opening=api.updateOpeningSession(opening,before,publicObservation(state),event);
           if(!opening.active)openingForecast=null;
-          const suffix=commitment?api.continueCommitment(commitment.observation,publicObservation(state),commitment.advice,event,{patternHistory,resourceContext:H.exportContext(publicObservation(state),resourceHistory)}):null;
-          commitment=suffix?{observation:clone(publicObservation(state)),advice:clone(suffix)}:null;
+          const suffix=commitment?api.continueCommitment(commitment.observation,publicObservation(state),commitment.advice,event,{patternHistory,obligationContext:Context.exportState(current),planContinuity:PlanContinuity.exportState(planContinuity)}):null;
+          commitment=suffix?{observation:clone(publicObservation(state)),advice:clone(suffix)}:null;adoptPlan(suffix);
           displayed=null;
         } else {
-          // Emit immediately: a later controller error must not hide coverage
-          // lost on this actual input. HD retains its full pre-HD projection.
-          tracking.actionCoverage(priorHistory,resourceHistory,{lock});
-          const advanced=displayed?api.advance(publicObservation(state),displayed,action,{patternHistory,openingPhase:opening.active,openingSource:opening.source,resourceContext:H.exportContext(publicObservation(state),resourceHistory)}):null;
+          const advanced=displayed?api.advance(publicObservation(state),displayed,action,{patternHistory,openingPhase:opening.active,openingSource:opening.source,obligationContext:Context.exportState(current),planContinuity:PlanContinuity.exportState(planContinuity)}):null;
           if(advanced){displayed=advanced;previous=advanced;}
           else displayed=null;
         }
@@ -178,6 +192,7 @@ function createSession(input, api=P) {
       assert.deepEqual(state.board,proof.state.board);
       assert.deepEqual(R.validate(state),[]);
       return {event,actions,coachBeforeLock};
+      }catch(error){pendingHandoffRecovery=null;openingForecast=null;planContinuity=null;throw error;}
     }
   };
 }
@@ -200,6 +215,17 @@ function runEpisode(input, {config=CONFIG, planner=workerPlanner({disableSearchT
   const summary={schemaVersion:1,scenario:input.scenario,seed:input.seed,inputHash:input.inputHash,cap:input.locks,config,stop:'lock-cap',censored:true,locks:0,lines:0,tsds:0,quads:0,invalidRecommendations:0,budgetHits:0,firstTsdAt:null,firstQuadAt:null,rebuildAfterTsdEvents:0,holds:0,nodes:0,peakHeight:boardMetrics(session.state).height,profile:[],latencies:[]};
   if(input.phaseCap)summary.phaseCap=clone(input.phaseCap);
   summary.reset={starts:[],completions:[],firstCompletion:null,postFirstLines:null,postFirstLocks:null,intervals:[]};
+  session.onObligationEffect(({effects,lock,lines})=>{
+    for(const effect of effects){
+      if(effect.domain!=='account')continue;
+      if(effect.status==='reset-started')summary.reset.starts.push({at:lock,firstLock:lock+1,linesBefore:lines});
+      if(effect.status==='reset-completed'){
+        const completion={completedAt:lock,lines,remainingZ:session.resources.extraZ.remaining};summary.reset.completions.push(completion);
+        if(summary.reset.firstCompletion===null)summary.reset.firstCompletion=completion;
+        else{const prior=summary.reset.completions.at(-2);summary.reset.intervals.push({from:prior.completedAt,to:lock,locks:lock-prior.completedAt,lines:lines-prior.lines});}
+      }
+    }
+  });
   const coaches=CE.create(CE.phase(session.opening,session.resources),{imported:input.scenario!=='empty'});
   const tracking=TrackingMetrics.create(),trackingEvents=[];
   session.onTrackingEvent(event=>{tracking.record(event);trackingEvents.push(event);});
@@ -236,8 +262,6 @@ function runEpisode(input, {config=CONFIG, planner=workerPlanner({disableSearchT
     if(!request.options.openingPhase && !check.valid)flags.push('notch-transition');
     if(cavityDebt.length)flags.push('unrepaired-cavity-debt');
     summary.lines+=event.lines;
-    const reset=session.resources.reset;if(reset?.startedAt!==null&&reset?.startedAt!==undefined&&!summary.reset.starts.some(x=>x.at===reset.startedAt))summary.reset.starts.push({at:reset.startedAt,firstLock:summary.locks,linesBefore:summary.lines-event.lines});
-    if(reset?.episodes?.length>summary.reset.completions.length){const episode=reset.episodes.at(-1),record={...clone(episode),lines:summary.lines,remainingZ:session.resources.extraZ.remaining};summary.reset.completions.push(record);if(summary.reset.firstCompletion===null)summary.reset.firstCompletion=record;else{const prior=summary.reset.completions.at(-2);summary.reset.intervals.push({from:prior.completedAt,to:record.completedAt,locks:record.completedAt-prior.completedAt,lines:record.lines-prior.lines});}}
     summary.tsds+=Number(event.lines===2&&event.spin==='full');summary.quads+=Number(event.lines===4);
     if(event.lines===2&&event.spin==='full'){if(summary.firstTsdAt===null)summary.firstTsdAt=summary.locks;awaitingRebuild=true;}
     if(event.lines===4&&summary.firstQuadAt===null)summary.firstQuadAt=summary.locks;
@@ -256,10 +280,9 @@ function runEpisode(input, {config=CONFIG, planner=workerPlanner({disableSearchT
   if(summary.reset.firstCompletion){summary.reset.postFirstLines=summary.lines-summary.reset.firstCompletion.lines;summary.reset.postFirstLocks=summary.locks-summary.reset.firstCompletion.completedAt;}
   summary.reset.finalStatus=session.resources.reset?.status??'unknown';summary.reset.finalProgress=session.resources.reset?.progress??null;
   Object.assign(summary,coaches.snapshot());
-  const finalResources=session.resources,interrupted=summary.stop==='execution-error',authenticated=['complete','partial'].includes(finalResources.coverage?.status);
-  const resourceLock=interrupted&&authenticated?finalResources.locks:summary.locks;
+  const interrupted=summary.stop==='execution-error',resourceLock=session.actualLocks;
   summary.tracking=session.trackingHealth.status==='failed'?TrackingMetrics.unavailable('Tracking event delivery failed; recorded totals may be incomplete.'):tracking.snapshot({scope:interrupted?'retained-prefix':'entire-run',throughLock:resourceLock});
-  summary.finalObligations=Tracking.status(finalResources,{scope:!authenticated?'unavailable':interrupted?'partial':'current',throughLock:resourceLock,...(interrupted?{reason:'Execution interrupted; resource status is through its authenticated action boundary, which may exceed the completed runner lock count.'}:{})});
+  summary.finalObligations=Tracking.status(session.frame,{scope:session.frame.status==='unavailable'?'unavailable':interrupted?'partial':'current',throughLock:resourceLock,coverage:{status:session.frame.view.availability,origin:input.obligationContext?'imported-current':input.scenario==='empty'?'fresh':'unknown-prior',throughLock:resourceLock},terminal:{stop:summary.stop,censored:summary.censored,cap:input.locks,topOut:Boolean(session.state.topOut),inputExhausted:!session.state.active},...(interrupted?{reason:'Execution interrupted; current accounting includes its last accepted action, which may exceed the completed runner lock count.'}:{})});
   summary.leftShapes=LS.finish(leftShapes);
   summary.elapsedMs=performance.now()-started;summary.final=boardMetrics(session.state);summary.finalObservation=publicObservation(session.state);
   const times=summary.latencies.slice().sort((a,b)=>a-b);
@@ -288,26 +311,25 @@ function replayRecords(input, records, api=P) {
   }
   return {mode:'recorded-action-replay',locks,verified:true,finalObservation:publicObservation(session.state),ignoredVolatileRequestFields:['commitment.advice.metrics.elapsedMs'],ignoredVolatileActionFields:['adviceAdvanced'],adviceAdvanceMismatches,note:'No planner search rerun; exact actions/events/draws/public state and non-timing request data are checked. Regenerated commitment duration and wall-clock display-retention flags are excluded from equality; every display-retention difference is reported. This verifies rapid uninterrupted recorded witnesses, not slower interactive replanning.'};
 }
-// Authenticate only the recorded terminal lock for interrupted-child reporting.
-// The context replays prior public history. Newly revealed pieces come solely
-// from the recorded after-observation, never guessed from a seed.
+// Trust one current checkpoint and verify only its finite retained action tail.
+// Native recovery never reconstructs the run's past; old requests convert once.
 function recoverTrackingStatus(record) {
-  if(record?.kind!=='lock'||!Number.isSafeInteger(record.lock)||record.lock<1||!record.request?.options?.resourceContext)throw Error('No replayable lock resource context');
-  let state=R.createState(record.request.observation),history=H.importContext(state,record.request.options.resourceContext);
-  if(!['complete','partial'].includes(history.coverage?.status)||history.locks!==record.lock-1)throw Error('Invalid retained resource context or lock boundary');
-  if(record.advice?.evidence?.strategy==='reset-coach')history=H.beginReset(history,state);
-  if(record.request.options.openingPhase){const accepted=P.acceptOpeningResult({active:true,source:record.request.options.openingSource??null},record.advice);if(!accepted.active)history=H.markHandoff(history,state);}
+  if(record?.kind!=='lock'||!Number.isSafeInteger(record.lock)||record.lock<1||record.request?.id!==record.lock)throw Error('Invalid retained lock boundary');
+  const options=record.request.options||{};let state=R.createState(record.request.observation),current;
+  if(Object.hasOwn(options,'obligationContext'))current=importCurrent(options.obligationContext,state);
+  else if(options.resourceContext){const converted=Legacy.convert(state,options.resourceContext);if(converted.status!=='available')throw Error(converted.reason);current=converted.context;}
+  else throw Error('No retained current obligation checkpoint');
+  if(record.advice?.evidence?.strategy==='reset-coach'&&current.status==='available')current=Context.beginReset(current,{position:state,candidate:true}).context;
+  if(options.openingPhase){const accepted=P.acceptOpeningResult({active:true,source:options.openingSource??null},record.advice);if(!accepted.active&&current.status==='available')current=Context.handoff(current,{position:state}).context;}
   if(!Array.isArray(record.actions)||!sameActions(record.actions.map(a=>a.action),record.advice?.witness))throw Error('Recorded actions differ from advice');
   const proof=validateAdvice(state,record.advice);
-  // HOLD may reveal before HD; recover the public suffix from the recorded final
-  // queue and validate every intermediate observation hash and final state.
-  const needed=6-proof.state.queue.length,revealed=record.after?.queue?.slice(-needed)||[];
+  const needed=6-proof.state.queue.length,revealed=needed?record.after?.queue?.slice(-needed)||[]:[];
   if(needed<0||needed>2||revealed.length!==needed)throw Error('Invalid retained reveal suffix');
   let cursor=0;
-  for(const action of record.actions){const before=publicObservation(state),next=R.move(state,action.action);if(next===state)throw Error('Retained action did not execute');state={...next,revision:state.revision+1};while(state.queue.length<6){const type=revealed[cursor++];if(!type)throw Error('Missing retained reveal');state={...state,queue:[...state.queue,type],bag:B.consume(state.bag,type)};}if(digest(publicObservation(state))!==action.observationHash)throw Error('Retained action hash mismatch');history=H.applyAction(history,before,action.action,{...publicObservation(state),lastEvent:state.lastEvent});}
+  for(const action of record.actions){const before=publicObservation(state),next=R.move(state,action.action);if(next===state)throw Error('Retained action did not execute');state={...next,revision:state.revision+1};while(state.queue.length<6){const type=revealed[cursor++];if(!type)throw Error('Missing retained reveal');state={...state,queue:[...state.queue,type],bag:B.consume(state.bag,type)};}if(digest(publicObservation(state))!==action.observationHash)throw Error('Retained action hash mismatch');current=Context.applyActual(current,{before,action:action.action,after:{...publicObservation(state),lastEvent:state.lastEvent}}).context;}
   assert.deepEqual(publicObservation(state),record.after);assert.deepEqual(state.lastEvent,record.event);
-  if(cursor!==needed||history.locks!==record.lock||!['complete','partial'].includes(history.coverage?.status))throw Error('Retained lock could not be authenticated');
-  return Tracking.status(H.resolve(state,history),{scope:'partial',throughLock:record.lock,reason:'Last authenticated retained lock; later transitions may be unobserved.'});
+  if(cursor!==needed)throw Error('Retained lock could not be checked');
+  return Tracking.status(accountingFrame(current,publicObservation(state)),{scope:current.status==='unavailable'?'unavailable':'partial',throughLock:record.lock,coverage:{status:current.status==='available'?current.state.availability:'unavailable',origin:'retained-current-checkpoint',throughLock:record.lock},terminal:{status:'unobserved'},reason:'Last checked retained lock; later transitions may be unobserved.'});
 }
 function sameActions(a,b){return JSON.stringify(a)===JSON.stringify(b);}
 module.exports={recoverTrackingStatus,validatePhaseCap,phaseCapStatus,publicObservation,CONFIG,PRESETS,RNG_VERSION,SOURCE_FILES,clone,digest,random,sourceHashes,makeInput,workerPlanner,validateAdvice,boardMetrics,createSession,runEpisode,replayRecords};

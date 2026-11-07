@@ -59,16 +59,16 @@ test('resource badges: initial, empty, and imported unknown are distinct from an
  assert.match(g.element('#st-hanging-l-detail').textContent,/normal Center SL awaiting its L is separate; no L repair strategy is implied/);
  const run=play(g,2,23);assert.equal(run.locks,23);
  badge(g,'st-hanging-s','none-observed',false);badge(g,'st-extra-z','available',false);
- assert.match(g.element('#st-hanging-s').getAttribute('aria-label'),/none observed in the checked interval/);
- assert.match(g.element('#st-extra-z').getAttribute('aria-label'),/unused in the verified interval/);
+ assert.match(g.element('#st-hanging-s').getAttribute('aria-label'),/none currently observed/);
+ assert.match(g.element('#st-extra-z').getAttribute('aria-label'),/available in the current account/);
  assert.ok(g.window.stLab.resources.center.pending.length,'ordinary SL debt is not itself Hanging S');
  badge(g,'st-hanging-l','none-observed',false);
- assert.match(g.element('#st-resource-summary').textContent,/Hanging L: none observed/);
+ assert.match(g.element('#st-resource-summary').textContent,/Hanging L: none currently observed/);
 }));
 test('resource badges: actual Z use highlights, movement/HOLD does not spend, Undo restores pre-turn allocation',()=>withPage('st-lab.html',hidden,g=>{
  const run=play(g,1,20),before=g.snapshot();badge(g,'st-extra-z','available',false);
  advance(g,run,21);badge(g,'st-extra-z','used',true);
- assert.match(g.element('#st-extra-z').getAttribute('aria-label'),/used in the verified interval/);
+ assert.match(g.element('#st-extra-z').getAttribute('aria-label'),/spent in the current account/);
  g.window.stLab.act('UNDO');assert.deepEqual(g.snapshot().board,before.board);badge(g,'st-extra-z','available',false);
  for(const a of ['HOLD','HOLD','R','CW'])g.window.stLab.act(a);badge(g,'st-extra-z','available',false);
 }));
@@ -140,7 +140,7 @@ test('resource badges: advice hidden, hypothetical worker allocations, stale/err
  g.window.stLab.act('L');g.advance(40);all.at(-1).onerror({preventDefault(){}});
  g.click('#st-toggle');assert.equal(g.element('#st-status').hidden,true);
  badge(g,'st-hanging-s','hanging',true);badge(g,'st-extra-z','used',true);
- assert.deepEqual(g.snapshot().board,state.board);assert.equal(g.window.stLab.resources.extraZ.allocations.length,facts.extraZ.allocations.length);
+ assert.deepEqual(g.snapshot().board,state.board);assert.equal(g.window.stLab.resources.extraZ.remaining,facts.extraZ.remaining);
  assert.deepEqual(clone(g.window.stLab.resources.hangingL),facts.hangingL,'Hypothetical or stale worker results cannot replace actual L allocation facts');
 }));
 test('resource badges: keyboard focus exposes descriptions without gameplay, Escape dismisses until refocus',()=>withPage('st-lab.html',hidden,g=>{

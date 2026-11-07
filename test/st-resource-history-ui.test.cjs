@@ -4,12 +4,14 @@ const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
 const { withPage } = require('./support/page.cjs');
 const R = require('../st-rules');
-const H = require('../st-resource-history');
+const Context = require('../st-obligation-context');
 const PH = require('../st-pattern-history');
 const PATTERN_BASELINE = require('./support/st-resource-history-ui-patterns.json');
 const clone = value => JSON.parse(JSON.stringify(value));
 const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const resources = g => clone(g.window.stLab.resources);
+const inventory = g => clone(g.window.stLab.publicInventory);
+const locks = g => Number(g.element('#st-pieces-value').textContent.replaceAll(',',''));
 const select = (g, value) => {
   g.element('#st-fixture').value = value;
   g.element('#st-fixture').dispatchEvent(new g.window.Event('change'));
@@ -33,15 +35,15 @@ function workers(g) {
   return all;
 }
 const request = (g, all) => { g.advance(40); return all.at(-1).message; };
-const allocationFacts = diagnostic => ({ locks: diagnostic.locks, center: diagnostic.center,
+const allocationFacts = diagnostic => ({ center: diagnostic.center,
   hangingS: diagnostic.hangingS, extraZ: diagnostic.extraZ });
 
 // Captured from the actual unmodified controller at local d836598 / public
 // 7401810 (tree 2edd62c6), seed 42, with the exact actions below. These are
 // observable worker-message hashes, not source-code snapshots. No planner is
-// mocked to change the message content. The new replay context is checked
-// independently. The current-notch migration intentionally changes only
-// options.patternHistory. Its semantic facts are compared with the separately
+// mocked to change the message content. The compact context is checked
+// independently. The resource migration changes options.obligationContext,
+// while the current-notch migration changes options.patternHistory. Its semantic facts are compared with the separately
 // frozen old implementation's output; replacing that one transport field with
 // its captured legacy payload then retains every original request hash below.
 // No current product code generates the expected facts or legacy payloads.
@@ -64,19 +66,19 @@ const BASELINE_REQUESTS = [
   '9340dd798a2a444ef24ebd562ebc1c53ee005ea47f6848f6c3ba2245f3c2f3a7',
 ];
 
-test('resource history UI: replay context and current notch facts preserve prior worker semantics through HOLD, locks, Undo, branch, restarts and import', () => withPage('st-lab.html', { seed: 42 }, g => {
+test('current resource UI: compact context and current notch facts preserve prior worker semantics through HOLD, locks, Undo, branch, restarts and import', () => withPage('st-lab.html', { seed: 42 }, g => {
   const all = workers(g), actual = [];
   const capture = () => {
-    const message=request(g,all),proof=message.options.resourceContext;
-    assert.ok(proof,'Every active observation carries its bounded replay context');
-    assert.deepEqual(H.resolve(message.observation,H.importContext(message.observation,proof)),resources(g));
+    const message=request(g,all),proof=message.options.obligationContext;
+    assert.ok(proof,'Every active observation carries its compact current checkpoint');assert.equal(message.options.resourceContext,undefined);
+    assert.deepEqual({...Context.resolve(Context.importState(proof,{position:message.observation}),{position:message.observation}),terminal:false},resources(g));
     const frozen=PATTERN_BASELINE.patterns[PATTERN_BASELINE.requestPatterns[actual.length]];
     assert.ok(frozen,'Every captured request has an independent legacy notch oracle');
     const current=message.options.patternHistory;
     assert.equal(current.version,2);assert.equal('origin' in current,false);assert.equal('steps' in current,false);
     assert.deepEqual(PH.resolve(message.observation,current),frozen.facts,
       `Current notch semantics changed at request ${actual.length}`);
-    const prior=clone(message);delete prior.options.resourceContext;
+    const prior=clone(message);delete prior.options.obligationContext;
     prior.options.patternHistory=clone(frozen.legacy);
     actual.push(hash(prior));
   };
@@ -98,76 +100,76 @@ test('resource history UI: replay context and current notch facts preserve prior
   }
 }));
 
-test('resource history UI: local empty origin is known but imported and stable history remain unknown', () => withPage('st-lab.html', { seed: 42 }, g => {
-  assert.equal(resources(g).coverage.status, 'partial');
+test('current resource UI: local empty origin is known but imported and stable history remain unknown', () => withPage('st-lab.html', { seed: 42 }, g => {
+  assert.equal(resources(g).availability, 'unknown');
   select(g, 'empty');
   const known = resources(g), visible = g.snapshot();
-  assert.equal(known.coverage.status, 'complete');
-  assert.equal(known.locks, 0); assert.equal(known.actions, 0);
-  assert.equal(known.instances.active.type, visible.active.type);
-  assert.equal(known.instances.hold, null);
-  assert.deepEqual(known.instances.queue.map(p => p.type), visible.queue);
-  assert.equal(new Set([known.instances.active, ...known.instances.queue].map(p => p.id)).size, 7);
+  assert.equal(known.availability, 'known');
+  assert.equal(locks(g),0);assert.equal(known.locks,undefined);assert.equal(known.actions,undefined);
+  assert.equal(inventory(g).active.type, visible.active.type);
+  assert.equal(inventory(g).hold, null);
+  assert.deepEqual(inventory(g).queue.map(p => p.type), visible.queue);
+  assert.equal(new Set([inventory(g).active, ...inventory(g).queue].map(p => p.id)).size, 7);
   assert.equal(known.extraZ.status, 'unknown', 'Empty origin is not a verified Midgame baseline');
   importState(g, { ...visible, resources: known, resourceHistory: known,
     hangingS: { status: 'none-observed' }, extraZ: { status: 'available' } });
   const imported = resources(g);
-  assert.equal(imported.coverage.status, 'partial');
+  assert.equal(imported.availability, 'unknown');
   assert.equal(imported.extraZ.status, 'unknown');
   assert.equal(imported.hangingS.status, 'unknown');
-  assert.equal(imported.locks, 0);
+  assert.equal(locks(g), 0);
   select(g, 'marathon-rebuild');
-  assert.equal(resources(g).coverage.status, 'partial');
+  assert.equal(resources(g).availability, 'unknown');
   assert.equal(resources(g).extraZ.status, 'unknown');
 }));
 
-test('resource history UI: unlimited HOLD preserves observed identities and movement never consumes allocations', () => withPage('st-lab.html', { seed: 42 }, g => {
+test('current resource UI: unlimited HOLD preserves observed identities and movement never consumes allocations', () => withPage('st-lab.html', { seed: 42 }, g => {
   select(g, 'empty');
-  const start = resources(g), first = start.instances.active, next = start.instances.queue[0];
+  const start = resources(g), first = inventory(g).active, next = inventory(g).queue[0];
   g.window.stLab.act('HOLD');
-  const held = resources(g);
-  assert.equal(held.instances.hold.id, first.id);
-  assert.equal(held.instances.active.id, next.id);
+  const held = resources(g),heldInventory=inventory(g);
+  assert.equal(inventory(g).hold.id, first.id);
+  assert.equal(inventory(g).active.id, next.id);
   assert.deepEqual(allocationFacts(held), allocationFacts(start));
   for (let i = 0; i < 4; i++) g.window.stLab.act('HOLD');
   const repeated = resources(g);
-  assert.deepEqual(repeated.instances, held.instances);
+  assert.deepEqual(inventory(g),heldInventory);
   for (const action of ['L', 'CW', 'R', 'SD']) g.window.stLab.act(action);
-  assert.deepEqual(resources(g).instances, repeated.instances);
+  assert.deepEqual(inventory(g),heldInventory);
   assert.deepEqual(allocationFacts(resources(g)), allocationFacts(start));
   g.window.stLab.act('HD');
-  assert.equal(resources(g).locks, 1);
-  assert.equal(resources(g).instances.hold.id, first.id);
-  assert.notEqual(resources(g).instances.active.id, next.id, 'Locked identity cannot remain active');
+  assert.equal(locks(g), 1);
+  assert.equal(inventory(g).hold.id, first.id);
+  assert.notEqual(inventory(g).active.id, next.id, 'Locked identity cannot remain active');
 }));
 
-test('resource history UI: identical-letter HOLD swaps distinct instances without inventing known age', () => withPage('st-lab.html', {}, g => {
+test('current resource UI: identical-letter HOLD swaps distinct instances without inventing known age', () => withPage('st-lab.html', {}, g => {
   importState(g, R.createState({ active: 'S', hold: 'S', queue: ['L', 'I', 'O', 'T', 'Z', 'J'] }));
-  const start = resources(g), a = start.instances.active.id, h = start.instances.hold.id;
+  const start = resources(g),startInventory=inventory(g), a = startInventory.active.id, h = startInventory.hold.id;
   assert.notEqual(a, h);
-  assert.equal(start.coverage.status, 'partial');
+  assert.equal(start.availability, 'unknown');
   g.window.stLab.act('HOLD');
   let current = resources(g);
-  assert.equal(current.instances.active.id, h); assert.equal(current.instances.hold.id, a);
-  assert.deepEqual(current.instances.queue, start.instances.queue);
+  assert.equal(inventory(g).active.id, h); assert.equal(inventory(g).hold.id, a);
+  assert.deepEqual(inventory(g).queue,startInventory.queue);
   g.window.stLab.act('HOLD'); current = resources(g);
-  assert.deepEqual(current.instances, start.instances);
+  assert.deepEqual(inventory(g),startInventory);
   assert.equal(current.hangingS.status, 'unknown'); assert.equal(current.extraZ.status, 'unknown');
-  assert.equal(current.locks, 0);
+  assert.equal(locks(g), 0);
 }));
 
-test('resource history UI: Undo restores the pre-turn history including HOLD and branched identities', () => withPage('st-lab.html', { seed: 42 }, g => {
+test('current resource UI: Undo restores the pre-turn current state including HOLD and branched identities', () => withPage('st-lab.html', { seed: 42 }, g => {
   select(g, 'empty'); const start = resources(g);
   for (const action of ['HOLD', 'L', 'CW', 'HD']) g.window.stLab.act(action);
-  assert.equal(resources(g).locks, 1);
+  assert.equal(locks(g), 1);
   g.window.stLab.act('UNDO'); assert.deepEqual(resources(g), start);
   g.window.stLab.act('R'); g.window.stLab.act('HD'); const branch = resources(g);
-  assert.equal(branch.locks, 1); assert.equal(branch.instances.hold, null);
+  assert.equal(locks(g), 1); assert.equal(inventory(g).hold, null);
   g.window.stLab.act('UNDO'); assert.deepEqual(resources(g), start);
   g.window.stLab.act('R'); g.window.stLab.act('HD'); assert.deepEqual(resources(g), branch);
 }));
 
-test('resource history UI: top-out lock is counted exactly once and Undo restores missing-history status', () => withPage('st-lab.html', {}, g => {
+test('current resource UI: top-out lock is counted exactly once and Undo restores missing-history status', () => withPage('st-lab.html', {}, g => {
   const board = R.emptyBoard(); board[20] = 'XXXXXXXXX.';
   importState(g, R.createState({ board, active: 'O', queue: [] }));
   const start = resources(g);
@@ -175,33 +177,33 @@ test('resource history UI: top-out lock is counted exactly once and Undo restore
   assert.equal(g.snapshot().topOut, true);
   assert.equal(resources(g).terminal, true);
   assert.match(g.element('#st-resource-summary').textContent, /Game ended; historical facts only/);
-  assert.equal(resources(g).locks, 1);
+  assert.equal(locks(g), 1);
   const ended = resources(g); g.window.stLab.act('HD');
   assert.deepEqual(resources(g), ended, 'Terminal repeated action must not duplicate accounting');
   g.window.stLab.act('UNDO'); assert.deepEqual(resources(g), start);
 }));
 
-test('resource history UI: replay-current, fresh restart, and mode changes discard prior counters', () => withPage('st-lab.html', { seed: 42 }, g => {
-  select(g, 'empty'); const first = resources(g);
-  g.window.stLab.act('HD'); assert.equal(resources(g).locks, 1);
+test('current resource UI: replay-current, fresh restart, and mode changes reset caller counters', () => withPage('st-lab.html', { seed: 42 }, g => {
+  select(g, 'empty'); const first = resources(g),firstInventory=inventory(g);
+  g.window.stLab.act('HD'); assert.equal(locks(g), 1);
   g.click('#st-reset');
-  assert.equal(resources(g).locks, 0); assert.equal(resources(g).actions, 0);
-  assert.equal(resources(g).coverage.status, 'complete');
-  assert.deepEqual(resources(g).instances, first.instances);
+  assert.equal(locks(g), 0); assert.equal(resources(g).actions, undefined);
+  assert.equal(resources(g).availability, 'known');
+  assert.deepEqual(inventory(g),firstInventory);
   g.window.stLab.act('HD'); g.tap('KeyR');
-  assert.equal(resources(g).locks, 0); assert.equal(resources(g).actions, 0);
-  assert.equal(resources(g).coverage.status, 'complete');
-  assert.equal(resources(g).instances.active.type, g.snapshot().active.type);
+  assert.equal(locks(g), 0); assert.equal(resources(g).actions, undefined);
+  assert.equal(resources(g).availability, 'known');
+  assert.equal(inventory(g).active.type, g.snapshot().active.type);
   select(g, 'marathon-rebuild'); g.window.stLab.act('HD'); g.tap('KeyR');
-  assert.equal(resources(g).locks, 0);
-  assert.equal(resources(g).coverage.status, 'partial', 'Fresh pieces do not establish a preexisting board history');
+  assert.equal(locks(g), 0);
+  assert.equal(resources(g).availability, 'unknown', 'Fresh pieces do not establish a preexisting board history');
   assert.equal(resources(g).extraZ.status, 'unknown');
 }));
 
-test('resource history UI: diagnostics stay outside snapshots and ignore stale or injected worker fields', () => withPage('st-lab.html', { seed: 42 }, g => {
+test('current resource UI: diagnostics stay outside snapshots and ignore stale or injected worker fields', () => withPage('st-lab.html', { seed: 42 }, g => {
   const all = workers(g); select(g, 'empty'); request(g, all);
   const stale = all.at(-1), before = resources(g);
-  g.window.stLab.act('HOLD'); request(g, all); const held = resources(g);
+  g.window.stLab.act('HOLD'); request(g, all); const held = resources(g),heldInventory=inventory(g);
   const forged = { status: 'no-supported-continuation-found', reason: 'Test result',
     resources: { coverage: { status: 'complete' }, extraZ: { status: 'available' }, locks: 900 },
     resourceHistory: { extraZ: { status: 'available' } } };
@@ -217,25 +219,25 @@ test('resource history UI: diagnostics stay outside snapshots and ignore stale o
   const exposed = g.window.stLab.resources;
   try { exposed.extraZ.status = 'available'; exposed.locks = 123; } catch { /* Frozen copies are valid too. */ }
   assert.deepEqual(resources(g), held);
-  assert.equal(before.locks, 0);
+  assert.equal(locks(g), 0);
 }));
 
-test('resource history UI: starting in maintenance does not invent an observed opening handoff', () => withPage('st-lab.html', {}, g => {
+test('current resource UI: starting in maintenance does not invent an observed opening handoff', () => withPage('st-lab.html', {}, g => {
   const all = workers(g); select(g, 'marathon-rebuild'); request(g, all);
-  assert.equal(resources(g).milestones.maintenanceHandoff, null);
+  assert.equal(g.window.stLab.obligationContext.state.sl.handoff, false);
   all.at(-1).respond({ status: 'no-supported-continuation-found', reason: 'No checked continuation.' });
-  assert.equal(resources(g).milestones.maintenanceHandoff, null,
+  assert.equal(g.window.stLab.obligationContext.state.sl.handoff, false,
     'An unsupported response in an already-maintenance fixture is not a verified phase transition');
-  assert.equal(resources(g).milestones.firstTsd, null);
+  assert.equal(resources(g).firstTsd, false);
   assert.equal(resources(g).extraZ.status, 'unknown');
 }));
 
-test('resource history UI: ignored movement and unsupported actions cannot duplicate history', () => withPage('st-lab.html', { seed: 42 }, g => {
+test('current resource UI: ignored movement and unsupported actions cannot duplicate current accounting', () => withPage('st-lab.html', { seed: 42 }, g => {
   select(g, 'empty');
   for (let i = 0; i < 10; i++) g.window.stLab.act('L');
   const atWall = resources(g), state = g.snapshot();
   for (const action of ['L', 'L', 'NOT_AN_ACTION']) g.window.stLab.act(action);
   assert.deepEqual(g.snapshot(), state);
   assert.deepEqual(resources(g), atWall);
-  assert.equal(resources(g).locks, 0);
+  assert.equal(locks(g), 0);
 }));

@@ -1,4 +1,4 @@
-/* UNWIRED request-local policy assessment for projected current obligations.
+/* Request-local policy assessment for projected current obligations.
  * The caller owns factual accounting, supply, replay, phase and admission.
  * This module retains only a fixed request root and the current bounded plan
  * dependencies. It stores no board, inventory, event/closure tape or receipts.

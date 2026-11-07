@@ -48,7 +48,7 @@ test('ordinary SL payment tracking: unknown bags and visible cross-bag L stay di
  const fake={...clone(steps.at(-1)),structuralEvidence:{slPayment:{sId:1,lId:2}}};const unchanged=P.slAllocationStep(state,fake,{...res,pendingCenter:[]},res,notches);assert.equal(unchanged.paid.length,0);
 });
 test('ordinary SL unavailable L and incomplete optional proof retain a certified ordinary choice',()=>{
- const baseline=plan(true);let clock=0,calls=0;const api=moduleWith({'./st-midgame-resources.js':{...M,repair:(state,res,options)=>{if(options.acceptStep){calls++;clock=1500;return{valid:null,visited:19,status:'resource-repair-budget'};}return M.repair(state,res,options);}}});
+ const baseline=plan(true);let clock=0,calls=0;const api=moduleWith({'./st-obligation-resources.js':{...require('../st-obligation-resources'),repair:(state,res,options)=>{if(options.acceptStep){calls++;clock=1500;return{valid:null,visited:19,status:'resource-repair-budget'};}return require('../st-obligation-resources').repair(state,res,options);}}});
  const result=api.plan(fixture.observation,opts({now:()=>clock,deadline:1500}));assert(calls);assert.equal(result.metrics.ordinarySAllocation.selected,false);assert.deepEqual(noMetrics(result),noMetrics(baseline));assert(result.metrics.nodes<=45000);
  const state=clone(fixture.observation);state.queue=state.queue.map(t=>t==='L'?'O':t);state.bag=null;const history=RH.start(state);const missing=P.plan(state,opts({resourceContext:RH.exportContext(state,history),patternHistory:H.start(state)}));assert.notEqual(missing.metrics.ordinarySAllocation?.selected,true);
 });

@@ -1,4 +1,4 @@
-/* UNWIRED request-local factual projection and supply. This is not an actual
+/* Request-local factual projection and supply. This is not an actual
  * inventory, receipt, persisted session or route-admission decision. Observed
  * subjects retain their original positive identity/bag. A publicly forced or
  * identity-unavailable subject is negative, with no invented original bag.
