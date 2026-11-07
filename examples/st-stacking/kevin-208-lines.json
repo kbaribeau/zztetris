@@ -1,0 +1,4266 @@
+{
+  "format": "zztetris-st-session",
+  "schemaVersion": 1,
+  "engineVersion": "st-coach-session-2026-11-05-handoff-sl-v1",
+  "suggestedFileName": "st-lab-coaching-export.json",
+  "position": {
+    "rules": "st-zero-v2",
+    "board": [
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..OOLLL...",
+      "JJOOLSS...",
+      "JJJJSS....",
+      "JLLJIOO...",
+      "IILJIOO...",
+      "IIOOOOS.Z.",
+      "LLSSLSS.Z."
+    ],
+    "active": {
+      "type": "J",
+      "x": 3,
+      "y": 17,
+      "rotation": 0,
+      "lastRotation": null
+    },
+    "hold": "S",
+    "canHold": true,
+    "queue": [
+      "L",
+      "O",
+      "Z",
+      "T",
+      "S",
+      "Z"
+    ],
+    "revision": 5491,
+    "streamCursor": 534,
+    "topOut": false,
+    "bag": {
+      "remaining": [
+        63
+      ],
+      "observedCount": 540,
+      "provenance": "known-phase"
+    }
+  },
+  "search": {
+    "timeMs": 1500,
+    "depth": 3,
+    "width": 8,
+    "maxNodes": 45000
+  },
+  "coaching": {
+    "resourceContext": null,
+    "resourceOriginBag": null,
+    "resourceCoverage": {
+      "status": "truncated",
+      "reason": "Observed history limit reached; cumulative resources cannot be re-anchored from a board."
+    },
+    "patternHistory": {
+      "origin": [
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..OOLLL...",
+        "JJOOLSS...",
+        "JJJJSS....",
+        "JLLJIOO...",
+        "IILJIOO...",
+        "IIOOOOS.Z.",
+        "LLSSLSS.Z."
+      ],
+      "steps": []
+    },
+    "openingPhase": false,
+    "openingSource": null,
+    "openingClear": null,
+    "openingRepair": null,
+    "previous": {
+      "revision": 5491,
+      "target": {
+        "type": "S",
+        "x": 4,
+        "y": 30,
+        "rotation": 0
+      },
+      "hold": true,
+      "holdCount": 1,
+      "witness": [
+        "HOLD",
+        "R",
+        "HD"
+      ],
+      "continuation": [
+        {
+          "target": {
+            "type": "S",
+            "x": 4,
+            "y": 30,
+            "rotation": 0
+          },
+          "hold": true,
+          "holdCount": 1,
+          "witness": [
+            "HOLD",
+            "R",
+            "HD"
+          ],
+          "event": {
+            "type": "S",
+            "target": {
+              "type": "S",
+              "x": 4,
+              "y": 30,
+              "rotation": 0
+            },
+            "cells": [
+              [
+                5,
+                31
+              ],
+              [
+                6,
+                31
+              ],
+              [
+                4,
+                32
+              ],
+              [
+                5,
+                32
+              ]
+            ],
+            "lines": 0,
+            "clearedRows": [],
+            "spin": "none",
+            "topOut": false
+          },
+          "resultContext": "[\"st-zero-v2\",[\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\".....SS...\",\"....SS....\",\"..OOLLL...\",\"JJOOLSS...\",\"JJJJSS....\",\"JLLJIOO...\",\"IILJIOO...\",\"IIOOOOS.Z.\",\"LLSSLSS.Z.\"],\"J\",true,[\"O\",\"Z\",\"T\",\"S\",\"Z\"],{\"remaining\":[63],\"observedCount\":540,\"provenance\":\"known-phase\"},\"L\"]",
+          "structuralEvidence": {
+            "reason": "Start the ordered S/L center pair.",
+            "cycleViolations": [],
+            "pairFamily": "SL",
+            "pairProgress": {
+              "orderedPieces": [
+                "S",
+                "L"
+              ],
+              "step": 1,
+              "status": "partner-placement-checked",
+              "placedCells": [
+                [
+                  5,
+                  31
+                ],
+                [
+                  6,
+                  31
+                ],
+                [
+                  4,
+                  32
+                ],
+                [
+                  5,
+                  32
+                ]
+              ],
+              "completion": {
+                "piece": "L",
+                "family": null,
+                "target": {
+                  "type": "L",
+                  "x": 4,
+                  "y": 28,
+                  "rotation": 2
+                },
+                "cells": [
+                  [
+                    4,
+                    30
+                  ],
+                  [
+                    5,
+                    30
+                  ],
+                  [
+                    6,
+                    30
+                  ],
+                  [
+                    4,
+                    31
+                  ]
+                ],
+                "witness": [
+                  "R180",
+                  "R",
+                  "HD"
+                ],
+                "access": "hypothetical-spawn-straight-drop",
+                "resultProfile": [
+                  10,
+                  10,
+                  10
+                ],
+                "resultStatus": "level",
+                "patternSupport": "reference-supported",
+                "preserveCells": [
+                  [
+                    4,
+                    30
+                  ],
+                  [
+                    5,
+                    30
+                  ],
+                  [
+                    6,
+                    30
+                  ],
+                  [
+                    4,
+                    31
+                  ]
+                ]
+              }
+            },
+            "pairEvidence": "ordered actual preparation plus checked level-finishing placement",
+            "opportunityCost": 0,
+            "leftSubstitutes": [],
+            "regions": [
+              "center"
+            ],
+            "crossRegion": false,
+            "allocation": "center-partner-preparation",
+            "status": "supported-local-role",
+            "dependencyDebt": 0,
+            "newlyCovered": 0,
+            "regionalRepair": 0,
+            "repairCredit": 0,
+            "note": "Crossing a boundary is not forbidden. Debt measures unsupported allocation and new structural repair burden; a later checked repair may repay it.",
+            "futureNotches": {
+              "valid": true,
+              "violation": null,
+              "pattern": {
+                "status": "established",
+                "anchorRow": 35,
+                "protectedRows": [
+                  35,
+                  32,
+                  29,
+                  26,
+                  23,
+                  20,
+                  17,
+                  14,
+                  11,
+                  8,
+                  5,
+                  2
+                ],
+                "blockedRows": [],
+                "source": "translated-established-cycle"
+              },
+              "blockedCells": []
+            },
+            "leftRepair": null,
+            "centerPartnerDeficitBefore": 0,
+            "centerPartnerDeficitAfter": 1,
+            "placedPiece": "S",
+            "structure": {
+              "frontierDebt": 0,
+              "scoringRowDebt": 0,
+              "left": {
+                "profile": [
+                  6,
+                  6,
+                  7,
+                  7
+                ],
+                "flat": false,
+                "roughness": 1,
+                "covered": 0,
+                "horizontalI": null,
+                "completions": []
+              },
+              "center": {
+                "foundation": {
+                  "status": "aligned",
+                  "vacancies": [],
+                  "profile": [
+                    8,
+                    9,
+                    9
+                  ]
+                },
+                "profile": [
+                  8,
+                  9,
+                  9
+                ],
+                "status": "supported-partner-completion",
+                "motif": ".##/##./###",
+                "patternSupport": "reference-supported",
+                "coveredInternal": 0,
+                "sealedVoids": 0,
+                "coveredCavities": 2,
+                "completionDebt": 0,
+                "completions": [
+                  {
+                    "piece": "L",
+                    "family": null,
+                    "target": {
+                      "type": "L",
+                      "x": 4,
+                      "y": 28,
+                      "rotation": 2
+                    },
+                    "cells": [
+                      [
+                        4,
+                        30
+                      ],
+                      [
+                        5,
+                        30
+                      ],
+                      [
+                        6,
+                        30
+                      ],
+                      [
+                        4,
+                        31
+                      ]
+                    ],
+                    "witness": [
+                      "R180",
+                      "R",
+                      "HD"
+                    ],
+                    "access": "hypothetical-spawn-straight-drop",
+                    "resultProfile": [
+                      10,
+                      10,
+                      10
+                    ],
+                    "resultStatus": "level",
+                    "patternSupport": "reference-supported",
+                    "preserveCells": [
+                      [
+                        4,
+                        30
+                      ],
+                      [
+                        5,
+                        30
+                      ],
+                      [
+                        6,
+                        30
+                      ],
+                      [
+                        4,
+                        31
+                      ]
+                    ]
+                  }
+                ]
+              },
+              "right": {
+                "profile": [
+                  0,
+                  2,
+                  0
+                ],
+                "shapeStatus": "cap-preparation",
+                "cycle": {
+                  "shape": "cap-preparation",
+                  "phase": "cap-rebuild",
+                  "cleanupColumns": [],
+                  "prepareColumn": null,
+                  "wallSolid": true,
+                  "channelBase": true
+                },
+                "renewalDebt": 0,
+                "reservoir": null,
+                "completions": [
+                  {
+                    "piece": "Z",
+                    "target": {
+                      "type": "Z",
+                      "x": 7,
+                      "y": 34,
+                      "rotation": 1
+                    },
+                    "cells": [
+                      [
+                        9,
+                        35
+                      ],
+                      [
+                        8,
+                        36
+                      ],
+                      [
+                        9,
+                        36
+                      ],
+                      [
+                        8,
+                        37
+                      ]
+                    ],
+                    "witness": [
+                      "CW",
+                      "R",
+                      "R",
+                      "R",
+                      "R",
+                      "HD"
+                    ],
+                    "access": "hypothetical-spawn-straight-drop"
+                  }
+                ]
+              },
+              "supportEstimate": -0.5,
+              "uncertainty": false,
+              "capSupplyBurden": 1,
+              "centerCompletionDebt": 0,
+              "supplyBurden": 0,
+              "obligations": [
+                {
+                  "kind": "right-cap",
+                  "priority": "essential",
+                  "alternatives": [
+                    "Z"
+                  ],
+                  "completions": [
+                    {
+                      "piece": "Z",
+                      "target": {
+                        "type": "Z",
+                        "x": 7,
+                        "y": 34,
+                        "rotation": 1
+                      },
+                      "cells": [
+                        [
+                          9,
+                          35
+                        ],
+                        [
+                          8,
+                          36
+                        ],
+                        [
+                          9,
+                          36
+                        ],
+                        [
+                          8,
+                          37
+                        ]
+                      ],
+                      "witness": [
+                        "CW",
+                        "R",
+                        "R",
+                        "R",
+                        "R",
+                        "HD"
+                      ],
+                      "access": "hypothetical-spawn-straight-drop"
+                    }
+                  ],
+                  "note": "A checked Z cap restores the scoring wall; preserve this role before optional surface filling.",
+                  "supply": [
+                    {
+                      "id": "queue:1",
+                      "piece": "Z",
+                      "source": "visible",
+                      "drawOffset": 2,
+                      "available": "when-drawn"
+                    },
+                    {
+                      "id": "queue:4",
+                      "piece": "Z",
+                      "source": "visible",
+                      "drawOffset": 5,
+                      "available": "when-drawn"
+                    }
+                  ],
+                  "status": "known-piece-identity",
+                  "access": "visible-later-requires-order-and-access"
+                },
+                {
+                  "kind": "center-partner",
+                  "alternatives": [
+                    "L"
+                  ],
+                  "completions": [
+                    {
+                      "piece": "L",
+                      "family": null,
+                      "target": {
+                        "type": "L",
+                        "x": 4,
+                        "y": 28,
+                        "rotation": 2
+                      },
+                      "cells": [
+                        [
+                          4,
+                          30
+                        ],
+                        [
+                          5,
+                          30
+                        ],
+                        [
+                          6,
+                          30
+                        ],
+                        [
+                          4,
+                          31
+                        ]
+                      ],
+                      "witness": [
+                        "R180",
+                        "R",
+                        "HD"
+                      ],
+                      "access": "hypothetical-spawn-straight-drop",
+                      "resultProfile": [
+                        10,
+                        10,
+                        10
+                      ],
+                      "resultStatus": "level",
+                      "patternSupport": "reference-supported",
+                      "preserveCells": [
+                        [
+                          4,
+                          30
+                        ],
+                        [
+                          5,
+                          30
+                        ],
+                        [
+                          6,
+                          30
+                        ],
+                        [
+                          4,
+                          31
+                        ]
+                      ]
+                    }
+                  ],
+                  "note": "Exact replayed completion of the current center surface; keep completion cells free.",
+                  "supply": [
+                    {
+                      "id": "active",
+                      "piece": "L",
+                      "source": "active",
+                      "available": "now"
+                    }
+                  ],
+                  "status": "known-piece-identity"
+                }
+              ],
+              "supply": {
+                "instances": [
+                  {
+                    "id": "active",
+                    "piece": "L",
+                    "source": "active",
+                    "available": "now"
+                  },
+                  {
+                    "id": "hold",
+                    "piece": "J",
+                    "source": "hold",
+                    "available": "hold-now"
+                  },
+                  {
+                    "id": "queue:0",
+                    "piece": "O",
+                    "source": "visible",
+                    "drawOffset": 1,
+                    "available": "when-drawn"
+                  },
+                  {
+                    "id": "queue:1",
+                    "piece": "Z",
+                    "source": "visible",
+                    "drawOffset": 2,
+                    "available": "when-drawn"
+                  },
+                  {
+                    "id": "queue:2",
+                    "piece": "T",
+                    "source": "visible",
+                    "drawOffset": 3,
+                    "available": "when-drawn"
+                  },
+                  {
+                    "id": "queue:3",
+                    "piece": "S",
+                    "source": "visible",
+                    "drawOffset": 4,
+                    "available": "when-drawn"
+                  },
+                  {
+                    "id": "queue:4",
+                    "piece": "Z",
+                    "source": "visible",
+                    "drawOffset": 5,
+                    "available": "when-drawn"
+                  }
+                ],
+                "assignments": [
+                  {
+                    "obligation": "right-cap",
+                    "instance": "queue:1",
+                    "piece": "Z",
+                    "priority": "essential",
+                    "arrival": "when-drawn"
+                  },
+                  {
+                    "obligation": "center-partner",
+                    "instance": "active",
+                    "piece": "L",
+                    "priority": "normal",
+                    "arrival": "now"
+                  }
+                ],
+                "conflicts": [],
+                "matched": 2,
+                "priorityScore": 110,
+                "arrivalEstimate": 2,
+                "timing": "Distinct instances, essential-role priority and arrival estimates; execution still requires search.",
+                "conflictCount": 0
+              },
+              "claim": "Local regional support estimate, not a sustainability guarantee.",
+              "headroomRisk": 0,
+              "centerContinuity": {
+                "disruptedWithoutClear": false,
+                "unresolved": false,
+                "endpointReusable": true,
+                "preference": 0
+              }
+            },
+            "entryDebt": 0,
+            "nonclearScoringGeometryLost": false,
+            "centerReservation": {
+              "debt": [],
+              "completed": []
+            },
+            "cavityRepair": {
+              "status": "no-outstanding-new-internal-cavity",
+              "cells": []
+            },
+            "coveredRepair": {
+              "created": [],
+              "outstanding": [],
+              "required": false,
+              "stage": false
+            }
+          }
+        }
+      ],
+      "reason": "Hold once. Build the Center as shown. A completing placement has not been checked yet. Place here without clearing a line. At the end of this sequence, the Well (column 8) stays below the Left and Center stacks.",
+      "metrics": {
+        "nodes": 16080,
+        "roots": 44,
+        "rootExpanded": 8,
+        "depth": 3,
+        "completeDepth": 3,
+        "elapsedMs": 102,
+        "accessNodes": 0,
+        "earlyCapFallback": {
+          "attempted": 0,
+          "verified": 0,
+          "selected": false,
+          "nodes": 0
+        },
+        "admissionAttempts": 1,
+        "firstCertified": {
+          "nodes": 981,
+          "locks": 1
+        },
+        "proofScheduling": {
+          "enabled": true,
+          "allowance": 6000,
+          "calls": 3,
+          "nodes": 1,
+          "unfinished": 0,
+          "budgetStops": 0
+        },
+        "gapAccessNodes": 0,
+        "completedBeamDepth": 3,
+        "commitmentComparison": {
+          "slAllocation": {
+            "enabled": true,
+            "savedPaid": 0,
+            "freshPaid": 1,
+            "retentionBlocked": false
+          },
+          "scoringTiming": {
+            "allowed": true,
+            "reason": "no-protected-score-delay",
+            "required": {
+              "tsds": [],
+              "quads": []
+            },
+            "fresh": {
+              "tsds": [],
+              "quads": []
+            },
+            "delayed": []
+          },
+          "freshGoalLocks": 1,
+          "savedGoalLocks": 1,
+          "freshHorizon": 3,
+          "savedHorizon": 1,
+          "replacement": false,
+          "rankingPreferred": false,
+          "pendingLCompletionPreserved": false,
+          "resetExactPrefixExtension": false,
+          "delayPrevented": false,
+          "freshSettled": true,
+          "savedSettled": true,
+          "selectedScoringTiming": {
+            "allowed": true,
+            "reason": "no-protected-score-delay",
+            "required": {
+              "tsds": [],
+              "quads": []
+            },
+            "fresh": {
+              "tsds": [],
+              "quads": []
+            },
+            "delayed": []
+          }
+        },
+        "capStageCandidates": 0,
+        "resourceProofNodes": 0,
+        "certifiedHorizon": 1,
+        "queries": {
+          "hits": 0,
+          "avoidedNodes": 0,
+          "proven": 17,
+          "failedWithinScope": 0,
+          "unfinished": 0,
+          "evictions": 0,
+          "peakBytes": 3152788,
+          "peakEntries": 17,
+          "entries": 17,
+          "bytes": 3152788,
+          "maxBytes": 8388608,
+          "maxEntries": 64
+        }
+      },
+      "context": "[\"st-zero-v2\",[\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..OOLLL...\",\"JJOOLSS...\",\"JJJJSS....\",\"JLLJIOO...\",\"IILJIOO...\",\"IIOOOOS.Z.\",\"LLSSLSS.Z.\"],\"S\",true,[\"L\",\"O\",\"Z\",\"T\",\"S\",\"Z\"],{\"remaining\":[63],\"observedCount\":540,\"provenance\":\"known-phase\"},\"J\"]",
+      "evidence": {
+        "pendingLSelection": null,
+        "resetSelection": {
+          "policy": "joint-low-visible-pair-v2",
+          "status": "ordinary-preferred",
+          "reason": "Ordinary geometric profile is present; this is not proof of an executable maintenance continuation.",
+          "ordinaryComparison": "ordinary-geometric-profile",
+          "source": "SHOCKY-4",
+          "claim": "Finite recovery preference within coach coverage; not proof that ordinary play is impossible or a complete Reset.",
+          "resourceRenewal": false
+        },
+        "strategy": "canonical-right-ST",
+        "cycleResources": {
+          "leftRepairs": 0,
+          "leftFoundations": 0,
+          "centerPreparations": 1,
+          "centerCompletions": 0,
+          "locks": 1,
+          "lines": 0,
+          "materialDelta": 4,
+          "tsds": 0,
+          "quads": 0,
+          "pocket": 0,
+          "outstandingPocket": 0,
+          "tFillers": 0,
+          "iFillers": 0
+        },
+        "commitmentRetained": true,
+        "futureNotches": {
+          "status": "established",
+          "anchorRow": 35,
+          "protectedRows": [
+            35,
+            32,
+            29,
+            26,
+            23,
+            20,
+            17,
+            14,
+            11,
+            8,
+            5,
+            2
+          ],
+          "blockedRows": [],
+          "source": "translated-established-cycle"
+        },
+        "preparationProof": null,
+        "cycleDebt": 0,
+        "cavityRepair": {
+          "status": "verified-prefix-repaired",
+          "outstandingCells": []
+        },
+        "clearPolicy": "right-region full T-spin doubles and I tetrises only",
+        "verifiedLocks": 1,
+        "tsdAt": null,
+        "knownPieceHorizon": 7,
+        "rootEnumerationComplete": true,
+        "budgetExhausted": false,
+        "searchIncomplete": false,
+        "informationBoundary": false,
+        "initialSealed": 0,
+        "endpointSealed": 0,
+        "regionalSupport": true,
+        "channel": {
+          "column": 7,
+          "height": 0,
+          "openBelowStack": true
+        },
+        "endpointTEntry": "not-established",
+        "unresolvedObligations": [
+          {
+            "kind": "right-cap",
+            "priority": "essential",
+            "alternatives": [
+              "Z"
+            ],
+            "completions": [
+              {
+                "piece": "Z",
+                "target": {
+                  "type": "Z",
+                  "x": 7,
+                  "y": 34,
+                  "rotation": 1
+                },
+                "cells": [
+                  [
+                    9,
+                    35
+                  ],
+                  [
+                    8,
+                    36
+                  ],
+                  [
+                    9,
+                    36
+                  ],
+                  [
+                    8,
+                    37
+                  ]
+                ],
+                "witness": [
+                  "CW",
+                  "R",
+                  "R",
+                  "R",
+                  "R",
+                  "HD"
+                ],
+                "access": "hypothetical-spawn-straight-drop"
+              }
+            ],
+            "note": "A checked Z cap restores the scoring wall; preserve this role before optional surface filling.",
+            "supply": [
+              {
+                "id": "queue:1",
+                "piece": "Z",
+                "source": "visible",
+                "drawOffset": 2,
+                "available": "when-drawn"
+              },
+              {
+                "id": "queue:4",
+                "piece": "Z",
+                "source": "visible",
+                "drawOffset": 5,
+                "available": "when-drawn"
+              }
+            ],
+            "status": "known-piece-identity",
+            "access": "visible-later-requires-order-and-access"
+          },
+          {
+            "kind": "center-partner",
+            "alternatives": [
+              "L"
+            ],
+            "completions": [
+              {
+                "piece": "L",
+                "family": null,
+                "target": {
+                  "type": "L",
+                  "x": 4,
+                  "y": 28,
+                  "rotation": 2
+                },
+                "cells": [
+                  [
+                    4,
+                    30
+                  ],
+                  [
+                    5,
+                    30
+                  ],
+                  [
+                    6,
+                    30
+                  ],
+                  [
+                    4,
+                    31
+                  ]
+                ],
+                "witness": [
+                  "R180",
+                  "R",
+                  "HD"
+                ],
+                "access": "hypothetical-spawn-straight-drop",
+                "resultProfile": [
+                  10,
+                  10,
+                  10
+                ],
+                "resultStatus": "level",
+                "patternSupport": "reference-supported",
+                "preserveCells": [
+                  [
+                    4,
+                    30
+                  ],
+                  [
+                    5,
+                    30
+                  ],
+                  [
+                    6,
+                    30
+                  ],
+                  [
+                    4,
+                    31
+                  ]
+                ]
+              }
+            ],
+            "note": "Exact replayed completion of the current center surface; keep completion cells free.",
+            "supply": [
+              {
+                "id": "active",
+                "piece": "L",
+                "source": "active",
+                "available": "now"
+              }
+            ],
+            "status": "known-piece-identity"
+          }
+        ],
+        "structuralScore": -6.5,
+        "structuralRank": [
+          1,
+          1,
+          0,
+          -2,
+          0,
+          5.6,
+          0,
+          0
+        ],
+        "structure": {
+          "frontierDebt": 0,
+          "scoringRowDebt": 0,
+          "left": {
+            "profile": [
+              6,
+              6,
+              7,
+              7
+            ],
+            "flat": false,
+            "roughness": 1,
+            "covered": 0,
+            "horizontalI": null,
+            "completions": []
+          },
+          "center": {
+            "foundation": {
+              "status": "aligned",
+              "vacancies": [],
+              "profile": [
+                8,
+                9,
+                9
+              ]
+            },
+            "profile": [
+              8,
+              9,
+              9
+            ],
+            "status": "supported-partner-completion",
+            "motif": ".##/##./###",
+            "patternSupport": "reference-supported",
+            "coveredInternal": 0,
+            "sealedVoids": 0,
+            "coveredCavities": 2,
+            "completionDebt": 0,
+            "completions": [
+              {
+                "piece": "L",
+                "family": null,
+                "target": {
+                  "type": "L",
+                  "x": 4,
+                  "y": 28,
+                  "rotation": 2
+                },
+                "cells": [
+                  [
+                    4,
+                    30
+                  ],
+                  [
+                    5,
+                    30
+                  ],
+                  [
+                    6,
+                    30
+                  ],
+                  [
+                    4,
+                    31
+                  ]
+                ],
+                "witness": [
+                  "R180",
+                  "R",
+                  "HD"
+                ],
+                "access": "hypothetical-spawn-straight-drop",
+                "resultProfile": [
+                  10,
+                  10,
+                  10
+                ],
+                "resultStatus": "level",
+                "patternSupport": "reference-supported",
+                "preserveCells": [
+                  [
+                    4,
+                    30
+                  ],
+                  [
+                    5,
+                    30
+                  ],
+                  [
+                    6,
+                    30
+                  ],
+                  [
+                    4,
+                    31
+                  ]
+                ]
+              }
+            ]
+          },
+          "right": {
+            "profile": [
+              0,
+              2,
+              0
+            ],
+            "shapeStatus": "cap-preparation",
+            "cycle": {
+              "shape": "cap-preparation",
+              "phase": "cap-rebuild",
+              "cleanupColumns": [],
+              "prepareColumn": null,
+              "wallSolid": true,
+              "channelBase": true
+            },
+            "renewalDebt": 0,
+            "reservoir": null,
+            "completions": [
+              {
+                "piece": "Z",
+                "target": {
+                  "type": "Z",
+                  "x": 7,
+                  "y": 34,
+                  "rotation": 1
+                },
+                "cells": [
+                  [
+                    9,
+                    35
+                  ],
+                  [
+                    8,
+                    36
+                  ],
+                  [
+                    9,
+                    36
+                  ],
+                  [
+                    8,
+                    37
+                  ]
+                ],
+                "witness": [
+                  "CW",
+                  "R",
+                  "R",
+                  "R",
+                  "R",
+                  "HD"
+                ],
+                "access": "hypothetical-spawn-straight-drop"
+              }
+            ]
+          },
+          "supportEstimate": -0.5,
+          "uncertainty": false,
+          "capSupplyBurden": 1,
+          "centerCompletionDebt": 0,
+          "supplyBurden": 0,
+          "obligations": [
+            {
+              "kind": "right-cap",
+              "priority": "essential",
+              "alternatives": [
+                "Z"
+              ],
+              "completions": [
+                {
+                  "piece": "Z",
+                  "target": {
+                    "type": "Z",
+                    "x": 7,
+                    "y": 34,
+                    "rotation": 1
+                  },
+                  "cells": [
+                    [
+                      9,
+                      35
+                    ],
+                    [
+                      8,
+                      36
+                    ],
+                    [
+                      9,
+                      36
+                    ],
+                    [
+                      8,
+                      37
+                    ]
+                  ],
+                  "witness": [
+                    "CW",
+                    "R",
+                    "R",
+                    "R",
+                    "R",
+                    "HD"
+                  ],
+                  "access": "hypothetical-spawn-straight-drop"
+                }
+              ],
+              "note": "A checked Z cap restores the scoring wall; preserve this role before optional surface filling.",
+              "supply": [
+                {
+                  "id": "queue:1",
+                  "piece": "Z",
+                  "source": "visible",
+                  "drawOffset": 2,
+                  "available": "when-drawn"
+                },
+                {
+                  "id": "queue:4",
+                  "piece": "Z",
+                  "source": "visible",
+                  "drawOffset": 5,
+                  "available": "when-drawn"
+                }
+              ],
+              "status": "known-piece-identity",
+              "access": "visible-later-requires-order-and-access"
+            },
+            {
+              "kind": "center-partner",
+              "alternatives": [
+                "L"
+              ],
+              "completions": [
+                {
+                  "piece": "L",
+                  "family": null,
+                  "target": {
+                    "type": "L",
+                    "x": 4,
+                    "y": 28,
+                    "rotation": 2
+                  },
+                  "cells": [
+                    [
+                      4,
+                      30
+                    ],
+                    [
+                      5,
+                      30
+                    ],
+                    [
+                      6,
+                      30
+                    ],
+                    [
+                      4,
+                      31
+                    ]
+                  ],
+                  "witness": [
+                    "R180",
+                    "R",
+                    "HD"
+                  ],
+                  "access": "hypothetical-spawn-straight-drop",
+                  "resultProfile": [
+                    10,
+                    10,
+                    10
+                  ],
+                  "resultStatus": "level",
+                  "patternSupport": "reference-supported",
+                  "preserveCells": [
+                    [
+                      4,
+                      30
+                    ],
+                    [
+                      5,
+                      30
+                    ],
+                    [
+                      6,
+                      30
+                    ],
+                    [
+                      4,
+                      31
+                    ]
+                  ]
+                }
+              ],
+              "note": "Exact replayed completion of the current center surface; keep completion cells free.",
+              "supply": [
+                {
+                  "id": "active",
+                  "piece": "L",
+                  "source": "active",
+                  "available": "now"
+                }
+              ],
+              "status": "known-piece-identity"
+            }
+          ],
+          "supply": {
+            "instances": [
+              {
+                "id": "active",
+                "piece": "L",
+                "source": "active",
+                "available": "now"
+              },
+              {
+                "id": "hold",
+                "piece": "J",
+                "source": "hold",
+                "available": "hold-now"
+              },
+              {
+                "id": "queue:0",
+                "piece": "O",
+                "source": "visible",
+                "drawOffset": 1,
+                "available": "when-drawn"
+              },
+              {
+                "id": "queue:1",
+                "piece": "Z",
+                "source": "visible",
+                "drawOffset": 2,
+                "available": "when-drawn"
+              },
+              {
+                "id": "queue:2",
+                "piece": "T",
+                "source": "visible",
+                "drawOffset": 3,
+                "available": "when-drawn"
+              },
+              {
+                "id": "queue:3",
+                "piece": "S",
+                "source": "visible",
+                "drawOffset": 4,
+                "available": "when-drawn"
+              },
+              {
+                "id": "queue:4",
+                "piece": "Z",
+                "source": "visible",
+                "drawOffset": 5,
+                "available": "when-drawn"
+              }
+            ],
+            "assignments": [
+              {
+                "obligation": "right-cap",
+                "instance": "queue:1",
+                "piece": "Z",
+                "priority": "essential",
+                "arrival": "when-drawn"
+              },
+              {
+                "obligation": "center-partner",
+                "instance": "active",
+                "piece": "L",
+                "priority": "normal",
+                "arrival": "now"
+              }
+            ],
+            "conflicts": [],
+            "matched": 2,
+            "priorityScore": 110,
+            "arrivalEstimate": 2,
+            "timing": "Distinct instances, essential-role priority and arrival estimates; execution still requires search.",
+            "conflictCount": 0
+          },
+          "claim": "Local regional support estimate, not a sustainability guarantee.",
+          "headroomRisk": 0,
+          "centerContinuity": {
+            "disruptedWithoutClear": false,
+            "unresolved": false,
+            "endpointReusable": true,
+            "preference": 0
+          }
+        },
+        "dependencyDebt": 0,
+        "claim": "Finite executable prefix; endpoint estimates are not a sustainability guarantee.",
+        "pendingLStage": null,
+        "resourceObligations": {
+          "status": "checked",
+          "binding": "[\"partial\",null,[{\"id\":1,\"type\":\"J\",\"bag\":null},{\"id\":2,\"type\":\"S\",\"bag\":null},{\"id\":3,\"type\":\"L\",\"bag\":null},{\"id\":4,\"type\":\"O\",\"bag\":null},{\"id\":5,\"type\":\"Z\",\"bag\":null},{\"id\":6,\"type\":\"T\",\"bag\":null},{\"id\":7,\"type\":\"S\",\"bag\":null},{\"id\":8,\"type\":\"Z\",\"bag\":null}],[],[],[],null,[],[],null,\"unknown\",[],null]",
+          "delayedDPlans": [],
+          "checkedIExits": [],
+          "extraZ": "unknown",
+          "pendingCenter": [
+            {
+              "rootId": 2,
+              "bag": null,
+              "family": "SL",
+              "alternatives": [
+                {
+                  "piece": "L",
+                  "cells": [
+                    [
+                      4,
+                      30
+                    ],
+                    [
+                      5,
+                      30
+                    ],
+                    [
+                      6,
+                      30
+                    ],
+                    [
+                      4,
+                      31
+                    ]
+                  ]
+                }
+              ],
+              "created": true
+            }
+          ],
+          "hangingS": [],
+          "unclassifiedS": [],
+          "hangingL": [],
+          "unclassifiedL": []
+        },
+        "coveredRepair": {
+          "valid": true,
+          "status": "no-new-covered-cell-obligation",
+          "outstandingCells": [],
+          "steps": [
+            {
+              "created": [],
+              "outstanding": []
+            }
+          ],
+          "stage": null
+        },
+        "coveredRepairPlan": null,
+        "gapAccess": {
+          "reachable": true,
+          "complete": true,
+          "visited": 0,
+          "status": "prefix-movement-access-witnessed",
+          "steps": [
+            {
+              "status": "no-new-roofed-cells",
+              "complete": true,
+              "reachable": true,
+              "cells": [],
+              "visited": 0
+            }
+          ]
+        }
+      },
+      "status": "recommended-with-verified-prefix",
+      "sources": [
+        {
+          "url": "https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit",
+          "section": "Chapter 3.2: The Center",
+          "id": "SHOCKY-3.2",
+          "label": "Shocky's ST Stacking Guide",
+          "scope": "Describes SL, OJ, LO and ZJ overhang pairs. LO can leave a Hanging S; ZJ needs contextual Z accounting. ZJ can be built in either order, and placement order depends on the position. A matching shape alone does not establish whole-run piece balance."
+        },
+        {
+          "url": "https://tl.net/forum/games/175252-10000-guide-tetris-ultra-st-stacking",
+          "section": "Center Stacking",
+          "id": "FLAME-CENTER",
+          "label": "Flamewheel's ST Stacking Guide",
+          "scope": "Explains two-piece center combinations with an open lower-right corner and a level three-wide top; capping here means finishing a combination. Its color-based piece names differ from current Guideline letters."
+        },
+        {
+          "url": "https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit",
+          "section": "Chapter 1: The ST Stacking Timeline and Anatomy",
+          "id": "SHOCKY-1",
+          "label": "Shocky's ST Stacking Guide",
+          "scope": "Defines Left as columns 1–4, Center as 5–7, Right as 8–10, Pocket as column 10, Well as column 8, and a Z covering the Pocket as capped. Supports terminology, not this checked cap-replacement sequence."
+        }
+      ],
+      "assessment": {
+        "maintenanceScope": true,
+        "regionalSupport": true,
+        "regionImbalance": 0,
+        "channel": {
+          "column": 7,
+          "height": 0,
+          "openBelowStack": true
+        },
+        "heights": [
+          6,
+          6,
+          7,
+          7,
+          8,
+          9,
+          9,
+          0,
+          2,
+          0
+        ],
+        "maxHeight": 9,
+        "headroom": 11,
+        "sealed": 0,
+        "sealedCells": [],
+        "leftSealed": 0,
+        "covered": 2,
+        "damageSealed": 0,
+        "damageCovered": 2,
+        "left": {
+          "height": 7,
+          "roughness": 1
+        },
+        "center": {
+          "height": 9,
+          "profile": [
+            8,
+            9,
+            9
+          ],
+          "partnerDeficit": 1,
+          "partnerStatus": "unfinished-open-surface"
+        },
+        "right": {
+          "height": 2,
+          "slots": []
+        },
+        "obligations": [
+          {
+            "kind": "right-cap",
+            "priority": "essential",
+            "alternatives": [
+              "Z"
+            ],
+            "completions": [
+              {
+                "piece": "Z",
+                "target": {
+                  "type": "Z",
+                  "x": 7,
+                  "y": 34,
+                  "rotation": 1
+                },
+                "cells": [
+                  [
+                    9,
+                    35
+                  ],
+                  [
+                    8,
+                    36
+                  ],
+                  [
+                    9,
+                    36
+                  ],
+                  [
+                    8,
+                    37
+                  ]
+                ],
+                "witness": [
+                  "CW",
+                  "R",
+                  "R",
+                  "R",
+                  "R",
+                  "HD"
+                ],
+                "access": "hypothetical-spawn-straight-drop"
+              }
+            ],
+            "note": "A checked Z cap restores the scoring wall; preserve this role before optional surface filling.",
+            "supply": [
+              {
+                "id": "queue:1",
+                "piece": "Z",
+                "source": "visible",
+                "drawOffset": 2,
+                "available": "when-drawn"
+              },
+              {
+                "id": "queue:4",
+                "piece": "Z",
+                "source": "visible",
+                "drawOffset": 5,
+                "available": "when-drawn"
+              }
+            ],
+            "status": "known-piece-identity",
+            "access": "visible-later-requires-order-and-access"
+          },
+          {
+            "kind": "center-partner",
+            "alternatives": [
+              "L"
+            ],
+            "completions": [
+              {
+                "piece": "L",
+                "family": null,
+                "target": {
+                  "type": "L",
+                  "x": 4,
+                  "y": 28,
+                  "rotation": 2
+                },
+                "cells": [
+                  [
+                    4,
+                    30
+                  ],
+                  [
+                    5,
+                    30
+                  ],
+                  [
+                    6,
+                    30
+                  ],
+                  [
+                    4,
+                    31
+                  ]
+                ],
+                "witness": [
+                  "R180",
+                  "R",
+                  "HD"
+                ],
+                "access": "hypothetical-spawn-straight-drop",
+                "resultProfile": [
+                  10,
+                  10,
+                  10
+                ],
+                "resultStatus": "level",
+                "patternSupport": "reference-supported",
+                "preserveCells": [
+                  [
+                    4,
+                    30
+                  ],
+                  [
+                    5,
+                    30
+                  ],
+                  [
+                    6,
+                    30
+                  ],
+                  [
+                    4,
+                    31
+                  ]
+                ]
+              }
+            ],
+            "note": "Exact replayed completion of the current center surface; keep completion cells free.",
+            "supply": [
+              {
+                "id": "active",
+                "piece": "L",
+                "source": "active",
+                "available": "now"
+              }
+            ],
+            "status": "known-piece-identity"
+          }
+        ],
+        "estimate": -6,
+        "assumptions": [
+          "Structural estimates are heuristic; only the returned input prefix is verified."
+        ],
+        "structure": {
+          "frontierDebt": 0,
+          "scoringRowDebt": 0,
+          "left": {
+            "profile": [
+              6,
+              6,
+              7,
+              7
+            ],
+            "flat": false,
+            "roughness": 1,
+            "covered": 0,
+            "horizontalI": null,
+            "completions": []
+          },
+          "center": {
+            "foundation": {
+              "status": "aligned",
+              "vacancies": [],
+              "profile": [
+                8,
+                9,
+                9
+              ]
+            },
+            "profile": [
+              8,
+              9,
+              9
+            ],
+            "status": "supported-partner-completion",
+            "motif": ".##/##./###",
+            "patternSupport": "reference-supported",
+            "coveredInternal": 0,
+            "sealedVoids": 0,
+            "coveredCavities": 2,
+            "completionDebt": 0,
+            "completions": [
+              {
+                "piece": "L",
+                "family": null,
+                "target": {
+                  "type": "L",
+                  "x": 4,
+                  "y": 28,
+                  "rotation": 2
+                },
+                "cells": [
+                  [
+                    4,
+                    30
+                  ],
+                  [
+                    5,
+                    30
+                  ],
+                  [
+                    6,
+                    30
+                  ],
+                  [
+                    4,
+                    31
+                  ]
+                ],
+                "witness": [
+                  "R180",
+                  "R",
+                  "HD"
+                ],
+                "access": "hypothetical-spawn-straight-drop",
+                "resultProfile": [
+                  10,
+                  10,
+                  10
+                ],
+                "resultStatus": "level",
+                "patternSupport": "reference-supported",
+                "preserveCells": [
+                  [
+                    4,
+                    30
+                  ],
+                  [
+                    5,
+                    30
+                  ],
+                  [
+                    6,
+                    30
+                  ],
+                  [
+                    4,
+                    31
+                  ]
+                ]
+              }
+            ]
+          },
+          "right": {
+            "profile": [
+              0,
+              2,
+              0
+            ],
+            "shapeStatus": "cap-preparation",
+            "cycle": {
+              "shape": "cap-preparation",
+              "phase": "cap-rebuild",
+              "cleanupColumns": [],
+              "prepareColumn": null,
+              "wallSolid": true,
+              "channelBase": true
+            },
+            "renewalDebt": 0,
+            "reservoir": null,
+            "completions": [
+              {
+                "piece": "Z",
+                "target": {
+                  "type": "Z",
+                  "x": 7,
+                  "y": 34,
+                  "rotation": 1
+                },
+                "cells": [
+                  [
+                    9,
+                    35
+                  ],
+                  [
+                    8,
+                    36
+                  ],
+                  [
+                    9,
+                    36
+                  ],
+                  [
+                    8,
+                    37
+                  ]
+                ],
+                "witness": [
+                  "CW",
+                  "R",
+                  "R",
+                  "R",
+                  "R",
+                  "HD"
+                ],
+                "access": "hypothetical-spawn-straight-drop"
+              }
+            ]
+          },
+          "supportEstimate": -0.5,
+          "uncertainty": false,
+          "capSupplyBurden": 1,
+          "centerCompletionDebt": 0,
+          "supplyBurden": 0,
+          "obligations": [
+            {
+              "kind": "right-cap",
+              "priority": "essential",
+              "alternatives": [
+                "Z"
+              ],
+              "completions": [
+                {
+                  "piece": "Z",
+                  "target": {
+                    "type": "Z",
+                    "x": 7,
+                    "y": 34,
+                    "rotation": 1
+                  },
+                  "cells": [
+                    [
+                      9,
+                      35
+                    ],
+                    [
+                      8,
+                      36
+                    ],
+                    [
+                      9,
+                      36
+                    ],
+                    [
+                      8,
+                      37
+                    ]
+                  ],
+                  "witness": [
+                    "CW",
+                    "R",
+                    "R",
+                    "R",
+                    "R",
+                    "HD"
+                  ],
+                  "access": "hypothetical-spawn-straight-drop"
+                }
+              ],
+              "note": "A checked Z cap restores the scoring wall; preserve this role before optional surface filling.",
+              "supply": [
+                {
+                  "id": "queue:1",
+                  "piece": "Z",
+                  "source": "visible",
+                  "drawOffset": 2,
+                  "available": "when-drawn"
+                },
+                {
+                  "id": "queue:4",
+                  "piece": "Z",
+                  "source": "visible",
+                  "drawOffset": 5,
+                  "available": "when-drawn"
+                }
+              ],
+              "status": "known-piece-identity",
+              "access": "visible-later-requires-order-and-access"
+            },
+            {
+              "kind": "center-partner",
+              "alternatives": [
+                "L"
+              ],
+              "completions": [
+                {
+                  "piece": "L",
+                  "family": null,
+                  "target": {
+                    "type": "L",
+                    "x": 4,
+                    "y": 28,
+                    "rotation": 2
+                  },
+                  "cells": [
+                    [
+                      4,
+                      30
+                    ],
+                    [
+                      5,
+                      30
+                    ],
+                    [
+                      6,
+                      30
+                    ],
+                    [
+                      4,
+                      31
+                    ]
+                  ],
+                  "witness": [
+                    "R180",
+                    "R",
+                    "HD"
+                  ],
+                  "access": "hypothetical-spawn-straight-drop",
+                  "resultProfile": [
+                    10,
+                    10,
+                    10
+                  ],
+                  "resultStatus": "level",
+                  "patternSupport": "reference-supported",
+                  "preserveCells": [
+                    [
+                      4,
+                      30
+                    ],
+                    [
+                      5,
+                      30
+                    ],
+                    [
+                      6,
+                      30
+                    ],
+                    [
+                      4,
+                      31
+                    ]
+                  ]
+                }
+              ],
+              "note": "Exact replayed completion of the current center surface; keep completion cells free.",
+              "supply": [
+                {
+                  "id": "active",
+                  "piece": "L",
+                  "source": "active",
+                  "available": "now"
+                }
+              ],
+              "status": "known-piece-identity"
+            }
+          ],
+          "supply": {
+            "instances": [
+              {
+                "id": "active",
+                "piece": "L",
+                "source": "active",
+                "available": "now"
+              },
+              {
+                "id": "hold",
+                "piece": "J",
+                "source": "hold",
+                "available": "hold-now"
+              },
+              {
+                "id": "queue:0",
+                "piece": "O",
+                "source": "visible",
+                "drawOffset": 1,
+                "available": "when-drawn"
+              },
+              {
+                "id": "queue:1",
+                "piece": "Z",
+                "source": "visible",
+                "drawOffset": 2,
+                "available": "when-drawn"
+              },
+              {
+                "id": "queue:2",
+                "piece": "T",
+                "source": "visible",
+                "drawOffset": 3,
+                "available": "when-drawn"
+              },
+              {
+                "id": "queue:3",
+                "piece": "S",
+                "source": "visible",
+                "drawOffset": 4,
+                "available": "when-drawn"
+              },
+              {
+                "id": "queue:4",
+                "piece": "Z",
+                "source": "visible",
+                "drawOffset": 5,
+                "available": "when-drawn"
+              }
+            ],
+            "assignments": [
+              {
+                "obligation": "right-cap",
+                "instance": "queue:1",
+                "piece": "Z",
+                "priority": "essential",
+                "arrival": "when-drawn"
+              },
+              {
+                "obligation": "center-partner",
+                "instance": "active",
+                "piece": "L",
+                "priority": "normal",
+                "arrival": "now"
+              }
+            ],
+            "conflicts": [],
+            "matched": 2,
+            "priorityScore": 110,
+            "arrivalEstimate": 2,
+            "timing": "Distinct instances, essential-role priority and arrival estimates; execution still requires search.",
+            "conflictCount": 0
+          },
+          "claim": "Local regional support estimate, not a sustainability guarantee.",
+          "headroomRisk": 0,
+          "centerContinuity": {
+            "disruptedWithoutClear": false,
+            "unresolved": false,
+            "endpointReusable": true,
+            "preference": 0
+          }
+        },
+        "coachPhase": "compatibility",
+        "leftContext": {
+          "source": "https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit",
+          "shape": "shocky-left-3",
+          "tier": "S",
+          "profile": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "score": 5.6,
+          "adjustment": 5.6,
+          "context": "visible-inventory",
+          "horizon": 2,
+          "executionVerified": false,
+          "available": [
+            {
+              "type": "J",
+              "held": true
+            }
+          ],
+          "reserved": [
+            "L"
+          ],
+          "immediateJ": true,
+          "repair": {
+            "pieces": [
+              "J",
+              "O"
+            ],
+            "tier": "SS",
+            "hold": true
+          },
+          "fitCount": 2
+        }
+      },
+      "recommendation": {
+        "kind": "supported",
+        "hazards": [],
+        "claim": "A checked finite continuation, not a guarantee of continued survival."
+      }
+    },
+    "commitment": {
+      "observation": {
+        "rules": "st-zero-v2",
+        "board": [
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..OOLLL...",
+          "JJOOLSS...",
+          "JJJJSS....",
+          "JLLJIOO...",
+          "IILJIOO...",
+          "IIOOOOS.Z.",
+          "LLSSLSS.Z."
+        ],
+        "active": {
+          "type": "J",
+          "x": 3,
+          "y": 17,
+          "rotation": 0,
+          "lastRotation": null
+        },
+        "hold": "S",
+        "canHold": true,
+        "queue": [
+          "L",
+          "O",
+          "Z",
+          "T",
+          "S",
+          "Z"
+        ],
+        "revision": 5491,
+        "streamCursor": 534,
+        "topOut": false,
+        "bag": {
+          "remaining": [
+            63
+          ],
+          "observedCount": 540,
+          "provenance": "known-phase"
+        }
+      },
+      "advice": {
+        "revision": 5491,
+        "target": {
+          "type": "S",
+          "x": 4,
+          "y": 30,
+          "rotation": 0
+        },
+        "hold": true,
+        "holdCount": 1,
+        "witness": [
+          "HOLD",
+          "R",
+          "HD"
+        ],
+        "continuation": [
+          {
+            "target": {
+              "type": "S",
+              "x": 4,
+              "y": 30,
+              "rotation": 0
+            },
+            "hold": true,
+            "holdCount": 1,
+            "witness": [
+              "HOLD",
+              "R",
+              "HD"
+            ],
+            "event": {
+              "type": "S",
+              "target": {
+                "type": "S",
+                "x": 4,
+                "y": 30,
+                "rotation": 0
+              },
+              "cells": [
+                [
+                  5,
+                  31
+                ],
+                [
+                  6,
+                  31
+                ],
+                [
+                  4,
+                  32
+                ],
+                [
+                  5,
+                  32
+                ]
+              ],
+              "lines": 0,
+              "clearedRows": [],
+              "spin": "none",
+              "topOut": false
+            },
+            "resultContext": "[\"st-zero-v2\",[\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\".....SS...\",\"....SS....\",\"..OOLLL...\",\"JJOOLSS...\",\"JJJJSS....\",\"JLLJIOO...\",\"IILJIOO...\",\"IIOOOOS.Z.\",\"LLSSLSS.Z.\"],\"J\",true,[\"O\",\"Z\",\"T\",\"S\",\"Z\"],{\"remaining\":[63],\"observedCount\":540,\"provenance\":\"known-phase\"},\"L\"]",
+            "structuralEvidence": {
+              "reason": "Start the ordered S/L center pair.",
+              "cycleViolations": [],
+              "pairFamily": "SL",
+              "pairProgress": {
+                "orderedPieces": [
+                  "S",
+                  "L"
+                ],
+                "step": 1,
+                "status": "partner-placement-checked",
+                "placedCells": [
+                  [
+                    5,
+                    31
+                  ],
+                  [
+                    6,
+                    31
+                  ],
+                  [
+                    4,
+                    32
+                  ],
+                  [
+                    5,
+                    32
+                  ]
+                ],
+                "completion": {
+                  "piece": "L",
+                  "family": null,
+                  "target": {
+                    "type": "L",
+                    "x": 4,
+                    "y": 28,
+                    "rotation": 2
+                  },
+                  "cells": [
+                    [
+                      4,
+                      30
+                    ],
+                    [
+                      5,
+                      30
+                    ],
+                    [
+                      6,
+                      30
+                    ],
+                    [
+                      4,
+                      31
+                    ]
+                  ],
+                  "witness": [
+                    "R180",
+                    "R",
+                    "HD"
+                  ],
+                  "access": "hypothetical-spawn-straight-drop",
+                  "resultProfile": [
+                    10,
+                    10,
+                    10
+                  ],
+                  "resultStatus": "level",
+                  "patternSupport": "reference-supported",
+                  "preserveCells": [
+                    [
+                      4,
+                      30
+                    ],
+                    [
+                      5,
+                      30
+                    ],
+                    [
+                      6,
+                      30
+                    ],
+                    [
+                      4,
+                      31
+                    ]
+                  ]
+                }
+              },
+              "pairEvidence": "ordered actual preparation plus checked level-finishing placement",
+              "opportunityCost": 0,
+              "leftSubstitutes": [],
+              "regions": [
+                "center"
+              ],
+              "crossRegion": false,
+              "allocation": "center-partner-preparation",
+              "status": "supported-local-role",
+              "dependencyDebt": 0,
+              "newlyCovered": 0,
+              "regionalRepair": 0,
+              "repairCredit": 0,
+              "note": "Crossing a boundary is not forbidden. Debt measures unsupported allocation and new structural repair burden; a later checked repair may repay it.",
+              "futureNotches": {
+                "valid": true,
+                "violation": null,
+                "pattern": {
+                  "status": "established",
+                  "anchorRow": 35,
+                  "protectedRows": [
+                    35,
+                    32,
+                    29,
+                    26,
+                    23,
+                    20,
+                    17,
+                    14,
+                    11,
+                    8,
+                    5,
+                    2
+                  ],
+                  "blockedRows": [],
+                  "source": "translated-established-cycle"
+                },
+                "blockedCells": []
+              },
+              "leftRepair": null,
+              "centerPartnerDeficitBefore": 0,
+              "centerPartnerDeficitAfter": 1,
+              "placedPiece": "S",
+              "structure": {
+                "frontierDebt": 0,
+                "scoringRowDebt": 0,
+                "left": {
+                  "profile": [
+                    6,
+                    6,
+                    7,
+                    7
+                  ],
+                  "flat": false,
+                  "roughness": 1,
+                  "covered": 0,
+                  "horizontalI": null,
+                  "completions": []
+                },
+                "center": {
+                  "foundation": {
+                    "status": "aligned",
+                    "vacancies": [],
+                    "profile": [
+                      8,
+                      9,
+                      9
+                    ]
+                  },
+                  "profile": [
+                    8,
+                    9,
+                    9
+                  ],
+                  "status": "supported-partner-completion",
+                  "motif": ".##/##./###",
+                  "patternSupport": "reference-supported",
+                  "coveredInternal": 0,
+                  "sealedVoids": 0,
+                  "coveredCavities": 2,
+                  "completionDebt": 0,
+                  "completions": [
+                    {
+                      "piece": "L",
+                      "family": null,
+                      "target": {
+                        "type": "L",
+                        "x": 4,
+                        "y": 28,
+                        "rotation": 2
+                      },
+                      "cells": [
+                        [
+                          4,
+                          30
+                        ],
+                        [
+                          5,
+                          30
+                        ],
+                        [
+                          6,
+                          30
+                        ],
+                        [
+                          4,
+                          31
+                        ]
+                      ],
+                      "witness": [
+                        "R180",
+                        "R",
+                        "HD"
+                      ],
+                      "access": "hypothetical-spawn-straight-drop",
+                      "resultProfile": [
+                        10,
+                        10,
+                        10
+                      ],
+                      "resultStatus": "level",
+                      "patternSupport": "reference-supported",
+                      "preserveCells": [
+                        [
+                          4,
+                          30
+                        ],
+                        [
+                          5,
+                          30
+                        ],
+                        [
+                          6,
+                          30
+                        ],
+                        [
+                          4,
+                          31
+                        ]
+                      ]
+                    }
+                  ]
+                },
+                "right": {
+                  "profile": [
+                    0,
+                    2,
+                    0
+                  ],
+                  "shapeStatus": "cap-preparation",
+                  "cycle": {
+                    "shape": "cap-preparation",
+                    "phase": "cap-rebuild",
+                    "cleanupColumns": [],
+                    "prepareColumn": null,
+                    "wallSolid": true,
+                    "channelBase": true
+                  },
+                  "renewalDebt": 0,
+                  "reservoir": null,
+                  "completions": [
+                    {
+                      "piece": "Z",
+                      "target": {
+                        "type": "Z",
+                        "x": 7,
+                        "y": 34,
+                        "rotation": 1
+                      },
+                      "cells": [
+                        [
+                          9,
+                          35
+                        ],
+                        [
+                          8,
+                          36
+                        ],
+                        [
+                          9,
+                          36
+                        ],
+                        [
+                          8,
+                          37
+                        ]
+                      ],
+                      "witness": [
+                        "CW",
+                        "R",
+                        "R",
+                        "R",
+                        "R",
+                        "HD"
+                      ],
+                      "access": "hypothetical-spawn-straight-drop"
+                    }
+                  ]
+                },
+                "supportEstimate": -0.5,
+                "uncertainty": false,
+                "capSupplyBurden": 1,
+                "centerCompletionDebt": 0,
+                "supplyBurden": 0,
+                "obligations": [
+                  {
+                    "kind": "right-cap",
+                    "priority": "essential",
+                    "alternatives": [
+                      "Z"
+                    ],
+                    "completions": [
+                      {
+                        "piece": "Z",
+                        "target": {
+                          "type": "Z",
+                          "x": 7,
+                          "y": 34,
+                          "rotation": 1
+                        },
+                        "cells": [
+                          [
+                            9,
+                            35
+                          ],
+                          [
+                            8,
+                            36
+                          ],
+                          [
+                            9,
+                            36
+                          ],
+                          [
+                            8,
+                            37
+                          ]
+                        ],
+                        "witness": [
+                          "CW",
+                          "R",
+                          "R",
+                          "R",
+                          "R",
+                          "HD"
+                        ],
+                        "access": "hypothetical-spawn-straight-drop"
+                      }
+                    ],
+                    "note": "A checked Z cap restores the scoring wall; preserve this role before optional surface filling.",
+                    "supply": [
+                      {
+                        "id": "queue:1",
+                        "piece": "Z",
+                        "source": "visible",
+                        "drawOffset": 2,
+                        "available": "when-drawn"
+                      },
+                      {
+                        "id": "queue:4",
+                        "piece": "Z",
+                        "source": "visible",
+                        "drawOffset": 5,
+                        "available": "when-drawn"
+                      }
+                    ],
+                    "status": "known-piece-identity",
+                    "access": "visible-later-requires-order-and-access"
+                  },
+                  {
+                    "kind": "center-partner",
+                    "alternatives": [
+                      "L"
+                    ],
+                    "completions": [
+                      {
+                        "piece": "L",
+                        "family": null,
+                        "target": {
+                          "type": "L",
+                          "x": 4,
+                          "y": 28,
+                          "rotation": 2
+                        },
+                        "cells": [
+                          [
+                            4,
+                            30
+                          ],
+                          [
+                            5,
+                            30
+                          ],
+                          [
+                            6,
+                            30
+                          ],
+                          [
+                            4,
+                            31
+                          ]
+                        ],
+                        "witness": [
+                          "R180",
+                          "R",
+                          "HD"
+                        ],
+                        "access": "hypothetical-spawn-straight-drop",
+                        "resultProfile": [
+                          10,
+                          10,
+                          10
+                        ],
+                        "resultStatus": "level",
+                        "patternSupport": "reference-supported",
+                        "preserveCells": [
+                          [
+                            4,
+                            30
+                          ],
+                          [
+                            5,
+                            30
+                          ],
+                          [
+                            6,
+                            30
+                          ],
+                          [
+                            4,
+                            31
+                          ]
+                        ]
+                      }
+                    ],
+                    "note": "Exact replayed completion of the current center surface; keep completion cells free.",
+                    "supply": [
+                      {
+                        "id": "active",
+                        "piece": "L",
+                        "source": "active",
+                        "available": "now"
+                      }
+                    ],
+                    "status": "known-piece-identity"
+                  }
+                ],
+                "supply": {
+                  "instances": [
+                    {
+                      "id": "active",
+                      "piece": "L",
+                      "source": "active",
+                      "available": "now"
+                    },
+                    {
+                      "id": "hold",
+                      "piece": "J",
+                      "source": "hold",
+                      "available": "hold-now"
+                    },
+                    {
+                      "id": "queue:0",
+                      "piece": "O",
+                      "source": "visible",
+                      "drawOffset": 1,
+                      "available": "when-drawn"
+                    },
+                    {
+                      "id": "queue:1",
+                      "piece": "Z",
+                      "source": "visible",
+                      "drawOffset": 2,
+                      "available": "when-drawn"
+                    },
+                    {
+                      "id": "queue:2",
+                      "piece": "T",
+                      "source": "visible",
+                      "drawOffset": 3,
+                      "available": "when-drawn"
+                    },
+                    {
+                      "id": "queue:3",
+                      "piece": "S",
+                      "source": "visible",
+                      "drawOffset": 4,
+                      "available": "when-drawn"
+                    },
+                    {
+                      "id": "queue:4",
+                      "piece": "Z",
+                      "source": "visible",
+                      "drawOffset": 5,
+                      "available": "when-drawn"
+                    }
+                  ],
+                  "assignments": [
+                    {
+                      "obligation": "right-cap",
+                      "instance": "queue:1",
+                      "piece": "Z",
+                      "priority": "essential",
+                      "arrival": "when-drawn"
+                    },
+                    {
+                      "obligation": "center-partner",
+                      "instance": "active",
+                      "piece": "L",
+                      "priority": "normal",
+                      "arrival": "now"
+                    }
+                  ],
+                  "conflicts": [],
+                  "matched": 2,
+                  "priorityScore": 110,
+                  "arrivalEstimate": 2,
+                  "timing": "Distinct instances, essential-role priority and arrival estimates; execution still requires search.",
+                  "conflictCount": 0
+                },
+                "claim": "Local regional support estimate, not a sustainability guarantee.",
+                "headroomRisk": 0,
+                "centerContinuity": {
+                  "disruptedWithoutClear": false,
+                  "unresolved": false,
+                  "endpointReusable": true,
+                  "preference": 0
+                }
+              },
+              "entryDebt": 0,
+              "nonclearScoringGeometryLost": false,
+              "centerReservation": {
+                "debt": [],
+                "completed": []
+              },
+              "cavityRepair": {
+                "status": "no-outstanding-new-internal-cavity",
+                "cells": []
+              },
+              "coveredRepair": {
+                "created": [],
+                "outstanding": [],
+                "required": false,
+                "stage": false
+              }
+            }
+          }
+        ],
+        "reason": "Hold once. Build the Center as shown. A completing placement has not been checked yet. Place here without clearing a line. At the end of this sequence, the Well (column 8) stays below the Left and Center stacks.",
+        "metrics": {
+          "nodes": 16080,
+          "roots": 44,
+          "rootExpanded": 8,
+          "depth": 3,
+          "completeDepth": 3,
+          "elapsedMs": 102,
+          "accessNodes": 0,
+          "earlyCapFallback": {
+            "attempted": 0,
+            "verified": 0,
+            "selected": false,
+            "nodes": 0
+          },
+          "admissionAttempts": 1,
+          "firstCertified": {
+            "nodes": 981,
+            "locks": 1
+          },
+          "proofScheduling": {
+            "enabled": true,
+            "allowance": 6000,
+            "calls": 3,
+            "nodes": 1,
+            "unfinished": 0,
+            "budgetStops": 0
+          },
+          "gapAccessNodes": 0,
+          "completedBeamDepth": 3,
+          "commitmentComparison": {
+            "slAllocation": {
+              "enabled": true,
+              "savedPaid": 0,
+              "freshPaid": 1,
+              "retentionBlocked": false
+            },
+            "scoringTiming": {
+              "allowed": true,
+              "reason": "no-protected-score-delay",
+              "required": {
+                "tsds": [],
+                "quads": []
+              },
+              "fresh": {
+                "tsds": [],
+                "quads": []
+              },
+              "delayed": []
+            },
+            "freshGoalLocks": 1,
+            "savedGoalLocks": 1,
+            "freshHorizon": 3,
+            "savedHorizon": 1,
+            "replacement": false,
+            "rankingPreferred": false,
+            "pendingLCompletionPreserved": false,
+            "resetExactPrefixExtension": false,
+            "delayPrevented": false,
+            "freshSettled": true,
+            "savedSettled": true,
+            "selectedScoringTiming": {
+              "allowed": true,
+              "reason": "no-protected-score-delay",
+              "required": {
+                "tsds": [],
+                "quads": []
+              },
+              "fresh": {
+                "tsds": [],
+                "quads": []
+              },
+              "delayed": []
+            }
+          },
+          "capStageCandidates": 0,
+          "resourceProofNodes": 0,
+          "certifiedHorizon": 1,
+          "queries": {
+            "hits": 0,
+            "avoidedNodes": 0,
+            "proven": 17,
+            "failedWithinScope": 0,
+            "unfinished": 0,
+            "evictions": 0,
+            "peakBytes": 3152788,
+            "peakEntries": 17,
+            "entries": 17,
+            "bytes": 3152788,
+            "maxBytes": 8388608,
+            "maxEntries": 64
+          }
+        },
+        "context": "[\"st-zero-v2\",[\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..OOLLL...\",\"JJOOLSS...\",\"JJJJSS....\",\"JLLJIOO...\",\"IILJIOO...\",\"IIOOOOS.Z.\",\"LLSSLSS.Z.\"],\"S\",true,[\"L\",\"O\",\"Z\",\"T\",\"S\",\"Z\"],{\"remaining\":[63],\"observedCount\":540,\"provenance\":\"known-phase\"},\"J\"]",
+        "evidence": {
+          "pendingLSelection": null,
+          "resetSelection": {
+            "policy": "joint-low-visible-pair-v2",
+            "status": "ordinary-preferred",
+            "reason": "Ordinary geometric profile is present; this is not proof of an executable maintenance continuation.",
+            "ordinaryComparison": "ordinary-geometric-profile",
+            "source": "SHOCKY-4",
+            "claim": "Finite recovery preference within coach coverage; not proof that ordinary play is impossible or a complete Reset.",
+            "resourceRenewal": false
+          },
+          "strategy": "canonical-right-ST",
+          "cycleResources": {
+            "leftRepairs": 0,
+            "leftFoundations": 0,
+            "centerPreparations": 1,
+            "centerCompletions": 0,
+            "locks": 1,
+            "lines": 0,
+            "materialDelta": 4,
+            "tsds": 0,
+            "quads": 0,
+            "pocket": 0,
+            "outstandingPocket": 0,
+            "tFillers": 0,
+            "iFillers": 0
+          },
+          "commitmentRetained": true,
+          "futureNotches": {
+            "status": "established",
+            "anchorRow": 35,
+            "protectedRows": [
+              35,
+              32,
+              29,
+              26,
+              23,
+              20,
+              17,
+              14,
+              11,
+              8,
+              5,
+              2
+            ],
+            "blockedRows": [],
+            "source": "translated-established-cycle"
+          },
+          "preparationProof": null,
+          "cycleDebt": 0,
+          "cavityRepair": {
+            "status": "verified-prefix-repaired",
+            "outstandingCells": []
+          },
+          "clearPolicy": "right-region full T-spin doubles and I tetrises only",
+          "verifiedLocks": 1,
+          "tsdAt": null,
+          "knownPieceHorizon": 7,
+          "rootEnumerationComplete": true,
+          "budgetExhausted": false,
+          "searchIncomplete": false,
+          "informationBoundary": false,
+          "initialSealed": 0,
+          "endpointSealed": 0,
+          "regionalSupport": true,
+          "channel": {
+            "column": 7,
+            "height": 0,
+            "openBelowStack": true
+          },
+          "endpointTEntry": "not-established",
+          "unresolvedObligations": [
+            {
+              "kind": "right-cap",
+              "priority": "essential",
+              "alternatives": [
+                "Z"
+              ],
+              "completions": [
+                {
+                  "piece": "Z",
+                  "target": {
+                    "type": "Z",
+                    "x": 7,
+                    "y": 34,
+                    "rotation": 1
+                  },
+                  "cells": [
+                    [
+                      9,
+                      35
+                    ],
+                    [
+                      8,
+                      36
+                    ],
+                    [
+                      9,
+                      36
+                    ],
+                    [
+                      8,
+                      37
+                    ]
+                  ],
+                  "witness": [
+                    "CW",
+                    "R",
+                    "R",
+                    "R",
+                    "R",
+                    "HD"
+                  ],
+                  "access": "hypothetical-spawn-straight-drop"
+                }
+              ],
+              "note": "A checked Z cap restores the scoring wall; preserve this role before optional surface filling.",
+              "supply": [
+                {
+                  "id": "queue:1",
+                  "piece": "Z",
+                  "source": "visible",
+                  "drawOffset": 2,
+                  "available": "when-drawn"
+                },
+                {
+                  "id": "queue:4",
+                  "piece": "Z",
+                  "source": "visible",
+                  "drawOffset": 5,
+                  "available": "when-drawn"
+                }
+              ],
+              "status": "known-piece-identity",
+              "access": "visible-later-requires-order-and-access"
+            },
+            {
+              "kind": "center-partner",
+              "alternatives": [
+                "L"
+              ],
+              "completions": [
+                {
+                  "piece": "L",
+                  "family": null,
+                  "target": {
+                    "type": "L",
+                    "x": 4,
+                    "y": 28,
+                    "rotation": 2
+                  },
+                  "cells": [
+                    [
+                      4,
+                      30
+                    ],
+                    [
+                      5,
+                      30
+                    ],
+                    [
+                      6,
+                      30
+                    ],
+                    [
+                      4,
+                      31
+                    ]
+                  ],
+                  "witness": [
+                    "R180",
+                    "R",
+                    "HD"
+                  ],
+                  "access": "hypothetical-spawn-straight-drop",
+                  "resultProfile": [
+                    10,
+                    10,
+                    10
+                  ],
+                  "resultStatus": "level",
+                  "patternSupport": "reference-supported",
+                  "preserveCells": [
+                    [
+                      4,
+                      30
+                    ],
+                    [
+                      5,
+                      30
+                    ],
+                    [
+                      6,
+                      30
+                    ],
+                    [
+                      4,
+                      31
+                    ]
+                  ]
+                }
+              ],
+              "note": "Exact replayed completion of the current center surface; keep completion cells free.",
+              "supply": [
+                {
+                  "id": "active",
+                  "piece": "L",
+                  "source": "active",
+                  "available": "now"
+                }
+              ],
+              "status": "known-piece-identity"
+            }
+          ],
+          "structuralScore": -6.5,
+          "structuralRank": [
+            1,
+            1,
+            0,
+            -2,
+            0,
+            5.6,
+            0,
+            0
+          ],
+          "structure": {
+            "frontierDebt": 0,
+            "scoringRowDebt": 0,
+            "left": {
+              "profile": [
+                6,
+                6,
+                7,
+                7
+              ],
+              "flat": false,
+              "roughness": 1,
+              "covered": 0,
+              "horizontalI": null,
+              "completions": []
+            },
+            "center": {
+              "foundation": {
+                "status": "aligned",
+                "vacancies": [],
+                "profile": [
+                  8,
+                  9,
+                  9
+                ]
+              },
+              "profile": [
+                8,
+                9,
+                9
+              ],
+              "status": "supported-partner-completion",
+              "motif": ".##/##./###",
+              "patternSupport": "reference-supported",
+              "coveredInternal": 0,
+              "sealedVoids": 0,
+              "coveredCavities": 2,
+              "completionDebt": 0,
+              "completions": [
+                {
+                  "piece": "L",
+                  "family": null,
+                  "target": {
+                    "type": "L",
+                    "x": 4,
+                    "y": 28,
+                    "rotation": 2
+                  },
+                  "cells": [
+                    [
+                      4,
+                      30
+                    ],
+                    [
+                      5,
+                      30
+                    ],
+                    [
+                      6,
+                      30
+                    ],
+                    [
+                      4,
+                      31
+                    ]
+                  ],
+                  "witness": [
+                    "R180",
+                    "R",
+                    "HD"
+                  ],
+                  "access": "hypothetical-spawn-straight-drop",
+                  "resultProfile": [
+                    10,
+                    10,
+                    10
+                  ],
+                  "resultStatus": "level",
+                  "patternSupport": "reference-supported",
+                  "preserveCells": [
+                    [
+                      4,
+                      30
+                    ],
+                    [
+                      5,
+                      30
+                    ],
+                    [
+                      6,
+                      30
+                    ],
+                    [
+                      4,
+                      31
+                    ]
+                  ]
+                }
+              ]
+            },
+            "right": {
+              "profile": [
+                0,
+                2,
+                0
+              ],
+              "shapeStatus": "cap-preparation",
+              "cycle": {
+                "shape": "cap-preparation",
+                "phase": "cap-rebuild",
+                "cleanupColumns": [],
+                "prepareColumn": null,
+                "wallSolid": true,
+                "channelBase": true
+              },
+              "renewalDebt": 0,
+              "reservoir": null,
+              "completions": [
+                {
+                  "piece": "Z",
+                  "target": {
+                    "type": "Z",
+                    "x": 7,
+                    "y": 34,
+                    "rotation": 1
+                  },
+                  "cells": [
+                    [
+                      9,
+                      35
+                    ],
+                    [
+                      8,
+                      36
+                    ],
+                    [
+                      9,
+                      36
+                    ],
+                    [
+                      8,
+                      37
+                    ]
+                  ],
+                  "witness": [
+                    "CW",
+                    "R",
+                    "R",
+                    "R",
+                    "R",
+                    "HD"
+                  ],
+                  "access": "hypothetical-spawn-straight-drop"
+                }
+              ]
+            },
+            "supportEstimate": -0.5,
+            "uncertainty": false,
+            "capSupplyBurden": 1,
+            "centerCompletionDebt": 0,
+            "supplyBurden": 0,
+            "obligations": [
+              {
+                "kind": "right-cap",
+                "priority": "essential",
+                "alternatives": [
+                  "Z"
+                ],
+                "completions": [
+                  {
+                    "piece": "Z",
+                    "target": {
+                      "type": "Z",
+                      "x": 7,
+                      "y": 34,
+                      "rotation": 1
+                    },
+                    "cells": [
+                      [
+                        9,
+                        35
+                      ],
+                      [
+                        8,
+                        36
+                      ],
+                      [
+                        9,
+                        36
+                      ],
+                      [
+                        8,
+                        37
+                      ]
+                    ],
+                    "witness": [
+                      "CW",
+                      "R",
+                      "R",
+                      "R",
+                      "R",
+                      "HD"
+                    ],
+                    "access": "hypothetical-spawn-straight-drop"
+                  }
+                ],
+                "note": "A checked Z cap restores the scoring wall; preserve this role before optional surface filling.",
+                "supply": [
+                  {
+                    "id": "queue:1",
+                    "piece": "Z",
+                    "source": "visible",
+                    "drawOffset": 2,
+                    "available": "when-drawn"
+                  },
+                  {
+                    "id": "queue:4",
+                    "piece": "Z",
+                    "source": "visible",
+                    "drawOffset": 5,
+                    "available": "when-drawn"
+                  }
+                ],
+                "status": "known-piece-identity",
+                "access": "visible-later-requires-order-and-access"
+              },
+              {
+                "kind": "center-partner",
+                "alternatives": [
+                  "L"
+                ],
+                "completions": [
+                  {
+                    "piece": "L",
+                    "family": null,
+                    "target": {
+                      "type": "L",
+                      "x": 4,
+                      "y": 28,
+                      "rotation": 2
+                    },
+                    "cells": [
+                      [
+                        4,
+                        30
+                      ],
+                      [
+                        5,
+                        30
+                      ],
+                      [
+                        6,
+                        30
+                      ],
+                      [
+                        4,
+                        31
+                      ]
+                    ],
+                    "witness": [
+                      "R180",
+                      "R",
+                      "HD"
+                    ],
+                    "access": "hypothetical-spawn-straight-drop",
+                    "resultProfile": [
+                      10,
+                      10,
+                      10
+                    ],
+                    "resultStatus": "level",
+                    "patternSupport": "reference-supported",
+                    "preserveCells": [
+                      [
+                        4,
+                        30
+                      ],
+                      [
+                        5,
+                        30
+                      ],
+                      [
+                        6,
+                        30
+                      ],
+                      [
+                        4,
+                        31
+                      ]
+                    ]
+                  }
+                ],
+                "note": "Exact replayed completion of the current center surface; keep completion cells free.",
+                "supply": [
+                  {
+                    "id": "active",
+                    "piece": "L",
+                    "source": "active",
+                    "available": "now"
+                  }
+                ],
+                "status": "known-piece-identity"
+              }
+            ],
+            "supply": {
+              "instances": [
+                {
+                  "id": "active",
+                  "piece": "L",
+                  "source": "active",
+                  "available": "now"
+                },
+                {
+                  "id": "hold",
+                  "piece": "J",
+                  "source": "hold",
+                  "available": "hold-now"
+                },
+                {
+                  "id": "queue:0",
+                  "piece": "O",
+                  "source": "visible",
+                  "drawOffset": 1,
+                  "available": "when-drawn"
+                },
+                {
+                  "id": "queue:1",
+                  "piece": "Z",
+                  "source": "visible",
+                  "drawOffset": 2,
+                  "available": "when-drawn"
+                },
+                {
+                  "id": "queue:2",
+                  "piece": "T",
+                  "source": "visible",
+                  "drawOffset": 3,
+                  "available": "when-drawn"
+                },
+                {
+                  "id": "queue:3",
+                  "piece": "S",
+                  "source": "visible",
+                  "drawOffset": 4,
+                  "available": "when-drawn"
+                },
+                {
+                  "id": "queue:4",
+                  "piece": "Z",
+                  "source": "visible",
+                  "drawOffset": 5,
+                  "available": "when-drawn"
+                }
+              ],
+              "assignments": [
+                {
+                  "obligation": "right-cap",
+                  "instance": "queue:1",
+                  "piece": "Z",
+                  "priority": "essential",
+                  "arrival": "when-drawn"
+                },
+                {
+                  "obligation": "center-partner",
+                  "instance": "active",
+                  "piece": "L",
+                  "priority": "normal",
+                  "arrival": "now"
+                }
+              ],
+              "conflicts": [],
+              "matched": 2,
+              "priorityScore": 110,
+              "arrivalEstimate": 2,
+              "timing": "Distinct instances, essential-role priority and arrival estimates; execution still requires search.",
+              "conflictCount": 0
+            },
+            "claim": "Local regional support estimate, not a sustainability guarantee.",
+            "headroomRisk": 0,
+            "centerContinuity": {
+              "disruptedWithoutClear": false,
+              "unresolved": false,
+              "endpointReusable": true,
+              "preference": 0
+            }
+          },
+          "dependencyDebt": 0,
+          "claim": "Finite executable prefix; endpoint estimates are not a sustainability guarantee.",
+          "pendingLStage": null,
+          "resourceObligations": {
+            "status": "checked",
+            "binding": "[\"partial\",null,[{\"id\":1,\"type\":\"J\",\"bag\":null},{\"id\":2,\"type\":\"S\",\"bag\":null},{\"id\":3,\"type\":\"L\",\"bag\":null},{\"id\":4,\"type\":\"O\",\"bag\":null},{\"id\":5,\"type\":\"Z\",\"bag\":null},{\"id\":6,\"type\":\"T\",\"bag\":null},{\"id\":7,\"type\":\"S\",\"bag\":null},{\"id\":8,\"type\":\"Z\",\"bag\":null}],[],[],[],null,[],[],null,\"unknown\",[],null]",
+            "delayedDPlans": [],
+            "checkedIExits": [],
+            "extraZ": "unknown",
+            "pendingCenter": [
+              {
+                "rootId": 2,
+                "bag": null,
+                "family": "SL",
+                "alternatives": [
+                  {
+                    "piece": "L",
+                    "cells": [
+                      [
+                        4,
+                        30
+                      ],
+                      [
+                        5,
+                        30
+                      ],
+                      [
+                        6,
+                        30
+                      ],
+                      [
+                        4,
+                        31
+                      ]
+                    ]
+                  }
+                ],
+                "created": true
+              }
+            ],
+            "hangingS": [],
+            "unclassifiedS": [],
+            "hangingL": [],
+            "unclassifiedL": []
+          },
+          "coveredRepair": {
+            "valid": true,
+            "status": "no-new-covered-cell-obligation",
+            "outstandingCells": [],
+            "steps": [
+              {
+                "created": [],
+                "outstanding": []
+              }
+            ],
+            "stage": null
+          },
+          "coveredRepairPlan": null,
+          "gapAccess": {
+            "reachable": true,
+            "complete": true,
+            "visited": 0,
+            "status": "prefix-movement-access-witnessed",
+            "steps": [
+              {
+                "status": "no-new-roofed-cells",
+                "complete": true,
+                "reachable": true,
+                "cells": [],
+                "visited": 0
+              }
+            ]
+          }
+        },
+        "status": "recommended-with-verified-prefix",
+        "sources": [
+          {
+            "url": "https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit",
+            "section": "Chapter 3.2: The Center",
+            "id": "SHOCKY-3.2",
+            "label": "Shocky's ST Stacking Guide",
+            "scope": "Describes SL, OJ, LO and ZJ overhang pairs. LO can leave a Hanging S; ZJ needs contextual Z accounting. ZJ can be built in either order, and placement order depends on the position. A matching shape alone does not establish whole-run piece balance."
+          },
+          {
+            "url": "https://tl.net/forum/games/175252-10000-guide-tetris-ultra-st-stacking",
+            "section": "Center Stacking",
+            "id": "FLAME-CENTER",
+            "label": "Flamewheel's ST Stacking Guide",
+            "scope": "Explains two-piece center combinations with an open lower-right corner and a level three-wide top; capping here means finishing a combination. Its color-based piece names differ from current Guideline letters."
+          },
+          {
+            "url": "https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit",
+            "section": "Chapter 1: The ST Stacking Timeline and Anatomy",
+            "id": "SHOCKY-1",
+            "label": "Shocky's ST Stacking Guide",
+            "scope": "Defines Left as columns 1–4, Center as 5–7, Right as 8–10, Pocket as column 10, Well as column 8, and a Z covering the Pocket as capped. Supports terminology, not this checked cap-replacement sequence."
+          }
+        ],
+        "assessment": {
+          "maintenanceScope": true,
+          "regionalSupport": true,
+          "regionImbalance": 0,
+          "channel": {
+            "column": 7,
+            "height": 0,
+            "openBelowStack": true
+          },
+          "heights": [
+            6,
+            6,
+            7,
+            7,
+            8,
+            9,
+            9,
+            0,
+            2,
+            0
+          ],
+          "maxHeight": 9,
+          "headroom": 11,
+          "sealed": 0,
+          "sealedCells": [],
+          "leftSealed": 0,
+          "covered": 2,
+          "damageSealed": 0,
+          "damageCovered": 2,
+          "left": {
+            "height": 7,
+            "roughness": 1
+          },
+          "center": {
+            "height": 9,
+            "profile": [
+              8,
+              9,
+              9
+            ],
+            "partnerDeficit": 1,
+            "partnerStatus": "unfinished-open-surface"
+          },
+          "right": {
+            "height": 2,
+            "slots": []
+          },
+          "obligations": [
+            {
+              "kind": "right-cap",
+              "priority": "essential",
+              "alternatives": [
+                "Z"
+              ],
+              "completions": [
+                {
+                  "piece": "Z",
+                  "target": {
+                    "type": "Z",
+                    "x": 7,
+                    "y": 34,
+                    "rotation": 1
+                  },
+                  "cells": [
+                    [
+                      9,
+                      35
+                    ],
+                    [
+                      8,
+                      36
+                    ],
+                    [
+                      9,
+                      36
+                    ],
+                    [
+                      8,
+                      37
+                    ]
+                  ],
+                  "witness": [
+                    "CW",
+                    "R",
+                    "R",
+                    "R",
+                    "R",
+                    "HD"
+                  ],
+                  "access": "hypothetical-spawn-straight-drop"
+                }
+              ],
+              "note": "A checked Z cap restores the scoring wall; preserve this role before optional surface filling.",
+              "supply": [
+                {
+                  "id": "queue:1",
+                  "piece": "Z",
+                  "source": "visible",
+                  "drawOffset": 2,
+                  "available": "when-drawn"
+                },
+                {
+                  "id": "queue:4",
+                  "piece": "Z",
+                  "source": "visible",
+                  "drawOffset": 5,
+                  "available": "when-drawn"
+                }
+              ],
+              "status": "known-piece-identity",
+              "access": "visible-later-requires-order-and-access"
+            },
+            {
+              "kind": "center-partner",
+              "alternatives": [
+                "L"
+              ],
+              "completions": [
+                {
+                  "piece": "L",
+                  "family": null,
+                  "target": {
+                    "type": "L",
+                    "x": 4,
+                    "y": 28,
+                    "rotation": 2
+                  },
+                  "cells": [
+                    [
+                      4,
+                      30
+                    ],
+                    [
+                      5,
+                      30
+                    ],
+                    [
+                      6,
+                      30
+                    ],
+                    [
+                      4,
+                      31
+                    ]
+                  ],
+                  "witness": [
+                    "R180",
+                    "R",
+                    "HD"
+                  ],
+                  "access": "hypothetical-spawn-straight-drop",
+                  "resultProfile": [
+                    10,
+                    10,
+                    10
+                  ],
+                  "resultStatus": "level",
+                  "patternSupport": "reference-supported",
+                  "preserveCells": [
+                    [
+                      4,
+                      30
+                    ],
+                    [
+                      5,
+                      30
+                    ],
+                    [
+                      6,
+                      30
+                    ],
+                    [
+                      4,
+                      31
+                    ]
+                  ]
+                }
+              ],
+              "note": "Exact replayed completion of the current center surface; keep completion cells free.",
+              "supply": [
+                {
+                  "id": "active",
+                  "piece": "L",
+                  "source": "active",
+                  "available": "now"
+                }
+              ],
+              "status": "known-piece-identity"
+            }
+          ],
+          "estimate": -6,
+          "assumptions": [
+            "Structural estimates are heuristic; only the returned input prefix is verified."
+          ],
+          "structure": {
+            "frontierDebt": 0,
+            "scoringRowDebt": 0,
+            "left": {
+              "profile": [
+                6,
+                6,
+                7,
+                7
+              ],
+              "flat": false,
+              "roughness": 1,
+              "covered": 0,
+              "horizontalI": null,
+              "completions": []
+            },
+            "center": {
+              "foundation": {
+                "status": "aligned",
+                "vacancies": [],
+                "profile": [
+                  8,
+                  9,
+                  9
+                ]
+              },
+              "profile": [
+                8,
+                9,
+                9
+              ],
+              "status": "supported-partner-completion",
+              "motif": ".##/##./###",
+              "patternSupport": "reference-supported",
+              "coveredInternal": 0,
+              "sealedVoids": 0,
+              "coveredCavities": 2,
+              "completionDebt": 0,
+              "completions": [
+                {
+                  "piece": "L",
+                  "family": null,
+                  "target": {
+                    "type": "L",
+                    "x": 4,
+                    "y": 28,
+                    "rotation": 2
+                  },
+                  "cells": [
+                    [
+                      4,
+                      30
+                    ],
+                    [
+                      5,
+                      30
+                    ],
+                    [
+                      6,
+                      30
+                    ],
+                    [
+                      4,
+                      31
+                    ]
+                  ],
+                  "witness": [
+                    "R180",
+                    "R",
+                    "HD"
+                  ],
+                  "access": "hypothetical-spawn-straight-drop",
+                  "resultProfile": [
+                    10,
+                    10,
+                    10
+                  ],
+                  "resultStatus": "level",
+                  "patternSupport": "reference-supported",
+                  "preserveCells": [
+                    [
+                      4,
+                      30
+                    ],
+                    [
+                      5,
+                      30
+                    ],
+                    [
+                      6,
+                      30
+                    ],
+                    [
+                      4,
+                      31
+                    ]
+                  ]
+                }
+              ]
+            },
+            "right": {
+              "profile": [
+                0,
+                2,
+                0
+              ],
+              "shapeStatus": "cap-preparation",
+              "cycle": {
+                "shape": "cap-preparation",
+                "phase": "cap-rebuild",
+                "cleanupColumns": [],
+                "prepareColumn": null,
+                "wallSolid": true,
+                "channelBase": true
+              },
+              "renewalDebt": 0,
+              "reservoir": null,
+              "completions": [
+                {
+                  "piece": "Z",
+                  "target": {
+                    "type": "Z",
+                    "x": 7,
+                    "y": 34,
+                    "rotation": 1
+                  },
+                  "cells": [
+                    [
+                      9,
+                      35
+                    ],
+                    [
+                      8,
+                      36
+                    ],
+                    [
+                      9,
+                      36
+                    ],
+                    [
+                      8,
+                      37
+                    ]
+                  ],
+                  "witness": [
+                    "CW",
+                    "R",
+                    "R",
+                    "R",
+                    "R",
+                    "HD"
+                  ],
+                  "access": "hypothetical-spawn-straight-drop"
+                }
+              ]
+            },
+            "supportEstimate": -0.5,
+            "uncertainty": false,
+            "capSupplyBurden": 1,
+            "centerCompletionDebt": 0,
+            "supplyBurden": 0,
+            "obligations": [
+              {
+                "kind": "right-cap",
+                "priority": "essential",
+                "alternatives": [
+                  "Z"
+                ],
+                "completions": [
+                  {
+                    "piece": "Z",
+                    "target": {
+                      "type": "Z",
+                      "x": 7,
+                      "y": 34,
+                      "rotation": 1
+                    },
+                    "cells": [
+                      [
+                        9,
+                        35
+                      ],
+                      [
+                        8,
+                        36
+                      ],
+                      [
+                        9,
+                        36
+                      ],
+                      [
+                        8,
+                        37
+                      ]
+                    ],
+                    "witness": [
+                      "CW",
+                      "R",
+                      "R",
+                      "R",
+                      "R",
+                      "HD"
+                    ],
+                    "access": "hypothetical-spawn-straight-drop"
+                  }
+                ],
+                "note": "A checked Z cap restores the scoring wall; preserve this role before optional surface filling.",
+                "supply": [
+                  {
+                    "id": "queue:1",
+                    "piece": "Z",
+                    "source": "visible",
+                    "drawOffset": 2,
+                    "available": "when-drawn"
+                  },
+                  {
+                    "id": "queue:4",
+                    "piece": "Z",
+                    "source": "visible",
+                    "drawOffset": 5,
+                    "available": "when-drawn"
+                  }
+                ],
+                "status": "known-piece-identity",
+                "access": "visible-later-requires-order-and-access"
+              },
+              {
+                "kind": "center-partner",
+                "alternatives": [
+                  "L"
+                ],
+                "completions": [
+                  {
+                    "piece": "L",
+                    "family": null,
+                    "target": {
+                      "type": "L",
+                      "x": 4,
+                      "y": 28,
+                      "rotation": 2
+                    },
+                    "cells": [
+                      [
+                        4,
+                        30
+                      ],
+                      [
+                        5,
+                        30
+                      ],
+                      [
+                        6,
+                        30
+                      ],
+                      [
+                        4,
+                        31
+                      ]
+                    ],
+                    "witness": [
+                      "R180",
+                      "R",
+                      "HD"
+                    ],
+                    "access": "hypothetical-spawn-straight-drop",
+                    "resultProfile": [
+                      10,
+                      10,
+                      10
+                    ],
+                    "resultStatus": "level",
+                    "patternSupport": "reference-supported",
+                    "preserveCells": [
+                      [
+                        4,
+                        30
+                      ],
+                      [
+                        5,
+                        30
+                      ],
+                      [
+                        6,
+                        30
+                      ],
+                      [
+                        4,
+                        31
+                      ]
+                    ]
+                  }
+                ],
+                "note": "Exact replayed completion of the current center surface; keep completion cells free.",
+                "supply": [
+                  {
+                    "id": "active",
+                    "piece": "L",
+                    "source": "active",
+                    "available": "now"
+                  }
+                ],
+                "status": "known-piece-identity"
+              }
+            ],
+            "supply": {
+              "instances": [
+                {
+                  "id": "active",
+                  "piece": "L",
+                  "source": "active",
+                  "available": "now"
+                },
+                {
+                  "id": "hold",
+                  "piece": "J",
+                  "source": "hold",
+                  "available": "hold-now"
+                },
+                {
+                  "id": "queue:0",
+                  "piece": "O",
+                  "source": "visible",
+                  "drawOffset": 1,
+                  "available": "when-drawn"
+                },
+                {
+                  "id": "queue:1",
+                  "piece": "Z",
+                  "source": "visible",
+                  "drawOffset": 2,
+                  "available": "when-drawn"
+                },
+                {
+                  "id": "queue:2",
+                  "piece": "T",
+                  "source": "visible",
+                  "drawOffset": 3,
+                  "available": "when-drawn"
+                },
+                {
+                  "id": "queue:3",
+                  "piece": "S",
+                  "source": "visible",
+                  "drawOffset": 4,
+                  "available": "when-drawn"
+                },
+                {
+                  "id": "queue:4",
+                  "piece": "Z",
+                  "source": "visible",
+                  "drawOffset": 5,
+                  "available": "when-drawn"
+                }
+              ],
+              "assignments": [
+                {
+                  "obligation": "right-cap",
+                  "instance": "queue:1",
+                  "piece": "Z",
+                  "priority": "essential",
+                  "arrival": "when-drawn"
+                },
+                {
+                  "obligation": "center-partner",
+                  "instance": "active",
+                  "piece": "L",
+                  "priority": "normal",
+                  "arrival": "now"
+                }
+              ],
+              "conflicts": [],
+              "matched": 2,
+              "priorityScore": 110,
+              "arrivalEstimate": 2,
+              "timing": "Distinct instances, essential-role priority and arrival estimates; execution still requires search.",
+              "conflictCount": 0
+            },
+            "claim": "Local regional support estimate, not a sustainability guarantee.",
+            "headroomRisk": 0,
+            "centerContinuity": {
+              "disruptedWithoutClear": false,
+              "unresolved": false,
+              "endpointReusable": true,
+              "preference": 0
+            }
+          },
+          "coachPhase": "compatibility",
+          "leftContext": {
+            "source": "https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit",
+            "shape": "shocky-left-3",
+            "tier": "S",
+            "profile": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "score": 5.6,
+            "adjustment": 5.6,
+            "context": "visible-inventory",
+            "horizon": 2,
+            "executionVerified": false,
+            "available": [
+              {
+                "type": "J",
+                "held": true
+              }
+            ],
+            "reserved": [
+              "L"
+            ],
+            "immediateJ": true,
+            "repair": {
+              "pieces": [
+                "J",
+                "O"
+              ],
+              "tier": "SS",
+              "hold": true
+            },
+            "fitCount": 2
+          }
+        },
+        "recommendation": {
+          "kind": "supported",
+          "hazards": [],
+          "claim": "A checked finite continuation, not a guarantee of continued survival."
+        }
+      }
+    },
+    "pendingLHint": null
+  }
+}
