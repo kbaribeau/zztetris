@@ -51,7 +51,10 @@ function readSupply(raw){
  let frontier=null;
  if(raw.originKnown){shape(raw.frontier,['bag','seenMask'],'observed frontier');check(integer(raw.frontier.bag)&&raw.frontier.bag>=0&&integer(raw.frontier.seenMask)&&raw.frontier.seenMask>=0&&raw.frontier.seenMask<127,'observed frontier');frontier=clone(raw.frontier);}
  else check(raw.frontier===null,'unknown observed frontier');
- const supply={schemaVersion:1,domain:'projection',originKnown:raw.originKnown,nextObservedId:raw.nextObservedId,nextSyntheticId:raw.nextSyntheticId,streamCursor:raw.streamCursor,active:subject(raw.active),hold:subject(raw.hold),queue:raw.queue.map(p=>{check(p!==null,'missing queued subject');return subject(p);}),frontier,knowledge:knowledge(raw.knowledge)};
+ // Construct a plain queue by index. A caller's map, iterator or species
+ // must not return aliases after the subject validation/copy callbacks run.
+ const queued=values=>Array.from({length:values.length},(_,index)=>{const p=values[index];check(p!==null,'missing queued subject');return subject(p);});
+ const supply={schemaVersion:1,domain:'projection',originKnown:raw.originKnown,nextObservedId:raw.nextObservedId,nextSyntheticId:raw.nextSyntheticId,streamCursor:raw.streamCursor,active:subject(raw.active),hold:subject(raw.hold),queue:queued(raw.queue),frontier,knowledge:knowledge(raw.knowledge)};
  if(frontier)for(const p of [supply.active,supply.hold,...supply.queue].filter(p=>p&&p.id>0))check(p.bag<frontier.bag||p.bag===frontier.bag&&Boolean(frontier.seenMask&(1<<TYPES.indexOf(p.type))),'observed subject exceeds frontier');
  return supply;
 }

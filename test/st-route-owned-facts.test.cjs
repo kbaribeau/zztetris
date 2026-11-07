@@ -55,3 +55,16 @@ test('owned route facts: a trusted broken notch preserves signed zero in the exa
  const imported=Route.fromProjection(projection,{openingBoundary:initial.openingBoundary,extendForced:false}),child=Route.step(imported,{witness:['HD']}).route,expected=P.resolve(child.projection);
  assert.equal(Object.is(expected.coveredRepair.notches.anchorRow,-0),true);assert.equal(Object.is(expected.coveredRepair.notches.protectedRows[0],-0),true);assert.deepStrictEqual(Route.resolve(child).facts,expected);
 });
+test('owned route facts: queue normalization cannot retain a caller map or frozen accessor subject',()=>{
+ const initial=root(),projection=copy(initial.projection),queued=projection.supply.queue[0];let backingId=queued.id,mapCalls=0;
+ const subject=Object.freeze({get id(){return backingId;},type:queued.type,bag:queued.bag,observedOrder:queued.observedOrder}),queue=projection.supply.queue.slice();queue[0]=subject;
+ Object.defineProperty(queue,'map',{value:function(callback,thisArg){mapCalls++;const ordinary=Array.prototype.map.call(this,callback,thisArg);return ordinary.every(x=>x&&typeof x==='object')?this:ordinary;}});Object.freeze(queue);projection.supply.queue=queue;
+ const imported=Route.fromProjection(projection,{openingBoundary:initial.openingBoundary,extendForced:false}),child=Route.step(imported,{witness:['HD']}).route;
+ assert.notEqual(child.projection.supply.active,subject);assert.equal(Object.getOwnPropertyDescriptor(child.projection.supply.active,'id').get,undefined);assert.equal(mapCalls,0);const expected=Route.resolve(child);
+ backingId=child.projection.supply.nextObservedId+100;assert.equal(child.projection.supply.active.id,queued.id);assert.deepStrictEqual(Route.resolve(child),expected);assert.deepStrictEqual(Route.resolve(child).facts,P.resolve(child.projection));assert.throws(()=>P.resolve(imported.projection),/observed allocator/);
+});
+test('owned route facts: detached queue construction does not invoke caller iterator or species',()=>{
+ const initial=root(),projection=copy(initial.projection);let iterated=0,constructed=0;const queue=projection.supply.queue;
+ Object.defineProperty(queue,Symbol.iterator,{value:function*(){iterated++;yield* Array.prototype.values.call(this);}});Object.defineProperty(queue,'constructor',{get(){constructed++;throw Error('Caller array species must not be used');}});
+ const projected=P.project(projection,{witness:['HD']});assert.equal(constructed,0);assert.equal(iterated,0);assert.notEqual(projected.supply.active,queue[0]);assert.deepStrictEqual(projected.supply.active,queue[0]);
+});
