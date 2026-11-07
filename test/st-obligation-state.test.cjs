@@ -207,3 +207,13 @@ test('shared status: available current facts preserve aggregate uncertainty and 
  for(const kind of ['S','L']){assert.deepEqual(status['hanging'+kind].evidence,[]);assert.deepEqual(status['hanging'+kind].unclassified,[]);}
  assert.equal(status.extraZ.status,'unknown');assert.equal(status.extraZ.remaining,null);assert.deepEqual(Q.resolve(state,{position,inventory}),status);assert.deepEqual(state,saved);
 });
+
+
+test('shared state: trusted current TSD and foundation facts must be structurally consistent',()=>{
+ const x=trial(1,24),saved=copy(x.state);assert.equal(saved.account.firstTsd,true);assert.equal(saved.sl.foundationOpen,false);
+ assert.deepEqual(Q.importState(copy(saved)),saved,'Current facts are accepted without a provenance replay');
+ const contradictory=copy(saved);contradictory.sl.foundationOpen=true;assert.throws(()=>Q.importState(contradictory),/first TSD requires closed/);assert.deepEqual(x.state,saved);
+ const position=first(),inventory=I.start(position,{fresh:true}),fresh=Q.start(position,{inventory});assert.equal(fresh.account.firstTsd,false);assert.equal(fresh.sl.foundationOpen,true);assert.deepEqual(Q.importState(copy(fresh)),fresh);
+ fresh.sl.foundationOpen=false;assert.deepEqual(Q.importState(copy(fresh)),fresh,'An earlier source boundary can close foundation before a TSD');
+ const unknown=Q.start(position,{inventory:I.start(position)});unknown.account.firstTsd=true;assert.equal(unknown.sl.foundationOpen,true);assert.deepEqual(Q.importState(copy(unknown)),unknown,'Unknown-origin diagnostic facts do not acquire a known foundation policy');
+});

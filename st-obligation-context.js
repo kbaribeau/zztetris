@@ -50,6 +50,7 @@ function importBoundary(raw,inventory,state){
  if(state?.availability==='known'){
   check((raw.firstBagLocks===7)===(state.sl.firstBagReview!=='pending'),'first-bag review/progress disagreement');
   check(state.sl.firstBagReview!=='reviewed'||raw.sourcePatternSeen,'reviewed source boundary missing');
+  check(!raw.sourcePatternSeen||!state.sl.foundationOpen,'source boundary requires closed foundation');
  }
  return{firstBagLocks:raw.firstBagLocks,sourcePatternSeen:raw.sourcePatternSeen};
 }

@@ -50,6 +50,7 @@ function importState(raw){
  check(raw.schemaVersion===VERSION&&['known','unknown'].includes(raw.availability)&&typeof raw.dPending==='boolean','version/availability/D');
  const center=importCenter(raw.center),sl=SL.importState(raw.sl),account=O.importState(raw.account);
  check((sl.status==='known')===(raw.availability==='known')&&account.known===(raw.availability==='known'),'component availability');
+ check(raw.availability!=='known'||!account.firstTsd||!sl.foundationOpen,'observed first TSD requires closed S/L foundation');
  shape(raw.safety,['notches','coveredCells'],'safety');let notches=null;
  if(raw.safety.notches!==null){check(raw.safety.notches?.version===PH.VERSION,'current notch version');const p=PH.resolve({},raw.safety.notches);check(p.status!=='invalid-history','current notch snapshot');notches=notchSnapshot(p);}
  const coveredCells=cells(raw.safety.coveredCells);check(coveredCells.every(([x])=>x<7),'Left/Center covered cells');

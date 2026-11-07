@@ -198,3 +198,26 @@ test('context: consumed role types reject contradictions while preserving shared
  ];
  for(const edit of edits){const bad=copy(raw);edit(bad);assert.throws(()=>C.importState(bad),/contradictory current type roles/);assert.deepEqual(C.exportState(imported),raw);}
 });
+
+test('context: known source or first-TSD facts require closed foundation without reconstructing history',()=>{
+ const position=first(),base=C.exportState(C.start(position,{fresh:true}));
+ const facts=(source,tsd)=>{
+  const raw=copy(base);raw.boundary.sourcePatternSeen=source;
+  if(tsd){raw.state.account.firstTsd=true;raw.state.account.profile.before=null;raw.state.account.opening=null;}
+  return raw;
+ };
+ for(const [source,tsd]of [[true,false],[false,true],[true,true]]){
+  const bad=facts(source,tsd);assert.throws(()=>C.importState(bad,{position}),/foundation/);
+  bad.state.sl.foundationOpen=false;assert.deepEqual(C.exportState(C.importState(bad,{position})),bad);
+ }
+ // Closure does not imply a source board or TSD. A caller may import an
+ // already-closed foundation or mark handoff before either observed boundary.
+ assert.deepEqual(C.exportState(C.importState(base,{position})),base);
+ const closed=facts(false,false);closed.state.sl.foundationOpen=false;
+ assert.deepEqual(C.exportState(C.importState(closed,{position})),closed);
+ closed.state.sl.handoff=true;assert.deepEqual(C.exportState(C.importState(closed,{position})),closed);
+ // Unknown-origin S/L never acquires a known foundation classification merely
+ // because the controller observed a source pattern on an unknown origin.
+ const unknown=C.exportState(C.start(position));unknown.boundary.sourcePatternSeen=true;
+ assert.equal(unknown.state.sl.foundationOpen,true);assert.deepEqual(C.exportState(C.importState(unknown,{position})),unknown);
+});
