@@ -40,13 +40,31 @@ test('evaluation/source input execution and duplicate pair mismatches are reject
 });
 test('evaluation/shared-state dependency changes cannot escape frozen source binding',()=>{
  const f=fixture();
- for(const file of ['st-public-inventory.js','st-center-obligations.js','st-obligation-admission.js']){
+ for(const file of ['st-public-inventory.js','st-center-obligations.js','st-obligation-admission.js','st-resource-search.js']){
   assert.match(f.p.sources.candidate[file],/^[a-f0-9]{64}$/,file+' must be included in new simulation manifests');
   const changed={...f.p.sources.candidate,[file]:'0'.repeat(64)};
   assert.throws(()=>V.bindProtocol(f.p,'candidate',changed,f.p.execution,f.inputs),/source mismatch/);
   const omitted={...f.p.sources.candidate};delete omitted[file];
   assert.throws(()=>V.bindProtocol(f.p,'candidate',omitted,f.p.execution,f.inputs),/source mismatch/);
  }
+});
+test('evaluation/pre-extraction and new source closures remain prospective without weakening exact candidate binding',()=>{
+ const f=fixture(),current=E.sourceHashes(),prior={...current};delete prior['st-resource-search.js'];
+ // Synthetic contract-only maps: the old runtime did not contain the new
+ // search module. Do not invent its hash or force that side into legacy mode.
+ f.p.sources={baseline:prior,candidate:current};f.receipt.sources=current;
+ assert.equal(current['st-resource-search.js'],E.digest(fs.readFileSync(require.resolve('../st-resource-search.js'),'utf8')));
+ assert.doesNotThrow(()=>V.validateProtocol(f.p));
+ for(const [side,m]of [['baseline',f.a],['candidate',f.b]]){m.sources=f.p.sources[side];m.evaluationBinding=V.bindProtocol(f.p,side,m.sources,f.p.execution,f.inputs);}
+ const observations=f.normalized(),result=V.evaluate(f.p,...observations,[f.receipt]);
+ assert.equal(result.status,'pass');assert.equal(result.regression.prospective,true);
+ assert.ok(observations.every(o=>o.provenance.mode==='predeclared'&&!o.provenance.legacyAdapter));
+ assert.equal('st-resource-search.js'in observations[0].provenance.sources,false);
+ const omitted=clone(f.p);delete omitted.sources.candidate['st-resource-search.js'];
+ assert.doesNotThrow(()=>V.validateProtocol(omitted),'Historical minimum stays compatible; the actual runtime map supplies exact closure');
+ assert.throws(()=>V.bindProtocol(omitted,'candidate',current,f.p.execution,f.inputs),/Protocol source mismatch/);
+ const incompleteBinding=V.bindProtocol(omitted,'candidate',omitted.sources.candidate,f.p.execution,f.inputs);
+ assert.throws(()=>V.validateBoundEpisode(incompleteBinding,current,f.p.execution,f.inputs[0]),/Protocol source mismatch/);
 });
 test('evaluation/child validates exact binding before planner execution',()=>{
  const f=fixture();assert.doesNotThrow(()=>V.validateBoundEpisode(f.a.evaluationBinding,f.a.sources,f.p.execution,f.inputs[0]));

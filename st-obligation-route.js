@@ -20,6 +20,10 @@ function initialize(projection,{horizon=7,planReferences=[],openingBoundary}={})
  return freeze({schemaVersion:1,domain:'projection-route',projection:strip(projection),assessment,openingBoundary:clone(openingBoundary),planReferences:[...new Set(planReferences)].sort((a,b)=>a-b)});
 }
 function start(state,{position,inventory,horizon=7,planReferences=[],openingBoundary}={}){return initialize(P.start(state,{position,inventory}),{horizon,planReferences,openingBoundary});}
+// Deliberately begin a NEW fixed request root at an already hypothetical
+// endpoint (for example, opening handoff). Nested continuation uses step on
+// its existing Route instead. initialize validates projection via P.extendForced.
+function fromProjection(projection,options={}){return initialize(projection,options);}
 function startUnknown(position,options={}){return initialize(P.startUnknown(position),{openingBoundary:{firstBagLocks:null,sourcePatternSeen:false},...options});}
 function read(route){check(route?.schemaVersion===1&&route.domain==='projection-route'&&route.projection&&route.assessment&&Array.isArray(route.planReferences),'request envelope');return route;}
 function step(current,{witness,event}={}){
@@ -47,5 +51,5 @@ function checkPath(current,path){
  }catch(error){return{valid:false,reason:'invalid-resource-witness',detail:error.message,route,steps};}
  const resources=resolve(route).resources;return{valid:!resources.centerBlocked,reason:resources.centerBlocked?'center-partner-blocked-by-T-or-unseen':null,route,steps};
 }
-return Object.freeze({start,startUnknown,step,resolve,references,binding,checkPath});
+return Object.freeze({start,startUnknown,fromProjection,step,resolve,references,binding,checkPath});
 });

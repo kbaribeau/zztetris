@@ -90,7 +90,7 @@ test('opening accounts: actual diverted Center debt invalidation cannot become d
  a.lock(['HOLD','L','L','L','HD']);assert.equal(a.state.z.remaining,null);assert.equal(a.compare().openingAllocation.status,'verified-first-tsd');
 });
 test('opening accounts: current quality blockers can resolve, but a T departure cannot',()=>{
- const waiting=established();waiting.z.remaining=null;waiting.opening={kind:'quality',imbalance:0};
+ const waiting=established();waiting.z.remaining=null;waiting.opening={kind:'quality',imbalance:0};waiting.qualityCandidate=true;
  for(const blocker of [{center:{pending:[{id:'live'}],debt:[]}},{center:{pending:[],debt:[{id:'diverted'}]}},{sl:{hangingS:{status:'hanging'},hangingL:{status:'none-observed'}}},{sl:{hangingS:{status:'none-observed'},hangingL:{status:'unknown'}}}]){
   const blocked=lock(waiting,'J',1,blocker);assert.equal(blocked.state.z.remaining,null);assert.equal(blocked.state.opening.kind,'quality');assert.equal(lock(blocked.state,'J',2).state.z.remaining,1);
  }

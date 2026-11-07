@@ -17,9 +17,9 @@
  *
  * Integration boundaries still requiring joint migration:
  * - resource-history observeOpening/observeReset/zAccount/profileLost and tapes;
- * - opening's historical counts.T === 3 phase gates: preserve that policy with
- *   a caller-owned current phase condition, not fabricated historical counts;
- * - planner delayed-quality gates and Center/S/L update order;
+ * - opening/planner consumers: st-opening-eligibility exposes finite exact-T
+ *   retention and delayed-quality predicates without historical arrays;
+ * - Center/S/L update order and caller-selected phase changes;
  * - ResetPolicy's current-board decision, covered-cell owner and phase changes;
  * - resource monitoring's credit/spend identity arrays: use operation effects;
  * - badges/diagnostics showing capacity, timestamps or completed episode counts.
@@ -47,9 +47,9 @@ function check(ok,label){if(!ok)throw TypeError('Invalid '+label+'.');}
 function cells(value,label){check(Array.isArray(value)&&value.every(c=>Array.isArray(c)&&c.length===2&&integer(c[0])&&c[0]>=0&&c[0]<10&&integer(c[1])&&c[1]>=0&&c[1]<40)&&new Set(value.map(c=>c.join(','))).size===value.length,label);}
 function board(value){check(Array.isArray(value)&&value.length===40&&value.every(r=>typeof r==='string'&&/^[.XIJLOSTZ#]{10}$/.test(r)),'public board');}
 function validate(state,projected=false){
- shape(state,['schemaVersion','known','firstTsd','allocationVerified','mandatoryZ','opening','profile','z','reset',...(projected?['domain']:[])],'account');
+ shape(state,['schemaVersion','known','firstTsd','allocationVerified','mandatoryZ','thirdTWindow','qualityCandidate','opening','profile','z','reset',...(projected?['domain']:[])],'account');
  if(projected)check(state.domain==='projection','projected account domain');
- check(state.schemaVersion===1&&typeof state.known==='boolean'&&typeof state.firstTsd==='boolean'&&typeof state.allocationVerified==='boolean'&&typeof state.mandatoryZ==='boolean','account flags');
+ check(state.schemaVersion===1&&typeof state.known==='boolean'&&typeof state.firstTsd==='boolean'&&typeof state.allocationVerified==='boolean'&&typeof state.mandatoryZ==='boolean'&&typeof state.thirdTWindow==='boolean'&&typeof state.qualityCandidate==='boolean','account flags');
  shape(state.profile,['violation','departure','before','capEstablished'],'profile');
  for(const key of ['violation','departure','capEstablished'])check(typeof state.profile[key]==='boolean','profile '+key);
  const before=state.profile.before;
@@ -70,9 +70,12 @@ function validate(state,projected=false){
  // Internal references/unions must be coherent, but none requires a history.
  check(!state.allocationVerified||state.firstTsd,'verified allocation boundary');
  check(!state.mandatoryZ||state.allocationVerified,'mandatory Z boundary');
+ check(!state.thirdTWindow||state.known&&state.allocationVerified,'third-T allocation window');
+ check(!state.qualityCandidate||state.known&&state.allocationVerified&&state.z.remaining===null&&state.z.uncredited==='none'&&!state.profile.departure,'consumer quality candidate');
  check(!state.firstTsd||before===null,'retired pre-clear thresholds');
  check(!o||o.kind!=='allocation'||!state.firstTsd&&object(before),'allocation thresholds');
- check(!o||o.kind!=='quality'||state.allocationVerified&&state.z.remaining===null,'quality boundary');
+ check(!o||o.kind!=='quality'||state.allocationVerified&&state.z.remaining===null&&state.qualityCandidate&&!state.profile.violation,'quality boundary');
+ check(!state.qualityCandidate||o?.kind==='quality'||state.profile.violation,'consumer quality duty or source violation');
  check(state.z.remaining===null||state.allocationVerified&&!state.mandatoryZ&&o===null&&state.z.uncredited==='none','established Z account');
  check(reset.status!=='active'||state.z.remaining!==null,'Reset account');
  return state;
@@ -82,7 +85,7 @@ function importProjection(snapshot){validate(snapshot,true);return clone(snapsho
 function exportState(state){return importState(state);}
 function start({known=false}={}){
  check(typeof known==='boolean','known-origin flag');
- return{schemaVersion:1,known,firstTsd:false,allocationVerified:false,mandatoryZ:false,
+ return{schemaVersion:1,known,firstTsd:false,allocationVerified:false,mandatoryZ:false,thirdTWindow:false,qualityCandidate:false,
   opening:known?{kind:'allocation',rightZ:0,imbalance:0,roof:null}:null,
   profile:{violation:false,departure:false,before:known?{t:0,z:0,checkpoint:false}:null,capEstablished:false},
   z:{remaining:null,uncredited:'none'},reset:{status:'inactive'}};
@@ -111,7 +114,7 @@ function resolve(state,context){return resolveState(state,context);}
 function resolveProjection(state,context){return resolveState(state,context,true);}
 function addEffect(effects,status,data={}){effects.push({status,...data});}
 function disqualifyQuality(state,effects,reason){if(state.opening?.kind==='quality'){state.opening=null;addEffect(effects,'quality-disqualified',{reason});}}
-function baseline(state,effects){state.z.remaining=1;state.z.uncredited='none';state.opening=null;addEffect(effects,'baseline-established',{delta:1});}
+function baseline(state,effects){state.qualityCandidate=false;state.z.remaining=1;state.z.uncredited='none';state.opening=null;addEffect(effects,'baseline-established',{delta:1});}
 function invalidateReset(state,effects,reason){if(state.reset.status!=='invalid'){state.reset={status:'invalid'};addEffect(effects,'reset-invalidated',{reason});}}
 function begin(current,{candidate,inheritedCovered=[]}={},projected=false){
  const state=projected?importProjection(current):importState(current);check(typeof candidate==='boolean','caller Reset decision');cells(inheritedCovered,'inherited covered cells');
@@ -179,7 +182,7 @@ function reduce(current,operation,context,projected=false){
   const duty=state.opening,p=state.profile.before;
   const exactCap=duty?.kind==='allocation'&&duty.roof?.length===2&&cap(context.before.board)&&duty.roof.every(([x,y])=>context.before.board[y]?.[x]==='Z'&&e.clearedRows.includes(y));
   if(duty?.kind==='allocation'&&!state.profile.violation&&p.t===2&&duty.rightZ===1&&exactCap){
-   state.allocationVerified=true;state.mandatoryZ=p.z===0;
+   state.allocationVerified=true;state.mandatoryZ=p.z===0;state.thirdTWindow=true;state.qualityCandidate=true;
    state.opening={kind:'quality',imbalance:duty.imbalance};
    addEffect(effects,'opening-allocation-verified',{mandatoryZ:state.mandatoryZ});
    if(!state.mandatoryZ&&p.checkpoint)baseline(state,effects);
@@ -191,6 +194,10 @@ function reduce(current,operation,context,projected=false){
   if(duty.roof)duty.roof=translate(duty.roof,e.clearedRows);
  }
  if(wasFirst){
+  // The old retention gate requires exactly three Ts and non-Right T/Z=2/1.
+  // Any later T closes it. A non-Right Z CLEAR does not increment that old
+  // nonclear count; the mandatory first Z must not close the window either.
+  if(e.type==='T'||e.type==='Z'&&nonRight&&e.lines===0&&!state.mandatoryZ)state.thirdTWindow=false;
   if(e.type==='Z'&&nonRight){
    if(state.mandatoryZ&&e.lines===0){state.mandatoryZ=false;addEffect(effects,'opening-Z-paid',{pieceId:piece.id});}
    else{
@@ -204,6 +211,10 @@ function reduce(current,operation,context,projected=false){
    state.profile.departure=true;
   }
  }
+ // Consumer priority is deliberately broader than baseline eligibility. The
+ // legacy gate ignores source violations; do not substitute the quality duty
+ // (which correctly retires on them) or infer permission to grant a baseline.
+ if(state.qualityCandidate&&(state.z.uncredited!=='none'||state.profile.departure||operation.centerEffects.some(p=>p.status==='debt-invalidated')))state.qualityCandidate=false;
  if(state.opening?.kind==='quality'){
   if(state.profile.violation||state.profile.departure||state.z.uncredited!=='none')disqualifyQuality(state,effects,'allocation-or-profile-departure');
   else if(operation.centerEffects.some(p=>p.status==='debt-invalidated'))disqualifyQuality(state,effects,'invalidated-Center-debt');
