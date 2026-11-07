@@ -1,7 +1,8 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
 const R=require('../st-rules'),S=require('../st-structure'),P=require('../st-planner');
-const M=require('../st-midgame-resources'),H=require('../st-resource-history'),L=require('../st-piece-ledger'),A=require('../st-access'),F=require('../st-fixtures');
+const M=require('../st-obligation-resources'),Current=require('../st-obligation-context'),CurrentProvider=require('../st-resource-provider'),A=require('../st-access'),F=require('../st-fixtures');
+const {allowanceFixture}=require('./support/current-resource-test.cjs');
 const clone=x=>JSON.parse(JSON.stringify(x));
 // Existing reviewed geometry with explicit hypothetical public supply. This is
 // not a historical source reconstruction or permission to spend an Extra Z.
@@ -80,20 +81,17 @@ test('center JZ: recorded exact witnesses preserve actual pose and HOLD semantic
  assert.ok(!bad.valid||bad.events.length!==1||JSON.stringify(bad.events[0])!==JSON.stringify(fromHold.event),'saved inputs cannot grant a disallowed HOLD');
 });
 
-test('center JZ: real observed identities close canonical pair and finite shadow counter without granting Extra Z',()=>{
- let state=initial(),history=H.start(state),ledger=L.start(state);
- const start=H.resolve(state,history),jId=start.instances.active.id,zId=start.instances.queue[0].id;
- function act(action){const before=state,next=R.move(before,action);history=H.applyAction(history,before,action,next);ledger=L.applyAction(ledger,before,action,next);state=next;assert.notEqual(H.resolve(state,history).coverage.status,'invalid');assert.notEqual(L.resolve(state,ledger).coverage,'invalid');}
+test('center JZ: current identities close the canonical pair without granting Extra Z',()=>{
+ let state=initial(),history=Current.start(state),effects=[];
+ const start=CurrentProvider.facts(CurrentProvider.prepare(state,{obligationContext:Current.exportState(history)})),jId=start.instances.active.id,zId=start.instances.queue[0].id;
+ function act(action){const before=state,next=R.move(before,action),result=Current.applyActual(history,{before,action,after:next});history=result.context;effects.push(...result.effects);state=next;assert.equal(history.status,'available');}
  J.forEach(act);
- const pending=H.resolve(state,history).center.pending.find(p=>p.family==='ZJ');assert.ok(pending);assert.equal(pending.rootId,jId);assert.equal(pending.alternatives[0].piece,'Z');
- assert.equal(L.resolve(state,ledger).structure.pending.find(p=>p.family==='ZJ').root.type,'J');
+ const pending=history.state.center.pending.find(p=>p.family==='ZJ');assert.ok(pending);assert.equal(pending.rootId,jId);assert.equal(pending.alternatives[0].piece,'Z');
  Z.forEach(act);
- const observed=H.resolve(state,history),shadow=L.resolve(state,ledger);
- assert.ok(observed.pairs.some(p=>p.family==='ZJ'&&p.rootId===jId&&p.partnerId===zId));
- assert.ok(observed.center.closed.some(p=>p.family==='ZJ'&&p.rootId===jId&&p.partnerId===zId&&p.status==='fulfilled'));
+ const observed=CurrentProvider.facts(CurrentProvider.prepare(state,{obligationContext:Current.exportState(history)}));
+ assert.ok(effects.some(p=>p.domain==='center'&&p.family==='ZJ'&&p.rootId===jId&&p.partnerId===zId&&p.status==='fulfilled'));
  assert.equal(observed.center.pending.length,0);assert.equal(observed.extraZ.status,'unknown');
- assert.equal(shadow.structure.pairs.ZJ,1);assert.equal('JZ' in shadow.structure.pairs,false);assert.ok(Object.values(shadow.structure.pairs).every(Number.isFinite));
- assert.equal(shadow.inventory.J.locked,1);assert.equal(shadow.inventory.Z.locked,1);
+ assert.equal(effects.filter(p=>p.domain==='center'&&p.family==='ZJ'&&p.status==='fulfilled').length,1,'One actual completion emits one payment, not a duplicate cumulative ledger');
 });
 
 test('center JZ: resource projection charges the finishing Z independently of geometry',()=>{
@@ -101,13 +99,13 @@ test('center JZ: resource projection charges the finishing Z independently of ge
  // Explicit unit inputs exercise the resource-state machine, not authenticated
  // planner authorization. The imported real-history test above remains unknown.
  for(const status of ['available','used','unknown']){
-  const root=M.start(before,{extraZ:{status}}),pending=M.step(before,j,root);
+  const root=M.start(before,allowanceFixture(before,status==='available'?1:status==='used'?0:null),{extendForced:false}),pending=M.step(before,j,root);
   assert.equal(pending.pendingCenter.length,1);assert.equal(pending.pendingCenter[0].family,'ZJ');assert.equal(pending.pendingCenter[0].rootId,root.active.id);
   const done=M.step(j.state,z,pending);assert.equal(done.pendingCenter.length,0);
   assert.equal(done.violations.includes('extra-Z-not-available'),status!=='available');
   if(status==='available')assert.equal(done.extraZ,'used');
  }
- const imported=H.resolve(before,H.start(before));assert.equal(M.checkPath(before,[j,z],imported).reason,'extra-Z-not-available');
+ const imported=CurrentProvider.facts(CurrentProvider.prepare(before,{obligationContext:Current.exportState(Current.start(before))}));assert.equal(M.checkPath(before,[j,z],Current.start(before)).reason,'extra-Z-not-available');
 });
 
 test('center JZ: covered cells remain exact stage obligations until the Z repairs them',()=>{
@@ -124,36 +122,36 @@ test('center JZ: covered cells remain exact stage obligations until the Z repair
 
 test('center JZ: authenticated Extra-Z history admits and retains the real two-lock obligation',()=>{
  const B=require('../st-bag'),fixture=require('./support/st-resource-trial-1.json');
- let state=R.createState(fixture.initial),history=H.start(state,{fresh:true}),locks=0;
+ let state=R.createState(fixture.initial),history=Current.start(state,{fresh:true}),locks=0,effects=[];
  // Replay the existing public transcript through lock 20, including only the
  // reveals that actually occurred. No altered board, bag, supply or allowance.
  for(const input of fixture.steps){
   const before=state;let next=R.move(before,input.action);
   for(const piece of input.revealed||[])next={...next,queue:[...next.queue,piece],...(next.bag?{bag:B.consume(next.bag,piece)}:{})};
-  history=H.applyAction(history,before,input.action,next);state=next;
+  history=Current.applyActual(history,{before:before,action:input.action,after:next}).context;state=next;
   if(input.action==='HD'&&++locks===20)break;
  }
- const root=state,summary=H.resolve(root,history);
- assert.equal(summary.coverage.status,'complete');assert.equal(summary.extraZ.status,'available');
+ const root=state,summary=CurrentProvider.facts(CurrentProvider.prepare(root,{obligationContext:Current.exportState(history)}));
+ assert.equal(summary.status,'available');assert.equal(summary.extraZ.status,'available');
  assert.equal(root.active.type,'Z');assert.equal(root.hold,'J');assert.equal(S.geometry(root.board).right.shapeStatus,'staggered-scoring-wall');
  const j=step(root,['HOLD',...J]),completion=tuck(j.state.board);assert.ok(completion);
  const z=step(j.state,['HOLD',...completion.witness]);
  const steps=[j,z].map(p=>({witness:p.witness,event:p.event,target:p.event.target,hold:p.witness.includes('HOLD'),holdCount:p.witness.filter(a=>a==='HOLD').length}));
- const options=()=>({resourceContext:H.exportContext(state,history),maxNodes:45000,now:()=>0,deadline:Infinity});
+ const options=()=>({obligationContext:Current.exportState(history),maxNodes:45000,now:()=>0,deadline:Infinity});
  // This is a literal candidate for the production verifier, not fabricated
  // admission evidence or a claim about unrestricted fresh-choice preference.
  const candidate={...steps[0],context:JSON.stringify([root.rules,root.board,root.hold,root.canHold,root.queue,root.bag??null,root.active.type]),continuation:steps,evidence:{},metrics:{}};
  let advice=P.revalidate(root,candidate,options());assert.ok(advice,'full policy revalidation with actual known resource history');
  assert.equal(advice.evidence.resourceObligations.status,'checked');assert.ok(advice.evidence.coveredRepairPlan);
  advice=P.revalidate(root,clone(advice),options());assert.ok(advice,'serialized evidence is replayed, not trusted');
- assert.equal(P.revalidate(root,clone(advice),{...options(),resourceContext:undefined}),null,'the same geometry cannot invent missing Extra-Z authority');
+ assert.equal(P.revalidate(root,clone(advice),{...options(),obligationContext:undefined}),null,'the same geometry cannot invent missing Extra-Z authority');
  const old=advice;
- for(const action of old.witness){const before=state;state=R.move(state,action);history=H.applyAction(history,before,action,state);}
- const pending=H.resolve(state,history);assert.equal(pending.extraZ.status,'available');assert.ok(pending.center.pending.some(p=>p.family==='ZJ'));
+ for(const action of old.witness){const before=state;state=R.move(state,action);const result=Current.applyActual(history,{before,action,after:state});history=result.context;effects.push(...result.effects);}
+ const pending=CurrentProvider.facts(CurrentProvider.prepare(state,{obligationContext:Current.exportState(history)}));assert.equal(pending.extraZ.status,'available');assert.ok(pending.center.pending.some(p=>p.family==='ZJ'));
  advice=P.continueCommitment(root,state,old,state.lastEvent,options());assert.ok(advice,'the J-first covered-cell commitment survives the real lock');
  assert.equal(advice.continuation.length,1);assert.equal(advice.target.type,'Z');
- for(const action of advice.witness){const before=state;state=R.move(state,action);history=H.applyAction(history,before,action,state);}
- const finished=H.resolve(state,history);assert.equal(finished.extraZ.status,'used');assert.equal(finished.extraZ.allocations.length,1);
+ for(const action of advice.witness){const before=state;state=R.move(state,action);const result=Current.applyActual(history,{before,action,after:state});history=result.context;effects.push(...result.effects);}
+ const finished=CurrentProvider.facts(CurrentProvider.prepare(state,{obligationContext:Current.exportState(history)}));assert.equal(finished.extraZ.status,'used');assert.equal(finished.extraZ.remaining,0);
  assert.equal(finished.center.pending.length,0);assert.deepEqual(finished.coveredRepair.cells,[]);
- assert.ok(finished.pairs.some(p=>p.family==='ZJ'&&p.rootId===summary.instances.hold.id&&p.partnerId===summary.instances.active.id));
+ assert.ok(effects.some(p=>p.domain==='center'&&p.status==='fulfilled'&&p.family==='ZJ'&&p.rootId===summary.instances.hold.id&&p.partnerId===summary.instances.active.id));
 });

@@ -24,7 +24,7 @@ test('foundation stage refuses absent visible mate, immediate scoring, inherited
  // fillers roof these exact cells. TSD alone passes the new gate but lacks
  // the older visible-resource endpoint completion (also rejected at baseline).
  const old=require('./fixtures/foundation-score-unsafe-prefix.json'),repair=A.repairPrefix(score,old);assert.equal(repair.valid,false);assert.deepEqual(repair.outstandingCells,[[2,28],[2,29],[2,25]]);assert.equal(A.repairPrefix(score,old.slice(0,1)).valid,true);
- const M=require('../st-midgame-resources'),H=require('../st-resource-history'),checked=M.checkPath(score,old.slice(0,1),H.resolve(score,H.start(score)));assert.equal(checked.valid,true);assert.equal(M.repair(checked.state,checked.resource,{maxNodes:4000,now:()=>0}).valid,false);
+ const M=require('../st-obligation-resources'),Current=require('../st-obligation-context'),CurrentProvider=require('../st-resource-provider'),checked=M.checkPath(score,old.slice(0,1),Current.start(score));assert.equal(checked.valid,true);assert.equal(M.repair(checked.state,checked.resource,{maxNodes:4000,now:()=>0}).valid,false);
  const bad=R.replay(initial,['HOLD','L','L','L','CCW','HD']).state;assert.equal(Y.eligibility(bad),null);
  const wrong=clone(found.candidate.steps);wrong[1].witness=['HD'];assert.equal(Y.validate(initial,wrong).valid,false);
  assert.equal(Y.validate(initial,found.candidate.steps,{timeMs:0}).valid,false);

@@ -1,7 +1,6 @@
 /* Current public identities and seven-bag frontier only. No generator, old
  * pieces, allocation facts, action tape or Undo stack belongs in this adapter.
- * Controllers own snapshots and pass one-operation transitions to consumers.
- * Legacy resource replay constructs the same transitions as a temporary bridge. */
+ * Controllers own snapshots and pass one-operation transitions to consumers. */
 (function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-bag')):factory(root.STRules,root.STBag);if(typeof module==='object'&&module.exports)module.exports=api;else root.STPublicInventory=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,B){
 'use strict';
 const TYPES='IJLOSTZ',ALL=127,ACTIONS=['L','R','SD','HD','HOLD','CW','CCW','R180'];
@@ -95,15 +94,7 @@ function importState(raw){
   return seal(h);
  }catch(error){return invalid(error.message||'Could not import public inventory.');}
 }
-// A legacy session stores public bag knowledge beside its resource replay.
-// Reattach that current fact without changing identities or replaying its past.
-function withKnowledge(h,value){
- try{
-  if(!trusted.has(h)||h.status!=='available')return invalid('Missing public inventory.');
-  const next=knowledge(value);return same(h.knowledge,next)?h:seal({...h,knowledge:next});
- }catch(error){return invalid(error.message||'Invalid public bag knowledge.');}
-}
 function exportState(h){return trusted.has(h)&&h.status==='available'?JSON.parse(JSON.stringify(h)):null;}
 function remainingTypes(h){return trusted.has(h)&&h.status==='available'&&h.frontier?[...TYPES].filter(t=>!(h.frontier.seenMask&bit(t))):null;}
-return Object.freeze({start,transition,matchesTransition,applyAction,bound,withKnowledge,exportState,importState,remainingTypes});
+return Object.freeze({start,transition,matchesTransition,applyAction,bound,exportState,importState,remainingTypes});
 });

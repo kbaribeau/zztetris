@@ -1,10 +1,10 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const P=require('../st-planner'),R=require('../st-rules'),B=require('../st-bag'),PH=require('../st-pattern-history'),RH=require('../st-resource-history'),M=require('../st-obligation-resources'),Provider=require('../st-resource-provider'),A=require('../st-access');
+const P=require('../st-planner'),R=require('../st-rules'),B=require('../st-bag'),PH=require('../st-pattern-history'),RH=require('../st-obligation-context'),M=require('../st-obligation-resources'),Provider=require('../st-resource-provider'),A=require('../st-access');
 const fixture=require('./fixtures/fresh-maintenance-handoff.json'),clone=x=>JSON.parse(JSON.stringify(x));
 const request=()=>clone(fixture.request),options=q=>({...q.options,previous:q.previous,commitment:q.commitment,deadline:Infinity,now:()=>0});
 let cached;const advice=()=>clone(cached??=P.decide(request().observation,options(request())));
-function marked(q){return RH.markHandoff(RH.importContext(q.observation,q.options.resourceContext),q.observation);}
+function marked(q){return RH.handoff(RH.importState(q.options.obligationContext,{position:q.observation}),{position:q.observation}).context;}
 function intercepted(extras){const module={exports:{}};vm.runInNewContext(fs.readFileSync(require.resolve('../st-planner'),'utf8'),{module,require:id=>extras[id]||require(id.replace('./','../')),Date,performance});return module.exports;}
 
 test('fresh handoff / ordinary maintenance discovers and admits the visible J dependency without a handoff-specific hint',()=>{
@@ -19,7 +19,7 @@ test('fresh handoff / ordinary maintenance discovers and admits the visible J de
  const boundary=Provider.projectHandoff(Provider.prepare(q.observation,q.options).frame);
  assert.equal(a.evidence.resourceObligations.binding,M.rootBinding(Provider.startRoute(boundary)));
  assert.equal(P.revalidate(q.observation,a,{...options(q),openingPhase:false}),null,'The unmarked live ledger cannot borrow handoff labels');
- assert.ok(P.revalidate(q.observation,a,{...options(q),openingPhase:false,resourceContext:RH.exportContext(q.observation,marked(q))}));
+ assert.ok(P.revalidate(q.observation,a,{...options(q),openingPhase:false,obligationContext:RH.exportState(marked(q))}));
  assert.deepEqual(q,before,'The planner never mutates the live request or history');
 });
 test('fresh handoff / no forecast and rejected forecast still allow an ordinary supported decision',()=>{
@@ -34,10 +34,10 @@ test('fresh handoff / exact J goal survives movement, HOLD and newly revealed su
  for(let lock=0;lock<4;lock++){
   const origin=state,old=a;for(const action of old.witness){holds+=Number(action==='HOLD');const before=state;state=R.move(before,action);assert.notEqual(state,before);
    if(action==='HD'){const revealed=['T','Z','S','J'][lock];state={...state,queue:[...state.queue,revealed],bag:B.consume(state.bag,revealed)};pattern=PH.update(pattern,before,state,state.lastEvent);}
-   history=RH.applyAction(history,before,action,state);
-   if(action!=='HD'){a=P.advance(state,a,action,{...options(q),openingPhase:false,patternHistory:pattern,resourceContext:RH.exportContext(state,history)});assert.ok(a);}
+   history=RH.applyActual(history,{before:before,action:action,after:state}).context;
+   if(action!=='HD'){a=P.advance(state,a,action,{...options(q),openingPhase:false,patternHistory:pattern,obligationContext:RH.exportState(history)});assert.ok(a);}
   }
-  a=P.continueCommitment(origin,state,old,state.lastEvent,{...options(q),openingPhase:false,patternHistory:pattern,resourceContext:RH.exportContext(state,history)});
+  a=P.continueCommitment(origin,state,old,state.lastEvent,{...options(q),openingPhase:false,patternHistory:pattern,obligationContext:RH.exportState(history)});
   if(lock<3){assert.ok(a,`retained after actual lock ${lock+1}`);assert.deepEqual(a.continuation.at(-1).structuralEvidence.leftRepair,goal);}else assert.equal(a,null);
  }
  assert.ok(holds>0,'The retained route actually executes HOLD');
@@ -76,7 +76,7 @@ test('fresh handoff / zero and expired outer requests cannot acquire handoff aut
 });
 test('fresh handoff / imported phase labels and previous advice cannot authorize the optional transition',()=>{
  const q=request(),previous=advice(),history=marked(q);
- const a=P.decide(q.observation,{...options(q),openingPhase:false,resourceContext:RH.exportContext(q.observation,history),previous});
+ const a=P.decide(q.observation,{...options(q),openingPhase:false,obligationContext:RH.exportState(history),previous});
  assert.ok(a.target);assert.equal(a.retained,true);assert.deepEqual(a.continuation,previous.continuation);assert.ok(a.metrics.revalidationNodes>0);
 });
 test('fresh handoff / fixed-clock 45000-node fresh Worker performs the same supported boundary and exact J goal',()=>{
@@ -115,6 +115,6 @@ test('fresh handoff / zero residual nodes preserves its certified fallback witho
  assert.equal(a.metrics.nodes,fallback.metrics.nodes);assert.deepEqual(a.continuation,fallback.continuation);assert.deepEqual(a.evidence,fallback.evidence);
 });
 test('fresh handoff / copied handoff labels without eligible history or an actual clear cannot authorize fresh work',()=>{
- const q=request(),a=P.decide(q.observation,{...options(q),previous:advice(),resourceContext:null,openingClear:null});
+ const q=request(),a=P.decide(q.observation,{...options(q),previous:advice(),obligationContext:null,openingClear:null});
  assert.notEqual(a.retained,true);assert.notEqual(a.phase,'maintenance');assert.equal(a.evidence?.openingHandoff,undefined);assert.equal(a.metrics.handoffWork?.fresh,undefined);
 });

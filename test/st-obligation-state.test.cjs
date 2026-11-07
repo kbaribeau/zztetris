@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
-const Q=require('../st-obligation-state'),R=require('../st-rules'),I=require('../st-public-inventory'),H=require('../st-resource-history'),O=require('../st-opening-obligations'),SL=require('../st-sl-obligations'),S=require('../st-structure'),F=require('../st-fixtures'),B=require('../st-bag'),PH=require('../st-pattern-history');
+const Q=require('../st-obligation-state'),R=require('../st-rules'),I=require('../st-public-inventory'),O=require('../st-opening-obligations'),SL=require('../st-sl-obligations'),S=require('../st-structure'),F=require('../st-fixtures'),B=require('../st-bag'),PH=require('../st-pattern-history');
 const copy=x=>JSON.parse(JSON.stringify(x));
 const freeze=x=>{if(x&&typeof x==='object'){Object.values(x).forEach(freeze);Object.freeze(x);}return x;};
 const first=()=>R.createState({active:'I',queue:[...'JLOSTZ'],streamCursor:1});
@@ -15,23 +15,7 @@ function parity(root,position,inventory,witness,boundary={}){
  assert.deepEqual(projected.state,observed.state);assert.deepEqual(projected.effects,observed.effects);assert.deepEqual(projected.position,observed.position);assert.deepEqual(projected.inventory,observed.inventory);
  assert.deepEqual({root,position,inventory},saved);return projected;
 }
-// Legacy history supplies only the caller's source/lock-seven boundary facts in
-// this test helper. It is not an input to the current-fact module or its state.
-function replay(origin){
- let position=R.createState(origin),inventory=I.start(position,{fresh:true}),state=Q.start(position,{inventory}),history=H.start(position,{fresh:true,inventory}),locks=0,last;
- function act(action,revealed=[]){
-  const before=position,old=history,raw=R.move(before,action);assert.notEqual(raw,before);
-  const after={...raw,queue:[...raw.queue,...revealed]},receipt=I.transition(inventory,before,action,after);assert.equal(receipt.status,'available');
-  history=H.applyAction(history,before,action,after,{inventoryTransition:receipt});assert.equal(history.coverage.status,'complete');
-  const boundary={};if(action==='HD'){locks++;boundary.closeFoundation=Boolean(!old.milestones.sourcePattern&&history.milestones.sourcePattern);if(locks===7)boundary.firstBagReview=history.milestones.sourcePattern?.at===7?'reviewed':'unreviewed';}
-  last=Q.applyActual(state,{before,after,inventory,receipt,action,boundary});state=last.state;position=after;inventory=receipt.next;return last;
- }
- return{act,lock(witness){for(const action of witness)act(action);return last;},
-  handoff(){const c={position,inventory};last=Q.transition(state,{kind:'handoff'},{before:c,after:c});state=last.state;history=H.markHandoff(history,position);return last;},
-  begin(candidate=true){const c={position,inventory};last=Q.transition(state,{kind:'begin-reset',candidate},{before:c,after:c});state=last.state;return last;},
-  load(context){if(context.handoffAtAction===0)this.handoff();for(const [i,step]of context.steps.entries()){act(step.action,step.revealed);if(context.handoffAtAction===i+1)this.handoff();}return this;},
-  get state(){return state;},get position(){return position;},get inventory(){return inventory;},get history(){return history;},get locks(){return locks;},get last(){return last;}};
-}
+const replay=require('./support/current-player.cjs');
 function trial(n,until=Infinity){const f=require('./support/st-resource-trial-'+n+'.json'),x=replay(f.initial);for(const step of f.steps){if(x.locks>=until)break;x.act(step.action,step.revealed);}return x;}
 const context=x=>({position:x.position,inventory:x.inventory});
 
@@ -79,22 +63,11 @@ test('shared state: exact Center payment clears both current facets once and nev
  const result=parity(imported,created.position,created.inventory,['R','R','CW',...Array(7).fill('SD'),'L','HD']);
  assert.deepEqual(result.state.center,{pending:[],debt:[]});assert.deepEqual(result.effects.filter(e=>e.domain==='center').map(e=>e.status),['fulfilled','debt-fulfilled']);assert.equal(result.effects.some(e=>'at'in e),false);
 });
-test('shared state: coupled public replays preserve Center, opening account and compact S/L facts',()=>{
- for(const n of [1,2,5]){
-  const f=require('./support/st-resource-trial-'+n+'.json'),x=replay(f.initial);
-  for(const step of f.steps){x.act(step.action,step.revealed);if(step.action!=='HD')continue;
-   const old=H.resolve(x.position,x.history),now=O.resolve(x.state.account,{board:x.position.board});
-   assert.deepEqual(now.openingAllocation,Object.fromEntries(['status','requiredNonRightT','requiredNonRightZ'].map(k=>[k,old.openingAllocation[k]])));
-   assert.deepEqual(now.extraZ,{status:old.extraZ.status,baseline:Boolean(old.extraZ.baseline),remaining:old.extraZ.remaining});
-   assert.deepEqual(x.state.center.pending.map(p=>[p.rootId,p.family,p.alternatives]),old.center.pending.map(p=>[p.rootId,p.family,p.alternatives]));
-   const sl=SL.resolve(x.state.sl,{inventory:x.inventory,center:x.state.center,profileLost:O.profileLost(x.state.account)});
-   for(const kind of ['S','L']){assert.equal(sl['hanging'+kind].status,old['hanging'+kind].status);assert.equal(sl['hanging'+kind].unclassifiedCount,old['hanging'+kind].unclassified.length);}
-   assert.deepEqual(Q.importState(copy(x.state)),x.state);
-  }
- }
+test('shared state: coupled public replays retain bounded current facts and transport',()=>{
+ for(const n of [1,2,5]){const x=trial(n);assert.equal(x.state.availability,'known');assert.equal(x.context.boundary.firstBagLocks,7);assert.equal(x.state.sl.firstBagReview,'reviewed');assert.deepEqual(Q.importState(copy(x.state)),x.state);assert.equal('history' in x.state,false);assert.equal('locks' in x.state,false);}
 });
 test('shared state: Center pair payment updates S/L before delayed quality without granting route permission',()=>{
- const f=require('./fixtures/opening-z-allocation.json'),x=replay(f.request.options.resourceContext.origin).load(f.request.options.resourceContext);
+ const f=require('./fixtures/opening-z-allocation.json'),x=replay(f.request.observation,{snapshot:f.request.options.obligationContext});
  let projected={state:x.state,position:x.position,inventory:x.inventory};
  for(const [i,step]of f.steps.entries()){
   projected=parity(projected.state,projected.position,projected.inventory,step.witness);
@@ -117,7 +90,7 @@ test('shared state: actual Reset completion retires only its duty and emits one 
  assert.equal(result.effects.filter(e=>e.status==='reset-completed').length,1);assert.equal(result.effects.filter(e=>e.status==='reset-T-credited').length,1);assert.equal(before.account.reset.remaining,1);assert.equal(start.account.reset.remaining,2);
 });
 test('shared state: handoff rebases S/L exactly once and retains other current work',()=>{
- const x=trial(1,10),before=copy(x.state),a=x.handoff(),b=x.handoff();assert.equal(a.state.sl.handoff,true);assert.equal(a.state.sl.foundationOpen,false);assert.deepEqual(b.state,a.state);assert.deepEqual(b.effects,[]);
+ const x=trial(1,10),before=copy(x.state),a={...x.handoff(),state:x.state},b={...x.handoff(),state:x.state};assert.equal(a.state.sl.handoff,true);assert.equal(a.state.sl.foundationOpen,false);assert.deepEqual(b.state,a.state);assert.deepEqual(b.effects,[]);
  for(const key of ['center','account','safety','dPending'])assert.deepEqual(a.state[key],before[key]);
 });
 test('shared state: observed D creation persists across a D lock, imported D geometry is unclaimed',()=>{

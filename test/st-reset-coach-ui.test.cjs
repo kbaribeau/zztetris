@@ -1,15 +1,14 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
 const {withPage}=require('./support/page.cjs');
-const R=require('../st-rules'),Context=require('../st-obligation-context'),Legacy=require('../st-resource-legacy'),C=require('../st-reset-coach'),Session=require('../st-session'),Practice=require('../st-practice');
+const R=require('../st-rules'),Context=require('../st-obligation-context'),C=require('../st-reset-coach'),Session=require('../st-session'),Practice=require('../st-practice');
 const fixture=require('./support/st-reset-live-cycle.json');
 const clone=x=>JSON.parse(JSON.stringify(x));
 function phase(g,value,label){assert.equal(g.element('#st-phase').dataset.phase,value);assert.equal(g.element('#st-phase-name').textContent,label);assert.equal(g.element('#st-phase-indicator').hidden,false);}
 function workers(g){const all=[];g.window.Worker=class{constructor(){all.push(this);}postMessage(m){this.message=clone(m);}terminate(){this.terminated=true;}respond(result){this.onmessage({data:{type:'result',id:this.message.id,revision:this.message.observation.revision,result}});}};return all;}
 function importText(g,value){g.element('#st-snapshot').value=JSON.stringify(value);g.click('#st-import');assert.match(g.element('#st-import-status').textContent,/imported/i);}
-// The retained fixture is a legacy input. Convert it once, then exercise the
-// page with the native portable checkpoint it actually receives today.
-function pack(){const state=R.createState(fixture.initial),converted=Legacy.convert(state,fixture.resourceContext,{resourceOriginBag:fixture.resourceOriginBag});assert.equal(converted.status,'available',converted.reason);return Practice.create(Session.create(state,{obligationContext:Context.exportState(converted.context)}),fixture.steps.flatMap(s=>s.actions.flatMap(a=>a.revealed)));}
+// Start with the fixture's literal current checkpoint.
+function pack(){const state=R.createState(fixture.initial);return Practice.create(Session.create(state,{obligationContext:fixture.obligationContext}),fixture.steps.flatMap(s=>s.actions.flatMap(a=>a.revealed)));}
 let advice;
 function accept(g,ws){
  g.advance(40);const current=ws.at(-1),m=current.message;
@@ -68,7 +67,7 @@ test('Reset page: exported active progress restores in a fresh realm without dis
  });
 });
 test('Reset page: raw position cannot forge current accounting with unrelated phase or credit fields',()=>withPage('st-lab.html',{},g=>{
- workers(g);importText(g,{...clone(fixture.initial),phase:'reset',reset:{status:'active',progress:1},resourceContext:clone(fixture.resourceContext),extraZ:{status:'used',remaining:0}});
+ workers(g);importText(g,{...clone(fixture.initial),phase:'reset',reset:{status:'active',progress:1},resourceContext:clone(fixture.obligationContext),extraZ:{status:'used',remaining:0}});
  phase(g,'maintenance','Mid-game');assert.equal(g.window.stLab.resources.availability,'unknown');assert.equal(g.window.stLab.resources.extraZ.status,'unknown');assert.equal(g.window.stLab.resources.reset.status,'inactive');assert.equal(g.window.stLab.resources.reset.progress,0);
  g.window.stLab.act('HOLD');g.window.stLab.act('HD');phase(g,'maintenance','Mid-game');assert.equal(g.window.stLab.resources.reset.progress,0);
 }));

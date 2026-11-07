@@ -1,0 +1,773 @@
+{
+  "provenance": "Region matrix captured at caff3d02; current summaries were checked against the retired classifier at capture time.",
+  "cases": [
+    {
+      "first": "S",
+      "one": "left",
+      "two": "left",
+      "expected": {
+        "S": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "L": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "first": "S",
+      "one": "left",
+      "two": "center",
+      "expected": {
+        "S": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "L": {
+          "status": "unknown",
+          "evidence": [],
+          "uncertainty": [
+            1
+          ]
+        }
+      }
+    },
+    {
+      "first": "S",
+      "one": "left",
+      "two": "cross",
+      "expected": {
+        "S": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "L": {
+          "status": "unknown",
+          "evidence": [],
+          "uncertainty": [
+            1
+          ]
+        }
+      }
+    },
+    {
+      "first": "S",
+      "one": "left",
+      "two": "right",
+      "expected": {
+        "S": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "L": {
+          "status": "unknown",
+          "evidence": [],
+          "uncertainty": [
+            1
+          ]
+        }
+      }
+    },
+    {
+      "first": "S",
+      "one": "center",
+      "two": "left",
+      "expected": {
+        "S": {
+          "status": "unknown",
+          "evidence": [],
+          "uncertainty": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "L": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "first": "S",
+      "one": "center",
+      "two": "center",
+      "expected": {
+        "S": {
+          "status": "unknown",
+          "evidence": [],
+          "uncertainty": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "L": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "first": "S",
+      "one": "center",
+      "two": "cross",
+      "expected": {
+        "S": {
+          "status": "unknown",
+          "evidence": [],
+          "uncertainty": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "L": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "first": "S",
+      "one": "center",
+      "two": "right",
+      "expected": {
+        "S": {
+          "status": "unknown",
+          "evidence": [],
+          "uncertainty": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "L": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "first": "S",
+      "one": "cross",
+      "two": "left",
+      "expected": {
+        "S": {
+          "status": "unknown",
+          "evidence": [],
+          "uncertainty": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "L": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "first": "S",
+      "one": "cross",
+      "two": "center",
+      "expected": {
+        "S": {
+          "status": "unknown",
+          "evidence": [],
+          "uncertainty": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "L": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "first": "S",
+      "one": "cross",
+      "two": "cross",
+      "expected": {
+        "S": {
+          "status": "unknown",
+          "evidence": [],
+          "uncertainty": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "L": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "first": "S",
+      "one": "cross",
+      "two": "right",
+      "expected": {
+        "S": {
+          "status": "unknown",
+          "evidence": [],
+          "uncertainty": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "L": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "first": "S",
+      "one": "right",
+      "two": "left",
+      "expected": {
+        "S": {
+          "status": "unknown",
+          "evidence": [],
+          "uncertainty": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "L": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "first": "S",
+      "one": "right",
+      "two": "center",
+      "expected": {
+        "S": {
+          "status": "unknown",
+          "evidence": [],
+          "uncertainty": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "L": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "first": "S",
+      "one": "right",
+      "two": "cross",
+      "expected": {
+        "S": {
+          "status": "unknown",
+          "evidence": [],
+          "uncertainty": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "L": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "first": "S",
+      "one": "right",
+      "two": "right",
+      "expected": {
+        "S": {
+          "status": "unknown",
+          "evidence": [],
+          "uncertainty": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "L": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "first": "L",
+      "one": "left",
+      "two": "left",
+      "expected": {
+        "S": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "L": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "first": "L",
+      "one": "left",
+      "two": "center",
+      "expected": {
+        "S": {
+          "status": "unknown",
+          "evidence": [],
+          "uncertainty": [
+            0,
+            1,
+            0,
+            0
+          ]
+        },
+        "L": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "first": "L",
+      "one": "left",
+      "two": "cross",
+      "expected": {
+        "S": {
+          "status": "unknown",
+          "evidence": [],
+          "uncertainty": [
+            0,
+            1,
+            0,
+            0
+          ]
+        },
+        "L": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "first": "L",
+      "one": "left",
+      "two": "right",
+      "expected": {
+        "S": {
+          "status": "unknown",
+          "evidence": [],
+          "uncertainty": [
+            0,
+            1,
+            0,
+            0
+          ]
+        },
+        "L": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "first": "L",
+      "one": "center",
+      "two": "left",
+      "expected": {
+        "S": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "L": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "first": "L",
+      "one": "center",
+      "two": "center",
+      "expected": {
+        "S": {
+          "status": "unknown",
+          "evidence": [],
+          "uncertainty": [
+            0,
+            1,
+            0,
+            0
+          ]
+        },
+        "L": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "first": "L",
+      "one": "center",
+      "two": "cross",
+      "expected": {
+        "S": {
+          "status": "unknown",
+          "evidence": [],
+          "uncertainty": [
+            0,
+            1,
+            0,
+            0
+          ]
+        },
+        "L": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "first": "L",
+      "one": "center",
+      "two": "right",
+      "expected": {
+        "S": {
+          "status": "unknown",
+          "evidence": [],
+          "uncertainty": [
+            0,
+            1,
+            0,
+            0
+          ]
+        },
+        "L": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "first": "L",
+      "one": "cross",
+      "two": "left",
+      "expected": {
+        "S": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "L": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "first": "L",
+      "one": "cross",
+      "two": "center",
+      "expected": {
+        "S": {
+          "status": "unknown",
+          "evidence": [],
+          "uncertainty": [
+            0,
+            1,
+            0,
+            0
+          ]
+        },
+        "L": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "first": "L",
+      "one": "cross",
+      "two": "cross",
+      "expected": {
+        "S": {
+          "status": "unknown",
+          "evidence": [],
+          "uncertainty": [
+            0,
+            1,
+            0,
+            0
+          ]
+        },
+        "L": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "first": "L",
+      "one": "cross",
+      "two": "right",
+      "expected": {
+        "S": {
+          "status": "unknown",
+          "evidence": [],
+          "uncertainty": [
+            0,
+            1,
+            0,
+            0
+          ]
+        },
+        "L": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "first": "L",
+      "one": "right",
+      "two": "left",
+      "expected": {
+        "S": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "L": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "first": "L",
+      "one": "right",
+      "two": "center",
+      "expected": {
+        "S": {
+          "status": "unknown",
+          "evidence": [],
+          "uncertainty": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "L": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "first": "L",
+      "one": "right",
+      "two": "cross",
+      "expected": {
+        "S": {
+          "status": "unknown",
+          "evidence": [],
+          "uncertainty": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "L": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "first": "L",
+      "one": "right",
+      "two": "right",
+      "expected": {
+        "S": {
+          "status": "unknown",
+          "evidence": [],
+          "uncertainty": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "L": {
+          "status": "none-observed",
+          "evidence": [],
+          "uncertainty": [
+            0
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
-const P=require('../st-planner'),R=require('../st-rules'),H=require('../st-resource-history'),S=require('../st-structure');
+const P=require('../st-planner'),R=require('../st-rules'),H=require('../st-obligation-context'),S=require('../st-structure');
 const fixture=require('./fixtures/visible-scoring-chain.json'),clone=x=>JSON.parse(JSON.stringify(x));
 // This regression is node-bounded so host wall-clock jitter cannot turn an
 // existing capability into an exact-selection fixture. A separate retained
@@ -10,13 +10,13 @@ const centerL=e=>e.type==='L'&&!e.lines&&e.cells.every(([x])=>x>=4&&x<=6);
 function start(){const state=R.createState(clone(fixture.observation));return{state,history:H.start(state),pattern:P.startPatternHistory(state)};}
 function execute(q,witness){
  const replay=R.replay(q.state,witness);assert.equal(replay.valid,true);assert.equal(replay.events.length,1);
- for(const action of witness){const before=q.state;q.state=R.move(before,action);assert.notEqual(q.state,before);q.history=H.applyAction(q.history,before,action,q.state);if(action==='HD')q.pattern=P.updatePatternHistory(q.pattern,before,q.state,q.state.lastEvent);}
- assert.deepEqual(q.state.board,replay.state.board);assert.deepEqual(R.validate(q.state),[]);assert.equal(H.resolve(q.state,q.history).coverage.status,'partial');return q.state.lastEvent;
+ for(const action of witness){const before=q.state;q.state=R.move(before,action);assert.notEqual(q.state,before);q.history=H.applyActual(q.history,{before:before,action:action,after:q.state}).context;if(action==='HD')q.pattern=P.updatePatternHistory(q.pattern,before,q.state,q.state.lastEvent);}
+ assert.deepEqual(q.state.board,replay.state.board);assert.deepEqual(R.validate(q.state),[]);assert.equal(H.resolve(q.history,{position:q.state}).availability,'unknown');return q.state.lastEvent;
 }
-const options=q=>({...bounds,patternHistory:q.pattern,resourceContext:H.exportContext(q.state,q.history)});
+const options=q=>({...bounds,patternHistory:q.pattern,obligationContext:H.exportState(q.history)});
 
 test('visible scoring chain: public quad, Center completion and TSD have a literal finite witness without inventing history',()=>{
- const q=start(),summary=H.resolve(q.state,q.history);assert.equal(summary.coverage.status,'partial');assert.equal(summary.extraZ.status,'unknown');assert.equal(summary.hangingS.status,'unknown');
+ const q=start(),summary=H.resolve(q.history,{position:q.state});assert.equal(summary.availability,'unknown');assert.equal(summary.extraZ.status,'unknown');assert.equal(summary.hangingS.status,'unknown');
  const events=fixture.reference.witnesses.map(w=>clone(execute(q,w)));
  assert.deepEqual(events.map(e=>e.type),fixture.reference.types);assert.deepEqual(events.map(e=>e.lines),fixture.reference.lines);assert.equal(events.at(-1).spin,'full');assert(events[0].cells.every(([x])=>x===9));assert(centerL(events[4]));assert(events[3].cells.every(([x])=>x>=8),'Z remains Right, not unknown Extra-Z spending');
  assert.deepEqual(q.state.board,fixture.reference.finalBoard);assert.equal(q.state.streamCursor-fixture.observation.streamCursor,6);assert.deepEqual(q.state.queue,[]);assert.equal(q.state.active.type,'L');assert.equal(q.state.hold,'S');

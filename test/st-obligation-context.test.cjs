@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const C=require('../st-obligation-context'),Q=require('../st-obligation-state'),I=require('../st-public-inventory'),R=require('../st-rules'),H=require('../st-resource-history'),Patterns=require('../st-opening-patterns');
+const C=require('../st-obligation-context'),Q=require('../st-obligation-state'),I=require('../st-public-inventory'),R=require('../st-rules'),Patterns=require('../st-opening-patterns');
 const copy=x=>JSON.parse(JSON.stringify(x));
 const first=()=>R.createState({active:'I',queue:[...'JLOSTZ'],streamCursor:1});
 function player(origin=first(),fresh=true){
@@ -88,14 +88,10 @@ test('context: a later first source match closes foundation but never reviews lo
  const checkpoint=copy(C.snapshot(x.context,{position:x.position}));checkpoint.context.boundary.firstBagLocks=7;checkpoint.context.state.sl.firstBagReview='unreviewed';x.install(checkpoint);
  x.lock(decoded(path[6].witness));assert.equal(x.context.boundary.sourcePatternSeen,true);assert.equal(x.context.state.sl.firstBagReview,'unreviewed');assert.equal(x.context.state.sl.foundationOpen,false);
 });
-test('context: bounded source metadata matches legacy first-source facts across public replays',()=>{
- for(const n of [1,2,5]){
-  const f=require('./support/st-resource-trial-'+n+'.json'),x=player(f.initial);let h=H.start(x.position,{fresh:true,inventory:x.context.inventory});
-  for(const step of f.steps){const before=x.position,result=x.act(step.action,step.revealed,true);h=H.applyAction(h,before,step.action,x.position,{inventoryTransition:result.receipt});assert.equal(h.coverage.status,'complete');
-   assert.equal(x.context.boundary.firstBagLocks,Math.min(h.locks,7));assert.equal(x.context.boundary.sourcePatternSeen,Boolean(h.milestones.sourcePattern));
-   if(h.locks>=7)assert.equal(x.context.state.sl.firstBagReview,h.milestones.sourcePattern?.at===7?'reviewed':'unreviewed');
-   assert.deepEqual(C.importState(C.exportState(x.context),{position:x.position}),x.context);
-  }
+test('context: bounded source metadata and current facts survive public replay transport',()=>{
+ for(const n of [1,2,5]){const f=require('./support/st-resource-trial-'+n+'.json'),x=player(f.initial);let locks=0;
+  for(const step of f.steps){x.act(step.action,step.revealed,true);if(step.action==='HD')locks++;assert.equal(x.context.boundary.firstBagLocks,Math.min(locks,7));assert.deepEqual(C.importState(C.exportState(x.context),{position:x.position}),x.context);}
+  assert.equal(x.context.boundary.sourcePatternSeen,true);assert.equal(x.context.state.sl.firstBagReview,'reviewed');
  }
 });
 test('context: actual handoff is idempotent and preserves Center, safety and account facts',()=>{

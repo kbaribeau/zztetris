@@ -3,7 +3,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const R=require('../st-rules'),B=require('../st-bag'),Context=require('../st-obligation-context'),Provider=require('../st-resource-provider'),Resources=require('../st-obligation-resources'),Coach=require('../st-reset-coach'),Policy=require('../st-reset-policy');
 const copy=x=>JSON.parse(JSON.stringify(x)),bounds={maxNodes:45000,now:()=>0,deadline:Infinity};
 const fixture=require('./support/st-reset-certification-miss.json');
-function native(){const prepared=Provider.prepare(fixture.initial,{resourceContext:fixture.resourceContext});assert.equal(prepared.status,'available',prepared.reason);return Context.exportState(prepared.context);}
+function native(){const prepared=Provider.prepare(fixture.initial,{obligationContext:fixture.obligationContext});assert.equal(prepared.status,'available',prepared.reason);return Context.exportState(prepared.context);}
 function coachWithProvider(provider,resources=Resources){
  const file=require.resolve('../st-reset-coach'),req=createRequire(file),box={module:{exports:{}},require:name=>name==='./st-resource-provider'?provider:name==='./st-obligation-resources'?resources:req(name)};
  vm.runInNewContext(fs.readFileSync(file,'utf8'),box,{filename:file});return box.module.exports;
@@ -40,21 +40,22 @@ test('Reset current authority: inherited anonymous uncertainty carries and remai
  assert.ok(advice.evidence.resourceObligations.uncertainty.S.count>=2);
 });
 test('Reset current authority: known L37 becoming unclassified remains a rejection',()=>{
- const f=require('./fixtures/resource-projection-history.json').cases[1],prepared=Provider.prepare(f.observation,{resourceContext:f.resourceContext});
+ const f=require('./fixtures/resource-projection-history.json').cases[1],prepared=Provider.prepare(f.observation,{obligationContext:f.obligationContext});
  let losses=0;const coach=coachWithProvider(Provider,{...Resources,resetLosesObligation:(before,after)=>{const lost=Resources.resetLosesObligation(before,after);losses+=Number(lost);return lost;}});
  const result=coach.check(f.observation,[{witness:f.witness,event:f.event}],{...bounds,obligationContext:Context.exportState(prepared.context)});
  assert.equal(result.valid,false);assert.equal(result.reason,'reset-transition-invalid');assert.equal(losses,1,'The actual Reset loss gate rejects this known-to-unclassified step');
 });
 test('Reset current authority: policy uses observed frontier, never conflicting raw bag or compatibility fields',()=>{
- const f=require('./support/reset-history.cjs')(),input=Provider.prepare(f.state,{resourceContext:f.resourceContext});
+ const f=require('./support/reset-history.cjs')(),input=Provider.prepare(f.state,{obligationContext:f.obligationContext});
  const state=R.createState({board:f.state.board,active:'J',queue:[],bag:B.fromObserved({observed:[...'IJLOSZ'],startPhase:0})});
  const facts={...input.facts,observedRemainingTypes:['I'],publicBag:{remainingTypes:['T']}};
  const result=Policy.consider(state,facts);assert.equal(result.arrival.kind,'public-forced-non-T-before-unseen-T');assert.equal(result.arrival.nonTBefore,2);
+ const legacy={...facts,coverage:{status:'complete'}};delete legacy.availability;assert.equal(Policy.consider(state,legacy).status,'unknown-history');
  const unknown=Policy.consider(state,{...facts,availability:'unknown',coverage:{status:'complete'}});assert.equal(unknown.status,'unknown-history');
  const unavailable=Policy.consider(state,{...facts,status:'unavailable',coverage:{status:'complete'}});assert.equal(unavailable.status,'unknown-history');
 });
 test('Reset current authority: projected completion survives request retirement while actual status becomes inactive zero',()=>{
- const f=require('./support/st-reset-live-cycle.json');let state=R.createState(f.initial),context=Provider.prepare(state,{resourceContext:f.resourceContext}).context;
+ const f=require('./support/st-reset-live-cycle.json');let state=R.createState(f.initial),context=Provider.prepare(state,{obligationContext:f.obligationContext}).context;
  context=Context.beginReset(context,{position:state,candidate:true}).context;let checked=null;
  for(const [index,step]of f.steps.entries()){
   if(index===f.steps.length-1){checked=Coach.check(state,[{witness:step.actions.map(p=>p.action),event:step.event}],{...bounds,obligationContext:Context.exportState(context)});assert.equal(checked.valid,true,checked.reason);}

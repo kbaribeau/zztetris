@@ -7,9 +7,8 @@ function consider(raw,resources){
  const result=(status,reason,extra={})=>({policy:'late-support-arrival-risk-v1',status,reason,resourceRenewal:false,...extra});
  if(!raw||R.validate(raw).length||raw.bag&&B.validate(raw.bag).length)return result('invalid-observation','A valid public observation is required.');
  if(!raw.active||raw.topOut)return result('out-of-scope','A live position is required.');
- // Only the finite old-format decoder may still supply a legacy summary.
- // Current unavailable/unknown facts never borrow authority from old coverage.
- const known=resources?.availability===undefined?resources?.coverage?.status==='complete':resources?.status==='available'&&resources.availability==='known';
+ // Only available, known current facts establish Reset eligibility.
+ const known=resources?.status==='available'&&resources.availability==='known';
  if(!known||!resources.extraZ?.baseline)return result('unknown-history','Reset requires known current opening allocation and resource eligibility.');
  if(resources.reset?.status==='active')return result('active','Continue the selected Reset until its second qualifying T.',{progress:resources.reset.progress});
  if(resources.extraZ.status!=='used')return result('ordinary-preferred','Only late Midgame considers Reset.');
@@ -30,7 +29,7 @@ function consider(raw,resources){
  if(visibleT<0&&raw.hold!=='T'){
   // Use the observed inventory frontier, not raw imported bag metadata or
   // a request-local synthetic forced subject.
-  const remaining=resources.availability===undefined?resources.publicBag?.remainingTypes:resources.observedRemainingTypes,forced=remaining?.length===1?remaining[0]:null;
+  const remaining=resources.observedRemainingTypes,forced=remaining?.length===1?remaining[0]:null;
   if(forced&&forced!=='T'){beforeT++;arrival='public-forced-non-T-before-unseen-T';}
  }
  // An optimistic cell capacity is a negative control, never a geometric

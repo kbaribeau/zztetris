@@ -1,12 +1,12 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
-const R=require('../st-rules'),P=require('../st-planner'),RH=require('../st-resource-history'),S=require('../st-structure'),Session=require('../st-session');
+const R=require('../st-rules'),P=require('../st-planner'),RH=require('../st-obligation-context'),S=require('../st-structure'),Session=require('../st-session');
 const f=require('./fixtures/visible-left-repair.json'),clone=x=>JSON.parse(JSON.stringify(x));
 const root=()=>R.createState(f.observation);
 const opts=()=>({...clone(f.options),depth:3,width:8,maxNodes:45000,now:()=>0,deadline:Infinity});
 const key=c=>c.map(p=>p.join(',')).sort().join(';');
 let cached;const advice=()=>clone(cached??=P.decide(root(),opts()));
-const partial=s=>({...opts(),resourceContext:RH.exportContext(s,RH.start(s))});
+const partial=s=>({...opts(),obligationContext:RH.exportState(RH.start(s))});
 // The fixture contains only a public observation and replayable observed history,
 // never saved advice, search answers or an unseen generator tail.
 test('visible Left repair / normal decision executes an identified J after Center and Right preparations',()=>{
@@ -14,7 +14,7 @@ test('visible Left repair / normal decision executes an identified J after Cente
  assert.deepEqual(a.continuation.map(p=>p.event.type),['L','Z','O','J']);assert.equal(P.cycleResources(a.continuation).leftRepairs,1);
  assert.ok(a.continuation.slice(0,-1).every(p=>p.event.cells.every(([x])=>x>=4)&&p.event.lines===0));
  const goal=a.continuation.at(-1).structuralEvidence.leftRepair;
- const history=RH.resolve(s,RH.importContext(s,f.options.resourceContext));assert.equal(history.coverage.status,'complete');
+ const history=RH.resolve(RH.importState(f.options.obligationContext,{position:s}),{position:s});assert.equal(history.availability,'known');
  assert.equal(goal.piece,'J');assert.equal(key(goal.cells),key(a.continuation.at(-1).event.cells));
  assert.ok(S.geometry(s.board).left.completions.some(c=>c.piece==='J'&&key(c.cells)===key(goal.cells)));
  const baseline=P.decide(s,{...opts(),disableVisibleLeftRepair:true});
@@ -36,14 +36,14 @@ test('visible Left repair / production Worker keeps its wall budget without clai
  if(selected){assert.deepEqual(a.continuation.map(p=>p.event.type),['L','Z','O','J']);assert.equal(P.cycleResources(a.continuation).leftRepairs,1);assert.equal(a.metrics.visibleLeftRepair.paymentLock,4);}
 });
 function execute(reveals=false){
- let s=root(),h=RH.importContext(s,f.options.resourceContext),a=advice();const original=clone(a.continuation.at(-1).structuralEvidence.leftRepair);
+ let s=root(),h=RH.importState(f.options.obligationContext,{position:s}),a=advice();const original=clone(a.continuation.at(-1).structuralEvidence.leftRepair);
  for(let lock=0;lock<4;lock++){
   const beforeLock=s,old=a;for(const action of old.witness){const before=s;s=R.move(s,action);assert.notEqual(s,before);
    if(action==='HD'&&reveals)s={...s,queue:[...s.queue,['T','Z','S','J'][lock]]};
-   h=RH.applyAction(h,before,action,s);
-   if(action!=='HD'){a=P.advance(s,a,action,{...opts(),resourceContext:RH.exportContext(s,h)});assert.ok(a,`movement ${lock+1} ${action}`);}
+   h=RH.applyActual(h,{before:before,action:action,after:s}).context;
+   if(action!=='HD'){a=P.advance(s,a,action,{...opts(),obligationContext:RH.exportState(h)});assert.ok(a,`movement ${lock+1} ${action}`);}
   }
-  a=P.continueCommitment(beforeLock,s,old,s.lastEvent,{...opts(),resourceContext:RH.exportContext(s,h)});
+  a=P.continueCommitment(beforeLock,s,old,s.lastEvent,{...opts(),obligationContext:RH.exportState(h)});
   if(lock<3){assert.ok(a,`retained after lock ${lock+1}`);assert.equal(a.continuation.length,3-lock);assert.deepEqual(a.continuation.at(-1).structuralEvidence.leftRepair,original);}
   else assert.equal(a,null,'the actual J completes the obligation');
  }
@@ -52,9 +52,9 @@ function execute(reveals=false){
 test('visible Left repair / exact movements and HOLD retain the same goal until actual J lock',()=>execute());
 test('visible Left repair / later public reveals preserve the finite goal and do not create stale credit',()=>{
  const {s,h}=execute(true);assert.equal(s.queue.length,6);
- const next=P.decide(s,{...opts(),resourceContext:RH.exportContext(s,h)});
+ const next=P.decide(s,{...opts(),obligationContext:RH.exportState(h)});
  assert.ok(!next.evidence?.commitmentRetained);assert.equal(P.cycleResources([]).leftRepairs,0);
- if(next.target)assert.ok(P.revalidate(s,next,{...opts(),resourceContext:RH.exportContext(s,h)}));
+ if(next.target)assert.ok(P.revalidate(s,next,{...opts(),obligationContext:RH.exportState(h)}));
 });
 test('visible Left repair / exact goal comparison rejects another J, landing or unfinished prefix',()=>{
  const path=advice().continuation;assert.equal(P.resourceGoalPrefix(path,path),4);assert.equal(P.resourceGoalPrefix(path.slice(0,3),path),null);
@@ -65,7 +65,7 @@ test('visible Left repair / revalidation rejects forged identities, profiles, wi
   const a=advice();change(a.continuation.at(-1).structuralEvidence.leftRepair);assert.equal(P.revalidate(root(),a,opts()),null);
  }
  const a=advice();a.continuation.at(-1).witness=['HD'];assert.equal(P.revalidate(root(),a,opts()),null);
- const o=opts();o.resourceContext.steps.at(-1).action='L';assert.equal(P.revalidate(root(),advice(),o),null);
+ const o=opts();o.obligationContext.inventory.nextId=0;assert.equal(P.revalidate(root(),advice(),o),null);
  const missing=root();missing.queue=missing.queue.map(p=>p==='J'?'S':p);assert.equal(P.revalidate(missing,advice(),partial(missing)),null);
  const blocked=root();blocked.board[34]='X'+blocked.board[34].slice(1);assert.equal(P.revalidate(blocked,advice(),partial(blocked)),null);
 });
@@ -80,14 +80,11 @@ test('visible Left repair / zero, tiny and expired shared budgets cannot claim r
  for(const patch of [{maxNodes:0},{maxNodes:1},{now:()=>1,deadline:0}]){const a=P.decide(root(),{...opts(),...patch});assert.notEqual(a.metrics.visibleLeftRepair?.selected,true);assert.equal(P.cycleResources(a.continuation||[]).leftRepairs,0);}
 });
 function savedSession(){
- const B=require('../st-bag'),s=root(),origin=f.options.resourceContext.origin;
- const originBag=B.fromObserved({observed:[origin.active.type,...origin.queue],startPhase:0});s.bag=clone(originBag);
- for(const step of f.options.resourceContext.steps)for(const piece of step.revealed)s.bag=B.consume(s.bag,piece);
- const h=RH.importContext(s,f.options.resourceContext);return Session.create(s,{resourceHistory:h,resourceOriginBag:originBag,openingPhase:false,previous:P.decide(s,opts())});
+ const s=root();return Session.create(s,{obligationContext:f.options.obligationContext,openingPhase:false,previous:P.decide(s,opts())});
 }
 test('visible Left repair / session round trip keeps current obligations, not forged goal authority',()=>{
  const saved=savedSession();
- const restored=Session.parse(JSON.stringify(saved)),o={...opts(),resourceContext:undefined,obligationContext:restored.obligationContext};
+ const restored=Session.parse(JSON.stringify(saved)),o={...opts(),obligationContext:restored.obligationContext};
  assert.ok(P.revalidate(restored.state,restored.previous,o));
  const forged=clone(restored.previous);forged.continuation.at(-1).structuralEvidence.leftRepair.pieceId++;
  assert.equal(P.revalidate(restored.state,forged,o),null);
@@ -131,8 +128,8 @@ test('visible Left repair / altered HOLD and queue order invalidate the old goal
   const s=R.createState({...f.observation,...patch}),o=partial(s);assert.equal(P.revalidate(s,advice(),o),null);
   const fresh=P.decide(s,o);if(fresh.target){assert.ok(R.replay(s,fresh.continuation.flatMap(p=>p.witness)).valid);assert.ok(P.revalidate(s,fresh,o));}
  }
- const s=root(),after=R.move(s,'HOLD'),h=RH.applyAction(RH.importContext(s,f.options.resourceContext),s,'HOLD',after);
- assert.equal(P.advance(after,advice(),'HOLD',{...opts(),resourceContext:RH.exportContext(after,h)}),null,'an unplanned actual HOLD invalidates the saved movement path');
+ const s=root(),after=R.move(s,'HOLD'),h=RH.applyActual(RH.importState(f.options.obligationContext,{position:s}),{before:s,action:'HOLD',after:after}).context;
+ assert.equal(P.advance(after,advice(),'HOLD',{...opts(),obligationContext:RH.exportState(h)}),null,'an unplanned actual HOLD invalidates the saved movement path');
 });
 
 test('visible Left repair / missing labels are regenerated from actual replay, not copied authority',()=>{

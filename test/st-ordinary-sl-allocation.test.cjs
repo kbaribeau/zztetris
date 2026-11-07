@@ -1,15 +1,16 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const P=require('../st-planner'),R=require('../st-rules'),S=require('../st-structure'),M=require('../st-midgame-resources'),RH=require('../st-resource-history'),H=require('../st-pattern-history');
+const P=require('../st-planner'),R=require('../st-rules'),S=require('../st-structure'),M=require('../st-obligation-resources'),Current=require('../st-obligation-context'),CurrentProvider=require('../st-resource-provider'),H=require('../st-pattern-history');
 const fixture=require('./fixtures/ordinary-sl-allocation.json'),clone=x=>JSON.parse(JSON.stringify(x));
 const bounds={depth:3,width:8,maxNodes:45000,now:()=>0,deadline:Infinity},opts=(extra={})=>({...fixture.options,...bounds,disableVisibleSLTail:true,...extra});
-const sum=()=>RH.resolve(fixture.observation,RH.importContext(fixture.observation,fixture.options.resourceContext));
+const current=()=>Current.importState(fixture.options.obligationContext,{position:fixture.observation});
+const sum=()=>CurrentProvider.facts(CurrentProvider.prepare(fixture.observation,{obligationContext:Current.exportState(Current.importState(fixture.options.obligationContext,{position:fixture.observation}))}));
 const cache=new Map(),plan=(off=false)=>{if(!cache.has(off))cache.set(off,P.plan(fixture.observation,opts({disableOrdinarySAllocation:off})));return clone(cache.get(off));};
 function moduleWith(replacements){const module={exports:{}},requireAt=require('node:module').createRequire(require.resolve('../st-planner'));vm.runInNewContext(fs.readFileSync(require.resolve('../st-planner'),'utf8'),{module,exports:module.exports,require:n=>replacements[n]||requireAt(n),Date,performance,globalThis:{}});return module.exports;}
-function replaySteps(steps){let state=P.observe(fixture.observation),notches=H.resolve(state,fixture.options.patternHistory),resource=M.start(state,sum()),allocation;
+function replaySteps(steps){let state=P.observe(fixture.observation),notches=H.resolve(state,fixture.options.patternHistory),resource=M.start(state,current()),allocation;
  const path=steps.map(step=>{const r=R.replay(state,step.witness);assert(r.valid);assert.deepEqual(r.events,[step.event]);const p={...clone(step),state:r.state},next=M.step(state,p,resource);allocation=P.slAllocationStep(state,p,resource,next,notches,allocation);const phase=S.advanceNotches(state.board,p,notches);assert(phase.valid);state=r.state;notches=phase.pattern;resource=next;return p;});return{path,state,resource,allocation};}
 function node(advice,details){const r=replaySteps(advice.continuation);return{path:r.path,state:r.state,resources:r.resource,slAllocation:r.allocation,assessment:clone(advice.assessment),rank:clone(advice.evidence.structuralRank),structuralScore:advice.evidence.structuralScore,centerContinuity:details.centerContinuity,dependencyDebt:details.dependencyDebt,entryDebt:details.entryDebt,notchValid:true,qualified:true,continuationChecked:true,cycleDebt:0,centerDebt:[],cavityDebt:[],key:'unit-comparison'};}
-function pair(){const a=plan(),m=a.metrics.ordinarySAllocation;assert(m?.selected);const c=node(a,m.comparison.candidate),r=node(m.referenceAdmission,m.comparison.reference);return{a,m,c,r,options:{candidateDraw:P.publicDrawHorizon(fixture.observation,c.path,sum()),referenceDraw:P.publicDrawHorizon(fixture.observation,r.path,sum()),initialResources:M.start(fixture.observation,sum()),original:{path:replaySteps(plan(true).continuation).path}}};}
+function pair(){const a=plan(),m=a.metrics.ordinarySAllocation;assert(m?.selected);const c=node(a,m.comparison.candidate),r=node(m.referenceAdmission,m.comparison.reference);return{a,m,c,r,options:{candidateDraw:P.publicDrawHorizon(fixture.observation,c.path,sum()),referenceDraw:P.publicDrawHorizon(fixture.observation,r.path,sum()),initialResources:M.start(fixture.observation,current()),original:{path:replaySteps(plan(true).continuation).path}}};}
 const noMetrics=a=>clone({...a,metrics:undefined});
 
 test('ordinary SL allocation: exact human five-lock route is certified under candidate history without hidden refill',()=>{
@@ -39,10 +40,12 @@ test('ordinary SL comparator: score timing, support, debt and complete proof rem
  const delayed=clone(c);[delayed.path[2],delayed.path[3]]=[delayed.path[3],delayed.path[2]];assert.equal(P.ordinarySAllocationComparison(delayed,r,options).reason,'score-or-original-goal-regression');
 });
 test('ordinary SL payment tracking: unknown bags and visible cross-bag L stay distinct from guessed future authority',()=>{
- const a=plan(),steps=replaySteps(a.continuation).path;let state=P.observe(fixture.observation),res=M.start(state,sum()),notches=H.resolve(state,fixture.options.patternHistory),allocation;
- // Bag labels here are an explicit bookkeeping unit seam, not a claimed new
- // natural history. The physical replay is authentic; same-bag is not required.
- for(const piece of [res.active,res.hold,...res.queue])if(piece?.type==='S')piece.bag=3;else if(piece?.type==='L')piece.bag=4;
+ const a=plan(),steps=replaySteps(a.continuation).path;let state=P.observe(fixture.observation),res=M.start(state,current()),notches=H.resolve(state,fixture.options.patternHistory),allocation;
+ // Explicit trusted projection fixture supplies coherent cross-bag facts,
+ // not a claimed natural history or a mutation of an authenticated view.
+ const projection=clone(res.route.projection);projection.supply.originKnown=true;projection.supply.frontier={bag:5,seenMask:0};
+ for(const piece of [projection.supply.active,projection.supply.hold,...projection.supply.queue].filter(Boolean)){piece.bag=piece.type==='S'?3:piece.type==='L'?4:2;piece.observedOrder=piece.id-1;}
+ res=M.fromProjection(projection,{openingBoundary:{firstBagLocks:7,sourcePatternSeen:false},extendForced:false});
  for(const p of steps){const next=M.step(state,p,res);allocation=P.slAllocationStep(state,p,res,next,notches,allocation);notches=S.advanceNotches(state.board,p,notches).pattern;state=p.state;res=next;}
  assert.equal(allocation.paid.length,1);assert.equal(allocation.paid[0].sBag,3);assert.equal(allocation.paid[0].lBag,4);
  const fake={...clone(steps.at(-1)),structuralEvidence:{slPayment:{sId:1,lId:2}}};const unchanged=P.slAllocationStep(state,fake,{...res,pendingCenter:[]},res,notches);assert.equal(unchanged.paid.length,0);
@@ -50,15 +53,15 @@ test('ordinary SL payment tracking: unknown bags and visible cross-bag L stay di
 test('ordinary SL unavailable L and incomplete optional proof retain a certified ordinary choice',()=>{
  const baseline=plan(true);let clock=0,calls=0;const api=moduleWith({'./st-obligation-resources.js':{...require('../st-obligation-resources'),repair:(state,res,options)=>{if(options.acceptStep){calls++;clock=1500;return{valid:null,visited:19,status:'resource-repair-budget'};}return require('../st-obligation-resources').repair(state,res,options);}}});
  const result=api.plan(fixture.observation,opts({now:()=>clock,deadline:1500}));assert(calls);assert.equal(result.metrics.ordinarySAllocation.selected,false);assert.deepEqual(noMetrics(result),noMetrics(baseline));assert(result.metrics.nodes<=45000);
- const state=clone(fixture.observation);state.queue=state.queue.map(t=>t==='L'?'O':t);state.bag=null;const history=RH.start(state);const missing=P.plan(state,opts({resourceContext:RH.exportContext(state,history),patternHistory:H.start(state)}));assert.notEqual(missing.metrics.ordinarySAllocation?.selected,true);
+ const state=clone(fixture.observation);state.queue=state.queue.map(t=>t==='L'?'O':t);state.bag=null;const history=Current.start(state);const missing=P.plan(state,opts({obligationContext:Current.exportState(history),patternHistory:H.start(state)}));assert.notEqual(missing.metrics.ordinarySAllocation?.selected,true);
 });
 test('ordinary SL lifecycle: real HOLD/movement and fresh replanning preserve the paid SL goal through TSD',()=>{
- let state=clone(fixture.observation),history=RH.importContext(state,fixture.options.resourceContext),patterns=clone(fixture.options.patternHistory),advice=plan();const expected=advice.continuation.map(p=>p.event);let locks=0,holds=0;
- while(advice){const before=clone(state),original=advice;for(const action of original.witness){const prior=state;state=R.move(state,action);history=RH.applyAction(history,prior,action,state);const options={...bounds,openingPhase:false,patternHistory:patterns,resourceContext:RH.exportContext(state,history)};
+ let state=clone(fixture.observation),history=Current.importState(fixture.options.obligationContext,{position:state}),patterns=clone(fixture.options.patternHistory),advice=plan();const expected=advice.continuation.map(p=>p.event);let locks=0,holds=0;
+ while(advice){const before=clone(state),original=advice;for(const action of original.witness){const prior=state;state=R.move(state,action);history=Current.applyActual(history,{before:prior,action:action,after:state}).context;const options={...bounds,openingPhase:false,patternHistory:patterns,obligationContext:Current.exportState(history)};
   if(action==='HD'){assert.deepEqual(state.lastEvent,expected[locks]);locks++;patterns=H.update(patterns,prior,state,state.lastEvent);advice=P.continueCommitment(before,state,original,state.lastEvent,{...options,patternHistory:patterns});if(locks<expected.length)assert(advice,'lost SL suffix after lock '+locks);
-   if(locks===3){assert.equal(state.lastEvent.lines,2);const fresh=P.plan(state,{...options,patternHistory:patterns,commitment:{observation:clone(state),advice:clone(advice)}});assert(fresh.target);let current=P.observe(state),notches=H.resolve(state,patterns),res=M.start(state,RH.resolve(state,history)),allocation;for(const p of fresh.continuation){const r=R.replay(current,p.witness);assert(r.valid);const step={...p,state:r.state},next=M.step(current,step,res);allocation=P.slAllocationStep(current,step,res,next,notches,allocation);notches=S.advanceNotches(current.board,step,notches).pattern;current=r.state;res=next;}assert.equal(allocation.paid.length,1,'fresh ordinary path cannot replace promised SL by an unrelated LO');}
+   if(locks===3){assert.equal(state.lastEvent.lines,2);const fresh=P.plan(state,{...options,patternHistory:patterns,commitment:{observation:clone(state),advice:clone(advice)}});assert(fresh.target);let current=P.observe(state),notches=H.resolve(state,patterns),res=M.start(state,history),allocation;for(const p of fresh.continuation){const r=R.replay(current,p.witness);assert(r.valid);const step={...p,state:r.state},next=M.step(current,step,res);allocation=P.slAllocationStep(current,step,res,next,notches,allocation);notches=S.advanceNotches(current.board,step,notches).pattern;current=r.state;res=next;}assert.equal(allocation.paid.length,1,'fresh ordinary path cannot replace promised SL by an unrelated LO');}
   }else{if(action==='HOLD')holds++;advice=P.advance(state,advice,action,options);assert(advice,'lost ordinary SL route during '+action);}
- }}assert.equal(locks,5);assert(holds);assert.equal(RH.resolve(state,history).center.pending.length,0);
+ }}assert.equal(locks,5);assert(holds);assert.equal(CurrentProvider.facts(CurrentProvider.prepare(state,{obligationContext:Current.exportState(history)})).center.pending.length,0);
 });
 test('ordinary SL copied payment telemetry never supplies retained authority',()=>{
  const baseline=plan(true),saved={observation:clone(fixture.observation),advice:clone(baseline)};

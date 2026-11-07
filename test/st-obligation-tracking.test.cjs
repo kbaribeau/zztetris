@@ -112,6 +112,15 @@ test('current tracking: actual Reset credit/completion retire one duty without a
  const wrong=copy(done);wrong.options.effects.find(e=>e.status==='reset-T-credited').pieceId=999;assert.ok(codes(wrong).includes('effect-mismatch'));
  const replay={before:copy(done.after),after:copy(done.after),options:copy(done.options)};assert.ok(codes(replay).includes('effect-mismatch'));
 });
+test('current tracking: established Z balance cannot disappear while a profile-only label change is not loss',()=>{
+ const before=trial(1,20).frame;assert.equal(before.state.account.z.remaining,1);
+ const options={operation:{kind:'observe'},effects:[]},lost=copy(before);
+ lost.state.account.z.remaining=null;lost.view.extraZ.remaining=null;
+ assert.ok(codes({before,after:lost,options}).includes('extra-z-balance-mismatch'));
+ const relabeled=copy(before);relabeled.view.extraZ.status='out-of-profile';
+ assert.deepEqual(inspect({before,after:relabeled,options}),[],'A status label alone is not a missing balance');
+ assert.deepEqual(inspect({before,after:copy(before),options}),[]);
+});
 test('current tracking: active Reset preserves inherited covered duties until current safety retires or translates them',()=>{
  const x=trial(1,24);x.begin();const before=copy(x.frame);before.state.center={pending:[],debt:[]};before.view.center=copy(before.state.center);
  before.state.safety.coveredCells=[[1,35]];before.view.coveredRepair.cells=[[1,35]];before.state.account.reset.inheritedCovered=[[1,35]];

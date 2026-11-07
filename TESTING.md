@@ -96,7 +96,7 @@ The old advisor and its implementation-specific gates remain removed. New pure s
 
 `st-placement-cache-key.test.cjs` checks that prior lock events share complete ordered placement results while current rotation evidence, revisions and carried state stay distinct. More cache reuse can change which bounded planner proofs finish. Pending-L coverage therefore separates the literal six-line S/T/I Pocket route from current live selection, follows the controller's separate waiting hint after a goal-free commitment retires, and replays newly public supply. A labeled component control gives one literal S/T/Z endpoint zero proof allowance to preserve unresolved-alternative disclosure coverage; it does not fabricate rejection or change production ranking/admission.
 
-`st-pattern-state.test.cjs` covers trusted version 2 current notch imports without provenance, malformed shapes, legacy-tape rejection and immediate migration, actual TSD/quad translation, newly established caps, sticky broken state, independent Undo snapshots, and 1,000 actual O-only manual locks with fixed-size facts. The O-only case is a lifecycle/storage test, not a supported ST or seven-bag strategy. Actual-page session import/export/Undo and the production Worker verify the transport boundary. `st-access-history.test.cjs` and `st-left-scoring-foundation.test.cjs` retain explicit legacy-tape tamper cases alongside current-state advice revalidation. Native resource transport now carries trusted current obligations. Replay-backed legacy tapes are accepted only by the isolated old-format adapter.
+`st-pattern-state.test.cjs` covers trusted version 2 current notch imports without provenance, malformed shapes, obsolete-tape rejection, actual TSD/quad translation, newly established caps, sticky broken state, independent Undo snapshots, and 1,000 actual O-only manual locks with fixed-size facts. The O-only case is a lifecycle/storage test, not a supported ST or seven-bag strategy. Actual-page session import/export/Undo and the production Worker verify the transport boundary. `st-access-history.test.cjs` and `st-left-scoring-foundation.test.cjs` retain explicit obsolete-tape rejection cases alongside current-state advice revalidation. Resource transport carries trusted current obligations; historical resource/session replay imports are no longer supported. See [the retirement inventory](test/LEGACY-RETIREMENT.md) for removed historical-only coverage.
 
 `st-lab.test.cjs` covers real page scripts with deterministic Worker protocol stubs, plus worker entry code, cancellation/revision races, withheld invalid witnesses, stable targets during exact execution, imports, hidden-future exclusion, hold/reset/manual play, and settings/input guards. This is not a real browser Worker/pixel test. The natural legacy replay now runs on ordinary practice, where its unlimited-hold contract belongs.
 
@@ -183,13 +183,9 @@ caching when `NODE_V8_COVERAGE` is set: Node warns that V8 coverage can be less
 precise for deserialized compiled code. These behavioral test counts are not a
 V8 coverage report. See [Node's compile-cache documentation](https://nodejs.org/download/release/v24.15.0/docs/api/module.html#module-compile-cache).
 
-`st-piece-ledger.test.cjs` checks the observation-only compact ledger: entered versus
-preview supply, unlimited HOLD identity, cross-bag SL candidate/completion,
-unresolved accommodation, source/import provenance, ZJ counts, 4,100 movement
-inputs and 600 locks without cumulative truncation. `st-piece-ledger-ui.test.cjs`
-now checks the shared Context/public inventory through actual controller lifecycle resets,
-import and exact 100-lock Undo restoration/branching. The separate PieceLedger is
-no longer loaded by the live page; its standalone suite remains a reference test.
+The shared Context/public inventory tests cover actual controller lifecycle resets,
+import and exact 100-lock Undo restoration/branching. Historical ledger and tape
+import tests have been retired or ported to native current checkpoints.
 `st-obligation-inverse-page.test.cjs` covers caller-owned inverse receipts, partial
 next-turn Undo, phase markers, stale replies and failures after accepted transitions.
 `st-left-plan*.test.cjs` checks selected current Left work through page and simulation

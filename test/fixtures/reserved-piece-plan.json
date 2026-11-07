@@ -98,224 +98,164 @@
   },
   "options": {
     "openingPhase": false,
-    "resourceContext": {
+    "obligationContext": {
       "schemaVersion": 1,
-      "origin": {
-        "rules": "st-zero-v2",
-        "board": [
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "L.II......",
-          "L.II......",
-          "LLII......",
-          "OOIILOO...",
-          "OOSSLOO...",
-          "JSSILL....",
-          "JJJILLL...",
-          "OOJILSS...",
-          "OOJISS...Z",
-          "IJJLJJJ.ZZ",
-          "ILLLOOJ.Z.",
-          "TSSIJZZ.Z.",
-          "SSLLLOO.Z."
-        ],
+      "status": "available",
+      "reason": null,
+      "inventory": {
+        "schemaVersion": 1,
+        "status": "available",
+        "originKnown": false,
+        "nextId": 12,
+        "streamCursor": 36,
         "active": {
-          "type": "S",
-          "x": 3,
-          "y": 17,
-          "rotation": 0,
-          "lastRotation": null
+          "id": 5,
+          "type": "O",
+          "observedOrder": null,
+          "bag": null
         },
-        "hold": "Z",
-        "canHold": true,
+        "hold": {
+          "id": 2,
+          "type": "Z",
+          "observedOrder": null,
+          "bag": null
+        },
         "queue": [
-          "T",
-          "J",
-          "O",
-          "J",
-          "S",
-          "T"
+          {
+            "id": 6,
+            "type": "J",
+            "observedOrder": null,
+            "bag": null
+          },
+          {
+            "id": 7,
+            "type": "S",
+            "observedOrder": null,
+            "bag": null
+          },
+          {
+            "id": 8,
+            "type": "T",
+            "observedOrder": null,
+            "bag": null
+          },
+          {
+            "id": 9,
+            "type": "I",
+            "observedOrder": null,
+            "bag": null
+          },
+          {
+            "id": 10,
+            "type": "L",
+            "observedOrder": null,
+            "bag": null
+          },
+          {
+            "id": 11,
+            "type": "Z",
+            "observedOrder": null,
+            "bag": null
+          }
         ],
-        "revision": 73,
-        "streamCursor": 33,
-        "topOut": false,
-        "lastEvent": null
+        "frontier": null,
+        "knowledge": null
       },
-      "fresh": false,
-      "steps": [
-        {
-          "action": "R",
-          "revealed": []
+      "state": {
+        "schemaVersion": 2,
+        "availability": "unknown",
+        "center": {
+          "pending": [
+            {
+              "id": "piece-1",
+              "rootId": 1,
+              "family": "SL",
+              "alternatives": [
+                {
+                  "piece": "L",
+                  "cells": [
+                    [
+                      4,
+                      29
+                    ],
+                    [
+                      5,
+                      29
+                    ],
+                    [
+                      6,
+                      29
+                    ],
+                    [
+                      4,
+                      30
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          "debt": []
         },
-        {
-          "action": "HD",
-          "revealed": [
-            "I"
-          ]
+        "sl": {
+          "schemaVersion": 1,
+          "status": "unknown",
+          "foundationOpen": true,
+          "firstBagReview": "pending",
+          "handoff": false,
+          "residuals": [],
+          "uncertainty": {
+            "S": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "L": [
+              0
+            ]
+          }
         },
-        {
-          "action": "CW",
-          "revealed": []
+        "account": {
+          "schemaVersion": 1,
+          "known": false,
+          "firstTsd": false,
+          "allocationVerified": false,
+          "mandatoryZ": false,
+          "thirdTWindow": false,
+          "qualityCandidate": false,
+          "opening": null,
+          "profile": {
+            "violation": false,
+            "departure": false,
+            "before": null,
+            "capEstablished": false
+          },
+          "z": {
+            "remaining": null,
+            "uncredited": "none"
+          },
+          "reset": {
+            "status": "inactive"
+          }
         },
-        {
-          "action": "R",
-          "revealed": []
+        "safety": {
+          "notches": {
+            "version": 2,
+            "status": "established",
+            "anchorRow": 34,
+            "blockedRows": [],
+            "source": "recognized-next-Z-cap"
+          },
+          "coveredCells": []
         },
-        {
-          "action": "R",
-          "revealed": []
-        },
-        {
-          "action": "R",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "CW",
-          "revealed": []
-        },
-        {
-          "action": "HD",
-          "revealed": [
-            "L"
-          ]
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "CW",
-          "revealed": []
-        },
-        {
-          "action": "L",
-          "revealed": []
-        },
-        {
-          "action": "L",
-          "revealed": []
-        },
-        {
-          "action": "L",
-          "revealed": []
-        },
-        {
-          "action": "L",
-          "revealed": []
-        },
-        {
-          "action": "R",
-          "revealed": []
-        },
-        {
-          "action": "HD",
-          "revealed": [
-            "Z"
-          ]
-        }
-      ],
-      "handoffAtAction": null
+        "dPending": true,
+        "leftGoals": []
+      },
+      "boundary": {
+        "firstBagLocks": null,
+        "sourcePatternSeen": false
+      }
     }
   },
   "witnesses": [

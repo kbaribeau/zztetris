@@ -1,20 +1,20 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
-const P=require('../st-planner'),O=require('../st-opening'),R=require('../st-rules'),H=require('../st-resource-history'),B=require('../st-bag'),f=require('./fixtures/opening-third-t-prefix.json');
+const P=require('../st-planner'),O=require('../st-opening'),R=require('../st-rules'),H=require('../st-obligation-context'),B=require('../st-bag'),f=require('./fixtures/opening-third-t-prefix.json');
 const clone=x=>JSON.parse(JSON.stringify(x)),config={...f.request.options,deadline:Infinity};
 function advice(){return{continuation:f.steps,evidence:{opening:{firstTsdPrefix:{status:'checked-visible-first-tsd'}}}};}
 function followed(count=1,{refill=false,legacy=false}={}){
- let state=R.createState(f.request.observation),history=H.importContext(state,f.request.options.resourceContext),pattern=f.request.options.patternHistory,clear=null;
+ let state=R.createState(f.request.observation),history=H.importState(f.request.options.obligationContext,{position:state}),pattern=f.request.options.patternHistory,clear=null;
  const initial=advice();if(legacy)initial.evidence.opening.handoffCandidate={status:'verified-public-post-clear-continuation',continuation:[f.steps.at(-1)]};
  let forecast=O.captureForecast(state,initial);
  for(const step of f.steps.slice(0,count))for(const action of step.witness){
   const before=state;state=R.move(state,action);
   if(refill&&state.queue.length<before.queue.length){const piece=B.possibilities(state.bag)[0];assert(piece);state={...state,queue:[...state.queue,piece],bag:B.consume(state.bag,piece)};assert.deepEqual(B.validate(state.bag),[]);}
-  history=H.applyAction(history,before,action,state);
+  history=H.applyActual(history,{before:before,action:action,after:state}).context;
   if(action==='HD'){pattern=P.updatePatternHistory(pattern,before,state,state.lastEvent);if(state.lastEvent.lines)clear={before:clone(before),event:clone(state.lastEvent)};}
   forecast=O.advanceForecast(forecast,before,state,action);assert(forecast);
  }
- return{state,forecast,history,clear,options:{...config,resourceContext:H.exportContext(state,history),patternHistory:pattern,openingForecast:forecast}};
+ return{state,forecast,history,clear,options:{...config,obligationContext:H.exportState(history),patternHistory:pattern,openingForecast:forecast}};
 }
 test('first TSD retention: exact original prefix is retained independently of unknown maintenance proof',()=>{
  const a=followed(),result=P.plan(a.state,a.options);assert.equal(result.target.type,'S');assert.equal(result.phase,'opening');assert.equal(result.metrics.firstTsdRetention.retained,true);assert.equal(result.evidence.opening.handoffCandidate,null);assert.equal(result.evidence.opening.firstTsdPrefix,undefined,'Do not rebase the immutable original routing envelope');
@@ -32,7 +32,7 @@ test('first TSD retention: incomplete legacy routing retains its independently c
  const result=P.plan(a.state,a.options);assert.equal(result.metrics.firstTsdRetention.retained,true);assert.equal(result.target.type,'S');assert.equal(O.captureForecast(a.state,result),null);assert.deepEqual(a.forecast.continuation,saved);
 });
 test('first TSD retention: mismatched event, action, bag, resource history and exhausted budgets fail closed',()=>{
- const a=followed();for(const mutate of [o=>o.openingForecast.path[1].event.lines=2,o=>o.openingForecast.actions[0].action='CW',o=>o.openingForecast.origin.bag.remaining=[-1],o=>o.resourceContext=null]){
+ const a=followed();for(const mutate of [o=>o.openingForecast.path[1].event.lines=2,o=>o.openingForecast.actions[0].action='CW',o=>o.openingForecast.origin.bag.remaining=[-1],o=>o.obligationContext=null]){
   const options=clone(a.options);options.deadline=Infinity;mutate(options);const result=P.plan(a.state,options);assert.notEqual(result.metrics.firstTsdRetention?.retained,true);
  }
  const zero=P.plan(a.state,{...a.options,maxNodes:0});assert.equal(zero.target,null);assert.equal(zero.metrics.nodes,0);

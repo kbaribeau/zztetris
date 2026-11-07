@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
-const R=require('../st-rules'),P=require('../st-planner'),S=require('../st-structure'),RH=require('../st-resource-history');
+const R=require('../st-rules'),P=require('../st-planner'),S=require('../st-structure'),RH=require('../st-obligation-context');
 const {fixtures}=require('./support/st-fixtures.cjs'),f=require('./fixtures/right-role-entry-loss.json');
 const clone=x=>JSON.parse(JSON.stringify(x)),right=e=>e.cells.some(([x])=>x>=7);
 const allowed=e=>!right(e)||['Z','T','I'].includes(e.type);
@@ -55,7 +55,7 @@ test('Right roles: Z/T/I type eligibility does not waive existing clear and reso
 
 test('Right roles: authentic pre7 request rejects recorded entry-blocking S before ordinary structure work',()=>{
  const q=f.request,recorded=replay(q.observation,f.recordedAdvice.witness);assert.deepEqual(recorded.events,[f.recordedAdvice.continuation[0].event]);assert.equal(q.observation.queue[1],'T');
- assert.equal(RH.resolve(q.observation,RH.importContext(q.observation,q.options.resourceContext)).coverage.status,'partial');
+ assert.equal(RH.resolve(RH.importState(q.options.obligationContext,{position:q.observation}),{position:q.observation}).availability,'unknown');
  assert.equal(R.tDoubleAccess(q.observation.board).reachable,true);assert.equal(R.tDoubleAccess(recorded.state.board).reachable,false);
  let forbidden=0;const planner=isolated({structure:{...S,transition(before,p,...args){if(!allowed(p.event))forbidden++;return S.transition(before,p,...args);}}});
  const result=planner.decide(q.observation,{...q.options,previous:q.previous,commitment:q.commitment});assert.equal(forbidden,0,'Forbidden ordinary candidates must not consume structural proof work');
@@ -64,7 +64,7 @@ test('Right roles: authentic pre7 request rejects recorded entry-blocking S befo
 
 test('Right roles: recorded advice cannot survive revalidation, movement, claimed repair or saved commitment',()=>{
  const q=f.request,a=clone(f.recordedAdvice),options={...q.options,...bounds};assert.equal(P.revalidate(q.observation,a,options),null);
- const moved=R.move(q.observation,a.witness[0]),history=RH.importContext(q.observation,q.options.resourceContext),movedOptions={...options,resourceContext:RH.exportContext(moved,RH.applyAction(history,q.observation,a.witness[0],moved))};assert.equal(P.advance(moved,a,a.witness[0],movedOptions),null);
+ const moved=R.move(q.observation,a.witness[0]),history=RH.importState(q.options.obligationContext,{position:q.observation}),movedOptions={...options,obligationContext:RH.exportState(RH.applyActual(history,{before:q.observation,action:a.witness[0],after:moved}).context)};assert.equal(P.advance(moved,a,a.witness[0],movedOptions),null);
  for(const kind of [undefined,'reset','cap-deferral','left-foundation','left-support']){
   const forged=clone(a);forged.evidence={...forged.evidence,resetSelection:{status:'selected'},construction:{kind,origin:q.observation,steps:a.continuation.map(p=>({witness:p.witness})),consumed:0}};
   assert.equal(P.revalidate(q.observation,forged,options),null);

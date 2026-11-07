@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),{createRequire}=require('node:module');
-const P=require('../st-planner'),Provider=require('../st-resource-provider'),Legacy=require('../st-resource-legacy'),C=require('../st-obligation-context'),M=require('../st-obligation-resources'),R=require('../st-rules'),PH=require('../st-pattern-history');
+const P=require('../st-planner'),Provider=require('../st-resource-provider'),C=require('../st-obligation-context'),M=require('../st-obligation-resources'),R=require('../st-rules'),PH=require('../st-pattern-history');
 const clone=x=>JSON.parse(JSON.stringify(x)),bounds={depth:3,width:8,maxNodes:45000,now:()=>0,deadline:Infinity};
 function currentRequest(f){const input=Provider.prepare(f.observation,f.options);assert.equal(input.status,'available',input.reason);const options={...f.options,...bounds,obligationContext:Provider.exportActual(input)};delete options.resourceContext;return{observation:f.observation,options};}
 function verified(raw,advice){assert(advice.target,advice.reason);let state=P.observe(raw);for(const step of advice.continuation){const r=R.replay(state,step.witness);assert(r.valid);assert.deepEqual(r.events,[step.event]);state=r.state;}return state;}
@@ -10,16 +10,16 @@ function knownCap(){
  raw.state.sl.foundationOpen=false;Object.assign(raw.state.account,{firstTsd:true,allocationVerified:true,opening:null});raw.state.account.profile.before=null;raw.state.account.profile.capEstablished=true;raw.state.account.z.remaining=1;raw.state.safety.notches=PH.start(position);
  return{position,raw};
 }
-test('current planner: native and one-time legacy compatibility retain the actual paid SL route',()=>{
+test('current planner: native transport retains the actual paid SL route',()=>{
  const f=require('./fixtures/ordinary-sl-allocation.json'),native=currentRequest(f),old=P.plan(f.observation,{...f.options,...bounds}),current=P.plan(native.observation,native.options);
  verified(native.observation,current);assert.deepEqual(current.continuation.map(p=>p.event),old.continuation.map(p=>p.event));assert.equal(current.metrics.ordinarySAllocation?.selected,old.metrics.ordinarySAllocation?.selected);assert.equal(current.evidence.resourceObligations.binding,old.evidence.resourceObligations.binding);assert(P.revalidate(native.observation,current,native.options));
- const stale=clone(current);stale.evidence.resourceObligations.binding+='stale';assert.equal(P.revalidate(native.observation,stale,native.options),null);assert.equal(P.revalidate(f.observation,stale,{...f.options,...bounds}),null,'legacy input cannot make a new-current stale key authoritative');
+ const stale=clone(current);stale.evidence.resourceObligations.binding+='stale';assert.equal(P.revalidate(native.observation,stale,native.options),null);assert.equal(P.revalidate(f.observation,stale,{...f.options,...bounds}),null,'native transport cannot make a stale key authoritative');
 });
-test('current planner: a request converts legacy input once across nested proof and preference work',()=>{
- const f=require('./fixtures/ordinary-sl-allocation.json');let conversions=0;
- const provider={module:{exports:{}},require:name=>name==='./st-resource-legacy'?{...Legacy,convert:(...args)=>{conversions++;return Legacy.convert(...args);}}:require('../'+name.slice(2))};vm.runInNewContext(fs.readFileSync(require.resolve('../st-resource-provider'),'utf8'),provider);
- const requireAt=createRequire(require.resolve('../st-planner')),planner={module:{exports:{}},require:name=>name==='./st-resource-provider.js'?provider.module.exports:requireAt(name),Date,performance};vm.runInNewContext(fs.readFileSync(require.resolve('../st-planner'),'utf8'),planner);
- const result=planner.module.exports.plan(f.observation,{...f.options,...bounds});assert(result.target,result.reason);assert.equal(conversions,1);
+test('current planner: obsolete resource input is rejected without invoking a legacy module',()=>{
+ const f=require('./fixtures/ordinary-sl-allocation.json');
+ const provider={module:{exports:{}},require:name=>{assert.doesNotMatch(name,/resource-legacy|resource-history/);return require('../'+name.slice(2));}};vm.runInNewContext(fs.readFileSync(require.resolve('../st-resource-provider'),'utf8'),provider);
+ const requireAt=createRequire(require.resolve('../st-planner')),planner={module:{exports:{}},require:name=>{assert.doesNotMatch(name,/resource-legacy|resource-history/);return name==='./st-resource-provider.js'?provider.module.exports:requireAt(name);},Date,performance};vm.runInNewContext(fs.readFileSync(require.resolve('../st-planner'),'utf8'),planner);
+ const result=planner.module.exports.plan(f.observation,{...bounds,openingPhase:false,resourceContext:{origin:f.observation,steps:[]}});assert.equal(result.target,null);assert.equal(result.metrics.nodes,0);assert.equal(result.evidence.resourceObligations.status,'unavailable');
 });
 test('current planner: supplied unavailable accounting never falls back to legacy or geometric advice',()=>{
  const {position,raw}=knownCap(),unavailable={...raw,status:'unavailable',reason:'Explicit current accounting fault',state:null};

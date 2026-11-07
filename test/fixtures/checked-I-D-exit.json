@@ -1,1 +1,350 @@
-{"provenance":"Actual public pre-lock state and replayed observed history only, before the user continuation. No saved advice, generator or unrevealed input.","observation":{"rules":"st-zero-v2","board":["..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........",".LLIOO....",".ZLIOO....","ZZLILLL...","ZJJILSS...","IJOOSS....","IJOOJJZ...","ITLLJZZ...","ITTLJZ...Z","ITSLIOO.ZZ","ITSSIOO.Z.","LLLJJJS.Z."],"active":{"type":"J","x":3,"y":17,"rotation":0,"lastRotation":null},"hold":"T","canHold":true,"queue":["S","O","I","O","J","L"],"revision":284,"streamCursor":26,"topOut":false,"bag":{"remaining":[112],"observedCount":32,"provenance":"known-phase"}},"options":{"timeMs":1500,"depth":3,"width":8,"maxNodes":45000,"resourceContext":{"schemaVersion":1,"origin":{"rules":"st-zero-v2","board":["..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........",".........."],"active":{"lastRotation":null,"rotation":0,"type":"T","x":3,"y":17},"hold":null,"canHold":true,"queue":["L","J","I","Z","O","S"],"streamCursor":1,"topOut":false},"fresh":true,"steps":[{"action":"HOLD","revealed":["Z"]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"HD","revealed":["S"]},{"action":"HD","revealed":["L"]},{"action":"CCW","revealed":[]},{"action":"HD","revealed":["J"]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"CW","revealed":[]},{"action":"HD","revealed":["O"]},{"action":"HOLD","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"CW","revealed":[]},{"action":"HD","revealed":["T"]},{"action":"R","revealed":[]},{"action":"CW","revealed":[]},{"action":"HD","revealed":["I"]},{"action":"HOLD","revealed":[]},{"action":"R","revealed":[]},{"action":"HD","revealed":["Z"]},{"action":"L","revealed":[]},{"action":"CCW","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"HD","revealed":["S"]},{"action":"HOLD","revealed":[]},{"action":"R","revealed":[]},{"action":"CW","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"HD","revealed":["I"]},{"action":"CW","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"HD","revealed":["L"]},{"action":"HOLD","revealed":[]},{"action":"L","revealed":[]},{"action":"CCW","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"HD","revealed":["J"]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"CCW","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"R180","revealed":[]},{"action":"HD","revealed":["O"]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"CCW","revealed":[]},{"action":"L","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"HD","revealed":["T"]},{"action":"HOLD","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"HD","revealed":["I"]},{"action":"R","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"HD","revealed":["T"]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"CCW","revealed":[]},{"action":"L","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"HD","revealed":["L"]},{"action":"R","revealed":[]},{"action":"R180","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"HD","revealed":["Z"]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"CW","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"HD","revealed":["J"]},{"action":"HOLD","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"CCW","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"HD","revealed":["S"]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"CW","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"CW","revealed":[]},{"action":"HD","revealed":["O"]},{"action":"HOLD","revealed":[]},{"action":"HD","revealed":["I"]},{"action":"HOLD","revealed":[]},{"action":"CW","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"HD","revealed":["O"]},{"action":"CW","revealed":[]},{"action":"CCW","revealed":[]},{"action":"CCW","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"HD","revealed":["J"]},{"action":"CW","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"HD","revealed":["L"]}],"handoffAtAction":265},"patternHistory":{"origin":["..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........",".LLIOO....",".ZLIOO....","ZZLILLL...","ZJJILSS...","IJOOSS....","IJOOJJZ...","ITLLJZZ...","ITTLJZ...Z","ITSLIOO.ZZ","ITSSIOO.Z.","LLLJJJS.Z."],"steps":[]},"openingPhase":false},"userWitnesses":[["CW","L","L","L","L","HD"],["HOLD","CW","R","R","R","R","L","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","CW","HD"],["L","L","HD"],["HOLD","CW","HOLD","CW","HOLD","CW","L","CW","L","L","HD"],["L","R","HOLD","CW","L","L","HD"],["CW","CW","R","HD"]],"resourceOriginBag":{"remaining":[0],"observedCount":7,"provenance":"known-phase"}}
+{
+  "provenance": "Actual public pre-lock state and replayed observed history only, before the user continuation. No saved advice, generator or unrevealed input.",
+  "observation": {
+    "rules": "st-zero-v2",
+    "board": [
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      ".LLIOO....",
+      ".ZLIOO....",
+      "ZZLILLL...",
+      "ZJJILSS...",
+      "IJOOSS....",
+      "IJOOJJZ...",
+      "ITLLJZZ...",
+      "ITTLJZ...Z",
+      "ITSLIOO.ZZ",
+      "ITSSIOO.Z.",
+      "LLLJJJS.Z."
+    ],
+    "active": {
+      "type": "J",
+      "x": 3,
+      "y": 17,
+      "rotation": 0,
+      "lastRotation": null
+    },
+    "hold": "T",
+    "canHold": true,
+    "queue": [
+      "S",
+      "O",
+      "I",
+      "O",
+      "J",
+      "L"
+    ],
+    "revision": 284,
+    "streamCursor": 26,
+    "topOut": false,
+    "bag": {
+      "remaining": [
+        112
+      ],
+      "observedCount": 32,
+      "provenance": "known-phase"
+    }
+  },
+  "options": {
+    "timeMs": 1500,
+    "depth": 3,
+    "width": 8,
+    "maxNodes": 45000,
+    "patternHistory": {
+      "version": 2,
+      "status": "established",
+      "anchorRow": 36,
+      "blockedRows": [],
+      "source": "recognized-scoring-wall"
+    },
+    "openingPhase": false,
+    "obligationContext": {
+      "schemaVersion": 1,
+      "status": "available",
+      "reason": null,
+      "inventory": {
+        "schemaVersion": 1,
+        "status": "available",
+        "originKnown": true,
+        "nextId": 33,
+        "streamCursor": 26,
+        "active": {
+          "id": 26,
+          "type": "J",
+          "observedOrder": 25,
+          "bag": 3
+        },
+        "hold": {
+          "id": 23,
+          "type": "T",
+          "observedOrder": 22,
+          "bag": 3
+        },
+        "queue": [
+          {
+            "id": 27,
+            "type": "S",
+            "observedOrder": 26,
+            "bag": 3
+          },
+          {
+            "id": 28,
+            "type": "O",
+            "observedOrder": 27,
+            "bag": 3
+          },
+          {
+            "id": 29,
+            "type": "I",
+            "observedOrder": 28,
+            "bag": 4
+          },
+          {
+            "id": 30,
+            "type": "O",
+            "observedOrder": 29,
+            "bag": 4
+          },
+          {
+            "id": 31,
+            "type": "J",
+            "observedOrder": 30,
+            "bag": 4
+          },
+          {
+            "id": 32,
+            "type": "L",
+            "observedOrder": 31,
+            "bag": 4
+          }
+        ],
+        "frontier": {
+          "bag": 4,
+          "seenMask": 15
+        },
+        "knowledge": {
+          "remaining": [
+            112
+          ],
+          "observedCount": 32,
+          "provenance": "known-phase"
+        }
+      },
+      "state": {
+        "schemaVersion": 2,
+        "availability": "known",
+        "center": {
+          "pending": [
+            {
+              "id": "piece-20",
+              "rootId": 20,
+              "family": "OJ",
+              "alternatives": [
+                {
+                  "piece": "J",
+                  "cells": [
+                    [
+                      4,
+                      28
+                    ],
+                    [
+                      5,
+                      28
+                    ],
+                    [
+                      6,
+                      28
+                    ],
+                    [
+                      6,
+                      29
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          "debt": []
+        },
+        "sl": {
+          "schemaVersion": 1,
+          "status": "known",
+          "foundationOpen": false,
+          "firstBagReview": "reviewed",
+          "handoff": true,
+          "residuals": [
+            {
+              "bag": 3,
+              "S": null,
+              "L": {
+                "id": 24,
+                "region": "left",
+                "opening": false,
+                "pair": null,
+                "nonRight": true
+              },
+              "order": null,
+              "sOwedSinceL": false,
+              "lBeforeSPair": false
+            }
+          ],
+          "uncertainty": {
+            "S": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "L": [
+              0
+            ]
+          }
+        },
+        "account": {
+          "schemaVersion": 1,
+          "known": true,
+          "firstTsd": true,
+          "allocationVerified": false,
+          "mandatoryZ": false,
+          "thirdTWindow": false,
+          "qualityCandidate": false,
+          "opening": null,
+          "profile": {
+            "violation": true,
+            "departure": false,
+            "before": null,
+            "capEstablished": true
+          },
+          "z": {
+            "remaining": null,
+            "uncredited": "none"
+          },
+          "reset": {
+            "status": "inactive"
+          }
+        },
+        "safety": {
+          "notches": {
+            "version": 2,
+            "status": "established",
+            "anchorRow": 36,
+            "blockedRows": [],
+            "source": "recognized-scoring-wall"
+          },
+          "coveredCells": []
+        },
+        "dPending": false,
+        "leftGoals": []
+      },
+      "boundary": {
+        "firstBagLocks": 7,
+        "sourcePatternSeen": true
+      }
+    }
+  },
+  "userWitnesses": [
+    [
+      "CW",
+      "L",
+      "L",
+      "L",
+      "L",
+      "HD"
+    ],
+    [
+      "HOLD",
+      "CW",
+      "R",
+      "R",
+      "R",
+      "R",
+      "L",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "CW",
+      "HD"
+    ],
+    [
+      "L",
+      "L",
+      "HD"
+    ],
+    [
+      "HOLD",
+      "CW",
+      "HOLD",
+      "CW",
+      "HOLD",
+      "CW",
+      "L",
+      "CW",
+      "L",
+      "L",
+      "HD"
+    ],
+    [
+      "L",
+      "R",
+      "HOLD",
+      "CW",
+      "L",
+      "L",
+      "HD"
+    ],
+    [
+      "CW",
+      "CW",
+      "R",
+      "HD"
+    ]
+  ],
+  "resourceOriginBag": {
+    "remaining": [
+      0
+    ],
+    "observedCount": 7,
+    "provenance": "known-phase"
+  }
+}

@@ -18,13 +18,11 @@
  * Compaction is not payment. Effects preserve newly introduced exact identities
  * for request-local comparisons, even when that identity immediately compacts.
  *
- * Consumers still to migrate together:
- * - Resource history hanging/hangingL/classifySL and its allocation archives.
- * - Midgame start/step/slHistory and binding, plus request-root uncertainty keys.
- * - Planner/Reset root-identity and newly-unclassified admission comparisons.
- * - Badge/explanation selectors that currently expect every historical ID.
- * Those consumers need count-aware current selectors AND request-local effects;
- * replacing identity arrays with aggregate counts alone changes policy. Opening
+ * Current Context and projected routes share these facts. Resource history,
+ * slHistory reconstruction and allocation archives are retired. Planner/Reset
+ * admission and badge/explanation consumers use count-aware current selectors
+ * plus request-local effects; replacing exact current identities with aggregate
+ * counts alone would change policy. Opening
  * and profile/account eligibility remain caller-owned. This module grants no
  * repair capability, admission or new opening/Reset allowance.
  */

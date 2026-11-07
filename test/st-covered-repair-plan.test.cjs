@@ -53,8 +53,8 @@ test('covered repair / user position01 remains an unfinished supported ordinary 
  assert.equal(steps.reduce((n,p)=>n+p.event.lines,0),6);assert.equal(P.assess(steps.at(-1).state.board).maxHeight,11);
  const completion=S.geometry(steps.at(-1).state.board).center.completions.find(c=>c.piece==='L'&&c.resultStatus==='level');assert.ok(completion);
  assert.ok(![steps.at(-1).state.active?.type,steps.at(-1).state.hold,...steps.at(-1).state.queue].includes('L'),'The pending L is not fabricated as supplied');
- const RH=require('../st-resource-history'),M=require('../st-midgame-resources');
- assert.equal(M.checkPath(f.observation,steps,RH.resolve(f.observation,RH.start(f.observation))).valid,true,'The actual supplied prefix preserves ordinary resource obligations');
+ const Current=require('../st-obligation-context'),CurrentProvider=require('../st-resource-provider'),M=require('../st-obligation-resources');
+ assert.equal(M.checkPath(f.observation,steps,Current.start(f.observation)).valid,true,'The actual supplied prefix preserves ordinary resource obligations');
  assert.notEqual(proof.status,'full-reset-complete');
 });
 test('covered repair / existing imported damage is not reclassified and Right is separately scoped',()=>{
@@ -63,20 +63,20 @@ test('covered repair / existing imported damage is not reclassified and Right is
  const after=board.slice();after[36]='.........Z';assert.deepEqual(A.repairStep(board,after,{clearedRows:[]}),[]);
 });
 test('covered repair / replay history survives lost commitment and refuses copied debt flags',()=>{
- const RH=require('../st-resource-history'),{state,steps}=simple();let h=RH.start(state),current=state;
- for(const action of steps[0].witness){const before=current;current=R.move(current,action);h=RH.applyAction(h,before,action,current);}
- const exported=RH.exportContext(current,h),summary=RH.resolve(current,RH.importContext(current,clone(exported)));
+ const Current=require('../st-obligation-context'),CurrentProvider=require('../st-resource-provider'),{state,steps}=simple();let h=Current.start(state),current=state;
+ for(const action of steps[0].witness){const before=current;current=R.move(current,action);h=Current.applyActual(h,{before:before,action:action,after:current}).context;}
+ const exported=Current.exportState(h),summary=CurrentProvider.facts(CurrentProvider.prepare(current,{obligationContext:Current.exportState(Current.importState(clone(exported),{position:current}))}));
  assert.deepEqual(summary.coveredRepair.cells,[[2,39]]);
  // No saved advice or commitment: history is independently sufficient to
  // reject a legal nearby placement that leaves the original roof untouched.
  const bad=path(current,[['R','R','HD']]);
- assert.equal(P.checkedCoveredRepair(current,bad,{resourceContext:exported}),null);
- assert.ok(P.checkedCoveredRepair(current,[steps[1]],{resourceContext:exported}));
- const forged=clone(exported);forged.coveredRepair={cells:[]};assert.deepEqual(RH.resolve(current,RH.importContext(current,forged)).coveredRepair.cells,[[2,39]]);
- const invalid=clone(exported);invalid.steps[0].action='BOGUS';assert.equal(P.checkedCoveredRepair(current,[steps[1]],{resourceContext:invalid}),null);
- assert.deepEqual(RH.resolve(current,RH.start(current)).coveredRepair.cells,[],'A position-only import honestly has unknown earlier provenance');
- for(const action of steps[1].witness){const before=current;current=R.move(current,action);h=RH.applyAction(h,before,action,current);}
- assert.deepEqual(RH.resolve(current,h).coveredRepair.cells,[],'Only the actual filling lock discharges the recorded cell');
+ assert.equal(P.checkedCoveredRepair(current,bad,{obligationContext:exported}),null);
+ assert.ok(P.checkedCoveredRepair(current,[steps[1]],{obligationContext:exported}));
+ const forged=clone(exported);forged.coveredRepair={cells:[]};assert.throws(()=>Current.importState(forged,{position:current}),/envelope shape/);
+ const invalid=clone(exported);invalid.state.sl.status='invalid';assert.equal(P.checkedCoveredRepair(current,[steps[1]],{obligationContext:invalid}),null);
+ assert.deepEqual(CurrentProvider.facts(CurrentProvider.prepare(current,{obligationContext:Current.exportState(Current.start(current))})).coveredRepair.cells,[],'A position-only import honestly has unknown earlier provenance');
+ for(const action of steps[1].witness){const before=current;current=R.move(current,action);h=Current.applyActual(h,{before:before,action:action,after:current}).context;}
+ assert.deepEqual(CurrentProvider.facts(CurrentProvider.prepare(current,{obligationContext:Current.exportState(h)})).coveredRepair.cells,[],'Only the actual filling lock discharges the recorded cell');
 });
 test('covered repair / ordinary admission retains a real temporary roof through lock and fresh worker request',()=>{
  const board=R.emptyBoard();for(let y=36;y<40;y++)board[y]='XXXXXXX...';board[37]='XXXXXX....';
@@ -95,26 +95,26 @@ test('covered repair / ordinary admission retains a real temporary roof through 
  const cert=P.checkedCoveredRepair(state,steps);assert.ok(cert?.plan);
  const advice={target:steps[0].target,witness:steps[0].witness,hold:false,continuation:cert.steps,context:JSON.stringify([state.rules,state.board,state.hold,state.canHold,state.queue,null,state.active.type]),assessment:P.assess(steps.at(-1).state.board),evidence:{coveredRepairPlan:cert.plan,coveredRepair:cert.proof}};
  const checked=P.revalidate(state,advice,{maxNodes:45000});assert.ok(checked,'The temporary roof is an actual admitted repair, not only legal geometry');
- const RH=require('../st-resource-history');let current=state,h=RH.start(state);
- for(const action of steps[0].witness){const before=current;current=R.move(current,action);h=RH.applyAction(h,before,action,current);}
- const options={resourceContext:RH.exportContext(current,h),maxNodes:45000},suffix=P.continueCommitment(state,current,checked,current.lastEvent,options);assert.ok(suffix,'The original exact repair survives the creator lock');
+ const Current=require('../st-obligation-context'),CurrentProvider=require('../st-resource-provider');let current=state,h=Current.start(state);
+ for(const action of steps[0].witness){const before=current;current=R.move(current,action);h=Current.applyActual(h,{before:before,action:action,after:current}).context;}
+ const options={obligationContext:Current.exportState(h),maxNodes:45000},suffix=P.continueCommitment(state,current,checked,current.lastEvent,options);assert.ok(suffix,'The original exact repair survives the creator lock');
  assert.ok(P.revalidate(current,suffix,options));
  const fresh=P.decide(current,{...options,openingPhase:false,commitment:{observation:current,advice:suffix}});assert.ok(fresh.target);
  // Re-ranking may choose another L, but it must certify and actually resolve
  // the same observed roof debt. Do not replace this with target-only validity.
  assert.ok(P.checkedCoveredRepair(current,fresh.continuation,options));assert.ok(P.revalidate(current,fresh,options));
- let repairedState=current,repairedHistory=h;for(const step of fresh.continuation){for(const action of step.witness){const before=repairedState;repairedState=R.move(repairedState,action);repairedHistory=RH.applyAction(repairedHistory,before,action,repairedState);}assert.deepEqual(repairedState.lastEvent,step.event);}
- assert.deepEqual(RH.resolve(repairedState,repairedHistory).coveredRepair.cells,[]);
+ let repairedState=current,repairedHistory=h;for(const step of fresh.continuation){for(const action of step.witness){const before=repairedState;repairedState=R.move(repairedState,action);repairedHistory=Current.applyActual(repairedHistory,{before:before,action:action,after:repairedState}).context;}assert.deepEqual(repairedState.lastEvent,step.event);}
+ assert.deepEqual(CurrentProvider.facts(CurrentProvider.prepare(repairedState,{obligationContext:Current.exportState(repairedHistory)})).coveredRepair.cells,[]);
  const stale=clone(checked);stale.continuation[1].witness=['HD'];
  assert.equal(P.continueCommitment(state,current,stale,current.lastEvent,options),null);
- assert.deepEqual(RH.resolve(current,RH.importContext(current,options.resourceContext)).coveredRepair.cells,[[2,35]],'A failed continuation does not erase actual debt');
+ assert.deepEqual(CurrentProvider.facts(CurrentProvider.prepare(current,{obligationContext:Current.exportState(Current.importState(options.obligationContext,{position:current}))})).coveredRepair.cells,[[2,35]],'A failed continuation does not erase actual debt');
 });
 test('covered repair / controller sends observed debt even with no retained advice',()=>require('./support/page.cjs').withPage('st-lab.html',{},g=>{
  const all=[];g.window.Worker=class{constructor(){all.push(this);}postMessage(m){this.message=clone(m);}terminate(){}};
  const {state,steps}=simple();g.element('#st-snapshot').value=JSON.stringify(state);g.click('#st-import');
  for(const action of steps[0].witness)g.window.stLab.act(action);g.advance(40);
  const request=all.at(-1).message,C=require('../st-obligation-context');
- assert.equal(request.options.resourceContext,undefined);assert.deepEqual(C.resolve(C.importState(request.options.obligationContext,{position:request.observation}),{position:request.observation}).coveredRepair.cells,[[2,39]]);
+ assert.equal(request.options.resourceContext,undefined);assert.ok(request.options.obligationContext);assert.deepEqual(C.resolve(C.importState(request.options.obligationContext,{position:request.observation}),{position:request.observation}).coveredRepair.cells,[[2,39]]);
  const bad=path(request.observation,[['R','R','HD']]);assert.equal(P.checkedCoveredRepair(request.observation,bad,request.options),null);
 }));
 
@@ -139,8 +139,8 @@ test('covered repair / cross-region S84 Center defect survives both nearby TSD a
 });
 
 test('covered repair / a future repair promise does not pin a safe alternative before its roof exists',()=>{
- const q=require('./fixtures/covered-repair-alternative.json'),options={...q.options,commitment:q.commitment,maxNodes:45000,timeMs:undefined,deadline:Infinity,now:()=>0};
- const H=require('../st-resource-history'),summary=H.resolve(q.observation,H.importContext(q.observation,q.options.resourceContext));assert.deepEqual(summary.coveredRepair.cells,[]);
+ const q=clone(require('./fixtures/covered-repair-alternative.json'));delete q.commitment.advice.evidence.resourceObligations.binding;const options={...q.options,commitment:q.commitment,maxNodes:45000,timeMs:undefined,deadline:Infinity,now:()=>0};
+ const Current=require('../st-obligation-context'),CurrentProvider=require('../st-resource-provider'),summary=CurrentProvider.facts(CurrentProvider.prepare(q.observation,{obligationContext:Current.exportState(Current.importState(q.options.obligationContext,{position:q.observation}))}));assert.deepEqual(summary.coveredRepair.cells,[]);
  assert.ok(P.revalidate(q.observation,q.commitment.advice,options),'The saved finite repair remains legitimate, not silently invalidated');
  const fresh=P.decide(q.observation,options);assert.deepEqual(fresh.target,{type:'J',x:1,y:27,rotation:3});assert.notDeepEqual(fresh.target,q.commitment.advice.target);
  assert.equal(fresh.evidence.coveredRepair.valid,true);assert.deepEqual(fresh.evidence.coveredRepair.outstandingCells,[]);assert.ok(fresh.metrics.nodes<=45000);
@@ -155,8 +155,8 @@ test('covered repair / closing lock is required but later ordinary filler has no
 });
 
 test('covered repair / different actual continuations may close the same authenticated outstanding cell',()=>{
- const q=require('./fixtures/covered-repair-current-alternatives.json'),H=require('../st-resource-history'),options={...q.options,maxNodes:45000,timeMs:undefined,deadline:Infinity,now:()=>0};
- const summary=H.resolve(q.observation,H.importContext(q.observation,options.resourceContext));assert.deepEqual(summary.coveredRepair.cells,[[2,29]]);
+ const q=require('./fixtures/covered-repair-current-alternatives.json'),Current=require('../st-obligation-context'),CurrentProvider=require('../st-resource-provider'),options={...q.options,maxNodes:45000,timeMs:undefined,deadline:Infinity,now:()=>0};
+ const summary=CurrentProvider.facts(CurrentProvider.prepare(q.observation,{obligationContext:Current.exportState(Current.importState(options.obligationContext,{position:q.observation}))}));assert.deepEqual(summary.coveredRepair.cells,[[2,29]]);
  assert.notDeepEqual(q.routes[0].target,q.routes[1].target);
  for(const route of q.routes){const checked=P.revalidate(q.observation,route,options);assert.ok(checked);assert.deepEqual(checked.evidence.coveredRepair.outstandingCells,[]);}
  const unfinished=clone(q.routes[1]);unfinished.continuation=unfinished.continuation.slice(0,1);

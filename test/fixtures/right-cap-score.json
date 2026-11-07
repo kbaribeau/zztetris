@@ -87,394 +87,153 @@
       "width": 8,
       "maxNodes": 45000,
       "timeMs": 1500,
-      "resourceContext": {
-        "schemaVersion": 1,
-        "origin": {
-          "rules": "st-zero-v2",
-          "board": [
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            ".JOOLLL...",
-            ".JOOLSS...",
-            "JJSSSS....",
-            "ISSLJJZ...",
-            "ILLLJZZ...",
-            "IJOOJZ....",
-            "IJOOLLL...",
-            "JJOOLSS...",
-            "ITTTLSS.Z.",
-            "IIIIJOO.Z."
-          ],
-          "active": {
-            "type": "S",
-            "x": 3,
-            "y": 17,
-            "rotation": 0,
-            "lastRotation": null
-          },
-          "hold": "I",
-          "canHold": true,
-          "queue": [
-            "J",
-            "I",
-            "L",
-            "O",
-            "T",
-            "Z"
-          ],
-          "streamCursor": 29,
-          "topOut": false
-        },
-        "fresh": false,
-        "steps": [
-          {
-            "action": "R",
-            "revealed": []
-          },
-          {
-            "action": "HD",
-            "revealed": [
-              "I"
-            ]
-          },
-          {
-            "action": "L",
-            "revealed": []
-          },
-          {
-            "action": "L",
-            "revealed": []
-          },
-          {
-            "action": "HD",
-            "revealed": [
-              "T"
-            ]
-          },
-          {
-            "action": "L",
-            "revealed": []
-          },
-          {
-            "action": "L",
-            "revealed": []
-          },
-          {
-            "action": "L",
-            "revealed": []
-          },
-          {
-            "action": "CCW",
-            "revealed": []
-          },
-          {
-            "action": "L",
-            "revealed": []
-          },
-          {
-            "action": "HD",
-            "revealed": [
-              "J"
-            ]
-          },
-          {
-            "action": "R",
-            "revealed": []
-          },
-          {
-            "action": "R180",
-            "revealed": []
-          },
-          {
-            "action": "HD",
-            "revealed": [
-              "O"
-            ]
-          },
-          {
-            "action": "L",
-            "revealed": []
-          },
-          {
-            "action": "L",
-            "revealed": []
-          },
-          {
-            "action": "HD",
-            "revealed": [
-              "Z"
-            ]
-          },
-          {
-            "action": "HOLD",
-            "revealed": []
-          },
-          {
-            "action": "L",
-            "revealed": []
-          },
-          {
-            "action": "CCW",
-            "revealed": []
-          },
-          {
-            "action": "HD",
-            "revealed": [
-              "L"
-            ]
-          },
-          {
-            "action": "R",
-            "revealed": []
-          },
-          {
-            "action": "R",
-            "revealed": []
-          },
-          {
-            "action": "R",
-            "revealed": []
-          },
-          {
-            "action": "R",
-            "revealed": []
-          },
-          {
-            "action": "CW",
-            "revealed": []
-          },
-          {
-            "action": "HD",
-            "revealed": [
-              "S"
-            ]
-          },
-          {
-            "action": "HOLD",
-            "revealed": []
-          },
-          {
-            "action": "R",
-            "revealed": []
-          },
-          {
-            "action": "R",
-            "revealed": []
-          },
-          {
-            "action": "R",
-            "revealed": []
-          },
-          {
-            "action": "CW",
-            "revealed": []
-          },
-          {
-            "action": "SD",
-            "revealed": []
-          },
-          {
-            "action": "SD",
-            "revealed": []
-          },
-          {
-            "action": "SD",
-            "revealed": []
-          },
-          {
-            "action": "SD",
-            "revealed": []
-          },
-          {
-            "action": "SD",
-            "revealed": []
-          },
-          {
-            "action": "SD",
-            "revealed": []
-          },
-          {
-            "action": "SD",
-            "revealed": []
-          },
-          {
-            "action": "SD",
-            "revealed": []
-          },
-          {
-            "action": "SD",
-            "revealed": []
-          },
-          {
-            "action": "SD",
-            "revealed": []
-          },
-          {
-            "action": "SD",
-            "revealed": []
-          },
-          {
-            "action": "SD",
-            "revealed": []
-          },
-          {
-            "action": "SD",
-            "revealed": []
-          },
-          {
-            "action": "SD",
-            "revealed": []
-          },
-          {
-            "action": "SD",
-            "revealed": []
-          },
-          {
-            "action": "SD",
-            "revealed": []
-          },
-          {
-            "action": "CW",
-            "revealed": []
-          },
-          {
-            "action": "HD",
-            "revealed": [
-              "I"
-            ]
-          },
-          {
-            "action": "HOLD",
-            "revealed": []
-          },
-          {
-            "action": "R",
-            "revealed": []
-          },
-          {
-            "action": "R",
-            "revealed": []
-          },
-          {
-            "action": "R",
-            "revealed": []
-          },
-          {
-            "action": "CW",
-            "revealed": []
-          },
-          {
-            "action": "R",
-            "revealed": []
-          },
-          {
-            "action": "HD",
-            "revealed": [
-              "Z"
-            ]
-          },
-          {
-            "action": "L",
-            "revealed": []
-          },
-          {
-            "action": "L",
-            "revealed": []
-          },
-          {
-            "action": "L",
-            "revealed": []
-          },
-          {
-            "action": "CCW",
-            "revealed": []
-          },
-          {
-            "action": "HD",
-            "revealed": [
-              "S"
-            ]
-          }
-        ],
-        "handoffAtAction": null
-      },
       "patternHistory": {
-        "origin": [
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "...I......",
-          "...I......",
-          ".J.I......",
-          ".J.I......",
-          "JJOOLLL...",
-          "IJOOLSS...",
-          "IJJJSS....",
-          "IJOOLLL...",
-          "IJOOLSS...",
-          "JJSSSS....",
-          "ISSLJJZ...",
-          "ILLLJZZ..I",
-          "JJOOLSS.ZI",
-          "ITTTLSS.ZI",
-          "IIIIJOO.ZI"
-        ],
-        "steps": []
+        "version": 2,
+        "status": "established",
+        "anchorRow": 34,
+        "blockedRows": [],
+        "source": "recognized-next-Z-cap"
       },
       "openingPhase": false,
       "openingSource": null,
       "openingClear": null,
-      "openingRepair": null
+      "openingRepair": null,
+      "obligationContext": {
+        "schemaVersion": 1,
+        "status": "available",
+        "reason": null,
+        "inventory": {
+          "schemaVersion": 1,
+          "status": "available",
+          "originKnown": false,
+          "nextId": 19,
+          "streamCursor": 39,
+          "active": {
+            "id": 12,
+            "type": "O",
+            "observedOrder": null,
+            "bag": null
+          },
+          "hold": {
+            "id": 10,
+            "type": "T",
+            "observedOrder": null,
+            "bag": null
+          },
+          "queue": [
+            {
+              "id": 13,
+              "type": "Z",
+              "observedOrder": null,
+              "bag": null
+            },
+            {
+              "id": 14,
+              "type": "L",
+              "observedOrder": null,
+              "bag": null
+            },
+            {
+              "id": 15,
+              "type": "S",
+              "observedOrder": null,
+              "bag": null
+            },
+            {
+              "id": 16,
+              "type": "I",
+              "observedOrder": null,
+              "bag": null
+            },
+            {
+              "id": 17,
+              "type": "Z",
+              "observedOrder": null,
+              "bag": null
+            },
+            {
+              "id": 18,
+              "type": "S",
+              "observedOrder": null,
+              "bag": null
+            }
+          ],
+          "frontier": null,
+          "knowledge": {
+            "remaining": [
+              46
+            ],
+            "observedCount": 45,
+            "provenance": "known-phase"
+          }
+        },
+        "state": {
+          "schemaVersion": 2,
+          "availability": "unknown",
+          "center": {
+            "pending": [],
+            "debt": []
+          },
+          "sl": {
+            "schemaVersion": 1,
+            "status": "unknown",
+            "foundationOpen": true,
+            "firstBagReview": "pending",
+            "handoff": false,
+            "residuals": [],
+            "uncertainty": {
+              "S": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "L": [
+                0
+              ]
+            }
+          },
+          "account": {
+            "schemaVersion": 1,
+            "known": false,
+            "firstTsd": false,
+            "allocationVerified": false,
+            "mandatoryZ": false,
+            "thirdTWindow": false,
+            "qualityCandidate": false,
+            "opening": null,
+            "profile": {
+              "violation": false,
+              "departure": false,
+              "before": null,
+              "capEstablished": false
+            },
+            "z": {
+              "remaining": null,
+              "uncredited": "none"
+            },
+            "reset": {
+              "status": "inactive"
+            }
+          },
+          "safety": {
+            "notches": {
+              "version": 2,
+              "status": "established",
+              "anchorRow": 34,
+              "blockedRows": [],
+              "source": "recognized-next-Z-cap"
+            },
+            "coveredCells": []
+          },
+          "dPending": false,
+          "leftGoals": []
+        },
+        "boundary": {
+          "firstBagLocks": null,
+          "sourcePatternSeen": false
+        }
+      }
     }
   },
   "expectedFirstCells": [

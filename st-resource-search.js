@@ -1,4 +1,4 @@
-/* One finite resource-search grammar for legacy and compact route adapters.
+/* One finite resource-search grammar for compact route adapters.
  * Only factual step/binding and uncertainty access differ. Keep ordering,
  * replay/access checks, beam pruning and proof budgets in this single module.
  */

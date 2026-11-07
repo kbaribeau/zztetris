@@ -1,42 +1,17 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path'),{createRequire}=require('node:module');
-const O=require('../st-opening-obligations'),H=require('../st-resource-history'),R=require('../st-rules'),I=require('../st-public-inventory'),C=require('../st-center-obligations');
+const O=require('../st-opening-obligations'),R=require('../st-rules');
 const opening=require('./fixtures/opening-z-allocation.json'),copy=x=>JSON.parse(JSON.stringify(x));
 const empty=()=>Array(40).fill('..........'),clearSL=()=>({hangingS:{status:'none-observed'},hangingL:{status:'none-observed'}});
-// The old implementation is an independent test oracle, not a state input.
-// Its Reset timing is isolated only in explicit lifecycle tests. Actual moves,
-// identities, scoring and Center effects still come from the real kernels.
-function isolatedHistory(){const file=path.resolve(__dirname,'../st-resource-history.js'),req=createRequire(file),box={module:{exports:{}},require:n=>n==='./st-reset-policy'?{consider:()=>({status:'candidate'})}:req(n)};vm.runInNewContext(fs.readFileSync(file,'utf8'),box);return box.module.exports;}
-function replay(origin,{historyAPI=H}={}){
- let position=R.createState(origin),inventory=I.start(position,{fresh:true}),legacy=historyAPI.start(position,{fresh:true,inventory}),state=O.start({known:true}),last={state,effects:[]},locks=0;
- function compare(){
-  const old=historyAPI.resolve(position,legacy),now=O.resolve(state,{board:position.board});
-  assert.equal(old.coverage.status,'complete');
-  assert.deepEqual(now.openingAllocation,Object.fromEntries(['status','requiredNonRightT','requiredNonRightZ'].map(k=>[k,old.openingAllocation[k]])),'opening status at lock '+locks);
-  assert.deepEqual(now.extraZ,{status:old.extraZ.status,baseline:Boolean(old.extraZ.baseline),remaining:old.extraZ.remaining},'Z account at lock '+locks);
-  assert.equal(now.reset.status,old.reset.status,'Reset status at lock '+locks);
-  if(old.reset.status==='active')assert.equal(now.reset.progress,old.reset.progress);
-  return now;
- }
- function act(action,revealed=[]){
-  const before=position,next=R.move(before,action);assert.notEqual(next,before,'literal accepted '+action);
-  const after={...next,queue:[...next.queue,...revealed]},receipt=I.transition(inventory,before,action,after);assert.equal(receipt.next.status,'available');
-  const center=action==='HD'?C.apply({pending:legacy.center.pending,debt:legacy.center.debt},before.board,after.board,after.lastEvent,{pieceId:receipt.locked.id,at:locks+1}):null;
-  legacy=historyAPI.applyAction(legacy,before,action,after,{inventoryTransition:receipt});position=after;inventory=receipt.next;
-  if(action==='HD'){
-   locks++;const summary=historyAPI.resolve(position,legacy);
-   last=O.transition(state,{kind:'lock',piece:receipt.locked,event:after.lastEvent,centerEffects:center.effects},{before:{board:before.board},after:{board:after.board,topOut:after.topOut,center:center.state,sl:summary,coveredCells:summary.coveredRepair.cells}});state=last.state;
-  }
-  compare();return last;
- }
- return{act,lock(actions){for(const action of actions)act(action);return last;},
-  begin(){legacy=historyAPI.beginReset(legacy,position);last=O.beginReset(state,{candidate:true,inheritedCovered:legacy.coveredRepair.cells});state=last.state;compare();return last;},
-  handoff(){legacy=historyAPI.markHandoff(legacy,position);compare();},
-  load(context){if(context.handoffAtAction===0)this.handoff();if(context.resetAtActions?.includes(0))this.begin();context.steps.forEach((step,i)=>{act(step.action,step.revealed);if(context.handoffAtAction===i+1)this.handoff();if(context.resetAtActions?.includes(i+1))this.begin();});return this;},
-  compare,get state(){return state;},get position(){return position;},get legacy(){return legacy;},get last(){return last;},get locks(){return locks;}};
+// Exercise the actual coupled current controller. Component-only cases below
+// keep literal independently specified account transactions and outcomes.
+function replay(origin,{snapshot}={}){
+ const x=require('./support/current-player.cjs')(origin,{snapshot});
+ const result=()=>({state:x.state.account,effects:x.last?.effects||[]});
+ return{act(action,revealed=[]){x.act(action,revealed);return result();},lock(actions){x.lock(actions);return result();},begin(){x.begin();return result();},handoff(){x.handoff();return result();},compare(){return O.resolve(x.state.account,{board:x.position.board});},get state(){return x.state.account;},get position(){return x.position;},get inventory(){return x.inventory;},get last(){return result();},get locks(){return x.locks;}};
 }
-function recorded(){const context=opening.request.options.resourceContext;return replay(context.origin).load(context);}
-function trial(number=1,until=Infinity,historyAPI=H){const fixture=require('./support/st-resource-trial-'+number+'.json'),x=replay(fixture.initial,{historyAPI});for(const step of fixture.steps){if(x.locks>=until)break;x.act(step.action,step.revealed);}return x;}
+function recorded(){return replay(opening.request.observation,{snapshot:opening.request.options.obligationContext});}
+function trial(number=1,until=Infinity){const fixture=require('./support/st-resource-trial-'+number+'.json'),x=replay(fixture.initial);for(const step of fixture.steps){if(x.locks>=until)break;x.act(step.action,step.revealed);}return x;}
 function established(balance=0){const state=O.start({known:true});Object.assign(state,{firstTsd:true,allocationVerified:true,opening:null});state.profile.before=null;state.profile.capEstablished=true;state.z.remaining=balance;return O.importState(state);}
 const poses={T:[[0,38],[1,38],[2,38],[1,39]],Z:[[0,38],[1,38],[1,39],[2,39]],J:[[0,38],[0,39],[1,39],[2,39]],S:[[1,38],[2,38],[0,39],[1,39]],L:[[2,38],[0,39],[1,39],[2,39]]};
 // Literal component transactions isolate facts already checked by the caller.
@@ -46,8 +21,15 @@ function lock(state,type,id,{bag=0,event={},before=empty(),after=empty(),center=
  return O.transition(state,{kind:'lock',piece:{type,id,bag},event:e,centerEffects},{before:{board:before},after:{board:after,topOut,center,sl,coveredCells}});
 }
 
-test('opening accounts: every actual lock in three retained trials matches legacy current statuses',()=>{
- let locks=0;for(const n of [1,2,5])locks+=trial(n).locks;assert.equal(locks,96);
+test('opening accounts: three retained trials preserve literal lock totals and current account endpoints',()=>{
+ // Frozen account outcomes from the retained source trials. The first spends
+ // its one allowance, the second keeps it, and the fifth never earns one.
+ for(const [n,status,remaining,allocation,profileLost]of [[1,'used',0,'verified-first-tsd',false],[2,'available',1,'verified-first-tsd',false],[5,'unknown',null,'out-of-profile',true]]){
+  const x=trial(n),facts=x.compare();assert.equal(x.locks,32);assert.equal(facts.firstTsd,true);
+  assert.deepEqual(facts.extraZ,{status,baseline:remaining!==null,remaining});
+  assert.equal(facts.openingAllocation.status,allocation);assert.equal(facts.profileLost,profileLost);
+  assert.equal(x.state.opening,null);assert.equal(x.state.profile.before,null);assert.deepEqual(facts.reset,{status:'inactive',progress:0});
+ }
 });
 test('opening accounts: pre-clear quality grants once and retires all temporary opening predicates',()=>{
  const a=trial(1,15);assert.equal(a.state.z.remaining,1);assert.equal(a.state.opening,null);assert.equal(a.state.profile.before,null);assert.equal(a.state.mandatoryZ,false);assert.ok(a.last.effects.some(e=>e.status==='baseline-established'));
@@ -98,7 +80,7 @@ test('opening accounts: current quality blockers can resolve, but a T departure 
  const departed=lock(waiting,'T',1);assert.equal(departed.state.opening,null);assert.equal(departed.state.profile.departure,true);assert.equal(lock(departed.state,'J',2).state.z.remaining,null);
 });
 test('opening accounts: pre-clear quality and delayed quality have distinct Center invalidation rules',()=>{
- const before=trial(1,14),after=trial(1,15),event=after.position.lastEvent,piece=before.legacy.pieces[before.legacy.active];
+ const before=trial(1,14),after=trial(1,15),event=after.position.lastEvent,piece=before.inventory.active;
  assert.equal(before.state.profile.before.checkpoint,true);assert.equal(event.lines,2);
  const supplied={event,before:before.position.board,after:after.position.board,center:{pending:[{id:'live'}],debt:[]},centerEffects:[{status:'debt-invalidated'}],sl:{hangingS:{status:'hanging'},hangingL:{status:'unknown'}}};
  const immediate=lock(before.state,'T',piece.id,{...supplied,bag:piece.bag});assert.equal(immediate.state.z.remaining,1,'Recorded pre-clear quality is sufficient for immediate allowance');
@@ -116,23 +98,23 @@ test('opening accounts: pre-first overuse retires at first TSD, but checkpoint v
  reviewed=lock(reviewed,'T',101).state;assert.equal(reviewed.profile.violation,true);reviewed=lock(reviewed,'T',102,{event:score}).state;assert.equal(O.profileLost(reviewed),true);assert.equal(reviewed.profile.before,null);
 });
 test('opening accounts: current cap geometry cannot replace a lost original cap target',()=>{
- const before=trial(1,14),after=trial(1,15),event=after.position.lastEvent,piece=before.legacy.pieces[before.legacy.active];
+ const before=trial(1,14),after=trial(1,15),event=after.position.lastEvent,piece=before.inventory.active;
  const altered=copy(before.state);altered.opening.roof=[[9,0],[9,1]];
  const rejected=lock(altered,'T',piece.id,{bag:piece.bag,event,before:before.position.board,after:after.position.board});
  assert.equal(O.predicates.cap(before.position.board),true);assert.equal(rejected.state.firstTsd,true);assert.equal(rejected.state.allocationVerified,false);assert.equal(rejected.state.z.remaining,null);
 });
 test('opening accounts: real Reset credits one per actual T and no bonus on completion',()=>{
- const a=trial(1,24,isolatedHistory());assert.equal(a.state.z.remaining,0);a.begin();const saved=copy(a.state);a.act('HOLD');a.act('HOLD');assert.deepEqual(a.state,saved);
+ const a=trial(1,24);assert.equal(a.state.z.remaining,0);a.begin();const saved=copy(a.state);a.act('HOLD');a.act('HOLD');assert.deepEqual(a.state,saved);
  a.lock(['L','L','L','HD']);assert.equal(a.state.reset.remaining,1);assert.equal(a.state.z.remaining,1);assert.equal(a.compare().extraZ.status,'used');
  for(let i=0;i<4;i++)a.lock(['HD']);assert.equal(a.state.z.remaining,0);
  a.lock(['L','L','L','HD']);assert.deepEqual(a.state.reset,{status:'inactive'});assert.equal(a.state.z.remaining,1);assert.equal(a.last.effects.filter(e=>e.delta===1).length,1);assert.ok(a.last.effects.some(e=>e.status==='reset-completed'));
 });
 test('opening accounts: real Right Z during Reset is not an optional debit',()=>{
- const a=trial(1,24,isolatedHistory());a.begin();a.lock(['L','L','L','HD']);for(let i=0;i<3;i++)a.lock(['HD']);a.lock(['CW','R','R','R','R','HD']);assert.equal(a.state.z.remaining,1);
+ const a=trial(1,24);a.begin();a.lock(['L','L','L','HD']);for(let i=0;i<3;i++)a.lock(['HD']);a.lock(['CW','R','R','R','R','HD']);assert.equal(a.state.z.remaining,1);
  a.lock(['L','L','L','HD']);assert.equal(a.state.z.remaining,2);assert.equal(a.state.reset.status,'inactive');
 });
 test('opening accounts: actual completed Reset can be spent and entered again without an episode archive',()=>{
- const f=require('./support/st-reset-live-cycle.json'),a=replay(f.resourceContext.origin,{historyAPI:isolatedHistory()}).load(f.resourceContext);a.begin();
+ const f=require('./support/st-reset-live-cycle.json'),a=replay(f.initial,{snapshot:f.obligationContext});a.begin();
  for(const step of f.steps)for(const action of step.actions)a.act(action.action,action.revealed);
  assert.equal(a.state.z.remaining,2);assert.deepEqual(a.state.reset,{status:'inactive'});
  const continuation=[
@@ -144,9 +126,9 @@ test('opening accounts: actual completed Reset can be spent and entered again wi
  assert.equal(a.state.z.remaining,0);const begun=a.begin();assert.equal(begun.state.z.remaining,0);assert.equal(begun.state.reset.remaining,2);assert.equal(begun.state.reset.firstTId,null);
 });
 test('opening accounts: Reset overspend and a non-Left or scoring T invalidate without repair',()=>{
- const a=trial(1,24,isolatedHistory());a.begin();a.act('HOLD');for(let i=0;i<5;i++)a.lock(['HD']);assert.equal(a.state.z.remaining,-1);assert.equal(a.state.reset.status,'invalid');a.lock(['L','L','L','HD']);assert.equal(a.state.z.remaining,-1);
- const b=trial(1,24,isolatedHistory());b.begin();b.lock(['HD']);assert.equal(b.state.reset.status,'invalid');assert.equal(b.state.z.remaining,0);
- const c=trial(1,24,isolatedHistory());c.begin();const f=require('./support/st-resource-trial-1.json');let locks=0;for(const s of f.steps){if(locks===24)c.act(s.action,s.revealed);if(s.action==='HD')locks++;if(locks===25)break;}assert.equal(c.position.lastEvent.lines,2);assert.equal(c.state.z.remaining,0);assert.equal(c.state.reset.status,'invalid');
+ const a=trial(1,24);a.begin();a.act('HOLD');for(let i=0;i<5;i++)a.lock(['HD']);assert.equal(a.state.z.remaining,-1);assert.equal(a.state.reset.status,'invalid');a.lock(['L','L','L','HD']);assert.equal(a.state.z.remaining,-1);
+ const b=trial(1,24);b.begin();b.lock(['HD']);assert.equal(b.state.reset.status,'invalid');assert.equal(b.state.z.remaining,0);
+ const c=trial(1,24);c.begin();const f=require('./support/st-resource-trial-1.json');let locks=0;for(const s of f.steps){if(locks===24)c.act(s.action,s.revealed);if(s.action==='HD')locks++;if(locks===25)break;}assert.equal(c.position.lastEvent.lines,2);assert.equal(c.state.z.remaining,0);assert.equal(c.state.reset.status,'invalid');
 });
 test('opening accounts: current Reset rejects duplicate T and unknown bag without retaining paid lists',()=>{
  const initial=O.beginReset(established(),{candidate:true}).state,one=lock(initial,'T',91,{bag:18}).state;

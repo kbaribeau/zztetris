@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
-const P=require('../st-planner'),R=require('../st-rules'),H=require('../st-resource-history');
+const P=require('../st-planner'),R=require('../st-rules'),H=require('../st-obligation-context');
 const fixture=require('./fixtures/timely-scoring.json'),clone=x=>JSON.parse(JSON.stringify(x));
 const {allowanceResource}=require('./support/st-comparison-resources.cjs');
 
@@ -55,15 +55,15 @@ function replay(raw,advice){
 }
 
 test('timely / Extra-Z integration: real q11 retains its score and its actual partial root history',()=>{
- const q=clone(fixture.request),before=clone(q),state=R.createState(q.observation),history=H.importContext(state,q.options.resourceContext),summary=H.resolve(state,history);
- assert.equal(summary.coverage.status,'partial');assert.equal(summary.extraZ.status,'unknown');assert.equal(summary.extraZ.baseline,null);
+ const q=clone(fixture.request),before=clone(q),state=R.createState(q.observation),history=H.importState(q.options.obligationContext,{position:state}),summary=H.resolve(history,{position:state});
+ assert.equal(summary.availability,'unknown');assert.equal(summary.extraZ.status,'unknown');assert.equal(summary.extraZ.baseline,false);
  const result=P.decide(q.observation,{...q.options,...bounds,commitment:q.commitment});
  assert.ok(result.target,result.reason);assert.equal(result.continuation[0].event.type,'T');assert.equal(result.continuation[0].event.spin,'full');assert.equal(result.continuation[0].event.lines,2);
  assert.equal(result.metrics.commitmentComparison.replacement,false);assert.equal(result.metrics.commitmentComparison.scoringTiming.reason,'delay-without-concrete-benefit');
  assert.equal(result.evidence.resourceObligations.status,'checked');assert.equal(result.evidence.resourceObligations.extraZ,'unknown');assert.equal(result.evidence.gapAccess.reachable,true);
  assert.ok(result.metrics.nodes<=bounds.maxNodes);replay(q.observation,result);
  assert.deepEqual(q,before,'No fabricated complete history or available Extra-Z flag is introduced into the fixture');
- assert.equal(H.resolve(state,history).extraZ.status,'unknown');
+ assert.equal(H.resolve(history,{position:state}).extraZ.status,'unknown');
 });
 
 test('timely / Extra-Z orchestration seam: unknown optional work cannot erase the admitted original scoring commitment',()=>{

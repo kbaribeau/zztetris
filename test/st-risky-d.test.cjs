@@ -1,12 +1,12 @@
 'use strict';
 const equivalent=require('./support/st-equivalent-s.cjs');
-const test=require('node:test'),assert=require('node:assert/strict'),R=require('../st-rules'),P=require('../st-planner'),L=require('../st-left-context'),RH=require('../st-resource-history'),M=require('../st-obligation-resources'),C=require('../st-obligation-context'),Provider=require('../st-resource-provider'),Session=require('../st-session'),harness=require('./support/st-risk-harness.cjs'),fixture=require('./fixtures/risky-d-j17.json');
+const test=require('node:test'),assert=require('node:assert/strict'),R=require('../st-rules'),P=require('../st-planner'),L=require('../st-left-context'),RH=require('../st-obligation-context'),M=require('../st-obligation-resources'),C=require('../st-obligation-context'),Provider=require('../st-resource-provider'),Session=require('../st-session'),harness=require('./support/st-risk-harness.cjs'),fixture=require('./fixtures/risky-d-j17.json');
 const clone=x=>JSON.parse(JSON.stringify(x));
 const placement=(s,w)=>{const r=R.replay(s,w);assert.ok(r.valid);assert.equal(r.events.length,1);return{state:r.state,event:r.events[0],target:r.events[0].target,witness:w};};
 const stopped={status:'no-supported-continuation-found',target:null,witness:[],continuation:[],reason:'No supported continuation certified.',metrics:{nodes:100}};
 const bounded={now:()=>0,deadline:Infinity,maxNodes:45000,openingPhase:false};
 function compact(state,options={}){return Provider.startRoute(Provider.prepare(state,options),{extendForced:false});}
-function origin(){const s=Session.prepare(fixture.session);return{...s,resourceHistory:RH.importContext(s.state,fixture.session.coaching.resourceContext),resource:compact(s.state,{obligationContext:s.obligationContext})};}
+function origin(){const s=Session.prepare(fixture.session);return{...s,resourceHistory:RH.importState(fixture.session.coaching.obligationContext,{position:s.state}),resource:compact(s.state,{obligationContext:s.obligationContext})};}
 function options(s){return{...bounded,obligationContext:s.obligationContext,patternHistory:s.patternHistory};}
 const dHazard=a=>a.recommendation.hazards.find(h=>h.code==='D-J-exit-unresolved');
 test('risky D / actual R1 J17 is a legal risk candidate without borrowing later J25',()=>{
@@ -28,21 +28,21 @@ test('risky D / a usable-looking J already owed to Center is not a free Left exi
  const current=C.exportState(C.start(s));current.inventory.nextId=100;current.state.center={pending:[{id:'center:99',rootId:99,family:'OJ',alternatives:[{piece:'J',cells:[[5,36],[6,36],[5,37],[5,38]]}]}],debt:[]};
  const resource=compact(s,{obligationContext:current}),a=harness().riskyDAdmission(s,p,resource,bounded);assert.equal(a.valid,true);assert.ok(a.hazards.some(h=>h.code==='D-J-competes-with-Center'));assert.ok(a.hazards.some(h=>h.code==='D-J-exit-unresolved'));assert.equal(P.dPatternAdmission(s,p,{...bounded,resource}).valid,false);
 });
-test('risky D / observed history remains authentic, and unknown D origin is not invented',()=>{
- const s=origin(),p=placement(s.state,fixture.witness);let state=s.state,history=s.resourceHistory;for(const action of fixture.witness){const next=R.move(state,action);history=RH.applyAction(history,state,action,next);state=next;}
- const real=RH.resolve(state,history);assert.equal(real.dPattern.pending,true);const imported=RH.importContext(state,clone(RH.exportContext(state,history)));assert.deepEqual(RH.resolve(state,imported).dPattern,real.dPattern);
- const unknown=RH.resolve(state,RH.start(state));assert.deepEqual(unknown.dPattern,{pending:false,createdAt:null});assert.equal(L.isD(state.board),true);
+test('risky D / actual creation survives current transport, and unknown D origin is not invented',()=>{
+ const s=origin(),p=placement(s.state,fixture.witness);let state=s.state,history=s.resourceHistory;for(const action of fixture.witness){const next=R.move(state,action);history=RH.applyActual(history,{before:state,action:action,after:next}).context;state=next;}
+ const real=RH.resolve(history,{position:state});assert.equal(real.dPattern.pending,true);const imported=RH.importState(clone(RH.exportState(history)),{position:state});assert.deepEqual(RH.resolve(imported,{position:state}).dPattern,real.dPattern);
+ const unknown=RH.resolve(RH.start(state),{position:state});assert.deepEqual(unknown.dPattern,{pending:false});assert.equal(L.isD(state.board),true);
  // Continuing actual D is a strategic risk regardless of whether a snapshot
  // knows its creator. Geometry is not permission to fabricate creation history.
  // The exact T continuation comes from the actual public R1 history fixture.
- const q=placement(state,fixture.nextWitness),a=harness().riskyDAdmission(state,q,compact(state),bounded);assert.equal(L.isD(q.state.board),true);assert.ok(a.hazards.some(h=>h.code==='D-J-exit-unresolved'));assert.deepEqual(RH.resolve(state,RH.start(state)).dPattern,{pending:false,createdAt:null});
- const forged={...clone(RH.exportContext(state,history)),dPattern:{pending:false}};assert.deepEqual(RH.resolve(state,RH.importContext(state,forged)).dPattern,real.dPattern);
+ const q=placement(state,fixture.nextWitness),a=harness().riskyDAdmission(state,q,compact(state),bounded);assert.equal(L.isD(q.state.board),true);assert.ok(a.hazards.some(h=>h.code==='D-J-exit-unresolved'));assert.deepEqual(RH.resolve(RH.start(state),{position:state}).dPattern,{pending:false});
+ const forged={...clone(RH.exportState(history)),dPattern:{pending:false}};assert.throws(()=>RH.importState(forged,{position:state}),/envelope shape/,'Unknown snapshot fields cannot override the current D duty');
 });
 test('risky D / spending the immediate J in Center leaves a delayed Left exit risk',()=>{
  const heights=[6,4,6,6,4,1,2,0,0,0],board=Array.from({length:40},(_,y)=>heights.map(h=>y>=40-h?'X':'.').join('')),root=R.createState({board,active:'J',hold:'O',queue:['J','O','J']}),creator=['L','L','L','CW','HD'];
- let state=root,history=RH.start(root);for(const action of creator){const next=R.move(state,action);history=RH.applyAction(history,state,action,next);state=next;}
- assert.equal(RH.resolve(state,history).dPattern.pending,true);assert.equal(state.active.type,'J');const p=placement(state,['CW','R','HD']);assert.equal(L.isD(p.state.board),true);assert.equal(p.state.active.type,'O');assert.deepEqual(p.state.queue,['J']);
- const result=harness().riskyDAdmission(state,p,compact(state,{resourceContext:RH.exportContext(state,history)}),bounded);assert.equal(result.valid,true);assert.equal(result.hazards.find(h=>h.code==='D-J-exit-unresolved').availability,'visible-but-delayed');
+ let state=root,history=RH.start(root);for(const action of creator){const next=R.move(state,action);history=RH.applyActual(history,{before:state,action:action,after:next}).context;state=next;}
+ assert.equal(RH.resolve(history,{position:state}).dPattern.pending,true);assert.equal(state.active.type,'J');const p=placement(state,['CW','R','HD']);assert.equal(L.isD(p.state.board),true);assert.equal(p.state.active.type,'O');assert.deepEqual(p.state.queue,['J']);
+ const result=harness().riskyDAdmission(state,p,compact(state,{obligationContext:RH.exportState(history)}),bounded);assert.equal(result.valid,true);assert.equal(result.hazards.find(h=>h.code==='D-J-exit-unresolved').availability,'visible-but-delayed');
 });
 
 test('risky D / real R1 decision and node-bounded serialized Worker prefer a supported alternative to J17 risk',()=>{

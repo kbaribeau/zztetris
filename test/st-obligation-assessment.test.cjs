@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
-const A=require('../st-obligation-assessment'),SL=require('../st-sl-obligations'),C=require('../st-center-obligations'),R=require('../st-rules'),F=require('../st-fixtures'),M=require('../st-midgame-resources');
+const A=require('../st-obligation-assessment'),SL=require('../st-sl-obligations'),C=require('../st-center-obligations'),R=require('../st-rules'),F=require('../st-fixtures'),M=require('../st-obligation-resources');
 const clone=x=>JSON.parse(JSON.stringify(x));
 const freeze=x=>{if(x&&typeof x==='object'){Object.values(x).forEach(freeze);Object.freeze(x);}return x;};
 const blank=()=>({board:Array(40).fill('..........')});

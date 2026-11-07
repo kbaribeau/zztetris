@@ -1,12 +1,13 @@
 'use strict';
+const {extendPublic}=require('./support/current-resource-test.cjs');
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const P=require('../st-planner'),R=require('../st-rules'),A=require('../st-access'),M=require('../st-midgame-resources'),fixtures=require('./fixtures/scheduling-roots.json');
+const P=require('../st-planner'),R=require('../st-rules'),A=require('../st-access'),M=require('../st-obligation-resources'),fixtures=require('./fixtures/scheduling-roots.json');
 function assertRisk(state,a){assert.equal(a.status,'recommended-risky-placement');assert.equal(a.recommendation.kind,'risky');assert.equal(a.metrics.certifiedHorizon,0);assert.equal(a.continuation.length,1);assert.ok(a.metrics.nodes<=45000);assert.equal(a.evidence.resourceObligations.status,'unverified');assert.equal(a.evidence.resourceObligations.binding,undefined);assert.ok(Array.isArray(a.evidence.resourceObligations.unclassifiedS));assert.ok(Array.isArray(a.evidence.resourceObligations.unclassifiedL));assert.equal(a.evidence.coveredRepairPlan,undefined);assert.equal(R.replay(state,a.witness).valid,true);assert.equal(P.revalidate(state,a),null);assert.match(a.reason,/^Risky:/);assert.match(a.reason,/safer move may exist/);}
 for(const f of fixtures)test(`proof scheduling: old seed ${f.seed} route cannot replace actual repair with hypothetical access`,()=>{
  const q=f.request,options={...q.options,previous:q.previous,commitment:q.commitment,deadline:Infinity,timeMs:undefined,now:()=>0};
- const old=require('./fixtures/unsafe-scheduling-repair-prefixes.json').find(p=>p.seed===f.seed),H=require('../st-resource-history');
- const summary=H.resolve(q.observation,H.importContext(q.observation,q.options.resourceContext));
- const proof=A.repairPrefix(M.extendForced(q.observation),old.steps,{initialDebt:summary.coveredRepair.cells,stages:summary.center.pending});
+ const old=require('./fixtures/unsafe-scheduling-repair-prefixes.json').find(p=>p.seed===f.seed),Current=require('../st-obligation-context'),CurrentProvider=require('../st-resource-provider');
+ const summary=CurrentProvider.facts(CurrentProvider.prepare(q.observation,{obligationContext:Current.exportState(Current.importState(q.options.obligationContext,{position:q.observation}))}));
+ const proof=A.repairPrefix(extendPublic(q.observation),old.steps,{initialDebt:summary.coveredRepair.cells,stages:summary.center.pending});
  assert.equal(proof.valid,false);assert.deepEqual(proof.outstandingCells,old.outstanding);
  assert.equal(P.checkedCoveredRepair(q.observation,old.steps,options),null);
  // Supported admission still rejects the archived hypothetical repair. The
@@ -15,7 +16,7 @@ for(const f of fixtures)test(`proof scheduling: old seed ${f.seed} route cannot 
  const strict=P.plan(q.observation,options);assert.equal(strict.target,null);assert.ok(['no-supported-continuation-found','budget-exhausted'].includes(strict.status));
  const a=P.decide(q.observation,options);assertRisk(q.observation,a);
  if(f.seed===2449480001){assert.deepEqual(a.target,{type:'L',x:1,y:24,rotation:2});assert.equal(a.recommendation.riskBasis,'uncertified-follow-up-only');assert.deepEqual(a.recommendation.hazards.map(h=>h.code),['continuation-unverified']);assert.equal(a.recommendation.search.incomplete,true);}
- else{assert.deepEqual(a.target,{type:'L',x:0,y:21,rotation:2});assert.deepEqual(a.recommendation.hazards.find(h=>h.code==='unresolved-covered-cells').cells,[[3,28]]);assert.equal(a.recommendation.hazards.some(h=>h.code==='allocation-history-unknown'),false,'Consumed opening S/L does not create a historical pairing warning');assert.deepEqual(summary.hangingS.unclassified,[]);assert.ok([2,6].every(id=>summary.allocations.find(p=>p.pieceId===id).at<=summary.milestones.maintenanceHandoff.at),'The formerly unclassified S6 and same-bag L2 were both consumed before handoff');}
+ else{assert.deepEqual(a.target,{type:'L',x:0,y:21,rotation:2});assert.deepEqual(a.recommendation.hazards.find(h=>h.code==='unresolved-covered-cells').cells,[[3,28]]);assert.equal(a.recommendation.hazards.some(h=>h.code==='allocation-history-unknown'),false,'Consumed opening S/L does not create a historical pairing warning');assert.deepEqual(summary.hangingS.unclassified,[]);assert.equal(q.options.obligationContext.state.sl.handoff,true);assert.equal(summary.hangingS.evidence.some(p=>p.sId===6),false);assert.equal(summary.hangingL.evidence.some(p=>p.lId===2),false,'Consumed opener identities are not revived as current duties');}
 
 });
 test('proof scheduling: deliberately unfinished access remains unknown, never a supported certificate',()=>{
@@ -50,13 +51,13 @@ for(const f of require('./fixtures/scheduling-selection-roots.json'))test(`proof
  // advice. Revalidation must use that same boundary, not the opening context.
  let retentionOptions=options;
  if(a.phase==='maintenance'&&a.evidence?.openingHandoff){
-  const H=require('../st-resource-history'),history=H.importContext(q.observation,options.resourceContext);
-  retentionOptions={...options,openingPhase:false,resourceContext:H.exportContext(q.observation,H.markHandoff(history,q.observation))};
+  const Current=require('../st-obligation-context'),CurrentProvider=require('../st-resource-provider'),history=Current.importState(options.obligationContext,{position:q.observation});
+  retentionOptions={...options,openingPhase:false,obligationContext:Current.exportState(Current.handoff(history,{position:q.observation}).context)};
   assert.equal(P.revalidate(q.observation,a,options),null,'An unmarked context cannot retain a boundary-bound handoff');
  }
  const retained=P.revalidate(q.observation,a,retentionOptions);assert.ok(retained?.target);
  assert.deepEqual(retained.target,a.target);assert.deepEqual(retained.continuation.map(p=>p.event),a.continuation.map(p=>p.event));
- let normalized=M.extendForced(R.createState(q.observation));
+ let normalized=extendPublic(R.createState(q.observation));
  for(const step of retained.continuation){const replay=R.replay(normalized,step.witness);assert.equal(replay.valid,true);assert.deepEqual(replay.events,[step.event]);normalized=replay.state;
   assert.equal(JSON.stringify([normalized.rules,normalized.board,normalized.hold,normalized.canHold,normalized.queue,normalized.bag??null,normalized.active?.type]),step.resultContext,'Every retained result context uses the same exact public deduction');
  }
@@ -68,19 +69,19 @@ for(const f of require('./fixtures/scheduling-selection-roots.json'))test(`proof
 });
 
 for(const f of require('./fixtures/scheduling-selection-roots.json').slice(0,1))test(`proof scheduling: safe certified horizon follows executed suffix at ${f.seed}`,()=>{
- const H=require('../st-resource-history'),PH=require('../st-pattern-history');
+ const Current=require('../st-obligation-context'),CurrentProvider=require('../st-resource-provider'),PH=require('../st-pattern-history');
  const q=f.request,options={...q.options,previous:q.previous,commitment:q.commitment,deadline:Infinity,timeMs:undefined};
  const a=P.decide(q.observation,{...options,now:()=>0});assert.ok(a.target);const horizon=a.continuation.length;assert.ok(horizon>=2);assert.equal(a.metrics.certifiedHorizon,horizon);
- let state=q.observation,history=H.importContext(state,q.options.resourceContext),pattern=q.options.patternHistory;
- for(const action of a.witness){const before=state;state=R.move(state,action);history=H.applyAction(history,before,action,state);if(action==='HD')pattern=PH.update(pattern,before,state,state.lastEvent);}
- const nextOptions={...options,patternHistory:pattern,resourceContext:H.exportContext(state,history)};
+ let state=q.observation,history=Current.importState(q.options.obligationContext,{position:state}),pattern=q.options.patternHistory;
+ for(const action of a.witness){const before=state;state=R.move(state,action);history=Current.applyActual(history,{before:before,action:action,after:state}).context;if(action==='HD')pattern=PH.update(pattern,before,state,state.lastEvent);}
+ const nextOptions={...options,patternHistory:pattern,obligationContext:Current.exportState(history)};
  const suffix=P.continueCommitment(q.observation,state,a,state.lastEvent,nextOptions);
  assert.ok(suffix);assert.equal(suffix.continuation.length,horizon-1);assert.equal(suffix.metrics.certifiedHorizon,horizon-1);
  const forgedCount={...suffix,metrics:{...suffix.metrics,certifiedHorizon:99}};
  const checked=P.revalidate(state,forgedCount,nextOptions);assert.ok(checked);assert.equal(checked.metrics.certifiedHorizon,horizon-1);
  const action=suffix.witness[0];if(action!=='HD'){
-  const moved=R.move(state,action),movedHistory=H.applyAction(history,state,action,moved);
-  const advanced=P.advance(moved,forgedCount,action,{...nextOptions,resourceContext:H.exportContext(moved,movedHistory)});
+  const moved=R.move(state,action),movedHistory=Current.applyActual(history,{before:state,action:action,after:moved}).context;
+  const advanced=P.advance(moved,forgedCount,action,{...nextOptions,obligationContext:Current.exportState(movedHistory)});
   assert.ok(advanced);assert.equal(advanced.metrics.certifiedHorizon,advanced.continuation.length);assert.equal(advanced.metrics.certifiedHorizon,horizon-1);
  }
 });

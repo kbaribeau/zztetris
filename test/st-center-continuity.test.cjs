@@ -9,7 +9,7 @@ test('3A does not preserve a clean center at the cost of a newly inaccessible le
  const bad=A.check(initial,old);assert.equal(bad.reachable,false);assert.deepEqual(bad.unreachable,[[1,27]]);
  // The earlier exact winner was our inference, not a recorded reference move.
  // Center cleanliness cannot justify a movement-inaccessible Left vacancy.
- assert.notDeepEqual(advice.target,old.target);const M=require('../st-midgame-resources');assert.equal(M.checkPath(initial,[old],{}).reason,'extra-Z-not-available');
+ assert.notDeepEqual(advice.target,old.target);const M=require('../st-obligation-resources');assert.equal(M.checkPath(initial,[old],M.startUnknown(initial)).reason,'extra-Z-not-available');
 });
 test('3A old crossing Z remains legal but has an unresolved endpoint, not a forbidden move',()=>{
  const z=R.placements(initial).placements.find(p=>p.target.type==='Z'&&p.target.x===3&&p.target.y===24&&p.target.rotation===1);assert.ok(z);

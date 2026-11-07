@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const R=require('../st-rules'),B=require('../st-bag'),I=require('../st-public-inventory'),Context=require('../st-obligation-context'),PC=require('../st-plan-continuity'),Legacy=require('../st-resource-legacy'),RH=require('../st-resource-history');
+const R=require('../st-rules'),B=require('../st-bag'),I=require('../st-public-inventory'),Context=require('../st-obligation-context'),PC=require('../st-plan-continuity');
 const clone=x=>JSON.parse(JSON.stringify(x));
 function setup({steps=[['HOLD','HOLD','HD'],['HD'],['HD']],held=true}={}){
  let state=R.createState({active:'I',queue:[...'JLOSTZ'],streamCursor:1,bag:B.fromObserved({observed:[...'IJLOSTZ'],startPhase:0})}),context=Context.start(state,{fresh:true});
@@ -106,18 +106,17 @@ test('plan continuity: same-letter HOLD records the actual subject and rejects n
  const bad=clone(payload);bad.locks[0].locked.id=1;assert.equal(PC.importState(bad,{position:q.state,inventory:q.inventory,proof:q.proof}),null);
 });
 
-test('plan continuity: legacy compatibility converts actual finite order once and preserves original refills',()=>{
- const fixture=require('./fixtures/left-scoring-foundation.json'),proof={kind:'left-scoring-foundation',origin:clone(fixture.observation),steps:clone(fixture.steps),consumed:0,resourceContext:clone(fixture.options.resourceContext)};proof.steps[0].witness.unshift('HOLD','HOLD');
- let state=clone(fixture.observation),history=RH.importContext(state,proof.resourceContext);const continuation=[];let virtual=state;
- for(const step of proof.steps){const replay=R.replay(virtual,step.witness);assert(replay.valid);continuation.push({event:replay.events[0]});virtual=replay.state;}
- for(const action of proof.steps[0].witness){const before=state;state=R.move(state,action);if(action==='HD')state={...state,queue:[...state.queue,'O'],bag:B.consume(state.bag,'O')};history=RH.applyAction(history,before,action,state);}
- proof.consumed=1;const current=RH.exportContext(state,history),converted=Legacy.planContinuity(state,current,proof);assert.equal(converted.status,'available',converted.reason);assert.equal(converted.proof.resourceContext,undefined);assert(converted.proof.obligationContext);
- assert.equal(converted.planContinuity.actions,proof.steps[0].witness.length);assert.equal(converted.planContinuity.locks.length,1);assert.equal(converted.planContinuity.origin.queue.length,6);assert.equal(converted.planContinuity.originSupply.queue.length,6);
- const inventory=Context.importState(Legacy.convert(state,current).context,{position:state}).inventory;
- assert(PC.matches(converted.planContinuity,converted.proof,continuation,state,inventory).valid);
- const disconnected=clone(current);disconnected.steps[0].action='R';assert.equal(Legacy.planContinuity(state,disconnected,proof).status,'unavailable');
- const bad=clone(proof);bad.origin.queue[0]='O';assert.equal(Legacy.planContinuity(state,current,bad).status,'unavailable');
- const moved=R.move(state,'L'),tape=clone(current);tape.steps.push({action:'L',revealed:[]});const detour=Legacy.planContinuity(moved,tape,proof);assert.equal(detour.status,'available',detour.reason);assert.deepEqual(detour.planContinuity.actionsSinceLock,['L']);
+function fixtureCursor(root,steps,kind){
+ const state=clone(root.observation),context=Context.importState(root.options.obligationContext,{position:state}),proof={kind,origin:clone(state),steps:clone(steps),consumed:0,obligationContext:Context.exportState(context)};
+ let virtual=state;const continuation=proof.steps.map(step=>{const replay=R.replay(virtual,step.witness);assert(replay.valid);virtual=replay.state;return{event:replay.events[0]};});
+ return{state,inventory:context.inventory,proof,continuation,cursor:PC.start(state,context.inventory,proof)};
+}
+test('plan continuity: native selected execution preserves actual finite order and original refills',()=>{
+ const fixture=require('./fixtures/left-scoring-foundation.json'),steps=clone(fixture.steps);steps[0].witness.unshift('HOLD','HOLD');const q=fixtureCursor(fixture,steps,'left-scoring-foundation');assert(q.cursor);
+ for(const action of q.proof.steps[0].witness)move(q,action,action==='HD'?['O']:[]);
+ const payload=PC.exportState(q.cursor);assert.equal(payload.actions,q.proof.steps[0].witness.length);assert.equal(payload.locks.length,1);assert.equal(payload.origin.queue.length,6);assert.equal(payload.originSupply.queue.length,6);assert(matches(q).valid);
+ const bad=clone(q.proof);bad.origin.queue[0]='O';assert.equal(PC.matches(payload,bad,q.continuation,q.state,q.inventory).valid,false);
+ move(q,'L');assert.deepEqual(PC.exportState(q.cursor).actionsSinceLock,['L']);assert(matches(q).valid);
 });
 
 test('plan continuity: classic script export matches the CommonJS transport contract',()=>{
@@ -125,14 +124,10 @@ test('plan continuity: classic script export matches the CommonJS transport cont
  const q=setup(),cursor=scope.STPlanContinuity.start(q.state,q.inventory,q.proof);assert(cursor);assert.deepEqual(clone(scope.STPlanContinuity.exportState(cursor)),PC.exportState(q.cursor));assert(scope.STPlanContinuity.matches(scope.STPlanContinuity.exportState(cursor),q.proof,q.continuation,q.state,q.inventory).valid);
 });
 
-test('plan continuity: known Left support converts old history without retaining the old action prefix',()=>{
- const fixture=require('./fixtures/left-support-visible-I.json'),root=fixture.finite,proof={kind:'left-support',origin:clone(root.observation),steps:clone(fixture.steps),consumed:0,resourceContext:clone(root.options.resourceContext)};
- const converted=Legacy.planContinuity(root.observation,root.options.resourceContext,proof);assert.equal(converted.status,'available',converted.reason);assert.equal(converted.proof.obligationContext.state.availability,'known');assert.equal(converted.planContinuity.actions,0);assert.equal(converted.planContinuity.originSupply.active.type,'I');assert.notEqual(converted.planContinuity.originSupply.active.bag,null);
- assert.equal(converted.planContinuity.origin.queue.length,5);assert.equal(converted.proof.resourceContext,undefined);assert(!JSON.stringify(converted.planContinuity).includes('revealed'));
- let state=clone(root.observation),history=RH.importContext(state,root.options.resourceContext);const continuation=[];let virtual=state;
- for(const step of proof.steps){const replay=R.replay(virtual,step.witness);assert(replay.valid);continuation.push({event:replay.events[0]});virtual=replay.state;}
- for(const action of proof.steps[0].witness){const before=state;state=R.move(state,action);if(action==='HD')state={...state,queue:[...state.queue,'O'],bag:B.consume(state.bag,'O')};history=RH.applyAction(history,before,action,state);}
- proof.consumed=1;const current=RH.exportContext(state,history),retained=Legacy.planContinuity(state,current,proof);assert.equal(retained.status,'available',retained.reason);assert.equal(retained.planContinuity.origin.queue.length,5);assert.equal(retained.planContinuity.actions,proof.steps[0].witness.length);
- assert(PC.matches(retained.planContinuity,retained.proof,continuation,state,Legacy.convert(state,current).context.inventory).valid);
- const copied=clone(retained.proof);copied.origin.queue.push('O');assert.equal(PC.matches(retained.planContinuity,copied,continuation,state,Legacy.convert(state,current).context.inventory).valid,false);
+test('plan continuity: known Left support uses current facts without retaining a past action prefix',()=>{
+ const fixture=require('./fixtures/left-support-visible-I.json'),root=fixture.finite,q=fixtureCursor(root,fixture.steps,'left-support');assert(q.cursor);
+ const initial=PC.exportState(q.cursor);assert.equal(q.proof.obligationContext.state.availability,'known');assert.equal(initial.actions,0);assert.equal(initial.originSupply.active.type,'I');assert.notEqual(initial.originSupply.active.bag,null);assert.equal(initial.origin.queue.length,5);assert(!JSON.stringify(initial).includes('revealed'));
+ for(const action of q.proof.steps[0].witness)move(q,action,action==='HD'?['O']:[]);
+ const payload=PC.exportState(q.cursor);assert.equal(payload.origin.queue.length,5);assert.equal(payload.actions,q.proof.steps[0].witness.length);assert(matches(q).valid);
+ const copied=clone(q.proof);copied.origin.queue.push('O');assert.equal(PC.matches(payload,copied,q.continuation,q.state,q.inventory).valid,false);
 });

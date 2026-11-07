@@ -2,6 +2,8 @@
 
 This records implementation of the [shared obligation contract](st-shared-state-contract.md). The baseline is `022290b4f10917f6f1831a03c7c907f84f5d356a`. The existing monitoring-boundary fix on that baseline is unchanged. Work remains local until publication is separately approved.
 
+The checkpoint sections are a historical migration record. See **Legacy runtime retirement** below for the current native-only import and runtime contract.
+
 ## First checkpoint: current inventory and Center transitions
 
 - `st-public-inventory.js` owns live identity assignment, active/HOLD/preview flow and the incremental public bag frontier. It has no old-piece table, action tape or generator access. A portable current snapshot is imported directly after shape/reference checks, without provenance replay.
@@ -125,3 +127,15 @@ The separate PieceLedger shadow is retired from the live page. Its useful long-r
 3. Investigate any remaining deterministic admission, retention or monitoring differences. Reused development seeds are not evidence of population quality; cap and interruption remain explicit.
 
 No real-browser rendering or production-performance acceptance is claimed. Browser-free tests exercise actual page and Worker loaders and controller behavior within the documented host limits. Performance remains monitored, with optimization deferred. No publication is implied by a local checkpoint.
+
+## Legacy runtime retirement
+
+The historical resource ledger, replay importer, shadow PieceLedger, Reset
+allocation-window diagnostics and offline resource-analysis CLI have been removed.
+Provider and Session now accept native current facts only; schema-v1 session
+envelopes and obsolete notch tapes reject explicitly. Current Context, finite
+plan continuity, notch translation, public inventory and inverse Undo remain.
+The original Kevin example remains byte-identical beside an explicitly
+position-only copy with unknown prior accounting. Historical baseline source
+maps retain their frozen contract; new candidates require the full current
+source closure and exact source-map binding. Earlier migration sections describe the historical staged transition, not supported import APIs.

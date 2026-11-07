@@ -1,9 +1,10 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const P=require('../st-planner'),Y=require('../st-left-foundation'),R=require('../st-rules'),S=require('../st-structure'),RH=require('../st-resource-history'),PH=require('../st-pattern-history');
+const P=require('../st-planner'),Y=require('../st-left-foundation'),R=require('../st-rules'),S=require('../st-structure'),RH=require('../st-obligation-context'),PH=require('../st-pattern-history');
+const PC=require('../st-plan-continuity');
 const fixture=require('./fixtures/left-support-visible-I.json'),clone=x=>JSON.parse(JSON.stringify(x)),config={depth:3,width:8,maxNodes:45000,now:()=>0};
 const context=s=>JSON.stringify([s.rules,s.board,s.hold,s.canHold,s.queue,s.bag??null,s.active?.type]);
-function proofAdvice(q=fixture.finite){const checked=Y.supportValidate(q.observation,fixture.steps,{now:()=>0,maxNodes:12000});assert(checked.valid,checked.reason);const first=checked.continuation[0];return{revision:q.observation.revision,context:context(q.observation),target:first.event.target,hold:first.witness.includes('HOLD'),holdCount:first.witness.filter(a=>a==='HOLD').length,witness:first.witness,continuation:checked.continuation,evidence:{cycleDebt:0,construction:{kind:'left-support',origin:clone(q.observation),steps:clone(fixture.steps),consumed:0,resourceContext:clone(q.options.resourceContext)}}};}
+function proofAdvice(q=fixture.finite){const checked=Y.supportValidate(q.observation,fixture.steps,{now:()=>0,maxNodes:12000});assert(checked.valid,checked.reason);const first=checked.continuation[0];return{revision:q.observation.revision,context:context(q.observation),target:first.event.target,hold:first.witness.includes('HOLD'),holdCount:first.witness.filter(a=>a==='HOLD').length,witness:first.witness,continuation:checked.continuation,evidence:{cycleDebt:0,construction:{kind:'left-support',origin:clone(q.observation),steps:clone(fixture.steps),consumed:0,obligationContext:clone(q.options.obligationContext)}}};}
 function fullOptions(q){return{...q.options,...config};}
 test('support construction validates the actual finite visible replacement-I route without a future piece',()=>{
  for(const q of [fixture.finite,fixture.normal]){const proof=Y.supportValidate(q.observation,fixture.steps,{now:()=>0,maxNodes:12000});assert(proof.valid,proof.reason);assert.equal(proof.continuation.length,6);assert.equal(Y.leftCovered(proof.end.board),0);assert.equal(proof.continuation[0].event.type,'I');assert(proof.continuation[0].event.cells.every(([x])=>x===0));assert(proof.continuation.at(-1).event.cells.every(([x])=>x===9));assert.equal(S.geometry(proof.end.board).right.cycle.phase,'cap-rebuild-with-cleanup-prepared');assert.equal(P.cycleResources(proof.continuation).outstandingPocket,1);assert.equal(P.cycleResources(proof.continuation).tsds,0);}
@@ -19,9 +20,9 @@ test('absent replacement I, forged payment, clear and exhausted budget earn no s
  const broken=proofAdvice();broken.evidence.construction.steps.pop();assert.equal(P.revalidate(q.observation,broken,fullOptions(q)),null);
 });
 test('actual HOLD, each movement and each lock rederive the original finite construction',()=>{
- const q=fixture.finite;let state=clone(q.observation),history=RH.importContext(state,q.options.resourceContext),patterns=q.options.patternHistory,advice=P.revalidate(state,proofAdvice(),fullOptions(q));assert(advice);assert.equal(advice.evidence.resourceObligations.status,'checked');assert.ok(Array.isArray(advice.evidence.resourceObligations.unclassifiedS));assert.ok(Array.isArray(advice.evidence.resourceObligations.unclassifiedL));
- let held=false,locks=0;while(advice){const before=clone(state),original=advice,inputs=advice.witness.slice();
-  for(const action of inputs){const prior=state;state=R.move(state,action);history=RH.applyAction(history,prior,action,state);const options={...config,patternHistory:patterns,resourceContext:RH.exportContext(state,history)};
+ const q=fixture.finite;let state=clone(q.observation),history=RH.importState(q.options.obligationContext,{position:state}),patterns=q.options.patternHistory,advice=P.revalidate(state,proofAdvice(),fullOptions(q));assert(advice);assert.equal(advice.evidence.resourceObligations.status,'checked');assert.ok(Array.isArray(advice.evidence.resourceObligations.unclassifiedS));assert.ok(Array.isArray(advice.evidence.resourceObligations.unclassifiedL));
+ let cursor=PC.start(state,history.inventory,advice.evidence.construction),held=false,locks=0;while(advice){const before=clone(state),original=advice,inputs=advice.witness.slice();
+  for(const action of inputs){const prior=state;state=R.move(state,action);const transition=RH.applyActual(history,{before:prior,action:action,after:state});history=transition.context;cursor=PC.advance(cursor,prior,action,state,transition.receipt);const options={...config,patternHistory:patterns,obligationContext:RH.exportState(history),planContinuity:cursor};
    if(action==='HD'){patterns=PH.update(patterns,prior,state,state.lastEvent);locks++;advice=P.continueCommitment(before,state,original,state.lastEvent,{...options,patternHistory:patterns});}
    else{if(action==='HOLD')held=true;advice=P.advance(state,advice,action,options);assert(advice,'validated target lost during '+action);}
   }
@@ -29,8 +30,8 @@ test('actual HOLD, each movement and each lock rederive the original finite cons
  assert(held);assert.equal(locks,6);assert.equal(state.active,null);assert.equal(state.hold,'T');assert.equal(Y.leftCovered(state.board),0);
 });
 test('copied kind or altered consumed state cannot authorize support during HOLD or movement',()=>{
- const q=fixture.finite,a=proofAdvice(),action=a.witness[0],next=R.move(q.observation,action),history=RH.applyAction(RH.importContext(q.observation,q.options.resourceContext),q.observation,action,next),options={...config,patternHistory:q.options.patternHistory,resourceContext:RH.exportContext(next,history)};
- for(const mutate of [p=>p.evidence.construction.steps.pop(),p=>p.evidence.construction.consumed=1,p=>p.evidence.construction.origin.hold='T',p=>p.evidence.construction.resourceContext.steps.pop()]){const bad=clone(a);mutate(bad);assert.equal(P.advance(next,bad,action,options),null);}
+ const q=fixture.finite,a=proofAdvice(),action=a.witness[0],next=R.move(q.observation,action),history=RH.applyActual(RH.importState(q.options.obligationContext,{position:q.observation}),{before:q.observation,action:action,after:next}).context,options={...config,patternHistory:q.options.patternHistory,obligationContext:RH.exportState(history)};
+ for(const mutate of [p=>p.evidence.construction.steps.pop(),p=>p.evidence.construction.consumed=1,p=>p.evidence.construction.origin.hold='T',p=>p.evidence.construction.obligationContext.inventory.nextId=0]){const bad=clone(a);mutate(bad);assert.equal(P.advance(next,bad,action,options),null);}
 });
 test('late optional work preserves exact certified incumbent on unknown or exhausted proof',()=>{
  const q=fixture.normal,baseline=P.plan(q.observation,{...fullOptions(q),disableLeftSupport:true});assert(baseline.target);let clock=0,attempted=false;
@@ -42,9 +43,8 @@ test('late optional work preserves exact certified incumbent on unknown or exhau
 test('new finite presentation does not claim a TSD or Reset',()=>{const a=proofAdvice(),text=P.advicePresentation(a.continuation,{},a.evidence.construction).reason;assert.match(text,/distinct visible I/);assert.match(text,/not proof of a completed Reset/);assert.doesNotMatch(text,/reaches a T-spin double/);});
 test('production session and actual page preserve support proof through import, HOLD and Undo',()=>{
  const Session=require('../st-session'),B=require('../st-bag'),q=fixture.normal,a=P.revalidate(q.observation,proofAdvice(q),fullOptions(q));assert(a);
- const history=RH.importContext(q.observation,q.options.resourceContext),origin=q.options.resourceContext.origin,originBag=B.fromObserved({observed:[origin.active.type,...origin.queue],startPhase:0});
- const saved=Session.create(q.observation,{resourceHistory:history,resourceOriginBag:originBag,patternHistory:q.options.patternHistory,openingPhase:false,previous:a,search:Session.defaults()}),raw=JSON.stringify(saved),restored=Session.parse(raw);
- assert.deepEqual(restored.state,q.observation);assert.deepEqual(restored.previous.evidence.construction,P.importCandidateResources(a).evidence.construction);assert.equal(restored.previous.evidence.construction.resourceContext,undefined);assert.deepEqual(Session.create(restored.state,restored),saved);
+ const saved=Session.create(q.observation,{obligationContext:q.options.obligationContext,patternHistory:q.options.patternHistory,openingPhase:false,previous:a,search:Session.defaults()}),raw=JSON.stringify(saved),restored=Session.parse(raw);
+ assert.deepEqual(restored.state,q.observation);assert.deepEqual(restored.previous.evidence.construction,P.importCandidateResources(a).evidence.construction);assert.ok(restored.previous.evidence.construction.obligationContext);assert.deepEqual(Session.create(restored.state,restored),saved);
  assert(P.revalidate(restored.state,restored.previous,{...config,patternHistory:restored.patternHistory,obligationContext:require('../st-obligation-context').exportState(restored.obligationContext),planContinuity:restored.planContinuity}));
  return require('./support/page.cjs').withPage('st-lab.html',{},g=>{
   const workers=[];g.window.Worker=class{constructor(){workers.push(this);}postMessage(message){this.message=clone(message);}terminate(){}respond(result){this.onmessage({data:{type:'result',id:this.message.id,revision:this.message.observation.revision,result:clone(result)}});}};
@@ -59,17 +59,17 @@ test('production session and actual page preserve support proof through import, 
  });
 });
 test('original visibility is bound to connected history, not a forged origin preview',()=>{
- const q=fixture.finite,a=P.revalidate(q.observation,proofAdvice(),fullOptions(q)),next=R.replay(q.observation,a.witness).state;let h=RH.importContext(q.observation,q.options.resourceContext),s=q.observation,patterns=q.options.patternHistory;for(const action of a.witness){const before=s;s=R.move(s,action);h=RH.applyAction(h,before,action,s);if(action==='HD')patterns=PH.update(patterns,before,s,s.lastEvent);}const opts={...config,patternHistory:patterns,resourceContext:RH.exportContext(s,h)};
+ const q=fixture.finite,a=P.revalidate(q.observation,proofAdvice(),fullOptions(q)),next=R.replay(q.observation,a.witness).state;let h=RH.importState(q.options.obligationContext,{position:q.observation}),s=q.observation,patterns=q.options.patternHistory,cursor=PC.start(q.observation,h.inventory,a.evidence.construction);for(const action of a.witness){const before=s;s=R.move(s,action);const transition=RH.applyActual(h,{before:before,action:action,after:s});h=transition.context;cursor=PC.advance(cursor,before,action,s,transition.receipt);if(action==='HD')patterns=PH.update(patterns,before,s,s.lastEvent);}const opts={...config,patternHistory:patterns,obligationContext:RH.exportState(h),planContinuity:cursor};
  const suffix=P.continueCommitment(q.observation,s,a,s.lastEvent,opts);assert(suffix);const forged=clone(suffix);forged.evidence.construction.origin.queue.push('I');assert.equal(P.revalidate(s,forged,opts),null);
- const disconnected=clone(suffix);disconnected.evidence.construction.resourceContext.steps=[];assert.equal(P.revalidate(s,disconnected,opts),null);
+ const disconnected=clone(suffix);disconnected.evidence.construction.obligationContext.inventory.nextId=0;assert.equal(P.revalidate(s,disconnected,opts),null);
 });
 
 test('the optional support mode never overrides an explicit no-HOLD caller',()=>{const q=fixture.normal;assert.equal(Y.supportSearch(q.observation,{...config,allowHold:false}).candidate,null);assert.equal(P.revalidate(q.observation,proofAdvice(q),{...fullOptions(q),allowHold:false}),null);const result=P.plan(q.observation,{...fullOptions(q),allowHold:false});assert.notEqual(result.evidence?.construction?.kind,'left-support');assert.equal(result.hold,false);});
 test('a newly forced public bag member does not replace the retained construction observation',()=>{
- const B=require('../st-bag'),q=fixture.normal,a=P.revalidate(q.observation,proofAdvice(q),fullOptions(q));let state=clone(q.observation),history=RH.importContext(state,q.options.resourceContext),patterns=q.options.patternHistory;
- for(const action of a.witness){const before=state;state=R.move(state,action);if(action==='HD'){state={...state,queue:[...state.queue,'L'],bag:B.consume(state.bag,'L')};patterns=PH.update(patterns,before,state,state.lastEvent);}history=RH.applyAction(history,before,action,state);}
+ const B=require('../st-bag'),q=fixture.normal,a=P.revalidate(q.observation,proofAdvice(q),fullOptions(q));let state=clone(q.observation),history=RH.importState(q.options.obligationContext,{position:state}),patterns=q.options.patternHistory,cursor=PC.start(state,history.inventory,a.evidence.construction);
+ for(const action of a.witness){const before=state;state=R.move(state,action);if(action==='HD'){state={...state,queue:[...state.queue,'L'],bag:B.consume(state.bag,'L')};patterns=PH.update(patterns,before,state,state.lastEvent);}const transition=RH.applyActual(history,{before,action,after:state});history=transition.context;cursor=PC.advance(cursor,before,action,state,transition.receipt);}
  assert.equal(state.queue.length,6);assert.equal(B.forcedNext(state.bag),'Z');
- const options={...fullOptions(q),patternHistory:patterns,resourceContext:RH.exportContext(state,history)},suffix=P.continueCommitment(q.observation,state,a,state.lastEvent,options);assert(suffix);
+ const options={...fullOptions(q),patternHistory:patterns,obligationContext:RH.exportState(history),planContinuity:cursor},suffix=P.continueCommitment(q.observation,state,a,state.lastEvent,options);assert(suffix);
  const next=P.decide(state,{...options,commitment:{observation:clone(state),advice:suffix}});assert.equal(next.evidence?.construction?.kind,'left-support');assert.equal(next.evidence.construction.consumed,1);assert.deepEqual(next.continuation.map(p=>p.event),suffix.continuation.map(p=>p.event));assert.equal(next.evidence.knownPieceHorizon,7);
 });
 

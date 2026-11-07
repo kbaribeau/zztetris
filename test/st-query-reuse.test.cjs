@@ -1,5 +1,5 @@
 'use strict';
-const test=require('node:test'),assert=require('node:assert/strict'),R=require('../st-rules'),M=require('../st-midgame-resources');
+const test=require('node:test'),assert=require('node:assert/strict'),R=require('../st-rules'),M=require('../st-obligation-resources');
 const clone=x=>JSON.parse(JSON.stringify(x));
 test('request queries: complete enumeration is reused with independent mutable results and honest work counts',()=>{
  const s=R.createState({active:'O',hold:'S',queue:['T','I','L']});let saved;
@@ -37,9 +37,10 @@ test('request queries: memory is bounded and exception/reentry boundaries cannot
   R.withQueries(()=>assert.deepEqual(R.queryMetrics(),m));
  });
 });
-test('resource results distinguish unresolved history from a completed bounded failure',()=>{
- const s=R.createState({active:'I',queue:['O']}),r=M.start(s);r.unclassifiedS=[{sId:12,bag:1,invalidated:true}];
- const unknown=M.repair(s,r);assert.equal(unknown.valid,null);assert.equal(unknown.queryStatus,'unfinished');
- r.unclassifiedS=[];r.hangingS=[{id:99,bag:1,known:true}];const limited=M.repair(s,r,{maxNodes:0});assert.equal(limited.queryStatus,'unfinished');
- const exhausted=M.repair(s,r,{depth:0});assert.equal(exhausted.queryStatus,'failed-within-scope');assert.equal(exhausted.scope.depth,0);
+test('resource results distinguish unresolved accommodation from a completed bounded failure',()=>{
+ const C=require('../st-obligation-context'),f=require('./fixtures/unclassified-s.json').cases[1],s=f.request.observation,r=M.start(s,C.importState(f.request.options.obligationContext,{position:s}));
+ const unknown=M.repair(M.position(r),r);assert.equal(unknown.valid,null);assert.equal(unknown.queryStatus,'unfinished');assert.equal(unknown.status,'unclassified-S-accommodation');
+ const pending=require('./fixtures/forced-bag-resource-binding.json'),raw=pending.observation,known=M.start(raw,C.importState(pending.options.obligationContext,{position:raw}));
+ assert.ok(known.hangingS.some(p=>p.id===21));const limited=M.repair(M.position(known),known,{maxNodes:0});assert.equal(limited.queryStatus,'unfinished');
+ const exhausted=M.repair(M.position(known),known,{depth:0});assert.equal(exhausted.queryStatus,'failed-within-scope');assert.equal(exhausted.scope.depth,0);
 });

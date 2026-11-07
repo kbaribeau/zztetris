@@ -40,16 +40,16 @@ test('evaluation/source input execution and duplicate pair mismatches are reject
 });
 test('evaluation/shared-state dependency changes cannot escape frozen source binding',()=>{
  const f=fixture();
- for(const file of ['st-public-inventory.js','st-center-obligations.js','st-obligation-admission.js','st-resource-search.js','st-obligation-context.js','st-obligation-state.js','st-sl-obligations.js','st-opening-obligations.js','st-obligation-projection.js','st-obligation-route.js','st-obligation-assessment.js','st-obligation-resources.js','st-opening-eligibility.js','st-resource-provider.js','st-resource-legacy.js','st-obligation-tracking.js','st-plan-continuity.js','st-handoff-continuity.js','st-obligation-inverse.js','st-left-obligations.js','st-left-plan.js']){
+ for(const file of ['st-public-inventory.js','st-center-obligations.js','st-obligation-admission.js','st-resource-search.js','st-obligation-context.js','st-obligation-state.js','st-sl-obligations.js','st-opening-obligations.js','st-obligation-projection.js','st-obligation-route.js','st-obligation-assessment.js','st-obligation-resources.js','st-opening-eligibility.js','st-resource-provider.js','st-obligation-tracking.js','st-plan-continuity.js','st-handoff-continuity.js','st-obligation-inverse.js','st-left-obligations.js','st-left-plan.js']){
   assert.match(f.p.sources.candidate[file],/^[a-f0-9]{64}$/,file+' must be included in new simulation manifests');
   const changed={...f.p.sources.candidate,[file]:'0'.repeat(64)};
   assert.throws(()=>V.bindProtocol(f.p,'candidate',changed,f.p.execution,f.inputs),/source mismatch/);
   const omitted={...f.p.sources.candidate};delete omitted[file];
-  assert.throws(()=>V.bindProtocol(f.p,'candidate',omitted,f.p.execution,f.inputs),/source mismatch/);
+  assert.throws(()=>V.bindProtocol(f.p,'candidate',omitted,f.p.execution,f.inputs),/source mismatch|required source hashes/);
  }
 });
 test('evaluation/pre-extraction and new source closures remain prospective without weakening exact candidate binding',()=>{
- const f=fixture(),current=E.sourceHashes(),prior={...current};delete prior['st-resource-search.js'];
+ const f=fixture(),current=E.sourceHashes(),prior={...current,'st-resource-history.js':'1'.repeat(64),'st-midgame-resources.js':'2'.repeat(64)};delete prior['st-resource-search.js'];
  // Synthetic contract-only maps: the old runtime did not contain the new
  // search module. Do not invent its hash or force that side into legacy mode.
  f.p.sources={baseline:prior,candidate:current};f.receipt.sources=current;
@@ -61,10 +61,11 @@ test('evaluation/pre-extraction and new source closures remain prospective witho
  assert.ok(observations.every(o=>o.provenance.mode==='predeclared'&&!o.provenance.legacyAdapter));
  assert.equal('st-resource-search.js'in observations[0].provenance.sources,false);
  const omitted=clone(f.p);delete omitted.sources.candidate['st-resource-search.js'];
- assert.doesNotThrow(()=>V.validateProtocol(omitted),'Historical minimum stays compatible; the actual runtime map supplies exact closure');
- assert.throws(()=>V.bindProtocol(omitted,'candidate',current,f.p.execution,f.inputs),/Protocol source mismatch/);
- const incompleteBinding=V.bindProtocol(omitted,'candidate',omitted.sources.candidate,f.p.execution,f.inputs);
- assert.throws(()=>V.validateBoundEpisode(incompleteBinding,current,f.p.execution,f.inputs[0]),/Protocol source mismatch/);
+ assert.throws(()=>V.validateProtocol(omitted),/Missing required source hashes/);
+ assert.throws(()=>V.bindProtocol(omitted,'candidate',current,f.p.execution,f.inputs),/Missing required source hashes/);
+ assert.throws(()=>V.bindProtocol(omitted,'candidate',omitted.sources.candidate,f.p.execution,f.inputs),/Missing required source hashes/);
+ assert.equal('st-resource-history.js' in current,false);assert.equal('st-midgame-resources.js' in current,false);
+
 });
 test('evaluation/child validates exact binding before planner execution',()=>{
  const f=fixture();assert.doesNotThrow(()=>V.validateBoundEpisode(f.a.evaluationBinding,f.a.sources,f.p.execution,f.inputs[0]));

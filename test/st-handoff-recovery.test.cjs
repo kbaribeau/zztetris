@@ -1,6 +1,7 @@
 'use strict';
+const {extendPublic}=require('./support/current-resource-test.cjs');
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const P=require('./support/repair-isolated-planner.cjs').planner(),R=require('../st-rules'),B=require('../st-bag'),H=require('../st-resource-history'),I=require('../st-public-inventory'),HC=require('../st-handoff-continuity'),PH=require('../st-pattern-history'),M=require('../st-midgame-resources'),Ctx=require('../st-obligation-context'),Legacy=require('../st-resource-legacy'),Provider=require('../st-resource-provider'),Current=require('../st-obligation-resources');
+const P=require('./support/repair-isolated-planner.cjs').planner(),R=require('../st-rules'),B=require('../st-bag'),CurrentProvider=require('../st-resource-provider'),I=require('../st-public-inventory'),HC=require('../st-handoff-continuity'),PH=require('../st-pattern-history'),M=require('../st-obligation-resources'),Ctx=require('../st-obligation-context'),Provider=require('../st-resource-provider'),Current=require('../st-obligation-resources');
 const fixture=require('./fixtures/forced-bag-resource-binding.json'),clone=x=>JSON.parse(JSON.stringify(x));
 const bounds={maxNodes:45000,deadline:Infinity,now:()=>0},context=s=>JSON.stringify([s.rules,s.board,s.hold,s.canHold,s.queue,s.bag??null,s.active?.type]);
 // Literal public pre20/finite Z→S proof from the earlier diagnostic. Only its
@@ -8,16 +9,16 @@ const bounds={maxNodes:45000,deadline:Infinity,now:()=>0},context=s=>JSON.string
 function actual({mark=true,actualWitness=null}={}){
  const f=clone(fixture),origin=R.createState(f.observation),advice=f.advice;
  advice.phase='maintenance';advice.evidence.openingHandoff={status:'checked-after-actual-clear',recovery:'shared-after-legacy-budget-miss'};
- let state=origin,history=H.importContext(origin,f.options.resourceContext),pattern=PH.start(origin),event;
- let current=Legacy.convert(origin,f.options.resourceContext).context;const prior=Ctx.exportState(current);let inventory=current.inventory,execution=HC.start(origin,inventory);
+ let state=origin,history=Ctx.importState(f.options.obligationContext,{position:origin}),pattern=PH.start(origin),event;
+ let current=Ctx.importState(f.options.obligationContext,{position:origin});const prior=Ctx.exportState(current);let inventory=current.inventory,execution=HC.start(origin,inventory);
  // This stored route is a policy-isolated candidate, rebuilt under the current
  // handoff boundary rather than trusting its historical serialized binding.
  advice.evidence.resourceObligations.binding=Current.rootBinding(Provider.startRoute(Provider.projectHandoff(Provider.prepare(origin,{obligationContext:prior}))));
- if(mark){history=H.markHandoff(history,state);current=Ctx.handoff(current,{position:state}).context;execution=HC.markHandoff(execution,state,inventory);}
+ if(mark){history=Ctx.handoff(history,{position:state}).context;current=Ctx.handoff(current,{position:state}).context;execution=HC.markHandoff(execution,state,inventory);}
  for(const action of actualWitness||advice.witness){const before=state;state=R.move(state,action);
   if(action==='HD'){event=state.lastEvent;state={...state,queue:[...state.queue,f.nextPublicReveal],bag:B.consume(state.bag,f.nextPublicReveal)};pattern=PH.update(pattern,before,state,event);}
   const receipt=I.transition(inventory,before,action,state);execution=HC.advance(execution,before,action,state,receipt);inventory=receipt.next;
-  current=Ctx.applyActual(current,{before,action,after:state,receipt}).context;history=H.applyAction(history,before,action,state);
+  current=Ctx.applyActual(current,{before,action,after:state,receipt}).context;history=Ctx.applyActual(history,{before:before,action:action,after:state}).context;
  }
  return{origin,state,history,current,event,advice,options:{...bounds,openingPhase:false,obligationContext:Ctx.exportState(current),patternHistory:pattern,handoffRecovery:{observation:origin,advice,obligationContext:prior,actualEvent:event,continuity:HC.exportConnected(execution)}}};
 }
@@ -35,8 +36,8 @@ test('handoff bookkeeping (covered-geometry isolated): actual first lock/refill 
  assert.ok(a.metrics.nodes>0&&a.metrics.nodes<=45000);assert.equal(a.metrics.nodes,a.metrics.handoffRecovery.nodes);
  assert.equal(P.resourceGoal(q.advice.continuation),false);assert.equal(P.resourceGoal(a.continuation),false,'No new generic filler goal');
  assert.equal(a.evidence.openingHandoff,undefined,'A consumed routing hint cannot arm another handoff');
- const replay=R.replay(M.extendForced(q.state),a.witness);assert.equal(replay.valid,true);assert.deepEqual(replay.events,[a.continuation[0].event]);assert.equal(context(replay.state),a.continuation[0].resultContext);
- const summary=H.resolve(q.state,q.history),resources=M.checkPath(q.state,a.continuation,summary);assert.equal(resources.valid,true);assert.deepEqual(resources.resource.hangingS,[]);assert.deepEqual(resources.resource.unclassifiedS,[]);
+ const replay=R.replay(extendPublic(q.state),a.witness);assert.equal(replay.valid,true);assert.deepEqual(replay.events,[a.continuation[0].event]);assert.equal(context(replay.state),a.continuation[0].resultContext);
+ const summary=CurrentProvider.facts(CurrentProvider.prepare(q.state,{obligationContext:Ctx.exportState(q.history)})),resources=M.checkPath(q.state,a.continuation,q.history);assert.equal(resources.valid,true);assert.deepEqual(resources.resource.hangingS,[]);assert.deepEqual(resources.resource.unclassifiedS,[]);
  assert.notEqual(a.evidence.resourceObligations.binding,q.advice.evidence.resourceObligations.binding,'Actual reveal and mark require current identity binding');
  assert.ok(P.revalidate(q.state,a,{...q.options,handoffRecovery:null}),'Normal existing revalidation still accepts the fresh suffix');assert.deepEqual(q.options,before,'Candidate/history are never mutated');
 });
@@ -102,7 +103,7 @@ test('handoff bookkeeping (covered-geometry isolated): a different legal route t
 
 test('handoff production: archived observed-S payment is rejected for its actual unresolved roof',()=>{
  const q=actual(),real=require('../st-planner'),A=require('../st-access');
- const proof=A.repairPrefix(M.extendForced(q.origin),q.advice.continuation);assert.equal(proof.valid,false);assert.deepEqual(proof.outstandingCells,[[2,31]]);
+ const proof=A.repairPrefix(extendPublic(q.origin),q.advice.continuation);assert.equal(proof.valid,false);assert.deepEqual(proof.outstandingCells,[[2,31]]);
  assert.equal(real.revalidate(q.origin,q.advice,{...fixture.options,...bounds}),null);
  const result=real.decide(q.state,q.options);assert.equal(result.metrics.handoffRecovery.retained,false);
 });

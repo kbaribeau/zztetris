@@ -3,7 +3,7 @@
  * public supply. A resource is an immutable view of ONE Route, never a second
  * factual ledger. Nested checks/searches continue that Route and its fixed
  * request root. No historical summary, archive, receipts or origin proof is
- * synthesized. Legacy history is decoded only at the compatibility boundary.
+ * synthesized. Only native current Context inputs are accepted.
  */
 (function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-obligation-context'),require('./st-obligation-route'),require('./st-obligation-assessment'),require('./st-obligation-admission'),require('./st-resource-search'),require('./st-obligation-projection')):factory(root.STRules,root.STObligationContext,root.STObligationRoute,root.STObligationAssessment,root.STObligationAdmission,root.STResourceSearch,root.STObligationProjection);if(typeof module==='object'&&module.exports)module.exports=api;else root.STObligationResources=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,Context,Route,Assessment,Admission,Search,Projection){
 'use strict';

@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
-const P=require('../st-planner'),R=require('../st-rules'),B=require('../st-bag'),H=require('../st-resource-history');
+const P=require('../st-planner'),R=require('../st-rules'),B=require('../st-bag'),H=require('../st-obligation-context');
 const equivalent=require('./support/st-equivalent-s.cjs');
 const fixture=require('./fixtures/opening-z-allocation.json'),clone=x=>JSON.parse(JSON.stringify(x));
 // These are the actual public preview suffixes observed after locks 17–21 in
@@ -8,18 +8,18 @@ const fixture=require('./fixtures/opening-z-allocation.json'),clone=x=>JSON.pars
 const reveals=['Z','I','S','O','S'];
 const bounds={depth:3,width:8,maxNodes:45000,timeMs:1500,now:()=>0,deadline:Infinity};
 function observed(until=20){
- let state=R.createState(fixture.request.observation),history=H.importContext(state,clone(fixture.request.options.resourceContext)),pattern=clone(fixture.request.options.patternHistory);
+ let state=R.createState(fixture.request.observation),history=H.importState(clone(fixture.request.options.obligationContext),{position:state}),pattern=clone(fixture.request.options.patternHistory);
  let opening={active:true,clear:null,source:null,repair:null};
  function execute(witness,reveal,{handoff=false}={}){
-  if(handoff){history=H.markHandoff(history,state);opening={active:false,clear:null,source:null,repair:null};}
+  if(handoff){history=H.handoff(history,{position:state}).context;opening={active:false,clear:null,source:null,repair:null};}
   for(const action of witness){const before=state,next=R.move(state,action);assert.notEqual(next,state);state=next;
    if(action==='HD'&&reveal)state={...state,queue:[...state.queue,reveal],bag:B.consume(state.bag,reveal)};
-   history=H.applyAction(history,before,action,state);assert.equal(H.resolve(state,history).coverage.status,'complete');
+   history=H.applyActual(history,{before:before,action:action,after:state}).context;assert.equal(H.resolve(history,{position:state}).availability,'known');
    if(action==='HD'){pattern=P.updatePatternHistory(pattern,before,state,state.lastEvent);opening=P.updateOpeningSession(opening,before,state,state.lastEvent);}
   }
  }
  for(let i=0;i<until-16;i++)execute(fixture.steps[i].witness,reveals[i],{handoff:i===2});
- return{execute,get state(){return state;},get history(){return history;},get summary(){return H.resolve(state,history);},request(id=1){return{type:'plan',id,observation:P.observe(state),previous:null,commitment:null,options:{...fixture.request.options,resourceContext:H.exportContext(state,history),patternHistory:pattern,openingPhase:opening.active,openingClear:opening.clear,openingSource:opening.source,openingRepair:opening.repair}};}};
+ return{execute,get state(){return state;},get history(){return history;},get summary(){return H.resolve(history,{position:state});},request(id=1){return{type:'plan',id,observation:P.observe(state),previous:null,commitment:null,options:{...fixture.request.options,obligationContext:H.exportState(history),patternHistory:pattern,openingPhase:opening.active,openingClear:opening.clear,openingSource:opening.source,openingRepair:opening.repair}};}};
 }
 function decide(q,extra={}){return P.decide(q.observation,{...q.options,...bounds,previous:q.previous,commitment:q.commitment,...extra});}
 const freshWorker=require('./support/st-fixed-clock-worker.cjs');
@@ -40,7 +40,7 @@ test('opening quality priority: fixed-clock 45000-node fresh Worker keeps Right 
   a.execute(advice.witness,reveals[i],{handoff:advice.phase==='maintenance'&&Boolean(advice.evidence.openingHandoff)});
   equivalent.event(a.state.lastEvent,fixture.steps[i].event);
  }
- assert.equal(a.summary.extraZ.status,'available');assert.equal(a.summary.extraZ.baseline.at,21);assert.equal(a.summary.openingAllocation.firstTsdAt,18);assert.equal(a.summary.hangingS.status,'none-observed');assert.equal(a.summary.hangingL.status,'none-observed');assert.equal(a.summary.center.pending.length,0);
+ assert.equal(a.summary.extraZ.status,'available');assert.equal(a.summary.extraZ.baseline,true);assert.equal(a.summary.openingAllocation.status,'verified-first-tsd');assert.equal(a.summary.hangingS.status,'none-observed');assert.equal(a.summary.hangingL.status,'none-observed');assert.equal(a.summary.center.pending.length,0);
 });
 
 test('opening quality priority: legal growth remains revalidatable, but same-horizon saved TSD goal prefers resolved quality',()=>{
@@ -57,20 +57,20 @@ test('opening quality priority: legal growth remains revalidatable, but same-hor
 });
 
 test('opening quality priority: missing or forged history cannot activate the preference or allowance',()=>{
- const a=observed(),q=a.request(),partial=H.start(q.observation),unknown={...q,options:{...q.options,resourceContext:H.exportContext(q.observation,partial),openingAllocation:a.summary.openingAllocation,openingQualityPending:true}};
+ const a=observed(),q=a.request(),partial=H.start(q.observation),unknown={...q,options:{...q.options,obligationContext:H.exportState(partial),openingAllocation:a.summary.openingAllocation,openingQualityPending:true}};
  const advice=decide(unknown);assert.equal(advice.assessment?.structure?.openingQuality,undefined);assert.equal(advice.evidence?.structure?.openingQuality,undefined);
- const tampered=clone(q);tampered.options.resourceContext.steps.pop();tampered.options.resourceContext.openingAllocation=a.summary.openingAllocation;tampered.options.resourceContext.extraZ={status:'available'};
- const invalid=decide(tampered);assert.equal(invalid.target,null);assert.equal(H.resolve(q.observation,H.importContext(q.observation,tampered.options.resourceContext)).extraZ.status,'unknown');
+ const tampered=clone(q);tampered.options.obligationContext.inventory.nextId=0;tampered.options.obligationContext.openingAllocation=a.summary.openingAllocation;tampered.options.obligationContext.extraZ={status:'available'};
+ const invalid=decide(tampered);assert.equal(invalid.target,null);assert.throws(()=>H.importState(tampered.options.obligationContext,{position:q.observation}));
  assert.equal(a.summary.extraZ.status,'unknown');
 });
 
 test('opening quality priority: completed quality ends the preference but another scoring T does not erase unpaid quality',()=>{
  const completed=observed();completed.execute(fixture.steps[4].witness,reveals[4]);assert.equal(completed.summary.extraZ.status,'available');const good=decide(completed.request());assert.equal(good.evidence?.structure?.openingQuality,undefined);
  const later=observed(),q=later.request(),old=oldGoal(q.observation,decide(q));for(const p of old.continuation)later.execute(p.witness,null);
- assert.equal(later.summary.openingAllocation.counts.T,4);assert.equal(later.summary.extraZ.status,'unknown');const advice=decide(later.request());assert(advice.target);assert.equal(advice.evidence?.structure?.openingQuality?.baselineGranted,false);assert.equal(later.summary.extraZ.status,'unknown');
+ assert.equal(later.history.state.account.thirdTWindow,false);assert.equal(later.summary.extraZ.status,'unknown');const advice=decide(later.request());assert(advice.target);assert.equal(advice.evidence?.structure?.openingQuality?.baselineGranted,false);assert.equal(later.summary.extraZ.status,'unknown');
 });
 
 test('opening quality priority: lost Center debt cannot masquerade as still-eligible delayed quality',()=>{
- const a=observed(19);a.execute(['L','L','L','HD'],'O');a.execute(['CW','R','HD'],'S');assert.ok(a.summary.center.closed.some(p=>p.status==='debt-invalidated'&&p.at>=18));
+ const a=observed(19);a.execute(['L','L','L','HD'],'O');a.execute(['CW','R','HD'],'S');assert.equal(a.history.state.account.qualityCandidate,false);
  const advice=decide(a.request());assert.equal(advice.evidence?.structure?.openingQuality,undefined);assert.equal(a.summary.extraZ.status,'unknown');
 });

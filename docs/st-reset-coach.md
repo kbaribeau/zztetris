@@ -8,7 +8,7 @@ subsequent TSD, parity pattern or balanced endpoint is not a completion conditio
 
 ## Entry and information
 
-`st-reset-policy.js` considers Reset only with replay-verified empty-origin history,
+`st-reset-policy.js` considers Reset only with available known current accounting,
 a qualified opening allocation, and exhausted ordinary extra-Z balance. It checks
 Left and Center independently against the two rows required for the next TSD.
 Center column 7 is reserved for the T in the upper row but is support in the lower
@@ -27,13 +27,16 @@ promises an unseen piece or substitutes a seed for public evidence.
 
 ## Persistent accounting
 
-`st-resource-history.js` owns immutable selection markers, actual qualifying T
-identities, progress and completed episodes. Markers cross worker/session boundaries
-only through the existing public action/reveal replay, and their eligibility is
-rechecked at the actual selection state. HOLD changes possession, not identity or
-bag membership. Undo restores the earlier immutable ledger. Imported positions
-without complete empty-origin history remain out of scope; serialized status,
-credit or phase flags have no authority.
+`st-obligation-context.js` owns current Reset transitions, qualifying T progress
+and the conserved Z balance. Actual markers require current eligibility at the
+selection state. Workers and native sessions carry structurally validated current
+facts, not an authenticated history tape. HOLD changes possession, not identity
+or bag membership. Caller-owned inverse Undo restores earlier current facts.
+Position-only imports start with unknown earlier allocations and cannot acquire
+Reset eligibility from board geometry or extra diagnostic flags. Native session
+imports trust their consistent current accounting; future advice still needs
+independent validation. Completed Reset episodes are not stored as a lifetime
+archive in Context.
 
 The verified opening has two nonscoring Left Ts and one mandatory non-Right Z.
 Consequently the ordinary starting surplus is one. The conserved balance is:
@@ -56,7 +59,7 @@ coach, while ordinary early/late dispatch resumes only after the second T.
 ## Evidence boundaries
 
 See [retained source observations](st-reset-evidence-1000l.md),
-[resource identity](st-resource-history.md), and
+[current resource state](st-shared-state-contract.md), and
 [evaluation contract](st-evaluation-contract.md). The seven source windows remain
 diagnostics/controls, not seven certified Reset boundaries. Their synthetic
 lock-order supply does not prove the original player's HOLD or bag identities.

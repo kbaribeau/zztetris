@@ -53,12 +53,12 @@ test('opening clear: a checked hypothetical maintenance continuation ranks a cle
 });
 
 test('opening clear: hypothetical handoff projects current resource facts without changing live authority',()=>{
- const fs=require('node:fs'),vm=require('node:vm'),RH=require('../st-resource-history'),Provider=require('../st-resource-provider'),Resources=require('../st-obligation-resources'),f=require('./support/st-opening-handoff.json');
- // Keep the finite old-format input as a compatibility control. Its one-time
- // conversion supplies a current unknown root; future queries must never try
- // to re-import that original tape at their different hypothetical endpoint.
- const resourceContext=RH.exportContext(f.before,RH.start(f.before)),original=JSON.stringify(resourceContext),probes=[];
- const origin=Provider.prepare(f.before,{resourceContext}),saved=JSON.stringify(origin.frame),handoffs=new WeakSet();
+ const fs=require('node:fs'),vm=require('node:vm'),RH=require('../st-obligation-context'),Provider=require('../st-resource-provider'),Resources=require('../st-obligation-resources'),f=require('./support/st-opening-handoff.json');
+ // A literal current unknown root stays bound to the live position. Future
+ // queries explicitly project the hypothetical clear and handoff instead of
+ // importing their endpoint as actual accounting.
+ const obligationContext=RH.exportState(RH.start(f.before)),original=JSON.stringify(obligationContext),probes=[];
+ const origin=Provider.prepare(f.before,{obligationContext}),saved=JSON.stringify(origin.frame),handoffs=new WeakSet();
  const provider={...Provider,projectHandoff(...args){const frame=Provider.projectHandoff(...args);handoffs.add(frame);return frame;}};
  const planner={...P,plan(state,options){if(options.disableOpening){
   const input=Provider.prepare(state,options),summary=input.facts;probes.push(summary);
@@ -73,8 +73,8 @@ test('opening clear: hypothetical handoff projects current resource facts withou
  }return P.plan(state,options);}};
  const sandbox={performance,module:{exports:{}},require:name=>name==='./st-planner'?planner:name==='./st-resource-provider'?provider:require('../'+name.replace(/^\.\//,''))};
  vm.runInNewContext(fs.readFileSync(require.resolve('../st-opening'),'utf8'),sandbox);
- const a=sandbox.module.exports.plan(f.before,{openingPhase:true,maxNodes:45000,deadline:Infinity,resourceContext});
- assert.ok(a.target);assert.ok(probes.length);assert.equal(a.phase,'opening');assert.equal(JSON.stringify(resourceContext),original);
+ const a=sandbox.module.exports.plan(f.before,{openingPhase:true,maxNodes:45000,deadline:Infinity,obligationContext});
+ assert.ok(a.target);assert.ok(probes.length);assert.equal(a.phase,'opening');assert.equal(JSON.stringify(obligationContext),original);
  assert.equal(JSON.stringify(origin.frame),saved);assert.equal(origin.frame.state.sl.handoff,false);
- assert.equal(RH.resolve(f.before,RH.importContext(f.before,resourceContext)).locks,0);
+ assert.equal(RH.importState(obligationContext,{position:f.before}).boundary.firstBagLocks,null);
 });

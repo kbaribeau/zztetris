@@ -1,13 +1,13 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
-const P=require('../st-planner'),O=require('../st-opening'),R=require('../st-rules'),H=require('../st-resource-history');
+const P=require('../st-planner'),O=require('../st-opening'),R=require('../st-rules'),H=require('../st-obligation-context');
 const f=require('./fixtures/opening-allocation-conservation.json');
 const options={...f.request.options,deadline:Infinity};
 function projected(path){
- let state=R.createState(f.request.observation),history=H.importContext(state,options.resourceContext);const summaries=[];
+ let state=R.createState(f.request.observation),history=H.importState(options.obligationContext,{position:state});const summaries=[];
  for(const step of path){const r=R.replay(state,step.witness);assert.equal(r.valid,true);assert.deepEqual(r.events,[step.event]);
-  for(const action of step.witness){const after=R.move(state,action);history=H.applyAction(history,state,action,after);state=after;}
-  const summary=H.resolve(state,history);assert.equal(summary.coverage.status,'complete');summaries.push(summary);
+  for(const action of step.witness){const after=R.move(state,action);history=H.applyActual(history,{before:state,action:action,after:after}).context;state=after;}
+  const summary=H.resolve(history,{position:state});assert.equal(summary.availability,'known');summaries.push(summary);
  }
  return summaries;
 }
@@ -16,9 +16,9 @@ function assertConserved(advice){
  assert.equal(advice.metrics.openingAllocation.conservation.enabled,true);
  assert(advice.metrics.openingAllocation.conservation.rejected>0);
  for(const summary of projected(advice.continuation)){
-  assert.equal(summary.openingAllocation.counts.TNonRight,2);assert.equal(summary.openingAllocation.counts.ZNonRight,1);
+  assert.equal(summary.openingAllocation.requiredNonRightZ,0);
   assert(['ready-for-first-tsd','verified-first-tsd'].includes(summary.openingAllocation.status));
-  if(summary.openingAllocation.firstTsdAt!==null)break;
+  if(summary.openingAllocation.status==='verified-first-tsd')break;
  }
 }
 test('opening conservation: completed source allocation survives ordinary public preparation',()=>{
@@ -31,7 +31,7 @@ test('opening conservation: a valid retained geometric repair cannot bypass the 
  const advice=P.plan(f.request.observation,{...options,openingRepair:repair});assertConserved(advice);assert.equal(advice.metrics.repairRetained,false);
 });
 test('opening conservation: unknown history does not invent a completed allocation',()=>{
- const {resourceContext,...unknown}=options;
+ const {obligationContext,...unknown}=options;
  const advice=P.plan(f.request.observation,{...unknown,openingAllocation:{status:'ready-for-first-tsd',counts:{T:2}}});
  assert.equal(advice.metrics.openingAllocation.conservation.enabled,false);
 });

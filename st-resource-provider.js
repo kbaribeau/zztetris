@@ -1,9 +1,9 @@
 /* One request boundary for current resource facts. Actual Context imports are
- * trusted current data; old tapes enter only the isolated Legacy reader.
+ * trusted current data; obsolete tapes are rejected at this boundary.
  * A supplied unavailable input never becomes an implicit unknown origin.
  * Literal factual frames have no ordinary-route assessment or forced tail.
  */
-(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-obligation-context'),require('./st-obligation-projection'),require('./st-obligation-state'),require('./st-opening-eligibility'),require('./st-obligation-resources'),require('./st-resource-legacy'),require('./st-pattern-history')):factory(root.STRules,root.STObligationContext,root.STObligationProjection,root.STObligationState,root.STOpeningEligibility,root.STObligationResources,root.STResourceLegacy,root.STPatternHistory);if(typeof module==='object'&&module.exports)module.exports=api;else root.STResourceProvider=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,C,P,Q,E,Resources,Legacy,Pattern){
+(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-obligation-context'),require('./st-obligation-projection'),require('./st-obligation-state'),require('./st-opening-eligibility'),require('./st-obligation-resources'),require('./st-pattern-history')):factory(root.STRules,root.STObligationContext,root.STObligationProjection,root.STObligationState,root.STOpeningEligibility,root.STObligationResources,root.STPatternHistory);if(typeof module==='object'&&module.exports)module.exports=api;else root.STResourceProvider=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,C,P,Q,E,Resources,Pattern){
 'use strict';
 const clone=x=>JSON.parse(JSON.stringify(x)),inputs=new WeakSet(),frames=new WeakSet(),origins=new WeakMap();
 const check=(ok,reason)=>{if(!ok)throw Error('Invalid resource input: '+reason);};
@@ -43,19 +43,20 @@ function prepare(raw,options={}){
  const source=native?'current':legacy?'legacy':'implicit',supplied=native||legacy;
  let context=null;
  try{
+  check(!['resourceHistory','resourceOriginBag'].some(k=>options[k]!==undefined&&options[k]!==null),'legacy resource history is unsupported');
   check(R.validate(raw).length===0&&raw.queue.length<=6,'literal current public position required');
   if(native){check(options.obligationContext!==null,'supplied current accounting unavailable');context=C.importState(options.obligationContext,{position:raw});if(raw.bag!==undefined&&raw.bag!==null&&context.status==='available')check(same(raw.bag,context.inventory.knowledge),'current public bag disagrees with supplied inventory');}
-  else if(legacy){const result=Legacy.convert(raw,options.resourceContext);check(result.status==='available',result.reason);context=result.context;}
+  else if(legacy)throw Error('Legacy resource contexts are unsupported; supply a current obligationContext or explicitly import a position.');
   else context=C.start(raw,{fresh:false});
   // Old standalone callers may carry a translated/broken notch checkpoint
-  // beside resource input. Convert it once at this compatibility boundary.
+  // beside resource input. Accept only a current notch checkpoint at this boundary.
   // Native current Context already owns safety and ignores this sidecar.
   if(!native&&own(options,'patternHistory')){
-   const notches=Pattern.snapshot(raw,options.patternHistory);check(Pattern.resolve(raw,notches).status!=='invalid-history','invalid notch checkpoint or legacy pattern history');
+   const notches=Pattern.snapshot(raw,options.patternHistory);check(Pattern.resolve(raw,notches).status!=='invalid-history','invalid current notch checkpoint');
    const snapshot=C.exportState(context);snapshot.state.safety.notches=notches;context=C.importState(snapshot,{position:raw});
   }
   if(context?.status==='unavailable'){const result=unavailable(source,true,context.reason,context);return rememberPosition(result,raw);}
-  const kind=native?'current':legacy?'legacy-converted':'implicit-unknown',boundary=context?context.boundary:{firstBagLocks:null,sourcePatternSeen:false};
+  const kind=native?'current':'implicit-unknown',boundary=context?context.boundary:{firstBagLocks:null,sourcePatternSeen:false};
   const projection=P.start(context.state,{position:raw,inventory:context.inventory});
   // This query may deduce only the bag knowledge present in its literal
   // request. The controller's actual inventory/frontier remains unchanged.

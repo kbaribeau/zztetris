@@ -68,10 +68,10 @@ test('D admission: one J cannot pay Left and Center; a distinct executable repla
   else assert.equal(proof.reason,'D-J-exit-resources-unrepaired');
  }
 });
-const RH=require('../st-resource-history');
+const RH=require('../st-obligation-context');
 const context=s=>JSON.stringify([s.rules,s.board,s.hold,s.canHold,s.queue,s.bag??null,s.active?.type]);
 function adviceFor(origin,witnesses){let s=origin;const continuation=witnesses.map(witness=>{const r=R.replay(s,witness);assert.equal(r.valid,true);assert.equal(r.events.length,1);s=r.state;return{witness,event:r.events[0],target:r.events[0].target,hold:witness.includes('HOLD'),holdCount:witness.filter(a=>a==='HOLD').length};});return{target:continuation[0].target,witness:continuation[0].witness,hold:continuation[0].hold,holdCount:continuation[0].holdCount,continuation,context:context(origin),metrics:{},evidence:{cycleDebt:0}};}
-function applyHistory(origin,witnesses){let s=origin,h=RH.start(s);for(const w of witnesses)for(const action of w){const n=R.move(s,action);h=RH.applyAction(h,s,action,n);s=n;}return{state:s,history:h};}
+function applyHistory(origin,witnesses){let s=origin,h=RH.start(s);for(const w of witnesses)for(const action of w){const n=R.move(s,action);h=RH.applyActual(h,{before:s,action:action,after:n}).context;s=n;}return{state:s,history:h};}
 const creator=['L','L','L','CW','HD'],centerJ=['CW','R','HD'];
 function doubleJobOrigin(queue){const h=[6,4,6,6,4,1,2,0,0,0];return R.createState({board:Array.from({length:40},(_,y)=>h.map(v=>y>=40-v?'X':'.').join('')),active:'J',hold:'O',queue});}
 test('D admission: an actual suffix cannot divert immediate J while leaving the newly created D',()=>{
@@ -85,14 +85,14 @@ test('D admission: an actual suffix cannot divert immediate J while leaving the 
 });
 test('D history: observed creation survives fresh requests and import; an imported D root is not retroactive debt',()=>{
  const origin=doubleJobOrigin(['J','O','J']),created=applyHistory(origin,[creator]);
- const summary=RH.resolve(created.state,created.history);assert.deepEqual(summary.dPattern,{pending:true,createdAt:1});
- const exported=RH.exportContext(created.state,created.history),restored=RH.importContext(created.state,JSON.parse(JSON.stringify(exported)));
- assert.deepEqual(RH.resolve(created.state,restored).dPattern,summary.dPattern);
+ const summary=RH.resolve(created.history,{position:created.state});assert.deepEqual(summary.dPattern,{pending:true});
+ const exported=RH.exportState(created.history),restored=RH.importState(JSON.parse(JSON.stringify(exported)),{position:created.state});
+ assert.deepEqual(RH.resolve(restored,{position:created.state}).dPattern,summary.dPattern);
  const advice=adviceFor(created.state,[centerJ]);
- assert.equal(P.revalidate(created.state,advice,{resourceContext:exported,now:()=>0,deadline:1,maxNodes:12000}),null,'fresh request cannot forget observed creation');
+ assert.equal(P.revalidate(created.state,advice,{obligationContext:exported,now:()=>0,deadline:1,maxNodes:12000}),null,'fresh request cannot forget observed creation');
  assert.equal(P.revalidate(created.state,advice,{now:()=>0,deadline:1,maxNodes:12000}),null,'Current D without a usable next J is not supported merely because imported creation history is unknown');
- const forged={...exported,dPattern:{pending:false}};assert.deepEqual(RH.resolve(created.state,RH.importContext(created.state,forged)).dPattern,summary.dPattern);
+ const forged={...exported,dPattern:{pending:false}};assert.throws(()=>RH.importState(forged,{position:created.state}),'Unknown snapshot fields cannot override current duties');
  const exit=L.dExit(created.state,{now:()=>0,deadline:1,maxNodes:4000});assert.equal(exit.valid,true);
- let state=created.state,history=created.history;for(const action of exit.exit.witness){const next=R.move(state,action);history=RH.applyAction(history,state,action,next);state=next;}
- assert.deepEqual(RH.resolve(state,history).dPattern,{pending:false,createdAt:null});
+ let state=created.state,history=created.history;for(const action of exit.exit.witness){const next=R.move(state,action);history=RH.applyActual(history,{before:state,action:action,after:next}).context;state=next;}
+ assert.deepEqual(RH.resolve(history,{position:state}).dPattern,{pending:false});
 });

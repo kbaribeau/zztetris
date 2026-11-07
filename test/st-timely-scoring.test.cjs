@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
-const P=require('../st-planner'),R=require('../st-rules'),S=require('../st-structure'),RH=require('../st-resource-history');
+const P=require('../st-planner'),R=require('../st-rules'),S=require('../st-structure'),RH=require('../st-obligation-context');
 const fixture=require('./fixtures/timely-scoring.json'),clone=x=>JSON.parse(JSON.stringify(x));
 const bounds={depth:3,width:8,maxNodes:45000,timeMs:1500,now:()=>0,deadline:Infinity};
 function decide(q=fixture.request,extra={}){return P.decide(q.observation,{...q.options,...bounds,commitment:q.commitment,...extra});}
@@ -25,14 +25,14 @@ test('timely scoring: a heuristic-only O/J replacement cannot postpone the execu
 });
 
 test('timely scoring: a sound goal remains executable from an actual moved pose',()=>{
- const q=clone(fixture.request),before=R.createState(q.observation),history=RH.importContext(before,q.options.resourceContext),moved=R.move(before,'R');assert.notDeepEqual(moved.active,q.observation.active);q.observation=P.observe(moved);q.options.resourceContext=RH.exportContext(moved,RH.applyAction(history,before,'R',moved));
+ const q=clone(fixture.request),before=R.createState(q.observation),history=RH.importState(q.options.obligationContext,{position:before}),moved=R.move(before,'R');assert.notDeepEqual(moved.active,q.observation.active);q.observation=P.observe(moved);q.options.obligationContext=RH.exportState(RH.applyActual(history,{before:before,action:'R',after:moved}).context);
  const a=decide(q);assert(a.target,a.reason);assert.equal(a.continuation[0].event.type,'T');assert.equal(a.continuation[0].event.lines,2);replay(q.observation,a);
 });
 
 test('timely scoring: HOLD does not erase a reachable saved T goal or invent a new draw',()=>{
- const q=clone(fixture.request),before=R.createState(q.observation),history=RH.importContext(before,q.options.resourceContext),held=R.move(before,'HOLD');
+ const q=clone(fixture.request),before=R.createState(q.observation),history=RH.importState(q.options.obligationContext,{position:before}),held=R.move(before,'HOLD');
  assert.equal(held.active.type,'O');assert.equal(held.hold,'T');assert.deepEqual(held.queue,before.queue);
- q.observation=P.observe(held);q.options.resourceContext=RH.exportContext(held,RH.applyAction(history,before,'HOLD',held));
+ q.observation=P.observe(held);q.options.obligationContext=RH.exportState(RH.applyActual(history,{before:before,action:'HOLD',after:held}).context);
  const a=decide(q);assert(a.target,a.reason);assert.equal(a.continuation[0].event.type,'T');assert.equal(a.continuation[0].event.lines,2);assert.equal(a.hold,true);replay(q.observation,a);
 });
 

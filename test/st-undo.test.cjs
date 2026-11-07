@@ -58,7 +58,7 @@ test('undo: a real saved cycle route is revalidated rather than displayed from h
  assert.ok(P.cycleResources(checked.continuation).tsds>0);assert.equal(g.window.stLab.result,null);all.at(-1).respond(checked);assert.deepEqual(clone(g.window.stLab.result.target),checked.target);
 }));
 test('undo: actual opening scoring clear and checked handoff can be undone back into opening',()=>withPage('st-lab.html',{},g=>{
- const P=require('../st-planner'),H=require('../st-resource-history'),f=require('./support/st-undo-opening.json'),all=workers(g);
+ const P=require('../st-planner'),H=require('../st-obligation-context'),f=require('./support/st-undo-opening.json'),all=workers(g);
  // Feed the recorded private bags through the real UI generator, not through planner input.
  const randomValues=[];for(const desired of f.bags){const bag=[...'IJLOSTZ'];for(let i=6;i>0;i--){const j=bag.indexOf(desired[i]);assert.ok(j<=i);randomValues.push((j+.25)/(i+1));[bag[i],bag[j]]=[bag[j],bag[i]];}}
  g.window.Math.random=()=>{assert.ok(randomValues.length);return randomValues.shift();};select(g,'empty');

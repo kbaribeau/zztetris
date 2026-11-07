@@ -1,7 +1,7 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
 const C=require('../scripts/lib/st-coach-entry-metrics.cjs'),E=require('../scripts/lib/st-simulation.cjs');
-const R=require('../st-rules'),P=require('../st-planner'),H=require('../st-resource-history'),B=require('../st-bag');
+const R=require('../st-rules'),P=require('../st-planner'),H=require('../st-obligation-context'),B=require('../st-bag');
 const zero={opening:0,earlyMidgame:0,lateMidgame:0,reset:0,compatibility:0};
 const active={active:true},inactive={active:false};
 test('coach entries: initial opening and immediate failure count once, not per request',()=>{
@@ -43,17 +43,18 @@ test('coach entries: Reset takeover that immediately abstains counts, speculativ
  assert.deepEqual(probe.coachEntries,{...zero,compatibility:1});
 });
 test('coach entries: real Reset history returns early immediately at second qualifying T',()=>{
- const f=require('./support/st-reset-live-cycle.json');let state=R.createState(f.initial),history=H.importContext(state,E.clone(f.resourceContext));
- const tracker=C.create(C.phase(inactive,H.resolve(state,history)),{imported:true});assert.equal(tracker.snapshot().currentCoach,'lateMidgame');
- history=H.beginReset(history,state);tracker.enter(C.phase(inactive,H.resolve(state,history)),0,'reset-entry');
+ const f=require('./support/st-reset-live-cycle.json');let state=R.createState(f.initial),history=H.importState(E.clone(f.obligationContext),{position:state});
+ const tracker=C.create(C.phase(inactive,H.resolve(history,{position:state})),{imported:true}),completions=[];assert.equal(tracker.snapshot().currentCoach,'lateMidgame');
+ history=H.beginReset(history,{position:state,candidate:true}).context;tracker.enter(C.phase(inactive,H.resolve(history,{position:state})),0,'reset-entry');
  for(const [i,step]of f.steps.entries()){
-  for(const {action,revealed}of step.actions){const before=state;state=R.move(state,action);for(const type of revealed)state={...state,queue:state.queue.concat(type),bag:B.consume(state.bag,type)};history=H.applyAction(history,before,action,state);}
-  assert.deepEqual(state.lastEvent,step.event);tracker.enter(C.phase(inactive,H.resolve(state,history)),i+1,'actual-lock');
+  for(const {action,revealed}of step.actions){const before=state;state=R.move(state,action);for(const type of revealed)state={...state,queue:state.queue.concat(type),bag:B.consume(state.bag,type)};const transition=H.applyActual(history,{before,action,after:state});history=transition.context;for(const effect of transition.effects)if(effect.status==='reset-completed')completions.push({afterLock:i+1,effect});}
+  assert.deepEqual(state.lastEvent,step.event);tracker.enter(C.phase(inactive,H.resolve(history,{position:state})),i+1,'actual-lock');
   if(i<f.steps.length-1)assert.equal(tracker.snapshot().currentCoach,'reset');
  }
  assert.deepEqual(tracker.snapshot().coachEntries,{...zero,lateMidgame:1,reset:1,earlyMidgame:1});
  assert.equal(tracker.snapshot().coachTransitions.at(-1).afterLock,f.steps.length);
- assert.equal(H.resolve(state,history).reset.progress,2);
+ assert.equal(H.resolve(history,{position:state}).reset.progress,0);assert.equal(history.state.account.reset.status,'inactive');
+ assert.equal(completions.length,1);assert.equal(completions[0].afterLock,f.steps.length,'Completion is emitted on the actual second qualifying T, not retained in the current account');
 });
 test('coach entries: successful simulation locks retain phase counts and replay unaffected',()=>{
  const input=E.makeInput('empty',13,2),records=[];
@@ -71,8 +72,8 @@ test('coach entries: accepted handoff survives a later execution failure',()=>{
  assert.equal(summary.currentCoach,'compatibility');assert.equal(summary.coachTransitions.at(-1).afterLock,0,'Handoff precedes the failed lock processing');
 });
 test('coach entries: simulation counts Reset completion on its final capped lock',()=>{
- const f=require('./support/st-reset-live-cycle.json'),Context=require('../st-obligation-context'),Legacy=require('../st-resource-legacy');
- const converted=Legacy.convert(R.createState(f.initial),E.clone(f.resourceContext));assert.equal(converted.status,'available');
+ const f=require('./support/st-reset-live-cycle.json'),Context=require('../st-obligation-context');
+ const converted={context:Context.importState(f.obligationContext,{position:R.createState(f.initial)})};
  // Import the compact current checkpoint once. The runner owns all subsequent
  // real receipts and Reset completion effects, including the final lock.
  const input={scenario:'stable',seed:0,initial:f.initial,obligationContext:Context.exportState(converted.context),locks:f.steps.length,future:f.steps.flatMap(s=>s.actions.flatMap(a=>a.revealed)),inputHash:'test-real-reset-current'};

@@ -28,7 +28,7 @@ test('reservoir/ordinary advice cannot retain the historical non-scoring T prefi
  for(const witness of [...historicalPrefix,result.witness]){const r=R.replay(state,witness);assert.ok(r.valid);steps.push({witness,event:r.events[0],target:r.events[0].target,hold:false,holdCount:0});state=r.state;}
  assert.equal(steps[1].event.type,'T');assert.equal(steps[1].event.lines,0);
  const origin=R.createState(snapshot),stale={target:steps[0].target,witness:steps[0].witness,hold:false,holdCount:0,continuation:steps,context:JSON.stringify([origin.rules,origin.board,origin.hold,origin.canHold,origin.queue,origin.bag??null,origin.active.type]),evidence:{},metrics:{}};
- assert.ok(stale.target,'The non-scoring-T rejection must not be a vacuous null-target check');assert.equal(require('../st-midgame-resources').checkPath(origin,steps).reason,'ordinary-T-must-score','The actual T-allocation violation remains independently observable');assert.equal(P.revalidate(snapshot,stale),null);
+ assert.ok(stale.target,'The non-scoring-T rejection must not be a vacuous null-target check');assert.equal(require('../st-obligation-resources').checkPath(origin,steps,require('../st-obligation-resources').startUnknown(origin)).reason,'ordinary-T-must-score','The actual T-allocation violation remains independently observable');assert.equal(P.revalidate(snapshot,stale),null);
 });
 test('reservoir/immediate J supply keeps a genuine supported Center-L then D-exit positive',()=>{
  // Disclosed synthetic order variant: move the existing final J to the front;

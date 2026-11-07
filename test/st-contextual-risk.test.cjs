@@ -1,6 +1,6 @@
 'use strict';
-const test=require('node:test'),assert=require('node:assert/strict'),R=require('../st-rules'),P=require('../st-planner'),RH=require('../st-resource-history'),f=require('./fixtures/contextual-risk-S.json'),clone=x=>JSON.parse(JSON.stringify(x));
-const root=()=>R.createState(f.observation),options=s=>({openingPhase:false,resourceContext:RH.exportContext(s,RH.start(s)),depth:3,width:8,maxNodes:45000,now:()=>0,deadline:Infinity});
+const test=require('node:test'),assert=require('node:assert/strict'),R=require('../st-rules'),P=require('../st-planner'),Current=require('../st-obligation-context'),CurrentProvider=require('../st-resource-provider'),f=require('./fixtures/contextual-risk-S.json'),clone=x=>JSON.parse(JSON.stringify(x));
+const root=()=>R.createState(f.observation),options=s=>({openingPhase:false,obligationContext:Current.exportState(Current.start(s)),depth:3,width:8,maxNodes:45000,now:()=>0,deadline:Infinity});
 let cached;function pair(){if(!cached){const s=root(),o=options(s);cached={s,o,supported:P.decide(s,{...o,disableContextualRisk:true}),risk:P.decide(s,o)};}return clone(cached);}
 function harness(){const fs=require('fs'),path=require('path'),vm=require('vm'),filename=require.resolve('../st-planner'),m={exports:{}};vm.runInNewContext(fs.readFileSync(filename,'utf8').replace('return Object.freeze({dPatternAdmission,','return Object.freeze({contextualRiskPreference,riskyFallback,'),{module:m,require:id=>require(path.resolve(path.dirname(filename),id)),Date,performance});return m.exports;}
 function compare(changeState=s=>s,changeSupported=a=>a,extra={}){const q=pair(),s=changeState(q.s),o=options(s),support=changeSupported({...q.supported,metrics:{nodes:100}}),r=R.replay(s,q.risk.witness);assert(r.valid);const p={state:r.state,event:r.events[0],target:r.events[0].target,witness:q.risk.witness};return{support,result:harness().contextualRiskPreference(s,support,{...o,...extra},{key:null,placements:[p],complete:true})};}
@@ -33,10 +33,10 @@ test('contextual risk / synthetic collector gate rejects higher Left hidden by t
 });
 
 test('contextual risk / authentic pending Center and covered repair obligations block override',()=>{
- const fixture=require('./fixtures/reserved-piece-plan.json');let s=R.createState(fixture.observation),history=RH.importContext(s,fixture.options.resourceContext),summary=RH.resolve(s,history);assert(require('../st-midgame-resources').start(s,summary).pendingCenter.length>0);
- const support=pair().supported,call=()=>harness().contextualRiskPreference(s,support,{...options(s),resourceContext:RH.exportContext(s,history)},{placements:[{}]});assert.deepEqual(call().target,support.target);
- for(const witness of fixture.witnesses.slice(0,2))for(const action of witness){const before=s;s=R.move(s,action);history=RH.applyAction(history,before,action,s);}
- summary=RH.resolve(s,history);assert(summary.coveredRepair.cells.length>0);assert.deepEqual(call().target,support.target);
+ const fixture=require('./fixtures/reserved-piece-plan.json');let s=R.createState(fixture.observation),history=Current.importState(fixture.options.obligationContext,{position:s}),summary=CurrentProvider.facts(CurrentProvider.prepare(s,{obligationContext:Current.exportState(history)}));assert(require('../st-obligation-resources').start(s,history).pendingCenter.length>0);
+ const support=pair().supported,call=()=>harness().contextualRiskPreference(s,support,{...options(s),obligationContext:Current.exportState(history)},{placements:[{}]});assert.deepEqual(call().target,support.target);
+ for(const witness of fixture.witnesses.slice(0,2))for(const action of witness){const before=s;s=R.move(s,action);history=Current.applyActual(history,{before:before,action:action,after:s}).context;}
+ summary=CurrentProvider.facts(CurrentProvider.prepare(s,{obligationContext:Current.exportState(history)}));assert(summary.coveredRepair.cells.length>0);assert.deepEqual(call().target,support.target);
 });
 test('contextual risk / certified immediate J exit is not misrepresented as unresolved D',()=>{
  const {s,supported,risk}=pair();s.hold='J';const r=R.replay(s,risk.witness);assert(r.valid);const p={state:r.state,event:r.events[0],witness:risk.witness,target:r.events[0].target};

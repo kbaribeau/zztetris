@@ -1,11 +1,11 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
-const R=require('../st-rules'),B=require('../st-bag'),H=require('../st-resource-history'),Session=require('../st-session'),Practice=require('../st-practice');
+const R=require('../st-rules'),B=require('../st-bag'),H=require('../st-obligation-context'),Session=require('../st-session'),Practice=require('../st-practice');
 const Context=require('../st-obligation-context');
 const clone=x=>JSON.parse(JSON.stringify(x));
 function session({known=true,queue=['J','L','O','S','T','Z']}={}){
  const state=R.createState({rules:R.PROFILE.id,board:R.emptyBoard(),active:{type:'I',x:3,y:17,rotation:0,lastRotation:null},hold:null,canHold:true,queue,streamCursor:1,...(known?{bag:B.fromObserved({observed:['I',...queue],startPhase:0})}:{})});
- return Session.create(state,{resourceHistory:H.start(state),resourceOriginBag:state.bag??null});
+ return Session.create(state,{obligationContext:H.exportState(H.start(state))});
 }
 test('practice/package preserves the visible session and partial history without exposing the private tail to session state',()=>{
  const saved=session(),tail=['T','O','I','J','L','S','Z'],packed=Practice.create(saved,tail),prepared=Practice.parse(JSON.stringify(packed));

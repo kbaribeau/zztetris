@@ -66,1106 +66,162 @@
   },
   "options": {
     "openingPhase": false,
-    "resourceContext": {
+    "obligationContext": {
       "schemaVersion": 1,
-      "origin": {
-        "rules": "st-zero-v2",
-        "board": [
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          "..........",
-          ".........."
-        ],
+      "status": "available",
+      "reason": null,
+      "inventory": {
+        "schemaVersion": 1,
+        "status": "available",
+        "originKnown": true,
+        "nextId": 27,
+        "streamCursor": 20,
         "active": {
-          "lastRotation": null,
-          "rotation": 0,
-          "type": "T",
-          "x": 3,
-          "y": 17
+          "id": 20,
+          "type": "L",
+          "observedOrder": 19,
+          "bag": 2
         },
-        "hold": null,
-        "canHold": true,
+        "hold": {
+          "id": 18,
+          "type": "O",
+          "observedOrder": 17,
+          "bag": 2
+        },
         "queue": [
-          "L",
-          "O",
-          "S",
-          "I",
-          "Z",
-          "J"
+          {
+            "id": 21,
+            "type": "Z",
+            "observedOrder": 20,
+            "bag": 2
+          },
+          {
+            "id": 22,
+            "type": "L",
+            "observedOrder": 21,
+            "bag": 3
+          },
+          {
+            "id": 23,
+            "type": "J",
+            "observedOrder": 22,
+            "bag": 3
+          },
+          {
+            "id": 24,
+            "type": "S",
+            "observedOrder": 23,
+            "bag": 3
+          },
+          {
+            "id": 25,
+            "type": "I",
+            "observedOrder": 24,
+            "bag": 3
+          },
+          {
+            "id": 26,
+            "type": "O",
+            "observedOrder": 25,
+            "bag": 3
+          }
         ],
-        "streamCursor": 1,
-        "topOut": false
-      },
-      "fresh": true,
-      "steps": [
-        {
-          "action": "HOLD",
-          "revealed": [
-            "Z"
-          ]
-        },
-        {
-          "action": "L",
-          "revealed": []
-        },
-        {
-          "action": "L",
-          "revealed": []
-        },
-        {
-          "action": "L",
-          "revealed": []
-        },
-        {
-          "action": "HD",
-          "revealed": [
-            "S"
-          ]
-        },
-        {
-          "action": "HOLD",
-          "revealed": []
-        },
-        {
-          "action": "L",
-          "revealed": []
-        },
-        {
-          "action": "L",
-          "revealed": []
-        },
-        {
-          "action": "L",
-          "revealed": []
-        },
-        {
-          "action": "CW",
-          "revealed": []
-        },
-        {
-          "action": "HD",
-          "revealed": [
-            "L"
-          ]
-        },
-        {
-          "action": "R",
-          "revealed": []
-        },
-        {
-          "action": "CW",
-          "revealed": []
-        },
-        {
-          "action": "HD",
-          "revealed": [
-            "J"
-          ]
-        },
-        {
-          "action": "HOLD",
-          "revealed": []
-        },
-        {
-          "action": "R",
-          "revealed": []
-        },
-        {
-          "action": "HD",
-          "revealed": [
-            "O"
-          ]
-        },
-        {
-          "action": "R",
-          "revealed": []
-        },
-        {
-          "action": "R",
-          "revealed": []
-        },
-        {
-          "action": "R",
-          "revealed": []
-        },
-        {
-          "action": "R",
-          "revealed": []
-        },
-        {
-          "action": "CW",
-          "revealed": []
-        },
-        {
-          "action": "HD",
-          "revealed": [
-            "T"
-          ]
-        },
-        {
-          "action": "L",
-          "revealed": []
-        },
-        {
-          "action": "CW",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "CCW",
-          "revealed": []
-        },
-        {
-          "action": "HD",
-          "revealed": [
-            "I"
-          ]
-        },
-        {
-          "action": "HOLD",
-          "revealed": []
-        },
-        {
-          "action": "CCW",
-          "revealed": []
-        },
-        {
-          "action": "HD",
-          "revealed": [
-            "S"
-          ]
-        },
-        {
-          "action": "L",
-          "revealed": []
-        },
-        {
-          "action": "CCW",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "HD",
-          "revealed": [
-            "J"
-          ]
-        },
-        {
-          "action": "HOLD",
-          "revealed": []
-        },
-        {
-          "action": "R",
-          "revealed": []
-        },
-        {
-          "action": "CW",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "HD",
-          "revealed": [
-            "I"
-          ]
-        },
-        {
-          "action": "CW",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "HD",
-          "revealed": [
-            "O"
-          ]
-        },
-        {
-          "action": "HOLD",
-          "revealed": []
-        },
-        {
-          "action": "L",
-          "revealed": []
-        },
-        {
-          "action": "CCW",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "HD",
-          "revealed": [
-            "T"
-          ]
-        },
-        {
-          "action": "L",
-          "revealed": []
-        },
-        {
-          "action": "L",
-          "revealed": []
-        },
-        {
-          "action": "L",
-          "revealed": []
-        },
-        {
-          "action": "CCW",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "R180",
-          "revealed": []
-        },
-        {
-          "action": "HD",
-          "revealed": [
-            "L"
-          ]
-        },
-        {
-          "action": "L",
-          "revealed": []
-        },
-        {
-          "action": "L",
-          "revealed": []
-        },
-        {
-          "action": "L",
-          "revealed": []
-        },
-        {
-          "action": "CCW",
-          "revealed": []
-        },
-        {
-          "action": "L",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "HD",
-          "revealed": [
-            "Z"
-          ]
-        },
-        {
-          "action": "HOLD",
-          "revealed": []
-        },
-        {
-          "action": "L",
-          "revealed": []
-        },
-        {
-          "action": "L",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "HD",
-          "revealed": [
-            "L"
-          ]
-        },
-        {
-          "action": "L",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "HD",
-          "revealed": [
-            "J"
-          ]
-        },
-        {
-          "action": "HOLD",
-          "revealed": []
-        },
-        {
-          "action": "CW",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "CW",
-          "revealed": []
-        },
-        {
-          "action": "HD",
-          "revealed": [
-            "S"
-          ]
-        },
-        {
-          "action": "HOLD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "HD",
-          "revealed": [
-            "I"
-          ]
-        },
-        {
-          "action": "R",
-          "revealed": []
-        },
-        {
-          "action": "R",
-          "revealed": []
-        },
-        {
-          "action": "R",
-          "revealed": []
-        },
-        {
-          "action": "CW",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "SD",
-          "revealed": []
-        },
-        {
-          "action": "CW",
-          "revealed": []
-        },
-        {
-          "action": "HD",
-          "revealed": [
-            "O"
-          ]
+        "frontier": {
+          "bag": 3,
+          "seenMask": 31
+        },
+        "knowledge": {
+          "remaining": [
+            96
+          ],
+          "observedCount": 26,
+          "provenance": "known-phase"
         }
-      ],
-      "handoffAtAction": 248
+      },
+      "state": {
+        "schemaVersion": 2,
+        "availability": "known",
+        "center": {
+          "pending": [],
+          "debt": []
+        },
+        "sl": {
+          "schemaVersion": 1,
+          "status": "known",
+          "foundationOpen": false,
+          "firstBagReview": "reviewed",
+          "handoff": true,
+          "residuals": [
+            {
+              "bag": 2,
+              "S": {
+                "id": 15,
+                "region": "center",
+                "opening": true,
+                "pair": null,
+                "foundationEligible": false,
+                "firstBagEligible": false,
+                "requiresAccommodation": false,
+                "invalidated": false
+              },
+              "L": null,
+              "order": null,
+              "sOwedSinceL": false,
+              "lBeforeSPair": false
+            }
+          ],
+          "uncertainty": {
+            "S": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "L": [
+              0
+            ]
+          }
+        },
+        "account": {
+          "schemaVersion": 1,
+          "known": true,
+          "firstTsd": true,
+          "allocationVerified": true,
+          "mandatoryZ": false,
+          "thirdTWindow": true,
+          "qualityCandidate": false,
+          "opening": null,
+          "profile": {
+            "violation": false,
+            "departure": false,
+            "before": null,
+            "capEstablished": true
+          },
+          "z": {
+            "remaining": 1,
+            "uncredited": "none"
+          },
+          "reset": {
+            "status": "inactive"
+          }
+        },
+        "safety": {
+          "notches": {
+            "version": 2,
+            "status": "established",
+            "anchorRow": 36,
+            "blockedRows": [],
+            "source": "recognized-next-Z-cap"
+          },
+          "coveredCells": []
+        },
+        "dPending": false,
+        "leftGoals": []
+      },
+      "boundary": {
+        "firstBagLocks": 7,
+        "sourcePatternSeen": true
+      }
     }
   }
 }

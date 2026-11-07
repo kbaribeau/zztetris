@@ -1,8 +1,8 @@
 'use strict';
 const P=require('../st-planner'),M=require('../st-obligation-resources'),Context=require('../st-obligation-context'),R=require('../st-rules');
 let exportedAtExpiry,postJRequest,targetAtExpiry,expirySimulation;
-const test=require('node:test'),assert=require('node:assert/strict'),{withPage}=require('./support/page.cjs'),{workerPlanner}=require('../scripts/lib/st-simulation.cjs'),Session=require('../st-session'),Practice=require('../st-practice'),H=require('../st-resource-history'),f=require('./fixtures/pending-L-expiry.json'),clone=x=>JSON.parse(JSON.stringify(x));
-function packed(){return Practice.create(Session.create(f.observation,{resourceHistory:H.importContext(f.observation,f.options.resourceContext),resourceOriginBag:f.resourceOriginBag,patternHistory:f.options.patternHistory,openingPhase:false}),f.recordedReveals);}
+const test=require('node:test'),assert=require('node:assert/strict'),{withPage}=require('./support/page.cjs'),{workerPlanner}=require('../scripts/lib/st-simulation.cjs'),Session=require('../st-session'),Practice=require('../st-practice'),H=require('../st-obligation-context'),f=require('./fixtures/pending-L-expiry.json'),clone=x=>JSON.parse(JSON.stringify(x));
+function packed(){return Practice.create(Session.create(f.observation,{obligationContext:f.options.obligationContext,patternHistory:f.options.patternHistory,openingPhase:false}),f.recordedReveals);}
 // Semantic assertions use the unchanged node allowance, not host throughput.
 // The separate production-budget control below checks bounded safe behavior.
 test('pending L expiry / 45000-node no-timeout page semantics retain exact J24 S25 T26 expiry and Undo',()=>withPage('st-lab.html',{},g=>{
@@ -35,8 +35,7 @@ test('pending L expiry / consumed alignment replays exact events before checking
 });
 
 test('pending L expiry / 45000-node no-timeout simulation semantics execute the exact J24 S25 T26 goal',()=>{
- const {createSession,CONFIG}=require('../scripts/lib/st-simulation.cjs'),context=f.options.resourceContext,initial={...clone(context.origin),revision:f.observation.revision-context.steps.length,bag:clone(f.resourceOriginBag)},future=[...context.steps.flatMap(s=>s.revealed),...f.recordedReveals],session=createSession({scenario:'stable',initial,future});
- let witness=[];for(const step of context.steps){witness.push(step.action);if(step.action==='HD'){const literal=R.replay(session.state,witness);assert.ok(literal.valid);const event=literal.events[0];session.execute({target:event.target,witness,hold:witness.includes('HOLD'),continuation:[{target:event.target,witness,event}],evidence:{}});witness=[];}}
+ const {createSession,CONFIG}=require('../scripts/lib/st-simulation.cjs'),session=createSession({scenario:'stable',initial:f.observation,obligationContext:f.options.obligationContext,future:f.recordedReveals});
  assert.deepEqual(session.request(24,CONFIG).observation,f.observation);const run=workerPlanner({disableSearchTimeout:true});
  for(let i=24;i<=26;i++){const request=session.request(i,CONFIG),advice=run(request);assert.equal(advice.target?.type,['J','S','T'][i-24],JSON.stringify({status:advice.status,reason:advice.reason,nodes:advice.metrics?.nodes,elapsedMs:advice.metrics?.elapsedMs}));assert.ok(advice.metrics.nodes<=45000);session.execute(advice);}
  const request=session.request(27,CONFIG);assert.equal(request.commitment,null);assert.ok(request.options.pendingLHint);assert.deepEqual(request.observation.queue,['O','Z','J','I','O','T']);expirySimulation=session;
@@ -50,7 +49,7 @@ function actualPostJRequest(){
  if(postJRequest)return clone(postJRequest);
  // Also support selecting this safety test alone. Start from the same finite
  // legacy fixture converted once, then consume the actual accepted J inputs.
- const E=require('../scripts/lib/st-simulation.cjs'),saved=Session.create(f.observation,{resourceHistory:H.importContext(f.observation,f.options.resourceContext),resourceOriginBag:f.resourceOriginBag,patternHistory:f.options.patternHistory,openingPhase:false});
+ const E=require('../scripts/lib/st-simulation.cjs'),saved=Session.create(f.observation,{obligationContext:f.options.obligationContext,patternHistory:f.options.patternHistory,openingPhase:false});
  const session=E.createSession({scenario:'stable',initial:saved.position,obligationContext:saved.coaching.obligationContext,future:f.recordedReveals});
  const request=session.request(24,E.CONFIG),advice=workerPlanner({disableSearchTimeout:true})(request);assert.equal(advice.target?.type,'J');assert.ok(advice.metrics.nodes<=45000);session.execute(advice);
  return session.request(25,E.CONFIG);

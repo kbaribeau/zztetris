@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
-const SL=require('../st-sl-obligations'),H=require('../st-resource-history'),R=require('../st-rules'),I=require('../st-public-inventory'),C=require('../st-center-obligations');
+const SL=require('../st-sl-obligations'),R=require('../st-rules'),I=require('../st-public-inventory'),C=require('../st-center-obligations');
 const copy=x=>JSON.parse(JSON.stringify(x)),emptyCenter=()=>({pending:[],debt:[]});
 const cells={left:[[0,38],[1,38],[1,39],[2,39]],center:[[4,38],[5,38],[5,39],[6,39]],cross:[[3,38],[4,38],[4,39],[5,39]],right:[[7,38],[8,38],[8,39],[9,39]]};
 const piece=(type,bag)=>({id:bag*7+(type==='S'?1:type==='L'?2:3),type,bag,observedOrder:bag*7});
@@ -11,44 +11,23 @@ function canonicalCompact(summary){return Object.fromEntries(['S','L'].map(kind=
  const f=summary['hanging'+kind],counts=f.aggregate.slice();for(const p of f.unclassified)counts[kind==='S'?severity(p):0]++;
  return[kind,{status:f.status,evidence:f.evidence.slice().sort((a,b)=>a.bag-b.bag),uncertainty:counts}];
 }));}
-function canonicalLegacy(facts){
- const summary=H.classifySL(facts);return Object.fromEntries(['S','L'].map(kind=>{
-  const f=summary['hanging'+kind],counts=kind==='S'?[0,0,0,0]:[0];
-  for(const p of f.unclassified){const invalidated=kind==='S'&&p.sId!==undefined&&facts.center.closed.some(c=>c.family==='SL'&&c.rootId===p.sId&&c.status==='invalidated');counts[kind==='S'?severity({...p,invalidated}):0]++;}
-  return[kind,{status:f.status,evidence:f.evidence.map(({at,reason,...p})=>p).sort((a,b)=>a.bag-b.bag),uncertainty:counts}];
- }));
-}
-// Independent old-classifier oracle is confined to tests. Component operations
-// get only current public inventory, lock and Center results, never this tape.
-function literal({bags=[1],foundationClosed=true,review='unreviewed'}={}){
- const all=bags.flatMap(b=>[piece('S',b),piece('L',b),piece('O',b)]);let supply=all.slice(),center=emptyCenter(),state=SL.start({known:true}),at=0,last;
- const facts={fresh:true,pieces:Object.fromEntries(all.map(p=>[p.id,{...p,allocation:null,pair:null}])),center:{...emptyCenter(),closed:[]},milestones:{},profileLost:false};
- const ctx=()=>({inventory:inventory(supply),center});
- function check(){assert.deepEqual(canonicalCompact(SL.resolve(state,ctx())),canonicalLegacy(facts));}
- function observe(operation={kind:'observe'}){if(operation.firstBagReview==='reviewed'){facts.milestones.sourcePattern={at:7,id:'literal'};at=Math.max(at,7);}const context=ctx();last=SL.transition(state,operation,{before:context,after:context});state=last.state;check();return last;}
- if(foundationClosed){facts.milestones.firstTsd={at:0};observe({kind:'observe',closeFoundation:true,firstBagReview:review});}
- return{
-  lock(type,bag,where,{pending=[],effects=[],pairs=[],closeFoundation=false,firstBagReview}={}){
-   const p=piece(type,bag);supply=[...supply.filter(v=>v.id===p.id),...supply.filter(v=>v.id!==p.id)];const before=ctx(),event={type,cells:copy(cells[where]),lines:0,spin:'none',clearedRows:[]};at++;
-   const wasKnown=H.classifySL(facts).hangingS.evidence.some(s=>s.sId===p.id);
-   const region=where==='cross'?'left-center':where;facts.pieces[p.id].allocation={at,pieceId:p.id,type,region,cells:copy(event.cells)};
-   for(const pair of pairs){const value={...pair,at};for(const id of [pair.rootId,pair.partnerId])if(facts.pieces[id])facts.pieces[id].pair=value;}
-   facts.center.closed.push(...effects.filter(e=>!['created','diverted'].includes(e.status)).map(e=>({...e,at})));
-   center={pending:copy(pending),debt:[]};facts.center.pending=copy(pending);
-   if(wasKnown&&region!=='left'&&facts.pieces[p.id].pair?.family!=='SL'&&!pending.some(t=>t.family==='SL'&&t.rootId===p.id))facts.pieces[p.id].allocation.requiresAccommodation=true;
-   if(closeFoundation)facts.milestones.firstTsd={at};
-   if(firstBagReview==='reviewed')facts.milestones.sourcePattern={at:7,id:'literal'};
-   supply=supply.filter(v=>v.id!==p.id);
-   last=SL.transition(state,{kind:'lock',piece:p,event,pairs,centerEffects:effects,closeFoundation,firstBagReview},{before,after:ctx()});state=last.state;check();return last;
-  },
-  handoff(){const before=ctx();facts.milestones.maintenanceHandoff??={at};last=SL.transition(state,{kind:'handoff'},{before,after:ctx()});state=last.state;check();return last;},
-  observe,check,get state(){return state;},get facts(){return facts;},get context(){return ctx();},get last(){return last;}
- };
+// Literal component inputs carry only consumed subjects and current Center
+// outcomes. Expected summaries are reviewed data, not a second classifier.
+function literal({bags=[1],foundationClosed=true,review='unreviewed',retainReferences=false}={}){
+ let supply=bags.flatMap(b=>[piece('S',b),piece('L',b),piece('O',b)]),center=emptyCenter(),state=SL.start({known:true}),last;
+ const ctx=()=>({inventory:inventory(supply),center}),references=retainReferences?bags.flatMap(b=>['S','L'].map(type=>piece(type,b).id)):[];
+ function check(){assert.deepEqual(SL.importState(copy(state)),state);}
+ function observe(operation={kind:'observe'}){const context=ctx();last=SL.transition(state,operation,{before:context,after:context,references});state=last.state;check();return last;}
+ if(foundationClosed)observe({kind:'observe',closeFoundation:true,firstBagReview:review});
+ return{lock(type,bag,where,{pending=[],effects=[],pairs=[],closeFoundation=false,firstBagReview}={}){
+  const p=piece(type,bag);supply=[...supply.filter(v=>v.id===p.id),...supply.filter(v=>v.id!==p.id)];const before=ctx(),event={type,cells:copy(cells[where]),lines:0,spin:'none',clearedRows:[]};center={pending:copy(pending),debt:[]};supply=supply.filter(v=>v.id!==p.id);
+  last=SL.transition(state,{kind:'lock',piece:p,event,pairs,centerEffects:effects,closeFoundation,firstBagReview},{before,after:ctx(),references});state=last.state;check();return last;
+ },handoff(){const before=ctx();last=SL.transition(state,{kind:'handoff'},{before,after:ctx(),references});state=last.state;check();return last;},observe,check,get state(){return state;},get context(){return ctx();},get last(){return last;}};
 }
 
 test('shared SL: all same-bag allocation orders and regions match current policy',()=>{
- for(const first of ['S','L'])for(const one of Object.keys(cells))for(const two of Object.keys(cells)){
-  const x=literal();x.lock(first,1,one);x.lock(first==='S'?'L':'S',1,two);assert.equal(x.state.residuals.length,0);
+ for(const {first,one,two,expected} of require('./fixtures/sl-allocation-literals.json').cases){
+  const x=literal();x.lock(first,1,one);x.lock(first==='S'?'L':'S',1,two);assert.equal(x.state.residuals.length,0);assert.deepEqual(canonicalCompact(SL.resolve(x.state,x.context)),expected);
  }
 });
 test('shared SL: latent consumed S becomes uncertainty when its later L is spent',()=>{
@@ -85,7 +64,7 @@ test('shared SL: pending LO is accommodation until actual O payment; invalidatio
   const x=literal({bags:[1,2]}),l=piece('L',1),t=target('LO',l);x.lock('S',1,'left');x.lock('L',1,'center',{pending:[t]});
   assert.equal(SL.resolve(x.state,x.context).hangingL.evidence[0].pendingAccommodation,'LO');
   // Center facts are injected literally here; actual geometric proof belongs
-  // to Center's suite and the full public replay parity checks below.
+  // to Center's suite and the actual current gameplay checks below.
   const p=piece('O',2);x.lock('O',2,'left',{pairs:fulfilled?[{family:'LO',rootId:l.id,partnerId:p.id}]:[],effects:[{...t,status:fulfilled?'fulfilled':'invalidated',partnerId:p.id}]});
   assert.equal(SL.resolve(x.state,x.context).hangingL.unclassifiedCount,fulfilled?0:1);
  }
@@ -148,40 +127,14 @@ test('shared SL: long settled cycles and dead uncertainty use fixed categories w
  }
  assert.ok(JSON.stringify(state).length<250);assert.equal('pieces' in state,false);assert.equal('closed' in state,false);
 });
-function replayPublic(context,tail=[]){
- let raw=R.createState(context.origin),inv=I.start(raw,{fresh:context.fresh}),history=H.start(raw,{fresh:context.fresh,inventory:inv}),center=C.start(raw.board),state=SL.start({known:inv.originKnown}),locks=0,last;
- const current=()=>({inventory:inv,center});
- function check(label){
-  const facts={fresh:history.fresh,pieces:history.pieces,center:history.center,milestones:history.milestones,profileLost:false};
-  const compact=SL.resolve(state,current());assert.deepEqual(canonicalCompact(compact),canonicalLegacy(facts),label);
-  const legacy=H.classifySL(facts),kept=new Set(state.residuals.map(b=>b.bag));
-  for(const kind of ['S','L'])assert.deepEqual(compact['hanging'+kind].unclassified,legacy['hanging'+kind].unclassified.filter(p=>kept.has(p.bag)).map(({reason,...p})=>({...p,...(kind==='S'&&p.sId!==undefined&&facts.center.closed.some(c=>c.family==='SL'&&c.rootId===p.sId&&c.status==='invalidated')?{invalidated:true}:{})})),label+' exact retained '+kind);
-  assert.deepEqual(canonicalCompact(SL.resolve(state,{...current(),profileLost:true})),canonicalLegacy({...facts,profileLost:true}),label+' profile loss');
- }
- function handoff(){const c=current();state=SL.transition(state,{kind:'handoff'},{before:c,after:c}).state;history=H.markHandoff(history,raw);check('handoff');}
- if(context.handoffAtAction===0)handoff();
- const steps=[...context.steps,...tail.map(action=>({action,revealed:[]}))];
- for(let i=0;i<steps.length;i++){
-  const {action,revealed}=steps[i],prior=current(),before=raw,previousMilestones=history.milestones;
-  const moved=R.move(raw,action);assert.notEqual(moved,raw);raw={...moved,queue:[...moved.queue,...revealed]};
-  const operation=I.transition(inv,before,action,raw);assert.equal(operation.status,'available');inv=operation.next;
-  history=H.applyAction(history,before,action,raw,{inventoryTransition:operation});assert.equal(history.coverage.status,'complete');
-  if(action==='HD'){
-   locks++;const result=C.apply(center,before.board,raw.board,raw.lastEvent,{pieceId:operation.locked.id,at:locks});center=result.state;
-   const closeFoundation=Boolean(!previousMilestones.firstTsd&&history.milestones.firstTsd||!previousMilestones.sourcePattern&&history.milestones.sourcePattern);
-   last=SL.transition(state,{kind:'lock',piece:operation.locked,event:raw.lastEvent,centerEffects:result.effects,pairs:result.pairs,closeFoundation,...(locks===7?{firstBagReview:history.milestones.sourcePattern?.at===7?'reviewed':'unreviewed'}:{})},{before:prior,after:current()});
-  }else last=SL.transition(state,{kind:'observe'},{before:prior,after:current()});
-  state=last.state;check('public action '+i+' '+action);
-  if(context.handoffAtAction===i+1)handoff();
- }
- return{state,last,summary:SL.resolve(state,current()),history};
-}
-for(const f of require('./fixtures/resource-projection-history.json').cases)test('shared SL public parity: '+f.id,()=>{
- const result=replayPublic(f.resourceContext,f.witness),introduced=result.last.effects.filter(e=>e.introducedUnclassified);
- assert.ok(introduced.length);assert.ok(introduced.some(e=>e.after.sId===85||e.after.lId===37));
+for(const f of require('./fixtures/resource-projection-history.json').cases)test('shared SL actual current replay: '+f.id,()=>{
+ const x=require('./support/current-player.cjs')(f.observation,{snapshot:f.obligationContext});x.lock(f.witness);
+ const introduced=x.last.effects.filter(e=>e.introducedUnclassified);assert.ok(introduced.length);assert.ok(introduced.some(e=>e.after.sId===85||e.after.lId===37));
 });
-for(const f of require('./fixtures/deferred-sl-reveals.json').cases)test('shared SL public parity: deferred reveal seed '+f.seed,()=>{replayPublic(f.afterContext);});
-test('shared SL public parity: actual opening handoff rebase',()=>{const f=require('./fixtures/opening-handoff-sl-h01.json');replayPublic(f.resourceContext);});
+for(const f of require('./fixtures/deferred-sl-reveals.json').cases)test('shared SL current transport: deferred reveal seed '+f.seed,()=>{
+ const x=require('./support/current-player.cjs')(f.after,{snapshot:f.afterContext});assert.equal(x.state.availability,'known');assert.deepEqual(SL.importState(copy(x.state.sl)),x.state.sl);
+});
+test('shared SL actual opening handoff rebase',()=>{const f=require('./fixtures/opening-handoff-sl-h01.json'),x=require('./support/current-player.cjs')(f.position,{snapshot:f.obligationContext});x.handoff();assert.equal(x.state.sl.handoff,true);const saved=copy(x.state);x.handoff();assert.deepEqual(x.state,saved);});
 test('shared SL: a foreign SL partner may also become an LO root without erasing its own S consequence',()=>{
  const x=literal({bags:[1,2]}),s=piece('S',1),l=piece('L',2),o=piece('O',2),sl=target('SL',s),lo=target('LO',l);
  x.lock('S',1,'center',{pending:[sl]});
@@ -192,21 +145,43 @@ test('shared SL: a foreign SL partner may also become an LO root without erasing
  x.lock('S',2,'cross');assert.deepEqual(x.state.uncertainty.S,[0,1,0,0]);
 });
 test('shared SL: deterministic typed-event permutations preserve coupled pair, loss and handoff consequences',()=>{
- // This checks reducer sufficiency against the legacy classifier over supplied
- // Center outcomes, not that these abstract boards/targets are reachable play.
+ // Compare normal compaction with a sibling retaining every named S/L subject.
+ // Their current obligations and severity totals must agree after every lock,
+ // pair, loss and handoff. These supplied component events are not board proofs.
+ const observed={pairs:0,losses:0,handoffs:0,compacted:0};
  let seed=31021;const next=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed;};
  for(let scenario=0;scenario<80;scenario++){
-  const x=literal({bags:[1,2,3]}),order=[1,2,3].flatMap(b=>['S','L','O'].map(type=>({type,bag:b})));let pending=[];
-  for(let i=order.length-1;i>0;i--){const j=next()%(i+1);[order[i],order[j]]=[order[j],order[i]];}
+  const x=literal({bags:[1,2,3]}),retained=literal({bags:[1,2,3],retainReferences:true}),order=[1,2,3].flatMap(b=>['S','L','O'].map(type=>({type,bag:b})));let pending=[];
+  for(let i=order.length-1;i>0;i--){const j=(next()>>>16)%(i+1);[order[i],order[j]]=[order[j],order[i]];}
   for(let i=0;i<order.length;i++){
-   const p=order[i],id=piece(p.type,p.bag).id,where=Object.keys(cells)[next()%4],effects=[],pairs=[];
+   const p=order[i],id=piece(p.type,p.bag).id,where=Object.keys(cells)[(next()>>>16)%4],effects=[],pairs=[];
    const family=p.type==='L'?'SL':p.type==='O'?'LO':null,paid=where==='center'?pending.find(t=>t.family===family):null;
    if(paid){pairs.push({family:paid.family,rootId:paid.rootId,partnerId:id});effects.push({...paid,status:'fulfilled',partnerId:id});pending=pending.filter(t=>t!==paid);}
-   if(pending.length&&next()%3===0){const lost=pending[next()%pending.length];effects.push({...lost,status:'invalidated'});pending=pending.filter(t=>t!==lost);}
+   if(pending.length&&(next()>>>16)%3===0){const lost=pending[(next()>>>16)%pending.length];effects.push({...lost,status:'invalidated'});pending=pending.filter(t=>t!==lost);}
    if(where==='center'&&'SL'.includes(p.type)){const t=target(p.type==='S'?'SL':'LO',piece(p.type,p.bag));pending.push(t);effects.push({...t,status:'created'});}
-   x.lock(p.type,p.bag,where,{pending,effects,pairs});if(i===scenario%9)x.handoff();
+   const options={pending,effects,pairs};x.lock(p.type,p.bag,where,options);retained.lock(p.type,p.bag,where,options);
+   if('SL'.includes(p.type)){
+    const used=retained.state.residuals.find(b=>b.bag===p.bag)[p.type];
+    assert.equal(used.id,id);assert.equal(used.region,where==='cross'?'left-center':where);
+   }
+   for(const pair of pairs){
+    observed.pairs++;const kind=pair.family==='SL'?'S':'L',root=retained.state.residuals.find(b=>b[kind]?.id===pair.rootId);
+    assert.ok(root,'A paid subject remains named under an explicit live reference');
+    assert.equal(root[kind].pair,pair.family==='LO'?'LO':root.bag===p.bag?'same':'foreign');
+   }
+   for(const effect of effects.filter(e=>e.status==='invalidated'&&e.family==='SL')){
+    observed.losses++;assert.equal(retained.state.residuals.find(b=>b.S?.id===effect.rootId).S.invalidated,true,'Loss preserves the exact S identity');
+   }
+   const compare=()=>{
+    assert.deepEqual(canonicalCompact(SL.resolve(x.state,x.context)),canonicalCompact(SL.resolve(retained.state,retained.context)),`scenario ${scenario}, lock ${i+1}: compaction cannot pay or create an obligation`);
+    const ids=retained.state.residuals.flatMap(b=>[b.S?.id,b.L?.id]).filter(Boolean);
+    assert.equal(new Set(ids).size,ids.length);assert.equal(retained.state.uncertainty.S.reduce((a,b)=>a+b,0)+retained.state.uncertainty.L[0],0,'Live references retain exact uncertainty rather than folding it into counts');
+   };
+   compare();if(x.state.residuals.length<retained.state.residuals.length)observed.compacted++;
+   if(i===scenario%9){x.handoff();retained.handoff();observed.handoffs++;compare();}
   }
  }
+ assert.ok(observed.pairs>0);assert.ok(observed.losses>0);assert.equal(observed.handoffs,80);assert.ok(observed.compacted>0);
 });
 test('shared SL: loss on the same lock as L diversion is owed and invalidated, never foundation-forgiven',()=>{
  const x=literal({foundationClosed:false}),s=piece('S',1),t=target('SL',s);x.lock('S',1,'center',{pending:[t]});

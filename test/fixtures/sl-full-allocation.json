@@ -1,1 +1,1754 @@
-{"description":"Authentic saved public requests, deliberately selected development regressions (not untouched quality evidence). partial history remains partial. No engine calls or invented resource ledger used to create these fixtures.","equal":{"observation":{"rules":"st-zero-v2","board":["..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","...I......","...I......","JJJI......","OOJILLL...","OOOOLSS...","JJOOSS....","JJOOLLL...","JJOOLSS...","OOIILSS.Z.","JJOOLSS.Z."],"active":{"type":"S","x":3,"y":17,"rotation":0,"lastRotation":null},"hold":"L","canHold":true,"queue":["Z","O","J","S","T","L"],"revision":104,"streamCursor":56,"topOut":false,"bag":{"remaining":[1],"observedCount":62,"provenance":"known-phase"}},"options":{"resourceContext":{"schemaVersion":1,"origin":{"rules":"st-zero-v2","board":["..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........",".J..LLL...",".J..LSS...","JJIISS....","OOIILLL...","OOIILSS...","JJIISS....","JJOOLLL...","JJOOLSS...","ILLLJZZ.Z.","JJOOLSS.Z.","ITTTLSS.Z.","IIIIJOO.Z."],"active":{"type":"O","x":3,"y":17,"rotation":0,"lastRotation":null},"hold":"I","canHold":true,"queue":["I","J","L","S","O","Z"],"streamCursor":42,"topOut":false},"fresh":false,"steps":[{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"HD","revealed":["T"]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"CW","revealed":[]},{"action":"R","revealed":[]},{"action":"HD","revealed":["T"]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"CW","revealed":[]},{"action":"L","revealed":[]},{"action":"HD","revealed":["I"]},{"action":"HOLD","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"CW","revealed":[]},{"action":"HD","revealed":["O"]},{"action":"R","revealed":[]},{"action":"HD","revealed":["Z"]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"HD","revealed":["J"]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"CW","revealed":[]},{"action":"HD","revealed":["L"]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"CW","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"CW","revealed":[]},{"action":"HD","revealed":["S"]},{"action":"HOLD","revealed":[]},{"action":"R","revealed":[]},{"action":"R180","revealed":[]},{"action":"HD","revealed":["Z"]},{"action":"L","revealed":[]},{"action":"CCW","revealed":[]},{"action":"HD","revealed":["O"]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"HD","revealed":["J"]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"CW","revealed":[]},{"action":"HD","revealed":["S"]},{"action":"HOLD","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"CW","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"CW","revealed":[]},{"action":"HD","revealed":["T"]},{"action":"HOLD","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"R180","revealed":[]},{"action":"HD","revealed":["L"]}],"handoffAtAction":null},"patternHistory":{"origin":["..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","...I......","...I......","JJJI......","OOJILLL...","OOOOLSS...","JJOOSS....","JJOOLLL...","JJOOLSS...","OOIILSS.Z.","JJOOLSS.Z."],"steps":[]},"openingPhase":false},"candidateSteps":[{"witness":["R","HD"],"event":{"type":"S","target":{"type":"S","x":4,"y":30,"rotation":0},"cells":[[5,31],[6,31],[4,32],[5,32]],"lines":0,"clearedRows":[],"spin":"none","topOut":false}},{"witness":["R","R","R","R","CW","HD"],"event":{"type":"Z","target":{"type":"Z","x":7,"y":34,"rotation":1},"cells":[[9,35],[8,36],[9,36],[8,37]],"lines":0,"clearedRows":[],"spin":"none","topOut":false}},{"witness":["HOLD","R","R180","HD"],"event":{"type":"L","target":{"type":"L","x":4,"y":28,"rotation":2},"cells":[[4,30],[5,30],[6,30],[4,31]],"lines":0,"clearedRows":[],"spin":"none","topOut":false}}],"referenceSteps":[{"witness":["HOLD","L","L","L","HD"],"event":{"type":"L","target":{"type":"L","x":0,"y":29,"rotation":0},"cells":[[2,30],[0,31],[1,31],[2,31]],"lines":0,"clearedRows":[],"spin":"none","topOut":false}},{"witness":["R","R","R","R","CW","HD"],"event":{"type":"Z","target":{"type":"Z","x":7,"y":34,"rotation":1},"cells":[[9,35],[8,36],[9,36],[8,37]],"lines":0,"clearedRows":[],"spin":"none","topOut":false}},{"witness":["L","L","L","L","HD"],"event":{"type":"O","target":{"type":"O","x":-1,"y":28,"rotation":0},"cells":[[0,29],[1,29],[0,30],[1,30]],"lines":0,"clearedRows":[],"spin":"none","topOut":false}}],"source":"sl-review-ten-2026-10-29 candidate and baseline/o-rebuild-810001 trace lock15; identical root/history, historical proof S/Z/L versus L/Z/O. Expected old aggregate bands are not new selection oracles.","resourceOriginBag":{"remaining":[32],"observedCount":48,"provenance":"known-phase"}},"short":{"observation":{"rules":"st-zero-v2","board":["..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","....JJJ...","....OOJ...","....OO....","....LLL...","....LSS...","ZZ..SS...Z","IZZTIOO.ZZ","ITTTIOO.Z.","LLLJJJS.Z."],"active":{"type":"S","x":3,"y":17,"rotation":0,"lastRotation":null},"hold":"L","canHold":true,"queue":["I","O","J","J","I","T"],"revision":82,"streamCursor":18,"topOut":false,"bag":{"remaining":[92],"observedCount":24,"provenance":"known-phase"}},"options":{"resourceContext":{"schemaVersion":1,"origin":{"rules":"st-zero-v2","board":["..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........",".........."],"active":{"type":"Z","x":3,"y":17,"rotation":0,"lastRotation":null},"hold":null,"canHold":true,"queue":["L","I","J","S","T","O"],"streamCursor":1,"topOut":false},"fresh":true,"steps":[{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"CW","revealed":[]},{"action":"HD","revealed":["O"]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"HD","revealed":["I"]},{"action":"HOLD","revealed":["S"]},{"action":"HD","revealed":["L"]},{"action":"R","revealed":[]},{"action":"CW","revealed":[]},{"action":"HD","revealed":["J"]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"CW","revealed":[]},{"action":"HD","revealed":["T"]},{"action":"R","revealed":[]},{"action":"HD","revealed":["Z"]},{"action":"HOLD","revealed":[]},{"action":"CCW","revealed":[]},{"action":"HD","revealed":["T"]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"CCW","revealed":[]},{"action":"L","revealed":[]},{"action":"HD","revealed":["Z"]},{"action":"R","revealed":[]},{"action":"HD","revealed":["L"]},{"action":"R","revealed":[]},{"action":"R180","revealed":[]},{"action":"HD","revealed":["S"]},{"action":"HOLD","revealed":[]},{"action":"HD","revealed":["I"]},{"action":"L","revealed":[]},{"action":"CCW","revealed":[]},{"action":"HD","revealed":["O"]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"HD","revealed":["J"]},{"action":"HOLD","revealed":[]},{"action":"R","revealed":[]},{"action":"R180","revealed":[]},{"action":"HD","revealed":["J"]},{"action":"HOLD","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"CW","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"CW","revealed":[]},{"action":"HD","revealed":["I"]},{"action":"HOLD","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"CW","revealed":[]},{"action":"HD","revealed":["T"]}],"handoffAtAction":74},"patternHistory":{"origin":["..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","....JJJ...","....OOJ...","....OO....","....LLL...","....LSS...","ZZ..SS...Z","IZZTIOO.ZZ","ITTTIOO.Z.","LLLJJJS.Z."],"steps":[]},"openingPhase":false},"steps":[{"witness":["R","HD"],"event":{"type":"S","target":{"type":"S","x":4,"y":28,"rotation":0},"cells":[[5,29],[6,29],[4,30],[5,30]],"lines":0,"clearedRows":[],"spin":"none","topOut":false}},{"witness":["HOLD","R","R180","HD"],"event":{"type":"L","target":{"type":"L","x":4,"y":26,"rotation":2},"cells":[[4,28],[5,28],[6,28],[4,29]],"lines":0,"clearedRows":[],"spin":"none","topOut":false}}],"source":"Previously minimized historical supported-sl-visible.json.short; literal mechanics only, not unconditional selection oracle."},"translated":{"observation":{"rules":"st-zero-v2","board":["..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","....LLL...","....LSS...","....SS....","....JJZ...",".J.IJZZ...",".J.IJZ....","JJ.ILOO...","OO.ILOO...","OOSSLL...Z","ISSTLLL.ZZ","ITTTLSS.Z.","IIIIJOO.Z."],"active":{"type":"S","x":3,"y":17,"rotation":0,"lastRotation":null},"hold":"Z","canHold":true,"queue":["I","J","T","O","L","L"],"revision":209,"streamCursor":23,"topOut":false,"bag":{"remaining":[123],"observedCount":29,"provenance":"known-phase"}},"options":{"resourceContext":{"schemaVersion":1,"origin":{"rules":"st-zero-v2","board":["..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........",".........."],"active":{"type":"I","x":3,"y":17,"rotation":0,"lastRotation":null},"hold":null,"canHold":true,"queue":["J","S","T","O","L","Z"],"streamCursor":1,"topOut":false},"fresh":true,"steps":[{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"HD","revealed":["Z"]},{"action":"L","revealed":[]},{"action":"R180","revealed":[]},{"action":"HD","revealed":["I"]},{"action":"R","revealed":[]},{"action":"HD","revealed":["L"]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"CW","revealed":[]},{"action":"HD","revealed":["O"]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"L","revealed":[]},{"action":"SD","revealed":[]},{"action":"L","revealed":[]},{"action":"HD","revealed":["J"]},{"action":"R","revealed":[]},{"action":"R180","revealed":[]},{"action":"HD","revealed":["S"]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"CW","revealed":[]},{"action":"HD","revealed":["T"]},{"action":"HOLD","revealed":["S"]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"CCW","revealed":[]},{"action":"L","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"HD","revealed":["J"]},{"action":"CW","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"HD","revealed":["T"]},{"action":"R","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"HD","revealed":["O"]},{"action":"HOLD","revealed":[]},{"action":"R","revealed":[]},{"action":"CW","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"HD","revealed":["L"]},{"action":"HOLD","revealed":[]},{"action":"CW","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"HD","revealed":["I"]},{"action":"L","revealed":[]},{"action":"CCW","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"HD","revealed":["Z"]},{"action":"R","revealed":[]},{"action":"HD","revealed":["Z"]},{"action":"HOLD","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"HD","revealed":["S"]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"CW","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"CW","revealed":[]},{"action":"HD","revealed":["I"]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"HD","revealed":["J"]},{"action":"R","revealed":[]},{"action":"R180","revealed":[]},{"action":"HD","revealed":["T"]},{"action":"L","revealed":[]},{"action":"CCW","revealed":[]},{"action":"HD","revealed":["O"]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"CW","revealed":[]},{"action":"HD","revealed":["L"]},{"action":"HOLD","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"CCW","revealed":[]},{"action":"HD","revealed":["L"]}],"handoffAtAction":185},"patternHistory":{"origin":["..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","....LLL...","....LSS...","....SS....","....JJZ...",".J.IJZZ...",".J.IJZ....","JJ.ILOO...","OO.ILOO...","OOSSLL...Z","ISSTLLL.ZZ","ITTTLSS.Z.","IIIIJOO.Z."],"steps":[]},"openingPhase":false},"steps":[{"witness":["R","HD"],"event":{"type":"S","target":{"type":"S","x":4,"y":25,"rotation":0},"cells":[[5,26],[6,26],[4,27],[5,27]],"lines":0,"clearedRows":[],"spin":"none","topOut":false}},{"witness":["L","L","CCW","HD"],"event":{"type":"I","target":{"type":"I","x":1,"y":32,"rotation":3},"cells":[[2,32],[2,33],[2,34],[2,35]],"lines":0,"clearedRows":[],"spin":"none","topOut":false}},{"witness":["L","L","L","CW","L","HD"],"event":{"type":"J","target":{"type":"J","x":-1,"y":30,"rotation":1},"cells":[[0,31],[1,31],[0,32],[0,33]],"lines":0,"clearedRows":[],"spin":"none","topOut":false}},{"witness":["R","R","R","CW","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","CW","HD"],"event":{"type":"T","target":{"type":"T","x":6,"y":34,"rotation":2},"cells":[[6,36],[7,36],[8,36],[7,37]],"lines":2,"clearedRows":[36,37],"spin":"full","topOut":false}},{"witness":["HOLD","R","R","R","R","CW","HD"],"event":{"type":"Z","target":{"type":"Z","x":7,"y":34,"rotation":1},"cells":[[9,35],[8,36],[9,36],[8,37]],"lines":0,"clearedRows":[],"spin":"none","topOut":false}},{"witness":["R","R180","HD"],"event":{"type":"L","target":{"type":"L","x":4,"y":25,"rotation":2},"cells":[[4,27],[5,27],[6,27],[4,28]],"lines":0,"clearedRows":[],"spin":"none","topOut":false}}],"source":"Previously minimized historical supported-sl-visible.json.translated; literal mechanics only, not unconditional selection oracle."},"held":{"observation":{"rules":"st-zero-v2","board":["..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","....LLL...","....LSS...","....SS....","....JJZ...",".JIIJZZ...",".JIIJZ....","JJIILOO...","OOIILOO...","OOSSLL...Z","ISSTLLL.ZZ","ITTTLSS.Z.","IIIIJOO.Z."],"active":{"type":"Z","x":3,"y":17,"rotation":0,"lastRotation":null},"hold":"S","canHold":true,"queue":["O","J","T","L","J","T"],"revision":213,"streamCursor":24,"topOut":false,"bag":{"remaining":[93],"observedCount":30,"provenance":"known-phase"}},"options":{"resourceContext":{"schemaVersion":1,"origin":{"rules":"st-zero-v2","board":["..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........",".........."],"active":{"type":"I","x":3,"y":17,"rotation":0,"lastRotation":null},"hold":null,"canHold":true,"queue":["J","S","T","O","L","Z"],"streamCursor":1,"topOut":false},"fresh":true,"steps":[{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"HD","revealed":["Z"]},{"action":"L","revealed":[]},{"action":"R180","revealed":[]},{"action":"HD","revealed":["I"]},{"action":"R","revealed":[]},{"action":"HD","revealed":["L"]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"CW","revealed":[]},{"action":"HD","revealed":["O"]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"L","revealed":[]},{"action":"SD","revealed":[]},{"action":"L","revealed":[]},{"action":"HD","revealed":["J"]},{"action":"R","revealed":[]},{"action":"R180","revealed":[]},{"action":"HD","revealed":["S"]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"CW","revealed":[]},{"action":"HD","revealed":["T"]},{"action":"HOLD","revealed":["S"]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"CCW","revealed":[]},{"action":"L","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"HD","revealed":["J"]},{"action":"CW","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"HD","revealed":["T"]},{"action":"R","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"HD","revealed":["O"]},{"action":"HOLD","revealed":[]},{"action":"R","revealed":[]},{"action":"CW","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"HD","revealed":["L"]},{"action":"HOLD","revealed":[]},{"action":"CW","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"HD","revealed":["I"]},{"action":"L","revealed":[]},{"action":"CCW","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"HD","revealed":["Z"]},{"action":"R","revealed":[]},{"action":"HD","revealed":["I"]},{"action":"HOLD","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"HD","revealed":["S"]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"CW","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"CW","revealed":[]},{"action":"HD","revealed":["Z"]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"HD","revealed":["O"]},{"action":"R","revealed":[]},{"action":"R180","revealed":[]},{"action":"HD","revealed":["J"]},{"action":"L","revealed":[]},{"action":"CCW","revealed":[]},{"action":"HD","revealed":["T"]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"CW","revealed":[]},{"action":"HD","revealed":["L"]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"CCW","revealed":[]},{"action":"HD","revealed":["J"]},{"action":"HOLD","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"CCW","revealed":[]},{"action":"HD","revealed":["T"]}],"handoffAtAction":185},"patternHistory":{"origin":["..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","....LLL...","....LSS...","....SS....","....JJZ...",".JIIJZZ...",".JIIJZ....","JJIILOO...","OOIILOO...","OOSSLL...Z","ISSTLLL.ZZ","ITTTLSS.Z.","IIIIJOO.Z."],"steps":[]},"openingPhase":false},"steps":[{"witness":["HOLD","R","HD"],"event":{"type":"S","target":{"type":"S","x":4,"y":25,"rotation":0},"cells":[[5,26],[6,26],[4,27],[5,27]],"lines":0,"clearedRows":[],"spin":"none","topOut":false}},{"witness":["L","L","HD"],"event":{"type":"O","target":{"type":"O","x":1,"y":29,"rotation":0},"cells":[[2,30],[3,30],[2,31],[3,31]],"lines":0,"clearedRows":[],"spin":"none","topOut":false}},{"witness":["L","L","L","CW","L","HD"],"event":{"type":"J","target":{"type":"J","x":-1,"y":30,"rotation":1},"cells":[[0,31],[1,31],[0,32],[0,33]],"lines":0,"clearedRows":[],"spin":"none","topOut":false}},{"witness":["R","R","R","CW","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","SD","CW","HD"],"event":{"type":"T","target":{"type":"T","x":6,"y":34,"rotation":2},"cells":[[6,36],[7,36],[8,36],[7,37]],"lines":2,"clearedRows":[36,37],"spin":"full","topOut":false}},{"witness":["HOLD","R","R","R","R","CW","HD"],"event":{"type":"Z","target":{"type":"Z","x":7,"y":34,"rotation":1},"cells":[[9,35],[8,36],[9,36],[8,37]],"lines":0,"clearedRows":[],"spin":"none","topOut":false}},{"witness":["L","L","L","CCW","HD"],"event":{"type":"J","target":{"type":"J","x":0,"y":29,"rotation":3},"cells":[[1,30],[1,31],[0,32],[1,32]],"lines":0,"clearedRows":[],"spin":"none","topOut":false}}],"source":"Previously minimized historical supported-sl-visible.json.held; literal final J is NOT L payment and must not be rewritten as a selected six-lock proof."}}
+{
+  "description": "Authentic saved public requests, deliberately selected development regressions (not untouched quality evidence). partial history remains partial. No engine calls or invented resource ledger used to create these fixtures.",
+  "equal": {
+    "observation": {
+      "rules": "st-zero-v2",
+      "board": [
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "...I......",
+        "...I......",
+        "JJJI......",
+        "OOJILLL...",
+        "OOOOLSS...",
+        "JJOOSS....",
+        "JJOOLLL...",
+        "JJOOLSS...",
+        "OOIILSS.Z.",
+        "JJOOLSS.Z."
+      ],
+      "active": {
+        "type": "S",
+        "x": 3,
+        "y": 17,
+        "rotation": 0,
+        "lastRotation": null
+      },
+      "hold": "L",
+      "canHold": true,
+      "queue": [
+        "Z",
+        "O",
+        "J",
+        "S",
+        "T",
+        "L"
+      ],
+      "revision": 104,
+      "streamCursor": 56,
+      "topOut": false,
+      "bag": {
+        "remaining": [
+          1
+        ],
+        "observedCount": 62,
+        "provenance": "known-phase"
+      }
+    },
+    "options": {
+      "patternHistory": {
+        "version": 2,
+        "status": "established",
+        "anchorRow": 35,
+        "blockedRows": [],
+        "source": "recognized-next-Z-cap"
+      },
+      "openingPhase": false,
+      "obligationContext": {
+        "schemaVersion": 1,
+        "status": "available",
+        "reason": null,
+        "inventory": {
+          "schemaVersion": 1,
+          "status": "available",
+          "originKnown": false,
+          "nextId": 23,
+          "streamCursor": 56,
+          "active": {
+            "id": 16,
+            "type": "S",
+            "observedOrder": null,
+            "bag": null
+          },
+          "hold": {
+            "id": 15,
+            "type": "L",
+            "observedOrder": null,
+            "bag": null
+          },
+          "queue": [
+            {
+              "id": 17,
+              "type": "Z",
+              "observedOrder": null,
+              "bag": null
+            },
+            {
+              "id": 18,
+              "type": "O",
+              "observedOrder": null,
+              "bag": null
+            },
+            {
+              "id": 19,
+              "type": "J",
+              "observedOrder": null,
+              "bag": null
+            },
+            {
+              "id": 20,
+              "type": "S",
+              "observedOrder": null,
+              "bag": null
+            },
+            {
+              "id": 21,
+              "type": "T",
+              "observedOrder": null,
+              "bag": null
+            },
+            {
+              "id": 22,
+              "type": "L",
+              "observedOrder": null,
+              "bag": null
+            }
+          ],
+          "frontier": null,
+          "knowledge": {
+            "remaining": [
+              1
+            ],
+            "observedCount": 62,
+            "provenance": "known-phase"
+          }
+        },
+        "state": {
+          "schemaVersion": 2,
+          "availability": "unknown",
+          "center": {
+            "pending": [],
+            "debt": []
+          },
+          "sl": {
+            "schemaVersion": 1,
+            "status": "unknown",
+            "foundationOpen": true,
+            "firstBagReview": "pending",
+            "handoff": false,
+            "residuals": [],
+            "uncertainty": {
+              "S": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "L": [
+                0
+              ]
+            }
+          },
+          "account": {
+            "schemaVersion": 1,
+            "known": false,
+            "firstTsd": false,
+            "allocationVerified": false,
+            "mandatoryZ": false,
+            "thirdTWindow": false,
+            "qualityCandidate": false,
+            "opening": null,
+            "profile": {
+              "violation": false,
+              "departure": false,
+              "before": null,
+              "capEstablished": false
+            },
+            "z": {
+              "remaining": null,
+              "uncredited": "none"
+            },
+            "reset": {
+              "status": "inactive"
+            }
+          },
+          "safety": {
+            "notches": {
+              "version": 2,
+              "status": "established",
+              "anchorRow": 35,
+              "blockedRows": [],
+              "source": "recognized-next-Z-cap"
+            },
+            "coveredCells": []
+          },
+          "dPending": false,
+          "leftGoals": []
+        },
+        "boundary": {
+          "firstBagLocks": null,
+          "sourcePatternSeen": false
+        }
+      }
+    },
+    "candidateSteps": [
+      {
+        "witness": [
+          "R",
+          "HD"
+        ],
+        "event": {
+          "type": "S",
+          "target": {
+            "type": "S",
+            "x": 4,
+            "y": 30,
+            "rotation": 0
+          },
+          "cells": [
+            [
+              5,
+              31
+            ],
+            [
+              6,
+              31
+            ],
+            [
+              4,
+              32
+            ],
+            [
+              5,
+              32
+            ]
+          ],
+          "lines": 0,
+          "clearedRows": [],
+          "spin": "none",
+          "topOut": false
+        }
+      },
+      {
+        "witness": [
+          "R",
+          "R",
+          "R",
+          "R",
+          "CW",
+          "HD"
+        ],
+        "event": {
+          "type": "Z",
+          "target": {
+            "type": "Z",
+            "x": 7,
+            "y": 34,
+            "rotation": 1
+          },
+          "cells": [
+            [
+              9,
+              35
+            ],
+            [
+              8,
+              36
+            ],
+            [
+              9,
+              36
+            ],
+            [
+              8,
+              37
+            ]
+          ],
+          "lines": 0,
+          "clearedRows": [],
+          "spin": "none",
+          "topOut": false
+        }
+      },
+      {
+        "witness": [
+          "HOLD",
+          "R",
+          "R180",
+          "HD"
+        ],
+        "event": {
+          "type": "L",
+          "target": {
+            "type": "L",
+            "x": 4,
+            "y": 28,
+            "rotation": 2
+          },
+          "cells": [
+            [
+              4,
+              30
+            ],
+            [
+              5,
+              30
+            ],
+            [
+              6,
+              30
+            ],
+            [
+              4,
+              31
+            ]
+          ],
+          "lines": 0,
+          "clearedRows": [],
+          "spin": "none",
+          "topOut": false
+        }
+      }
+    ],
+    "referenceSteps": [
+      {
+        "witness": [
+          "HOLD",
+          "L",
+          "L",
+          "L",
+          "HD"
+        ],
+        "event": {
+          "type": "L",
+          "target": {
+            "type": "L",
+            "x": 0,
+            "y": 29,
+            "rotation": 0
+          },
+          "cells": [
+            [
+              2,
+              30
+            ],
+            [
+              0,
+              31
+            ],
+            [
+              1,
+              31
+            ],
+            [
+              2,
+              31
+            ]
+          ],
+          "lines": 0,
+          "clearedRows": [],
+          "spin": "none",
+          "topOut": false
+        }
+      },
+      {
+        "witness": [
+          "R",
+          "R",
+          "R",
+          "R",
+          "CW",
+          "HD"
+        ],
+        "event": {
+          "type": "Z",
+          "target": {
+            "type": "Z",
+            "x": 7,
+            "y": 34,
+            "rotation": 1
+          },
+          "cells": [
+            [
+              9,
+              35
+            ],
+            [
+              8,
+              36
+            ],
+            [
+              9,
+              36
+            ],
+            [
+              8,
+              37
+            ]
+          ],
+          "lines": 0,
+          "clearedRows": [],
+          "spin": "none",
+          "topOut": false
+        }
+      },
+      {
+        "witness": [
+          "L",
+          "L",
+          "L",
+          "L",
+          "HD"
+        ],
+        "event": {
+          "type": "O",
+          "target": {
+            "type": "O",
+            "x": -1,
+            "y": 28,
+            "rotation": 0
+          },
+          "cells": [
+            [
+              0,
+              29
+            ],
+            [
+              1,
+              29
+            ],
+            [
+              0,
+              30
+            ],
+            [
+              1,
+              30
+            ]
+          ],
+          "lines": 0,
+          "clearedRows": [],
+          "spin": "none",
+          "topOut": false
+        }
+      }
+    ],
+    "source": "sl-review-ten-2026-10-29 candidate and baseline/o-rebuild-810001 trace lock15; identical root/history, historical proof S/Z/L versus L/Z/O. Expected old aggregate bands are not new selection oracles.",
+    "resourceOriginBag": {
+      "remaining": [
+        32
+      ],
+      "observedCount": 48,
+      "provenance": "known-phase"
+    }
+  },
+  "short": {
+    "observation": {
+      "rules": "st-zero-v2",
+      "board": [
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "....JJJ...",
+        "....OOJ...",
+        "....OO....",
+        "....LLL...",
+        "....LSS...",
+        "ZZ..SS...Z",
+        "IZZTIOO.ZZ",
+        "ITTTIOO.Z.",
+        "LLLJJJS.Z."
+      ],
+      "active": {
+        "type": "S",
+        "x": 3,
+        "y": 17,
+        "rotation": 0,
+        "lastRotation": null
+      },
+      "hold": "L",
+      "canHold": true,
+      "queue": [
+        "I",
+        "O",
+        "J",
+        "J",
+        "I",
+        "T"
+      ],
+      "revision": 82,
+      "streamCursor": 18,
+      "topOut": false,
+      "bag": {
+        "remaining": [
+          92
+        ],
+        "observedCount": 24,
+        "provenance": "known-phase"
+      }
+    },
+    "options": {
+      "patternHistory": {
+        "version": 2,
+        "status": "established",
+        "anchorRow": 36,
+        "blockedRows": [],
+        "source": "recognized-scoring-wall"
+      },
+      "openingPhase": false,
+      "obligationContext": {
+        "schemaVersion": 1,
+        "status": "available",
+        "reason": null,
+        "inventory": {
+          "schemaVersion": 1,
+          "status": "available",
+          "originKnown": true,
+          "nextId": 25,
+          "streamCursor": 18,
+          "active": {
+            "id": 18,
+            "type": "S",
+            "observedOrder": 17,
+            "bag": 2
+          },
+          "hold": {
+            "id": 17,
+            "type": "L",
+            "observedOrder": 16,
+            "bag": 2
+          },
+          "queue": [
+            {
+              "id": 19,
+              "type": "I",
+              "observedOrder": 18,
+              "bag": 2
+            },
+            {
+              "id": 20,
+              "type": "O",
+              "observedOrder": 19,
+              "bag": 2
+            },
+            {
+              "id": 21,
+              "type": "J",
+              "observedOrder": 20,
+              "bag": 2
+            },
+            {
+              "id": 22,
+              "type": "J",
+              "observedOrder": 21,
+              "bag": 3
+            },
+            {
+              "id": 23,
+              "type": "I",
+              "observedOrder": 22,
+              "bag": 3
+            },
+            {
+              "id": 24,
+              "type": "T",
+              "observedOrder": 23,
+              "bag": 3
+            }
+          ],
+          "frontier": {
+            "bag": 3,
+            "seenMask": 35
+          },
+          "knowledge": {
+            "remaining": [
+              92
+            ],
+            "observedCount": 24,
+            "provenance": "known-phase"
+          }
+        },
+        "state": {
+          "schemaVersion": 2,
+          "availability": "known",
+          "center": {
+            "pending": [],
+            "debt": []
+          },
+          "sl": {
+            "schemaVersion": 1,
+            "status": "known",
+            "foundationOpen": false,
+            "firstBagReview": "reviewed",
+            "handoff": true,
+            "residuals": [],
+            "uncertainty": {
+              "S": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "L": [
+                0
+              ]
+            }
+          },
+          "account": {
+            "schemaVersion": 1,
+            "known": true,
+            "firstTsd": true,
+            "allocationVerified": true,
+            "mandatoryZ": false,
+            "thirdTWindow": true,
+            "qualityCandidate": true,
+            "opening": {
+              "kind": "quality",
+              "imbalance": 0
+            },
+            "profile": {
+              "violation": false,
+              "departure": false,
+              "before": null,
+              "capEstablished": true
+            },
+            "z": {
+              "remaining": null,
+              "uncredited": "none"
+            },
+            "reset": {
+              "status": "inactive"
+            }
+          },
+          "safety": {
+            "notches": {
+              "version": 2,
+              "status": "established",
+              "anchorRow": 36,
+              "blockedRows": [],
+              "source": "recognized-scoring-wall"
+            },
+            "coveredCells": []
+          },
+          "dPending": false,
+          "leftGoals": []
+        },
+        "boundary": {
+          "firstBagLocks": 7,
+          "sourcePatternSeen": true
+        }
+      }
+    },
+    "steps": [
+      {
+        "witness": [
+          "R",
+          "HD"
+        ],
+        "event": {
+          "type": "S",
+          "target": {
+            "type": "S",
+            "x": 4,
+            "y": 28,
+            "rotation": 0
+          },
+          "cells": [
+            [
+              5,
+              29
+            ],
+            [
+              6,
+              29
+            ],
+            [
+              4,
+              30
+            ],
+            [
+              5,
+              30
+            ]
+          ],
+          "lines": 0,
+          "clearedRows": [],
+          "spin": "none",
+          "topOut": false
+        }
+      },
+      {
+        "witness": [
+          "HOLD",
+          "R",
+          "R180",
+          "HD"
+        ],
+        "event": {
+          "type": "L",
+          "target": {
+            "type": "L",
+            "x": 4,
+            "y": 26,
+            "rotation": 2
+          },
+          "cells": [
+            [
+              4,
+              28
+            ],
+            [
+              5,
+              28
+            ],
+            [
+              6,
+              28
+            ],
+            [
+              4,
+              29
+            ]
+          ],
+          "lines": 0,
+          "clearedRows": [],
+          "spin": "none",
+          "topOut": false
+        }
+      }
+    ],
+    "source": "Previously minimized historical supported-sl-visible.json.short; literal mechanics only, not unconditional selection oracle."
+  },
+  "translated": {
+    "observation": {
+      "rules": "st-zero-v2",
+      "board": [
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "....LLL...",
+        "....LSS...",
+        "....SS....",
+        "....JJZ...",
+        ".J.IJZZ...",
+        ".J.IJZ....",
+        "JJ.ILOO...",
+        "OO.ILOO...",
+        "OOSSLL...Z",
+        "ISSTLLL.ZZ",
+        "ITTTLSS.Z.",
+        "IIIIJOO.Z."
+      ],
+      "active": {
+        "type": "S",
+        "x": 3,
+        "y": 17,
+        "rotation": 0,
+        "lastRotation": null
+      },
+      "hold": "Z",
+      "canHold": true,
+      "queue": [
+        "I",
+        "J",
+        "T",
+        "O",
+        "L",
+        "L"
+      ],
+      "revision": 209,
+      "streamCursor": 23,
+      "topOut": false,
+      "bag": {
+        "remaining": [
+          123
+        ],
+        "observedCount": 29,
+        "provenance": "known-phase"
+      }
+    },
+    "options": {
+      "patternHistory": {
+        "version": 2,
+        "status": "established",
+        "anchorRow": 36,
+        "blockedRows": [],
+        "source": "recognized-scoring-wall"
+      },
+      "openingPhase": false,
+      "obligationContext": {
+        "schemaVersion": 1,
+        "status": "available",
+        "reason": null,
+        "inventory": {
+          "schemaVersion": 1,
+          "status": "available",
+          "originKnown": true,
+          "nextId": 30,
+          "streamCursor": 23,
+          "active": {
+            "id": 23,
+            "type": "S",
+            "observedOrder": 22,
+            "bag": 3
+          },
+          "hold": {
+            "id": 22,
+            "type": "Z",
+            "observedOrder": 21,
+            "bag": 3
+          },
+          "queue": [
+            {
+              "id": 24,
+              "type": "I",
+              "observedOrder": 23,
+              "bag": 3
+            },
+            {
+              "id": 25,
+              "type": "J",
+              "observedOrder": 24,
+              "bag": 3
+            },
+            {
+              "id": 26,
+              "type": "T",
+              "observedOrder": 25,
+              "bag": 3
+            },
+            {
+              "id": 27,
+              "type": "O",
+              "observedOrder": 26,
+              "bag": 3
+            },
+            {
+              "id": 28,
+              "type": "L",
+              "observedOrder": 27,
+              "bag": 3
+            },
+            {
+              "id": 29,
+              "type": "L",
+              "observedOrder": 28,
+              "bag": 4
+            }
+          ],
+          "frontier": {
+            "bag": 4,
+            "seenMask": 4
+          },
+          "knowledge": {
+            "remaining": [
+              123
+            ],
+            "observedCount": 29,
+            "provenance": "known-phase"
+          }
+        },
+        "state": {
+          "schemaVersion": 2,
+          "availability": "known",
+          "center": {
+            "pending": [],
+            "debt": []
+          },
+          "sl": {
+            "schemaVersion": 1,
+            "status": "known",
+            "foundationOpen": false,
+            "firstBagReview": "reviewed",
+            "handoff": true,
+            "residuals": [],
+            "uncertainty": {
+              "S": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "L": [
+                0
+              ]
+            }
+          },
+          "account": {
+            "schemaVersion": 1,
+            "known": true,
+            "firstTsd": true,
+            "allocationVerified": true,
+            "mandatoryZ": false,
+            "thirdTWindow": true,
+            "qualityCandidate": true,
+            "opening": {
+              "kind": "quality",
+              "imbalance": 0
+            },
+            "profile": {
+              "violation": false,
+              "departure": false,
+              "before": null,
+              "capEstablished": true
+            },
+            "z": {
+              "remaining": null,
+              "uncredited": "none"
+            },
+            "reset": {
+              "status": "inactive"
+            }
+          },
+          "safety": {
+            "notches": {
+              "version": 2,
+              "status": "established",
+              "anchorRow": 36,
+              "blockedRows": [],
+              "source": "recognized-scoring-wall"
+            },
+            "coveredCells": []
+          },
+          "dPending": false,
+          "leftGoals": []
+        },
+        "boundary": {
+          "firstBagLocks": 7,
+          "sourcePatternSeen": true
+        }
+      }
+    },
+    "steps": [
+      {
+        "witness": [
+          "R",
+          "HD"
+        ],
+        "event": {
+          "type": "S",
+          "target": {
+            "type": "S",
+            "x": 4,
+            "y": 25,
+            "rotation": 0
+          },
+          "cells": [
+            [
+              5,
+              26
+            ],
+            [
+              6,
+              26
+            ],
+            [
+              4,
+              27
+            ],
+            [
+              5,
+              27
+            ]
+          ],
+          "lines": 0,
+          "clearedRows": [],
+          "spin": "none",
+          "topOut": false
+        }
+      },
+      {
+        "witness": [
+          "L",
+          "L",
+          "CCW",
+          "HD"
+        ],
+        "event": {
+          "type": "I",
+          "target": {
+            "type": "I",
+            "x": 1,
+            "y": 32,
+            "rotation": 3
+          },
+          "cells": [
+            [
+              2,
+              32
+            ],
+            [
+              2,
+              33
+            ],
+            [
+              2,
+              34
+            ],
+            [
+              2,
+              35
+            ]
+          ],
+          "lines": 0,
+          "clearedRows": [],
+          "spin": "none",
+          "topOut": false
+        }
+      },
+      {
+        "witness": [
+          "L",
+          "L",
+          "L",
+          "CW",
+          "L",
+          "HD"
+        ],
+        "event": {
+          "type": "J",
+          "target": {
+            "type": "J",
+            "x": -1,
+            "y": 30,
+            "rotation": 1
+          },
+          "cells": [
+            [
+              0,
+              31
+            ],
+            [
+              1,
+              31
+            ],
+            [
+              0,
+              32
+            ],
+            [
+              0,
+              33
+            ]
+          ],
+          "lines": 0,
+          "clearedRows": [],
+          "spin": "none",
+          "topOut": false
+        }
+      },
+      {
+        "witness": [
+          "R",
+          "R",
+          "R",
+          "CW",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "CW",
+          "HD"
+        ],
+        "event": {
+          "type": "T",
+          "target": {
+            "type": "T",
+            "x": 6,
+            "y": 34,
+            "rotation": 2
+          },
+          "cells": [
+            [
+              6,
+              36
+            ],
+            [
+              7,
+              36
+            ],
+            [
+              8,
+              36
+            ],
+            [
+              7,
+              37
+            ]
+          ],
+          "lines": 2,
+          "clearedRows": [
+            36,
+            37
+          ],
+          "spin": "full",
+          "topOut": false
+        }
+      },
+      {
+        "witness": [
+          "HOLD",
+          "R",
+          "R",
+          "R",
+          "R",
+          "CW",
+          "HD"
+        ],
+        "event": {
+          "type": "Z",
+          "target": {
+            "type": "Z",
+            "x": 7,
+            "y": 34,
+            "rotation": 1
+          },
+          "cells": [
+            [
+              9,
+              35
+            ],
+            [
+              8,
+              36
+            ],
+            [
+              9,
+              36
+            ],
+            [
+              8,
+              37
+            ]
+          ],
+          "lines": 0,
+          "clearedRows": [],
+          "spin": "none",
+          "topOut": false
+        }
+      },
+      {
+        "witness": [
+          "R",
+          "R180",
+          "HD"
+        ],
+        "event": {
+          "type": "L",
+          "target": {
+            "type": "L",
+            "x": 4,
+            "y": 25,
+            "rotation": 2
+          },
+          "cells": [
+            [
+              4,
+              27
+            ],
+            [
+              5,
+              27
+            ],
+            [
+              6,
+              27
+            ],
+            [
+              4,
+              28
+            ]
+          ],
+          "lines": 0,
+          "clearedRows": [],
+          "spin": "none",
+          "topOut": false
+        }
+      }
+    ],
+    "source": "Previously minimized historical supported-sl-visible.json.translated; literal mechanics only, not unconditional selection oracle."
+  },
+  "held": {
+    "observation": {
+      "rules": "st-zero-v2",
+      "board": [
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "....LLL...",
+        "....LSS...",
+        "....SS....",
+        "....JJZ...",
+        ".JIIJZZ...",
+        ".JIIJZ....",
+        "JJIILOO...",
+        "OOIILOO...",
+        "OOSSLL...Z",
+        "ISSTLLL.ZZ",
+        "ITTTLSS.Z.",
+        "IIIIJOO.Z."
+      ],
+      "active": {
+        "type": "Z",
+        "x": 3,
+        "y": 17,
+        "rotation": 0,
+        "lastRotation": null
+      },
+      "hold": "S",
+      "canHold": true,
+      "queue": [
+        "O",
+        "J",
+        "T",
+        "L",
+        "J",
+        "T"
+      ],
+      "revision": 213,
+      "streamCursor": 24,
+      "topOut": false,
+      "bag": {
+        "remaining": [
+          93
+        ],
+        "observedCount": 30,
+        "provenance": "known-phase"
+      }
+    },
+    "options": {
+      "patternHistory": {
+        "version": 2,
+        "status": "established",
+        "anchorRow": 36,
+        "blockedRows": [],
+        "source": "recognized-scoring-wall"
+      },
+      "openingPhase": false,
+      "obligationContext": {
+        "schemaVersion": 1,
+        "status": "available",
+        "reason": null,
+        "inventory": {
+          "schemaVersion": 1,
+          "status": "available",
+          "originKnown": true,
+          "nextId": 31,
+          "streamCursor": 24,
+          "active": {
+            "id": 24,
+            "type": "Z",
+            "observedOrder": 23,
+            "bag": 3
+          },
+          "hold": {
+            "id": 23,
+            "type": "S",
+            "observedOrder": 22,
+            "bag": 3
+          },
+          "queue": [
+            {
+              "id": 25,
+              "type": "O",
+              "observedOrder": 24,
+              "bag": 3
+            },
+            {
+              "id": 26,
+              "type": "J",
+              "observedOrder": 25,
+              "bag": 3
+            },
+            {
+              "id": 27,
+              "type": "T",
+              "observedOrder": 26,
+              "bag": 3
+            },
+            {
+              "id": 28,
+              "type": "L",
+              "observedOrder": 27,
+              "bag": 3
+            },
+            {
+              "id": 29,
+              "type": "J",
+              "observedOrder": 28,
+              "bag": 4
+            },
+            {
+              "id": 30,
+              "type": "T",
+              "observedOrder": 29,
+              "bag": 4
+            }
+          ],
+          "frontier": {
+            "bag": 4,
+            "seenMask": 34
+          },
+          "knowledge": {
+            "remaining": [
+              93
+            ],
+            "observedCount": 30,
+            "provenance": "known-phase"
+          }
+        },
+        "state": {
+          "schemaVersion": 2,
+          "availability": "known",
+          "center": {
+            "pending": [],
+            "debt": []
+          },
+          "sl": {
+            "schemaVersion": 1,
+            "status": "known",
+            "foundationOpen": false,
+            "firstBagReview": "reviewed",
+            "handoff": true,
+            "residuals": [],
+            "uncertainty": {
+              "S": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "L": [
+                0
+              ]
+            }
+          },
+          "account": {
+            "schemaVersion": 1,
+            "known": true,
+            "firstTsd": true,
+            "allocationVerified": true,
+            "mandatoryZ": false,
+            "thirdTWindow": true,
+            "qualityCandidate": true,
+            "opening": {
+              "kind": "quality",
+              "imbalance": 0
+            },
+            "profile": {
+              "violation": false,
+              "departure": false,
+              "before": null,
+              "capEstablished": true
+            },
+            "z": {
+              "remaining": null,
+              "uncredited": "none"
+            },
+            "reset": {
+              "status": "inactive"
+            }
+          },
+          "safety": {
+            "notches": {
+              "version": 2,
+              "status": "established",
+              "anchorRow": 36,
+              "blockedRows": [],
+              "source": "recognized-scoring-wall"
+            },
+            "coveredCells": []
+          },
+          "dPending": false,
+          "leftGoals": []
+        },
+        "boundary": {
+          "firstBagLocks": 7,
+          "sourcePatternSeen": true
+        }
+      }
+    },
+    "steps": [
+      {
+        "witness": [
+          "HOLD",
+          "R",
+          "HD"
+        ],
+        "event": {
+          "type": "S",
+          "target": {
+            "type": "S",
+            "x": 4,
+            "y": 25,
+            "rotation": 0
+          },
+          "cells": [
+            [
+              5,
+              26
+            ],
+            [
+              6,
+              26
+            ],
+            [
+              4,
+              27
+            ],
+            [
+              5,
+              27
+            ]
+          ],
+          "lines": 0,
+          "clearedRows": [],
+          "spin": "none",
+          "topOut": false
+        }
+      },
+      {
+        "witness": [
+          "L",
+          "L",
+          "HD"
+        ],
+        "event": {
+          "type": "O",
+          "target": {
+            "type": "O",
+            "x": 1,
+            "y": 29,
+            "rotation": 0
+          },
+          "cells": [
+            [
+              2,
+              30
+            ],
+            [
+              3,
+              30
+            ],
+            [
+              2,
+              31
+            ],
+            [
+              3,
+              31
+            ]
+          ],
+          "lines": 0,
+          "clearedRows": [],
+          "spin": "none",
+          "topOut": false
+        }
+      },
+      {
+        "witness": [
+          "L",
+          "L",
+          "L",
+          "CW",
+          "L",
+          "HD"
+        ],
+        "event": {
+          "type": "J",
+          "target": {
+            "type": "J",
+            "x": -1,
+            "y": 30,
+            "rotation": 1
+          },
+          "cells": [
+            [
+              0,
+              31
+            ],
+            [
+              1,
+              31
+            ],
+            [
+              0,
+              32
+            ],
+            [
+              0,
+              33
+            ]
+          ],
+          "lines": 0,
+          "clearedRows": [],
+          "spin": "none",
+          "topOut": false
+        }
+      },
+      {
+        "witness": [
+          "R",
+          "R",
+          "R",
+          "CW",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "SD",
+          "CW",
+          "HD"
+        ],
+        "event": {
+          "type": "T",
+          "target": {
+            "type": "T",
+            "x": 6,
+            "y": 34,
+            "rotation": 2
+          },
+          "cells": [
+            [
+              6,
+              36
+            ],
+            [
+              7,
+              36
+            ],
+            [
+              8,
+              36
+            ],
+            [
+              7,
+              37
+            ]
+          ],
+          "lines": 2,
+          "clearedRows": [
+            36,
+            37
+          ],
+          "spin": "full",
+          "topOut": false
+        }
+      },
+      {
+        "witness": [
+          "HOLD",
+          "R",
+          "R",
+          "R",
+          "R",
+          "CW",
+          "HD"
+        ],
+        "event": {
+          "type": "Z",
+          "target": {
+            "type": "Z",
+            "x": 7,
+            "y": 34,
+            "rotation": 1
+          },
+          "cells": [
+            [
+              9,
+              35
+            ],
+            [
+              8,
+              36
+            ],
+            [
+              9,
+              36
+            ],
+            [
+              8,
+              37
+            ]
+          ],
+          "lines": 0,
+          "clearedRows": [],
+          "spin": "none",
+          "topOut": false
+        }
+      },
+      {
+        "witness": [
+          "L",
+          "L",
+          "L",
+          "CCW",
+          "HD"
+        ],
+        "event": {
+          "type": "J",
+          "target": {
+            "type": "J",
+            "x": 0,
+            "y": 29,
+            "rotation": 3
+          },
+          "cells": [
+            [
+              1,
+              30
+            ],
+            [
+              1,
+              31
+            ],
+            [
+              0,
+              32
+            ],
+            [
+              1,
+              32
+            ]
+          ],
+          "lines": 0,
+          "clearedRows": [],
+          "spin": "none",
+          "topOut": false
+        }
+      }
+    ],
+    "source": "Previously minimized historical supported-sl-visible.json.held; literal final J is NOT L payment and must not be rewritten as a selected six-lock proof."
+  }
+}

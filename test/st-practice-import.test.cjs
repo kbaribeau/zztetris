@@ -1,11 +1,11 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
-const R=require('../st-rules'),B=require('../st-bag'),H=require('../st-resource-history'),Session=require('../st-session'),Practice=require('../st-practice');
+const R=require('../st-rules'),B=require('../st-bag'),H=require('../st-obligation-context'),Session=require('../st-session'),Practice=require('../st-practice');
 const {withPage}=require('./support/page.cjs');
 const clone=x=>JSON.parse(JSON.stringify(x)),semantic=s=>({...clone(s),revision:0});
 function packageFor(tail=['T','O','I','J','L','S','Z'],{hold=null,known=true}={}){
  const state=R.createState({rules:R.PROFILE.id,board:R.emptyBoard(),active:{type:'I',x:3,y:17,rotation:0,lastRotation:null},hold,canHold:true,queue:['J','L','O','S','T','Z'],streamCursor:1,...(known?{bag:B.fromObserved({observed:['I','J','L','O','S','T','Z'],startPhase:0})}:{})});
- return Practice.create(Session.create(state,{resourceHistory:H.start(state),resourceOriginBag:state.bag??null}),tail);
+ return Practice.create(Session.create(state,{obligationContext:H.exportState(H.start(state))}),tail);
 }
 function workers(g){const all=[];g.window.Worker=class{constructor(){all.push(this);}postMessage(m){this.message=clone(m);}terminate(){this.terminated=true;}respond(result){this.onmessage({data:{type:'result',id:this.message.id,revision:this.message.observation.revision,result}});}};g.click('#st-reset');g.advance(40);return all;}
 function importText(g,value){const text=typeof value==='string'?value:JSON.stringify(value);g.element('#st-snapshot').value=text;g.click('#st-import');return text;}

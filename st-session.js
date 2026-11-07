@@ -1,10 +1,9 @@
-/* Portable current obligation checkpoints. Version 1 tapes convert once in
- * the isolated legacy reader; version 2 trusts structurally valid current facts.
+/* Portable current obligation checkpoints. Only version 2 current facts are supported.
  * Future advice remains an independently checked candidate, never a certificate.
  * No hidden generator, private future or lifetime accounting tape is stored. */
-(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-bag'),require('./st-obligation-context'),require('./st-resource-legacy'),require('./st-plan-continuity'),require('./st-pattern-history'),require('./st-planner'),require('./st-opening'),()=>require('./st-coach-config')):factory(root.STRules,root.STBag,root.STObligationContext,root.STResourceLegacy,root.STPlanContinuity,root.STPatternHistory,root.STPlanner,root.STOpening,()=>root.STCoachConfig);if(typeof module==='object'&&module.exports)module.exports=api;else root.STSession=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,B,Context,Legacy,PC,PH,P,O,C){
+(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-bag'),require('./st-obligation-context'),require('./st-plan-continuity'),require('./st-pattern-history'),require('./st-planner'),require('./st-opening'),()=>require('./st-coach-config')):factory(root.STRules,root.STBag,root.STObligationContext,root.STPlanContinuity,root.STPatternHistory,root.STPlanner,root.STOpening,()=>root.STCoachConfig);if(typeof module==='object'&&module.exports)module.exports=api;else root.STSession=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,B,Context,PC,PH,P,O,C){
 'use strict';
-const FORMAT='zztetris-st-session',VERSION=2,ENGINE='st-coach-session-2026-11-07-current-obligations-v1',PREVIOUS_ENGINE='st-coach-session-2026-11-05-handoff-sl-v1';
+const FORMAT='zztetris-st-session',VERSION=2,ENGINE='st-coach-session-2026-11-07-current-obligations-v1';
 // Transport-only download hint; never part of a position or coaching proof.
 const DEFAULT_EXPORT_FILENAME='st-lab-coaching-export.json';
 function exportFilename(value){
@@ -53,11 +52,10 @@ function pairedContext(position,current){
  return current;
 }
 function currentContext(state,options){
+ if(['resourceHistory','resourceContext','resourceOriginBag'].some(k=>Object.hasOwn(options,k)))throw Error('Legacy resource accounting is unsupported; supply a current obligationContext or explicitly import a position.');
  if(Object.hasOwn(options,'obligationContext'))return pairedContext(state,Context.importState(options.obligationContext,{position:state}));
- let current;
- if(options.resourceHistory){const result=Legacy.fromHistory(state,options.resourceHistory,Object.hasOwn(options,'resourceOriginBag')?{resourceOriginBag:options.resourceOriginBag}:{});if(result.status!=='available')throw Error('Invalid resource replay: '+result.reason);current=result.context;}
- else current=Context.start(state);
- if(Object.hasOwn(options,'patternHistory')){const notches=PH.snapshot(state,options.patternHistory);if(PH.resolve(state,notches).status==='invalid-history')throw Error('Invalid notch checkpoint or legacy pattern history.');const snapshot=Context.exportState(current);snapshot.state.safety.notches=notches;current=Context.importState(snapshot,{position:state});}
+ let current=Context.start(state);
+ if(Object.hasOwn(options,'patternHistory')){const notches=PH.snapshot(state,options.patternHistory);if(PH.resolve(state,notches).status==='invalid-history')throw Error('Invalid current notch checkpoint.');const snapshot=Context.exportState(current);snapshot.state.safety.notches=notches;current=Context.importState(snapshot,{position:state});}
  return current;
 }
 function create(state,options={}){
@@ -69,40 +67,23 @@ function create(state,options={}){
  bounded(result);return result;
 }
 function prepare(input){
- bounded(input);if(input?.format!==FORMAT||![1,VERSION].includes(input.schemaVersion))throw Error('Unsupported session format version.');if(typeof input.engineVersion!=='string'||!input.engineVersion.trim())throw Error('Invalid coach provenance.');const differentCoach=![ENGINE,PREVIOUS_ENGINE].includes(input.engineVersion);
+ bounded(input);if(input?.format!==FORMAT||input.schemaVersion!==VERSION)throw Error('Unsupported session format version; legacy sessions must be explicitly imported as positions.');if(typeof input.engineVersion!=='string'||!input.engineVersion.trim())throw Error('Invalid coach provenance.');const differentCoach=input.engineVersion!==ENGINE;
  const state=position(input.position),search=settings(input.search),c=clone(input.coaching);
  if(!c||typeof c!=='object'||typeof c.openingPhase!=='boolean')throw Error('Missing session coaching state.');
  const warnings=differentCoach?['Imported a session from a different coach version. Current accounting and settings are preserved; advice will be recomputed.']:[];let obligationContext;
- if(input.schemaVersion===VERSION){
-  if(Object.hasOwn(c,'resourceContext')||Object.hasOwn(c,'resourceHistory'))throw Error('Current session cannot contain legacy resource authority.');
-  obligationContext=pairedContext(state,Context.importState(c.obligationContext,{position:state}));
- }else if(c.resourceContext){
-  const converted=Legacy.convert(state,c.resourceContext,{resourceOriginBag:c.resourceOriginBag??null});
-  if(converted.status!=='available')throw Error('Invalid resource replay: '+converted.reason);
-  obligationContext=converted.context;
- }else{obligationContext=Context.start(state);warnings.push('Prior obligation accounting is unavailable; the current position starts with unknown earlier allocations.');}
- let patternHistory;
- if(input.schemaVersion===VERSION&&obligationContext.status==='available')patternHistory=clone(obligationContext.state.safety.notches);
- else{const suppliedPattern=PH.snapshot(state,c.patternHistory);if(PH.resolve(state,suppliedPattern).status==='invalid-history')throw Error('Invalid notch checkpoint or legacy pattern history.');
-  // Fold the legacy notch checkpoint into the converted current authority
-  // once, then discard its witness. Native v2 sidecars never override it.
-  if(input.schemaVersion===1&&Object.hasOwn(c,'patternHistory')){const snapshot=Context.exportState(obligationContext);snapshot.state.safety.notches=suppliedPattern;obligationContext=Context.importState(snapshot,{position:state});}
-  patternHistory=obligationContext.status==='available'?clone(obligationContext.state.safety.notches):suppliedPattern;}
+ if(['resourceContext','resourceHistory','resourceOriginBag'].some(k=>Object.hasOwn(c,k)))throw Error('Current session cannot contain legacy resource authority.');
+ obligationContext=pairedContext(state,Context.importState(c.obligationContext,{position:state}));
+ const patternHistory=obligationContext.status==='available'?clone(obligationContext.state.safety.notches):PH.snapshot(state,c.patternHistory);
+ if(PH.resolve(state,patternHistory).status==='invalid-history')throw Error('Invalid current notch checkpoint.');
  const opening=O.validateSessionState(state,{active:c.openingPhase,source:c.openingSource??null,clear:c.openingClear??null,repair:c.openingRepair??null},search);warnings.push(...opening.warnings);
  if(obligationContext.status==='available'&&obligationContext.state.sl.handoff&&opening.session.active)throw Error('Opening phase contradicts the current maintenance handoff.');
- let legacyCursor=null;
- if(input.schemaVersion===1&&!differentCoach&&c.resourceContext)for(const advice of [c.previous,c.commitment?.advice]){
-  const proof=advice?.evidence?.construction;if(!proof?.resourceContext)continue;
-  const converted=Legacy.planContinuity(state,c.resourceContext,proof);
-  if(converted.status==='available'){advice.evidence.construction=converted.proof;legacyCursor??=converted.planContinuity;}
- }
  let previous=null,commitment=null;const pendingLHint=differentCoach?null:portablePendingLHint(c.pendingLHint);
  if(c.handoffRecovery||c.previous?.evidence?.openingHandoff?.recovery||c.commitment?.advice?.evidence?.openingHandoff?.recovery)warnings.push('Transient handoff routing was discarded; advice remains subject to fresh validation.');
  if(differentCoach&&(c.previous||c.commitment))warnings.push('Saved coach advice and construction commitments were discarded for fresh planning.');
  if(c.previous?.recommendation?.kind==='risky'||c.previous?.status==='recommended-risky-placement')warnings.push('Saved risky advice was discarded for fresh planning.');
  if(!differentCoach&&c.previous&&c.previous.recommendation?.kind!=='risky'&&c.previous.status!=='recommended-risky-placement'){try{if(candidateShape(c.previous))previous=portableAdvice(c.previous);}catch{}if(!previous)warnings.push('Stale or invalid previous advice was discarded.');}
  if(!differentCoach&&c.commitment&&c.commitment.advice?.recommendation?.kind!=='risky'&&c.commitment.advice?.status!=='recommended-risky-placement'){try{const origin=position(c.commitment.observation);if(candidate(origin,c.commitment.advice)&&(c.commitment.advice.evidence?.strategy==='reset-coach'||P.resourceGoal(c.commitment.advice.continuation)))commitment=portableCommitment(c.commitment);}catch{}if(!commitment)warnings.push('Stale or invalid construction commitment was discarded.');}
- const proof=previous?.evidence?.construction||commitment?.advice?.evidence?.construction,payload=c.planContinuity??legacyCursor;
+ const proof=previous?.evidence?.construction||commitment?.advice?.evidence?.construction,payload=c.planContinuity;
  const planContinuity=proof&&payload?PC.importState(payload,{position:state,inventory:obligationContext.inventory,proof}):null;
  if(payload&&!planContinuity)warnings.push('Saved construction cursor was discarded; future advice requires fresh validation.');
  // Candidates remain subject to the normal planner's resource, access, source

@@ -1,13 +1,14 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const P=require('../st-planner'),R=require('../st-rules'),S=require('../st-structure'),M=require('../st-midgame-resources'),RH=require('../st-resource-history'),H=require('../st-pattern-history');
+const P=require('../st-planner'),R=require('../st-rules'),S=require('../st-structure'),M=require('../st-obligation-resources'),Current=require('../st-obligation-context'),CurrentProvider=require('../st-resource-provider'),H=require('../st-pattern-history');
 const fixture=require('./fixtures/ordinary-sl-allocation.json'),clone=x=>JSON.parse(JSON.stringify(x));
 const bounds={depth:3,width:8,maxNodes:45000,now:()=>0,deadline:Infinity},opts=extra=>({...fixture.options,...bounds,...extra});
-const sum=()=>RH.resolve(fixture.observation,RH.importContext(fixture.observation,fixture.options.resourceContext));
+const current=()=>Current.importState(fixture.options.obligationContext,{position:fixture.observation});
+const sum=()=>CurrentProvider.facts(CurrentProvider.prepare(fixture.observation,{obligationContext:Current.exportState(Current.importState(fixture.options.obligationContext,{position:fixture.observation}))}));
 const cache=new Map(),plan=(off=false)=>{if(!cache.has(off))cache.set(off,P.plan(fixture.observation,opts({disableVisibleSLTail:off})));return clone(cache.get(off));};
 const noMetrics=a=>clone({...a,metrics:undefined});
 function moduleWith(replacements){const module={exports:{}},req=require('node:module').createRequire(require.resolve('../st-planner'));vm.runInNewContext(fs.readFileSync(require.resolve('../st-planner'),'utf8'),{module,exports:module.exports,require:n=>replacements[n]||req(n),Date,performance,globalThis:{}});return module.exports;}
-function node(advice,facts){let state=P.observe(fixture.observation),resource=M.start(state,sum()),notches=H.resolve(state,fixture.options.patternHistory),allocation;
+function node(advice,facts){let state=P.observe(fixture.observation),resource=M.start(state,current()),notches=H.resolve(state,fixture.options.patternHistory),allocation;
  const path=advice.continuation.map(p=>{const r=R.replay(state,p.witness);assert(r.valid);assert.deepEqual(r.events,[p.event]);const step={...p,state:r.state},next=M.step(state,step,resource);allocation=P.slAllocationStep(state,step,resource,next,notches,allocation);notches=S.advanceNotches(state.board,step,notches).pattern;state=r.state;resource=next;return step;});
  return{path,state,resources:resource,slAllocation:allocation,assessment:clone(advice.assessment),rank:clone(advice.evidence.structuralRank),structuralScore:advice.evidence.structuralScore,centerContinuity:facts.centerContinuity,dependencyDebt:facts.dependencyDebt,entryDebt:facts.entryDebt,notchValid:true,qualified:true,continuationChecked:true,cycleDebt:0,centerDebt:[],cavityDebt:[],key:'tail-comparison'};
 }
@@ -33,10 +34,10 @@ function facts(advice){return{centerContinuity:advice.assessment.structure.cente
 function pair(){
  if(!componentPair){
   const a=admittedRoute(tailRoutes.candidate),reference=admittedRoute(tailRoutes.reference),c=node(a,facts(a)),r=node(reference,facts(reference));
-  const options={candidateDraw:P.publicDrawHorizon(fixture.observation,c.path,sum()),referenceDraw:P.publicDrawHorizon(fixture.observation,r.path,sum()),initialResources:M.start(fixture.observation,sum()),original:{...r,path:r.path.slice(0,5)}};
+  const options={candidateDraw:P.publicDrawHorizon(fixture.observation,c.path,sum()),referenceDraw:P.publicDrawHorizon(fixture.observation,r.path,sum()),initialResources:M.start(fixture.observation,current()),original:{...r,path:r.path.slice(0,5)}};
   componentPair={a,reference,c,r,options};
  }
- return clone(componentPair);
+ return componentPair;
 }
 
 test('visible SL tail: fixed admitted I/O routes retain the same paid SL and TSD while improving Left',()=>{
@@ -78,11 +79,11 @@ test('visible SL tail failed strongest terminal proof cannot select a weaker cha
  const a=api.plan(fixture.observation,opts());assert(rejected);assert.equal(a.metrics.ordinarySAllocation.visibleTail.selected,false);assert.deepEqual(noMetrics(a),noMetrics(off));
 });
 test('visible SL tail lifecycle: actual input and HOLD retain O→I cleanup after the L payment',()=>{
- let state=clone(fixture.observation),history=RH.importContext(state,fixture.options.resourceContext),patterns=clone(fixture.options.patternHistory),advice=pair().a,locks=0,holds=0;const expected=advice.continuation.map(p=>p.event);
- while(advice){const before=clone(state),original=advice;for(const action of original.witness){const prior=state;state=R.move(state,action);history=RH.applyAction(history,prior,action,state);const options={...bounds,openingPhase:false,patternHistory:patterns,resourceContext:RH.exportContext(state,history)};
+ let state=clone(fixture.observation),history=Current.importState(fixture.options.obligationContext,{position:state}),patterns=clone(fixture.options.patternHistory),advice=pair().a,locks=0,holds=0;const expected=advice.continuation.map(p=>p.event);
+ while(advice){const before=clone(state),original=advice;for(const action of original.witness){const prior=state;state=R.move(state,action);history=Current.applyActual(history,{before:prior,action:action,after:state}).context;const options={...bounds,openingPhase:false,patternHistory:patterns,obligationContext:Current.exportState(history)};
   if(action==='HD'){assert.deepEqual(state.lastEvent,expected[locks]);locks++;patterns=H.update(patterns,prior,state,state.lastEvent);advice=P.continueCommitment(before,state,original,state.lastEvent,{...options,patternHistory:patterns});if(locks<expected.length)assert(advice,'lost actual tail after lock '+locks);if(locks===5){assert.deepEqual(advice.continuation.map(p=>p.event.type),['O','I']);assert.equal(P.resourceGoalPrefix(advice.continuation,advice.continuation),2);}}
   else{if(action==='HOLD')holds++;advice=P.advance(state,advice,action,options);assert(advice,'lost tail during '+action);}
- }}assert.equal(locks,7);assert(holds);assert.equal(state.active,null);assert.equal(state.hold,'T');assert.equal(RH.resolve(state,history).center.pending.length,0);
+ }}assert.equal(locks,7);assert(holds);assert.equal(state.active,null);assert.equal(state.hold,'T');assert.equal(CurrentProvider.facts(CurrentProvider.prepare(state,{obligationContext:Current.exportState(history)})).center.pending.length,0);
 });
 test('visible SL strongest endpoint ordering uses qualification changes and treats unknown as unknown',()=>{
  const {c}=pair(),initialLeader=clone(c),afterProofWinner=clone(c);initialLeader.rank[3]=20;afterProofWinner.rank[3]=10;const seen=[];

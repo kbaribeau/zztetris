@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
-const R=require('../st-rules'),S=require('../st-structure'),L=require('../st-left-context'),RH=require('../st-resource-history');
+const R=require('../st-rules'),S=require('../st-structure'),L=require('../st-left-context'),RH=require('../st-obligation-context');
 const board=h=>Array.from({length:40},(_,y)=>Array.from({length:10},(_,x)=>x<4&&y>=40-h[x]?'X':'.').join(''));
 test('shared Left surface / oriented classification and covered cells stay descriptive',()=>{
  const surface=S.leftSurface.assess(board([3,4,4,3]));
@@ -9,7 +9,7 @@ test('shared Left surface / oriented classification and covered cells stay descr
  assert.equal(damaged.shape.tier,'D');assert.equal(damaged.covered,1);assert.equal(L.isD(roof),true);
  assert.equal(L.evaluate(R.createState({board:roof,active:'J',queue:['O']})).context,'covered-cells-neutral');
  assert.equal(S.leftSurface.assess(board([2,5,4,2])).shape,null);
- const unknown=R.createState({board:roof,active:'J',queue:['O']});assert.deepEqual(RH.resolve(unknown,RH.start(unknown)).dPattern,{pending:false,createdAt:null});
+ const unknown=R.createState({board:roof,active:'J',queue:['O']});assert.deepEqual(RH.resolve(RH.start(unknown),{position:unknown}).dPattern,{pending:false});
  // Literal source tiers distinguish mirrored profiles. They are not permission.
  assert.equal(S.leftSurface.classify([0,0,1,1]).tier,'S');assert.equal(S.leftSurface.classify([1,1,0,0]).tier,'A');
  assert.equal(Object.isFrozen(S.leftSurface.catalog[0].profile),true);
@@ -24,16 +24,16 @@ test('shared Left dependencies / verified, unknown arrival and unfinished proof 
  const unproved=describe(make({active:'J'}),{valid:false,complete:true});assert.equal(unproved[0].availability,'immediate-exit-not-established');assert.equal(unproved[0].proofStatus,'not-established');
  const debt=describe(make({active:'J'}),{valid:false,complete:true},{pendingCenter:[{alternatives:[{piece:'J'}]}]});assert(debt.some(h=>h.code==='D-J-competes-with-Center'));assert(debt.some(h=>h.code==='D-waiting-space-unproved'));
 });
-test('shared Left surface / classic page and Worker dependency orders execute history before preferences',()=>{
+test('shared Left surface / classic page and Worker dependency orders execute current accounting before preferences',()=>{
  const root=path.resolve(__dirname,'..'),load=(name,realm)=>vm.runInContext(fs.readFileSync(path.join(root,name),'utf8'),realm,{filename:name});
  for(const mode of ['page','worker']){
   const realm=vm.createContext({console,Date,performance});realm.self=realm;
   let observedBeforePreference=false;
   function loadOne(name){
    if(name==='st-left-context.js'){
-    assert.equal(realm.STLeftContext,undefined);assert(realm.STResourceHistory);assert(realm.STStructure.leftSurface);
+    assert.equal(realm.STLeftContext,undefined);assert(realm.STObligationContext);assert(realm.STStructure.leftSurface);
     const s=realm.STRules.createState({board:board([3,4,4,3]),active:'J',queue:['O']});
-    assert.equal(realm.STResourceHistory.resolve(s,realm.STResourceHistory.start(s)).dPattern.pending,false);observedBeforePreference=true;
+    assert.equal(realm.STObligationContext.resolve(realm.STObligationContext.start(s),{position:s}).dPattern.pending,false);observedBeforePreference=true;
    }
    load(name,realm);
   }

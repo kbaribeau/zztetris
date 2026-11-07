@@ -1,10 +1,10 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),Module=require('node:module');
-const R=require('../../st-rules'),H=require('../../st-resource-history'),PH=require('../../st-pattern-history');
+const R=require('../../st-rules'),H=require('../../st-obligation-context'),PH=require('../../st-pattern-history');
 const source=require('../fixtures/right-cap-score.json');
 // Explicit synthetic inventory on the unchanged source board. Discard the
 // original O's known bag/tape: only a new partial public origin is asserted.
-function request(){const observation=R.createState({...source.request.observation,active:'I',bag:null});return{observation,previous:null,commitment:null,options:{depth:3,width:8,maxNodes:45000,timeMs:1500,openingPhase:false,resourceContext:H.exportContext(observation,H.start(observation)),patternHistory:PH.start(observation)}};}
+function request(){const observation=R.createState({...source.request.observation,active:'I',bag:null});return{observation,previous:null,commitment:null,options:{depth:3,width:8,maxNodes:45000,timeMs:1500,openingPhase:false,obligationContext:H.exportState(H.start(observation)),patternHistory:PH.start(observation)}};}
 function planner(overrides={},leftContext=null){
  const filename=require.resolve('../../st-planner'),m=new Module(filename,module),req=Module.createRequire(filename);m.filename=filename;m.paths=Module._nodeModulePaths(path.dirname(filename));m.rightCapOptional=false;
  // Faults apply only to the later optional query, never to qualification of

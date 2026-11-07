@@ -22,7 +22,8 @@ test('current lifecycle/page: anonymous accommodation counts are shown without i
  const current=g.window.stLab.resources.hangingL;assert.equal(current.unclassifiedCount,3);assert.equal(current.unclassified.length,0);assert.deepEqual(clone(current.aggregate),[3]);
  assert.match(g.element('#st-hanging-l').getAttribute('aria-label'),/unresolved accommodation: 3; anonymous count: 3/);
  assert.match(g.element('#st-resource-summary').textContent,/Unclassified S\/L accommodation: 0\/3/);
- assert.match(g.element('#st-reset-summary').textContent,/Historical allocation-window diagnostics are unavailable/);
+ assert.match(g.element('#st-reset-summary').textContent,/Current Reset:/);
+ assert.equal('resetEvidence' in g.window.stLab,false);assert.equal('resetEvidence' in JSON.parse(g.element('#st-diagnostic-text').textContent),false);
 }));
 
 test('current lifecycle/page: unavailable imported accounting advances HOLD and lock without restart',()=>withPage('st-lab.html',hidden,g=>{
@@ -91,9 +92,9 @@ test('current lifecycle/simulator: the consumed finite construction cursor reach
 });
 
 
-test('current lifecycle: shipped loaders retire the old midgame authority while source hashes retain history',()=>withPage('st-lab.html',hidden,g=>{
+test('current lifecycle: shipped loaders retire the old midgame authority and current source hashes exclude retired modules',()=>withPage('st-lab.html',hidden,g=>{
  assert.equal(g.window.STMidgameResources,undefined);assert(g.window.STResourceProvider);assert(g.window.STObligationTracking);
- const E=require('../scripts/lib/st-simulation.cjs');assert(E.SOURCE_FILES.includes('st-midgame-resources.js'),'historical evaluation closure stays readable');
+ const E=require('../scripts/lib/st-simulation.cjs');assert.equal(E.SOURCE_FILES.includes('st-midgame-resources.js'),false);assert.equal(E.sourceHashes()['st-midgame-resources.js'],undefined);
  assert.doesNotMatch(require('node:fs').readFileSync(require.resolve('../st-worker'),'utf8'),/st-midgame-resources/);
 }));
 
@@ -122,4 +123,28 @@ test('current lifecycle/page: post-action error retires transient construction w
  assert.equal(g.window.stLab.snapshot().active.x,initial.active.x+1);assert.deepEqual(clone(g.window.stLab.publicInventory),inventory);
  assert.equal(g.window.stLab.exportSession().coaching.planContinuity,null);assert.equal(g.window.stLab.result,null);
  g.window.stLab.act('L');g.advance(40);assert.equal(all.at(-1).message.options.planContinuity,undefined);assert.equal(all.at(-1).message.options.handoffRecovery,undefined);
+}));
+
+
+test('current lifecycle/page: retired Reset evidence never grants accounting through import, Undo or restart',()=>withPage('st-lab.html',{...hidden,seed:42},g=>{
+ selectEmpty(g);const initial=clone(g.window.stLab.obligationContext);
+ for(const action of ['HOLD','HOLD','L','HD'])g.window.stLab.act(action);
+ g.window.stLab.act('UNDO');assert.deepEqual(clone(g.window.stLab.obligationContext),initial);
+ install(g,{...g.window.stLab.snapshot(),resetEvidence:{status:'candidate-evidence',phaseBoundary:'complete',allowanceRenewal:true}});
+ assert.equal(g.window.stLab.resources.availability,'unknown');assert.equal(g.window.stLab.resources.reset.status,'inactive');assert.equal(g.window.stLab.resources.extraZ.status,'unknown');
+ selectEmpty(g);g.window.stLab.act('HD');g.tap('KeyR');assert.equal(g.window.stLab.resources.availability,'known');
+ g.window.stLab.act('HD');g.click('#st-reset');assert.equal(g.window.stLab.resources.reset.progress,0);
+ const exported=clone(g.window.stLab.snapshot());g.click('#st-export');assert.deepEqual(JSON.parse(g.element('#st-snapshot').value),{...exported,suggestedFileName:'st-lab-coaching-export.json'});
+ assert.equal('resetEvidence' in exported,false);assert.equal('resetEvidence' in g.window.stLab,false);assert.equal(g.window.STResetDiagnostics,undefined);
+}));
+
+test('current lifecycle/page: original 208-line example remains intact and explicit position copy stays usable',()=>withPage('st-lab.html',hidden,g=>{
+ const fs=require('node:fs'),crypto=require('node:crypto'),bytes=fs.readFileSync(require.resolve('../examples/st-stacking/kevin-208-lines.json'));
+ assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'),'3716e03650e0b128d5b53ae4e8f35a9b138379e7c914bd5e8d347f0b6c352dd6');
+ const original=JSON.parse(bytes),position=require('../examples/st-stacking/kevin-208-lines-position.json'),before=clone(g.window.stLab.obligationContext);
+ assert.deepEqual(position,original.position);g.element('#st-snapshot').value=bytes.toString();g.click('#st-import');
+ assert.match(g.element('#st-import-status').textContent,/legacy sessions/i);assert.deepEqual(clone(g.window.stLab.obligationContext),before);
+ install(g,position);const visible=g.window.stLab.snapshot();assert.deepEqual(clone(visible.board),position.board);assert.deepEqual(clone(visible.queue),position.queue);assert.deepEqual(clone(visible.active),position.active);assert.equal(visible.hold,position.hold);
+ assert.equal(g.window.stLab.resources.availability,'unknown');assert.equal(g.window.stLab.resources.extraZ.status,'unknown');assert.equal(g.window.stLab.resources.reset.status,'inactive');
+ const session=g.window.stLab.exportSession();assert.equal(session.schemaVersion,2);assert.equal(session.coaching.previous,null);assert.equal(session.coaching.commitment,null);assert.equal(Session.prepare(clone(session)).obligationContext.state.availability,'unknown');
 }));

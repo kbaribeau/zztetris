@@ -88,7 +88,12 @@ test('projection: a forced synthetic Reset T gets one credit and completion, wit
  assert.equal(two.locked.id,-1);assert.equal(two.state.account.z.remaining,2);assert.deepEqual(two.state.account.reset,{status:'inactive'});assert.equal(two.effects.filter(e=>e.status==='reset-T-credited').length,1);assert.equal(two.effects.filter(e=>e.status==='reset-completed').length,1);assert.equal(root.state.account.z.remaining,0);assert.deepEqual(two.supply.frontier,root.supply.frontier);
 });
 for(const f of require('./fixtures/resource-projection-history.json').cases)test('projection: known-to-unclassified effects survive compaction '+f.id,()=>{
- const x=actual(f.resourceContext.origin,f.resourceContext.steps,Infinity,f.resourceContext),root=projectRoot(x),before=P.resolve(root),next=P.project(root,{witness:f.witness}),after=P.resolve(next);
+ const x={position:R.createState(f.observation),context:X.importState(f.obligationContext,{position:f.observation})},root=projectRoot(x),before=P.resolve(root),next=P.project(root,{witness:f.witness}),after=P.resolve(next);
+ // Replay the retained public witness through actual receipts as well as the
+ // projection seam. The root is a native checkpoint, not a historical tape.
+ const played=require('./support/current-player.cjs')(x.position,{snapshot:f.obligationContext});for(const action of f.witness)played.act(action);
+ assert.equal(played.context.status,'available');assert.deepEqual(played.position.lastEvent,f.event);assert.deepEqual(played.position,next.position);
+ assert.deepEqual(played.state,withoutDomain(next.state));assert.deepEqual(played.last.effects,next.effects);
  assert.ok(next.effects.some(e=>e.domain==='sl'&&e.introducedUnclassified));
  const expected=Q.project(x.context.state,{position:x.position,inventory:x.context.inventory,witness:f.witness});assert.deepEqual(withoutDomain(next.state),expected.state);assert.deepEqual(next.effects,expected.effects);
  if(f.id.includes('lock-40')){assert.equal(A.knownToUnclassified(before,after,next.effects),true);assert.ok(next.effects.some(e=>e.status==='compacted'&&e.kind==='L'));}

@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
-const P=require('../st-planner'),R=require('../st-rules'),H=require('../st-resource-history'),M=require('../st-midgame-resources');
+const P=require('../st-planner'),R=require('../st-rules'),Current=require('../st-obligation-context'),CurrentProvider=require('../st-resource-provider'),M=require('../st-obligation-resources');
 const clone=x=>JSON.parse(JSON.stringify(x));
 const {allowanceResource}=require('./support/st-comparison-resources.cjs');
 // Synthetic comparison records isolate policy ordering, not a claimed legal
@@ -90,22 +90,22 @@ test('Extra-Z ties: a failed or unfinished challenger retains the fully admitted
  const unchecked=node('z','available',{continuationChecked:false});assert.deepEqual(order([a,unchecked]),['a','z'],'Ordering alone cannot promote an unchecked continuation');
 });
 function verifiedRoot(){
- const f=require('./fixtures/opening-z-allocation.json');let state=R.createState(f.request.observation),history=H.importContext(state,clone(f.request.options.resourceContext));
- for(const witness of [['L','L','L','HD'],f.steps[1].witness,f.steps[0].witness.slice(1),f.steps[3].witness])for(const action of witness){const next=R.move(state,action);assert.notEqual(next,state);history=H.applyAction(history,state,action,next);state=next;}
- const summary=H.resolve(state,history);assert.equal(summary.coverage.status,'complete');assert.equal(summary.extraZ.status,'available');assert.ok(summary.extraZ.baseline);
+ const f=require('./fixtures/opening-z-allocation.json');let state=R.createState(f.request.observation),history=Current.importState(clone(f.request.options.obligationContext),{position:state});
+ for(const witness of [['L','L','L','HD'],f.steps[1].witness,f.steps[0].witness.slice(1),f.steps[3].witness])for(const action of witness){const next=R.move(state,action);assert.notEqual(next,state);history=Current.applyActual(history,{before:state,action:action,after:next}).context;state=next;}
+ const summary=CurrentProvider.facts(CurrentProvider.prepare(state,{obligationContext:Current.exportState(history)}));assert.equal(summary.status,'available');assert.equal(summary.extraZ.status,'available');assert.ok(summary.extraZ.baseline);
  return {state,history,summary};
 }
 test('Extra-Z ties: actual validated history supplies allowance, not the Z held or queued',()=>{
- const {state,history,summary}=verifiedRoot();const resource=M.start(state,summary);assert.equal(resource.extraZ,'available');
- const unknown=H.resolve(state,H.start(state));assert.equal(unknown.extraZ.status,'unknown');assert.equal(M.start(state,unknown).extraZ,'unknown');
- const context=clone(H.exportContext(state,history));context.extraZ={status:'available',baseline:{at:0}};
- const forged=H.resolve(state,H.importContext(state,{...context,steps:[]}));
- assert.notEqual(forged.extraZ.status,'available','Broken replay cannot supply a known allowance');
+ const {state,history,summary}=verifiedRoot();const resource=M.start(state,history,{extendForced:false});assert.equal(resource.extraZ,'available');
+ const unknown=CurrentProvider.facts(CurrentProvider.prepare(state,{obligationContext:Current.exportState(Current.start(state))}));assert.equal(unknown.extraZ.status,'unknown');assert.equal(M.start(state,Current.start(state),{extendForced:false}).extraZ,'unknown');
+ const context=Current.exportState(history);context.inventory.active.id=context.inventory.nextId;
+ assert.throws(()=>Current.importState(context,{position:state}),/Invalid public inventory|Invalid obligation context/,'Malformed live identity cannot supply allowance');
+ const obsolete={...Current.exportState(history),steps:[]};assert.throws(()=>Current.importState(obsolete,{position:state}),/envelope shape/,'An obsolete replay field is rejected rather than treated as provenance');
  const leftZ=R.placements(state,{maxNodes:45000}).placements.find(p=>p.event.type==='Z'&&p.event.cells.every(([x])=>x<4));
  assert.ok(leftZ,'Actual HOLD/draw witness can spend the observed Z');
  const spent=M.step(state,leftZ,resource);assert.equal(spent.extraZ,'used');assert.deepEqual(spent.violations,[]);
- assert.equal(M.step(state,leftZ,M.start(state,unknown)).violations.includes('extra-Z-not-available'),true);
- assert.equal(H.resolve(state,history).extraZ.status,'available','Projection never changes real history or renews allowance');
+ assert.equal(M.step(state,leftZ,M.start(state,Current.start(state),{extendForced:false})).violations.includes('extra-Z-not-available'),true);
+ assert.equal(CurrentProvider.facts(CurrentProvider.prepare(state,{obligationContext:Current.exportState(history)})).extraZ.status,'available','Projection never changes real history or renews allowance');
 });
 
 test('Extra-Z ties: optional challenger exhaustion preserves the fully admitted outer planner fallback',()=>{

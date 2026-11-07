@@ -1,37 +1,27 @@
 'use strict';
+const {extendPublic}=require('./support/current-resource-test.cjs');
 const test=require('node:test'),assert=require('node:assert/strict');
-const R=require('../st-rules'),Context=require('../st-obligation-context'),Route=require('../st-obligation-route'),N=require('../st-obligation-resources'),M=require('../st-midgame-resources'),H=require('../st-resource-history'),A=require('../st-access');
+const R=require('../st-rules'),Context=require('../st-obligation-context'),N=require('../st-obligation-resources'),A=require('../st-access');
 const copy=x=>JSON.parse(JSON.stringify(x));
-// Migration test oracle only. Production compact start accepts a current
-// Context directly and never reads or reconstructs this historical tape.
-function currentFromTape(tape,position){
- let raw=R.createState(tape.origin),context=Context.start(raw,{fresh:tape.fresh});
- function mark(at){if(tape.handoffAtAction===at)context=Context.handoff(context,{position:raw}).context;if((tape.resetAtActions||[]).includes(at))context=Context.beginReset(context,{position:raw,candidate:true}).context;}
- mark(0);
- for(const [n,input]of tape.steps.entries()){const before=raw,next=R.move(before,input.action);raw={...next,queue:[...next.queue,...input.revealed]};const result=Context.applyActual(context,{before,action:input.action,after:raw});assert.equal(result.context.status,'available',result.context.reason);context=result.context;mark(n+1);}
- if(position){assert.deepEqual(raw.board,position.board);context=Context.importState(Context.exportState(context),{position});}
- return{position:position||raw,context};
-}
-function root(f){
- const request=f.request||f,position=R.createState(request.observation),{context}=currentFromTape(request.options.resourceContext,position),summary=H.resolve(position,H.importContext(position,request.options.resourceContext));
- return{position,context,legacy:M.start(M.extendForced(position),summary),compact:N.start(position,context),summary};
-}
+// Literal expected results were captured from the frozen retired implementation.
+// Setup and execution use only native current APIs; no historical runtime ships.
+const expected=require('./fixtures/current-resource-expectations.json');
+function root(f){const request=f.request||f,position=R.createState(request.observation),context=Context.importState(request.options.obligationContext,{position});return{position,context,compact:N.start(position,context)};}
 function fields(resource){return Object.fromEntries(['active','hold','queue','extraZ','extraZRemaining','resetActive','resetProgress','pendingCenter','pendingLDiverted','hangingS','hangingL','violations','scoredTs','introducedUnclassified'].map(k=>[k,k==='pendingLDiverted'?Boolean(resource[k]):resource[k]]));}
-function equivalent(a,b){assert.deepEqual(fields(a),fields(b));}
-function advanceBoth(r,path){
- let state=M.extendForced(r.position),legacy=r.legacy,compact=r.compact;
- for(const p of path){const replay=R.replay(state,p.witness);assert.equal(replay.valid,true);const placement={state:replay.state,event:replay.events[0],witness:p.witness};legacy=M.step(state,placement,legacy);compact=N.step(state,placement,compact);state=replay.state;equivalent(compact,legacy);}
- return{state,legacy,compact};
+function advance(r,path,expectedPrefixes){
+ let state=N.position(r.compact),compact=r.compact;
+ for(const [index,p]of path.entries()){const replay=R.replay(state,p.witness);assert.equal(replay.valid,true);compact=N.step(state,{state:replay.state,event:replay.events[0],witness:p.witness},compact);state=replay.state;if(expectedPrefixes)assert.deepEqual(fields(compact),expectedPrefixes[index].resource);}
+ return{state,compact};
 }
-const legacyProof=({uncertainty,...result})=>result;
+function proofFields(p){const out={};for(const [k,v]of Object.entries(p)){if(['path','continuation','waiting'].includes(k)&&Array.isArray(v))out[k]=v.map(step=>({witness:step.witness,event:step.event}));else if(!['resource','state','uncertainty'].includes(k))out[k]=v;}return out;}
 const options={maxNodes:4000,deadline:Infinity,now:()=>0};
 
 test('compact resources: literal Context owns observed supply and Route alone extends a forced type',()=>{
  const f=require('./fixtures/forced-bag-resource-binding.json'),r=root(f),saved=Context.exportState(r.context),state=copy(r.position);
- equivalent(r.compact,r.legacy);assert.deepEqual(r.compact.queue.at(-1),{id:-1,type:'I',bag:null});
- assert.deepEqual(N.position(r.compact),M.extendForced(r.position));assert.ok(Object.isFrozen(r.compact)&&Object.isFrozen(r.compact.route));
- assert.throws(()=>N.start(M.extendForced(r.position),r.context),/matching current public position|public position/);
- const a=advanceBoth(r,f.advice.continuation);assert.equal(N.checkPath(r.position,f.advice.continuation,r.context).valid,true);assert.deepEqual(a.compact.hangingS,[]);
+ assert.deepEqual(fields(r.compact),expected.resources['forced-bag-resource-binding'].root);assert.deepEqual(r.compact.queue.at(-1),{id:-1,type:'I',bag:null});
+ assert.deepEqual(N.position(r.compact),extendPublic(r.position));assert.ok(Object.isFrozen(r.compact)&&Object.isFrozen(r.compact.route));
+ assert.throws(()=>N.start(extendPublic(r.position),r.context),/matching current public position|public position/);
+ const a=advance(r,f.advice.continuation,expected.resources['forced-bag-resource-binding'].prefixes);assert.equal(N.checkPath(r.position,f.advice.continuation,r.context).valid,true);assert.deepEqual(a.compact.hangingS,[]);
  assert.deepEqual(Context.exportState(r.context),saved);assert.deepEqual(r.position,state);
  assert.equal('slHistory'in r.compact,false);assert.equal('observedSL'in r.compact,false);assert.equal('originKey'in r.compact,false);
 });
@@ -48,33 +38,33 @@ test('compact resources: unknown same-letter old HOLD stays distinct, immutable 
  const position=R.createState({active:'I',hold:'I',queue:['O','T']}),resource=N.startUnknown(position),saved=copy(resource),replay=R.replay(position,['HOLD','HD']);
  const child=N.step(position,{state:replay.state,event:replay.events[0],witness:['HOLD','HD']},resource);
  assert.equal(child.hold.id,-1);assert.equal(resource.hold.id,-2);assert.equal(child.route.projection.supply.originKnown,false);assert.equal(child.route.projection.supply.frontier,null);
- equivalent(child,M.step(position,{state:replay.state,event:replay.events[0],witness:['HOLD','HD']},M.start(position)));
+ assert.equal(child.active.type,'O');assert.equal(child.active.id,-3);assert.equal(child.extraZ,'unknown');assert.deepEqual(child.hangingS,[]);assert.deepEqual(child.hangingL,[]);
  assert.deepEqual(resource,saved);const sibling=N.step(position,{witness:['HD']},resource);assert.equal(sibling.hold.id,-2);assert.deepEqual(resource,saved);
 });
 test('compact resources: exact repair goal is identity-specific and never inferred from an unrelated S',()=>{
  const f=require('./fixtures/forced-bag-resource-binding.json'),r=root(f),placements=R.placements(N.position(r.compact),{maxNodes:45000}).placements,p=placements.find(p=>p.event.type==='S'&&p.event.cells.every(([x])=>x<4));assert.ok(p);
  const subject=[r.compact.active,r.compact.hold,...r.compact.queue].find(s=>s?.id===21);assert.ok(subject);
- for(const instance of [subject,{...subject,id:99}])assert.equal(N.repairGoal(p.event,instance,r.compact),M.repairGoal(p.event,instance,r.legacy));assert.equal(N.repairGoal(p.event,subject,r.compact),true);
+ assert.equal(N.repairGoal(p.event,{...subject,id:99},r.compact),false);assert.equal(N.repairGoal(p.event,subject,r.compact),true);
 });
 test('compact resources: ordinary repair retains exact witnesses, work counts and optional filter calls',()=>{
- for(const f of [require('./fixtures/forced-bag-resource-binding.json'),require('./fixtures/repair-cavity.json')]){
-  const r=root(f),state=N.position(r.compact);
-  for(const control of [{},{depth:0},{maxNodes:0},{maxNodes:1},{maxNodes:80},{deadline:0},{depth:2,centerCompletions:false},{filter:true}]){
-   const run=(api,resource)=>{const calls=[];const opts={...options,...control};if(control.filter)opts.acceptStep=(s,p,n)=>{calls.push([s,p.event,n]);return p.event.type!=='I';};delete opts.filter;return{proof:legacyProof(api.repair(state,resource,opts)),calls};};
-   const actual=run(N,r.compact),expected=run(M,r.legacy);assert.deepEqual(actual,expected,JSON.stringify(control));
+ for(const name of ['forced-bag-resource-binding','repair-cavity']){
+  const f=require('./fixtures/'+name+'.json'),r=root(f),state=N.position(r.compact);
+  for(const saved of expected.resources[name].repairs){const calls=[],opts={...options,...saved.control};if(saved.control.filter)opts.acceptStep=(s,p,n)=>{calls.push([p.event.type,p.event.target.x,p.event.target.y,p.event.target.rotation,p.event.lines]);return p.event.type!=='I';};delete opts.filter;
+   const proof=N.repair(state,r.compact,opts);assert.deepEqual(proofFields(proof),saved.proof,JSON.stringify(saved.control));assert.equal(calls.length,saved.filterCalls);assert.deepEqual(calls,saved.filterTargets);
   }
  }
+
 });
 test('compact resources: pending L search matches full waiting proof, conditional access, hints and budgets',()=>{
- const f=require('./fixtures/pending-L-visible-stage.json'),steps=require('./fixtures/covered-repair-plan.json').ordinaryCenter.steps,r=root(f),a=advanceBoth(r,steps.slice(0,3));
- assert.equal(N.pendingLStageEligible(a.state,a.compact),true);assert.equal(N.pendingLStageEligible(a.state,a.compact),M.pendingLStageEligible(a.state,a.legacy));
- const proof=N.pendingLStage(a.state,a.compact,options);assert.deepEqual(legacyProof(proof),M.pendingLStage(a.state,a.legacy,options));assert.equal(proof.valid,true);assert.equal(proof.arrival,'not-established');assert.deepEqual(proof.path.map(p=>p.event.type),['O','Z','J','I']);
- for(const opts of [{maxNodes:0},{maxNodes:1},{maxNodes:80},{deadline:0},{waitingHint:{...proof,waiting:proof.path}},{waitingHint:{...proof,waiting:[{...proof.path[0],event:{...proof.path[0].event,lines:4}}]}}])assert.deepEqual(legacyProof(N.pendingLStage(a.state,a.compact,{...options,...opts})),M.pendingLStage(a.state,a.legacy,{...options,...opts}));
+ const f=require('./fixtures/pending-L-visible-stage.json'),steps=require('./fixtures/covered-repair-plan.json').ordinaryCenter.steps,r=root(f),a=advance(r,steps.slice(0,3),expected.pending.prefixes);
+ assert.equal(N.pendingLStageEligible(a.state,a.compact),true);
+ const proof=N.pendingLStage(a.state,a.compact,options);assert.deepEqual(proofFields(proof),expected.pending.proof);assert.equal(proof.valid,true);assert.equal(proof.arrival,'not-established');assert.deepEqual(proof.path.map(p=>p.event.type),['O','Z','J','I']);
+ for(const [index,opts] of [{maxNodes:0},{maxNodes:1},{maxNodes:80},{deadline:0},{waitingHint:{...proof,waiting:proof.path}},{waitingHint:{...proof,waiting:[{...proof.path[0],event:{...proof.path[0].event,lines:4}}]}}].entries())assert.deepEqual(proofFields(N.pendingLStage(a.state,a.compact,{...options,...opts})),expected.pending.variants[index]);
  const checked=N.checkPath(a.state,proof.path,a.compact);assert.equal(checked.valid,true);assert.equal(checked.resource.schedule.locks,7);assert.deepEqual(checked.resource.route.assessment.root,r.compact.route.assessment.root);assert.equal(checked.resource.scoredTs.length,1);
  assert.equal(A.repairPrefix(a.state,proof.path,{stages:a.compact.pendingCenter}).valid,true);
 });
 test('compact resources: bounded request exhaustion stays unfinished rather than throwing or rejecting all routes',()=>{
- const f=require('./fixtures/pending-L-visible-stage.json'),steps=require('./fixtures/covered-repair-plan.json').ordinaryCenter.steps,r=root(f);r.compact=N.start(r.position,r.context,{horizon:3});const a=advanceBoth(r,steps.slice(0,3));
+ const f=require('./fixtures/pending-L-visible-stage.json'),steps=require('./fixtures/covered-repair-plan.json').ordinaryCenter.steps,r=root(f);r.compact=N.start(r.position,r.context,{horizon:3});const a=advance(r,steps.slice(0,3),expected.pending.prefixes);
  assert.equal(N.pendingLStage(a.state,a.compact,options).valid,null);assert.equal(N.pendingLStage(a.state,a.compact,options).status,'pending-L-stage-budget');
  assert.equal(N.repair(a.state,a.compact,options).valid,null);assert.equal(N.repair(a.state,a.compact,options).status,'resource-repair-budget');assert.equal(a.compact.schedule.locks,3);
 });
@@ -95,7 +85,7 @@ test('compact resources: generic anonymous uncertainty carries, is inherited and
  assert.match(disclosed.reason,/2 additional S accommodations/);assert.match(disclosed.reason,/3 additional L accommodations/);assert.equal(disclosed.evidence.resourceDisclosure.identities.length,2);assert.deepEqual(N.discloseAdvice(disclosed),disclosed);assert.equal(N.discloseAdvice({...advice,recommendation:{kind:'risky'}}).evidence.resourceDisclosure,undefined);
 });
 test('compact resources: inherited aggregate uncertainty cannot become a pending L certificate',()=>{
- const f=require('./fixtures/pending-L-visible-stage.json'),steps=require('./fixtures/covered-repair-plan.json').ordinaryCenter.steps,r=root(f),a=advanceBoth(r,steps.slice(0,3));
+ const f=require('./fixtures/pending-L-visible-stage.json'),steps=require('./fixtures/covered-repair-plan.json').ordinaryCenter.steps,r=root(f),a=advance(r,steps.slice(0,3),expected.pending.prefixes);
  // A trusted current import needs no historical origin for this exact target.
  // Use a disjoint consumed namespace beside the known live supply.
  const {position,context}=anonymous([0,1,0,0]),raw=Context.exportState(context);
@@ -129,14 +119,14 @@ test('compact resources: hypothetical handoff is a deliberate new root and never
 test('compact resources: successful exact Center repair uses the same legal unknown-origin L and access proof',()=>{
  const f=require('./support/st-center-stage.json');
  for(const available of [false,true]){
-  const raw={...f.origin,queue:available?['S','L','I','O','J','Z']:['S','I','O','J','Z','I']};delete raw.bag;const position=R.createState(raw),context=Context.start(position),summary=H.resolve(position,H.start(position)),r={position,context,legacy:M.start(position,summary),compact:N.start(position,context)},a=advanceBoth(r,f.advice.continuation),opts={...options,maxNodes:10000,depth:2};
-  const proof=N.repair(a.state,a.compact,opts);assert.deepEqual(legacyProof(proof),M.repair(a.state,a.legacy,opts));assert.equal(proof.valid,available);
+  const raw={...f.origin,queue:available?['S','L','I','O','J','Z']:['S','I','O','J','Z','I']};delete raw.bag;const position=R.createState(raw),context=Context.start(position),r={position,context,compact:N.start(position,context)},a=advance(r,f.advice.continuation,expected.center[Number(available)].prefixes),opts={...options,maxNodes:10000,depth:2};
+  const proof=N.repair(a.state,a.compact,opts);assert.deepEqual(proofFields(proof),expected.center[Number(available)].proof);assert.equal(proof.valid,available);
   if(available){assert.equal(proof.path.length,1);assert.equal(proof.path[0].event.type,'L');const done=N.checkPath(a.state,proof.path,a.compact);assert.equal(done.valid,true);assert.deepEqual(done.resource.pendingCenter,[]);assert.equal(done.resource.schedule.locks,f.advice.continuation.length+1);assert.equal(A.prefix(a.state,proof.path,{maxNodes:10000,now:()=>0}).reachable,true);}
  }
 });
 
 test('compact resources: successful pending L waiting preserves generic anonymous counts in the proof result',()=>{
- const f=require('./fixtures/pending-L-visible-stage.json'),steps=require('./fixtures/covered-repair-plan.json').ordinaryCenter.steps,r=root(f),a=advanceBoth(r,steps.slice(0,3)),base=anonymous([2,0,0,0],[3]),raw=Context.exportState(base.context);
+ const f=require('./fixtures/pending-L-visible-stage.json'),steps=require('./fixtures/covered-repair-plan.json').ordinaryCenter.steps,r=root(f),a=advance(r,steps.slice(0,3),expected.pending.prefixes),base=anonymous([2,0,0,0],[3]),raw=Context.exportState(base.context);
  // Trusted current fixture: exact public position and target, with a separate
  // observed namespace. These supplied facts need no replayed ancestry.
  let id=101;const subject=p=>p?{id:id++,type:p.type,bag:0,observedOrder:id-2}:null;

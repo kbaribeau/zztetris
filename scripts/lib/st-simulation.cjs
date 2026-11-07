@@ -11,7 +11,6 @@ const B = require('../../st-bag');
 const P = require('../../st-planner');
 const S = require('../../st-structure');
 const Context = require('../../st-obligation-context');
-const Legacy = require('../../st-resource-legacy');
 const Inventory = require('../../st-public-inventory');
 const Handoff = require('../../st-handoff-continuity');
 const PlanContinuity = require('../../st-plan-continuity');
@@ -27,7 +26,7 @@ const clone = x => JSON.parse(JSON.stringify(x));
 // intentionally omits that field from its worker message. Match that boundary.
 function publicObservation(state){const observation=P.observe(state);delete observation.lastEvent;return observation;}
 const digest = x => crypto.createHash('sha256').update(typeof x === 'string' ? x : JSON.stringify(x)).digest('hex');
-const SOURCE_FILES = ['st-lab.html','st-practice.js','st-reset-diagnostics.js','st-piece-ledger.js','st-plan-continuity.js','st-obligation-inverse.js','st-left-obligations.js','st-left-plan.js','st-sl-obligations.js','st-opening-obligations.js','st-obligation-state.js','st-obligation-context.js','st-obligation-projection.js','st-obligation-assessment.js','st-obligation-route.js','st-obligation-resources.js','st-opening-eligibility.js','st-resource-legacy.js','st-resource-provider.js','st-obligation-tracking.js','st-coach-config.js', 'st-rules.js', 'st-bag.js', 'st-structure.js', 'st-paired-repair.js', 'st-access.js', 'st-pattern-history.js', 'st-left-foundation.js', 'st-left-context.js', 'st-midgame-coaches.js','st-reset-coach.js', 'st-planner.js', 'st-opening-patterns.js','st-opening-continuations.js','st-opening-sources.js','st-source-scoring.js', 'st-opening.js', 'st-reset-policy.js','st-public-inventory.js','st-center-obligations.js','st-resource-history.js','st-handoff-continuity.js', 'st-obligation-admission.js', 'st-resource-search.js', 'st-midgame-resources.js', 'st-resource-tracking.js', 'st-worker.js', 'st-lab.js', 'st-session.js', 'st-fixtures.js', 'scripts/lib/st-simulation.cjs', 'scripts/lib/st-simulation-runner.cjs', 'scripts/lib/st-left-shape-metrics.cjs', 'scripts/lib/st-coach-entry-metrics.cjs', 'scripts/lib/st-tracking-metrics.cjs', 'scripts/lib/st-evaluation.cjs', 'scripts/evaluate-st-protocol.cjs', 'scripts/simulate-st.cjs'];
+const SOURCE_FILES = require('./st-source-files.cjs');
 const CONFIG = Object.freeze({depth:3, width:8, maxNodes:45000, timeMs:SEARCH_TIME_MS});
 const PRESETS = Object.freeze({quick:{seeds:[10331, 20333], locks:24}, research:{seeds:Array.from({length:16}, (_,i) => 810001 + i * 997), locks:500}});
 const RNG_VERSION = 'mulberry32-seven-bag-v1';
@@ -319,12 +318,12 @@ function replayRecords(input, records, api=P) {
   return {mode:'recorded-action-replay',locks,verified:true,finalObservation:publicObservation(session.state),ignoredVolatileRequestFields:['commitment.advice.metrics.elapsedMs'],ignoredVolatileActionFields:['adviceAdvanced'],adviceAdvanceMismatches,note:'No planner search rerun; exact actions/events/draws/public state and non-timing request data are checked. Regenerated commitment duration and wall-clock display-retention flags are excluded from equality; every display-retention difference is reported. This verifies rapid uninterrupted recorded witnesses, not slower interactive replanning.'};
 }
 // Trust one current checkpoint and verify only its finite retained action tail.
-// Native recovery never reconstructs the run's past; old requests convert once.
+// Recovery never reconstructs the run's past; obsolete requests are rejected.
 function recoverTrackingStatus(record) {
   if(record?.kind!=='lock'||!Number.isSafeInteger(record.lock)||record.lock<1||record.request?.id!==record.lock)throw Error('Invalid retained lock boundary');
   const options=record.request.options||{};let state=R.createState(record.request.observation),current;
+  if(Object.hasOwn(options,'resourceContext'))throw Error('Legacy resource recovery is unsupported.');
   if(Object.hasOwn(options,'obligationContext'))current=importCurrent(options.obligationContext,state);
-  else if(options.resourceContext){const converted=Legacy.convert(state,options.resourceContext);if(converted.status!=='available')throw Error(converted.reason);current=converted.context;}
   else throw Error('No retained current obligation checkpoint');
   for(const repair of LeftPlan.selectedRepairs(state,record.advice,{checked:true}))if(current.status==='available')current=Context.acceptLeftRepair(current,{position:state,repair,checked:true}).context;
   if(record.advice?.evidence?.strategy==='reset-coach'&&current.status==='available')current=Context.beginReset(current,{position:state,candidate:true}).context;

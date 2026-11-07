@@ -2,13 +2,13 @@
 
 The lab offers separate bounded opening and maintenance coaching for a **right-hand ST stack**, without guaranteeing indefinite survival. The screen offers exactly two play modes: **Empty board** (partial construction using visible pieces) and **Stable ST stack** (the existing Independent rebuild position, the default). The other development fixtures remain internal regression inputs, not selectable starts.
 
-Replay-verified [opening allocation and delayed quality](docs/st-opening-allocation.md) keep a known missing opening Z and early Center/S/L obligations distinct from optional stack growth. Imported geometry alone does not invent this history or an Extra-Z allowance.
+Current [opening allocation and delayed quality](docs/st-opening-allocation.md) keep a known missing opening Z and early Center/S/L obligations distinct from optional stack growth. Imported geometry alone does not invent this history or an Extra-Z allowance.
 
 The last selected play mode is saved locally as `stLabMode`; unknown or retired values fall back to Stable ST stack. Snapshot import/export remains a diagnostic tool, not a third preset, and an import does not overwrite the saved mode. Choosing a mode replaces the imported origin.
 
 ## Play
 
-- The first badge above the field names **Opening**, **Mid-game**, or the separately selected **Reset** coach. Reset is available only from verified empty-origin late Midgame history. Its second actual zero-clear T wholly in Left ends the phase immediately, even if Midgame must rebuild support. Undo and session replay restore actual progress. A search miss, quad cleanup or Restart does not invent a Reset. Placement explanations remain below the board. See the [Reset contract](docs/st-reset-coach.md).
+- The first badge above the field names **Opening**, **Mid-game**, or the separately selected **Reset** coach. Reset is available only with known current opening allocation and late Midgame eligibility. Its second actual zero-clear T wholly in Left ends the phase immediately, even if Midgame must rebuild support. Undo and native session checkpoints restore actual progress. A search miss, quad cleanup or Restart does not invent a Reset. Placement explanations remain below the board. See the [Reset contract](docs/st-reset-coach.md).
 - **Undo last placement** (configured Undo key, default T) restores the start of the previous completed placement, before its holds, moves and rotations. It also discards any movement of the current piece. Undo is available after a top-out or finite-queue exhaustion. The last 100 placements are retained; restart, mode changes and imports clear this history. Redo is not currently offered in the ST Lab.
 - Undo preserves the same generated piece sequence using a private append-only tape and rewindable cursor. It restores public bag evidence, stream position, opening phase and any saved coaching commitment, then requests fresh validation. Private tape/history never enter advice requests or exported snapshots; already-seen future pieces are not treated as currently visible. Late worker replies are rejected by worker identity and request/revision checks; a session import may preserve its saved revision for source-proof replay.
 
@@ -184,8 +184,8 @@ visible with advice hidden. On game end, they describe historical facts only.
 
 The existing diagnostics retain exact Center partner debt, HOLD/draw identities,
 source-backed Hanging S/L identities, and Extra Z only after a verified source opening baseline. Unknown imports
-stay unknown; clears never renew the allowance. Planning now receives an
-observation-bound replay of this history, not trusted serialized status flags.
+stay unknown; clears never renew the allowance. Planning now receives a
+current obligation Context with explicit availability and public inventory.
 Ordinary routes reject non-scoring T locks and a second non-Right Z; unknown
 imports cannot claim an unused Extra Z. Center choices must preserve their exact
 partner cells and a bounded actual completion route through
@@ -194,28 +194,7 @@ The supplemental repair search is bounded to four visible locks and 4,000
 nodes. Requiring this certificate even without a currently visible T is a
 conservative engineering choice, not a source claim that unseen partners make
 a construction illegal. These proofs can cause honest abstention; they do not establish sustained
-play or a completed Reset. Public simulation recordings
-can be checked offline with `node scripts/analyze-st-resources.cjs trace.jsonl`;
-add `--observed-empty-start` only for a recording known to begin at a fresh
-local empty seven-bag start. This is separate from generator-provenance mino
-accounting and does not certify an arbitrary imported history.
-
-The same details and offline sidecar also show **Reset evidence**, not a Reset
-coach: observed Left-T pairs, explicitly bounded Z-allocation windows, and later
-scoring markers. Imported histories and phase boundaries remain uncertain.
-Opposite T checkerboard contributions do not prove a safe rebuilt stack; the
-geometry summary describes the current board only. The observer never declares
-a completed Reset, renews Extra Z, cancels Center debt, or changes recommendations.
-Its source examples use [Shocky's guide](https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit)
-and [retained replay placements](https://jstris.jezevec10.com/replay/26536180).
-Replay test supply is synthetic; original HOLD, preview and bag history are not
-claimed. Center/cross-region T observations remain unclassified by the observer; ordinary
-planner routes still require scoring Ts. These diagnostics and the old finite-repair
-selection envelope are not the new Reset coach. With complete verified empty-origin
-history, the separate coach considers either-region support/arrival risk in late
-Midgame, persists actual progress, and conserves Z balance through observed
-identities and allocations. It never promotes these synthetic source windows into
-trusted Reset history. See [Reset scope and accounting](docs/st-reset-coach.md).
+play or a completed Reset. Historical allocation-window analysis and Reset-evidence sidecars have been retired; current Reset progress remains available from the shared Context.
 
 Hanging-S identification accounts for each observed L's consumption independently
 of its regional label, including Left/Center crossings. If its same-bag S is still
@@ -241,45 +220,21 @@ repair search, placement prohibition, urgency, or Reset trigger. Newly recognize
 Hanging S can invoke the existing bounded repair check, so identification can
 affect later recommendations without changing ranking or opener A/B/C rules.
 
-### Internal piece ledger (observation only)
+### Current accounting diagnostics
 
-`st-piece-ledger.js` is an additive local observer, exposed for diagnostics by
-`window.stLab.pieceLedger`. It does not feed recommendations, worker messages,
-resource bindings, public snapshots, badges, or scoring. The existing resource
-tracker and its limitations are unchanged.
-
-For each piece type, `entered` increments only when an identity first enters
-active/held inventory, `locked` increments on its actual lock, and `outstanding`
-is their difference. Preview revelation alone is not entry. Repeated HOLD swaps
-never recount an identity; a bag boundary never erases held inventory. Imports
-start a `since-observation` baseline with currently active/held inventory counted,
-not a claim about earlier play. Only a locally witnessed empty seven-bag start
-establishes bag ages.
-
-The compact structural ledger records Left S/L allocations, exact completed
-Center pairs, current Center commitments, and unresolved accommodation counts.
-Up to 64 unresolved identity examples are retained; any overflow is explicit and
-its count is never discarded. Unknown accommodation is not a confirmed repair or
-a confirmed hanging piece. `pairingCandidates` can associate a held L and active S
-across bags, or an available L with a pending Center S. These are inventory/geometry
-facts, explicitly **not** reachability proofs, reservations, or hanging-status
-verdicts. Extra-Z entries are factual Left/Center diversion counts before/after an
-observed first canonical TSD, not a new allowance or eligibility rule. No boundary
-renews those counts.
-
-Immutable local checkpoints retain counters without an action tape or lifetime
-lock cap. Restart, new mode and import establish a new ledger; Undo restores its
-saved pre-placement checkpoint. Undo retains at most the latest **100 locked
-placements**, not 100 key inputs. Pruning old Undo entries does not reset current
-counters. Imported/injected diagnostic JSON cannot restore prior provenance.
+The live page reads shared Context selectors and public inventory. There is no
+parallel lifetime piece ledger or historical allocation replay. Active/HOLD/preview
+identities, current duties and uncertainty survive transitions and bounded Undo.
+Importing a position starts unknown prior accounting; native sessions restore
+current facts without claiming a verified historical witness.
 
 ## Versioned coaching-session export
 
 The import box accepts either the existing lightweight position JSON or a
-`zztetris-st-session` envelope (`schemaVersion: 1`). **Export coaching session**
+`zztetris-st-session` envelope (`schemaVersion: 2`). **Export coaching session**
 adds the current recommendation inputs to the visible position; **Export visible
 snapshot** is unchanged. Neither exports hidden future bags/RNG, Undo history,
-footer totals, or the diagnostic shadow piece ledger. Imported play has a
+footer totals. Imported play has a
 finite visible queue (plus the existing logically forced bag remainder).
 
 The session contains:
@@ -287,7 +242,7 @@ The session contains:
 - `engineVersion`: an explicit coach compatibility identifier. Bump this when a
   behavior/proof-contract change invalidates saved advice or commitments.
   A different coach version produces a warning and discards those candidates;
-  supported current facts, legacy history and search settings can still be
+  supported current facts and search settings can still be
   imported.
   It is a compatibility version, not a Git SHA or a signature.
 - `position`: rules, board, exact active pose/rotation evidence, HOLD, six-piece
@@ -295,44 +250,22 @@ The session contains:
 - `search`: current shared search time plus depth/width/node settings. Only the
   currently supported production configuration is accepted; imports cannot
   enlarge budgets or install clock/deadline callbacks.
-- `coaching`: replay-backed resource context and its original bag frontier,
-  current notch checkpoint, opener phase/source/clear/repair, previous advice and
-  retained construction commitment. Hanging S/L and Extra Z are reconstructed from replay,
-  not restored from editable status flags.
+- `coaching`: trusted current obligation Context and public inventory, finite plan
+  continuity, opener phase/source/clear/repair, and bounded advice candidates.
+  Current notch phase belongs to Context; redundant sidecars cannot override it.
 
-`st-session.js` checks input size/depth, versions, the complete resource replay,
-its bag frontier, notch checkpoint shape or legacy notch tape, and bounded opener
-certificates before the controller changes state. Imported previous advice is only a bounded candidate;
-its old witness can be stale after movement, and the existing planner performs
-normal retention/resource/access validation before any target is displayed.
-Commitment witnesses are checked at their recorded origin, preserving legal
-mid-piece target re-enumeration. Invalid/stale opener metadata or malformed
-candidates are discarded with a visible warning. Invalid position, resource or
-pattern payload rejects the import without changing the current game/worker.
+`st-session.js` checks size/depth, versions, current structural consistency,
+public inventory/position pairing and bounded opener certificates before changing
+state. Saved advice remains a candidate requiring normal movement, resource and
+access validation. A different coach version discards advice, not current facts.
+Malformed current accounting rejects atomically rather than becoming unknown.
 
-The nested `coaching.patternHistory` field now carries a version 2 **trusted
-current notch checkpoint**: status, anchor row, blocked rows and a diagnostic
-source. Reserved rows are derived from the current anchor. No origin board,
-piece/lock tape or historical witness is needed to import these facts. Actual
-locks still apply the same notch transition rules, including sticky broken
-state, canonical TSD consumption and clear translation. Legacy `{origin, steps}`
-notch tapes are replay-checked and immediately converted on session import or
-export; malformed tapes still reject. Their 128-lock import limit does not apply
-to live current checkpoints.
-
-The outer session schema remains version 1 and the coach compatibility identifier
-is unchanged: retained plan metadata can still use legacy notch tapes, and
-future advice receives the same checks. Older readers that only understand
-notch tapes reject non-null version 2 checkpoints rather than silently
-reconstructing their phase from the board. This is a nested format extension,
-not backward-readable output. Plain position imports still establish facts
-from their board and do not restore embedded coaching state.
-
-Unknown or truncated resource history remains unknown. The existing resource
-replay limits (4,096 actions / 512 locks) still apply; this feature does **not**
-replace resource accounting with a trusted compact checkpoint. A valid replay
-proves a coherent constructed history, not who played it. There are no imported capability tokens,
-no authenticity claims from hashes, and no inferred Extra-Z allowance.
+Only session schema 2 and current notch checkpoints are accepted. Old session
+and notch tapes are rejected explicitly. To discard old accounting deliberately,
+import a separate position-only JSON, which starts unknown prior allocations.
+There are no lifetime replay limits, imported capabilities or authenticity claims.
+Actual locks preserve notch translation and sticky broken state. Bounded Undo
+remains external to the current accounting state.
 
 Session install is atomic after validation, cancels the old worker and preserves
 its exported revision because opener certificates bind exact revisions. Worker
@@ -378,8 +311,8 @@ cells or be irreparable. The demonstrated no-fill J/L seal is a separate test
 case, not a theorem inferred from every selected route. Confirmed Center and
 Hanging-S obligations and T collisions must be paid at the certificate endpoint;
 old unclassified allocations and deferred Hanging-L diagnostics remain explicit.
-Original visibility is bound to the connected actual resource-history prefix,
-including draws. A deduced forced-bag search copy is not substituted for that
+Original visibility is bound to the current public inventory and explicit finite
+plan-continuity receipt, including draws. A deduced forced-bag search copy is not substituted for that
 actual observation during retention.
 The dedicated exception waives only the first I's cleanup diversion. Actual cap
 availability is independently replayed from the current pose and up to two legal
@@ -427,13 +360,13 @@ promise that this coach will repeat the recorded continuation.
 
 Ordinary final continuation selection preserves a known available Extra-Z
 allowance only within an otherwise-equivalent group. The root permission must
-come from complete, replay-validated history with an established baseline;
+come from known current accounting with an established opening baseline;
 unknown history and a physical Z in HOLD/NEXT do not qualify. No clear or planner
 projection renews the allowance.
 
 Equivalence requires equal executed lock horizons and scoring/cleanup schedules, every existing numeric and
 Center/opening-quality priority, exact structural score and endpoint damage
-metrics, the same history origin and live piece/bag identities, and settled
+metrics, the same current origin knowledge and live piece/bag identities, and settled
 cavity, Center, access and resource obligations. The preference does not replace
 access/resource admission, required repairs, scoring goals or cleanup protections.
 It applies after existing ordering, only by exchanging members of the same
@@ -451,7 +384,7 @@ This comparison runs after ordinary selection and final admission. It does not c
 ### Experimental certified S/L allocation comparison
 
 The late, default-on S/L comparison is limited to ordinary maintenance with
-replay-validated complete or partial resource history, current/held S and an
+available current resource accounting, current/held S and an
 originally visible positive-identity L. It first privately admits the unchanged,
 goal-free incumbent. A candidate must execute the first S's exact supported L
 payment, translated through real clears, under all ordinary Right Z/T/I,
@@ -474,8 +407,8 @@ unchanged for ordinary search but is not an absolute veto on this explicit
 regional comparison. Telemetry records structural, Center, Right and covered-cell
 tradeoffs, exact public inventories, witnesses and reference certificates. This
 is a conservative experimental rule, not a claim that all S/L alternatives are
-searched, a source theorem, or a sustainability guarantee. Partial history and
-unknown Extra-Z permission remain partial/unknown. Long historical S/L paths can
+searched, a source theorem, or a sustainability guarantee. Unknown earlier allocations and
+Extra-Z permission remain unknown. Long historical S/L paths can
 remain valid mechanics without having a comparable ordinary horizon.
 
 ### Experimental ordinary S allocation preference

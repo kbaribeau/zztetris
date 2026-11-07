@@ -1,19 +1,14 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const Provider=require('../st-resource-provider'),Legacy=require('../st-resource-legacy'),C=require('../st-obligation-context'),Q=require('../st-obligation-state'),N=require('../st-obligation-resources'),R=require('../st-rules'),H=require('../st-resource-history'),B=require('../st-bag');
+const Provider=require('../st-resource-provider'),C=require('../st-obligation-context'),Q=require('../st-obligation-state'),N=require('../st-obligation-resources'),R=require('../st-rules'),B=require('../st-bag');
 const copy=x=>JSON.parse(JSON.stringify(x)),first=()=>R.createState({active:'I',queue:[...'JLOSTZ'],streamCursor:1});
 const native=(position=first())=>({position,context:C.start(position,{fresh:true})});
-function replay(tape){
- let position=R.createState(tape.origin),context=C.start(position,{fresh:tape.fresh});
- const mark=at=>{if(tape.handoffAtAction===at)context=C.handoff(context,{position}).context;if((tape.resetAtActions||[]).includes(at))context=C.beginReset(context,{position,candidate:true}).context;};mark(0);
- for(const [index,step]of tape.steps.entries()){const before=position,next=R.move(before,step.action);position={...next,queue:[...next.queue,...step.revealed]};context=C.applyActual(context,{before,action:step.action,after:position}).context;assert.equal(context.status,'available',context.reason);mark(index+1);}return{position,context};
-}
-function providerWithLegacy(convert){const sandbox={module:{exports:{}},require:name=>name==='./st-resource-legacy'?{convert}:require('../'+name.slice(2))};vm.runInNewContext(fs.readFileSync(require.resolve('../st-resource-provider'),'utf8'),sandbox);return sandbox.module.exports;}
+function providerWithoutLegacy(){const sandbox={module:{exports:{}},require:name=>{assert.doesNotMatch(name,/resource-legacy|resource-history/);return require('../'+name.slice(2));}};vm.runInNewContext(fs.readFileSync(require.resolve('../st-resource-provider'),'utf8'),sandbox);return sandbox.module.exports;}
 function accountRoot(remaining=1){const position=R.createState({active:'Z',queue:[...'IJLOST'],streamCursor:1}),raw=C.exportState(C.start(position,{fresh:true}));raw.state.sl.foundationOpen=false;Object.assign(raw.state.account,{firstTsd:true,allocationVerified:true,opening:null});raw.state.account.profile.before=null;raw.state.account.profile.capEstablished=true;raw.state.account.z.remaining=remaining;return{position,context:C.importState(raw,{position})};}
 
 test('provider: native current import is trusted structural authority and never invokes legacy replay',()=>{
  const {position,context}=native(),raw=C.exportState(context);raw.inventory.nextId=1000000;raw.state.safety.coveredCells=[[1,35]];raw.state.dPending=true;
- const api=providerWithLegacy(()=>{throw Error('Native input invoked legacy converter');}),input=api.prepare(position,{obligationContext:raw});
+ const api=providerWithoutLegacy(),input=api.prepare(position,{obligationContext:raw});
  assert.equal(input.kind,'current');assert.equal(input.supplied,true);assert.equal(input.status,'available');assert.equal(input.facts.availability,'known');assert.deepEqual(copy(input.facts.coveredRepair.cells),[[1,35]]);assert.equal(input.facts.dPattern.pending,true);assert.equal(input.context.inventory.nextId,1000000);
  assert.deepEqual(copy(api.exportActual(input)),raw);assert.ok(Object.isFrozen(input)&&Object.isFrozen(input.frame)&&Object.isFrozen(input.facts));
  for(const key of ['coverage','allocations','observedSL','pairs','milestones','actions','locks'])assert.equal(key in input.facts,false,key);
@@ -31,29 +26,27 @@ test('provider: malformed literal positions remain unavailable rather than throw
  for(const raw of [null,{}, {...first(),queue:Array(7).fill('I')}])assert.equal(Provider.prepare(raw).status,'unavailable');
  const cyclic={};cyclic.self=cyclic;assert.equal(Provider.prepare(cyclic).status,'unavailable');
 });
-test('provider: prepared inputs are reused once across normalized public entry points',()=>{
- const f=require('./fixtures/forced-bag-resource-binding.json'),position=R.createState(f.observation);let calls=0;
- const api=providerWithLegacy((...args)=>{calls++;return Legacy.convert(...args);}),input=api.prepare(position,f.options);assert.equal(input.status,'available',input.reason);assert.equal(input.kind,'legacy-converted');assert.equal(calls,1);
- const options=api.withOptions(position,{...f.options,resourceInput:input});assert.equal(options.resourceInput,input);assert.equal(api.prepare({...position,lastEvent:{diagnostic:true}},options),input);assert.equal(calls,1);
+test('provider: prepared inputs are reused across normalized public entry points',()=>{
+ const f=require('./fixtures/forced-bag-resource-binding.json'),position=R.createState(f.observation),api=providerWithoutLegacy(),input=api.prepare(position,f.options);assert.equal(input.status,'available',input.reason);assert.equal(input.kind,'current');
+ const options=api.withOptions(position,{...f.options,resourceInput:input});assert.equal(options.resourceInput,input);assert.equal(api.prepare({...position,lastEvent:{diagnostic:true}},options),input);
  assert.throws(()=>api.prepare({...position,revision:position.revision+1},options),/differs/);assert.throws(()=>api.prepare(position,{resourceInput:copy(input)}),/prepared/);
 });
-test('provider: finite legacy converter preserves replayed current state, handoff, Reset and inherited cells',()=>{
+test('provider: native checkpoints preserve handoff, Reset, inherited cells and public frontier',()=>{
  const fixtures=[require('./fixtures/forced-bag-resource-binding.json'),...require('./fixtures/resource-projection-history.json').cases];
- for(const f of fixtures){const tape=f.resourceContext||f.options.resourceContext,position=R.createState(f.observation),converted=Legacy.convert(position,tape),actual=replay(tape);assert.equal(converted.status,'available',converted.reason);assert.deepEqual(converted.context.state,actual.context.state);assert.deepEqual(converted.context.boundary,actual.context.boundary);assert.deepEqual(converted.context.inventory,actual.context.inventory);assert.equal('history'in converted,false);
-  const input=Provider.prepare(position,{obligationContext:converted.context});assert.deepEqual(input.facts.observedRemainingTypes,[...'IJLOSTZ'].filter(type=>!(actual.context.inventory.frontier.seenMask&(1<<'IJLOSTZ'.indexOf(type)))));
-  if(actual.context.state.account.reset.status==='active')assert.deepEqual(input.facts.reset.inheritedCovered,actual.context.state.account.reset.inheritedCovered);
+ for(const f of fixtures){const raw=f.obligationContext||f.options?.obligationContext,position=R.createState(f.observation),actual=C.importState(raw,{position}),input=Provider.prepare(position,{obligationContext:raw});assert.equal(input.status,'available',input.reason);assert.deepEqual(Provider.exportActual(input),C.exportState(actual));
+  assert.deepEqual(input.facts.observedRemainingTypes,[...'IJLOSTZ'].filter(type=>!(actual.inventory.frontier.seenMask&(1<<'IJLOSTZ'.indexOf(type)))));
+  if(actual.state.account.reset.status==='active')assert.deepEqual(input.facts.reset.inheritedCovered,actual.state.account.reset.inheritedCovered);
  }
 });
-test('provider: legacy rejected inputs, mismatched endpoints, markers and finite limits remain unavailable',()=>{
- const position=first(),history=H.start(position,{fresh:true}),tape=copy(H.exportContext(position,history));
- const variants=[{...tape,steps:[{action:'NOPE',revealed:[]}]},{...tape,handoffAtAction:1},{...tape,resetAtActions:[0]},{...tape,steps:Array(4097).fill({action:'L',revealed:[]})}];
- for(const invalid of variants){assert.equal(Legacy.convert(position,invalid).status,'unavailable');assert.equal(Provider.prepare(position,{resourceContext:invalid}).supplied,true);assert.equal(Provider.prepare(position,{resourceContext:invalid}).status,'unavailable');}
- assert.equal(Legacy.convert(R.move(position,'L'),tape).status,'unavailable');assert.equal(Legacy.fromHistory(position,history).status,'available');
+test('provider: obsolete accounting tapes reject without a silent unknown restart',()=>{
+ const position=first(),tape={origin:position,fresh:true,steps:[]};
+ for(const invalid of [tape,{}, {...tape,steps:[{action:'NOPE',revealed:[]}]},{...tape,handoffAtAction:1},{...tape,resetAtActions:[0]}]){const result=Provider.prepare(position,{resourceContext:invalid});assert.equal(result.supplied,true);assert.equal(result.status,'unavailable');assert.match(result.reason,/Legacy resource contexts/);assert.equal(result.frame,null);}
+ for(const key of ['resourceHistory','resourceOriginBag'])assert.equal(Provider.prepare(position,{[key]:tape}).status,'unavailable');
 });
-test('provider: legacy current partial-origin bag knowledge and session origin checks are retained',()=>{
- const bag=B.fromObserved({observed:['I','J','L']}),position=R.createState({active:'I',queue:['J','L'],bag}),history=H.start(position),tape=H.exportContext(position,history),result=Legacy.convert(position,tape,{resourceOriginBag:bag});
- assert.equal(result.status,'available',result.reason);assert.deepEqual(result.context.inventory.knowledge,bag);assert.equal(result.context.state.availability,'unknown');assert.equal(Legacy.convert(position,tape,{resourceOriginBag:null}).status,'unavailable');
- const f=first(),freshTape=H.exportContext(f,H.start(f,{fresh:true})),known=B.fromObserved({observed:['I',...'JLOSTZ'],startPhase:0});assert.equal(Legacy.convert({...f,bag:known},freshTape,{resourceOriginBag:known}).status,'available');assert.equal(Legacy.convert(f,freshTape,{resourceOriginBag:null}).status,'unavailable');
+test('provider: current partial-origin bag knowledge remains unknown accounting',()=>{
+ const bag=B.fromObserved({observed:['I','J','L']}),position=R.createState({active:'I',queue:['J','L'],bag}),context=C.start(position),result=Provider.prepare(position,{obligationContext:context});
+ assert.equal(result.status,'available',result.reason);assert.deepEqual(result.context.inventory.knowledge,bag);assert.equal(result.facts.availability,'unknown');
+ const conflicting={...position,bag:B.fromObserved({observed:['O']})};assert.equal(Provider.prepare(conflicting,{obligationContext:context}).status,'unavailable');
 });
 test('provider: literal facts and public frontier never include a forced synthetic tail',()=>{
  const f=require('./fixtures/forced-bag-resource-binding.json'),position=R.createState(f.observation),input=Provider.prepare(position,f.options),saved=copy(input),resource=Provider.startRoute(input);
@@ -96,7 +89,7 @@ test('provider: scheduling diversity is available only after a known factual han
  const {position,context}=native(),input=Provider.prepare(position,{obligationContext:context});assert.equal(N.historyDiversityEnabled(Provider.startRoute(input)),false);assert.equal(N.historyDiversityEnabled(Provider.startRoute(Provider.projectHandoff(input))),true);assert.equal(N.historyDiversityEnabled(Provider.startRoute(Provider.projectHandoff(Provider.prepare(position)))),false);
 });
 test('provider: classic globals expose the same current path without importing old state',()=>{
- const realm=vm.createContext({}),names=['st-rules','st-bag','st-structure','st-access','st-pattern-history','st-reset-policy','st-opening-patterns','st-public-inventory','st-center-obligations','st-resource-history','st-sl-obligations','st-opening-obligations','st-left-obligations','st-obligation-state','st-obligation-context','st-obligation-admission','st-obligation-assessment','st-obligation-projection','st-obligation-route','st-resource-search','st-obligation-resources','st-opening-eligibility','st-resource-legacy','st-resource-provider'];
+ const realm=vm.createContext({}),names=['st-rules','st-bag','st-structure','st-access','st-pattern-history','st-reset-policy','st-opening-patterns','st-public-inventory','st-center-obligations','st-sl-obligations','st-opening-obligations','st-left-obligations','st-obligation-state','st-obligation-context','st-obligation-admission','st-obligation-assessment','st-obligation-projection','st-obligation-route','st-resource-search','st-obligation-resources','st-opening-eligibility','st-resource-provider'];
  for(const name of names)vm.runInContext(fs.readFileSync(require.resolve('../'+name),'utf8'),realm,{filename:name+'.js'});
  const {position,context}=native(),actual=realm.STResourceProvider.prepare(position,{obligationContext:C.exportState(context)}),expected=Provider.prepare(position,{obligationContext:context});assert.deepEqual(copy(actual),copy(expected));assert.equal(realm.STResourceProvider.binding(actual),Provider.binding(expected));assert.deepEqual(copy(realm.STResourceProvider.project(actual,{witness:['HD']})),copy(Provider.project(expected,{witness:['HD']})));
 });
@@ -107,21 +100,19 @@ test('provider: implicit observed identities remain actual even with unknown acc
  assert.equal(input.supplied,false);assert.equal(input.availability,'unknown');assert.equal(input.facts.instances.active.id,1);assert.equal(input.facts.instances.hold.id,2);assert.equal(input.frame.supply.nextSyntheticId,-1);assert.equal(next.hold.id,1);assert.equal(next.active.id,3);assert.equal(input.context,null);
 });
 test('provider: explicit non-native current notch sidecars preserve carried anchors and sticky broken rows once',()=>{
- const position=first(),pattern={version:2,status:'broken',anchorRow:38,blockedRows:[38,32],source:'carried-old-checkpoint'},history=H.start(position),tape=H.exportContext(position,history);
- for(const options of [{patternHistory:pattern},{resourceContext:tape,patternHistory:pattern}]){
+ const position=first(),pattern={version:2,status:'broken',anchorRow:38,blockedRows:[38,32],source:'carried-old-checkpoint'};
+ for(const options of [{patternHistory:pattern}]){
   const input=Provider.prepare(position,options);assert.equal(input.status,'available',input.reason);assert.equal(input.availability,'unknown');assert.deepEqual(input.frame.state.safety.notches,pattern);assert.deepEqual(Provider.withOptions(position,{...options,resourceInput:input}).patternHistory,pattern);
   const reused=Provider.prepare(position,{resourceInput:input,patternHistory:{version:2,status:'invalid-history'}});assert.equal(reused,input);assert.deepEqual(reused.frame.state.safety.notches,pattern);
  }
 });
-test('provider: explicit legacy notch tape becomes a current checkpoint and malformed sidecars fail closed',()=>{
- const Pattern=require('../st-pattern-history'),f=require('./support/st-gap-phase.json').quad,initial=R.createState(f.observation),before=R.replay(initial,f.witness.slice(0,-1)).state,replayed=R.replay(before,['HD']),position=replayed.state,tape={origin:initial.board.slice(),steps:[{pose:copy(before.active),event:copy(replayed.events[0])}]};
- const input=Provider.prepare(position,{patternHistory:tape});assert.equal(input.status,'available',input.reason);assert.equal(input.frame.state.safety.notches.anchorRow,38);assert.deepEqual(input.frame.state.safety.notches,Pattern.snapshot(position,tape));assert.equal('steps'in input.frame.state.safety.notches,false);
- for(const patternHistory of [false,{}, {...tape,steps:[{...tape.steps[0],event:{...tape.steps[0].event,lines:0}}]}, {version:2,status:'established',anchorRow:38,blockedRows:[38]}]){const rejected=Provider.prepare(position,{patternHistory});assert.equal(rejected.status,'unavailable');assert.match(rejected.reason,/notch checkpoint/);assert.equal(rejected.supplied,false);}
+test('provider: obsolete notch tapes and malformed sidecars fail closed',()=>{
+ const position=first(),tape={origin:position.board,steps:[]};
+ for(const patternHistory of [tape,false,{}, {version:2,status:'established',anchorRow:38,blockedRows:[38]}]){const rejected=Provider.prepare(position,{patternHistory});assert.equal(rejected.status,'unavailable');assert.match(rejected.reason,/notch checkpoint/);assert.equal(rejected.supplied,false);}
 });
 
-
 test('provider: omitted and null request bag cannot extend supply or change imported actual knowledge',()=>{
- const Planner=require('../st-planner'),f=require('./fixtures/forced-bag-resource-binding.json'),original=R.createState(f.observation),context=Legacy.convert(original,f.options.resourceContext).context,snapshot=C.exportState(context);
+ const Planner=require('../st-planner'),f=require('./fixtures/forced-bag-resource-binding.json'),original=R.createState(f.observation),context=C.importState(f.options.obligationContext,{position:original}),snapshot=C.exportState(context);
  for(const mode of ['absent','null','present']){
   const position=copy(original);if(mode==='absent')delete position.bag;else if(mode==='null')position.bag=null;
   const input=Provider.prepare(position,{obligationContext:snapshot});assert.equal(input.status,'available',input.reason);assert.deepEqual(Provider.exportActual(input),snapshot);assert.deepEqual(input.facts.observedRemainingTypes,['I']);assert.deepEqual(input.context.inventory.frontier,snapshot.inventory.frontier);
@@ -131,11 +122,11 @@ test('provider: omitted and null request bag cannot extend supply or change impo
  }
  const conflict={...original,bag:{remaining:[2],observedCount:27,provenance:'known-phase'}};assert.equal(Provider.prepare(conflict,{obligationContext:snapshot}).status,'unavailable');
 });
-test('provider: explicit null old notch sidecar requests fresh geometry while absent and native preserve carried phase',()=>{
- const f=require('./support/st-gap-phase.json').quad;let position=R.createState(f.observation),history=H.start(position);
- for(const action of f.witness){const before=position;position=R.move(before,action);history=H.applyAction(history,before,action,position);}
- const resourceContext=H.exportContext(position,history),absent=Provider.prepare(position,{resourceContext}),fresh=Provider.prepare(position,{resourceContext,patternHistory:null});assert.equal(absent.status,'available',absent.reason);assert.equal(fresh.status,'available',fresh.reason);
- assert.equal(absent.frame.state.safety.notches.anchorRow,38);assert.equal(absent.facts.coveredRepair.notches.status,'established');assert.equal(fresh.frame.state.safety.notches,null);assert.equal(fresh.facts.coveredRepair.notches.status,'unanchored');
- const native=Provider.prepare(position,{obligationContext:Provider.exportActual(absent),patternHistory:null});assert.deepEqual(native.frame.state.safety.notches,absent.frame.state.safety.notches);
+test('provider: native current notch phase survives null sidecars while implicit imports use fresh geometry',()=>{
+ const f=require('./support/st-gap-phase.json').quad;let position=R.createState(f.observation),context=C.start(position);
+ for(const action of f.witness){const before=position;position=R.move(before,action);context=C.applyActual(context,{before,action,after:position}).context;}
+ const absent=Provider.prepare(position,{obligationContext:context}),native=Provider.prepare(position,{obligationContext:context,patternHistory:null});assert.equal(absent.status,'available',absent.reason);assert.equal(native.status,'available',native.reason);
+ assert.equal(absent.frame.state.safety.notches.anchorRow,38);assert.equal(absent.facts.coveredRepair.notches.status,'established');assert.deepEqual(native.frame.state.safety.notches,absent.frame.state.safety.notches);
+ const fresh=Provider.prepare(position,{patternHistory:null});assert.equal(fresh.frame.state.safety.notches,null);assert.equal(fresh.facts.coveredRepair.notches.status,'unanchored');
  const implicit=Provider.prepare(R.createState(f.observation),{patternHistory:null});assert.equal(implicit.status,'available');assert.equal(implicit.frame.state.safety.notches,null);assert.equal(implicit.facts.coveredRepair.notches.status,'established');
 });

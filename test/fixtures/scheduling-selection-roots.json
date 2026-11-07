@@ -84,1054 +84,156 @@
         "width": 8,
         "maxNodes": 45000,
         "timeMs": 1500,
-        "resourceContext": {
-          "schemaVersion": 1,
-          "origin": {
-            "rules": "st-zero-v2",
-            "board": [
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              ".........."
-            ],
-            "active": {
-              "type": "I",
-              "x": 3,
-              "y": 17,
-              "rotation": 0,
-              "lastRotation": null
-            },
-            "hold": null,
-            "canHold": true,
-            "queue": [
-              "O",
-              "Z",
-              "S",
-              "J",
-              "L",
-              "T"
-            ],
-            "streamCursor": 1,
-            "topOut": false
-          },
-          "fresh": true,
-          "steps": [
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "Z"
-              ]
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "J"
-              ]
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "S"
-              ]
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "I"
-              ]
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R180",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "O"
-              ]
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R180",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "T"
-              ]
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "L"
-              ]
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "Z"
-              ]
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "T"
-              ]
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "CCW",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "O"
-              ]
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "CCW",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "J"
-              ]
-            },
-            {
-              "action": "HOLD",
-              "revealed": [
-                "S"
-              ]
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "R180",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "L"
-              ]
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "CCW",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "I"
-              ]
-            },
-            {
-              "action": "HOLD",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "T"
-              ]
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "L"
-              ]
-            },
-            {
-              "action": "HOLD",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "O"
-              ]
-            },
-            {
-              "action": "HOLD",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "I"
-              ]
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "J"
-              ]
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R180",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "S"
-              ]
-            }
-          ],
-          "handoffAtAction": 206
-        },
         "patternHistory": {
-          "origin": [
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "....LLL...",
-            "....LSS...",
-            "..OOSS....",
-            "OOOOJJZ...",
-            "OOLLJZZ...",
-            "TTTLJZ...Z",
-            "ITSLLLL.ZZ",
-            "ITSSLSS.Z.",
-            "IIIIJOO.Z."
-          ],
-          "steps": []
+          "version": 2,
+          "status": "established",
+          "anchorRow": 36,
+          "blockedRows": [],
+          "source": "recognized-scoring-wall"
         },
         "openingPhase": false,
         "openingSource": null,
         "openingClear": null,
-        "openingRepair": null
+        "openingRepair": null,
+        "obligationContext": {
+          "schemaVersion": 1,
+          "status": "available",
+          "reason": null,
+          "inventory": {
+            "schemaVersion": 1,
+            "status": "available",
+            "originKnown": true,
+            "nextId": 28,
+            "streamCursor": 21,
+            "active": {
+              "id": 21,
+              "type": "I",
+              "observedOrder": 20,
+              "bag": 2
+            },
+            "hold": {
+              "id": 18,
+              "type": "J",
+              "observedOrder": 17,
+              "bag": 2
+            },
+            "queue": [
+              {
+                "id": 22,
+                "type": "T",
+                "observedOrder": 21,
+                "bag": 3
+              },
+              {
+                "id": 23,
+                "type": "L",
+                "observedOrder": 22,
+                "bag": 3
+              },
+              {
+                "id": 24,
+                "type": "O",
+                "observedOrder": 23,
+                "bag": 3
+              },
+              {
+                "id": 25,
+                "type": "I",
+                "observedOrder": 24,
+                "bag": 3
+              },
+              {
+                "id": 26,
+                "type": "J",
+                "observedOrder": 25,
+                "bag": 3
+              },
+              {
+                "id": 27,
+                "type": "S",
+                "observedOrder": 26,
+                "bag": 3
+              }
+            ],
+            "frontier": {
+              "bag": 3,
+              "seenMask": 63
+            },
+            "knowledge": {
+              "remaining": [
+                64
+              ],
+              "observedCount": 27,
+              "provenance": "known-phase"
+            }
+          },
+          "state": {
+            "schemaVersion": 2,
+            "availability": "known",
+            "center": {
+              "pending": [],
+              "debt": []
+            },
+            "sl": {
+              "schemaVersion": 1,
+              "status": "known",
+              "foundationOpen": false,
+              "firstBagReview": "reviewed",
+              "handoff": true,
+              "residuals": [],
+              "uncertainty": {
+                "S": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "L": [
+                  0
+                ]
+              }
+            },
+            "account": {
+              "schemaVersion": 1,
+              "known": true,
+              "firstTsd": true,
+              "allocationVerified": true,
+              "mandatoryZ": false,
+              "thirdTWindow": true,
+              "qualityCandidate": false,
+              "opening": null,
+              "profile": {
+                "violation": false,
+                "departure": false,
+                "before": null,
+                "capEstablished": true
+              },
+              "z": {
+                "remaining": 1,
+                "uncredited": "none"
+              },
+              "reset": {
+                "status": "inactive"
+              }
+            },
+            "safety": {
+              "notches": {
+                "version": 2,
+                "status": "established",
+                "anchorRow": 36,
+                "blockedRows": [],
+                "source": "recognized-scoring-wall"
+              },
+              "coveredCells": []
+            },
+            "dPending": false,
+            "leftGoals": []
+          },
+          "boundary": {
+            "firstBagLocks": 7,
+            "sourcePatternSeen": true
+          }
+        }
       }
     },
     "expectedTarget": {
@@ -1226,836 +328,156 @@
         "width": 8,
         "maxNodes": 45000,
         "timeMs": 1500,
-        "resourceContext": {
-          "schemaVersion": 1,
-          "origin": {
-            "rules": "st-zero-v2",
-            "board": [
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              ".........."
-            ],
-            "active": {
-              "type": "S",
-              "x": 3,
-              "y": 17,
-              "rotation": 0,
-              "lastRotation": null
-            },
-            "hold": null,
-            "canHold": true,
-            "queue": [
-              "J",
-              "L",
-              "I",
-              "T",
-              "O",
-              "Z"
-            ],
-            "streamCursor": 1,
-            "topOut": false
-          },
-          "fresh": true,
-          "steps": [
-            {
-              "action": "HOLD",
-              "revealed": [
-                "J"
-              ]
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "R180",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "O"
-              ]
-            },
-            {
-              "action": "HOLD",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "T"
-              ]
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "CCW",
-              "revealed": []
-            },
-            {
-              "action": "CCW",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "CCW",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "Z"
-              ]
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "I"
-              ]
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "L"
-              ]
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "S"
-              ]
-            },
-            {
-              "action": "HOLD",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R180",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "J"
-              ]
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "O"
-              ]
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "CCW",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "S"
-              ]
-            },
-            {
-              "action": "HOLD",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R180",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "L"
-              ]
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "CCW",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "Z"
-              ]
-            },
-            {
-              "action": "HOLD",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "T"
-              ]
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "I"
-              ]
-            },
-            {
-              "action": "HOLD",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R180",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "S"
-              ]
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "Z"
-              ]
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "O"
-              ]
-            },
-            {
-              "action": "HOLD",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "R180",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "L"
-              ]
-            },
-            {
-              "action": "HOLD",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "I"
-              ]
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "T"
-              ]
-            },
-            {
-              "action": "HOLD",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "J"
-              ]
-            }
-          ],
-          "handoffAtAction": 160
-        },
         "patternHistory": {
-          "origin": [
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "...LLLL...",
-            ".LLLLSS...",
-            ".JJJSS....",
-            ".SSJJJJ...",
-            "SSOOOOJ...",
-            "ZZOOOO...Z",
-            "IZZTLLL.ZZ",
-            "ITTTLSS.Z.",
-            "IIIIJOO.Z."
-          ],
-          "steps": []
+          "version": 2,
+          "status": "established",
+          "anchorRow": 36,
+          "blockedRows": [],
+          "source": "recognized-scoring-wall"
         },
         "openingPhase": false,
         "openingSource": null,
         "openingClear": null,
-        "openingRepair": null
+        "openingRepair": null,
+        "obligationContext": {
+          "schemaVersion": 1,
+          "status": "available",
+          "reason": null,
+          "inventory": {
+            "schemaVersion": 1,
+            "status": "available",
+            "originKnown": true,
+            "nextId": 29,
+            "streamCursor": 22,
+            "active": {
+              "id": 22,
+              "type": "S",
+              "observedOrder": 21,
+              "bag": 3
+            },
+            "hold": {
+              "id": 21,
+              "type": "I",
+              "observedOrder": 20,
+              "bag": 2
+            },
+            "queue": [
+              {
+                "id": 23,
+                "type": "Z",
+                "observedOrder": 22,
+                "bag": 3
+              },
+              {
+                "id": 24,
+                "type": "O",
+                "observedOrder": 23,
+                "bag": 3
+              },
+              {
+                "id": 25,
+                "type": "L",
+                "observedOrder": 24,
+                "bag": 3
+              },
+              {
+                "id": 26,
+                "type": "I",
+                "observedOrder": 25,
+                "bag": 3
+              },
+              {
+                "id": 27,
+                "type": "T",
+                "observedOrder": 26,
+                "bag": 3
+              },
+              {
+                "id": 28,
+                "type": "J",
+                "observedOrder": 27,
+                "bag": 3
+              }
+            ],
+            "frontier": {
+              "bag": 4,
+              "seenMask": 0
+            },
+            "knowledge": {
+              "remaining": [
+                0
+              ],
+              "observedCount": 28,
+              "provenance": "known-phase"
+            }
+          },
+          "state": {
+            "schemaVersion": 2,
+            "availability": "known",
+            "center": {
+              "pending": [],
+              "debt": []
+            },
+            "sl": {
+              "schemaVersion": 1,
+              "status": "known",
+              "foundationOpen": false,
+              "firstBagReview": "reviewed",
+              "handoff": true,
+              "residuals": [],
+              "uncertainty": {
+                "S": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "L": [
+                  0
+                ]
+              }
+            },
+            "account": {
+              "schemaVersion": 1,
+              "known": true,
+              "firstTsd": true,
+              "allocationVerified": true,
+              "mandatoryZ": false,
+              "thirdTWindow": true,
+              "qualityCandidate": false,
+              "opening": null,
+              "profile": {
+                "violation": false,
+                "departure": false,
+                "before": null,
+                "capEstablished": true
+              },
+              "z": {
+                "remaining": 1,
+                "uncredited": "none"
+              },
+              "reset": {
+                "status": "inactive"
+              }
+            },
+            "safety": {
+              "notches": {
+                "version": 2,
+                "status": "established",
+                "anchorRow": 36,
+                "blockedRows": [],
+                "source": "recognized-scoring-wall"
+              },
+              "coveredCells": []
+            },
+            "dPending": false,
+            "leftGoals": []
+          },
+          "boundary": {
+            "firstBagLocks": 7,
+            "sourcePatternSeen": true
+          }
+        }
       }
     },
     "expectedTarget": {
@@ -2150,1698 +572,185 @@
         "width": 8,
         "maxNodes": 45000,
         "timeMs": 1500,
-        "resourceContext": {
-          "schemaVersion": 1,
-          "origin": {
-            "rules": "st-zero-v2",
-            "board": [
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              ".........."
-            ],
-            "active": {
-              "type": "S",
-              "x": 3,
-              "y": 17,
-              "rotation": 0,
-              "lastRotation": null
-            },
-            "hold": null,
-            "canHold": true,
-            "queue": [
-              "I",
-              "L",
-              "Z",
-              "T",
-              "J",
-              "O"
-            ],
-            "streamCursor": 1,
-            "topOut": false
-          },
-          "fresh": true,
-          "steps": [
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "T"
-              ]
-            },
-            {
-              "action": "HOLD",
-              "revealed": [
-                "O"
-              ]
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "L"
-              ]
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "J"
-              ]
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "Z"
-              ]
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "CCW",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "I"
-              ]
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "S"
-              ]
-            },
-            {
-              "action": "HOLD",
-              "revealed": []
-            },
-            {
-              "action": "CCW",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "S"
-              ]
-            },
-            {
-              "action": "HOLD",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "CCW",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "I"
-              ]
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "L"
-              ]
-            },
-            {
-              "action": "HOLD",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "J"
-              ]
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "CCW",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "Z"
-              ]
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "CCW",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "O"
-              ]
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "CCW",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "T"
-              ]
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "I"
-              ]
-            },
-            {
-              "action": "HOLD",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "CCW",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "L"
-              ]
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R180",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "T"
-              ]
-            },
-            {
-              "action": "HOLD",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "CCW",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "Z"
-              ]
-            },
-            {
-              "action": "HOLD",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "J"
-              ]
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "S"
-              ]
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "O"
-              ]
-            },
-            {
-              "action": "HOLD",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "S"
-              ]
-            },
-            {
-              "action": "HOLD",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "CCW",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "L"
-              ]
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "Z"
-              ]
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "I"
-              ]
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "R180",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "T"
-              ]
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "J"
-              ]
-            },
-            {
-              "action": "HOLD",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "O"
-              ]
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "L"
-              ]
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R180",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "I"
-              ]
-            },
-            {
-              "action": "HOLD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "T"
-              ]
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "CCW",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "S"
-              ]
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "O"
-              ]
-            },
-            {
-              "action": "HOLD",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "Z"
-              ]
-            }
-          ],
-          "handoffAtAction": 280
-        },
         "patternHistory": {
-          "origin": [
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..SSOO....",
-            "ISSLOO....",
-            "ILLLLLL...",
-            "IJJJLSS...",
-            "IOOJSS...Z",
-            "IOOILLL.ZZ",
-            "IJJILSS.Z.",
-            "SJJZLOO.Z.",
-            "ITTTIOO.Z.",
-            "LLLJJJS.Z."
-          ],
-          "steps": []
+          "version": 2,
+          "status": "established",
+          "anchorRow": 34,
+          "blockedRows": [],
+          "source": "recognized-scoring-wall"
         },
         "openingPhase": false,
         "openingSource": null,
         "openingClear": null,
-        "openingRepair": null
+        "openingRepair": null,
+        "obligationContext": {
+          "schemaVersion": 1,
+          "status": "available",
+          "reason": null,
+          "inventory": {
+            "schemaVersion": 1,
+            "status": "available",
+            "originKnown": true,
+            "nextId": 42,
+            "streamCursor": 35,
+            "active": {
+              "id": 35,
+              "type": "O",
+              "observedOrder": 34,
+              "bag": 4
+            },
+            "hold": {
+              "id": 34,
+              "type": "J",
+              "observedOrder": 33,
+              "bag": 4
+            },
+            "queue": [
+              {
+                "id": 36,
+                "type": "L",
+                "observedOrder": 35,
+                "bag": 5
+              },
+              {
+                "id": 37,
+                "type": "I",
+                "observedOrder": 36,
+                "bag": 5
+              },
+              {
+                "id": 38,
+                "type": "T",
+                "observedOrder": 37,
+                "bag": 5
+              },
+              {
+                "id": 39,
+                "type": "S",
+                "observedOrder": 38,
+                "bag": 5
+              },
+              {
+                "id": 40,
+                "type": "O",
+                "observedOrder": 39,
+                "bag": 5
+              },
+              {
+                "id": 41,
+                "type": "Z",
+                "observedOrder": 40,
+                "bag": 5
+              }
+            ],
+            "frontier": {
+              "bag": 5,
+              "seenMask": 125
+            },
+            "knowledge": {
+              "remaining": [
+                2
+              ],
+              "observedCount": 41,
+              "provenance": "known-phase"
+            }
+          },
+          "state": {
+            "schemaVersion": 2,
+            "availability": "known",
+            "center": {
+              "pending": [
+                {
+                  "id": "piece-28",
+                  "rootId": 28,
+                  "family": "OJ",
+                  "alternatives": [
+                    {
+                      "piece": "J",
+                      "cells": [
+                        [
+                          4,
+                          29
+                        ],
+                        [
+                          5,
+                          29
+                        ],
+                        [
+                          6,
+                          29
+                        ],
+                        [
+                          6,
+                          30
+                        ]
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "debt": []
+            },
+            "sl": {
+              "schemaVersion": 1,
+              "status": "known",
+              "foundationOpen": false,
+              "firstBagReview": "reviewed",
+              "handoff": true,
+              "residuals": [],
+              "uncertainty": {
+                "S": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "L": [
+                  0
+                ]
+              }
+            },
+            "account": {
+              "schemaVersion": 1,
+              "known": true,
+              "firstTsd": true,
+              "allocationVerified": true,
+              "mandatoryZ": false,
+              "thirdTWindow": false,
+              "qualityCandidate": false,
+              "opening": null,
+              "profile": {
+                "violation": false,
+                "departure": false,
+                "before": null,
+                "capEstablished": true
+              },
+              "z": {
+                "remaining": 1,
+                "uncredited": "none"
+              },
+              "reset": {
+                "status": "inactive"
+              }
+            },
+            "safety": {
+              "notches": {
+                "version": 2,
+                "status": "established",
+                "anchorRow": 34,
+                "blockedRows": [],
+                "source": "recognized-scoring-wall"
+              },
+              "coveredCells": []
+            },
+            "dPending": false,
+            "leftGoals": []
+          },
+          "boundary": {
+            "firstBagLocks": 7,
+            "sourcePatternSeen": true
+          }
+        }
       }
     },
     "expectedTarget": {
@@ -3944,1493 +853,12 @@
         "width": 8,
         "maxNodes": 45000,
         "timeMs": 1500,
-        "resourceContext": {
-          "schemaVersion": 1,
-          "origin": {
-            "rules": "st-zero-v2",
-            "board": [
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              "..........",
-              ".........."
-            ],
-            "active": {
-              "type": "J",
-              "x": 3,
-              "y": 17,
-              "rotation": 0,
-              "lastRotation": null
-            },
-            "hold": null,
-            "canHold": true,
-            "queue": [
-              "L",
-              "I",
-              "Z",
-              "T",
-              "S",
-              "O"
-            ],
-            "streamCursor": 1,
-            "topOut": false
-          },
-          "fresh": true,
-          "steps": [
-            {
-              "action": "HD",
-              "revealed": [
-                "L"
-              ]
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "I"
-              ]
-            },
-            {
-              "action": "CCW",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "J"
-              ]
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "O"
-              ]
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "Z"
-              ]
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "T"
-              ]
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "S"
-              ]
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "L"
-              ]
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "CCW",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "T"
-              ]
-            },
-            {
-              "action": "HOLD",
-              "revealed": [
-                "Z"
-              ]
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "S"
-              ]
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "I"
-              ]
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "CCW",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "J"
-              ]
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "O"
-              ]
-            },
-            {
-              "action": "HOLD",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "I"
-              ]
-            },
-            {
-              "action": "HOLD",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "Z"
-              ]
-            },
-            {
-              "action": "HOLD",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "T"
-              ]
-            },
-            {
-              "action": "HOLD",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "J"
-              ]
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "CCW",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "L"
-              ]
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "CCW",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "O"
-              ]
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "S"
-              ]
-            },
-            {
-              "action": "HOLD",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "CCW",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "O"
-              ]
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "L",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "T"
-              ]
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "R",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "SD",
-              "revealed": []
-            },
-            {
-              "action": "CW",
-              "revealed": []
-            },
-            {
-              "action": "HD",
-              "revealed": [
-                "I"
-              ]
-            }
-          ],
-          "handoffAtAction": null
-        },
         "patternHistory": {
-          "origin": [
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..........",
-            "..OO......",
-            "ZZOOJJZ...",
-            "SZZIJZZ...",
-            "SSJIJZ....",
-            "LSJILOO...",
-            "LJJILOO...",
-            "ITTTIOO.Z.",
-            "LLLJJJS.Z."
-          ],
-          "steps": []
+          "version": 2,
+          "status": "established",
+          "anchorRow": 35,
+          "blockedRows": [],
+          "source": "recognized-next-Z-cap"
         },
         "openingPhase": true,
         "openingSource": null,
@@ -5546,7 +974,146 @@
             "topOut": false
           }
         },
-        "openingRepair": null
+        "openingRepair": null,
+        "obligationContext": {
+          "schemaVersion": 1,
+          "status": "available",
+          "reason": null,
+          "inventory": {
+            "schemaVersion": 1,
+            "status": "available",
+            "originKnown": true,
+            "nextId": 32,
+            "streamCursor": 25,
+            "active": {
+              "id": 25,
+              "type": "J",
+              "observedOrder": 24,
+              "bag": 3
+            },
+            "hold": {
+              "id": 22,
+              "type": "I",
+              "observedOrder": 21,
+              "bag": 3
+            },
+            "queue": [
+              {
+                "id": 26,
+                "type": "L",
+                "observedOrder": 25,
+                "bag": 3
+              },
+              {
+                "id": 27,
+                "type": "O",
+                "observedOrder": 26,
+                "bag": 3
+              },
+              {
+                "id": 28,
+                "type": "S",
+                "observedOrder": 27,
+                "bag": 3
+              },
+              {
+                "id": 29,
+                "type": "O",
+                "observedOrder": 28,
+                "bag": 4
+              },
+              {
+                "id": 30,
+                "type": "T",
+                "observedOrder": 29,
+                "bag": 4
+              },
+              {
+                "id": 31,
+                "type": "I",
+                "observedOrder": 30,
+                "bag": 4
+              }
+            ],
+            "frontier": {
+              "bag": 4,
+              "seenMask": 41
+            },
+            "knowledge": {
+              "remaining": [
+                86
+              ],
+              "observedCount": 31,
+              "provenance": "known-phase"
+            }
+          },
+          "state": {
+            "schemaVersion": 2,
+            "availability": "known",
+            "center": {
+              "pending": [],
+              "debt": []
+            },
+            "sl": {
+              "schemaVersion": 1,
+              "status": "known",
+              "foundationOpen": false,
+              "firstBagReview": "reviewed",
+              "handoff": false,
+              "residuals": [],
+              "uncertainty": {
+                "S": [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                "L": [
+                  0
+                ]
+              }
+            },
+            "account": {
+              "schemaVersion": 1,
+              "known": true,
+              "firstTsd": true,
+              "allocationVerified": true,
+              "mandatoryZ": false,
+              "thirdTWindow": false,
+              "qualityCandidate": false,
+              "opening": null,
+              "profile": {
+                "violation": false,
+                "departure": false,
+                "before": null,
+                "capEstablished": true
+              },
+              "z": {
+                "remaining": null,
+                "uncredited": "one"
+              },
+              "reset": {
+                "status": "inactive"
+              }
+            },
+            "safety": {
+              "notches": {
+                "version": 2,
+                "status": "established",
+                "anchorRow": 35,
+                "blockedRows": [],
+                "source": "recognized-next-Z-cap"
+              },
+              "coveredCells": []
+            },
+            "dPending": false,
+            "leftGoals": []
+          },
+          "boundary": {
+            "firstBagLocks": 7,
+            "sourcePatternSeen": true
+          }
+        }
       }
     },
     "expectedTarget": {

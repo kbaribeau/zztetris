@@ -1,23 +1,23 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
-const R=require('../st-rules'),B=require('../st-bag'),H=require('../st-resource-history'),PH=require('../st-pattern-history');
-const M=require('../st-midgame-resources'),L=require('../st-left-context'),C=require('../st-midgame-coaches'),P=require('../st-planner');
+const R=require('../st-rules'),B=require('../st-bag'),Current=require('../st-obligation-context'),CurrentProvider=require('../st-resource-provider'),PH=require('../st-pattern-history');
+const M=require('../st-obligation-resources'),L=require('../st-left-context'),C=require('../st-midgame-coaches'),P=require('../st-planner');
 const Context=require('../st-obligation-context'),Provider=require('../st-resource-provider'),Resources=require('../st-obligation-resources');
 const coaches=C.create(L),clone=x=>JSON.parse(JSON.stringify(x));
 const trial=require('./support/st-resource-trial-1.json');
 function observed(until=Infinity){
- let state=R.createState(trial.initial),history=H.start(state,{fresh:true}),locks=0;const points=[];
+ let state=R.createState(trial.initial),history=Current.start(state,{fresh:true}),locks=0;const points=[];
  const act=(action,revealed=[])=>{
   const before=state;let next=R.move(state,action);assert.notEqual(next,state);
   for(const type of revealed)next={...next,queue:[...next.queue,type],...(next.bag?{bag:B.consume(next.bag,type)}:{})};
-  history=H.applyAction(history,before,action,next);state=next;
+  history=Current.applyActual(history,{before:before,action:action,after:next}).context;state=next;
   if(action==='HD'){locks++;points.push({state,history});}
  };
  for(const step of trial.steps){if(locks>=until)break;act(step.action,step.revealed);}
  return{get state(){return state;},get history(){return history;},points,act};
 }
-const phase=(state,history)=>coaches.forResources(M.start(state,H.resolve(state,history))).phase;
+const phase=(state,history)=>coaches.forResources(M.start(state,history)).phase;
 test('midgame coaches: only established Extra-Z ledger states select early or late',()=>{
  for(const status of [undefined,'unknown','out-of-profile','invalid','available','used']){
   const expected=status==='available'?'early':status==='used'?'late':'compatibility';
@@ -25,9 +25,9 @@ test('midgame coaches: only established Extra-Z ledger states select early or la
  }
  assert.equal(coaches.forResources(null).phase,'compatibility');
  const a=observed(20),raw={...a.state,extraZ:'available',resources:{extraZ:'available'}};
- assert.equal(phase(raw,H.start(raw)),'compatibility','raw flags cannot replace observed history');
- const context=clone(H.exportContext(a.state,H.start(a.state)));context.extraZ={status:'used'};
- assert.equal(phase(a.state,H.importContext(a.state,context)),'compatibility');
+ assert.equal(phase(raw,Current.start(raw)),'compatibility','raw flags cannot replace observed history');
+ const context=clone(Current.exportState(Current.start(a.state)));context.extraZ={status:'used'};
+ assert.throws(()=>Current.importState(context,{position:a.state}),/envelope shape/);
 });
 test('midgame coaches: all phases preserve every current Left tier and the used-Z held-T adjustment',()=>{
  for(const entry of L.catalog)for(const status of ['available','used','unknown'])for(const hold of [null,'T']){
@@ -53,7 +53,7 @@ test('midgame coaches: HOLD, validated session import and Undo retain the origin
  for(const t of [early,late]){
   const expected=phase(t.state,t.history),before={state:t.state,history:t.history};t.act('HOLD');
   assert.equal(phase(t.state,t.history),expected);
-  const saved=Session.create(t.state,{resourceHistory:t.history,resourceOriginBag:trial.initial.bag??null,patternHistory:PH.start(t.state)});
+  const saved=Session.create(t.state,{obligationContext:t.history,patternHistory:PH.start(t.state)});
   const got=Session.parse(JSON.stringify(saved));
   assert.equal(coaches.forResources(Resources.start(got.state,got.obligationContext)).phase,expected);
   assert.deepEqual(Context.exportState(got.obligationContext),saved.coaching.obligationContext);assert.equal(got.resourceHistory,undefined);
@@ -69,7 +69,7 @@ test('midgame coaches: planner projected nodes switch early to late without prom
  const source=fs.readFileSync(filename,'utf8').replace('return Object.freeze({dPatternAdmission,','return Object.freeze({testNodeFor:nodeFor,dPatternAdmission,');
  vm.runInNewContext(source,{module,require:req});assert.equal(typeof module.exports.testNodeFor,'function');
  const makeInitial=(t,known)=>{
-  const input=Provider.prepare(t.state,{resourceContext:H.exportContext(t.state,known?t.history:H.start(t.state)),patternHistory:PH.start(t.state)}),summary=Provider.facts(input);assert.equal(input.status,'available');
+  const input=Provider.prepare(t.state,{obligationContext:Current.exportState(known?t.history:Current.start(t.state)),patternHistory:PH.start(t.state)}),summary=Provider.facts(input);assert.equal(input.status,'available');
   return{...P.assess(t.state.board),state:t.state,resources:Provider.startRoute(input,{extendForced:false}),notches:PH.resolve(t.state,PH.start(t.state)),coveredRepair:summary.coveredRepair};
  };
  const project=(initial,witness,parent=null)=>{
@@ -109,12 +109,18 @@ test('midgame coaches: classic Worker imports and real page load the same coach 
 
 test('midgame coaches: simulator binds coach source without fabricating it in older baseline closure',()=>{
  const E=require('../scripts/lib/st-simulation.cjs'),V=require('../scripts/lib/st-evaluation.cjs');
- const current=E.sourceHashes(),baseline={...current};delete baseline['st-midgame-coaches.js'];
+ // Synthetic historical hashes exercise protocol shape only, not an old
+ // executable or acceptance evidence. A historical closure includes its two
+ // retired resource modules and can legitimately predate the coach module.
+ const current=E.sourceHashes(),baseline={...current,'st-resource-history.js':'1'.repeat(64),'st-midgame-resources.js':'2'.repeat(64)};delete baseline['st-midgame-coaches.js'];
  assert.match(current['st-midgame-coaches.js'],/^[a-f0-9]{64}$/);
  const input=E.makeInput('empty',1,1),execution={config:E.CONFIG,locks:1,rng:E.RNG_VERSION,lane:'production-wall-clock',execution:'rapid-uninterrupted-actual-witness-v1',episodeMs:11500,node:process.version};
  const protocol={schemaVersion:1,kind:'st-evaluation-protocol',id:'coach-source-binding-test-only',sources:{baseline,candidate:current},execution,cohorts:[{id:'development',kind:'development',pairs:[{id:'one',input,inputHash:V.hash(input)}],criteria:[{id:'locks',metric:'locks',aggregate:'mean-paired-delta',operator:'at-least',threshold:0,uncertainty:{method:'none'}}]}],correctness:[{id:'test',kind:'test',side:'candidate'}]};
  assert.doesNotThrow(()=>V.validateProtocol(protocol));
  assert.doesNotThrow(()=>V.bindProtocol(protocol,'candidate',current,execution,[input]));
- protocol.sources.candidate=baseline;
+ assert.doesNotThrow(()=>V.bindProtocol(protocol,'baseline',baseline,execution,[input]));
+ assert.equal(Object.hasOwn(baseline,'st-midgame-coaches.js'),false);
+ protocol.sources.candidate=baseline;assert.throws(()=>V.validateProtocol(protocol),/Missing required source hashes/,'Only the historical baseline may omit current coach dependencies');
+ protocol.sources.candidate={...current,'st-midgame-coaches.js':'0'.repeat(64)};
  assert.throws(()=>V.bindProtocol(protocol,'candidate',current,execution,[input]),/source mismatch/);
 });

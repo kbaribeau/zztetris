@@ -17,7 +17,7 @@
   const context=$('b').getContext('2d');
   let suggestedFileName=STSession.DEFAULT_EXPORT_FILENAME;
   let state, origin, future=[], futureCursor=0, generated=false, privatePractice=false, openingPhase=false, openingClear=null, openingRepair=null, openingSource=null, patternHistory=null, obligationContext=null;
-  let undoHistory=[], turnStart=null, inverseSession=null, pendingInverse=null, resetDiagnosticCache=null, planContinuity=null, planProof=null;
+  let undoHistory=[], turnStart=null, inverseSession=null, pendingInverse=null, planContinuity=null, planProof=null;
   let tracking=STObligationTracking.create();const trackingListeners=new Map();
   function resetTracking(){tracking=STObligationTracking.create();for(const listener of trackingListeners.keys())trackingListeners.set(listener,tracking.subscribe(listener));}
   function accountingFrame(current=obligationContext,position=observation()){return{status:current.status,state:current.state,reason:current.reason,view:STObligationContext.resolve(current,{position})};}
@@ -357,12 +357,6 @@
       STRules.cells({type,x:0,y:0,rotation:0}).forEach(([x,y])=>paintCell(ctx,x,y+index*4,type,15));
     });
   }
-  function resetDiagnostics() {
-    if(!resetDiagnosticCache||resetDiagnosticCache.state!==state||resetDiagnosticCache.current!==obligationContext){
-      resetDiagnosticCache={state,current:obligationContext,value:STResetDiagnostics.resolve(observation(),obligationContext)};
-    }
-    return resetDiagnosticCache.value;
-  }
   function renderResourceBadge(id,status,label,reason,observedStatus,terminal,count=null,uncertain=null,anonymous=null) {
     const badge=$(id);
     // S/L counts remain observed facts even outside the reviewed strategy profile.
@@ -417,9 +411,8 @@
     $('st-resource-terminal').hidden=!currentResources.terminal;
     const centerLabel=currentResources.center?`${currentResources.center.pending.length} pending, ${currentResources.center.debt.length} diverted`:'unknown';
     setText($('st-resource-summary'),`${currentResources.terminal?'Game ended; historical facts only. ':''}Hanging S: ${sLabel}. Hanging L: ${lLabel}. Extra Z: ${zLabel}. Observed Center partners: ${centerLabel}. Unclassified S/L accommodation: ${s.unclassifiedCount??'?'}/${l.unclassifiedCount??'?'}; anonymous counts do not name pieces. These are diagnostics, not placement instructions.`);
-    const resetEvidence=resetDiagnostics();
-    setText($('st-reset-summary'),currentResources.reset?.status==='active'?`Reset coach: ${currentResources.reset.progress} of 2 Left T placements completed. Remaining non-Right Z balance: ${z.remaining}.`:`Current Reset: ${currentResources.reset?.status??'unavailable'}. Historical allocation-window diagnostics are unavailable from a current checkpoint.`);
-    setText($('st-diagnostic-text'),JSON.stringify({status:coachStatus,revision:state.revision,resources:currentResources,resetEvidence,
+    setText($('st-reset-summary'),currentResources.reset?.status==='active'?`Reset coach: ${currentResources.reset.progress} of 2 Left T placements completed. Remaining non-Right Z balance: ${z.remaining}.`:`Current Reset: ${currentResources.reset?.status??'unavailable'}.`);
+    setText($('st-diagnostic-text'),JSON.stringify({status:coachStatus,revision:state.revision,resources:currentResources,
       ...(result?{metrics:result.metrics,evidence:result.evidence,horizon:result.horizon,continuation:result.continuation}:{}),
       note:'Only the shown sequence has been checked. Continued ST play is not guaranteed.'},null,2));
     context.clearRect(0,0,200,440);
@@ -536,7 +529,7 @@
   });
   for(const mode of playModes){const option=document.createElement('option');option.value=mode.id;option.textContent=mode.label;$('st-fixture').append(option);}
   setText($('st-key-help'),actions.map((action,i)=>`${config[i]}: ${action.toLowerCase()}`).join(' · ')+' · Set bindings in Game Settings.');
-  window.stLab=Object.freeze({render,act,loadFixture,snapshot:()=>clone(observation()),exportSession:()=>clone(exportSession()),get publicInventory(){return STPublicInventory.exportState(obligationContext.inventory);},get obligationContext(){return STObligationContext.exportState(obligationContext);},onTrackingEvent(listener){trackingListeners.get(listener)?.();trackingListeners.set(listener,tracking.subscribe(listener));return()=>{trackingListeners.get(listener)?.();trackingListeners.delete(listener);};},get resources(){return resources();},get resetEvidence(){return clone(resetDiagnostics());},get result(){return result?clone(result):null;}});
+  window.stLab=Object.freeze({render,act,loadFixture,snapshot:()=>clone(observation()),exportSession:()=>clone(exportSession()),get publicInventory(){return STPublicInventory.exportState(obligationContext.inventory);},get obligationContext(){return STObligationContext.exportState(obligationContext);},onTrackingEvent(listener){trackingListeners.get(listener)?.();trackingListeners.set(listener,tracking.subscribe(listener));return()=>{trackingListeners.get(listener)?.();trackingListeners.delete(listener);};},get resources(){return resources();},get result(){return result?clone(result):null;}});
   let savedMode;try{savedMode=localStorage.getItem(modeKey);}catch{ /* Fall back to the stable stack. */ }
   chooseMode(savedMode,{persist:false});
   if(savedMode && !playModes.some(m=>m.id===savedMode))rememberMode(stableId);

@@ -1,5 +1,5 @@
 /* Milestone-one finite-information coach. No fixture IDs, seeds or hidden queues. */
-(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules.js'),require('./st-bag.js'),require('./st-structure.js'),require('./st-paired-repair.js'),require('./st-access.js'),require('./st-pattern-history.js'),require('./st-left-foundation.js'),require('./st-obligation-resources.js'),require('./st-left-context.js'),require('./st-midgame-coaches.js'),require('./st-reset-coach.js'),require('./st-handoff-continuity.js'),require('./st-resource-provider.js'),require('./st-plan-continuity.js'),require('./st-resource-legacy.js')):factory(root.STRules,root.STBag,root.STStructure,root.STPairedRepair,root.STAccess,root.STPatternHistory,root.STLeftFoundation,root.STObligationResources,root.STLeftContext,root.STMidgameCoaches,root.STResetCoach,root.STHandoffContinuity,root.STResourceProvider,root.STPlanContinuity,root.STResourceLegacy);if(typeof module==='object'&&module.exports)module.exports=api;else root.STPlanner=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,B,S,X,A,H,Y,M,L,C,Reset,HC,Provider,PC,Legacy){
+(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules.js'),require('./st-bag.js'),require('./st-structure.js'),require('./st-paired-repair.js'),require('./st-access.js'),require('./st-pattern-history.js'),require('./st-left-foundation.js'),require('./st-obligation-resources.js'),require('./st-left-context.js'),require('./st-midgame-coaches.js'),require('./st-reset-coach.js'),require('./st-handoff-continuity.js'),require('./st-resource-provider.js'),require('./st-plan-continuity.js')):factory(root.STRules,root.STBag,root.STStructure,root.STPairedRepair,root.STAccess,root.STPatternHistory,root.STLeftFoundation,root.STObligationResources,root.STLeftContext,root.STMidgameCoaches,root.STResetCoach,root.STHandoffContinuity,root.STResourceProvider,root.STPlanContinuity);if(typeof module==='object'&&module.exports)module.exports=api;else root.STPlanner=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,B,S,X,A,H,Y,M,L,C,Reset,HC,Provider,PC){
 'use strict';
 const coaches=C.create(L);
 const clone=x=>JSON.parse(JSON.stringify(x));
@@ -25,9 +25,6 @@ function resourceSupplied(raw,options={}){return resourceInput(raw,options).supp
 function resourceRoot(raw,options={},routeOptions={}){return options.resource||Provider.startRoute(resourceInput(raw,options),{horizon:14,...routeOptions});}
 function ordinaryResourceCheck(raw,path,options={}){if(!resourceAvailable(raw,options))return{valid:false,reason:'unavailable-resource-context'};const root=resourceRoot(raw,options);return M.checkPath(M.position(root),path,root);}
 function resourceFacts(r){return{extraZ:r.extraZ,pendingCenter:r.pendingCenter,hangingS:r.hangingS,unclassifiedS:r.unclassifiedS,hangingL:r.hangingL,unclassifiedL:r.unclassifiedL,uncertainty:r.uncertainty};}
-// Old archived advice is a candidate, not a current compatibility claim.
-// Never apply this exception to malformed or current-schema stale bindings.
-function legacyResourceBinding(binding){try{const key=JSON.parse(binding);return Array.isArray(key)&&[13,14].includes(key.length)&&['complete','partial'].includes(key[0])&&(key[1]===null||Array.isArray(key[1]))&&Array.isArray(key[2]);}catch{return false;}}
 function unavailableResources(raw,reason){return{status:'no-supported-continuation-found',revision:raw?.revision??0,target:null,witness:[],continuation:[],reason:'Current resource accounting is unavailable. '+reason,metrics:{nodes:0,certifiedHorizon:0},evidence:{resourceObligations:{status:'unavailable',reason}}};}
 function prepareResourceOptions(raw,options={}){
  const state=observe(raw);
@@ -556,20 +553,19 @@ function repairStepEvidence(proof,index,initialDebt=[]){
  return{created:record.created,outstanding:record.outstanding,required:Boolean(entering.length||record.created.length),stage:Boolean(index===proof.steps.length-1&&proof.stage)};
 }
 // A retained proof keeps one compact actual root, not the root's history.
-// A legacy root is decoded only by Provider's compatibility boundary. A
-// hypothetical or implicit unknown root carries no invented actual snapshot.
+// A hypothetical or implicit unknown root carries no invented actual snapshot.
 // One explicit portable-candidate boundary. Only the two documented finite
-// root records are converted; arbitrary nested objects are not interpreted as
+// root records are validated; arbitrary nested objects are not interpreted as
 // executable state. This imports current facts, never certifies future advice.
 function importCandidateResources(advice){
  try{
   const candidate=clone(advice);
   for(const root of [candidate.evidence?.construction,candidate.evidence?.coveredRepairPlan]){
    if(!root)continue;
+   if(Object.hasOwn(root,'resourceContext'))return null;
    const origin=observe(root.origin),input=Provider.prepare(origin,savedResourceOptions(root));
    if(input.status!=='available')return null;
    if(input.context)root.obligationContext=Provider.exportActual(input);
-   delete root.resourceContext;
    root.origin=origin;root.patternHistory=H.snapshot(origin,root.patternHistory??null);
    if(H.resolve(origin,root.patternHistory).status==='invalid-history')return null;
   }
@@ -577,8 +573,9 @@ function importCandidateResources(advice){
  }catch{return null;}
 }
 function savedResourceOptions(saved,options={}){
+ if(Object.hasOwn(saved,'resourceContext'))throw Error('Legacy resource proof is unsupported.');
  const base={...options,resourceInput:undefined,resource:undefined,resourceContext:undefined,obligationContext:undefined,patternHistory:saved.patternHistory??null};
- return saved.obligationContext!==undefined?{...base,obligationContext:saved.obligationContext}:saved.resourceContext?{...base,resourceContext:saved.resourceContext}:base;
+ return saved.obligationContext!==undefined?{...base,obligationContext:saved.obligationContext}:base;
 }
 function savedResourceSnapshot(raw,options){
  const input=resourceInput(raw,options);
@@ -746,12 +743,6 @@ function supportHistoryBinding(s,proof,verified,options,deadline,now,maxNodes){
   if(original.status!=='available'||current.status!=='available'||!original.context||!current.context)return fail();
   if(proof.kind!=='left-scoring-foundation'&&(original.facts.availability!=='known'||current.facts.availability!=='known'))return fail();
   let native={...proof,obligationContext:Provider.exportActual(original)},cursor=options.planContinuity;
-  // Old tape ancestry is interpreted once, only at the compatibility boundary.
-  // Current controller execution never obtains continuity from historical IDs.
-  if(!cursor&&options.resourceContext&&proof.resourceContext){
-   const imported=Legacy.planContinuity(s,options.resourceContext,proof);
-   if(imported.status!=='available')return fail();cursor=imported.planContinuity;native=imported.proof;
-  }
   if(!cursor&&proof.consumed===0)cursor=PC.exportState(PC.start(s,current.context.inventory,native));
   const binding=PC.matches(cursor,native,verified.continuation,s,current.context.inventory);
   if(!binding.valid)return fail();
@@ -2437,7 +2428,7 @@ function revalidate(raw,previous,options={}){
  if(previous?.evidence?.opening?.sourcePlan)return openingModule().retainSource(raw,previous,options);
  if(previous?.evidence?.opening)return null;
  let s;try{s=observe(raw);}catch{return null;}if(previous?.evidence?.cycleDebt>0||previous?.continuation?.some(p=>!S.canonicalClear(p.event)))return null;if(!previous?.target||context(s)!==previous.context||R.validate(s).length)return null;
- if(previous.evidence?.resourceObligations?.binding&&previous.evidence.resourceObligations.binding!==resourceBinding(s,options)&&!(resourceInput(s,options).kind==='legacy-converted'&&legacyResourceBinding(previous.evidence.resourceObligations.binding)))return null;
+ if(previous.evidence?.resourceObligations?.binding&&previous.evidence.resourceObligations.binding!==resourceBinding(s,options))return null;
 
  if(previous.evidence?.construction){
   const tracker={nodes:0},refreshed=constructionAdvice(s,previous.evidence.construction,options.deadline,now,options.maxNodes??8000,tracker,options);if(options.budgetTracker)options.budgetTracker.nodes+=tracker.nodes;

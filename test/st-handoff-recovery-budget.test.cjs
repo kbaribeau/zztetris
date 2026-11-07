@@ -1,4 +1,5 @@
 'use strict';
+const {extendPublic}=require('./support/current-resource-test.cjs');
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const P=require('../st-planner'),R=require('../st-rules'),E=require('../scripts/lib/st-simulation.cjs'),fixture=require('./fixtures/forced-bag-resource-binding.json'),roots=require('./fixtures/shared-handoff-roots.json');
 const clone=x=>JSON.parse(JSON.stringify(x));
@@ -32,8 +33,8 @@ test('handoff recovery budget: disabled fresh handoff preserves the exact old po
 test('handoff production budget: real worker uses a safe ordinary alternative instead of archived unsafe observed-S payment',()=>{
  const q=roots[0].request,a=E.workerPlanner()(q);assert.ok(a.target);assert(a.metrics.nodes<=45000);
  assert.notEqual(a.evidence?.openingHandoff?.recovery,'shared-after-legacy-budget-miss');
- const H=require('../st-resource-history'),A=require('../st-access'),M=require('../st-midgame-resources'),summary=H.resolve(q.observation,H.importContext(q.observation,q.options.resourceContext));
- assert.equal(A.repairPrefix(M.extendForced(q.observation),a.continuation,{initialDebt:summary.coveredRepair.cells,stages:summary.center.pending}).valid,true);E.validateAdvice(q.observation,a);
+ const Current=require('../st-obligation-context'),CurrentProvider=require('../st-resource-provider'),A=require('../st-access'),M=require('../st-obligation-resources'),summary=CurrentProvider.facts(CurrentProvider.prepare(q.observation,{obligationContext:Current.exportState(Current.importState(q.options.obligationContext,{position:q.observation}))}));
+ assert.equal(A.repairPrefix(extendPublic(q.observation),a.continuation,{initialDebt:summary.coveredRepair.cells,stages:summary.center.pending}).valid,true);E.validateAdvice(q.observation,a);
 });
 
 test('handoff recovery budget: an already-paid prefix cannot label another S filler as its mandatory payment',()=>{

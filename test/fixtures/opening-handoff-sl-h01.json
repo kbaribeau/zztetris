@@ -1,1 +1,344 @@
-{"provenance":"Public H01 before lock 18 from the November 5 handoff review; no private future, fixture policy or expected advice.","position":{"rules":"st-zero-v2","board":["..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","...IIII...","...JJSS...","...JSS....","...JLOO...","S..ZLOO...","SSZZLL....","ISZTLLL...","ITTTLSS...","IIIIJOO.Z."],"active":{"type":"O","x":3,"y":17,"rotation":0,"lastRotation":null},"hold":"L","canHold":true,"queue":["J","Z","S","I","J","T"],"revision":208,"streamCursor":19,"topOut":false,"bag":{"remaining":[76],"observedCount":25,"provenance":"known-phase"}},"resourceContext":{"schemaVersion":1,"origin":{"rules":"st-zero-v2","board":["..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........",".........."],"active":{"lastRotation":null,"rotation":0,"type":"I","x":3,"y":17},"hold":null,"canHold":true,"queue":["J","O","Z","T","S","L"],"streamCursor":1,"topOut":false},"fresh":true,"steps":[{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"HD","revealed":["L"]},{"action":"L","revealed":[]},{"action":"R180","revealed":[]},{"action":"HD","revealed":["O"]},{"action":"R","revealed":[]},{"action":"HD","revealed":["T"]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"CW","revealed":[]},{"action":"HD","revealed":["J"]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"CW","revealed":[]},{"action":"HD","revealed":["Z"]},{"action":"R","revealed":[]},{"action":"HD","revealed":["S"]},{"action":"R","revealed":[]},{"action":"R180","revealed":[]},{"action":"HD","revealed":["I"]},{"action":"CW","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"HD","revealed":["S"]},{"action":"R","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"HD","revealed":["I"]},{"action":"L","revealed":[]},{"action":"CCW","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"HD","revealed":["L"]},{"action":"HOLD","revealed":["T"]},{"action":"L","revealed":[]},{"action":"CCW","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"HD","revealed":["O"]},{"action":"R","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"HD","revealed":["J"]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"CCW","revealed":[]},{"action":"L","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"HD","revealed":["Z"]},{"action":"HOLD","revealed":[]},{"action":"L","revealed":[]},{"action":"CW","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"HD","revealed":["S"]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"HD","revealed":["I"]},{"action":"HOLD","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"L","revealed":[]},{"action":"CCW","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"HD","revealed":["J"]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"R","revealed":[]},{"action":"CW","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"SD","revealed":[]},{"action":"CW","revealed":[]},{"action":"HD","revealed":["T"]}],"handoffAtAction":null},"openingClear":{"before":{"rules":"st-zero-v2","board":["..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","...IIII...","...JJSS...","...JSS....","...JLOO...","S..ZLOO...","SSZZLL....","ISZTLLL...","ITTTLSS...","ITTTSS...Z","ITJJJOO.ZZ","IIIIJOO.Z."],"active":{"type":"T","x":6,"y":35,"rotation":2,"lastRotation":{"from":1,"to":2,"kickIndex":0}},"hold":"L","canHold":true,"queue":["O","J","Z","S","I","J"],"revision":207,"streamCursor":18,"topOut":false,"bag":{"remaining":[108],"observedCount":24,"provenance":"known-phase"}},"event":{"type":"T","target":{"type":"T","x":6,"y":35,"rotation":2},"cells":[[6,37],[7,37],[8,37],[7,38]],"lines":2,"clearedRows":[37,38],"spin":"full","topOut":false}}}
+{
+  "provenance": "Public H01 before lock 18 from the November 5 handoff review; no private future, fixture policy or expected advice.",
+  "position": {
+    "rules": "st-zero-v2",
+    "board": [
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "...IIII...",
+      "...JJSS...",
+      "...JSS....",
+      "...JLOO...",
+      "S..ZLOO...",
+      "SSZZLL....",
+      "ISZTLLL...",
+      "ITTTLSS...",
+      "IIIIJOO.Z."
+    ],
+    "active": {
+      "type": "O",
+      "x": 3,
+      "y": 17,
+      "rotation": 0,
+      "lastRotation": null
+    },
+    "hold": "L",
+    "canHold": true,
+    "queue": [
+      "J",
+      "Z",
+      "S",
+      "I",
+      "J",
+      "T"
+    ],
+    "revision": 208,
+    "streamCursor": 19,
+    "topOut": false,
+    "bag": {
+      "remaining": [
+        76
+      ],
+      "observedCount": 25,
+      "provenance": "known-phase"
+    }
+  },
+  "openingClear": {
+    "before": {
+      "rules": "st-zero-v2",
+      "board": [
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "...IIII...",
+        "...JJSS...",
+        "...JSS....",
+        "...JLOO...",
+        "S..ZLOO...",
+        "SSZZLL....",
+        "ISZTLLL...",
+        "ITTTLSS...",
+        "ITTTSS...Z",
+        "ITJJJOO.ZZ",
+        "IIIIJOO.Z."
+      ],
+      "active": {
+        "type": "T",
+        "x": 6,
+        "y": 35,
+        "rotation": 2,
+        "lastRotation": {
+          "from": 1,
+          "to": 2,
+          "kickIndex": 0
+        }
+      },
+      "hold": "L",
+      "canHold": true,
+      "queue": [
+        "O",
+        "J",
+        "Z",
+        "S",
+        "I",
+        "J"
+      ],
+      "revision": 207,
+      "streamCursor": 18,
+      "topOut": false,
+      "bag": {
+        "remaining": [
+          108
+        ],
+        "observedCount": 24,
+        "provenance": "known-phase"
+      }
+    },
+    "event": {
+      "type": "T",
+      "target": {
+        "type": "T",
+        "x": 6,
+        "y": 35,
+        "rotation": 2
+      },
+      "cells": [
+        [
+          6,
+          37
+        ],
+        [
+          7,
+          37
+        ],
+        [
+          8,
+          37
+        ],
+        [
+          7,
+          38
+        ]
+      ],
+      "lines": 2,
+      "clearedRows": [
+        37,
+        38
+      ],
+      "spin": "full",
+      "topOut": false
+    }
+  },
+  "obligationContext": {
+    "schemaVersion": 1,
+    "status": "available",
+    "reason": null,
+    "inventory": {
+      "schemaVersion": 1,
+      "status": "available",
+      "originKnown": true,
+      "nextId": 26,
+      "streamCursor": 19,
+      "active": {
+        "id": 19,
+        "type": "O",
+        "observedOrder": 18,
+        "bag": 2
+      },
+      "hold": {
+        "id": 17,
+        "type": "L",
+        "observedOrder": 16,
+        "bag": 2
+      },
+      "queue": [
+        {
+          "id": 20,
+          "type": "J",
+          "observedOrder": 19,
+          "bag": 2
+        },
+        {
+          "id": 21,
+          "type": "Z",
+          "observedOrder": 20,
+          "bag": 2
+        },
+        {
+          "id": 22,
+          "type": "S",
+          "observedOrder": 21,
+          "bag": 3
+        },
+        {
+          "id": 23,
+          "type": "I",
+          "observedOrder": 22,
+          "bag": 3
+        },
+        {
+          "id": 24,
+          "type": "J",
+          "observedOrder": 23,
+          "bag": 3
+        },
+        {
+          "id": 25,
+          "type": "T",
+          "observedOrder": 24,
+          "bag": 3
+        }
+      ],
+      "frontier": {
+        "bag": 3,
+        "seenMask": 51
+      },
+      "knowledge": {
+        "remaining": [
+          76
+        ],
+        "observedCount": 25,
+        "provenance": "known-phase"
+      }
+    },
+    "state": {
+      "schemaVersion": 2,
+      "availability": "known",
+      "center": {
+        "pending": [],
+        "debt": []
+      },
+      "sl": {
+        "schemaVersion": 1,
+        "status": "known",
+        "foundationOpen": false,
+        "firstBagReview": "reviewed",
+        "handoff": false,
+        "residuals": [
+          {
+            "bag": 2,
+            "S": {
+              "id": 15,
+              "region": "left",
+              "opening": true,
+              "pair": null,
+              "foundationEligible": false,
+              "firstBagEligible": false,
+              "requiresAccommodation": false,
+              "invalidated": false
+            },
+            "L": null,
+            "order": null,
+            "sOwedSinceL": false,
+            "lBeforeSPair": false
+          }
+        ],
+        "uncertainty": {
+          "S": [
+            0,
+            0,
+            1,
+            0
+          ],
+          "L": [
+            0
+          ]
+        }
+      },
+      "account": {
+        "schemaVersion": 1,
+        "known": true,
+        "firstTsd": true,
+        "allocationVerified": true,
+        "mandatoryZ": false,
+        "thirdTWindow": true,
+        "qualityCandidate": false,
+        "opening": null,
+        "profile": {
+          "violation": false,
+          "departure": false,
+          "before": null,
+          "capEstablished": true
+        },
+        "z": {
+          "remaining": 1,
+          "uncredited": "none"
+        },
+        "reset": {
+          "status": "inactive"
+        }
+      },
+      "safety": {
+        "notches": {
+          "version": 2,
+          "status": "established",
+          "anchorRow": 36,
+          "blockedRows": [],
+          "source": "recognized-next-Z-cap"
+        },
+        "coveredCells": []
+      },
+      "dPending": false,
+      "leftGoals": []
+    },
+    "boundary": {
+      "firstBagLocks": 7,
+      "sourcePatternSeen": true
+    }
+  }
+}

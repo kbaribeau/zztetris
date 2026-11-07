@@ -7,24 +7,13 @@ S with a null identity until actual observation supplies its identity. Deferred 
 facts are retained symmetrically for diagnostics; no new L repair strategy or
 rejection rule is introduced.
 
-`STResourceHistory.resolve` supplies `observedSL`, derived only from the replayed
-public draw history, including consumed pieces. This distinguishes an unseen
-counterpart from one already observed and disposed. Unknown imported origins do
-not acquire known bag obligations. No private generator, unseen order, guessed
-arrival time, or extra preview enters search.
-
-The public action-tape schema is unchanged. Export/import replays the tape and
-reconstructs these facts; serialized derived annotations have no authority.
-Resource bindings include the observed inventory, and the coach compatibility
-stamp advances to `st-coach-session-2026-10-26-deferred-sl-v1`. The coach stamp is provenance, not an import gate: a different stamp discards
-only cached previous advice and commitments for fresh planning. Valid position,
-public resource history, pattern history, current-validated opening progress and
-supported settings remain intact. Resource facts are reconstructed with current
-code, not restored from serialized flags. Unsupported structural schemas, rules,
-settings and malformed replay evidence still reject the whole import atomically.
-The imported Reset origin is normalized to the current envelope before installation;
-no silent position-only downgrade occurs. Undo, hidden future and displayed
-counters were never part of session exports and remain unrestored.
+The current obligation Context retains observed counterpart duties and public
+inventory. Unknown imported origins do not acquire known bag obligations. No
+private generator, unseen order, guessed arrival time, or extra preview enters
+search. Native schema-v2 sessions serialize these current facts directly; old
+action-tape sessions are rejected rather than silently dropping obligations.
+Current notch checkpoints and independently validated finite advice remain
+portable. Undo, hidden future and displayed counters are not session exports.
 
 Regression fixtures in `test/fixtures/deferred-sl-reveals.json` contain public
 requests and legal recorded witnesses from revision 08351b3, seeds 2718286055,

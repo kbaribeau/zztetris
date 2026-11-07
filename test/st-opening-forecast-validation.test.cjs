@@ -22,8 +22,8 @@ test('opening forecast validation: transported derived metadata cannot supply pr
  assert.deepEqual(result.continuation,baseline.continuation);assert.deepEqual(result.evidence,baseline.evidence);assert.deepEqual(result.assessment,baseline.assessment);
  assert.notEqual(result.continuation[0].structuralEvidence.allocation,'forged-allocation');
 });
-test('opening forecast validation: malformed history and mismatched event reject without borrowing saved claims',()=>{
- const q=input();q.options.resourceContext.steps[0].action='NOT_AN_INPUT';let checked=check(q);assert.equal(checked.result,null);assert.equal(checked.work.retained,false);assert.equal(checked.work.reason,'resource-context');
+test('opening forecast validation: malformed current snapshot and mismatched event reject without borrowing saved claims',()=>{
+ const q=input();q.options.obligationContext.inventory.queue[0].id=q.options.obligationContext.inventory.active.id;let checked=check(q);assert.equal(checked.result,null);assert.equal(checked.work.retained,false);assert.equal(checked.work.reason,'resource-context');
  const changed=input();changed.steps[0].event.lines=4;checked=check(changed);assert.equal(checked.result,null);assert.equal(checked.work.reason,'candidate-event');assert.ok(checked.work.nodes>0);
 });
 test('opening forecast validation: a legal J Right routing candidate cannot become ordinary ST',()=>{
@@ -37,7 +37,7 @@ test('opening forecast validation: shared exhaustion and deadline preserve faile
 });
 test('opening forecast validation: bounded witnesses and unknown public draws cannot be certified',()=>{
  const q=input();q.steps[0].witness=Array(257).fill('L');let checked=check(q);assert.equal(checked.result,null);assert.equal(checked.work.reason,'candidate-shape');
- const absent=input();absent.state.hold=null;absent.state.queue=[];absent.options.resourceContext=null;absent.options.patternHistory=null;checked=check(absent);assert.equal(checked.result,null);assert.equal(checked.work.retained,false);
+ const absent=input();absent.state.hold=null;absent.state.queue=[];delete absent.options.obligationContext;absent.options.patternHistory=null;checked=check(absent);assert.equal(checked.result,null);assert.equal(checked.work.retained,false);
  const noHold=check(input(),{allowHold:false});assert.equal(noHold.result,null);assert.equal(noHold.work.reason,'hold-disabled');
 });
 test('opening forecast validation: incomplete counterfactual endpoint entry is rejected and charged',()=>{
