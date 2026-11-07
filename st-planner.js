@@ -707,7 +707,7 @@ function constructionAdvice(s,proof,deadline=Infinity,now=()=>Date.now(),maxNode
   const binding=supportHistoryBinding(s,proof,verified,historyOptions,deadline,now,Math.max(0,maxNodes-visited));charge(binding.visited);if(!binding.valid)return null;followedActions=binding.actionsSinceLock;
   const replayUnits=verified.continuation.reduce((n,p)=>n+p.witness.length,0);if(now()>=deadline||visited+replayUnits>maxNodes)return null;charge(replayUnits);
   const paid=ordinaryResourceCheck(proof.origin,verified.continuation,{resourceContext:proof.resourceContext}),r=paid.resource;
-  if(!paid.valid||!r||r.pendingCenter.length||r.hangingS.length||r.centerBlocked||r.tCollision||r.unclassifiedS?.some(p=>p.invalidated||p.requiresAccommodation))return null;
+  if(!paid.valid||!r||r.pendingCenter.length||r.hangingS.length||r.centerBlocked||r.tCollision||M.hasSevereS(r))return null;
  }
 
  const replay=(state,witness)=>{if(proof.kind==='left-scoring-foundation'){if(now()>=deadline||visited+witness.length>maxNodes)return{valid:false,events:[]};charge(witness.length);}return R.replay(state,witness);};
@@ -1504,7 +1504,7 @@ function planCore(raw,options={}){
  const repairCache=new Map();
  const resourceSafe=n=>{
   const restoration=n.coveredRepairProof||A.repairPrefix(s,n.path,{notches:initial.notches,initialDebt:initial.coveredRepair?.cells,stages:initial.coveredStages});if(!restoration.valid)return false;n.coveredRepairProof=restoration;
-  if(n.resources?.centerBlocked&&!M.pendingLStageEligible(n.state,n.resources)||n.resources?.unclassifiedS?.some(s=>s.invalidated||s.requiresAccommodation))return false;
+  if(n.resources?.centerBlocked&&!M.pendingLStageEligible(n.state,n.resources)||M.hasSevereS(n.resources))return false;
   if(n.resources?.tCollision&&n.assessment.right.entry?.status!=='reachable-if-T-available')return false;
   if(!n.resources?.hangingS.length&&!n.resources?.pendingCenter.length)return true;
   const key=JSON.stringify([observe(n.state),M.binding(n.resources),n.notches,n.coveredRepairProof?.outstandingCells||[],options[pendingLHint]??null]);let proof=repairCache.get(key);
@@ -2739,7 +2739,7 @@ function reservedPiecePlan(raw,incumbent,options,collector){
     const piece=placedResource(n.resource,p.witness),event=p.event;
     if(!piece||!S.canonicalClear(event)||event.topOut||!ordinaryRightEligible(event)||assess(p.state.board).maxHeight>=19)continue;
     const nextPhase=S.advanceNotches(n.state.board,p,n.notches);if(!nextPhase.valid||S.transition(n.state,p,undefined,{notches:n.notches}).cycleViolations.length)continue;
-    const resource=M.step(n.state,p,n.resource);if(resource.violations.length||resource.pendingCenter.some(q=>q.lost)||resource.unclassifiedS.some(q=>q.invalidated||q.requiresAccommodation))continue;
+    const resource=M.step(n.state,p,n.resource);if(resource.violations.length||resource.pendingCenter.some(q=>q.lost)||M.hasSevereS(resource))continue;
     const debt=A.repairStep(n.state.board,p.state.board,event,n.debt,nextPhase.pattern),created=A.newlyCovered(n.state.board,p.state.board,event,nextPhase.pattern);
     if(debt.length>4||S.cavityRepairDebt(S.cavityFacts(n.state.board),S.cavityFacts(p.state.board),event).length)continue;
     const payment=piece.id===reserve.id;

@@ -1,6 +1,6 @@
 /* Ordinary-midgame resource obligations. Public, replay-validated identities,
  * not a new Reset recognizer and never a hidden-piece or fresh-allowance guess. */
-(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-structure'),require('./st-bag'),require('./st-access'),require('./st-resource-history'),require('./st-center-obligations')):factory(root.STRules,root.STStructure,root.STBag,root.STAccess,root.STResourceHistory,root.STCenterObligations);if(typeof module==='object'&&module.exports)module.exports=api;else root.STMidgameResources=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,S,B,A,H,Center){
+(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-structure'),require('./st-bag'),require('./st-access'),require('./st-resource-history'),require('./st-center-obligations'),require('./st-obligation-admission')):factory(root.STRules,root.STStructure,root.STBag,root.STAccess,root.STResourceHistory,root.STCenterObligations,root.STObligationAdmission);if(typeof module==='object'&&module.exports)module.exports=api;else root.STMidgameResources=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,S,B,A,H,Center,Admission){
 'use strict';
 const clone=x=>JSON.parse(JSON.stringify(x)),key=c=>JSON.stringify(c.slice().sort(([x,y],[u,v])=>x-u||y-v));
 const tsd=e=>e.type==='T'&&e.spin==='full'&&e.lines===2&&S.canonicalClear(e);
@@ -19,7 +19,7 @@ function slHistory(summary){
  for(const pair of summary.pairs||[])for(const id of [pair.rootId,pair.partnerId])if(pieces[id])pieces[id].pair=clone(pair);
  return{pieces,closed:clone(summary.center?.closed||[]),milestones:clone(summary.milestones||{}),locks:summary.locks||0};
 }
-const uncertaintyKey=(kind,p)=>kind+':'+(p.sId??'')+':'+(p.lId??'')+':'+p.bag;
+const hasSevereS=Admission.hasSevereS;
 function newUnclassified(resource){return resource?.introducedUnclassified?.length>0;}
 // Supported finite movement and unresolved historical accommodation are
 // different claims. Preserve existing admission, but never describe the latter
@@ -42,7 +42,7 @@ function start(raw,summary={}){
  // The observed inventory includes already consumed S/L pieces. Absence from
  // the live queue alone must never fabricate a deferred counterpart.
  const observedSL=summary.coverage?.status==='complete'&&Array.isArray(summary.observedSL)?clone(summary.observedSL):null,sl=slHistory(summary);
- return{active:a,hold:h,queue:q,nextId:next,observedSL,slHistory:sl,introducedUnclassified:[],initialUnclassified:['S','L'].flatMap(kind=>(summary['hanging'+kind]?.unclassified||[]).map(p=>uncertaintyKey(kind,p))),extraZ:summary.extraZ?.status==='available'?'available':summary.extraZ?.status||'unknown',
+ return{active:a,hold:h,queue:q,nextId:next,observedSL,slHistory:sl,introducedUnclassified:[],initialUnclassified:Admission.uncertaintyKeys(summary),extraZ:summary.extraZ?.status==='available'?'available':summary.extraZ?.status||'unknown',
   extraZRemaining:Number.isInteger(summary.extraZ?.remaining)?summary.extraZ.remaining:null,resetActive:summary.reset?.status==='active',resetProgress:summary.reset?.progress||0,
   pendingCenter:(summary.center?.pending||[]).map(p=>({rootId:p.rootId,bag:p.rootBag??byId(p.rootId)?.bag??null,family:p.family,alternatives:clone(p.alternatives),created:false})),
   hangingS:(summary.hangingS?.evidence||[]).map(e=>({id:e.sId,bag:e.bag,known:true})),
@@ -162,7 +162,7 @@ function step(before,p,prior){
  }
  // Record newly uncertain identities without changing ordinary admission.
  // The presenter carries and discloses uncertainty; it is not a repair proof.
- n.introducedUnclassified=['S','L'].flatMap(kind=>(n['unclassified'+kind]||[]).map(p=>uncertaintyKey(kind,p))).filter(key=>!(prior.initialUnclassified||[]).includes(key));
+ n.introducedUnclassified=Admission.introducedUnclassified(Admission.uncertaintyKeys(n),prior.initialUnclassified||[]);
  n.active=n.queue.shift()??null;
  // Only a deduced final bag member can be appended by the existing planner.
  // It carries no invented bag identity or allowance.
@@ -186,9 +186,9 @@ function repairCore(raw,resource,{maxNodes=4000,deadline=Infinity,now=()=>Date.n
  // This finite repair grammar cannot establish how an already consumed,
  // unclassified S was accommodated. Keep uncertainty separate from false
  // (a completed bounded search), and never manufacture a replay target.
- if(resource.unclassifiedS?.some(s=>s.invalidated||s.requiresAccommodation))return{valid:null,visited:0,status:'unclassified-S-accommodation',unclassifiedS:clone(resource.unclassifiedS)};
+ if(hasSevereS(resource))return{valid:null,visited:0,status:'unclassified-S-accommodation',unclassifiedS:clone(resource.unclassifiedS)};
  const centerIds=centerCompletions?resource.pendingCenter.map(p=>p.rootId):[];
- const done=r=>!r.unclassifiedS?.some(s=>s.invalidated||s.requiresAccommodation)&&!r.hangingS.length&&!r.pendingCenter.some(p=>centerIds.includes(p.rootId))&&!r.centerBlocked&&!r.tCollision;
+ const done=r=>!hasSevereS(r)&&!r.hangingS.length&&!r.pendingCenter.some(p=>centerIds.includes(p.rootId))&&!r.centerBlocked&&!r.tCollision;
  if(!resource.hangingS.length&&!centerIds.length)return{valid:true,visited:0,status:resource.unclassifiedS?.length?'no-confirmed-resource-repair-needed':'no-new-resource-repair-needed',unclassifiedS:clone(resource.unclassifiedS||[])};
  let visited=0,complete=true,layer=[{state:R.createState(raw),resource,path:[],notches}];
  const leftCovered=board=>S.geometry(board).left.covered,rootCovered=leftCovered(raw.board);
@@ -243,7 +243,7 @@ function repairCore(raw,resource,{maxNodes=4000,deadline=Infinity,now=()=>Date.n
 // plus actual accommodation of PUBLIC intervening draws, never an L arrival.
 function pendingLStageEligible(raw,resource){
  const pending=resource.pendingCenter;
- return Boolean(pending?.length===1&&pending[0].family==='SL'&&Number.isInteger(pending[0].rootId)&&pending[0].rootId>0&&!pending[0].lost&&pending[0].alternatives.length&&pending[0].alternatives.every(c=>c.piece==='L')&&!resource.pendingLDiverted&&!resource.violations.length&&!resource.unclassifiedS?.some(s=>s.invalidated||s.requiresAccommodation)&&resource.hangingS.every(s=>s.id===pending[0].rootId));
+ return Boolean(pending?.length===1&&pending[0].family==='SL'&&Number.isInteger(pending[0].rootId)&&pending[0].rootId>0&&!pending[0].lost&&pending[0].alternatives.length&&pending[0].alternatives.every(c=>c.piece==='L')&&!resource.pendingLDiverted&&!resource.violations.length&&!hasSevereS(resource)&&resource.hangingS.every(s=>s.id===pending[0].rootId));
 }
 function pendingLStage(raw,resource,{maxNodes=4000,deadline=Infinity,now=()=>Date.now(),notches=S.notchPattern(raw.board),coveredDebt=[],waitingHint=null}={}){
  if(!pendingLStageEligible(raw,resource))return{valid:false,visited:0,status:'ineligible-pending-L-stage'};
@@ -264,7 +264,7 @@ function pendingLStage(raw,resource,{maxNodes=4000,deadline=Infinity,now=()=>Dat
   const live=n.resource.pendingCenter.find(p=>p.rootId===rootId),closed=!live;
   const exhausted=!n.state.active&&n.state.queue.length===0&&n.state.hold!=='L';
   if(!closed&&!exhausted)return null;
-  if(n.resource.centerBlocked||n.resource.tCollision||n.resource.hangingS.length&&!n.resource.hangingS.every(s=>!closed&&s.id===rootId)||n.resource.unclassifiedS?.some(s=>s.invalidated||s.requiresAccommodation))return null;
+  if(n.resource.centerBlocked||n.resource.tCollision||n.resource.hangingS.length&&!n.resource.hangingS.every(s=>!closed&&s.id===rootId)||hasSevereS(n.resource))return null;
   const covered=A.repairPrefix(state,n.path,{notches,initialDebt:coveredDebt,stages:resource.pendingCenter});if(!covered.valid)return null;
   return{valid:true,visited,status:closed?'visible-pending-L-closure':'visible-pending-L-wait',waitingStage:!closed,rootId,origin:clone(state),target:rootAccess,endpointTarget:n.access,path:n.path,publicDrawsExhausted:exhausted,parkedHold:n.state.hold??null,arrival:closed?'actually-supplied-and-placed':'not-established',queryStatus:'proven',scope:{kind:'pending-L-visible-wait',beamWidth:4,maxNodes,depth:Math.min(7,state.queue.length+1+(state.hold?1:0))}};
  };
@@ -274,7 +274,7 @@ function pendingLStage(raw,resource,{maxNodes=4000,deadline=Infinity,now=()=>Dat
     // Keep this new grammar narrow: it may preserve this exact Center stage,
     // not create unrelated Left repairs while searching for an absent L.
     if(A.newlyCovered(n.state.board,p.state.board,p.event,phase.pattern).some(([x])=>x<4)||S.cavityRepairDebt(S.cavityFacts(n.state.board),S.cavityFacts(p.state.board),p.event).length)return null;
-    const r=step(n.state,p,n.resource);if(r.violations.length||r.pendingLDiverted||r.pendingCenter.some(v=>v.rootId!==rootId||v.lost)||r.unclassifiedS?.some(s=>s.invalidated||s.requiresAccommodation))return null;
+    const r=step(n.state,p,n.resource);if(r.violations.length||r.pendingLDiverted||r.pendingCenter.some(v=>v.rootId!==rootId||v.lost)||hasSevereS(r))return null;
     const live=r.pendingCenter.some(v=>v.rootId===rootId),conditional=live?access(p.state,r,phase.pattern):null;if(live&&!conditional)return null;
     return {state:p.state,resource:r,path:[...n.path,p],notches:phase.pattern,access:conditional,coveredDebt:A.repairStep(n.state.board,p.state.board,p.event,n.coveredDebt,phase.pattern),score:S.geometry(p.state.board).left.covered+Math.max(...S.geometry(p.state.board).left.profile)-p.event.lines*3};
  };
@@ -326,5 +326,5 @@ function pendingLStage(raw,resource,{maxNodes=4000,deadline=Infinity,now=()=>Dat
  // Beam/cap failure is never a theorem about all waiting alternatives.
  return{valid:null,visited,status:stopped?'pending-L-stage-budget':'no-pending-L-wait-witness',queryStatus:'unfinished',scope:{kind:'pending-L-visible-wait',beamWidth:4,depth}};
 }
-return Object.freeze({discloseAdvice,newUnclassified,start,step,checkPath,partnerAccessible,repairGoal,binding,repair,extendForced,pendingLStageEligible,pendingLStage});
+return Object.freeze({hasSevereS,resetLosesObligation:Admission.resetLosesObligation,discloseAdvice,newUnclassified,start,step,checkPath,partnerAccessible,repairGoal,binding,repair,extendForced,pendingLStageEligible,pendingLStage});
 });

@@ -48,6 +48,16 @@ The shared transition applies exact Center payment/loss first, then S/L classifi
 
 This envelope is also **not loaded by production consumers yet**. It establishes a common factual path; it is not a route-admission implementation. A hypothetical baseline credit does not authorize an ordinary route to spend that credit. Pending-target loss, proposed L diversion, request-root uncertainty, Reset completion and other route-only consequences still need explicit consumer adapters. Unknown-origin diagnostic policy is not broadened here.
 
+## Fifth checkpoint: shared admission predicates and current lifecycle adapter
+
+`st-obligation-admission.js` now supplies the existing production admission predicates to midgame resources, ordinary planning and Reset. It distinguishes generic uncertainty from severe S accommodation, compares current exact uncertainty keys with the fixed request root, and detects the existing Reset-only known-to-unclassified or newly lost-target conditions. This is a consolidation of current policy, not a new prohibition on ordinary unclassified S/L. Exact keys deliberately refuse anonymous aggregates; the remaining route adapter must preserve the required current references or equivalent request-local effects before enabling production compaction.
+
+`st-obligation-context.js` is an **unwired controller adapter**, not a second production ledger. It combines one current public inventory with the factual core and only two bounded opening-boundary facts: progress through the first seven locks and whether the first exact source pattern has been seen. It computes these boundaries from accepted locks, without relying on the old resource tape, elapsed identifier values or a supplied historical milestone. Actual transitions consume one authentic inventory receipt. If accounting fails after an executed move, inventory still advances and status becomes explicitly unavailable rather than silently reinitializing duties.
+
+The adapter handles accepted handoff and Begin Reset markers, direct trusted paired import, current namespace collision checks and immutable caller snapshots/restore. Imports trust duties as supplied; they only reject contradictory current structure or consumed references that collide with a live/future inventory subject. Snapshot/restore supports the existing caller checkpoint model. It does not yet implement the proposed compact inverse-receipt Undo transaction, define a new checkpoint boundary or wire page/session transport.
+
+Focused tests cover the production S85/L86 and Reset L37 distinctions, authentic visible-J repair, fixed-root replacement/reintroduction, unknown versus severe uncertainty, compact operation effects, source/lock-seven decisions, imported current identity collisions, receipt authentication, unavailable accounting, branch restoration and repeated current-state cycles. Full component replay comparisons use the independent original history classifier; matching current facts does not establish complete compact route admission.
+
 ## Remaining migration and retirement order
 
 The whole migration is not complete. Production still uses the legacy S/L and opening/Z/Reset authority, including its allocation tape and action/lock limits. Do not describe this checkpoint as cap-free resource accounting or completed trusted session import.

@@ -38,7 +38,7 @@ function transition(n,p){
  const structural=S.transition(n.state,{...p,availableCleanupPreparation:cleanupAvailable(n.state,n.allowHold)},undefined,{notches:n.notches});
  if(structural.cycleViolations.some(v=>!(Q.qualifies(e)&&v==='spent-scoring-T-without-double')))return null;
  const resource=M.step(n.state,p,n.resource);
- if(resource.violations.length||['S','L'].some(kind=>resource['unclassified'+kind].some(p=>n.resource['hanging'+kind].some(old=>old.id!==null&&old.id===p[kind==='S'?'sId':'lId'])))||resource.pendingCenter.some(d=>d.lost&&!n.resource.pendingCenter.some(old=>old.rootId===d.rootId&&old.lost)))return null;
+ if(resource.violations.length||M.resetLosesObligation(n.resource,resource))return null;
  const path=[...n.path,{witness:p.witness.slice(),event:clone(e),target:clone(e.target),hold:p.witness.includes('HOLD'),structuralEvidence:structural}];
  const score=L.evaluate(p.state,{resources:resource}).score;
  return{state:p.state,allowHold:n.allowHold,notches:phase.pattern,resource,path,score:score+geom.supportEstimate,done:resource.resetProgress===2};
