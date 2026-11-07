@@ -4,18 +4,23 @@ const {withPage}=require('./support/page.cjs');
 const clone=x=>JSON.parse(JSON.stringify(x));
 const select=(g,id)=>{g.element('#st-fixture').value=id;g.element('#st-fixture').dispatchEvent(new g.window.Event('change'));};
 const evidence=g=>clone(g.window.stLab.resetEvidence);
-test('Reset diagnostics UI: readable unknown history, ordinary input, Undo, import and fresh restart remain local',()=>withPage('st-lab.html',{seed:42},g=>{
- assert.match(g.element('#st-reset-summary').textContent,/Earlier Reset history is unknown/);
- select(g,'empty');assert.equal(evidence(g).status,'no-reset-evidence');assert.match(g.element('#st-reset-summary').textContent,/No allowance is renewed/);
- const initial=evidence(g);for(const action of ['HOLD','HOLD','L','HD'])g.window.stLab.act(action);
- assert.equal(evidence(g).locks,1);g.window.stLab.act('UNDO');assert.deepEqual(evidence(g),initial);
+test('Reset diagnostics UI: current checkpoints disclose unavailable history through input, Undo, import and restart',()=>withPage('st-lab.html',{seed:42},g=>{
+ const historicalUnavailable=()=>{
+  const facts=evidence(g);assert.equal(facts.status,'unknown');assert.deepEqual(facts.coverage,{status:'unavailable',scope:'historical'});
+  assert.equal(facts.allowanceRenewal,false);assert.equal(facts.phaseBoundary,'unknown');assert.deepEqual(facts.pairs,[]);assert.equal(Object.hasOwn(facts,'locks'),false,'A current checkpoint cannot fabricate a historical lock count');
+  assert.match(g.element('#st-reset-summary').textContent,/Historical allocation-window diagnostics are unavailable from a current checkpoint/);return facts;
+ };
+ historicalUnavailable();select(g,'empty');assert.equal(g.window.stLab.resources.availability,'known');
+ const initial=historicalUnavailable(),current=clone(g.window.stLab.resources);
+ for(const action of ['HOLD','HOLD','L','HD'])g.window.stLab.act(action);
+ historicalUnavailable();g.window.stLab.act('UNDO');assert.deepEqual(evidence(g),initial);assert.deepEqual(clone(g.window.stLab.resources),current);
  g.element('#st-snapshot').value=JSON.stringify({...g.window.stLab.snapshot(),resetEvidence:{status:'candidate-evidence',phaseBoundary:'complete',allowanceRenewal:true}});g.click('#st-import');
- assert.equal(evidence(g).status,'unknown');assert.equal(evidence(g).allowanceRenewal,false);assert.equal(evidence(g).pairs.length,0);
- select(g,'empty');g.window.stLab.act('HD');g.tap('KeyR');assert.equal(evidence(g).locks,0);assert.equal(evidence(g).status,'no-reset-evidence');
- g.window.stLab.act('HD');g.click('#st-reset');assert.equal(evidence(g).locks,0);assert.equal(evidence(g).pairs.length,0);
+ historicalUnavailable();assert.equal(g.window.stLab.resources.availability,'unknown');assert.equal(g.window.stLab.resources.reset.status,'inactive');
+ select(g,'empty');g.window.stLab.act('HD');g.tap('KeyR');historicalUnavailable();assert.equal(g.window.stLab.resources.availability,'known');
+ g.window.stLab.act('HD');g.click('#st-reset');historicalUnavailable();assert.equal(g.window.stLab.resources.reset.progress,0);
  const exportBefore=g.window.stLab.snapshot();g.click('#st-export');assert.deepEqual(JSON.parse(g.element('#st-snapshot').value),{...clone(exportBefore),suggestedFileName:'st-lab-coaching-export.json'});assert.equal('resetEvidence' in exportBefore,false);
 }));
-test('Reset diagnostics UI: exact state/history cache avoids repeat derivation, invalidates on actions and Undo, and returns defensive copies',()=>withPage('st-lab.html',{seed:42},g=>{
+test('Reset diagnostics UI: exact state/current-context cache avoids repeat derivation, invalidates on actions and Undo, and returns defensive copies',()=>withPage('st-lab.html',{seed:42},g=>{
  select(g,'empty');const original=g.window.STResetDiagnostics;let calls=0;
  g.window.STResetDiagnostics={resolve(...args){calls++;return original.resolve(...args);}};
  g.window.stLab.act('L');const afterMove=calls;assert.equal(afterMove,1);

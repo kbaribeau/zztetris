@@ -6,7 +6,7 @@
  * Unavailable frames use state:null and an unavailable view. No history is an
  * input. The caller authenticates actual delivery and supplies lock/coverage.
  * operation is {kind:'lock',piece,event}, {kind:'observe'}, {kind:'handoff'}, or
- * {kind:'begin-reset'}. piece is the authentic receipt's locked subject. Call
+ * {kind:'begin-reset'} or {kind:'accept-left-repair',repair,checked}. piece is the authentic receipt's locked subject. Call
  * for accepted movement/HOLD as observe, not hypothetical search branches.
  *
  * Optional projected is the same factual frame at the SAME public boundary as
@@ -27,7 +27,7 @@
 const clone=x=>JSON.parse(JSON.stringify(x));
 const canonical=x=>Array.isArray(x)?x.map(canonical):x&&typeof x==='object'?Object.fromEntries(Object.keys(x).sort().map(k=>[k,canonical(x[k])])):x;
 const key=x=>JSON.stringify(canonical(x)),same=(a,b)=>key(a)===key(b);
-const kinds=['S','L'],stages=['action','lock','handoff','begin-reset'];
+const kinds=['S','L'],stages=['action','lock','handoff','begin-reset','accept-left-repair'];
 const stageFor=kind=>kind==='observe'?'action':kind;
 const severity=p=>(p.requiresAccommodation?1:0)+(p.invalidated?2:0);
 const cellKey=cells=>key(cells.slice().sort(([x,y],[u,v])=>x-u||y-v));
@@ -44,7 +44,7 @@ function requireFrame(frame,{projected=false}={}){
  const s=frame.state,v=frame.view;
  if(!projected&&(s?.domain!==undefined||s?.sl?.domain!==undefined||s?.account?.domain!==undefined))throw Error('Hypothetical facts cannot be observed as an actual transition.');
  if(!s||!v||!['known','unknown'].includes(s.availability)||s.availability!==v.availability)throw Error('Matching current state and resolved availability required.');
- if(!same(s.center,v.center)||(s.account.known?s.account.z.remaining:null)!==v.extraZ?.remaining||s.account.reset.status!==v.reset?.status||s.dPending!==v.dPattern?.pending||!same(s.safety.coveredCells,v.coveredRepair?.cells))throw Error('Current state and view disagree.');
+ if(!same(s.leftGoals,v.leftGoals)||!same(s.center,v.center)||(s.account.known?s.account.z.remaining:null)!==v.extraZ?.remaining||s.account.reset.status!==v.reset?.status||s.dPending!==v.dPattern?.pending||!same(s.safety.coveredCells,v.coveredRepair?.cells))throw Error('Current state and view disagree.');
  for(const kind of kinds){
   const p=v['hanging'+kind];
   if(!p||!Array.isArray(p.evidence)||!Array.isArray(p.unclassified)||!same(p.aggregate,s.sl.uncertainty[kind])||p.unclassifiedCount!==p.unclassified.length+p.aggregate.reduce((a,b)=>a+b,0))throw Error('Current S/L view and aggregates required.');
@@ -154,6 +154,41 @@ function centerIssues(before,after,effects,operation,add){
   for(const [id,p]of actual)if(!expected[list].has(id))add('center-created-without-effect',{kind:list,id,rootId:p.rootId});
  }
 }
+// Board-free conservation checks over this operation's current goal facts.
+// The shared reducer establishes actual geometry, as for Center payment.
+function leftIssues(before,after,effects,operation,add){
+ const expected=new Map(before.state.leftGoals.map(g=>[g.id,clone(g)])),actual=new Map(after.state.leftGoals.map(g=>[g.id,g]));
+ const seen=new Set(),isLock=operation.kind==='lock',isAccept=operation.kind==='accept-left-repair',rows=isLock?operation.event.clearedRows:[];
+ const overlap=(g,cells)=>cells?.some(([x,y])=>g.deficitRegion.some(([gx,gy])=>gx===x&&gy===y));
+ const identity=g=>({rule:g.rule,deepColumns:g.deepColumns.slice().sort(),deficitRegion:cellKey(g.deficitRegion),referenceProfile:g.referenceProfile});
+ for(const e of effects.filter(e=>e.domain==='left')){
+  const effectKey=key([e.kind,e.goalId]),g=expected.get(e.goalId),next=actual.get(e.goalId);let valid=!seen.has(effectKey);seen.add(effectKey);
+  if(e.kind==='created'){
+   valid=valid&&isAccept&&operation.checked===true&&!g&&next&&next.status==='open'&&overlap(next,operation.repair?.cells);
+   if(valid)expected.set(e.goalId,clone(next));
+  }else if(e.kind==='reused'||e.kind==='reused-blocked'){
+   valid=valid&&isAccept&&operation.checked===true&&g&&next;
+   if(valid)g.status=e.kind==='reused'?'open':'blocked';
+  }else if(e.kind==='fulfilled'){
+   valid=valid&&isLock&&g&&!rows.length&&!operation.event.topOut&&overlap(g,operation.event.cells)&&operation.event.cells.every(([x,y])=>x<4&&40-y<=Math.max(...g.referenceProfile));
+   if(valid)expected.delete(e.goalId);
+  }else if(e.kind==='removed-by-clear'){
+   valid=valid&&isLock&&g&&rows.length&&g.deficitRegion.every(([,y])=>rows.includes(y));
+   if(valid)expected.delete(e.goalId);
+  }else if(e.kind==='translated'){
+   valid=valid&&isLock&&g&&rows.length&&g.deficitRegion.some(([,y])=>!rows.includes(y));
+   if(valid){g.deficitRegion=g.deficitRegion.filter(([,y])=>!rows.includes(y)).map(([x,y])=>[x,y+rows.filter(r=>r>y).length]);g.deepColumns=g.deepColumns.filter(x=>g.deficitRegion.some(([cx])=>cx===x));g.referenceProfile=g.referenceProfile.map(h=>h-rows.filter(y=>y>=40-h).length);}
+  }else if(e.kind==='blocked'){
+   valid=valid&&isLock&&g&&g.status!=='blocked';if(valid)g.status='blocked';
+  }else if(e.kind==='merged'){
+   const into=expected.get(e.intoGoalId);valid=valid&&isLock&&g&&into&&g.id!==into.id&&same(identity(g),identity(into));
+   if(valid){if(g.status==='blocked')into.status='blocked';expected.delete(e.goalId);}
+  }else valid=false;
+  if(!valid)add('left-effect-mismatch',{kind:e.kind,goalId:e.goalId??null});
+ }
+ for(const [id,g]of expected){const next=actual.get(id);if(!next)add('left-obligation-lost',{goalId:id});else if(!same(g,next))add('left-current-fact-mismatch',{goalId:id});}
+ for(const id of actual.keys())if(!expected.has(id))add('left-created-without-effect',{goalId:id});
+}
 function accountIssues(before,after,effects,operation,add){
  const b=before.state.account,a=after.state.account,account=effects.filter(e=>e.domain==='account'),isLock=operation.kind==='lock',p=operation.piece,event=operation.event;
  const get=status=>account.filter(e=>e.status===status),has=status=>get(status).length===1;
@@ -231,23 +266,23 @@ function currentFacts(frame){
 function compactView(v){return{
  availability:v.availability,opening:clone(v.openingAllocation),qualityPending:v.qualityPending,firstTsd:v.firstTsd,profileLost:v.profileLost,
  extraZ:clone(v.extraZ),hangingS:clone(v.hangingS),hangingL:clone(v.hangingL),center:clone(v.center),
- dPattern:clone(v.dPattern),coveredRepair:clone(v.coveredRepair),reset:clone(v.reset),
+ leftGoals:clone(v.leftGoals),dPattern:clone(v.dPattern),coveredRepair:clone(v.coveredRepair),reset:clone(v.reset),
  };}
 function inspect(before,after,{effects=[],operation,projected=null}){
  requireFrame(before);requireFrame(after);
- if(!operation||!['lock','observe','handoff','begin-reset'].includes(operation.kind)||!Array.isArray(effects))throw Error('One actual operation and its effects required.');
+ if(!operation||!['lock','observe','handoff','begin-reset','accept-left-repair'].includes(operation.kind)||!Array.isArray(effects))throw Error('One actual operation and its effects required.');
  if(operation.kind==='lock'&&(!operation.piece||!operation.event||operation.piece.type!==operation.event.type))throw Error('Actual locked subject and event required.');
  const issues=[],add=(code,identity,details)=>issues.push({code,...(identity?{identity}:{}),...(details?{details}:{})});
  const ba=availability(before),aa=availability(after);
  if(ba!==aa){add('availability-changed',null,{before:ba,after:aa,reason:after.reason??after.view?.reason??null});return issues;}
  if(aa==='unavailable')return issues;
- for(const e of effects)if(!e||!['sl','center','account','safety','D'].includes(e.domain))add('effect-mismatch',{domain:e?.domain??null,status:e?.status??null});
- slIssues(before,after,effects,operation,add);centerIssues(before,after,effects,operation,add);accountIssues(before,after,effects,operation,add);
+ for(const e of effects)if(!e||!['sl','center','account','safety','D','left'].includes(e.domain))add('effect-mismatch',{domain:e?.domain??null,status:e?.status??null});
+ leftIssues(before,after,effects,operation,add);slIssues(before,after,effects,operation,add);centerIssues(before,after,effects,operation,add);accountIssues(before,after,effects,operation,add);
  for(const [domain,changed,status]of [['safety',!same(before.state.safety,after.state.safety),'current-safety-changed'],['D',before.state.dPending!==after.state.dPending,after.state.dPending?'created':'cleared']]){
   const rows=effects.filter(e=>e.domain===domain&&e.status!=='notch-violation');
   if(rows.length!==(changed?1:0)||changed&&rows[0]?.status!==status||changed&&operation.kind!=='lock')add('current-duty-effect-mismatch',{domain});
  }
- if(operation.kind==='handoff')for(const field of ['center','account','safety','dPending'])if(!same(before.state[field],after.state[field]))add('handoff-changed-unrelated-duty',{field});
+ if(operation.kind==='handoff')for(const field of ['center','account','safety','dPending','leftGoals'])if(!same(before.state[field],after.state[field]))add('handoff-changed-unrelated-duty',{field});
  if(projected){
   if(operation.kind!=='lock')throw Error('Projection comparison requires an observed actual lock.');requireFrame(projected,{projected:true});
   if(availability(projected)!==aa)add('projection-mismatch',{field:'availability'});

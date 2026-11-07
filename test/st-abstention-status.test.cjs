@@ -30,5 +30,5 @@ test('abstention status: exhausted budget does not relabel invalid input or malf
  assert.equal(P.plan({...s,board:['bad']},options).status,'invalid-input');
  const resourceContext={schemaVersion:1,origin:s,fresh:false,steps:[{action:'TELEPORT',revealed:[]}],handoffAtAction:null};
  const a=P.plan(s,{...options,resourceContext});withheld(a);
- assert.equal(a.status,'no-supported-continuation-found');assert.match(a.reason,/resource history could not be verified/);
+ assert.equal(a.status,'no-supported-continuation-found');assert.equal(a.metrics.nodes,0);assert.equal(a.evidence.resourceObligations.status,'unavailable');assert.match(a.reason,/Current resource accounting is unavailable/);assert.match(a.evidence.resourceObligations.reason,/Invalid resource replay input/);
 });

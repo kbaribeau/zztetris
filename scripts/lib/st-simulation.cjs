@@ -15,6 +15,7 @@ const Legacy = require('../../st-resource-legacy');
 const Inventory = require('../../st-public-inventory');
 const Handoff = require('../../st-handoff-continuity');
 const PlanContinuity = require('../../st-plan-continuity');
+const LeftPlan = require('../../st-left-plan');
 const Tracking = require('../../st-obligation-tracking');
 const TrackingMetrics = require('./st-tracking-metrics.cjs');
 const F = require('../../st-fixtures');
@@ -26,7 +27,7 @@ const clone = x => JSON.parse(JSON.stringify(x));
 // intentionally omits that field from its worker message. Match that boundary.
 function publicObservation(state){const observation=P.observe(state);delete observation.lastEvent;return observation;}
 const digest = x => crypto.createHash('sha256').update(typeof x === 'string' ? x : JSON.stringify(x)).digest('hex');
-const SOURCE_FILES = ['st-lab.html','st-practice.js','st-reset-diagnostics.js','st-piece-ledger.js','st-plan-continuity.js','st-sl-obligations.js','st-opening-obligations.js','st-obligation-state.js','st-obligation-context.js','st-obligation-projection.js','st-obligation-assessment.js','st-obligation-route.js','st-obligation-resources.js','st-opening-eligibility.js','st-resource-legacy.js','st-resource-provider.js','st-obligation-tracking.js','st-coach-config.js', 'st-rules.js', 'st-bag.js', 'st-structure.js', 'st-paired-repair.js', 'st-access.js', 'st-pattern-history.js', 'st-left-foundation.js', 'st-left-context.js', 'st-midgame-coaches.js','st-reset-coach.js', 'st-planner.js', 'st-opening-patterns.js','st-opening-continuations.js','st-opening-sources.js','st-source-scoring.js', 'st-opening.js', 'st-reset-policy.js','st-public-inventory.js','st-center-obligations.js','st-resource-history.js','st-handoff-continuity.js', 'st-obligation-admission.js', 'st-resource-search.js', 'st-midgame-resources.js', 'st-resource-tracking.js', 'st-worker.js', 'st-lab.js', 'st-session.js', 'st-fixtures.js', 'scripts/lib/st-simulation.cjs', 'scripts/lib/st-simulation-runner.cjs', 'scripts/lib/st-left-shape-metrics.cjs', 'scripts/lib/st-coach-entry-metrics.cjs', 'scripts/lib/st-tracking-metrics.cjs', 'scripts/lib/st-evaluation.cjs', 'scripts/evaluate-st-protocol.cjs', 'scripts/simulate-st.cjs'];
+const SOURCE_FILES = ['st-lab.html','st-practice.js','st-reset-diagnostics.js','st-piece-ledger.js','st-plan-continuity.js','st-obligation-inverse.js','st-left-obligations.js','st-left-plan.js','st-sl-obligations.js','st-opening-obligations.js','st-obligation-state.js','st-obligation-context.js','st-obligation-projection.js','st-obligation-assessment.js','st-obligation-route.js','st-obligation-resources.js','st-opening-eligibility.js','st-resource-legacy.js','st-resource-provider.js','st-obligation-tracking.js','st-coach-config.js', 'st-rules.js', 'st-bag.js', 'st-structure.js', 'st-paired-repair.js', 'st-access.js', 'st-pattern-history.js', 'st-left-foundation.js', 'st-left-context.js', 'st-midgame-coaches.js','st-reset-coach.js', 'st-planner.js', 'st-opening-patterns.js','st-opening-continuations.js','st-opening-sources.js','st-source-scoring.js', 'st-opening.js', 'st-reset-policy.js','st-public-inventory.js','st-center-obligations.js','st-resource-history.js','st-handoff-continuity.js', 'st-obligation-admission.js', 'st-resource-search.js', 'st-midgame-resources.js', 'st-resource-tracking.js', 'st-worker.js', 'st-lab.js', 'st-session.js', 'st-fixtures.js', 'scripts/lib/st-simulation.cjs', 'scripts/lib/st-simulation-runner.cjs', 'scripts/lib/st-left-shape-metrics.cjs', 'scripts/lib/st-coach-entry-metrics.cjs', 'scripts/lib/st-tracking-metrics.cjs', 'scripts/lib/st-evaluation.cjs', 'scripts/evaluate-st-protocol.cjs', 'scripts/simulate-st.cjs'];
 const CONFIG = Object.freeze({depth:3, width:8, maxNodes:45000, timeMs:SEARCH_TIME_MS});
 const PRESETS = Object.freeze({quick:{seeds:[10331, 20333], locks:24}, research:{seeds:Array.from({length:16}, (_,i) => 810001 + i * 997), locks:500}});
 const RNG_VERSION = 'mulberry32-seven-bag-v1';
@@ -146,7 +147,13 @@ function createSession(input, api=P) {
       const proof=validateAdvice(state,advice);
       const requiredDraws=state.queue.length-proof.state.queue.length;
       if(input.future.length-cursor<requiredDraws)throw Object.assign(Error('Private stream cannot replenish this witness; no actions applied'),{code:'INPUT_EXHAUSTED'});
-      pendingHandoffRecovery=null;adoptPlan(advice);
+      pendingHandoffRecovery=null;
+      for(const repair of LeftPlan.selectedRepairs(publicObservation(state),advice,{checked:true})){
+        if(current.status!=='available')break;
+        const prior=current,before=publicObservation(state),transition=Context.acceptLeftRepair(prior,{position:before,repair,checked:true});
+        installTransition(prior,before,transition,{kind:'accept-left-repair',repair,checked:true},actualLocks);
+      }
+      adoptPlan(advice);
       if(typeof api.captureOpeningForecast==='function')openingForecast=api.captureOpeningForecast(publicObservation(state),advice)||openingForecast;
       const recovery=typeof api.captureHandoffRecovery==='function'?api.captureHandoffRecovery(publicObservation(state),advice,Context.exportState(current)):null;
       let recoveryExecution=recovery?Handoff.start(publicObservation(state),current.inventory):null;
@@ -319,6 +326,7 @@ function recoverTrackingStatus(record) {
   if(Object.hasOwn(options,'obligationContext'))current=importCurrent(options.obligationContext,state);
   else if(options.resourceContext){const converted=Legacy.convert(state,options.resourceContext);if(converted.status!=='available')throw Error(converted.reason);current=converted.context;}
   else throw Error('No retained current obligation checkpoint');
+  for(const repair of LeftPlan.selectedRepairs(state,record.advice,{checked:true}))if(current.status==='available')current=Context.acceptLeftRepair(current,{position:state,repair,checked:true}).context;
   if(record.advice?.evidence?.strategy==='reset-coach'&&current.status==='available')current=Context.beginReset(current,{position:state,candidate:true}).context;
   if(options.openingPhase){const accepted=P.acceptOpeningResult({active:true,source:options.openingSource??null},record.advice);if(!accepted.active&&current.status==='available')current=Context.handoff(current,{position:state}).context;}
   if(!Array.isArray(record.actions)||!sameActions(record.actions.map(a=>a.action),record.advice?.witness))throw Error('Recorded actions differ from advice');

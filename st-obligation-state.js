@@ -12,13 +12,13 @@
  * executed game move and report unavailable accounting, never roll it back.
  *
  * Imported CURRENT facts are trusted after structural/reference checks. This is
- * not a whole-session importer, legacy history converter, plan/Left-goal store,
+ * not a whole-session importer, legacy history converter, plan store,
  * route assessment, inverse receipt or controller freshness implementation.
  * Operation effects are transient; do not append them to the returned state.
  */
-(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-public-inventory'),require('./st-center-obligations'),require('./st-sl-obligations'),require('./st-opening-obligations'),require('./st-pattern-history'),require('./st-structure'),require('./st-access')):factory(root.STRules,root.STPublicInventory,root.STCenterObligations,root.STSLObligations,root.STOpeningObligations,root.STPatternHistory,root.STStructure,root.STAccess);if(typeof module==='object'&&module.exports)module.exports=api;else root.STObligationState=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,I,C,SL,O,PH,S,A){
+(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-public-inventory'),require('./st-center-obligations'),require('./st-sl-obligations'),require('./st-opening-obligations'),require('./st-pattern-history'),require('./st-structure'),require('./st-access'),require('./st-left-obligations')):factory(root.STRules,root.STPublicInventory,root.STCenterObligations,root.STSLObligations,root.STOpeningObligations,root.STPatternHistory,root.STStructure,root.STAccess,root.STLeftObligations);if(typeof module==='object'&&module.exports)module.exports=api;else root.STObligationState=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,I,C,SL,O,PH,S,A,L){
 'use strict';
-const VERSION=1,clone=x=>JSON.parse(JSON.stringify(x)),same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+const VERSION=2,clone=x=>JSON.parse(JSON.stringify(x)),same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const check=(ok,reason)=>{if(!ok)throw Error('Invalid obligation state: '+reason);};
 const object=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
 function shape(x,keys,label){check(object(x)&&Object.keys(x).sort().join('|')===keys.slice().sort().join('|'),label+' shape');}
@@ -49,9 +49,12 @@ function importCenter(raw,projected=false){
 }
 function notchSnapshot(pattern){return pattern.status==='unanchored'?null:{version:PH.VERSION,status:pattern.status,anchorRow:pattern.anchorRow,blockedRows:pattern.blockedRows.slice(),source:pattern.source};}
 function readState(raw,projected=false){
- shape(raw,['schemaVersion','availability','center','sl','account','safety','dPending',...(projected?['domain']:[])],'envelope');
+ // Version one had no selected Left goals. Validate its exact old shape
+ // before adding an empty feature field; never infer a goal from past play.
+ const legacy=raw?.schemaVersion===1;
+ shape(raw,['schemaVersion','availability','center','sl','account','safety','dPending',...(!legacy?['leftGoals']:[]),...(projected?['domain']:[])],'envelope');
  if(projected)check(raw.domain==='projection','projection domain');
- check(raw.schemaVersion===VERSION&&['known','unknown'].includes(raw.availability)&&typeof raw.dPending==='boolean','version/availability/D');
+ check((legacy||raw.schemaVersion===VERSION)&&['known','unknown'].includes(raw.availability)&&typeof raw.dPending==='boolean','version/availability/D');
  const center=importCenter(raw.center,projected),sl=projected?SL.importProjection(raw.sl):SL.importState(raw.sl),account=projected?O.importProjection(raw.account):O.importState(raw.account);
  check((sl.status==='known')===(raw.availability==='known')&&account.known===(raw.availability==='known'),'component availability');
  check(raw.availability!=='known'||!account.firstTsd||!sl.foundationOpen,'observed first TSD requires closed S/L foundation');
@@ -60,7 +63,7 @@ function readState(raw,projected=false){
  const coveredCells=cells(raw.safety.coveredCells);check(coveredCells.every(([x])=>x<7),'Left/Center covered cells');
  if(account.reset.status==='active')check(account.reset.inheritedCovered.every(c=>coveredCells.some(v=>same(c,v))),'Reset inherited covered reference');
  if(sl.status==='known')for(const p of [...center.pending,...center.debt])if(['SL','LO'].includes(p.family)&&(!projected||p.rootId>0))check(sl.residuals.some(b=>(p.family==='SL'?b.S:b.L)?.id===p.rootId),'Center S/L root reference');
- return{schemaVersion:VERSION,...(projected?{domain:'projection'}:{}),availability:raw.availability,center,sl,account,safety:{notches,coveredCells},dPending:raw.dPending};
+ return{schemaVersion:VERSION,...(projected?{domain:'projection'}:{}),availability:raw.availability,center,sl,account,safety:{notches,coveredCells},dPending:raw.dPending,leftGoals:L.importGoals(legacy?[]:raw.leftGoals)};
 }
 function importState(raw){return readState(raw);}
 function importProjection(raw){return readState(raw,true);}
@@ -74,7 +77,7 @@ function start(position,{inventory}={}){
   const first=[inventory.active,...inventory.queue];
   check(position.board.every(r=>r==='..........')&&position.streamCursor===1&&inventory.hold===null&&inventory.nextId===8&&first.length===7&&new Set(first.map(p=>p?.type)).size===7&&first.every((p,i)=>p&&p.id===i+1&&p.bag===0&&p.observedOrder===i)&&inventory.frontier?.bag===1&&inventory.frontier.seenMask===0,'known start requires a fresh first-bag origin; import existing current duties');
  }
- return importState({schemaVersion:VERSION,availability:known?'known':'unknown',center:centerFacts(C.start(position.board)),sl:SL.start({known}),account:O.start({known}),safety:{notches:PH.start(position),coveredCells:[]},dPending:false});
+ return importState({schemaVersion:VERSION,availability:known?'known':'unknown',center:centerFacts(C.start(position.board)),sl:SL.start({known}),account:O.start({known}),safety:{notches:PH.start(position),coveredCells:[]},dPending:false,leftGoals:[]});
 }
 // Projection has no actual inventory capability. Its request adapter validates
 // the distinct supply schema/namespace and replays the move; this pure seam
@@ -91,13 +94,18 @@ function effects(domain,items){return clone(items).map(e=>({domain,...e}));}
 // below establish that boundary before calling it. No policy admission occurs.
 function reduce(current,operation,context,projected=false){
  const read=projected?importProjection:importState,state=read(current);contextCheck(context,projected);
- check(['lock','observe','handoff','begin-reset'].includes(operation?.kind),'operation kind');
+ check(['lock','observe','handoff','begin-reset','accept-left-repair'].includes(operation?.kind),'operation kind');
  if(operation.closeFoundation!==undefined)check(typeof operation.closeFoundation==='boolean','closeFoundation boundary');
  if(operation.firstBagReview!==undefined)check(['reviewed','unreviewed'].includes(operation.firstBagReview),'firstBagReview boundary');
  const before=context.before,after=context.after;
  if(operation.kind!=='lock')check(same(before.position.board,after.position.board),'non-lock board change');
  if(operation.kind==='handoff')check(same(before.position,after.position)&&same(before.inventory,after.inventory),'handoff boundary');
  if(state.availability==='known')check(before.inventory.originKnown&&after.inventory.originKnown,'known public supply');
+ if(operation.kind==='accept-left-repair'){
+  check(same(before.position,after.position)&&same(before.inventory,after.inventory),'Left acceptance boundary');
+  const result=L.accept(state.leftGoals,{board:before.position.board,repair:operation.repair,checked:operation.checked});state.leftGoals=result.goals;
+  return{state:read(state),effects:effects('left',result.effects),goalId:result.goalId};
+ }
  if(operation.kind==='begin-reset'){
   check(same(before.position,after.position)&&same(before.inventory,after.inventory),'Reset boundary');
   const result=(projected?O.beginProjectedReset:O.beginReset)(state.account,{candidate:operation.candidate,inheritedCovered:state.safety.coveredCells});state.account=result.state;
@@ -121,6 +129,10 @@ function reduce(current,operation,context,projected=false){
  const closeFoundation=operation.closeFoundation||operation.kind==='lock'&&!state.account.firstTsd&&O.predicates.tsd(operation.event);
  const sl=(projected?SL.projectTransition:SL.transition)(state.sl,{...operation,closeFoundation,centerEffects:center.effects,pairs:center.pairs},slContext);
  const out=[...effects('center',center.effects),...effects('sl',sl.effects)];
+ if(operation.kind==='lock'){
+  const left=L.advance(state.leftGoals,{beforeBoard:before.position.board,event:operation.event,afterBoard:after.position.board});
+  state.leftGoals=left.goals;out.push(...effects('left',left.effects));
+ }
  if(operation.kind==='lock'){
   const classified=(projected?SL.resolveProjection:SL.resolve)(sl.state,{...slContext.after,profileLost:O.profileLost(state.account)});
   const account=(projected?O.projectTransition:O.transition)(state.account,{...operation,centerEffects:center.effects},{before:{board:before.position.board},after:{board:after.position.board,topOut:after.position.topOut,center:center.state,sl:classified,coveredCells:safety.coveredCells}});
@@ -170,7 +182,7 @@ function resolveState(current,{position,inventory}={},projected=false){
  if(state.availability==='known')check(inventory.originKnown,'known status requires known public supply');
  const account=(projected?O.resolveProjection:O.resolve)(state.account,{board:position.board}),sl=(projected?SL.resolveProjection:SL.resolve)(state.sl,{inventory,center:state.center,profileLost:account.profileLost});
  return{availability:state.availability,center:state.center,...sl,...account,
-  coveredRepair:{cells:state.safety.coveredCells,notches:PH.resolve(position,state.safety.notches)},dPattern:{pending:state.dPending}};
+  coveredRepair:{cells:state.safety.coveredCells,notches:PH.resolve(position,state.safety.notches)},dPattern:{pending:state.dPending},leftGoals:state.leftGoals};
 }
 function resolve(current,context){return resolveState(current,context);}
 function resolveProjection(current,context){return resolveState(current,context,true);}

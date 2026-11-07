@@ -160,7 +160,7 @@ test('shared state: 1000 actual O-only manual locks retain equivalent current fa
   }
  }
  assert.equal(inventory.nextId,1003);assert.equal(inventory.active.id,1001);assert.equal(state.availability,'unknown');assert.equal(state.safety.notches.status,'broken');
- assert.deepEqual(Object.keys(state),['schemaVersion','availability','center','sl','account','safety','dPending']);assert.deepEqual(state.center,{pending:[],debt:[]});assert.deepEqual(state.sl.residuals,[]);
+ assert.deepEqual(Object.keys(state),['schemaVersion','availability','center','sl','account','safety','dPending','leftGoals']);assert.deepEqual(state.center,{pending:[],debt:[]});assert.deepEqual(state.sl.residuals,[]);
  for(const snapshot of saved)assert.deepEqual(Q.importState(copy(snapshot)),snapshot,'Caller-owned old snapshots remain independently importable');
 });
 
@@ -176,7 +176,7 @@ test('shared status: current public facts compose the component selectors withou
  for(const at of [7,14,15,24]){
   const x=trial(1,at),state=freeze(copy(x.state)),position=freeze(copy(x.position)),saved=copy({state,position,inventory:x.inventory}),status=Q.resolve(state,{position,inventory:x.inventory});
   const account=O.resolve(state.account,{board:position.board}),sl=SL.resolve(state.sl,{inventory:x.inventory,center:state.center,profileLost:account.profileLost});
-  assert.deepEqual(status,{availability:'known',center:state.center,...sl,...account,coveredRepair:{cells:state.safety.coveredCells,notches:PH.resolve(position,state.safety.notches)},dPattern:{pending:state.dPending}});
+  assert.deepEqual(status,{availability:'known',center:state.center,...sl,...account,coveredRepair:{cells:state.safety.coveredCells,notches:PH.resolve(position,state.safety.notches)},dPattern:{pending:state.dPending},leftGoals:state.leftGoals});
   assert.deepEqual({state,position,inventory:x.inventory},saved);assert.equal('coverage'in status,false);assert.equal('terminal'in status,false);assert.equal('effects'in status,false);assert.equal('capacity'in status.extraZ,false);assert.equal('episodes'in status.reset,false);
   status.center.pending.length=0;status.coveredRepair.cells.push([0,39]);status.hangingS.aggregate[0]++;assert.deepEqual(state,saved.state,'Returned current facts are independent copies');
  }

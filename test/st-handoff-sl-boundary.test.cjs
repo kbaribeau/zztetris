@@ -1,6 +1,7 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const R=require('../st-rules'),B=require('../st-bag'),H=require('../st-resource-history'),M=require('../st-midgame-resources'),P=require('../st-planner');
+const Context=require('../st-obligation-context'),Provider=require('../st-resource-provider'),Resources=require('../st-obligation-resources');
 const clone=x=>JSON.parse(JSON.stringify(x)),ids=(d,type)=>d['hanging'+type].evidence.map(e=>e[type.toLowerCase()+'Id']);
 function live(types){
  let state=R.createState({active:types[0],queue:types.slice(1),streamCursor:1,bag:B.fromObserved({observed:types,startPhase:0})}),history=H.start(state,{fresh:true});
@@ -64,7 +65,7 @@ test('handoff SL: worker/session replay and immutable Undo state rederive the bo
  const state=a.state;a.lock(left);assert.deepEqual(ids(a.summary,'L'),[]);
  assert.deepEqual(H.resolve(state,H.importContext(state,context)),boundary,'Returning across the lock restores the exact handoff obligation');
  const Session=require('../st-session'),session=Session.create(state,{resourceOriginBag:B.fromObserved({observed:['S','L','I','J','O','T','Z'],startPhase:0}),resourceHistory:H.importContext(state,context),openingPhase:false});
- const restored=Session.prepare(clone(session));assert.deepEqual(H.resolve(restored.state,restored.resourceHistory),boundary);
+ const restored=Session.prepare(clone(session)),current=Context.resolve(restored.obligationContext,{position:restored.state});assert.deepEqual(Context.exportState(restored.obligationContext),session.coaching.obligationContext);assert.deepEqual(ids(current,'L'),ids(boundary,'L'));assert.deepEqual(ids(current,'S'),ids(boundary,'S'));assert.equal(restored.obligationContext.state.sl.handoff,true);assert.equal(restored.resourceHistory,undefined);
  const partial=H.markHandoff(H.start(state),state);assert.equal(H.resolve(state,partial).hangingL.status,'unknown','No invented bag identity from a snapshot');
 });
 test('handoff SL: H01 closes consumed opening pairs and carries only its held current-bag L',()=>{
@@ -93,12 +94,12 @@ test('handoff SL: actual Center diversion debt and covered repair remain intact 
 function intercepted(extras){const module={exports:{}};vm.runInNewContext(fs.readFileSync(require.resolve('../st-opening'),'utf8'),{module,require:id=>id==='./st-planner'?{...P,...extras}:require(id.replace('./','../')),Date});return module.exports;}
 test('handoff SL: first H01 maintenance search receives the marked ledger without changing live history',()=>{
  const f=require('./fixtures/opening-handoff-sl-h01.json'),before=clone(f.resourceContext);let calls=0;
- const O=intercepted({plan:(state,options)=>{calls++;const d=H.resolve(state,H.importContext(state,options.resourceContext));assert.equal(d.milestones.maintenanceHandoff.at,17);assert.deepEqual(ids(d,'S'),[]);assert.deepEqual(ids(d,'L'),[17]);assert.equal(options.openingPhase,false);return{target:null,status:'budget-exhausted',metrics:{nodes:1}};}});
+ const O=intercepted({plan:(state,options)=>{calls++;const input=Provider.prepare(state,options),d=Provider.facts(input);assert.equal(Provider.frame(input).state.sl.handoff,true);assert.equal(d.availability,'known');assert.deepEqual(ids(d,'S'),[]);assert.deepEqual(ids(d,'L'),[17]);assert.equal(options.openingPhase,false);return{target:null,status:'budget-exhausted',metrics:{nodes:1}};}});
  assert.equal(O.handoff(f.position,f.openingClear,{resourceContext:f.resourceContext,maxNodes:12000,deadline:Infinity,now:()=>0}),null);assert.equal(calls,1);assert.deepEqual(f.resourceContext,before);assert.equal(f.resourceContext.handoffAtAction,null);
 });
 test('handoff SL: forecast-first validation and fallback both receive the identical boundary context',()=>{
  const f=require('./fixtures/opening-forecast-public.json');let first=null,calls=0;
- const O=intercepted({revalidateOpeningForecast:(state,_steps,options,work)=>{first=clone(options.resourceContext);const d=H.resolve(state,H.importContext(state,first));assert.equal(d.milestones.maintenanceHandoff.at,d.locks);work.nodes=1;return null;},plan:(_state,options)=>{calls++;assert.deepEqual(clone(options.resourceContext),first);return{target:null,status:'budget-exhausted',metrics:{nodes:1}};}});
+ const O=intercepted({revalidateOpeningForecast:(state,_steps,options,work)=>{first=clone(Provider.frame(Provider.prepare(state,options)));assert.equal(first.state.sl.handoff,true);work.nodes=1;return null;},plan:(state,options)=>{calls++;assert.deepEqual(clone(Provider.frame(Provider.prepare(state,options))),first);return{target:null,status:'budget-exhausted',metrics:{nodes:1}};}});
  O.handoff(f.request.observation,f.request.options.openingClear,{...f.request.options,openingForecast:f.forecast,maxNodes:12000,deadline:Infinity,now:()=>0});assert.ok(first);assert.equal(calls,1);
 });
 test('handoff SL: a recorded phase boundary is interpreted as input, never a repair or allocation certificate',()=>{
@@ -112,24 +113,26 @@ test('handoff SL: a recorded phase boundary is interpreted as input, never a rep
 });
 test('handoff SL: shared recovery gating uses boundary facts even when opening diagnostics had unclassified S',()=>{
  const q=require('./fixtures/shared-handoff-roots.json')[0].request,advice=require('./fixtures/forced-bag-resource-binding.json').advice;let calls=0;
- // Component control injects a stale consumed-opening label only before the
- // marker. Real history tests above separately prove its boundary removal.
- const history={...H,resolve:(state,h)=>{const d=H.resolve(state,h);if(!d.milestones?.maintenanceHandoff)d.hangingS={...d.hangingS,unclassified:[{sId:999}]};return d;}};
+ // A trusted current anonymous opening count is exempted by the projected
+ // handoff, without changing the controller's still-unmarked current state.
+ const supplied=Provider.prepare(q.observation,q.options);assert.equal(supplied.status,'available');const snapshot=Context.exportState(supplied.context);snapshot.state.sl.uncertainty.S[0]++;
+ const current=Context.importState(snapshot,{position:q.observation});assert(Context.resolve(current,{position:q.observation}).hangingS.unclassifiedCount>0);
  const planner={...P,plan:()=>++calls===1?{target:null,status:'budget-exhausted',metrics:{nodes:12000}}:{...clone(advice),metrics:{nodes:20848}}};
- const module={exports:{}};vm.runInNewContext(fs.readFileSync(require.resolve('../st-opening'),'utf8'),{module,require:id=>id==='./st-planner'?planner:id==='./st-resource-history'?history:require(id.replace('./','../')),Date});
- const result=module.exports.plan(q.observation,{...q.options,deadline:1500,now:()=>0});assert.equal(calls,2);assert.equal(result.evidence.openingHandoff.recovery,'shared-after-legacy-budget-miss');assert.equal(result.metrics.nodes,32848);
+ const module={exports:{}};vm.runInNewContext(fs.readFileSync(require.resolve('../st-opening'),'utf8'),{module,require:id=>id==='./st-planner'?planner:require(id.replace('./','../')),Date});
+ const result=module.exports.plan(q.observation,{...q.options,resourceContext:undefined,obligationContext:snapshot,deadline:1500,now:()=>0});assert.equal(calls,2);assert.equal(result.evidence.openingHandoff.recovery,'shared-after-legacy-budget-miss');assert.equal(result.metrics.nodes,32848);assert.deepEqual(Context.exportState(current),snapshot);
 });
-test('handoff SL: complete H01 planner admission and actual continuation use the same boundary ledger',()=>{
- const f=require('./fixtures/opening-handoff-sl-h01.json'),options={resourceContext:f.resourceContext,openingPhase:true,openingClear:f.openingClear,maxNodes:45000,deadline:Infinity,now:()=>0};
- const before=clone(options.resourceContext),advice=P.decide(f.position,options);
+test('handoff SL: complete H01 planner admission and actual continuation use the same current boundary',()=>{
+ const f=require('./fixtures/opening-handoff-sl-h01.json'),converted=Provider.prepare(f.position,{resourceContext:f.resourceContext});assert.equal(converted.status,'available');
+ const options={obligationContext:Context.exportState(converted.context),openingPhase:true,openingClear:f.openingClear,maxNodes:45000,deadline:Infinity,now:()=>0};
+ const before=clone(options.obligationContext),advice=P.decide(f.position,options);
  assert.ok(advice.target,advice.reason);assert.equal(advice.phase,'maintenance');assert.equal(advice.evidence.openingHandoff.status,'checked-after-actual-clear');assert.equal(advice.evidence.resourceObligations.status,'checked');
- let state=f.position,history=H.markHandoff(H.importContext(state,f.resourceContext),state);
- const boundary=H.resolve(state,history),binding=M.start(M.extendForced(state),boundary).originKey;
+ let state=f.position,current=Context.handoff(converted.context,{position:state}).context;
+ const boundary=Context.resolve(current,{position:state}),input=Provider.prepare(state,{obligationContext:Context.exportState(current)}),resource=Provider.startRoute(input),binding=Resources.rootBinding(resource);
  assert.equal(advice.evidence.resourceObligations.binding,binding,'Outer admission cannot restore stale opening pairing evidence');assert.deepEqual(ids(boundary,'L'),[17]);assert.deepEqual(boundary.hangingS.unclassified,[]);
  assert.equal(P.revalidate(state,clone(advice),{...options,openingPhase:false}),null,'Copied phase/handoff labels cannot rebase an unmarked request');
- assert.ok(P.revalidate(state,clone(advice),{...options,openingPhase:false,resourceContext:H.exportContext(state,history)})?.target,'Controller-marked history revalidates normally');
- const checked=M.checkPath(state,advice.continuation,boundary);assert.equal(checked.valid,true);
- for(const step of advice.continuation)for(const action of step.witness){const next=R.move(state,action);assert.notEqual(next,state);history=H.applyAction(history,state,action,next);state=next;}
- const after=H.resolve(state,history);assert.equal(after.coverage.status,'complete');assert.deepEqual(checked.resource.hangingS.map(p=>p.id),ids(after,'S'));assert.deepEqual(checked.resource.hangingL.map(p=>p.id),ids(after,'L'));
- assert.deepEqual(options.resourceContext,before,'Successful planning still cannot mutate the controller ledger');
+ assert.ok(P.revalidate(state,clone(advice),{...options,openingPhase:false,obligationContext:Context.exportState(current)})?.target,'Controller-marked current state revalidates normally');
+ const checked=Resources.checkPath(Resources.position(resource),advice.continuation,resource);assert.equal(checked.valid,true);
+ for(const step of advice.continuation)for(const action of step.witness){const next=R.move(state,action);assert.notEqual(next,state);current=Context.applyActual(current,{before:state,action,after:next}).context;state=next;}
+ const after=Context.resolve(current,{position:state});assert.equal(after.availability,'known');assert.deepEqual(checked.resource.hangingS.map(p=>p.id),ids(after,'S'));assert.deepEqual(checked.resource.hangingL.map(p=>p.id),ids(after,'L'));
+ assert.deepEqual(options.obligationContext,before,'Successful planning still cannot mutate the controller current state');
 });

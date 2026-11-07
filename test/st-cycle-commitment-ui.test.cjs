@@ -95,12 +95,12 @@ test('st-cycle-ui/real reserved I requires credited spin and fills the Pocket ac
    // Reuse the original plan to check its retained scoring suffix before
    // preview refill/replanning: board equality alone cannot pay a spin goal.
    const first=R.replay(request.observation,plan.witness);assert.ok(first.valid);
-   const scoring=P.continueCommitment(request.observation,first.state,plan,first.events[0]);assert.ok(scoring);assert.equal(scoring.continuation[0].event.spin,'full');
+   const scoring=P.continueCommitment(request.observation,first.state,plan,first.events[0],{now:()=>0,deadline:Infinity,maxNodes:12000});assert.ok(scoring);assert.equal(scoring.continuation[0].event.spin,'full');
    const atTarget=R.replay(first.state,scoring.witness.slice(0,-1));assert.ok(atTarget.valid);
    const noRotation=R.createState({...atTarget.state,active:{...atTarget.state.active,lastRotation:null}}),uncredited=R.move(noRotation,'HD'),scored=R.replay(first.state,scoring.witness);
    assert.deepEqual(uncredited.board,scored.state.board);assert.deepEqual(uncredited.lastEvent.target,scored.events[0].target);assert.equal(uncredited.lastEvent.lines,2);assert.equal(uncredited.lastEvent.spin,'none');
-   assert.ok(P.continueCommitment(first.state,scored.state,scoring,scored.events[0]));
-   assert.equal(P.continueCommitment(first.state,uncredited,scoring,uncredited.lastEvent),null);
+   assert.ok(P.continueCommitment(first.state,scored.state,scoring,scored.events[0],{now:()=>0,deadline:Infinity,maxNodes:12000}));
+   assert.equal(P.continueCommitment(first.state,uncredited,scoring,uncredited.lastEvent,{now:()=>0,deadline:Infinity,maxNodes:12000}),null);
   }
   events.push(R.replay(request.observation,plan.witness).events[0]);workers.at(-1).respond(plan);
   for(const action of plan.witness)g.window.stLab.act(action);g.advance(40);

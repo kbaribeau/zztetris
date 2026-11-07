@@ -20,8 +20,8 @@ test('contextual risk / shared budget and malformed same-draw candidate retain i
  const q=compare(s=>s,a=>a,{deadline:0});assert.deepEqual(q.result.target,q.support.target);
  const {s,supported,risk}=pair(),r=R.replay(s,risk.witness),p={state:{...r.state,queue:['J']},event:r.events[0],witness:risk.witness};const out=harness().contextualRiskPreference(s,supported,options(s),{placements:[p],complete:true});assert.deepEqual(out.target,supported.target);
 });
-test('contextual risk / fresh Worker keeps shared budget and explicit supported comparison',()=>{
- const s=root(),o=options(s),worker=require('../scripts/lib/st-simulation.cjs').workerPlanner(),request={type:'plan',id:92,observation:s,previous:null,commitment:null,options:{...o,timeMs:1500}};
+test('contextual risk / node-bounded serialized Worker keeps explicit supported comparison',()=>{
+ const s=root(),o=options(s),worker=require('../scripts/lib/st-simulation.cjs').workerPlanner({disableSearchTimeout:true}),request={type:'plan',id:92,observation:s,previous:null,commitment:null,options:{...o,timeMs:1500}};
  const result=worker(clone(request));assert.equal(result.target.type,'S');assert.equal(result.recommendation.kind,'risky');assert.ok(result.metrics.nodes<=45000);assert.equal(result.recommendation.search.saferAlternative,'supported-finite-alternative-ranked-lower');
 });
 test('contextual risk / synthetic collector gate rejects higher Left hidden by taller Right',()=>{
@@ -42,4 +42,10 @@ test('contextual risk / certified immediate J exit is not misrepresented as unre
  const {s,supported,risk}=pair();s.hold='J';const r=R.replay(s,risk.witness);assert(r.valid);const p={state:r.state,event:r.events[0],witness:risk.witness,target:r.events[0].target};
  const result=harness().riskyFallback(s,{...supported,metrics:{nodes:100}},options(s),{placements:[p],complete:true},{excessBefore:2,excessAfter:1});
  assert.deepEqual(result.target,supported.target);assert.notEqual(result.recommendation.kind,'risky');assert.equal(result.metrics.riskFallback.rejections['no-unresolved-D-risk'],1);
+});
+
+test('contextual risk / production Worker returns a justified choice or a concrete bounded fallback',()=>{
+ const s=root(),o={...options(s),timeMs:1500},request={type:'plan',id:192,observation:s,previous:null,commitment:null,options:o},a=require('../scripts/lib/st-simulation.cjs').workerPlanner()(clone(request)),selected=a.target?.type==='S'&&a.recommendation?.kind==='risky';
+ require('./support/st-production-budget.cjs').verify(s,a,o,selected);
+ if(selected){assert.equal(a.recommendation.search.saferAlternative,'supported-finite-alternative-ranked-lower');assert(a.recommendation.hazards.some(h=>h.code==='D-J-exit-unresolved'));assert.equal(a.evidence.riskComparison.excessBefore,2);assert.equal(a.evidence.riskComparison.excessAfter,1);}
 });

@@ -17,7 +17,11 @@ function supplyFacts(supply){return{originKnown:supply.originKnown,nextObservedI
 // Resource compatibility excludes pose/revision, history, request budgets and
 // external plan association. Geometry has its own independent caller binding.
 // Actual/projection tags and allocator field names are representation details.
-function factualBinding(state,supply,openingBoundary){return JSON.stringify(canonical([state,supplyFacts(supply),openingBoundary]));}
+// Left jobs are observational work today, not route permission or ranking.
+// Accepting a checked plan records that job without invalidating its proof.
+// Full node binding still includes jobs. Revisit this exclusion before adding
+// any strategy that depends on them.
+function factualBinding(state,supply,openingBoundary){const {leftGoals,...permissionFacts}=state;return JSON.stringify(canonical([permissionFacts,supplyFacts(supply),openingBoundary]));}
 function view(route,root){
  const resources=Route.resolve(route).resources,supply=route.projection.supply;
  const out=freeze({...resources,active:subject(supply.active),hold:subject(supply.hold),queue:supply.queue.map(subject),route});trusted.add(out);roots.set(out,root);return out;

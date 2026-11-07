@@ -41,7 +41,7 @@ test('Reset coach: actual HOLD and first T keep replayable progress through new 
  const context=H.exportContext(state,history),moved=R.move(state,'L');assert.equal(H.resolve(moved,H.importContext(moved,context)).coverage.status,'invalid');
 });
 test('Reset live cycle: delayed next-bag T, permitted filler quad, actual second-T handback and session replay',()=>{
- const B=require('../st-bag'),Session=require('../st-session'),f=require('./support/st-reset-live-cycle.json');
+ const B=require('../st-bag'),Session=require('../st-session'),Context=require('../st-obligation-context'),f=require('./support/st-reset-live-cycle.json');
  let state=R.createState(f.initial),history=H.importContext(state,clone(f.resourceContext));assert.equal(H.resolve(state,history).coverage.status,'complete');assert.equal(Q.consider(state,H.resolve(state,history)).status,'candidate');
  history=H.beginReset(history,state);const origin={state,history};let firstId=null;
  for(const [i,step]of f.steps.entries()){
@@ -50,7 +50,11 @@ test('Reset live cycle: delayed next-bag T, permitted filler quad, actual second
   if(i===0){assert.equal(d.reset.progress,1);firstId=d.reset.credits[0].pieceId;}
   if(i<f.steps.length-1)assert.equal(d.reset.status,'active');
   const saved=Session.create(state,{resourceHistory:history,resourceOriginBag:f.resourceOriginBag,openingPhase:false}),imported=Session.prepare(saved);
-  assert.deepEqual(H.resolve(imported.state,imported.resourceHistory).reset,d.reset,'Session handoff retains observed progress');
+  assert.deepEqual(Context.exportState(imported.obligationContext),saved.coaching.obligationContext,'Session handoff preserves every current duty and account fact');
+  const current=Context.resolve(imported.obligationContext,{position:imported.state});
+  assert.deepEqual(current.reset,{status:d.reset.status,progress:d.reset.status==='active'?d.reset.progress:0});
+  assert.equal(current.extraZ.remaining,d.extraZ.remaining);
+  if(d.reset.status==='active')assert.equal(imported.obligationContext.state.account.reset.firstTId,firstId);
  }
  const d=H.resolve(state,history);assert.equal(d.reset.status,'inactive');assert.equal(d.reset.progress,2);assert.equal(d.reset.episodes.length,1);assert.equal(d.reset.completedAt,d.locks);assert.equal(d.allocations.at(-1).lines,0);assert.notEqual(d.reset.credits[1].pieceId,firstId);assert.notEqual(d.reset.credits[0].bag,d.reset.credits[1].bag);assert.deepEqual(state.board,f.final.board);
  assert.equal(d.extraZ.remaining,2);assert.equal(d.extraZ.status,'available');assert.equal(C.plan(state,{resourceContext:H.exportContext(state,history)}),null,'The Reset coach hands back immediately, not after another TSD');

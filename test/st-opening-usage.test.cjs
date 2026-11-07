@@ -13,13 +13,21 @@ test('opening usage: opt-in counters and named score contributions do not change
  assert.ok(Math.abs(Object.values(u.selected.scoreComponents).reduce((a,b)=>a+b,0)-u.selected.rank[5])<1e-9);
  assert.equal(u.selected.rank.length,8);assert.equal(u.families.retainedRepair.provided,0);
 });
-test('opening usage: actual-clear handoff reports its verified selection without invented opening rank components',()=>{
+test('opening usage: fixed-clock 20000-node actual-clear handoff reports its verified selection without invented opening rank components',()=>{
  const f=require('./support/st-opening-handoff.json'),session=P.updateOpeningSession({active:true,clear:null},f.before,f.after,f.event);
- const a=P.plan(f.after,{...options,openingPhase:true,openingClear:session.clear,usageTelemetry:true});
+ const a=P.plan(f.after,{...options,openingPhase:true,openingClear:session.clear,usageTelemetry:true,now:()=>0});
  assert.equal(a.phase,'maintenance');assert.equal(a.metrics.usage.selected.path,'actual-clear-handoff');
  assert.equal(a.metrics.usage.families.handoff.actualClearProvided,1);assert.equal(a.metrics.usage.families.handoff.selected,1);
  assert.equal(a.metrics.usage.selected.scoreComponents,undefined);assert.equal(a.metrics.usage.selected.locks,a.continuation.length);
  assert.equal(a.metrics.handoffWork.fresh.selected,true);assert.equal(a.metrics.handoffWork.fresh.usage.scope,'maintenance','Fresh maintenance counters stay separate from the outer handoff selection');
+});
+test('opening usage: production 1500ms handoff telemetry cannot claim selection for unfinished work',()=>{
+ const E=require('../scripts/lib/st-simulation.cjs'),verify=require('./support/st-opening-handoff-budget.cjs'),f=require('./support/st-opening-handoff.json'),session=P.updateOpeningSession({active:true,clear:null},f.before,f.after,f.event);
+ const {deadline,...bounded}=options,request={type:'plan',id:1,observation:f.after,previous:null,commitment:null,options:{...bounded,timeMs:1500,openingPhase:true,openingClear:session.clear,usageTelemetry:true}},before=JSON.stringify(request);
+ const a=E.workerPlanner()(request);assert.equal(JSON.stringify(request),before);verify(request,a);
+ assert.equal(a.metrics.usage.families.handoff.actualClearProvided,1);
+ assert.equal(a.metrics.usage.families.handoff.selected,Number(a.phase==='maintenance'));
+ if(a.phase==='maintenance')assert.equal(a.metrics.usage.selected.path,'actual-clear-handoff');else assert.notEqual(a.metrics.usage.selected?.path,'actual-clear-handoff');
 });
 test('opening usage: foundation-stage counters separate checked paths from retained goals without changing selection',()=>{
  const f=require('./support/st-opening-foundation-stage.json'),O=require('../st-opening');

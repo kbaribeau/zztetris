@@ -145,7 +145,7 @@ test('context: an already-seen source cannot turn a later lock-seven match into 
 });
 test('context: UMD loading uses the same seam without production controller wiring',()=>{
  const realm=vm.createContext({});
- for(const name of ['st-rules','st-bag','st-structure','st-access','st-pattern-history','st-reset-policy','st-opening-patterns','st-public-inventory','st-center-obligations','st-sl-obligations','st-opening-obligations','st-obligation-state','st-obligation-context'])vm.runInContext(fs.readFileSync(require.resolve('../'+name),'utf8'),realm,{filename:name+'.js'});
+ for(const name of ['st-rules','st-bag','st-structure','st-access','st-pattern-history','st-reset-policy','st-opening-patterns','st-public-inventory','st-center-obligations','st-sl-obligations','st-opening-obligations','st-left-obligations','st-obligation-state','st-obligation-context'])vm.runInContext(fs.readFileSync(require.resolve('../'+name),'utf8'),realm,{filename:name+'.js'});
  const position=first(),current=realm.STObligationContext.start(position,{fresh:true}),after=R.move(position,'HD');const result=realm.STObligationContext.applyActual(current,{before:position,action:'HD',after});
  const node=C.applyActual(C.start(position,{fresh:true}),{before:position,action:'HD',after});assert.deepEqual(copy(result.context),copy(node.context));assert.deepEqual(copy(result.effects),copy(node.effects));
 });

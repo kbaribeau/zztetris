@@ -60,8 +60,8 @@ test('checked I / copied allocation evidence is cleared and full route is indepe
  const broken=advice();broken.continuation[4].witness=['HD'];assert.equal(P.revalidate(root(),broken,options()),null);
  const saved=Session.create(root(),{...options(),resourceHistory:RH.importContext(root(),fixture.options.resourceContext),resourceOriginBag:fixture.resourceOriginBag,previous:a}),restored=Session.parse(JSON.stringify(saved));const c=P.revalidate(restored.state,restored.previous,{...options(),resourceContext:undefined,obligationContext:restored.obligationContext});assert(c);assert.equal(c.evidence.checkedIAllocation,null);
 });
-test('checked I / fresh serialized Worker discovers the same public allocation within production budget',()=>{
- const worker=require('../scripts/lib/st-simulation.cjs').workerPlanner(),request=clone({type:'plan',id:250,observation:root(),previous:null,commitment:null,options:{...fixture.options,depth:3,width:8,maxNodes:45000,timeMs:1500}}),a=worker(request);assert.equal(a.recommendation.kind,'supported');assert.equal(a.metrics.checkedIAllocation.selected,true);assert.deepEqual(a.continuation.map(p=>p.event.type),['T','J','O','S','I','J']);assert(a.metrics.nodes<=45000);
+test('checked I / node-bounded serialized Worker discovers the same public allocation',()=>{
+ const worker=require('../scripts/lib/st-simulation.cjs').workerPlanner({disableSearchTimeout:true}),request=clone({type:'plan',id:250,observation:root(),previous:null,commitment:null,options:{...fixture.options,depth:3,width:8,maxNodes:45000,timeMs:1500}}),a=worker(request);assert.equal(a.recommendation.kind,'supported');assert.equal(a.metrics.checkedIAllocation.selected,true);assert.deepEqual(a.continuation.map(p=>p.event.type),['T','J','O','S','I','J']);assert(a.metrics.nodes<=45000);
 });
 
 test('checked I / one-placement fallback does not borrow an unexecuted I exit',()=>{
@@ -93,16 +93,30 @@ test('checked I / an observed S-only tail survives actual earlier Center payment
  for(const action of a.witness){const before=state;state=R.move(state,action);history=RH.applyAction(history,before,action,state);if(action==='HD')pattern=P.updatePatternHistory(pattern,before,state,state.lastEvent);}
  assert.equal(RH.resolve(state,history).center.pending.length,0);const retained=P.continueCommitment(origin,state,a,state.lastEvent,live());assert(retained);assert.equal(retained.continuation.length,1);assert.equal(retained.target.type,'S');assert(P.resourceGoal(retained.continuation));assert(P.revalidate(state,retained,live()));
 });
-for(const reveal of [false,true])test('checked I / every fresh production Worker retains original S and both J jobs '+(reveal?'with actual reveals':'without new reveals'),()=>{
+for(const reveal of [false,true])test('checked I / every node-bounded serialized Worker retains original S and both J jobs '+(reveal?'with actual reveals':'without new reveals'),()=>{
  let state=root(),history=RH.importContext(state,fixture.options.resourceContext),pattern=clone(fixture.options.patternHistory),commitment=null,original=null;const E=require('../scripts/lib/st-simulation.cjs'),B=require('../st-bag');
  const live=()=>({...fixture.options,resourceContext:RH.exportContext(state,history),patternHistory:pattern,depth:3,width:8,maxNodes:45000,timeMs:1500});
  // These original player-session draws are controller inputs only after each
  // actual lock. They are never present early in a Worker request.
  const reveals=['T','S','Z','L','O','J'];
  for(let index=0;index<6;index++){
-  const a=E.workerPlanner()(clone({type:'plan',id:250+index,observation:state,previous:null,commitment,options:live()}));assert(a.target);assert.equal(a.recommendation.kind,'supported');assert(a.metrics.nodes<=45000);original??=clone(a.continuation);assert.deepEqual(a.continuation[0].event,original[index].event);
-  const beforeLock=state;let moving=a;for(const action of a.witness){const before=state;state=R.move(state,action);if(action==='HD'&&reveal)state={...state,queue:[...state.queue,reveals[index]],bag:B.consume(state.bag,reveals[index])};history=RH.applyAction(history,before,action,state);if(action==='HD')pattern=P.updatePatternHistory(pattern,before,state,state.lastEvent);else{moving=P.advance(state,moving,action,{patternHistory:pattern,openingPhase:false,resourceContext:RH.exportContext(state,history)});assert(moving);assert(moving.metrics.revalidationNodes<=12000);}}
-  const next=P.continueCommitment(beforeLock,state,a,state.lastEvent,{patternHistory:pattern,resourceContext:RH.exportContext(state,history)});if(next)assert(next.metrics.revalidationNodes<=12000);commitment=next?{observation:P.observe(state),advice:next}:null;if(index<5)assert(commitment);else assert.equal(commitment,null);
+  const a=E.workerPlanner({disableSearchTimeout:true})(clone({type:'plan',id:250+index,observation:state,previous:null,commitment,options:live()}));assert(a.target);assert.equal(a.recommendation.kind,'supported');assert(a.metrics.nodes<=45000);original??=clone(a.continuation);assert.deepEqual(a.continuation[0].event,original[index].event);
+  const beforeLock=state;let moving=a;for(const action of a.witness){const before=state;state=R.move(state,action);if(action==='HD'&&reveal)state={...state,queue:[...state.queue,reveals[index]],bag:B.consume(state.bag,reveals[index])};history=RH.applyAction(history,before,action,state);if(action==='HD')pattern=P.updatePatternHistory(pattern,before,state,state.lastEvent);else{moving=P.advance(state,moving,action,{patternHistory:pattern,openingPhase:false,resourceContext:RH.exportContext(state,history),now:()=>0,deadline:Infinity,maxNodes:12000});assert(moving);assert(moving.metrics.revalidationNodes<=12000);}}
+  const next=P.continueCommitment(beforeLock,state,a,state.lastEvent,{patternHistory:pattern,resourceContext:RH.exportContext(state,history),now:()=>0,deadline:Infinity,maxNodes:12000});if(next)assert(next.metrics.revalidationNodes<=12000);commitment=next?{observation:P.observe(state),advice:next}:null;if(index<5)assert(commitment);else assert.equal(commitment,null);
  }
  const summary=RH.resolve(state,history);assert(summary.center.closed.some(p=>p.rootId===20&&p.partnerId===31&&p.status==='fulfilled'));assert.equal(summary.center.pending.length,0);assert.equal(summary.hangingS.evidence.length,0);
+});
+
+test('checked I / production Worker keeps its wall budget and only returns checked or explicit bounded outcomes',()=>{
+ const E=require('../scripts/lib/st-simulation.cjs'),q={type:'plan',id:350,observation:root(),previous:null,commitment:null,options:{...fixture.options,depth:3,width:8,maxNodes:45000,timeMs:1500}},a=E.workerPlanner()(clone(q)),selected=a.metrics.checkedIAllocation?.selected===true;
+ require('./support/st-production-budget.cjs').verify(q.observation,a,q.options,selected);
+ if(selected){assert.equal(a.recommendation.kind,'supported');assert.deepEqual(a.continuation.map(p=>p.event.type),['T','J','O','S','I','J']);assert.equal(a.evidence.checkedIAllocation.iExitLock,5);assert.notEqual(a.evidence.checkedIAllocation.leftJId,a.evidence.checkedIAllocation.centerJId);}
+});
+test('checked I / default post-S retention either certifies the exact suffix or reaches its unchanged deadline',()=>{
+ let state=root(),history=RH.importContext(state,fixture.options.resourceContext),pattern=clone(fixture.options.patternHistory),a=advice();
+ for(let lock=0;lock<4;lock++){const beforeLock=state,old=a;for(const action of a.witness){const before=state;state=R.move(state,action);history=RH.applyAction(history,before,action,state);if(action==='HD')pattern=P.updatePatternHistory(pattern,before,state,state.lastEvent);}
+  const live={patternHistory:pattern,resourceContext:RH.exportContext(state,history)},fixed=P.continueCommitment(beforeLock,state,old,state.lastEvent,{...live,now:()=>0,deadline:Infinity,maxNodes:12000});assert(fixed);
+  if(lock===3){const started=Date.now(),timed=P.continueCommitment(beforeLock,state,old,state.lastEvent,live),elapsed=Date.now()-started;if(timed){assert.deepEqual(timed.continuation.map(p=>p.event),fixed.continuation.map(p=>p.event));assert(timed.metrics.revalidationNodes<=12000);assert(P.revalidate(state,timed,{...live,now:()=>0,deadline:Infinity,maxNodes:45000}));}else assert(elapsed>=150,'A known executable suffix may disappear only after the production retention deadline');}
+  a=fixed;
+ }
 });

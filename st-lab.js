@@ -16,14 +16,34 @@
   window.ctrlsPopup=()=>window.open('controls.html','popup','width=1200,height=800');
   const context=$('b').getContext('2d');
   let suggestedFileName=STSession.DEFAULT_EXPORT_FILENAME;
-  let state, origin, future=[], futureCursor=0, generated=false, privatePractice=false, openingPhase=false, openingClear=null, openingRepair=null, openingSource=null, patternHistory=null, obligationContext=null, pieceLedger=null;
-  let undoHistory=[], turnStart=null, resetDiagnosticCache=null, planContinuity=null, planProof=null;
+  let state, origin, future=[], futureCursor=0, generated=false, privatePractice=false, openingPhase=false, openingClear=null, openingRepair=null, openingSource=null, patternHistory=null, obligationContext=null;
+  let undoHistory=[], turnStart=null, inverseSession=null, pendingInverse=null, resetDiagnosticCache=null, planContinuity=null, planProof=null;
   let tracking=STObligationTracking.create();const trackingListeners=new Map();
   function resetTracking(){tracking=STObligationTracking.create();for(const listener of trackingListeners.keys())trackingListeners.set(listener,tracking.subscribe(listener));}
   function accountingFrame(current=obligationContext,position=observation()){return{status:current.status,state:current.state,reason:current.reason,view:STObligationContext.resolve(current,{position})};}
   function adoptPlan(advice){const proof=advice?.evidence?.construction;if(!proof){planContinuity=null;planProof=null;return;}planContinuity=STPlanContinuity.importState(STPlanContinuity.exportState(planContinuity),{position:observation(),inventory:obligationContext.inventory,proof})||STPlanContinuity.start(observation(),obligationContext.inventory,proof);planProof=planContinuity?clone(proof):null;}
   function resources(){return{...STObligationContext.resolve(obligationContext,{position:observation()}),terminal:Boolean(state.topOut||!state.active)};}
-  function installTransition(prior,before,transition,operation,lock=lockCount){obligationContext=transition.context;tracking.transition(accountingFrame(prior,before),accountingFrame(),{operation,effects:transition.effects,lock});if(obligationContext.status==='available')patternHistory=clone(obligationContext.state.safety.notches);}
+  function resetInverse(){inverseSession=STObligationInverse.start(obligationContext,{requestEpoch:revision});pendingInverse=null;}
+  function installTransition(prior,before,transition,operation,lock=lockCount){
+    obligationContext=transition.context;
+    // Current Context has already committed. Retain only changed before-images
+    // in the caller's placement checkpoint, before observers/routing can fail.
+    try{
+      pendingInverse=STObligationInverse.record(inverseSession,{before:prior,after:obligationContext,requestEpoch:revision,compose:pendingInverse,...(operation.kind==='lock'?{piece:operation.piece}:{})}).receipt;
+      if(operation.kind==='lock'){
+        const saved=undoHistory.at(-1);saved.inverseReceipt=pendingInverse;saved.lockedPiece=clone(operation.piece);pendingInverse=null;
+      }
+    }catch(error){
+      // A failed Undo capability must never undo an accepted legal move or
+      // replace its installed accounting. Start a fresh local Undo boundary;
+      // old caller checkpoints cannot safely cross the missing inverse.
+      undoHistory=[];turnStart=null;resetInverse();$('st-undo').disabled=true;
+      setText($('st-game-status'),'Undo is unavailable for the preceding placements. The current position is unchanged.');
+      throw error;
+    }
+    if(obligationContext.status==='available')patternHistory=clone(obligationContext.state.safety.notches);
+    tracking.transition(accountingFrame(prior,before),accountingFrame(),{operation,effects:transition.effects,lock});
+  }
   function markAccounting(kind){if(obligationContext.status!=='available'||kind==='handoff'&&obligationContext.state.sl.handoff||kind==='begin-reset'&&obligationContext.state.account.reset.status==='active')return;const prior=obligationContext,before=observation(),transition=kind==='handoff'?STObligationContext.handoff(prior,{position:before}):STObligationContext.beginReset(prior,{position:before,candidate:true});installTransition(prior,before,transition,{kind});}
   // Transient public-only forecast candidate. Never checkpoint or export it.
   let openingForecast=null;
@@ -133,11 +153,20 @@
           clearTimeout(watchdog);watchdog=null;activeWorker.terminate();worker=null;
           if(data.type==='error'){recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;planContinuity=null;planProof=null;coachStatus='worker-error';coachMessage='The coach could not evaluate this position. You can still practice manually.';result=null;render();return;}
           if(data.type!=='result')return;
+          try{
           const candidate=data.result;
           if(candidate?.target && !safeTarget(candidate)){
             recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;planContinuity=null;planProof=null;coachStatus='invalid-witness';coachMessage='The suggested move failed validation, so it is not shown.';result=null;render();return;
           }
-          result=candidate || null;pendingHandoffRecovery=null;adoptPlan(result);
+          result=candidate || null;pendingHandoffRecovery=null;
+          // Selected checked work owns a current deficit even if its plan is
+          // later replaced. No goal is accepted from cached import labels.
+          for(const repair of STLeftPlan.selectedRepairs(observation(),result,{checked:true})){
+            if(obligationContext.status!=='available')break;
+            const prior=obligationContext,before=observation(),transition=STObligationContext.acceptLeftRepair(prior,{position:before,repair,checked:true});
+            installTransition(prior,before,transition,{kind:'accept-left-repair',repair,checked:true});
+          }
+          adoptPlan(result);
           openingForecast=STPlanner.captureOpeningForecast(observation(),result)||openingForecast;
           if(result?.target&&result.evidence?.strategy==='reset-coach')markAccounting('begin-reset');
           const recovery=STPlanner.captureHandoffRecovery(observation(),result,STObligationContext.exportState(obligationContext));
@@ -156,6 +185,14 @@
             commitment=result.recommendation?.kind!=='risky'&&!result.evidence?.opening&&(result.evidence?.strategy==='reset-coach'||STPlanner.resourceGoal(result.continuation||[]))?{observation:clone(observation()),advice:clone(result)}:null;
           }
           render();
+          }catch{
+            // A selected-work, Reset or handoff marker may already be current.
+            // Async result handling has no enclosing act() catch: keep those
+            // facts and their inverse, retire only stale advice, then repaint.
+            cancel();recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;openingForecast=null;planContinuity=null;planProof=null;result=null;previous=null;commitment=null;pendingLHint=null;
+            coachStatus='interrupted';coachMessage='Coaching was interrupted. You can continue practicing from the current position.';
+            try{if(obligationContext?.status==='available')patternHistory=clone(obligationContext.state.safety.notches);render();}catch{}
+          }
         };
         activeWorker.onerror=event=>{
           event.preventDefault?.();
@@ -205,7 +242,7 @@
     // The initial finite history seeds knowledge once. Each actual public reveal
     // consumes the frontier; Undo already restores it in the state snapshot.
     if(history)state={...state,bag:STBag.fromObserved({observed:history,startPhase:0})};
-    replenish();searchSettings=STSession.defaults();openingSource=STPlanner.startOpeningSession(observation(),{emptyMode:random&&opening}).source;patternHistory=STPlanner.startPatternHistory(observation());obligationContext=STObligationContext.start(observation(),{fresh:random&&opening});patternHistory=clone(obligationContext.state.safety.notches);resetTracking();pieceLedger=STPieceLedger.start(observation(),{fresh:random&&opening});previous=null;result=null;commitment=null;pendingLHint=null;lockCount=0;clearedLines=0;lineLabel=counterLabel;
+    replenish();searchSettings=STSession.defaults();openingSource=STPlanner.startOpeningSession(observation(),{emptyMode:random&&opening}).source;patternHistory=STPlanner.startPatternHistory(observation());obligationContext=STObligationContext.start(observation(),{fresh:random&&opening});resetInverse();patternHistory=clone(obligationContext.state.safety.notches);resetTracking();previous=null;result=null;commitment=null;pendingLHint=null;lockCount=0;clearedLines=0;lineLabel=counterLabel;
     if(!keepOrigin)origin={input:clone(input),options:{tail:tail.slice(),random,history:history?.slice()||null,note,opening,counterLabel,suggestedFileName}};
     setText($('st-position-note'),note);setText($('st-game-status'),'');requestPlan();render();
   }
@@ -224,16 +261,19 @@
   }
   function checkpoint() {
     return {state:clone(state),futureCursor,planContinuity:STPlanContinuity.exportState(planContinuity),planProof:planProof?clone(planProof):null,
-      obligationContext,pieceLedger,patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null,
+      patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null,
       commitment:commitment?clone(commitment):null,pendingLHint:pendingLHint?clone(pendingLHint):null,lockCount,clearedLines};
   }
   function undo() {
     if(!undoHistory.length)return;
     cancel();stopRepeating();
-    const saved=undoHistory.pop();
-    state={...clone(saved.state),revision:++revision};futureCursor=saved.futureCursor;
+    const saved=undoHistory.at(-1),restoredState={...clone(saved.state),revision:revision+1};
+    // Include any accepted markers or partial next-turn input. Both receipts
+    // remain usable if current-shape/position validation rejects the inverse.
+    const restored=STObligationInverse.undo(inverseSession,obligationContext,{receipt:saved.inverseReceipt,piece:saved.lockedPiece,tail:pendingInverse,requestEpoch:restoredState.revision,restore:raw=>STObligationContext.importState(raw,{position:restoredState})});
+    undoHistory.pop();state=restoredState;revision=state.revision;futureCursor=saved.futureCursor;pendingInverse=null;
     openingPhase=saved.openingPhase;openingSource=saved.openingSource?clone(saved.openingSource):null;openingClear=saved.openingClear?clone(saved.openingClear):null;openingRepair=saved.openingRepair?clone(saved.openingRepair):null;
-    patternHistory=saved.patternHistory?clone(saved.patternHistory):null;obligationContext=saved.obligationContext;resetTracking();planProof=saved.planProof?clone(saved.planProof):null;planContinuity=planProof?STPlanContinuity.importState(saved.planContinuity,{position:observation(),inventory:obligationContext.inventory,proof:planProof}):null;pieceLedger=saved.pieceLedger;
+    patternHistory=saved.patternHistory?clone(saved.patternHistory):null;obligationContext=restored.state;resetTracking();planProof=saved.planProof?clone(saved.planProof):null;planContinuity=planProof?STPlanContinuity.importState(saved.planContinuity,{position:observation(),inventory:obligationContext.inventory,proof:planProof}):null;
     commitment=saved.commitment?clone(saved.commitment):null;pendingLHint=saved.pendingLHint?clone(saved.pendingLHint):null;lockCount=saved.lockCount;clearedLines=saved.clearedLines;
     // Never resurrect displayed advice or an old worker response. The saved
     // proof is only a candidate for replay against this restored public state.
@@ -250,7 +290,12 @@
     const next=STRules.move(state,action);
     if(next===state)return;
     if(action!=='HD')pendingHandoffRecovery=null;
-    if(!turnStart)turnStart=checkpoint();
+    if(!turnStart){
+      // Markers accepted before this input are part of the new checkpoint's
+      // baseline, but still reverse with the preceding completed placement.
+      if(pendingInverse&&undoHistory.length){const saved=undoHistory.at(-1);saved.inverseReceipt=STObligationInverse.join(inverseSession,{receipt:saved.inverseReceipt,tail:pendingInverse}).receipt;}
+      pendingInverse=null;turnStart=checkpoint();
+    }
     const displayed=result;
     const locked=action==='HD';
     state={...next,revision:++revision};
@@ -275,7 +320,6 @@
       pendingHandoffRecovery=recoveryOrigin&&continuity?{...clone(recoveryOrigin),actualEvent:clone(state.lastEvent),continuity}:null;
       recoveryOrigin=null;recoveryExecution=null;
     }
-    pieceLedger=STPieceLedger.applyAction(pieceLedger,beforeAction,action,{...observation(),lastEvent:state.lastEvent});
     if(locked){
       if(obligationContext.status==='available')patternHistory=clone(obligationContext.state.safety.notches);
       if(openingPhase){const phase=STPlanner.updateOpeningSession({active:openingPhase,clear:openingClear,repair:openingRepair,source:openingSource},beforeLock,observation(),state.lastEvent);openingPhase=phase.active;openingClear=phase.clear;openingRepair=phase.repair||null;openingSource=phase.source||null;}
@@ -293,7 +337,11 @@
     } catch(error) {
       // An accepted action may already have installed its current Context.
       // Drop transient routing, never restart or reconstruct that authority.
-      cancel();recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;openingForecast=null;planContinuity=null;planProof=null;result=null;previous=null;
+      cancel();recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;openingForecast=null;planContinuity=null;planProof=null;result=null;previous=null;commitment=null;pendingLHint=null;
+      coachStatus='interrupted';coachMessage='Coaching was interrupted. You can continue practicing from the current position.';
+      // A late callback failure must not leave the old board or target visible.
+      // Keep the original error if even the best-effort redraw fails.
+      try{if(obligationContext?.status==='available')patternHistory=clone(obligationContext.state.safety.notches);render();}catch{}
       throw error;
     }
   }
@@ -453,8 +501,8 @@
     suggestedFileName=envelope.suggestedFileName;
     state=STRules.createState(prepared.state);revision=state.revision;
     future=tail?.slice()||[];futureCursor=0;generated=false;privatePractice=tail!==null;undoHistory=[];turnStart=null;
-    obligationContext=prepared.obligationContext;resetTracking();
-    pieceLedger=STPieceLedger.start(observation());patternHistory=prepared.patternHistory;
+    obligationContext=prepared.obligationContext;resetInverse();resetTracking();
+    patternHistory=prepared.patternHistory;
     openingPhase=prepared.openingPhase;openingSource=prepared.openingSource;openingClear=prepared.openingClear;openingRepair=prepared.openingRepair;
     previous=prepared.previous;commitment=prepared.commitment;planProof=clone(previous?.evidence?.construction||commitment?.advice?.evidence?.construction||null);planContinuity=planProof?STPlanContinuity.importState(prepared.planContinuity,{position:observation(),inventory:obligationContext.inventory,proof:planProof}):null;pendingLHint=prepared.pendingLHint;searchSettings=prepared.search;
     result=null;lockCount=0;clearedLines=0;lineLabel='Lines since import';selectedId=null;$('st-fixture').value='';
@@ -488,7 +536,7 @@
   });
   for(const mode of playModes){const option=document.createElement('option');option.value=mode.id;option.textContent=mode.label;$('st-fixture').append(option);}
   setText($('st-key-help'),actions.map((action,i)=>`${config[i]}: ${action.toLowerCase()}`).join(' · ')+' · Set bindings in Game Settings.');
-  window.stLab=Object.freeze({render,act,loadFixture,snapshot:()=>clone(observation()),exportSession:()=>clone(exportSession()),get publicInventory(){return STPublicInventory.exportState(obligationContext.inventory);},get obligationContext(){return STObligationContext.exportState(obligationContext);},onTrackingEvent(listener){trackingListeners.get(listener)?.();trackingListeners.set(listener,tracking.subscribe(listener));return()=>{trackingListeners.get(listener)?.();trackingListeners.delete(listener);};},get resources(){return resources();},get pieceLedger(){return STPieceLedger.resolve(observation(),pieceLedger);},get resetEvidence(){return clone(resetDiagnostics());},get result(){return result?clone(result):null;}});
+  window.stLab=Object.freeze({render,act,loadFixture,snapshot:()=>clone(observation()),exportSession:()=>clone(exportSession()),get publicInventory(){return STPublicInventory.exportState(obligationContext.inventory);},get obligationContext(){return STObligationContext.exportState(obligationContext);},onTrackingEvent(listener){trackingListeners.get(listener)?.();trackingListeners.set(listener,tracking.subscribe(listener));return()=>{trackingListeners.get(listener)?.();trackingListeners.delete(listener);};},get resources(){return resources();},get resetEvidence(){return clone(resetDiagnostics());},get result(){return result?clone(result):null;}});
   let savedMode;try{savedMode=localStorage.getItem(modeKey);}catch{ /* Fall back to the stable stack. */ }
   chooseMode(savedMode,{persist:false});
   if(savedMode && !playModes.some(m=>m.id===savedMode))rememberMode(stableId);

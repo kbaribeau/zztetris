@@ -52,13 +52,29 @@ test('opening clear: a checked hypothetical maintenance continuation ranks a cle
  assert.ok(a.metrics.nodes+a.metrics.handoffReservedNodes<=45000);assert.equal(a.metrics.handoffProbes.at(-1).status,'verified');
 });
 
-test('opening clear: hypothetical handoff projects public resource history without changing live authority',()=>{
- const fs=require('node:fs'),vm=require('node:vm'),RH=require('../st-resource-history'),f=require('./support/st-opening-handoff.json');
+test('opening clear: hypothetical handoff projects current resource facts without changing live authority',()=>{
+ const fs=require('node:fs'),vm=require('node:vm'),RH=require('../st-resource-history'),Provider=require('../st-resource-provider'),Resources=require('../st-obligation-resources'),f=require('./support/st-opening-handoff.json');
+ // Keep the finite old-format input as a compatibility control. Its one-time
+ // conversion supplies a current unknown root; future queries must never try
+ // to re-import that original tape at their different hypothetical endpoint.
  const resourceContext=RH.exportContext(f.before,RH.start(f.before)),original=JSON.stringify(resourceContext),probes=[];
- const planner={...P,plan(state,options){if(options.disableOpening){const h=RH.importContext(state,options.resourceContext),summary=RH.resolve(state,h);probes.push(summary);assert.equal(summary.coverage.status,'partial');assert.ok(summary.locks>0);assert.equal(summary.extraZ.status,'unknown');}return P.plan(state,options);}};
- const sandbox={performance,module:{exports:{}},require:name=>name==='./st-planner'?planner:require('../'+name.replace(/^\.\//,''))};
+ const origin=Provider.prepare(f.before,{resourceContext}),saved=JSON.stringify(origin.frame),handoffs=new WeakSet();
+ const provider={...Provider,projectHandoff(...args){const frame=Provider.projectHandoff(...args);handoffs.add(frame);return frame;}};
+ const planner={...P,plan(state,options){if(options.disableOpening){
+  const input=Provider.prepare(state,options),summary=input.facts;probes.push(summary);
+  assert.equal(input.status,'available');assert.equal(input.availability,'unknown');assert.equal(input.supplied,true);
+  assert.equal(input.context,null,'The endpoint remains hypothetical, never imported as actual accounting');
+  assert.equal(input.frame.state.domain,'projection');assert.ok(handoffs.has(input.frame),'The query uses the explicit projected handoff boundary');
+  assert.equal(input.frame.state.sl.status,'unknown');assert.equal(input.frame.state.sl.handoff,false,'A projected marker cannot promote unknown S/L accounting');
+  assert.ok(input.frame.position.streamCursor>f.before.streamCursor,'The literal projected clear consumes public supply');
+  assert.deepEqual(input.frame.position.board,state.board);assert.equal(summary.extraZ.status,'unknown');
+  assert.ok(options.resource,'The maintenance query receives its explicit new resource root');
+  assert.equal(options.resource.schedule.locks,0);assert.deepEqual(Resources.position(options.resource).board,state.board);
+ }return P.plan(state,options);}};
+ const sandbox={performance,module:{exports:{}},require:name=>name==='./st-planner'?planner:name==='./st-resource-provider'?provider:require('../'+name.replace(/^\.\//,''))};
  vm.runInNewContext(fs.readFileSync(require.resolve('../st-opening'),'utf8'),sandbox);
  const a=sandbox.module.exports.plan(f.before,{openingPhase:true,maxNodes:45000,deadline:Infinity,resourceContext});
  assert.ok(a.target);assert.ok(probes.length);assert.equal(a.phase,'opening');assert.equal(JSON.stringify(resourceContext),original);
+ assert.equal(JSON.stringify(origin.frame),saved);assert.equal(origin.frame.state.sl.handoff,false);
  assert.equal(RH.resolve(f.before,RH.importContext(f.before,resourceContext)).locks,0);
 });

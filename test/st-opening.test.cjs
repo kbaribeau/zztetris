@@ -38,9 +38,9 @@ test('opening: established fixtures and existing low-center repair are not recla
  const c=controls.find(c=>c.tag==='geometric-slot-with-parity-debt'),state=R.createState({board:c.board,active:'T',queue:['I','L','J','O','S','Z']});
  assert.equal(O.handoff(state,null,options),null,'a slot alone is not a completed opening');
 });
-test('opening: actual canonical clear plus fresh supported maintenance proof permits handoff; fabricated event does not',()=>{
+test('opening: fixed-clock 20000-node actual canonical clear plus fresh supported maintenance proof permits handoff; fabricated event does not',()=>{
  const f=require('./support/st-opening-handoff.json'),session=P.updateOpeningSession({active:true,clear:null},f.before,f.after,f.event);
- const a=P.plan(f.after,{...options,openingPhase:true,openingClear:session.clear,timeMs:SEARCH_TIME_MS});
+ const a=P.plan(f.after,{...options,openingPhase:true,openingClear:session.clear,timeMs:SEARCH_TIME_MS,now:()=>0});
  assert.equal(a.phase,'maintenance');assert.equal(a.evidence.openingHandoff.status,'checked-after-actual-clear');replay(f.after,a);
  assert.equal(P.acceptOpeningResult(session,a).active,false);
  assert.equal(O.handoff(f.after,{...session.clear,event:{...f.event,spin:'none'}},options),null);
@@ -48,4 +48,11 @@ test('opening: actual canonical clear plus fresh supported maintenance proof per
  assert.equal(O.handoff(wrong,session.clear,options),null);
  assert.equal(P.updateOpeningSession(session,f.before,f.after,{...f.event,lines:1}).clear,null);
  assert.equal(P.startOpeningSession(R.createState({active:'T'}),{emptyMode:true}).active,true);
+});
+
+test('opening: production 1500ms actual-clear handoff keeps checked authority or an explicit unfinished opening',()=>{
+ const E=require('../scripts/lib/st-simulation.cjs'),verify=require('./support/st-opening-handoff-budget.cjs'),f=require('./support/st-opening-handoff.json'),session=P.updateOpeningSession({active:true,clear:null},f.before,f.after,f.event);
+ const request={type:'plan',id:1,observation:f.after,previous:null,commitment:null,options:{...options,openingPhase:true,openingClear:session.clear,timeMs:SEARCH_TIME_MS}},before=JSON.stringify(request);
+ assert.equal(request.options.timeMs,1500);assert.equal(request.options.maxNodes,20000);assert.equal(request.options.deadline,undefined);
+ const result=E.workerPlanner()(request);assert.equal(JSON.stringify(request),before);verify(request,result);
 });

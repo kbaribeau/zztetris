@@ -25,8 +25,8 @@ test('reserved plan / repair commitment survives each actual movement and lock',
  assert.equal(completed,7);assert.deepEqual(RH.resolve(s,history).coveredRepair.cells,[]);
 });
 
-test('reserved plan / fresh Worker discovers plan without private stream or imported answers',()=>{
- const request={type:'plan',id:91,observation:root(),previous:null,commitment:null,options:{...f.options,depth:3,width:8,maxNodes:45000,timeMs:1500}},worker=require('../scripts/lib/st-simulation.cjs').workerPlanner();
+test('reserved plan / node-bounded serialized Worker discovers plan without private stream or imported answers',()=>{
+ const request={type:'plan',id:91,observation:root(),previous:null,commitment:null,options:{...f.options,depth:3,width:8,maxNodes:45000,timeMs:1500}},worker=require('../scripts/lib/st-simulation.cjs').workerPlanner({disableSearchTimeout:true});
  const result=worker(JSON.parse(JSON.stringify(request)));assert.equal(result.recommendation.kind,'supported');assert.equal(result.metrics.reservedPiecePlan.selected,true);assert.equal(result.continuation.length,7);assert.ok(result.metrics.nodes<=45000);assert.equal(result.evidence.coveredRepair.outstandingCells.length,0);
 });
 test('reserved plan / altered board and stale origin fail direct planner revalidation',()=>{
@@ -47,8 +47,8 @@ test('reserved plan / actual later reveals cannot change the original finite pro
 
 test('reserved plan / session round trip preserves history but no forged proof authority',()=>{
  const Session=require('../st-session'),a=advice(),s=root(),history=RH.importContext(s,f.options.resourceContext);
- const saved=Session.create(s,{resourceHistory:history,resourceOriginBag:s.bag,openingPhase:false,previous:a}),restored=Session.parse(JSON.stringify(saved));
- assert.ok(restored.previous);assert.ok(P.revalidate(restored.state,restored.previous,{...opts(),resourceContext:RH.exportContext(restored.state,restored.resourceHistory)}));
+ const Provider=require('../st-resource-provider'),input=Provider.prepare(s,opts());const saved=Session.create(s,{obligationContext:Provider.exportActual(input),openingPhase:false,previous:a}),restored=Session.parse(JSON.stringify(saved));
+ assert.ok(restored.previous);assert.ok(P.revalidate(restored.state,restored.previous,{...opts(),resourceContext:undefined,obligationContext:restored.obligationContext}));
  const stale=clone(saved);stale.engineVersion='old-unaccepted-coach';const parsed=Session.parse(JSON.stringify(stale));assert.equal(parsed.previous,null);assert.deepEqual(parsed.state.board,s.board);
 });
 function internalPlanner(mutate=s=>s){const fs=require('fs'),path=require('path'),vm=require('vm'),filename=require.resolve('../st-planner'),m={exports:{}};let source=mutate(fs.readFileSync(filename,'utf8'));source=source.replace('return Object.freeze({dPatternAdmission,','return Object.freeze({checkedResourceEndpoint,');vm.runInNewContext(source,{module:m,require:id=>require(path.resolve(path.dirname(filename),id)),Date,performance});return m.exports;}
@@ -58,4 +58,10 @@ test('reserved plan / executed J exit cannot certify a still-unpaid suffix',()=>
 });
 test('reserved plan / removing whole-path D-exit proof loses the positive mechanism',()=>{
  const mutant=internalPlanner(s=>s.replace('const executedExit=exit?.valid','const executedExit=false&&exit?.valid')),a=mutant.decide(root(),opts());assert.notEqual(a.metrics.reservedPiecePlan?.selected,true);assert.equal(a.recommendation.kind,'risky');
+});
+
+test('reserved plan / production Worker cannot claim an unpaid reservation when its budget ends',()=>{
+ const q={type:'plan',id:191,observation:root(),previous:null,commitment:null,options:{...f.options,depth:3,width:8,maxNodes:45000,timeMs:1500}},a=require('../scripts/lib/st-simulation.cjs').workerPlanner()(clone(q)),selected=a.metrics.reservedPiecePlan?.selected===true;
+ require('./support/st-production-budget.cjs').verify(q.observation,a,q.options,selected);
+ if(selected){assert.equal(a.recommendation.kind,'supported');assert.deepEqual(a.continuation.map(p=>p.event.type),['Z','J','S','T','I','L','O']);assert.equal(a.evidence.reservedPiecePlan.paymentLock,7);assert.deepEqual(a.evidence.coveredRepair.outstandingCells,[]);assert.equal(a.evidence.coveredRepairPlan.steps.length,7);}else assert.equal(a.evidence.reservedPiecePlan,undefined,'An unfinished optional search cannot claim the reserved payment');
 });

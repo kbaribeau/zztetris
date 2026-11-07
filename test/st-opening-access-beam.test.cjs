@@ -11,7 +11,7 @@ test('opening beam: proven rejected executed prefixes do not occupy later expans
 test('opening beam: an unknown access result never becomes a proven-negative pruning decision',()=>{
  let checks=0;const module={exports:{}},mock={...P,checkAccessPrefix:()=>{checks++;return{reachable:null,complete:false,visited:0,status:'budget-unknown'};}};
  const modules={'./st-rules':R,'./st-structure':S,'./st-paired-repair':X,'./st-planner':mock};
- vm.runInNewContext(fs.readFileSync(require.resolve('../st-opening'),'utf8'),{module,require:id=>modules[id],performance,console,Date});
+ vm.runInNewContext(fs.readFileSync(require.resolve('../st-opening'),'utf8'),{module,require:id=>modules[id]||require('../'+id.replace(/^\.\//,'')),performance,console,Date});
  const a=module.exports.plan(f.observation,{deadline:Infinity,maxNodes:12000,openingDepth:2});
  assert.ok(checks>0);assert.equal(a.metrics.accessPrunedPrefixes,0);assert.equal(a.target,null);
 });

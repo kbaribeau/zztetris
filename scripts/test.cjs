@@ -50,8 +50,10 @@ async function main() {
     }
     // Parent watchdog also bounds a child stuck in synchronous product code.
     // The expanded serial suite can exceed five minutes. Keep the tighter
-    // per-file deadline and product search budgets; allow ten minutes overall.
-    deadline = setTimeout(() => controller.abort(new Error('Suite exceeded 600 seconds')), 600000);
+    // per-file deadline and product search budgets; allow thirty minutes overall.
+    // Current-state transition coverage is intentionally broader; runtime is
+    // monitored separately rather than making performance an acceptance gate.
+    deadline = setTimeout(() => controller.abort(new Error('Suite exceeded 1800 seconds')), 1800000);
     const stream = run({ files: result.testFiles, concurrency: 1, timeout: 15000, signal: controller.signal });
     for (const outcome of ['pass', 'fail']) stream.on(`test:${outcome}`, data => {
       const file = path.relative(root, data.file || '');

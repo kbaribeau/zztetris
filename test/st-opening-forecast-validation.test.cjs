@@ -23,7 +23,7 @@ test('opening forecast validation: transported derived metadata cannot supply pr
  assert.notEqual(result.continuation[0].structuralEvidence.allocation,'forged-allocation');
 });
 test('opening forecast validation: malformed history and mismatched event reject without borrowing saved claims',()=>{
- const q=input();q.options.resourceContext.steps[0].action='NOT_AN_INPUT';let checked=check(q);assert.equal(checked.result,null);assert.equal(checked.work.retained,false);assert.equal(checked.work.reason,'resource-history');
+ const q=input();q.options.resourceContext.steps[0].action='NOT_AN_INPUT';let checked=check(q);assert.equal(checked.result,null);assert.equal(checked.work.retained,false);assert.equal(checked.work.reason,'resource-context');
  const changed=input();changed.steps[0].event.lines=4;checked=check(changed);assert.equal(checked.result,null);assert.equal(checked.work.reason,'candidate-event');assert.ok(checked.work.nodes>0);
 });
 test('opening forecast validation: a legal J Right routing candidate cannot become ordinary ST',()=>{

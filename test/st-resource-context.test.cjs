@@ -53,22 +53,23 @@ test('resource context: a handoff marker does not establish an Extra-Z baseline'
  const d=H.resolve(state,H.importContext(state,c));
  assert.equal(d.milestones.maintenanceHandoff.at,7);assert.equal(d.extraZ.status,'unknown');
 });
-test('resource context: actual page sends replay-bound history through HOLD, Undo, import and mode changes',()=>{
- const {withPage}=require('./support/page.cjs');
+test('resource context: actual page sends only current authority through HOLD, lock, Undo, native import and modes',()=>{
+ const {withPage}=require('./support/page.cjs'),Context=require('../st-obligation-context');
  return withPage('st-lab.html',{},g=>{
   const messages=[];
   g.window.Worker=class {postMessage(m){messages.push(clone(m));}terminate(){}};
   g.element('#st-fixture').value='empty';g.element('#st-fixture').dispatchEvent(new g.window.Event('change'));g.advance(40);
-  const read=()=>{const m=messages.at(-1);return {m,d:H.resolve(m.observation,H.importContext(m.observation,m.options.resourceContext))};};
-  const initial=read();assert.equal(initial.d.coverage.status,'complete');assert.equal(initial.m.options.resourceContext.steps.length,0);
-  g.tap('ShiftLeft');g.advance(40);const held=read();assert.equal(held.d.instances.hold.type,initial.m.observation.active.type);assert.equal(held.m.options.resourceContext.steps.at(-1).action,'HOLD');
-  g.tap('Space');g.advance(40);assert.equal(read().d.locks,1);
-  g.tap('KeyT');g.advance(40);assert.equal(read().d.locks,0);assert.equal(read().d.coverage.status,'complete');
-  const snapshot=g.snapshot();snapshot.resourceContext=initial.m.options.resourceContext;snapshot.extraZ={status:'available'};
+  const read=()=>{const m=messages.at(-1),current=Context.importState(m.options.obligationContext,{position:m.observation});assert.equal(m.options.resourceContext,undefined);assert.equal(m.options.obligationContext.steps,undefined);return{m,current,d:Context.resolve(current,{position:m.observation})};};
+  const initial=read();assert.equal(initial.d.availability,'known');assert.equal(initial.current.inventory.originKnown,true);
+  g.tap('ShiftLeft');g.advance(40);const held=read();assert.deepEqual(held.current.inventory.hold,initial.current.inventory.active);assert.deepEqual(held.current.inventory.active,initial.current.inventory.queue[0]);
+  g.tap('Space');g.advance(40);const locked=read();assert.deepEqual(locked.current.inventory.active,initial.current.inventory.queue[1]);assert.deepEqual(locked.current.inventory.hold,initial.current.inventory.active);assert.equal(locked.current.boundary.firstBagLocks,1);
+  g.tap('KeyT');g.advance(40);const restored=read();assert.deepEqual(restored.m.options.obligationContext,initial.m.options.obligationContext);assert.equal(restored.d.availability,'known');
+  const session=clone(g.window.stLab.exportSession());g.tap('ShiftLeft');g.advance(40);g.element('#st-snapshot').value=JSON.stringify(session);g.click('#st-import');g.advance(40);assert.deepEqual(read().m.options.obligationContext,session.coaching.obligationContext);
+  const snapshot=g.snapshot();snapshot.obligationContext=initial.m.options.obligationContext;snapshot.extraZ={status:'available'};
   g.element('#st-snapshot').value=JSON.stringify(snapshot);g.click('#st-import');g.advance(40);
-  assert.equal(read().d.coverage.status,'partial');assert.equal(read().d.extraZ.status,'unknown');assert.equal(read().m.options.resourceContext.fresh,false);
+  assert.equal(read().d.availability,'unknown');assert.equal(read().d.extraZ.status,'unknown');assert.equal(read().current.inventory.originKnown,false,'Raw position flags cannot become session authority');
   g.element('#st-fixture').value='marathon-rebuild';g.element('#st-fixture').dispatchEvent(new g.window.Event('change'));g.advance(40);
-  assert.equal(read().d.coverage.status,'partial');assert.equal(read().m.options.resourceContext.steps.length,0);
+  assert.equal(read().d.availability,'unknown');assert.equal(read().current.inventory.originKnown,false);assert.equal(read().current.boundary.firstBagLocks,null);
  });
 });
 

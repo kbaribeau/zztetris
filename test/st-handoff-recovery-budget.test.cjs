@@ -2,7 +2,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const P=require('../st-planner'),R=require('../st-rules'),E=require('../scripts/lib/st-simulation.cjs'),fixture=require('./fixtures/forced-bag-resource-binding.json'),roots=require('./fixtures/shared-handoff-roots.json');
 const clone=x=>JSON.parse(JSON.stringify(x));
-function intercepted(inner,resources=require('../st-midgame-resources'),extras={}){const module={exports:{}};vm.runInNewContext(fs.readFileSync(require.resolve('../st-opening'),'utf8'),{module,require:id=>id==='./st-planner'?{...P,plan:inner,...extras}:id==='./st-midgame-resources'?resources:require(id.replace('./','../')),Date,performance});return module.exports;}
+function intercepted(inner,resources=require('../st-obligation-resources'),extras={}){const module={exports:{}};vm.runInNewContext(fs.readFileSync(require.resolve('../st-opening'),'utf8'),{module,require:id=>id==='./st-planner'?{...P,plan:inner,...extras}:id==='./st-obligation-resources'?resources:require(id.replace('./','../')),Date,performance});return module.exports;}
 test('handoff recovery budget: legacy success returns its exact prefix without a new goal or recovery attempt',()=>{
  let calls=0;const saved=clone(fixture.advice);saved.metrics.nodes=6116;
  const O=intercepted((_s,o)=>{calls++;assert.equal(o.maxNodes,12000);assert.equal(o.deadline,200);return saved;});
@@ -37,12 +37,12 @@ test('handoff production budget: real worker uses a safe ordinary alternative in
 });
 
 test('handoff recovery budget: an already-paid prefix cannot label another S filler as its mandatory payment',()=>{
- const M=require('../st-midgame-resources');let calls=0,clock=0;
+ const M=require('../st-obligation-resources');let calls=0,clock=0,injected=0;
  // Boundary injection models an already-discharged prefix. The real resource
  // unit tests independently require exact consumed identity for S→Left payment.
- const resources={...M,checkPath:(raw,path,summary)=>{const r=M.checkPath(raw,path,summary);return path.length===1?{...r,resource:{...r.resource,hangingS:[]}}:r;}};
+ const resources={...M,checkPath:(raw,path,summary)=>{const r=M.checkPath(raw,path,summary);if(path.length===1){injected++;return{...r,resource:{...r.resource,hangingS:[]}};}return r;}};
  const O=intercepted((_s,o)=>{calls++;if(calls===1)return{target:null,status:'budget-exhausted',metrics:{nodes:12000}};clock=1500;return{...clone(fixture.advice),metrics:{nodes:20848}};},resources),q=roots[0].request;
- const a=O.plan(q.observation,{...q.options,deadline:1500,now:()=>clock});assert.equal(calls,2);assert.equal(a.target,null);assert.equal(a.metrics.nodes,32848);assert.equal(a.metrics.handoffWork.recovery.nodes,20848);
+ const a=O.plan(q.observation,{...q.options,deadline:1500,now:()=>clock});assert.equal(calls,2);assert(injected>0,'The already-paid boundary must intercept the compact resource check');assert.equal(a.target,null);assert.equal(a.metrics.nodes,32848);assert.equal(a.metrics.handoffWork.recovery.nodes,20848);
 });
 
 test('handoff recovery budget: unavailable bounded routing cannot strand an accepted two-lock handoff',()=>{

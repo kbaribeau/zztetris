@@ -113,8 +113,8 @@ test('covered repair / controller sends observed debt even with no retained advi
  const all=[];g.window.Worker=class{constructor(){all.push(this);}postMessage(m){this.message=clone(m);}terminate(){}};
  const {state,steps}=simple();g.element('#st-snapshot').value=JSON.stringify(state);g.click('#st-import');
  for(const action of steps[0].witness)g.window.stLab.act(action);g.advance(40);
- const request=all.at(-1).message,RH=require('../st-resource-history');
- assert.deepEqual(RH.resolve(request.observation,RH.importContext(request.observation,request.options.resourceContext)).coveredRepair.cells,[[2,39]]);
+ const request=all.at(-1).message,C=require('../st-obligation-context');
+ assert.equal(request.options.resourceContext,undefined);assert.deepEqual(C.resolve(C.importState(request.options.obligationContext,{position:request.observation}),{position:request.observation}).coveredRepair.cells,[[2,39]]);
  const bad=path(request.observation,[['R','R','HD']]);assert.equal(P.checkedCoveredRepair(request.observation,bad,request.options),null);
 }));
 

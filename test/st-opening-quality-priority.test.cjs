@@ -1,5 +1,5 @@
 'use strict';
-const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
+const test=require('node:test'),assert=require('node:assert/strict');
 const P=require('../st-planner'),R=require('../st-rules'),B=require('../st-bag'),H=require('../st-resource-history');
 const equivalent=require('./support/st-equivalent-s.cjs');
 const fixture=require('./fixtures/opening-z-allocation.json'),clone=x=>JSON.parse(JSON.stringify(x));
@@ -22,12 +22,8 @@ function observed(until=20){
  return{execute,get state(){return state;},get history(){return history;},get summary(){return H.resolve(state,history);},request(id=1){return{type:'plan',id,observation:P.observe(state),previous:null,commitment:null,options:{...fixture.request.options,resourceContext:H.exportContext(state,history),patternHistory:pattern,openingPhase:opening.active,openingClear:opening.clear,openingSource:opening.source,openingRepair:opening.repair}};}};
 }
 function decide(q,extra={}){return P.decide(q.observation,{...q.options,...bounds,previous:q.previous,commitment:q.commitment,...extra});}
-function freshWorker(q){
- const messages=[],context={Date:class extends Date{static now(){return 0;}},performance,self:{postMessage:m=>messages.push(clone(m))}};
- vm.createContext(context);context.importScripts=(...files)=>{for(const file of files)vm.runInContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),context,{filename:file});};
- vm.runInContext(fs.readFileSync(path.join(__dirname,'../st-worker.js'),'utf8'),context);context.self.onmessage({data:clone(q)});
- assert.equal(messages.length,1);assert.equal(messages[0].type,'result');assert.equal(messages[0].revision,q.observation.revision);return messages[0].result;
-}
+const freshWorker=require('./support/st-fixed-clock-worker.cjs');
+
 function oldGoal(raw,base){
  const witnesses=[['L','L','L','CW','L','HD'],['L','L','HD'],['R','R','R','CW',...Array(17).fill('SD'),'CW','HD']];
  let state=R.createState(raw);const continuation=witnesses.map(witness=>{const r=R.replay(state,witness);assert.equal(r.valid,true);assert.equal(r.events.length,1);state=r.state;return{witness,event:r.events[0],target:r.events[0].target,hold:false,holdCount:0};});
@@ -35,7 +31,7 @@ function oldGoal(raw,base){
  return{...base,target:continuation[0].target,witness:continuation[0].witness,hold:false,holdCount:0,continuation,assessment:P.assess(state.board),evidence:{cycleDebt:0}};
 }
 
-test('opening quality priority: fresh worker keeps Right cap and Center completion, then actually accommodates held S',()=>{
+test('opening quality priority: fixed-clock 45000-node fresh Worker keeps Right cap and Center completion, then actually accommodates held S',()=>{
  const a=observed(18);assert.equal(a.summary.extraZ.status,'unknown');
  for(const i of [2,3,4]){
   const q=a.request(i),advice=freshWorker(q);equivalent.event(advice.continuation[0].event,fixture.steps[i].event);assert.ok(advice.metrics.nodes<=45000);assert.equal(advice.evidence.resourceObligations.status,'checked');assert.equal(advice.evidence.gapAccess.reachable,true);

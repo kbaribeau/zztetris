@@ -112,10 +112,13 @@ function marker(current,position,operation,references){
  const publicContext={position,inventory:current.inventory};
  const result=Q.transition(current.state,operation,{before:publicContext,after:publicContext,references});
  namespace(current.inventory,result.state);
- return{context:seal({...current,state:result.state}),effects:result.effects};
+ return{context:seal({...current,state:result.state}),effects:result.effects,...(operation.kind==='accept-left-repair'?{goalId:result.goalId}:{})};
 }
 function handoff(current,{position,references=[]}={}){return marker(current,position,{kind:'handoff'},references);}
 function beginReset(current,{position,candidate,references=[]}={}){return marker(current,position,{kind:'begin-reset',candidate},references);}
+// Records acceptance only. The caller has already checked current route,
+// supply, access and endpoint rules; this marker grants no move permission.
+function acceptLeftRepair(current,{position,repair,checked,references=[]}={}){return marker(current,position,{kind:'accept-left-repair',repair,checked},references);}
 function resolve(current,{position}={}){
  bound(current,position);
  if(current.status==='unavailable')return{status:'unavailable',reason:current.reason,availability:'unavailable'};
@@ -130,5 +133,5 @@ function restore(raw){
  const position=clone(raw.position),context=importState(raw.context,{position});
  return{position:freeze(position),context};
 }
-return Object.freeze({VERSION,start,applyActual,handoff,beginReset,advanceBoundary,resolve,snapshot,restore,importState,exportState});
+return Object.freeze({VERSION,start,applyActual,handoff,beginReset,acceptLeftRepair,advanceBoundary,resolve,snapshot,restore,importState,exportState});
 });

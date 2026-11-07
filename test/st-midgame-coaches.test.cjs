@@ -3,6 +3,7 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 const R=require('../st-rules'),B=require('../st-bag'),H=require('../st-resource-history'),PH=require('../st-pattern-history');
 const M=require('../st-midgame-resources'),L=require('../st-left-context'),C=require('../st-midgame-coaches'),P=require('../st-planner');
+const Context=require('../st-obligation-context'),Provider=require('../st-resource-provider'),Resources=require('../st-obligation-resources');
 const coaches=C.create(L),clone=x=>JSON.parse(JSON.stringify(x));
 const trial=require('./support/st-resource-trial-1.json');
 function observed(until=Infinity){
@@ -54,8 +55,8 @@ test('midgame coaches: HOLD, validated session import and Undo retain the origin
   assert.equal(phase(t.state,t.history),expected);
   const saved=Session.create(t.state,{resourceHistory:t.history,resourceOriginBag:trial.initial.bag??null,patternHistory:PH.start(t.state)});
   const got=Session.parse(JSON.stringify(saved));
-  assert.equal(phase(got.state,got.resourceHistory),expected);
-  assert.deepEqual(H.resolve(got.state,got.resourceHistory),H.resolve(t.state,t.history));
+  assert.equal(coaches.forResources(Resources.start(got.state,got.obligationContext)).phase,expected);
+  assert.deepEqual(Context.exportState(got.obligationContext),saved.coaching.obligationContext);assert.equal(got.resourceHistory,undefined);
   assert.equal(phase(before.state,before.history),expected,'immutable Undo boundary keeps original authority');
  }
  assert.equal(phase(early.points[19].state,early.points[19].history),'early','Undo before actual optional spend restores early');
@@ -68,8 +69,8 @@ test('midgame coaches: planner projected nodes switch early to late without prom
  const source=fs.readFileSync(filename,'utf8').replace('return Object.freeze({dPatternAdmission,','return Object.freeze({testNodeFor:nodeFor,dPatternAdmission,');
  vm.runInNewContext(source,{module,require:req});assert.equal(typeof module.exports.testNodeFor,'function');
  const makeInitial=(t,known)=>{
-  const summary=H.resolve(t.state,known?t.history:H.start(t.state));
-  return{...P.assess(t.state.board),state:t.state,resources:M.start(t.state,summary),notches:PH.resolve(t.state,PH.start(t.state)),coveredRepair:summary.coveredRepair};
+  const input=Provider.prepare(t.state,{resourceContext:H.exportContext(t.state,known?t.history:H.start(t.state)),patternHistory:PH.start(t.state)}),summary=Provider.facts(input);assert.equal(input.status,'available');
+  return{...P.assess(t.state.board),state:t.state,resources:Provider.startRoute(input,{extendForced:false}),notches:PH.resolve(t.state,PH.start(t.state)),coveredRepair:summary.coveredRepair};
  };
  const project=(initial,witness,parent=null)=>{
   const replay=R.replay(parent?.state??initial.state,witness);assert.equal(replay.valid,true);assert.equal(replay.events.length,1);

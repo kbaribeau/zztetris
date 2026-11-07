@@ -16,7 +16,7 @@ Installation needs access to the npm registry (or a populated npm cache). **Test
 - `test-results/<run-id>/results.tap`: named checks, failures and diagnostics;
 - `test-results/<run-id>/manifest.json`: full Git SHA, dirty flag, lockfile SHA-256, Node version, seed, test identifiers, durations, counts, failures and exit code.
 
-The command exits nonzero for failed assertions, setup/unhandled errors, timeouts, missing tests, skipped/TODO cases, or the wrong Node version. Node's 15-second test timeout handles cooperative/asynchronous stalls; it cannot interrupt a child stuck in synchronous JavaScript. A parent watchdog aborts the whole suite after 600 seconds, including those synchronous hangs. Virtual time is separate from these real-time safety limits.
+The command exits nonzero for failed assertions, setup/unhandled errors, timeouts, missing tests, skipped/TODO cases, or the wrong Node version. Node's 15-second test timeout handles cooperative/asynchronous stalls; it cannot interrupt a child stuck in synchronous JavaScript. A parent watchdog aborts the whole suite after 1,800 seconds, including those synchronous hangs. Virtual time is separate from these real-time safety limits.
 
 A dirty run is diagnostic evidence, not proof of a clean commit. For delivery, run again after committing and retain the manifest **and** transcript for that SHA. `test-results/` is ignored, not durable versioned storage; copy the bundle somewhere with the retention you need, or set an output parent directory:
 
@@ -96,7 +96,7 @@ The old advisor and its implementation-specific gates remain removed. New pure s
 
 `st-placement-cache-key.test.cjs` checks that prior lock events share complete ordered placement results while current rotation evidence, revisions and carried state stay distinct. More cache reuse can change which bounded planner proofs finish. Pending-L coverage therefore separates the literal six-line S/T/I Pocket route from current live selection, follows the controller's separate waiting hint after a goal-free commitment retires, and replays newly public supply. A labeled component control gives one literal S/T/Z endpoint zero proof allowance to preserve unresolved-alternative disclosure coverage; it does not fabricate rejection or change production ranking/admission.
 
-`st-pattern-state.test.cjs` covers trusted version 2 current notch imports without provenance, malformed shapes, legacy-tape rejection and immediate migration, actual TSD/quad translation, newly established caps, sticky broken state, independent Undo snapshots, and 1,000 actual O-only manual locks with fixed-size facts. The O-only case is a lifecycle/storage test, not a supported ST or seven-bag strategy. Actual-page session import/export/Undo and the production Worker verify the transport boundary. `st-access-history.test.cjs` and `st-left-scoring-foundation.test.cjs` retain explicit legacy-tape tamper cases alongside current-state advice revalidation. Resource-history transport remains replay-backed in this migration slice.
+`st-pattern-state.test.cjs` covers trusted version 2 current notch imports without provenance, malformed shapes, legacy-tape rejection and immediate migration, actual TSD/quad translation, newly established caps, sticky broken state, independent Undo snapshots, and 1,000 actual O-only manual locks with fixed-size facts. The O-only case is a lifecycle/storage test, not a supported ST or seven-bag strategy. Actual-page session import/export/Undo and the production Worker verify the transport boundary. `st-access-history.test.cjs` and `st-left-scoring-foundation.test.cjs` retain explicit legacy-tape tamper cases alongside current-state advice revalidation. Native resource transport now carries trusted current obligations. Replay-backed legacy tapes are accepted only by the isolated old-format adapter.
 
 `st-lab.test.cjs` covers real page scripts with deterministic Worker protocol stubs, plus worker entry code, cancellation/revision races, withheld invalid witnesses, stable targets during exact execution, imports, hidden-future exclusion, hold/reset/manual play, and settings/input guards. This is not a real browser Worker/pixel test. The natural legacy replay now runs on ordinary practice, where its unlimited-hold contract belongs.
 
@@ -174,7 +174,7 @@ its child processes on each invocation. This saves repeated parsing/compilation
 of shared dependencies without sharing module instances, globals, jsdom realms
 or planner results. Every run begins cold; the runner verifies child enablement,
 records it in the manifest, and removes its cache afterward. The serial order
-and 15-second file timeout remain unchanged. The parent watchdog is 600 seconds
+and 15-second file timeout remain unchanged. The parent watchdog is 1,800 seconds
 because the expanded suite can exceed the previous 300-second limit. Planner
 per-move budgets are unchanged.
 
@@ -187,10 +187,14 @@ V8 coverage report. See [Node's compile-cache documentation](https://nodejs.org/
 preview supply, unlimited HOLD identity, cross-bag SL candidate/completion,
 unresolved accommodation, source/import provenance, ZJ counts, 4,100 movement
 inputs and 600 locks without cumulative truncation. `st-piece-ledger-ui.test.cjs`
-checks controller integration, diagnostic isolation, lifecycle resets and exact
-100-lock Undo retention/restoration/branching. Existing resource-history UI request
-oracles remain unchanged. These tests do not claim the shadow facts influence
-recommendations or repair the existing planner tracker.
+now checks the shared Context/public inventory through actual controller lifecycle resets,
+import and exact 100-lock Undo restoration/branching. The separate PieceLedger is
+no longer loaded by the live page; its standalone suite remains a reference test.
+`st-obligation-inverse-page.test.cjs` covers caller-owned inverse receipts, partial
+next-turn Undo, phase markers, stale replies and failures after accepted transitions.
+`st-left-plan*.test.cjs` checks selected current Left work through page and simulation
+acceptance, replanning, actual payment, recovery and Undo. `st-obligation-state-size.test.cjs`
+checks unchanged core size across long movement histories and repeated clear cycles.
 
 ### Shared timed-coach allowance
 
@@ -201,7 +205,7 @@ planner regression tests consume it. `st-coach-config.test.cjs` verifies the rea
 page request and worker deadline/default plumbing, including an injected alternate
 configuration to detect copied literals; explicit zero/tiny overrides remain exact.
 
-This is not the 2500 ms worker watchdog or the 600-second suite watchdog. Deliberate
+This is not the 2500 ms worker watchdog or the 1,800-second suite watchdog. Deliberate
 zero/tiny-budget safety and protocol probes, historical manifest fixtures,
 incompatible-budget comparisons, fixed-node/no-wall-clock tests and internal
 sub-search ceilings remain separate. Do not replace those values as if they were

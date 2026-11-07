@@ -44,8 +44,8 @@ test('production session and actual page preserve support proof through import, 
  const Session=require('../st-session'),B=require('../st-bag'),q=fixture.normal,a=P.revalidate(q.observation,proofAdvice(q),fullOptions(q));assert(a);
  const history=RH.importContext(q.observation,q.options.resourceContext),origin=q.options.resourceContext.origin,originBag=B.fromObserved({observed:[origin.active.type,...origin.queue],startPhase:0});
  const saved=Session.create(q.observation,{resourceHistory:history,resourceOriginBag:originBag,patternHistory:q.options.patternHistory,openingPhase:false,previous:a,search:Session.defaults()}),raw=JSON.stringify(saved),restored=Session.parse(raw);
- assert.deepEqual(restored.state,q.observation);assert.deepEqual(restored.previous.evidence.construction,a.evidence.construction);assert.deepEqual(Session.create(restored.state,restored),saved);
- assert(P.revalidate(restored.state,restored.previous,{...config,patternHistory:restored.patternHistory,resourceContext:RH.exportContext(restored.state,restored.resourceHistory)}));
+ assert.deepEqual(restored.state,q.observation);assert.deepEqual(restored.previous.evidence.construction,P.importCandidateResources(a).evidence.construction);assert.equal(restored.previous.evidence.construction.resourceContext,undefined);assert.deepEqual(Session.create(restored.state,restored),saved);
+ assert(P.revalidate(restored.state,restored.previous,{...config,patternHistory:restored.patternHistory,obligationContext:require('../st-obligation-context').exportState(restored.obligationContext),planContinuity:restored.planContinuity}));
  return require('./support/page.cjs').withPage('st-lab.html',{},g=>{
   const workers=[];g.window.Worker=class{constructor(){workers.push(this);}postMessage(message){this.message=clone(message);}terminate(){}respond(result){this.onmessage({data:{type:'result',id:this.message.id,revision:this.message.observation.revision,result:clone(result)}});}};
   g.element('#st-snapshot').value=raw;g.click('#st-import');assert.match(g.element('#st-import-status').textContent,/^Session imported\./);g.advance(40);
@@ -54,7 +54,7 @@ test('production session and actual page preserve support proof through import, 
   let advice=respond(),afterFirst;
   for(let lock=0;lock<2;lock++){for(const action of advice.witness)g.window.stLab.act(action);if(!lock)afterFirst=clone(g.snapshot());advice=respond();}
   assert.equal(advice.witness[0],'HOLD');g.window.stLab.act('HOLD');const held=request();assert.equal(held.observation.active.type,'L');assert(held.previous?.evidence?.construction?.kind==='left-support','HOLD must retain the rederived construction');
-  g.click('#st-undo');const undo=request();assert.deepEqual({...undo.observation,revision:afterFirst.revision},afterFirst);assert(undo.observation.revision>afterFirst.revision);assert.equal(undo.options.openingPhase,false);assert.equal(RH.resolve(undo.observation,RH.importContext(undo.observation,undo.options.resourceContext)).locks,33);assert.equal(undo.commitment.advice.evidence.construction.consumed,1);
+  g.click('#st-undo');const undo=request();assert.deepEqual({...undo.observation,revision:afterFirst.revision},afterFirst);assert(undo.observation.revision>afterFirst.revision);assert.equal(undo.options.openingPhase,false);assert.equal(undo.options.resourceContext,undefined);assert.equal(undo.options.planContinuity.locks.length,1);assert.equal(undo.options.obligationContext.inventory.streamCursor,afterFirst.streamCursor);assert.equal(undo.commitment.advice.evidence.construction.consumed,1);
   g.click('#st-export-session');const round=Session.parse(g.downloads.at(-1).text);assert.deepEqual(round.state,undo.observation);assert.equal(round.commitment.advice.evidence.construction.kind,'left-support');
  });
 });

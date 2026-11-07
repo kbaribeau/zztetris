@@ -1,7 +1,7 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const R=require('../st-rules'),S=require('../st-structure'),P=require('../st-planner'),X=require('../st-paired-repair');
-function load(planner){const module={exports:{}},modules={'./st-rules':R,'./st-structure':S,'./st-paired-repair':X,'./st-planner':planner};vm.runInNewContext(fs.readFileSync(require.resolve('../st-opening'),'utf8'),{module,require:id=>modules[id],performance,Date});return module.exports;}
+function load(planner){const module={exports:{}},modules={'./st-rules':R,'./st-structure':S,'./st-paired-repair':X,'./st-planner':planner};vm.runInNewContext(fs.readFileSync(require.resolve('../st-opening'),'utf8'),{module,require:id=>modules[id]||require('../'+id.replace(/^\.\//,'')),performance,Date});return module.exports;}
 const clean=a=>{const out=JSON.parse(JSON.stringify(a));delete out.metrics.elapsedMs;return out;};
 test('opening raw facts: repeated children reuse immutable parent assessment without exporting decorated authority',()=>{
  const counts=new WeakMap();let observed;

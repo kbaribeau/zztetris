@@ -84,10 +84,10 @@ test('pending L / exact target survives clears, advice loss, movement, HOLD, sam
  return require('./support/page.cjs').withPage('st-lab.html',{},g=>{
   const workers=[];g.window.Worker=class{constructor(){workers.push(this);}postMessage(m){this.message=clone(m);}terminate(){}};
   g.element('#st-snapshot').value=JSON.stringify(saved);g.click('#st-import');g.advance(40);let req=workers.at(-1).message;
-  const pending=r=>H.resolve(r.observation,H.importContext(r.observation,r.options.resourceContext)).center.pending;
-  assert.equal(req.previous,null);assert.equal(req.commitment,null);assert.deepEqual(pending(req),H.resolve(one.state,one.history).center.pending);
+  const Context=require('../st-obligation-context'),pending=r=>Context.resolve(Context.importState(r.options.obligationContext,{position:r.observation}),{position:r.observation}).center.pending,expectedPending=parsed.obligationContext.state.center.pending;
+  assert.equal(req.previous,null);assert.equal(req.commitment,null);assert.deepEqual(pending(req),expectedPending);
   g.window.stLab.act('HOLD');g.advance(40);assert.equal(pending(workers.at(-1).message)[0].rootId,pending(req)[0].rootId);
-  g.window.stLab.act('UNDO');g.advance(40);req=workers.at(-1).message;assert.deepEqual(pending(req),H.resolve(one.state,one.history).center.pending);
+  g.window.stLab.act('UNDO');g.advance(40);req=workers.at(-1).message;assert.deepEqual(pending(req),expectedPending);
  });
 });
 test('pending L / revalidation cannot trust copied selection, hidden future, or stale newly revealed inventory',()=>{
