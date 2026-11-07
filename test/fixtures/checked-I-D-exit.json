@@ -339,12 +339,5 @@
       "R",
       "HD"
     ]
-  ],
-  "resourceOriginBag": {
-    "remaining": [
-      0
-    ],
-    "observedCount": 7,
-    "provenance": "known-phase"
-  }
+  ]
 }

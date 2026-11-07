@@ -26,9 +26,16 @@ for(const c of cases){
   assert.deepEqual(inherited.blockedCells,c.firstNotchBreach.blockedCells);
  });
  test(`fresh advice avoids the observed ${c.id} phase-losing placement`,()=>{
-  let state=P.observe(c.snapshot),phase=S.notchPattern(state.board);const advice=P.plan(state,config);
+  let state=P.observe(c.snapshot),phase=S.notchPattern(state.board);
+  const deadline=Date.now()+config.timeMs,advice=P.plan(state,{...config,deadline}),finished=Date.now();
+  assert.ok(advice.metrics.nodes<=config.maxNodes,'The production request keeps its shared node bound');
   assert.notDeepEqual(advice.target,c.advice.target);
-  if(!advice.target){const incomplete=advice.metrics.proofScheduling?.unfinished||advice.metrics.proofScheduling?.budgetStops;assert.equal(advice.status,incomplete?'budget-exhausted':'no-supported-continuation-found');return;}
+  if(!advice.target){
+   const incomplete=Boolean(advice.metrics.proofScheduling?.unfinished||advice.metrics.proofScheduling?.budgetStops),nodeExhausted=advice.metrics.nodes>=config.maxNodes,expired=finished>=deadline;
+   if(advice.status==='budget-exhausted')assert.ok(incomplete||nodeExhausted||expired,'Budget abstention needs unfinished proof work, exhausted nodes or an expired request deadline');
+   else{assert.equal(advice.status,'no-supported-continuation-found');assert.equal(incomplete,false,'Completed rejection cannot conceal unfinished proof work');}
+   assert.deepEqual(advice.witness,[]);assert.deepEqual(advice.continuation,[]);return;
+  }
   for(const step of advice.continuation){const replay=R.replay(state,step.witness);assert.ok(replay.valid);
    const check=S.advanceNotches(state.board,{state:replay.state,event:replay.events[0]},phase);assert.ok(check.valid,check.violation);
    const fresh=S.notchPattern(P.observe(replay.state).board);

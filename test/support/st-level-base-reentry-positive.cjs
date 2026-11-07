@@ -5,7 +5,8 @@
 // count, so the tests still require reentry without pretending to repair Left.
 const f=structuredClone(require('./st-level-base-reentry.json'));
 const adjust=board=>{board[36]='OOJI......';board[39]='.LLILSS...';};
-adjust(f.observation.board);adjust(f.patternHistory.origin);
+// The current notch checkpoint survives these Left-only board adjustments.
+adjust(f.observation.board);
 f.observation.queue=['L',...f.observation.queue.slice(1)];
 const context=JSON.parse(f.savedStep.resultContext);adjust(context[1]);
 f.savedStep.resultContext=JSON.stringify(context);

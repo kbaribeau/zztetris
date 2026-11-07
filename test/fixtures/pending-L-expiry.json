@@ -222,12 +222,5 @@
     "I",
     "O",
     "T"
-  ],
-  "resourceOriginBag": {
-    "remaining": [
-      0
-    ],
-    "observedCount": 28,
-    "provenance": "known-phase"
-  }
+  ]
 }

@@ -5,6 +5,7 @@ const Context=require('../st-obligation-context');
 const F=require('./support/st-gap-phase.json'),clone=x=>JSON.parse(JSON.stringify(x));
 function lock(state,witness=['HD']){const before=R.replay(state,witness.slice(0,-1));assert.equal(before.valid,true);const replay=R.replay(before.state,['HD']);assert.equal(replay.valid,true);assert.equal(replay.events.length,1);return{before:before.state,after:replay.state,event:replay.events[0]};}
 function quad(){return lock(R.createState(F.quad.observation),F.quad.witness);}
+function currentQuad(){const q=quad();return{...q,history:H.update(H.start(F.quad.observation),q.before,q.after,q.event)};}
 function legacyQuad(){const q=quad();return{...q,history:{origin:F.quad.observation.board.slice(),steps:[{pose:clone(q.before.active),event:clone(q.event)}]}};}
 function compact(value){assert.equal(value.version,H.VERSION);assert.deepEqual(Object.keys(value).sort(),['anchorRow','blockedRows','source','status','version']);assert.equal(value.origin,undefined);assert.equal(value.steps,undefined);}
 
@@ -34,16 +35,20 @@ test('notch current state: malformed snapshots fail closed rather than falling b
  assert.deepEqual(H.resolve(F.after.observation,{...good,status:'broken',blockedRows:[2,38]}).blockedRows,[38,2]);
 });
 
-test('notch legacy adapter: valid old tapes become current facts while malformed and stale tapes still reject',()=>{
- const q=legacyQuad(),facts=H.resolve(q.after,q.history);assert.equal(facts.anchorRow,38);assert.equal(facts.source,'translated-established-cycle');
- const saved=H.snapshot(q.after,q.history);compact(saved);assert.deepEqual(H.resolve(q.after,saved),facts);assert.equal(q.history.steps.length,1);
- const mutations=[h=>h.origin=R.emptyBoard(),h=>h.origin[0]='bad',h=>h.steps=[null],h=>h.steps[0].pose.rotation=9,
-  h=>h.steps[0].event.cells[0][0]=0,h=>h.steps[0].event.lines=0,h=>h.steps[0].event.spin='full',h=>h.steps[0].event.clearedRows=[],
-  h=>h.steps=Array(129).fill(h.steps[0])];
- for(const mutate of mutations){const bad=clone(q.history);mutate(bad);assert.equal(H.resolve(q.after,bad).status,'invalid-history');}
- assert.equal(H.resolve(F.quad.observation,q.history).status,'invalid-history','old tapes remain bound to their replay endpoint');
+test('notch current state: actual quad checkpoints transport while obsolete tapes reject',()=>{
+ const q=currentQuad(),facts=H.resolve(q.after,q.history);assert.equal(facts.anchorRow,38);assert.equal(facts.source,'translated-established-cycle');
+ const saved=JSON.parse(JSON.stringify(H.snapshot(q.after,q.history)));compact(saved);assert.deepEqual(H.resolve(q.after,saved),facts);
+ const legacy=legacyQuad().history;assert.equal(H.resolve(q.after,legacy).status,'invalid-history');assert.equal(H.resolve(F.quad.observation,legacy).status,'invalid-history');
+ assert.equal(H.resolve(q.after,{...legacy,steps:[null]}).status,'invalid-history');
+ // Event/pose authenticity remains an actual-lock contract even though current
+ // snapshots no longer authenticate their facts by replaying an old tape.
+ const prior=H.start(F.quad.observation);
+ for(const mutate of [e=>e.cells[0][0]=0,e=>e.lines=0,e=>e.spin='full',e=>e.clearedRows=[]]){
+  const event=clone(q.event);mutate(event);assert.equal(H.resolve(q.after,H.update(prior,q.before,q.after,event)).status,'invalid-history');
+ }
+ const wrongPose={...q.before,active:{...q.before.active,rotation:9}};assert.equal(H.resolve(q.after,H.update(prior,wrongPose,q.after,q.event)).status,'invalid-history');
  const next=lock(q.after,['L','HD']),updated=H.update(q.history,next.before,next.after,next.event);compact(updated);
- assert.deepEqual(updated,H.update(saved,next.before,next.after,next.event),'first legacy live update drops its entire tape');
+ assert.deepEqual(updated,H.update(saved,next.before,next.after,next.event),'Transport preserves the next actual notch transition');
 });
 
 test('notch current state: canonical TSD consumes only its current arm and quad translates the surviving phase',()=>{
@@ -94,11 +99,12 @@ test('notch current state: 1000 real manual locks retain fixed-size current fact
 function currentSession(position,pattern){const snapshot=Context.exportState(Context.start(position));snapshot.state.safety.notches=H.snapshot(position,pattern);return Session.create(position,{obligationContext:snapshot});}
 function legacySession(position,pattern){const saved=Session.create(position);saved.schemaVersion=1;saved.engineVersion='st-coach-session-2026-11-05-handoff-sl-v1';delete saved.coaching.obligationContext;delete saved.coaching.planContinuity;saved.coaching.patternHistory=clone(pattern);return saved;}
 
-test('notch session adapter: legacy import is immediately compact and trusted current facts round-trip without replay authority',()=>{
- const q=legacyQuad(),legacy=legacySession(q.after,q.history),restored=Session.prepare(legacy);compact(restored.patternHistory);assert.deepEqual(restored.patternHistory,H.snapshot(q.after,q.history));
+test('notch session: actual current checkpoints round-trip and legacy sessions reject',()=>{
+ const q=currentQuad(),restored=Session.prepare(currentSession(q.after,q.history));compact(restored.patternHistory);assert.deepEqual(restored.patternHistory,H.snapshot(q.after,q.history));
+ const legacy=legacySession(q.after,legacyQuad().history);assert.throws(()=>Session.prepare(legacy),/legacy sessions must be explicitly imported as positions/);
  const imported={version:2,status:'established',anchorRow:38,blockedRows:[]},saved=currentSession(q.after,imported);
  const got=Session.prepare(saved);compact(got.patternHistory);assert.equal(got.patternHistory.source,'imported-current-state');assert.deepEqual(Session.prepare(Session.create(got.state,got)).patternHistory,got.patternHistory);
- const bad=clone(legacy);bad.coaching.patternHistory.steps[0].event.lines=0;assert.throws(()=>Session.prepare(bad),/pattern history/i);
+ const bad=clone(legacy);bad.coaching.patternHistory.steps[0].event.lines=0;assert.throws(()=>Session.prepare(bad),/legacy sessions must be explicitly imported as positions/);
  const invalid=clone(saved);invalid.coaching.obligationContext.state.safety.notches.blockedRows=[38];assert.throws(()=>Session.prepare(invalid),/notch/i);
  const ignored=clone(saved);ignored.coaching.patternHistory={origin:[],steps:[]};assert.deepEqual(Session.prepare(ignored).patternHistory,got.patternHistory,'native sidecars are not authority');
  // Facts do not make a supplied old placement executable. The ordinary
@@ -107,12 +113,13 @@ test('notch session adapter: legacy import is immediately compact and trusted cu
  assert.equal(P.revalidate(got.state,advice,{obligationContext:Context.exportState(got.obligationContext)}),null);
 });
 
-test('notch transport: actual page imports legacy/current checkpoints, restores Undo, and production worker honors trusted broken facts',()=>require('./support/page.cjs').withPage('st-lab.html',{},g=>{
+test('notch transport: actual page rejects legacy sessions, imports current checkpoints, restores Undo and honors trusted broken facts',()=>require('./support/page.cjs').withPage('st-lab.html',{},g=>{
  const workers=[];g.window.Worker=class{constructor(){workers.push(this);}postMessage(message){this.message=clone(message);}terminate(){}};
  const request=()=>{g.advance(40);return workers.at(-1).message;};
  const install=value=>{g.element('#st-snapshot').value=JSON.stringify(value);g.click('#st-import');assert.match(g.element('#st-import-status').textContent,/^Session imported/);return request();};
- const q=legacyQuad(),old=legacySession(q.after,q.history);
- let req=install(old);compact(req.options.obligationContext.state.safety.notches);assert.equal(req.options.patternHistory.anchorRow,38);
+ const q=currentQuad(),old=legacySession(q.after,legacyQuad().history),before=clone(g.snapshot()),workerCount=workers.length;
+ g.element('#st-snapshot').value=JSON.stringify(old);g.click('#st-import');assert.match(g.element('#st-import-status').textContent,/^Import rejected: Unsupported session format version/);assert.deepEqual(g.snapshot(),before);assert.equal(workers.length,workerCount);
+ let req=install(currentSession(q.after,q.history));compact(req.options.obligationContext.state.safety.notches);assert.equal(req.options.patternHistory.anchorRow,38);
  g.click('#st-export-session');const exported=JSON.parse(g.downloads.at(-1).text);compact(exported.coaching.obligationContext.state.safety.notches);assert.deepEqual(exported.coaching.obligationContext.state.safety.notches,req.options.patternHistory);
  const original=currentSession(F.quad.observation,H.start(F.quad.observation)),initial=install(original);
  for(const action of F.quad.witness)g.window.stLab.act(action);req=request();assert.equal(req.options.patternHistory.anchorRow,38);compact(req.options.patternHistory);

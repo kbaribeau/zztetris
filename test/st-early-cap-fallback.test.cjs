@@ -44,7 +44,8 @@ test('early cap fallback does not cap before actual empty-HOLD cleanup I',()=>{
  assert.equal(a.continuation[0].structuralEvidence.allocation,'quad-preparation');
 });
 test('early cap fallback cannot grant authority to invalid inherited phase or an incoming commitment',()=>{
- const invalid={...f.patternHistory,origin:Array(40).fill('..........')};
+ const invalid={...f.patternHistory,blockedRows:[f.patternHistory.anchorRow]};
+ assert.equal(P.resolvePatternHistory(f.observation,invalid).status,'invalid-history');
  const broken=P.plan(f.observation,{...config,patternHistory:invalid,maxNodes:1500});assert.equal(broken.target,null);
  const saved=P.plan(f.observation,{...config,maxNodes:1234});assert.ok(saved.target);
  const a=P.plan(f.observation,{...config,maxNodes:1234,commitment:{observation:f.observation,advice:saved}});

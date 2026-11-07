@@ -286,12 +286,5 @@
         34
       ]
     ]
-  },
-  "resourceOriginBag": {
-    "remaining": [
-      32
-    ],
-    "observedCount": 48,
-    "provenance": "known-phase"
   }
 }

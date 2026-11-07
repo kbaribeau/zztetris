@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
-const P=require('../st-planner');
+const P=require('../st-planner'),Context=require('../st-obligation-context');
 const fixture=require('./support/st-autoplay-lost-phase.json').cases.find(c=>c.id==='marathon-preparation');
 const observation=()=>P.observe(fixture.snapshot);
 const bounds={depth:3,width:8,maxNodes:45000,now:()=>0};
@@ -25,10 +25,13 @@ test('abstention status: global node and clock exhaustion without a best move st
   const a=P.plan(observation(),{...bounds,...options});withheld(a);assert.equal(a.status,'budget-exhausted');
  }
 });
-test('abstention status: exhausted budget does not relabel invalid input or malformed history',()=>{
+test('abstention status: exhausted budget does not relabel invalid input or malformed current accounting',()=>{
  const s=observation(),options={...bounds,maxNodes:0,deadline:0,now:()=>1};
  assert.equal(P.plan({...s,board:['bad']},options).status,'invalid-input');
+ const obligationContext=Context.exportState(Context.start(s));obligationContext.inventory.queue[0].id=obligationContext.inventory.active.id;
  const resourceContext={schemaVersion:1,origin:s,fresh:false,steps:[{action:'TELEPORT',revealed:[]}],handoffAtAction:null};
- const a=P.plan(s,{...options,resourceContext});withheld(a);
- assert.equal(a.status,'no-supported-continuation-found');assert.equal(a.metrics.nodes,0);assert.equal(a.evidence.resourceObligations.status,'unavailable');assert.match(a.reason,/Current resource accounting is unavailable/);assert.match(a.evidence.resourceObligations.reason,/Invalid resource replay input/);
+ for(const [input,reason]of [[{obligationContext},/Invalid obligation context/],[{resourceContext},/Legacy resource contexts are unsupported/]]){
+  const a=P.plan(s,{...options,...input});withheld(a);
+  assert.equal(a.status,'no-supported-continuation-found');assert.equal(a.metrics.nodes,0);assert.equal(a.evidence.resourceObligations.status,'unavailable');assert.match(a.reason,/Current resource accounting is unavailable/);assert.match(a.evidence.resourceObligations.reason,reason);
+ }
 });

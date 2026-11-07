@@ -461,14 +461,7 @@
         }
       }
     ],
-    "source": "sl-review-ten-2026-10-29 candidate and baseline/o-rebuild-810001 trace lock15; identical root/history, historical proof S/Z/L versus L/Z/O. Expected old aggregate bands are not new selection oracles.",
-    "resourceOriginBag": {
-      "remaining": [
-        32
-      ],
-      "observedCount": 48,
-      "provenance": "known-phase"
-    }
+    "source": "sl-review-ten-2026-10-29 candidate and baseline/o-rebuild-810001 trace lock15; identical root/history, historical proof S/Z/L versus L/Z/O. Expected old aggregate bands are not new selection oracles."
   },
   "short": {
     "observation": {

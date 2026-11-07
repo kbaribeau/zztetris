@@ -31,3 +31,12 @@ inputs between the two saved current observations, verified as the exact old
 common-prefix suffix. It is not an imported or replay-authenticated state source.
 `sl-allocation-literals` freezes the 32 region/order outcomes checked against both
 current SL accounting and the former classifier at the baseline revision.
+
+Six remaining standalone notch tapes were frozen once through the same baseline's
+PatternHistory snapshot boundary. Each had zero recorded steps and an origin
+board identical to its bound observation (or finite plan origin). Conversion
+checks exact resolved status, anchor, protected rows, blocked rows and source
+against the current checkpoint. The level-base positive control's Left-only
+geometry adjustment preserves that same notch checkpoint. Original file hashes
+and semantic comparisons are retained with the external migration evidence.
+No historical notch parser remains in the test or runtime dependency graph.

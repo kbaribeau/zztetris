@@ -41,18 +41,18 @@ test('st-import-alert/actual multiple position failures retain exact codes and d
  assert.equal(g.element('#st-snapshot').value,text);assert.deepEqual(g.snapshot(),before);assert.equal(worker.terminated,undefined);
  const long={...before,queue:['I','J','L','O','S','T','Z']};attempt(g,long);rejection(g,'Import rejected: Only six visible preview pieces may be imported; bag knowledge must refer to that frontier.');assert.deepEqual(g.snapshot(),before);
 }));
-test('st-import-alert/session schema, settings and replay rejections remain atomic and exact',()=>withPage('st-lab.html',{},g=>{
+test('st-import-alert/session schema, settings and current-accounting rejections remain atomic and exact',()=>withPage('st-lab.html',{},g=>{
  const before=g.snapshot(),saved=clone(g.window.stLab.exportSession());
  const cases=[
-  [{...saved,schemaVersion:99},'Unsupported session format version.'],
+  [{...saved,schemaVersion:99},'Unsupported session format version; legacy sessions must be explicitly imported as positions.'],
   [{...saved,search:{...saved.search,timeMs:99999}},'Unsupported session search settings; current coach settings are required.'],
   [{...saved,position:{...saved.position,board:[]}},'Invalid session position.'],
  ];
- const replay=clone(saved);replay.coaching.obligationContext.inventory.queue[0].id=-1;
- // The existing replay validator supplies the reason; the UI must preserve it,
- // not reinterpret or downgrade invalid history into an accepted warning.
- let replayMessage;try{g.window.STSession.prepare(replay);assert.fail('invalid replay accepted');}catch(error){replayMessage=error.message;}
- cases.push([replay,replayMessage]);
+ const accounting=clone(saved);accounting.coaching.obligationContext.inventory.queue[0].id=-1;
+ // The typed current-accounting validator supplies the reason; the UI must
+ // preserve it rather than downgrade malformed identities into a warning.
+ let accountingMessage;assert.throws(()=>g.window.STSession.prepare(accounting),error=>{accountingMessage=error.message;return /Invalid obligation context/.test(accountingMessage);});
+ cases.push([accounting,accountingMessage]);
  for(const [bad,message] of cases){const text=attempt(g,bad);rejection(g,'Import rejected: '+message);assert.equal(g.element('#st-snapshot').value,text);assert.deepEqual(g.snapshot(),before);}
 }));
 test('st-import-alert/repeated identical failures generate fresh text mutations without focus or input loss',()=>withPage('st-lab.html',{},async g=>{
