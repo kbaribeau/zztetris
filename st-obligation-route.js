@@ -8,8 +8,14 @@
 const clone=x=>JSON.parse(JSON.stringify(x)),same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const check=(ok,reason)=>{if(!ok)throw Error('Invalid obligation route: '+reason);};
 const freeze=x=>{if(x&&typeof x==='object'&&!Object.isFrozen(x)){Object.values(x).forEach(freeze);Object.freeze(x);}return x;};
+// Only successfully produced step routes own these deeply immutable facts.
+// Public roots, copies and proxies always retain ordinary projection validation.
+const localFacts=new WeakMap();
+// Copy only owned plain facts. JSON round-tripping would lose signed zero
+// and any explicitly undefined computed property.
+const copyFacts=x=>Array.isArray(x)?x.map(copyFacts):x&&typeof x==='object'?Object.fromEntries(Object.entries(x).map(([key,value])=>[key,copyFacts(value)])):x;
 const strip=p=>({state:p.state,supply:p.supply,position:p.position});
-function frame(projection){return{...projection,view:P.resolve(projection)};}
+function frame(projection,view){return{...projection,view:view||P.resolve(projection)};}
 function initialize(projection,{horizon=7,planReferences=[],openingBoundary,extendForced=true}={}){
  check(typeof extendForced==='boolean','forced-supply mode');
  check(openingBoundary&&typeof openingBoundary.sourcePatternSeen==='boolean','current opening boundary required');
@@ -28,17 +34,18 @@ function fromProjection(projection,options={}){return initialize(projection,opti
 function startUnknown(position,options={}){return initialize(P.startUnknown(position),{openingBoundary:{firstBagLocks:null,sourcePatternSeen:false},...options});}
 function read(route){check(route?.schemaVersion===1&&route.domain==='projection-route'&&route.projection&&route.assessment&&Array.isArray(route.planReferences),'request envelope');return route;}
 function step(current,{witness,event}={}){
- const route=read(current),before=frame(route.projection),references=A.references(route.assessment,{supply:before.supply,planReferences:route.planReferences});
+ const route=read(current),before=frame(route.projection,localFacts.get(route)),references=A.references(route.assessment,{supply:before.supply,planReferences:route.planReferences});
  const replay=R.replay(route.projection.position,witness);check(replay.valid&&replay.events.length===1,'one legal lock witness required');
  const advanced=C.advanceBoundary(route.openingBoundary,replay.state);
  const projected=P.project(route.projection,{witness,boundary:advanced.operation,references:P.referenceSnapshot(references),extendForced:route.extendForced,resolveView:true});
  if(event!==undefined)check(same(event,projected.position.lastEvent),'reported event does not replay');
- const next=strip(projected),after={...next,view:projected.view};
+ const next=strip(projected),after={...next,view:freeze(projected.view)};
  const assessed=A.transition(route.assessment,{before,after,locked:projected.locked,event:projected.position.lastEvent,effects:projected.effects});
  const result=freeze({schemaVersion:1,domain:'projection-route',extendForced:route.extendForced,projection:strip(next),assessment:assessed.state,openingBoundary:advanced.boundary,planReferences:route.planReferences.slice()});
+ localFacts.set(result,after.view);
  return{route:result,effects:clone(projected.effects),locked:clone(projected.locked),assessmentStep:clone(assessed.step)};
 }
-function resolve(current){const route=read(current);return{facts:P.resolve(route.projection),resources:A.resolve(route.assessment,{supply:route.projection.supply})};}
+function resolve(current){const route=read(current),facts=localFacts.get(route);return{facts:facts?copyFacts(facts):P.resolve(route.projection),resources:A.resolve(route.assessment,{supply:route.projection.supply})};}
 function references(current){const route=read(current);return A.references(route.assessment,{supply:route.projection.supply,planReferences:route.planReferences});}
 function binding(current){const route=read(current);return JSON.stringify([route.projection.state,route.projection.supply,route.openingBoundary,A.binding(route.assessment,{supply:route.projection.supply})]);}
 // Mirrors the ordinary finite resource check only. It does not enforce every
