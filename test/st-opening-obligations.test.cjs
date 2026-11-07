@@ -204,3 +204,15 @@ test('opening accounts: equivalent repeated account cycles have identical state 
  // These supplied-lock lifecycle cycles are not a long survival/strategy test.
  assert.equal(state.z.remaining,0);assert.deepEqual(state.reset,{status:'inactive'});
 });
+test('projected opening accounts: synthetic Reset T uses a separate codec and distinct current subject',()=>{
+ const actual=O.beginReset(established(),{candidate:true}).state,root=O.importProjection({...actual,domain:'projection'}),saved=copy(root);
+ const project=(state,id,options={})=>{
+  const event={type:'T',cells:copy(poses.T),lines:0,spin:'none',clearedRows:[],topOut:false,...options};
+  return O.projectTransition(state,{kind:'lock',piece:{id,type:'T',bag:null},event,centerEffects:[]},{before:{board:empty()},after:{board:empty(),topOut:false,center:{pending:[],debt:[]},sl:clearSL(),coveredCells:[]}});
+ };
+ const one=project(root,-1);assert.equal(one.state.reset.firstTId,-1);assert.equal(one.state.reset.remaining,1);assert.equal(one.state.z.remaining,1);assert.deepEqual(O.importProjection(copy(one.state)),one.state);assert.throws(()=>O.importState(one.state));
+ const two=project(one.state,-2);assert.equal(two.state.z.remaining,2);assert.deepEqual(two.state.reset,{status:'inactive'});assert.equal(two.effects.filter(e=>e.status==='reset-completed').length,1);
+ const repeated=project(one.state,-1);assert.equal(repeated.state.reset.status,'invalid');assert.equal(repeated.state.z.remaining,1);assert.equal(repeated.effects.some(e=>e.status==='reset-T-credited'),false);
+ const notLeft=project(root,-1,{cells:[[4,38],[5,38],[6,38],[5,39]]});assert.equal(notLeft.state.reset.status,'invalid');assert.equal(notLeft.state.z.remaining,0);
+ assert.throws(()=>lock(actual,'T',-1,{bag:null}),/locked public identity/);assert.equal(lock(actual,'T',91,{bag:null}).state.reset.status,'invalid');assert.deepEqual(root,saved);
+});

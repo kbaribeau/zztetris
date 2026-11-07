@@ -46,8 +46,9 @@ function shape(x,keys,label){if(!object(x)||Object.keys(x).sort().join('|')!==ke
 function check(ok,label){if(!ok)throw TypeError('Invalid '+label+'.');}
 function cells(value,label){check(Array.isArray(value)&&value.every(c=>Array.isArray(c)&&c.length===2&&integer(c[0])&&c[0]>=0&&c[0]<10&&integer(c[1])&&c[1]>=0&&c[1]<40)&&new Set(value.map(c=>c.join(','))).size===value.length,label);}
 function board(value){check(Array.isArray(value)&&value.length===40&&value.every(r=>typeof r==='string'&&/^[.XIJLOSTZ#]{10}$/.test(r)),'public board');}
-function validate(state){
- shape(state,['schemaVersion','known','firstTsd','allocationVerified','mandatoryZ','opening','profile','z','reset'],'account');
+function validate(state,projected=false){
+ shape(state,['schemaVersion','known','firstTsd','allocationVerified','mandatoryZ','opening','profile','z','reset',...(projected?['domain']:[])],'account');
+ if(projected)check(state.domain==='projection','projected account domain');
  check(state.schemaVersion===1&&typeof state.known==='boolean'&&typeof state.firstTsd==='boolean'&&typeof state.allocationVerified==='boolean'&&typeof state.mandatoryZ==='boolean','account flags');
  shape(state.profile,['violation','departure','before','capEstablished'],'profile');
  for(const key of ['violation','departure','capEstablished'])check(typeof state.profile[key]==='boolean','profile '+key);
@@ -64,7 +65,7 @@ function validate(state){
  const reset=state.reset;check(object(reset)&&['inactive','active','invalid'].includes(reset.status),'Reset status');
  shape(reset,reset.status==='active'?['status','remaining','firstTId','inheritedCovered']:['status'],'Reset duty');
  if(reset.status==='active'){
-  check([1,2].includes(reset.remaining),'Reset remaining');check(reset.remaining===2?reset.firstTId===null:integer(reset.firstTId)&&reset.firstTId>=1,'current Reset first T');cells(reset.inheritedCovered,'inherited covered cells');
+  check([1,2].includes(reset.remaining),'Reset remaining');check(reset.remaining===2?reset.firstTId===null:integer(reset.firstTId)&&(projected?reset.firstTId!==0:reset.firstTId>=1),'current Reset first T');cells(reset.inheritedCovered,'inherited covered cells');
  }
  // Internal references/unions must be coherent, but none requires a history.
  check(!state.allocationVerified||state.firstTsd,'verified allocation boundary');
@@ -77,6 +78,7 @@ function validate(state){
  return state;
 }
 function importState(snapshot){validate(snapshot);return clone(snapshot);}
+function importProjection(snapshot){validate(snapshot,true);return clone(snapshot);}
 function exportState(state){return importState(state);}
 function start({known=false}={}){
  check(typeof known==='boolean','known-origin flag');
@@ -86,8 +88,8 @@ function start({known=false}={}){
   z:{remaining:null,uncredited:'none'},reset:{status:'inactive'}};
 }
 function profileLost(state){return Boolean(state.profile.violation||state.profile.departure||state.profile.before==='overused'||state.reset.status==='invalid'||(state.z.remaining!==null?state.z.remaining<0:state.z.uncredited==='multiple'));}
-function resolve(state,{board:currentBoard}={}){
- validate(state);
+function resolveState(state,{board:currentBoard}={},projected=false){
+ validate(state,projected);
  let status='unknown',requiredNonRightT=null,requiredNonRightZ=null;
  if(state.known){
   if(state.firstTsd){
@@ -105,25 +107,27 @@ function resolve(state,{board:currentBoard}={}){
   extraZ:{status:!baseline?'unknown':profileLost(state)?'out-of-profile':state.reset.status==='active'||state.z.remaining===0?'used':'available',baseline,remaining:baseline?state.z.remaining:null},
   reset:{status:state.reset.status,progress:state.reset.status==='active'?2-state.reset.remaining:0},profileLost:profileLost(state)};
 }
+function resolve(state,context){return resolveState(state,context);}
+function resolveProjection(state,context){return resolveState(state,context,true);}
 function addEffect(effects,status,data={}){effects.push({status,...data});}
 function disqualifyQuality(state,effects,reason){if(state.opening?.kind==='quality'){state.opening=null;addEffect(effects,'quality-disqualified',{reason});}}
 function baseline(state,effects){state.z.remaining=1;state.z.uncredited='none';state.opening=null;addEffect(effects,'baseline-established',{delta:1});}
 function invalidateReset(state,effects,reason){if(state.reset.status!=='invalid'){state.reset={status:'invalid'};addEffect(effects,'reset-invalidated',{reason});}}
-function beginReset(current,{candidate,inheritedCovered=[]}={}){
- const state=importState(current);check(typeof candidate==='boolean','caller Reset decision');cells(inheritedCovered,'inherited covered cells');
+function begin(current,{candidate,inheritedCovered=[]}={},projected=false){
+ const state=projected?importProjection(current):importState(current);check(typeof candidate==='boolean','caller Reset decision');cells(inheritedCovered,'inherited covered cells');
  if(state.reset.status==='active')return{state,effects:[]};
  if(!state.known||!candidate||state.z.remaining!==0||profileLost(state))return{state,effects:[{status:'reset-rejected',reason:'Reset requires a current caller-selected candidate and an eligible exhausted Z account.'}]};
  state.reset={status:'active',remaining:2,firstTId:null,inheritedCovered:clone(inheritedCovered)};
  return{state,effects:[{status:'reset-started'}]};
 }
-function transition(current,operation,context){
- const state=importState(current),effects=[];
+function reduce(current,operation,context,projected=false){
+ const state=projected?importProjection(current):importState(current),effects=[];
  check(operation?.kind==='lock','operation kind');
  const {piece,event:e}=operation;
  check(object(e)&&typeof e.type==='string'&&TYPES.includes(e.type)&&e.type.length===1&&integer(e.lines)&&e.lines>=0&&e.lines<=40&&['none','mini','full'].includes(e.spin)&&typeof e.topOut==='boolean','lock event');
  cells(e.cells,'lock cells');check(e.cells.length===4,'lock cells');
  check(Array.isArray(e.clearedRows)&&e.clearedRows.length===e.lines&&e.clearedRows.every(y=>integer(y)&&y>=0&&y<40)&&new Set(e.clearedRows).size===e.clearedRows.length,'cleared rows');
- check(object(piece)&&piece.type===e.type&&integer(piece.id)&&piece.id>=1&&(piece.bag===null||integer(piece.bag)&&piece.bag>=0),'locked public identity');
+ check(object(piece)&&piece.type===e.type&&integer(piece.id)&&(piece.id>=1||projected&&piece.id<0&&piece.bag===null)&&(piece.bag===null||integer(piece.bag)&&piece.bag>=0),'locked public identity');
  board(context?.before?.board);board(context?.after?.board);
  const after=context.after;check(typeof after.topOut==='boolean','after top-out');
  check(Array.isArray(after.center?.pending)&&Array.isArray(after.center?.debt)&&Array.isArray(operation.centerEffects),'current Center facts');
@@ -135,7 +139,9 @@ function transition(current,operation,context){
  if(wasActive){
   if(!isCanonical||e.topOut)invalidateReset(state,effects,'noncanonical-clear-or-top-out');
   else if(e.type==='T'){
-   if(!ResetPolicy.qualifies(e)||piece.bag===null||piece.id===state.reset.firstTId)invalidateReset(state,effects,'T-must-be-distinct-observed-Left-nonclear');
+   // M's finite route already credits a qualifying synthetic Left T. Keep
+   // that explicit projection rule separate from actual observed-bag credit.
+   if(!ResetPolicy.qualifies(e)||(!projected&&piece.bag===null)||piece.id===state.reset.firstTId)invalidateReset(state,effects,'T-must-be-distinct-observed-Left-nonclear');
    else{
     state.z.remaining++;credited=true;state.reset.remaining--;addEffect(effects,'reset-T-credited',{pieceId:piece.id,delta:1});
     if(state.reset.remaining===0){state.reset={status:'inactive'};addEffect(effects,'reset-completed');}
@@ -208,8 +214,12 @@ function transition(current,operation,context){
   const live=new Set(after.coveredCells.map(c=>c.join(',')));
   state.reset.inheritedCovered=translate(state.reset.inheritedCovered,e.clearedRows).filter(c=>live.has(c.join(',')));
  }
- validate(state);
+ validate(state,projected);
  return{state,effects};
 }
-return Object.freeze({start,transition,beginReset,resolve,profileLost,exportState,importState,predicates:Object.freeze({canonical,tsd,region,cap,quality})});
+function transition(current,operation,context){return reduce(current,operation,context);}
+function projectTransition(current,operation,context){return reduce(current,operation,context,true);}
+function beginReset(current,options){return begin(current,options);}
+function beginProjectedReset(current,options){return begin(current,options,true);}
+return Object.freeze({start,transition,projectTransition,beginReset,beginProjectedReset,resolve,resolveProjection,profileLost,exportState,importState,importProjection,predicates:Object.freeze({canonical,tsd,region,cap,quality})});
 });

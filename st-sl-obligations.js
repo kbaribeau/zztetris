@@ -45,14 +45,14 @@ function start({known=false}={}){return{schemaVersion:1,status:known?'known':'un
 // no classified facts; partial known-record transport needs a separate schema.
 // Throwing leaves installation atomic and lets the caller report unavailable
 // accounting instead of silently dropping a malformed or unrepresentable fact.
-function importState(raw){
+function readState(raw,projected=false){
  const fail=reason=>{throw Error('Invalid S/L snapshot: '+reason);};
  const object=v=>v!==null&&typeof v==='object'&&!Array.isArray(v);
  const bool=(v,name)=>{if(typeof v!=='boolean')fail(name+' must be boolean.');return v;};
  const number=(v,name,min=0)=>{if(!Number.isSafeInteger(v)||v<min)fail(name+' must be a nonnegative safe integer.');return v===0?0:v;};
  const choice=(v,values,name)=>{if(!values.includes(v))fail('Unknown '+name+'.');return v;};
- if(!object(raw)||raw.schemaVersion!==1)fail('Unsupported schema.');
- const state={schemaVersion:1,status:choice(raw.status,['known','unknown'],'availability'),foundationOpen:bool(raw.foundationOpen,'foundationOpen'),firstBagReview:choice(raw.firstBagReview,['pending','reviewed','unreviewed'],'first-bag review'),handoff:bool(raw.handoff,'handoff'),residuals:[],uncertainty:emptyCounts()};
+ if(!object(raw)||raw.schemaVersion!==1||(projected?raw.domain!=='projection':raw.domain!==undefined))fail('Unsupported schema/domain.');
+ const state={schemaVersion:1,...(projected?{domain:'projection'}:{}),status:choice(raw.status,['known','unknown'],'availability'),foundationOpen:bool(raw.foundationOpen,'foundationOpen'),firstBagReview:choice(raw.firstBagReview,['pending','reviewed','unreviewed'],'first-bag review'),handoff:bool(raw.handoff,'handoff'),residuals:[],uncertainty:emptyCounts()};
  if(state.handoff&&state.foundationOpen)fail('A handed-off state cannot have an open foundation phase.');
  if(!Array.isArray(raw.residuals)||!object(raw.uncertainty))fail('Missing current residuals or uncertainty.');
  for(const kind of ['S','L']){
@@ -83,6 +83,8 @@ function importState(raw){
  if(state.status==='unknown'&&(state.residuals.length||[...state.uncertainty.S,...state.uncertainty.L].some(n=>n!==0)))fail('Unknown state cannot carry classified facts in this schema.');
  return state;
 }
+function importState(raw){return readState(raw);}
+function importProjection(raw){return readState(raw,true);}
 function exportState(state){return importState(state);}
 function counterpart(b,type,inventory){
  const used=b[type];if(used)return used;
@@ -120,7 +122,7 @@ function classifyBag(state,b,{inventory,center}){
  return out;
 }
 function classify(state,context){return new Map(state.residuals.map(b=>[b.bag,classifyBag(state,b,context)]));}
-function resolve(state,{inventory,center,profileLost=false}){
+function resolveState(state,{inventory,center,profileLost=false}){
  const classified=state.status==='known'?classify(state,{inventory,center}):new Map(),result={};
  for(const kind of ['S','L']){
   const all=[...classified.values()].map(p=>p[kind]).filter(Boolean);
@@ -131,13 +133,16 @@ function resolve(state,{inventory,center,profileLost=false}){
  }
  return result;
 }
+function resolve(state,context){if(state.domain!==undefined)throw Error('Projected S/L state requires the projection selector.');return resolveState(state,context);}
+function resolveProjection(state,context){return resolveState(importProjection(state),context);}
 function validateContext(context){
  for(const side of ['before','after']){
   const c=context?.[side];if(!c?.inventory||!Array.isArray(c.inventory.queue)||!Array.isArray(c.center?.pending)||!Array.isArray(c.center?.debt))throw Error('Missing current public '+side+' context.');
  }
 }
-function transition(current,operation,context){
+function reduce(current,operation,context,projected=false){
  validateContext(context);
+ if(projected?current.domain!=='projection':current.domain!==undefined)throw Error('Invalid S/L transition domain.');
  if(!['lock','observe','handoff'].includes(operation?.kind))throw Error('Unknown S/L operation.');
  if(current.status!=='known')return{state:clone(current),effects:[]};
  if(!context.before.inventory.originKnown||!context.after.inventory.originKnown||!context.before.inventory.frontier||!context.after.inventory.frontier)throw Error('Known S/L facts require known public identities and frontier.');
@@ -150,9 +155,11 @@ function transition(current,operation,context){
  }
  if(operation.kind==='lock'){
   const {piece,event}=operation;
-  if(!piece||piece.type!==event?.type||!Number.isInteger(piece.bag)||!Number.isInteger(piece.id)||!Array.isArray(event.cells)||event.cells.length!==4||!(context.before.inventory.active?.id===piece.id&&context.before.inventory.active.type===piece.type&&context.before.inventory.active.bag===piece.bag))throw Error('Missing or mismatched public locked identity.');
+  if(!piece||piece.type!==event?.type||!(Number.isInteger(piece.bag)||projected&&piece.bag===null)||!Number.isInteger(piece.id)||!(piece.id>0||projected&&piece.id<0&&piece.bag===null)||!Array.isArray(event.cells)||event.cells.length!==4||!(context.before.inventory.active?.id===piece.id&&context.before.inventory.active.type===piece.type&&context.before.inventory.active.bag===piece.bag))throw Error('Missing or mismatched public locked identity.');
   let bag=state.residuals.find(b=>b.bag===piece.bag);
-  if('SL'.includes(piece.type)){
+  // Unknown projected origin never becomes a same-bag relationship. Still
+  // process its exact Center payment/loss below against every known root.
+  if('SL'.includes(piece.type)&&piece.bag!==null){
    if(!bag){bag={bag:piece.bag,S:null,L:null,order:null,sOwedSinceL:false,lBeforeSPair:false};state.residuals.push(bag);}
    if(bag[piece.type])throw Error('The same bag/type was already consumed.');
    // Check the counterpart before mutating: absence is deferred only if it has
@@ -170,7 +177,7 @@ function transition(current,operation,context){
     if(piece.type!=='L')throw Error('An SL pair must consume L.');
     const root=state.residuals.find(b=>b.S?.id===pair.rootId);
     if(root){root.S.pair=root.bag===piece.bag?'same':'foreign';root.lBeforeSPair=Boolean(root.L&&root.L.id!==piece.id);}
-    if(piece.type==='L')bag.L.pair=bag.S?.id===pair.rootId?'same':'foreign';
+    if(bag?.L&&piece.type==='L')bag.L.pair=bag.S?.id===pair.rootId?'same':'foreign';
    }else if(pair.family==='LO'){
     if(piece.type!=='O')throw Error('An LO pair must consume O.');
     const root=state.residuals.find(b=>b.L?.id===pair.rootId);if(root)root.L.pair='LO';
@@ -211,5 +218,7 @@ function transition(current,operation,context){
  });
  return{state,effects};
 }
-return Object.freeze({start,transition,resolve,importState,exportState});
+function transition(current,operation,context){return reduce(current,operation,context);}
+function projectTransition(current,operation,context){const result=reduce(importProjection(current),operation,context,true);return{state:importProjection(result.state),effects:result.effects};}
+return Object.freeze({start,transition,projectTransition,resolve,resolveProjection,importState,importProjection,exportState});
 });

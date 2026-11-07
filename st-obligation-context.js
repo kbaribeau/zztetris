@@ -70,8 +70,10 @@ function start(position,{fresh=false}={}){
  const inventory=I.start(position,{fresh});check(inventory.status==='available',inventory.reason||'initial inventory');
  return importState({schemaVersion:VERSION,status:'available',reason:null,inventory:I.exportState(inventory),state:Q.start(position,{inventory}),boundary:{firstBagLocks:inventory.originKnown?0:null,sourcePatternSeen:false}},{position});
 }
-function lockBoundary(current,after){
- const boundary={...current.boundary},operation={};
+function advanceBoundary(current,after){
+ shape(current,['firstBagLocks','sourcePatternSeen'],'opening boundary');
+ check((current.firstBagLocks===null||Number.isInteger(current.firstBagLocks)&&current.firstBagLocks>=0&&current.firstBagLocks<=7)&&typeof current.sourcePatternSeen==='boolean','opening boundary values');
+ const boundary={...current},operation={};
  // Match exactly the existing source-pattern rule: the first full board match
  // on an actual lock closes foundation; only a FIRST match at lock 7 reviews
  // bag zero. A later match must never retroactively review the first bag.
@@ -94,7 +96,7 @@ function applyActual(current,{before,action,after,receipt,references=[]}={}){
  // copied/stale receipt cannot be used to install somebody else's inventory.
  check(actual.status==='available'&&I.matchesTransition(actual,current.inventory,before,action,after),'genuine current inventory receipt required');
  if(!actual.accepted)return{context:current,effects:[],receipt:actual};
- const {boundary,operation}=action==='HD'?lockBoundary(current,after):{boundary:current.boundary,operation:{}};
+ const {boundary,operation}=action==='HD'?advanceBoundary(current.boundary,after):{boundary:current.boundary,operation:{}};
  if(current.status==='unavailable')return{context:unavailable(current,actual.next,boundary,current.reason),effects:[],receipt:actual};
  try{
   const result=Q.applyActual(current.state,{inventory:current.inventory,before,action,after,receipt:actual,boundary:operation,references});
@@ -128,5 +130,5 @@ function restore(raw){
  const position=clone(raw.position),context=importState(raw.context,{position});
  return{position:freeze(position),context};
 }
-return Object.freeze({VERSION,start,applyActual,handoff,beginReset,resolve,snapshot,restore,importState,exportState});
+return Object.freeze({VERSION,start,applyActual,handoff,beginReset,advanceBoundary,resolve,snapshot,restore,importState,exportState});
 });
