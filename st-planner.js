@@ -1064,13 +1064,17 @@ function pendingSLAllocationComparison(candidate,reference,options={}){
  try{if(M.allocationBinding(candidate.resources)!==M.allocationBinding(reference.resources))return{...base,allowed:false,reason:'unequal-pending-SL-resource-binding'};}catch{return{...base,allowed:false,reason:'untrusted-pending-SL-resource-view'};}
  return{...base,allowed:true,reason:'strict-pending-SL-surrounding-gain',paid:clone(paid[0])};
 }
-function nodeFor(p,parent,initial,rootIndex,readAssessment=assess){
+function nodeFor(p,parent,initial,rootIndex,readAssessment=assess,rejectKnownInvalid=false){
  const assessment=readAssessment(p.state.board),path=[...(parent?.path??[]),p];
  const before=parent?.state??initial.state,priorNotches=parent?.notches??initial.notches;
  const notchCheck=S.advanceNotches(before.board,p,priorNotches);
  const structure=S.assess(p.state,{notches:notchCheck.pattern});
  const transition=S.transition(before,p,structure,{notches:priorNotches});
  if(!ordinaryRightEligible(p.event))transition.cycleViolations.push('ordinary-right-requires-Z-T-I');
+ // The ordinary callers discard these nodes unconditionally. Stop before
+ // projecting resources or annotating a shared placement. Finite preparation
+ // and repair producers retain their existing construction/evidence path.
+ if(rejectKnownInvalid&&(!notchCheck.valid||transition.cycleViolations.length||parent?.cycleDebt))return null;
  const dPending=L.isD(p.state.board); // Geometry is known; no creation history is inferred.
 
  transition.futureNotches=notchCheck;
@@ -1546,7 +1550,7 @@ function planCore(raw,options={}){
  // considered instead of selecting it only to reject it at final admission.
  if(preparation&&!A.repairPrefix(s,preparation.path,{notches:initial.notches,initialDebt:initial.coveredRepair?.cells,stages:initial.coveredStages}).valid)preparation=null;
  const spendsReservedT=(p,parent=null)=>(preparation||preparationUnresolved)&&p.event.type==='T'&&p.event.lines===0&&!parent?.path.some(step=>step.event.type==='T'&&step.event.lines===2&&step.event.spin==='full');
- let frontier=qualify(root.placements.filter(p=>S.canonicalClear(p.event)&&!spendsReservedT(p)&&ordinaryCenterEligible(s,p,initial.notches)).map((p,i)=>nodeFor(p,null,initial,i,readAssessment)).filter(n=>n.notchValid&&n.cycleDebt===0));
+ let frontier=qualify(root.placements.filter(p=>S.canonicalClear(p.event)&&!spendsReservedT(p)&&ordinaryCenterEligible(s,p,initial.notches)).map((p,i)=>nodeFor(p,null,initial,i,readAssessment,true)).filter(n=>n&&n.notchValid&&n.cycleDebt===0));
  if(preparation){preparation=qualify([preparation])[0]??preparation;base.metrics.preparationProofLocks=preparation.path.length;}
 
  let screeningLimit=limit;
@@ -1597,7 +1601,7 @@ function planCore(raw,options={}){
  for(let depth=2;depth<=maxDepth&&!stopped&&layer.length;depth++){
   const next=[],seen=new Map();let complete=true;
   for(const n of layer){if(!n.state.active)continue;expandedRoots.add(n.rootIndex);const e=enumerate(n.state);if(!e.complete)complete=false;
-   for(const p of e.placements){if(!S.canonicalClear(p.event)||spendsReservedT(p,n)||!ordinaryCenterEligible(n.state,p,n.notches))continue;const child=nodeFor(p,n,initial,n.rootIndex,readAssessment);if(!child.notchValid||child.cycleDebt)continue;const key=nodeKey(child),prior=seen.get(key);if(!prior||compare(child,prior)<0)seen.set(key,child);}
+   for(const p of e.placements){if(!S.canonicalClear(p.event)||spendsReservedT(p,n)||!ordinaryCenterEligible(n.state,p,n.notches))continue;const child=nodeFor(p,n,initial,n.rootIndex,readAssessment,true);if(!child||!child.notchValid||child.cycleDebt)continue;const key=nodeKey(child),prior=seen.get(key);if(!prior||compare(child,prior)<0)seen.set(key,child);}
    if(stopped)break;
   }
   next.push(...qualify([...seen.values()]));if(stopped)complete=false;

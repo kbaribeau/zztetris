@@ -307,3 +307,13 @@ inherit ownership. Tests include direct component serialization hooks, nested
 mutation isolation, signed-zero notch facts, actual classic Worker loading,
 and parity with the ordinary reducers. These are correctness checks, not a
 performance claim; measure complete searches separately on frozen revisions.
+
+### Ordinary known-invalid pruning
+
+`st-ordinary-early-rejection.test.cjs` checks that ordinary main-search nodes
+with an already invalid notch or cycle debt stop before resource projection.
+Shared preparation and repair callers retain the complete construction path.
+Tests preserve existing placement evidence, inherited debt, the Right-piece
+gate and the distinction between a structural preference and a hard rejection.
+This is a computation reduction, not a broader regional policy or a claim
+that unfinished proofs establish impossibility.
