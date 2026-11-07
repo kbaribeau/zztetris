@@ -264,3 +264,77 @@ test('shared SL snapshots: aggregate plus retained uncertainty stays exact or fa
  assert.throws(()=>SL.resolve(imported,after),/uncertainty total exceeds/);assert.throws(()=>SL.transition(imported,{kind:'observe'},{before:after,after,references:[s.id]}),/uncertainty total exceeds/);
  assert.deepEqual(imported,ordinary);
 });
+
+const projection=state=>({...copy(state),domain:'projection'});
+function compareProjected(state,operation,context){
+ const saved=copy(state),raw=projection(state),rawSaved=copy(raw);
+ const actual=SL.transition(state,operation,context),projected=SL.projectTransition(raw,operation,context);
+ assert.deepEqual(projected,{state:projection(actual.state),effects:actual.effects},'Ordered states and effects agree across actual and projected domains');
+ assert.deepEqual(state,saved);assert.deepEqual(raw,rawSaved);
+ return projected;
+}
+test('shared SL projected ownership: all allocation orders preserve ordered effects and compaction',()=>{
+ for(const {first,one,two} of require('./fixtures/sl-allocation-literals.json').cases){
+  const x=literal();x.lock(first,1,one);const second=first==='S'?'L':'S',p=piece(second,1);
+  const context={before:x.context,after:{inventory:inventory([piece('O',1)]),center:emptyCenter()}};
+  const operation={kind:'lock',piece:p,event:{type:second,cells:cells[two]}};
+  const result=compareProjected(x.state,operation,context);
+  assert.equal(result.state.residuals.length,0);
+  compareProjected(x.state,operation,{...context,references:[p.id]});
+ }
+});
+test('shared SL projected ownership: raw, copied, getter and iterator snapshots stay detached across siblings',()=>{
+ const {state,context}=currentSnapshot(),expected=projection(state);
+ for(const shape of ['raw','copy','getter','iterator']){
+  const raw=projection(state),backing=copy(raw);
+  if(shape==='getter'){
+   Object.defineProperty(raw,'residuals',{get:()=>backing.residuals});
+   Object.defineProperty(raw,'uncertainty',{get:()=>backing.uncertainty});
+   Object.defineProperty(backing.residuals[0],'S',{get:()=>state.residuals[0].S});
+  }
+  if(shape==='iterator'){
+   raw.residuals[Symbol.iterator]=function*(){yield* backing.residuals;};
+   raw.uncertainty.S[Symbol.iterator]=function*(){yield* backing.uncertainty.S;};
+  }
+  const input=shape==='copy'?SL.importProjection(raw):raw;
+  const ctx={before:context,after:context,references:state.residuals.flatMap(b=>[b.S.id,b.L.id])};
+  const first=SL.projectTransition(input,{kind:'observe'},ctx);
+  const sibling=SL.projectTransition(input,{kind:'handoff'},ctx),siblingSaved=copy(sibling);
+  assert.deepEqual(first.state,expected);
+  first.state.residuals[0].S.invalidated=true;first.state.uncertainty.S[0]++;
+  first.state.residuals[1].L.id=99999;first.state.uncertainty.L[0]++;
+  assert.deepEqual(SL.importProjection(input),expected,shape);
+  assert.deepEqual(sibling,siblingSaved,shape);
+  const imported=SL.importProjection(input);imported.residuals[0].S.invalidated=true;imported.uncertainty.L[0]++;
+  assert.deepEqual(SL.importProjection(input),expected,shape);
+ }
+});
+test('shared SL projected ownership: unknown and repeated handoff results are mutable independent copies',()=>{
+ const context={inventory:inventory([]),center:emptyCenter()},ctx={before:context,after:context};
+ for(const state of [SL.start(),{...SL.start({known:true}),handoff:true,foundationOpen:false}]){
+  for(const operation of [{kind:'observe'},{kind:'handoff'}]){
+   const saved=copy(state),result=compareProjected(state,operation,ctx),actual=SL.transition(state,operation,ctx);
+   result.state.uncertainty.S[0]=10;result.state.residuals.push({});actual.state.uncertainty.L[0]=10;
+   assert.deepEqual(state,saved);
+   assert.deepEqual(SL.projectTransition(projection(state),operation,ctx).effects,[]);
+  }
+ }
+});
+test('shared SL projected ownership: failures after mutation never change the parent or sibling',()=>{
+ const x=literal();x.lock('L',1,'left');const s=piece('S',1);
+ const ctx={before:x.context,after:{inventory:inventory([piece('O',1)]),center:emptyCenter()}};
+ const valid={kind:'lock',piece:s,event:{type:'S',cells:cells.cross}};
+ const cases=[
+  {state:x.state,operation:{...valid,firstBagReview:'invalid'},context:ctx,error:/first-bag review/},
+  {state:x.state,operation:{...valid,pairs:[{family:'SL',rootId:s.id,partnerId:s.id}]},context:ctx,error:/SL pair must consume L/},
+  {state:{...copy(x.state),uncertainty:{S:[0,Number.MAX_SAFE_INTEGER,0,0],L:[0]}},operation:valid,context:ctx,error:/exact integer range/},
+  {state:{...copy(x.state),uncertainty:{S:[Number.MAX_SAFE_INTEGER,0,0,0],L:[0]}},operation:valid,context:{...ctx,references:[s.id]},error:/exact integer range/},
+  {state:SL.start({known:true}),operation:{kind:'lock',piece:piece('L',1),event:{type:'L',cells:cells.left}},context:{before:{inventory:inventory([piece('L',1)]),center:emptyCenter()},after:ctx.after},error:/Missing consumed S/}
+ ];
+ for(const c of cases){
+  const raw=projection(c.state),saved=copy(raw),actualSaved=copy(c.state),sibling=SL.importProjection(raw);
+  assert.throws(()=>SL.projectTransition(raw,c.operation,c.context),c.error);
+  assert.deepEqual(raw,saved);assert.deepEqual(sibling,saved);
+  assert.throws(()=>SL.transition(c.state,c.operation,c.context),c.error);assert.deepEqual(c.state,actualSaved);
+ }
+});
