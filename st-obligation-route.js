@@ -37,15 +37,18 @@ function step(current,{witness,event}={}){
  const route=read(current),before=frame(route.projection,localFacts.get(route)),references=A.references(route.assessment,{supply:before.supply,planReferences:route.planReferences});
  const replay=R.replay(route.projection.position,witness);check(replay.valid&&replay.events.length===1,'one legal lock witness required');
  const advanced=C.advanceBoundary(route.openingBoundary,replay.state);
- const projected=P.project(route.projection,{witness,boundary:advanced.operation,references:P.referenceSnapshot(references),extendForced:route.extendForced,resolveView:true});
- if(event!==undefined)check(same(event,projected.position.lastEvent),'reported event does not replay');
- const next=strip(projected),after={...next,view:freeze(projected.view)};
- const assessed=A.transition(route.assessment,{before,after,locked:projected.locked,event:projected.position.lastEvent,effects:projected.effects});
- const result=freeze({schemaVersion:1,domain:'projection-route',extendForced:route.extendForced,projection:strip(next),assessment:assessed.state,openingBoundary:advanced.boundary,planReferences:route.planReferences.slice()});
+ const projected=P.projectOwned(route.projection,{witness,boundary:advanced.operation,references:P.referenceSnapshot(references),extendForced:route.extendForced,resolveView:true});
+ if(event!==undefined)check(same(event,projected.projection.position.lastEvent),'reported event does not replay');
+ const next=projected.projection,after={...next,view:freeze(projected.view)};
+ const assessed=A.transition(route.assessment,{before,after,locked:projected.locked,event:projected.projection.position.lastEvent,effects:projected.effects});
+ const result=freeze({schemaVersion:1,domain:'projection-route',extendForced:route.extendForced,projection:next,assessment:assessed.state,openingBoundary:advanced.boundary,planReferences:route.planReferences.slice()});
  localFacts.set(result,after.view);
  return{route:result,effects:clone(projected.effects),locked:clone(projected.locked),assessmentStep:clone(assessed.step)};
 }
 function resolve(current){const route=read(current),facts=localFacts.get(route);return{facts:facts?copyFacts(facts):P.resolve(route.projection),resources:A.resolve(route.assessment,{supply:route.projection.supply})};}
+// Raw roots/envelopes keep the same factual validation as resolve(). Only a
+// genuine completed route can avoid copying factual output nobody consumes.
+function resolveResources(current){const route=read(current);if(!localFacts.has(route))P.resolve(route.projection);return A.resolve(route.assessment,{supply:route.projection.supply});}
 function references(current){const route=read(current);return A.references(route.assessment,{supply:route.projection.supply,planReferences:route.planReferences});}
 function binding(current){const route=read(current);return JSON.stringify([route.projection.state,route.projection.supply,route.openingBoundary,A.binding(route.assessment,{supply:route.projection.supply})]);}
 // Mirrors the ordinary finite resource check only. It does not enforce every
@@ -55,9 +58,9 @@ function checkPath(current,path){
  read(current);if(!Array.isArray(path))return{valid:false,reason:'invalid-resource-path',route:current};
  let route=current;const steps=[];
  try{
-  for(const p of path){const result=step(route,{witness:p.witness,event:p.event});route=result.route;steps.push(result.assessmentStep);const resources=resolve(route).resources;if(resources.violations.length)return{valid:false,reason:resources.violations[0],route,steps};}
+  for(const p of path){const result=step(route,{witness:p.witness,event:p.event});route=result.route;steps.push(result.assessmentStep);const resources=resolveResources(route);if(resources.violations.length)return{valid:false,reason:resources.violations[0],route,steps};}
  }catch(error){return{valid:false,reason:'invalid-resource-witness',detail:error.message,route,steps};}
- const resources=resolve(route).resources;return{valid:!resources.centerBlocked,reason:resources.centerBlocked?'center-partner-blocked-by-T-or-unseen':null,route,steps};
+ const resources=resolveResources(route);return{valid:!resources.centerBlocked,reason:resources.centerBlocked?'center-partner-blocked-by-T-or-unseen':null,route,steps};
 }
-return Object.freeze({start,startUnknown,fromProjection,step,resolve,references,binding,checkPath});
+return Object.freeze({start,startUnknown,fromProjection,step,resolve,resolveResources,references,binding,checkPath});
 });

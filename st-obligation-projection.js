@@ -23,6 +23,8 @@ function referenceSnapshot(raw){
  Object.freeze(out);referenceSnapshots.add(out);return out;
 }
 const plainMovement=new Set(['L','R','SD','CW','CCW','R180']);
+const ownedFrames=new WeakSet();
+const freeze=x=>{if(x&&typeof x==='object'&&!Object.isFrozen(x)){Object.values(x).forEach(freeze);Object.freeze(x);}return x;};
 function shape(x,keys,label){check(object(x)&&Object.keys(x).length===keys.length&&keys.every(key=>Object.prototype.propertyIsEnumerable.call(x,key)),label+' shape');}
 function knowledge(raw){
  if(raw===null)return null;
@@ -83,6 +85,15 @@ function read(current,{position}={}){
  if(position!==undefined)check(same(position,p),'explicit position differs from request state');
  bound(supply,p);namespace(state,supply);return{state,supply,position:p};
 }
+// Only completed projections constructed here enter this path. Their state,
+// subjects, frontier and knowledge are immutable plain data, never raw aliases.
+// Keep a writable local shell/queue and ordinary position normalization even
+// when a caller-supplied witness iterator yields no actions.
+function copyOwned(current,{position}={}){
+ const state=current.state,supply={...current.supply,queue:current.supply.queue.slice()},p=clone(current.position);
+ if(position!==undefined)check(same(position,p),'explicit position differs from request state');
+ bound(supply,p);namespace(state,supply);return{state,supply,position:p};
+}
 // Q.projectTransition has already normalized and validated this fresh local
 // state. Retain supply, position and cross-component checks without importing
 // that state a second time. No caller-provided state reaches this helper.
@@ -119,13 +130,14 @@ function extendLocal(projection){
  return read(projection);
 }
 function extendForced(current,options={}){return extendLocal(read(current,options));}
-function project(current,{position,witness,boundary={},references=emptyReferences,extendForced=false,resolveView=false}={}){
+function projectLocal(current,{position,witness,boundary={},references=emptyReferences,extendForced=false,resolveView=false}={},ownedOutput=false){
  check(typeof extendForced==='boolean'&&typeof resolveView==='boolean','local output options');
- let projection=read(current,{position});const out=[];let locked=null,settled=false;
+ const owned=ownedOutput&&ownedFrames.has(current);
+ let projection=owned?copyOwned(current,{position}):read(current,{position});const out=[];let locked=null,settled=false;
  const stableReferences=referenceSnapshots.has(references);
  // Public getters/serialization hooks can change values during the first read.
  // Admit only the detached, revalidated result to this private local path.
- projection.supply=readSupply(projection.supply);
+ if(!owned)projection.supply=readSupply(projection.supply);
  check(Array.isArray(witness)&&witness.length>0&&witness.length<=256&&witness.at(-1)==='HD'&&witness.filter(a=>a==='HD').length===1,'one-lock witness');
  for(const action of witness){
   const before=projection,after=R.move(before.position,action);check(after!==before.position,'rejected projected input');
@@ -154,11 +166,19 @@ function project(current,{position,witness,boundary={},references=emptyReference
  // avoids routing them back through public imports between adjacent steps.
  if(extendForced)projection=extendLocal(projection);
  const view=resolveView?Q.resolveProjection(projection.state,{position:projection.position,inventory:projection.supply}):null;
+ if(ownedOutput){
+  // A completed HD detaches the factual components; readSupply already owns
+  // every supply value. Do not brand or freeze a raw zero-lock iterator result.
+  const frame={...projection};if(locked){freeze(frame);ownedFrames.add(frame);}
+  return{projection:frame,effects:out,locked:clone(locked),...(resolveView?{view}:{})};
+ }
  return{...projection,effects:out,locked:clone(locked),...(resolveView?{view}:{})};
 }
+function project(current,options){return projectLocal(current,options);}
+function projectOwned(current,options){return projectLocal(current,options,true);}
 function resolve(current,options){
  const projection=read(current,options);
  return Q.resolveProjection(projection.state,{position:projection.position,inventory:projection.supply});
 }
-return Object.freeze({start,startUnknown,extendForced,project,resolve,referenceSnapshot});
+return Object.freeze({start,startUnknown,extendForced,project,projectOwned,resolve,referenceSnapshot});
 });

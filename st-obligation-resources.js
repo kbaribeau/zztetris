@@ -23,7 +23,7 @@ function supplyFacts(supply){return{originKnown:supply.originKnown,nextObservedI
 // any strategy that depends on them.
 function factualBinding(state,supply,openingBoundary){const {leftGoals,...permissionFacts}=state;return JSON.stringify(canonical([permissionFacts,supplyFacts(supply),openingBoundary]));}
 function view(route,root){
- const resources=Route.resolve(route).resources,supply=route.projection.supply;
+ const resources=Route.resolveResources(route),supply=route.projection.supply;
  const out=freeze({...resources,active:subject(supply.active),hold:subject(supply.hold),queue:supply.queue.map(subject),route});trusted.add(out);roots.set(out,root);return out;
 }
 function read(resource){check(trusted.has(resource),'current projected resource required; start or explicitly rebase a projection');return resource;}
