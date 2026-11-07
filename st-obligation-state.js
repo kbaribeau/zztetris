@@ -21,7 +21,7 @@
 const VERSION=2,clone=x=>JSON.parse(JSON.stringify(x)),same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const check=(ok,reason)=>{if(!ok)throw Error('Invalid obligation state: '+reason);};
 const object=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
-function shape(x,keys,label){check(object(x)&&Object.keys(x).sort().join('|')===keys.slice().sort().join('|'),label+' shape');}
+function shape(x,keys,label){check(object(x)&&Object.keys(x).length===keys.length&&keys.every(key=>Object.prototype.propertyIsEnumerable.call(x,key)),label+' shape');}
 const id=n=>Number.isSafeInteger(n)&&n>0;
 function cells(value){check(Array.isArray(value)&&value.every(c=>Array.isArray(c)&&c.length===2&&Number.isInteger(c[0])&&c[0]>=0&&c[0]<10&&Number.isInteger(c[1])&&c[1]>=0&&c[1]<40)&&new Set(value.map(c=>c.join(','))).size===value.length,'current cells');return clone(value);}
 // Center's optional event timestamps are diagnostics, not current dependencies.

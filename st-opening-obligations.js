@@ -42,7 +42,7 @@ function quality(board){const h=heights(board);return h[4]===h[5]&&h[5]===h[6]&&
 const translate=(cells,rows)=>cells.filter(([,y])=>!rows.includes(y)).map(([x,y])=>[x,y+rows.filter(r=>r>y).length]);
 const integer=n=>Number.isSafeInteger(n);
 const object=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
-function shape(x,keys,label){if(!object(x)||Object.keys(x).sort().join('|')!==keys.slice().sort().join('|'))throw TypeError('Invalid '+label+' shape.');}
+function shape(x,keys,label){if(!object(x)||Object.keys(x).length!==keys.length||!keys.every(key=>Object.prototype.propertyIsEnumerable.call(x,key)))throw TypeError('Invalid '+label+' shape.');}
 function check(ok,label){if(!ok)throw TypeError('Invalid '+label+'.');}
 function cells(value,label){check(Array.isArray(value)&&value.every(c=>Array.isArray(c)&&c.length===2&&integer(c[0])&&c[0]>=0&&c[0]<10&&integer(c[1])&&c[1]>=0&&c[1]<40)&&new Set(value.map(c=>c.join(','))).size===value.length,label);}
 function board(value){check(Array.isArray(value)&&value.length===40&&value.every(r=>typeof r==='string'&&/^[.XIJLOSTZ#]{10}$/.test(r)),'public board');}

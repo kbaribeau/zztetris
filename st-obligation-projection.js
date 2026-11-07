@@ -13,7 +13,7 @@
 const TYPES='IJLOSTZ',clone=x=>JSON.parse(JSON.stringify(x)),same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const check=(ok,reason)=>{if(!ok)throw Error('Invalid obligation projection: '+reason);};
 const integer=Number.isSafeInteger,object=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
-function shape(x,keys,label){check(object(x)&&Object.keys(x).sort().join('|')===keys.slice().sort().join('|'),label+' shape');}
+function shape(x,keys,label){check(object(x)&&Object.keys(x).length===keys.length&&keys.every(key=>Object.prototype.propertyIsEnumerable.call(x,key)),label+' shape');}
 function knowledge(raw){
  if(raw===null)return null;
  check(object(raw)&&Array.isArray(raw.remaining)&&raw.remaining.length<=128&&raw.remaining.every(n=>integer(n)&&n>=0&&n<=127)&&new Set(raw.remaining).size===raw.remaining.length,'bag knowledge');
@@ -70,6 +70,15 @@ function read(current,{position}={}){
  if(position!==undefined)check(same(position,p),'explicit position differs from request state');
  bound(supply,p);namespace(state,supply);return{state,supply,position:p};
 }
+// Q.projectTransition has already normalized and validated this fresh local
+// state. Retain supply, position and cross-component checks without importing
+// that state a second time. No caller-provided state reaches this helper.
+function readTransition(state,supply,position){
+ // supply is a detached copy of this call's validated supply, advanced only
+ // by moving its existing subjects. position is the matching R.move result.
+ // Neither is exposed to the caller until this entire witness completes.
+ bound(supply,position);namespace(state,supply);return{state,supply,position};
+}
 function start(actualFacts,{position,inventory}={}){
  check(I.bound(inventory,position),'matching actual public inventory');
  const inv=I.exportState(inventory),supply={schemaVersion:1,domain:'projection',originKnown:inv.originKnown,nextObservedId:inv.nextId,nextSyntheticId:-1,streamCursor:inv.streamCursor,active:inv.active,hold:inv.hold,queue:inv.queue,frontier:inv.frontier,knowledge:inv.knowledge};
@@ -85,8 +94,8 @@ function startUnknown(position){
  projection.supply.active=subject(projection.supply.active);projection.supply.hold=subject(projection.supply.hold);projection.supply.queue=projection.supply.queue.map(subject);projection.supply.nextObservedId=1;projection.supply.nextSyntheticId=next;
  return read(projection);
 }
-function extendForced(current,options={}){
- const projection=read(current,options),{supply,position}=projection,type=supply.knowledge&&!supply.knowledge.error?B.forcedNext(supply.knowledge):null;
+function extendLocal(projection){
+ const {supply,position}=projection,type=supply.knowledge&&!supply.knowledge.error?B.forcedNext(supply.knowledge):null;
  if(!type)return projection;
  check(supply.queue.length<7,'forced request preview');
  const id=supply.nextSyntheticId--;check(integer(supply.nextSyntheticId),'synthetic identity range exhausted');
@@ -96,21 +105,35 @@ function extendForced(current,options={}){
  // S/L counterpart frontier or create an actual inventory capability.
  return read(projection);
 }
-function project(current,{position,witness,boundary={},references=[]}={}){
+function extendForced(current,options={}){return extendLocal(read(current,options));}
+function project(current,{position,witness,boundary={},references=[],extendForced=false,resolveView=false}={}){
+ check(typeof extendForced==='boolean'&&typeof resolveView==='boolean','local output options');
  let projection=read(current,{position});const out=[];let locked=null;
+ // Public getters/serialization hooks can change values during the first read.
+ // Admit only the detached, revalidated result to this private local path.
+ projection.supply=readSupply(projection.supply);
  check(Array.isArray(witness)&&witness.length>0&&witness.length<=256&&witness.at(-1)==='HD'&&witness.filter(a=>a==='HD').length===1,'one-lock witness');
  for(const action of witness){
   const before=projection,after=R.move(before.position,action);check(after!==before.position,'rejected projected input');
-  const supply=readSupply(before.supply);
+  // Existing subjects, frontier and knowledge stay read-only within this
+  // call. Only possession, the copied queue and the cursor advance.
+  const supply={...before.supply,queue:before.supply.queue.slice()};
   if(action==='HOLD'){if(supply.hold)[supply.active,supply.hold]=[supply.hold,supply.active];else{supply.hold=supply.active;supply.active=supply.queue.shift();check(supply.active,'missing projected HOLD draw');}}
   if(action==='HD'){locked=supply.active;supply.active=after.active?supply.queue.shift():null;check(!after.active||supply.active,'missing projected lock draw');}
   supply.streamCursor=after.streamCursor;bound(supply,after);
   const operation=action==='HD'?{...boundary,kind:'lock',piece:locked,event:after.lastEvent}:{kind:'observe'};
   const result=Q.projectTransition(before.state,operation,{before:{position:before.position,inventory:before.supply},after:{position:after,inventory:supply},references});
-  projection=read({state:result.state,supply,position:after});out.push(...result.effects);
+  projection=readTransition(result.state,supply,after);out.push(...result.effects);
  }
- return{...projection,effects:out,locked:clone(locked)};
+ // These are fresh local values; combining their optional extension/view
+ // avoids routing them back through public imports between adjacent steps.
+ if(extendForced)projection=extendLocal(projection);
+ const view=resolveView?Q.resolveProjection(projection.state,{position:projection.position,inventory:projection.supply}):null;
+ return{...projection,effects:out,locked:clone(locked),...(resolveView?{view}:{})};
 }
-function resolve(current,options={}){const projection=read(current,options);return Q.resolveProjection(projection.state,{position:projection.position,inventory:projection.supply});}
+function resolve(current,options){
+ const projection=read(current,options);
+ return Q.resolveProjection(projection.state,{position:projection.position,inventory:projection.supply});
+}
 return Object.freeze({start,startUnknown,extendForced,project,resolve});
 });
