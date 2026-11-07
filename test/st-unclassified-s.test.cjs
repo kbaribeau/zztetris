@@ -1,6 +1,12 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
 const R=require('../st-rules'),H=require('../st-resource-history'),M=require('../st-midgame-resources'),B=require('../st-bag'),P=require('../st-planner'),Session=require('../st-session');
+const Context=require('../st-obligation-context'),Resources=require('../st-obligation-resources'),Provider=require('../st-resource-provider');
+const severity=p=>Number(Boolean(p.requiresAccommodation))+2*Number(Boolean(p.invalidated));
+const legacySeverity=rows=>rows.reduce((counts,p)=>(counts[severity(p)]++,counts),[0,0,0,0]);
+const currentSeverity=resource=>resource.uncertainty.S.named.reduce((counts,p)=>(counts[severity(p)]++,counts),resource.uncertainty.S.aggregate.slice());
+const nativeResource=(state,current)=>Resources.start(state,current,{extendForced:false});
+function assertSevere(state,resource,message){const repair=Resources.repair(state,resource,{maxNodes:45000,now:()=>0});assert.equal(repair.valid,null,message);assert.equal(repair.status,'unclassified-S-accommodation');assert.equal(repair.visited,0,'Severe accommodation is rejected directly, not by a search timeout');}
 const {withPage}=require('./support/page.cjs'),cases=require('./fixtures/unclassified-s.json').cases,clone=x=>JSON.parse(JSON.stringify(x));
 function data(f){const s=f.request.observation,h=H.importContext(s,f.request.options.resourceContext);return{s,h,summary:H.resolve(s,h)};}
 function pack(f,openingPhase=true){const {s,h}=data(f),ctx=f.request.options.resourceContext;return Session.create(s,{resourceHistory:h,resourceOriginBag:B.fromObserved({observed:[ctx.origin.active.type,...ctx.origin.queue],startPhase:0}),patternHistory:f.request.options.patternHistory,openingPhase});}
@@ -29,16 +35,16 @@ test('unclassified S: current tape, HOLD and reveals preserve unknown past accom
  const raw=R.createState({active:'S',queue:['L','I','O','J','T','Z']}),r=M.start(raw,{hangingS:{unclassified:summary.hangingS.unclassified}}),p=R.placements(raw,{allowHold:false}).placements.find(p=>p.event.cells.every(([x])=>x<4));
  assert.deepEqual(M.step(raw,p,r).unclassifiedS,r.unclassifiedS);
 });
-test('unclassified S: session replay and real UI Undo restore the correct boundary',()=>withPage('st-lab.html',{},g=>{
- const saved=pack(cases[1]),prepared=Session.prepare(clone(saved));
- assert.deepEqual(M.start(prepared.state,H.resolve(prepared.state,prepared.resourceHistory)).unclassifiedS,M.start(data(cases[1]).s,data(cases[1]).summary).unclassifiedS);
+test('unclassified S: current session and real UI Undo restore named duties or retired severity',()=>withPage('st-lab.html',{},g=>{
+ const saved=pack(cases[1]),prepared=Session.prepare(clone(saved)),oracle=data(cases[1]),resource=nativeResource(prepared.state,prepared.obligationContext),expected=legacySeverity(M.start(oracle.s,oracle.summary).unclassifiedS);
+ assert.deepEqual(currentSeverity(resource),expected);assert.equal(resource.uncertainty.S.aggregate[2],1,'Retired S14 invalidation remains severe, without a lifetime identity');assert.equal(resource.unclassifiedS.some(x=>x.sId===14),false);assert.equal(resource.pendingCenter.some(x=>x.rootId===14),false);assertSevere(prepared.state,resource);
  g.element('#st-snapshot').value=JSON.stringify(pack(cases[0]));g.click('#st-import');
  const ctx17=cases[0].request.options.resourceContext,ctx18=cases[1].request.options.resourceContext;
  for(const step of ctx18.steps.slice(ctx17.steps.length))g.window.stLab.act(step.action);
- g.click('#st-export-session');let exported=JSON.parse(g.downloads.at(-1).text),post=Session.prepare(exported);
- assert.ok(M.start(post.state,H.resolve(post.state,post.resourceHistory)).unclassifiedS.some(x=>x.sId===14));
- g.window.stLab.act('UNDO');g.click('#st-export-session');const restored=Session.prepare(JSON.parse(g.downloads.at(-1).text));
- const r=M.start(restored.state,H.resolve(restored.state,restored.resourceHistory));assert.ok(r.pendingCenter.some(x=>x.rootId===14));assert.ok(!r.unclassifiedS.some(x=>x.sId===14));
+ g.click('#st-export-session');const post=Session.prepare(JSON.parse(g.downloads.at(-1).text)),after=nativeResource(post.state,post.obligationContext);
+ assert.deepEqual(currentSeverity(after),expected);assert.equal(after.uncertainty.S.aggregate[2],1);assertSevere(post.state,after);
+ g.window.stLab.act('UNDO');g.click('#st-export-session');const restored=Session.prepare(JSON.parse(g.downloads.at(-1).text)),r=nativeResource(restored.state,restored.obligationContext);
+ assert.ok(r.pendingCenter.some(x=>x.rootId===14));assert.deepEqual(currentSeverity(r),legacySeverity(M.start(data(cases[0]).s,data(cases[0]).summary).unclassifiedS));assert.equal(r.uncertainty.S.aggregate[2],0);
 }));
 for(const deferred of [false,true])test(`unclassified S: empty HOLD with ${deferred?'deferred':'observed'} surplus uses only post-lock placement facts`,()=>{
  let state=R.createState({active:'L',queue:['I','S','J','O','T','Z'],streamCursor:1}),history=H.start(state,{fresh:true});
@@ -71,29 +77,44 @@ test('unclassified S: disposing known S55 cannot be certified by completing diff
  assert.ok(!checked.resource.hangingS.some(x=>x.id===55),'Consumed S is not resurrected as a live repair token');
  const repair=M.repair(checked.state,checked.resource,{maxNodes:45000,notches:f.advice.evidence.futureNotches});
  assert.equal(repair.valid,null);assert.equal(repair.queryStatus,'unfinished');
- const prepared=Session.prepare(clone(pack(f,false))),history=H.resolve(prepared.state,prepared.resourceHistory),roundtrip=M.checkPath(prepared.state,f.advice.continuation,history);
- assert.equal(M.repair(roundtrip.state,roundtrip.resource).valid,null,'Replay of imported public history preserves the same known-to-unknown boundary');
+ const prepared=Session.prepare(clone(pack(f,false))),root=nativeResource(prepared.state,prepared.obligationContext),roundtrip=Resources.checkPath(prepared.state,f.advice.continuation,root);
+ assert.ok(root.hangingS.some(x=>x.id===55));assert.ok(root.pendingCenter.some(x=>x.rootId===57));assert.equal(roundtrip.valid,true);
+ assert.ok(roundtrip.resource.unclassifiedS.some(x=>x.sId===55&&x.requiresAccommodation),'The fixed request retains its original S55 identity');assert.ok(roundtrip.resource.pendingCenter.some(x=>x.rootId===57),'Different S57 target cannot pay S55');
+ assert.deepEqual(currentSeverity(roundtrip.resource),legacySeverity(checked.resource.unclassifiedS));assert.ok(roundtrip.resource.uncertainty.S.severeCount>0);assertSevere(roundtrip.state,roundtrip.resource,'Native import preserves the same severe known-to-unknown boundary');
+ const nativeOptions={...f.request.options,resourceContext:undefined,obligationContext:Context.exportState(prepared.obligationContext),maxNodes:45000,timeMs:undefined,deadline:Infinity,now:()=>0};
+ const candidate=clone(f.advice);delete candidate.evidence.resourceObligations.binding;
+ assert.equal(P.ordinaryRightEligible(candidate.continuation[0].event),false,'The literal S55 Right disposal also violates ordinary placement policy');
+ assert.equal(P.revalidate(s,candidate,nativeOptions),null,'Binding-free imported advice remains rejected by public policy; the exact severe-resource gate is tested above');
  assert.equal(P.revalidate(s,f.advice,{...f.request.options,maxNodes:45000,timeMs:1500}),null,'Previously accepted serialized advice must fail current validation');
  assert.notEqual(M.binding(checked.resource),M.binding({...checked.resource,unclassifiedS:checked.resource.unclassifiedS.map(x=>({...x,requiresAccommodation:false}))}));
  // A later unrelated Left S must not erase the uncertain consumed identity.
  const raw=R.createState({active:'S',queue:['L','I','O','J','T','Z']}),other=M.start(raw),p=R.placements(raw,{allowHold:false}).placements.find(p=>p.event.cells.every(([x])=>x<4));
  other.unclassifiedS=clone(checked.resource.unclassifiedS);assert.deepEqual(M.step(raw,p,other).unclassifiedS,other.unclassifiedS);
+ // Retired current uncertainty has no S55 token to pay. A different actual
+ // Left S cannot erase its count, even in a trusted current imported origin.
+ let observed=R.createState({...raw,streamCursor:1}),snapshot=Context.exportState(Context.start(observed,{fresh:true}));snapshot.state.sl.foundationOpen=false;snapshot.state.sl.handoff=true;snapshot.state.sl.uncertainty.S=legacySeverity(checked.resource.unclassifiedS);
+ let current=Context.importState(snapshot,{position:observed});for(const action of p.witness){const before=observed;observed=R.move(observed,action);current=Context.applyActual(current,{before,action,after:observed}).context;}
+ const unrelated=nativeResource(observed,current);assert.deepEqual(currentSeverity(unrelated),snapshot.state.sl.uncertainty.S);assert.ok(unrelated.uncertainty.S.severeCount>0);assertSevere(observed,unrelated);
 });
 
-test('unclassified S: actual disposal survives next initialization, session replay and Undo',()=>withPage('st-lab.html',{},g=>{
- const f=require('./fixtures/unreviewed-s-disposal.json'),before=Session.prepare(clone(pack(f,false)));
- let state=before.state,history=before.resourceHistory;
- for(const action of f.advice.witness){const next=R.move(state,action);history=H.applyAction(history,state,action,next);state=next;}
- const check=(s,h)=>{const summary=H.resolve(s,h),resource=M.start(s,summary);assert.ok(resource.unclassifiedS.some(x=>x.sId===55&&x.requiresAccommodation));assert.ok(!resource.hangingS.some(x=>x.id===55));assert.equal(M.repair(s,resource,{maxNodes:45000}).valid,null);};
- check(state,history);
- const saved=Session.create(state,{resourceHistory:history,resourceOriginBag:before.resourceOriginBag}),after=Session.prepare(clone(saved));check(after.state,after.resourceHistory);
- // Imported derived flags have no authority: replay must reconstruct the fact.
- const transport=clone(H.exportContext(state,history));transport.hangingS={unclassified:[]};check(state,H.importContext(state,transport));
+test('unclassified S: actual disposal severity survives initialization, current session and Undo',()=>withPage('st-lab.html',{},g=>{
+ const f=require('./fixtures/unreviewed-s-disposal.json'),before=Session.prepare(clone(pack(f,false))),legacy=data(f);
+ let state=before.state,current=before.obligationContext,history=legacy.h;
+ assert.equal(current.inventory.hold.id,55);assert.ok(current.state.center.pending.some(p=>p.rootId===57));
+ assert.equal(nativeResource(state,current).uncertainty.S.aggregate[1],1,'Previously retired S26 already needs accommodation');
+ for(const action of f.advice.witness){const next=R.move(state,action);current=Context.applyActual(current,{before:state,action,after:next}).context;history=H.applyAction(history,state,action,next);state=next;}
+ const expected=legacySeverity(M.start(state,H.resolve(state,history)).unclassifiedS);
+ const check=(s,c)=>{const resource=nativeResource(s,c);assert.deepEqual(currentSeverity(resource),expected);assert.equal(resource.uncertainty.S.aggregate[1],2,'Retired S26 plus consumed S55 retain two severe accommodation counts');assert.equal(resource.unclassifiedS.some(x=>x.sId===55),false,'Do not invent an identity after retirement');assert.ok(!resource.hangingS.some(x=>x.id===55));assert.ok(resource.uncertainty.S.severeCount>0);assertSevere(s,resource);};
+ check(state,current);
+ const saved=Session.create(state,{obligationContext:Context.exportState(current)}),after=Session.prepare(clone(saved));check(after.state,after.obligationContext);
+ // Legacy derived flags still cannot override the finite conversion. Native
+ // snapshots instead trust their explicit current counts, not those labels.
+ const transport=clone(H.exportContext(state,history));transport.hangingS={unclassified:[]};const converted=Provider.prepare(state,{resourceContext:transport});assert.equal(converted.status,'available');check(state,converted.context);
  g.element('#st-snapshot').value=JSON.stringify(pack(f,false));g.click('#st-import');
  for(const action of f.advice.witness)g.window.stLab.act(action);
- g.click('#st-export-session');const actual=Session.prepare(JSON.parse(g.downloads.at(-1).text));check(actual.state,actual.resourceHistory);
- g.window.stLab.act('UNDO');g.click('#st-export-session');const undo=Session.prepare(JSON.parse(g.downloads.at(-1).text)),old=M.start(undo.state,H.resolve(undo.state,undo.resourceHistory));
- assert.ok(old.hangingS.some(x=>x.id===55));assert.ok(!old.unclassifiedS.some(x=>x.sId===55));
+ g.click('#st-export-session');const actual=Session.prepare(JSON.parse(g.downloads.at(-1).text));check(actual.state,actual.obligationContext);
+ g.window.stLab.act('UNDO');g.click('#st-export-session');const undo=Session.prepare(JSON.parse(g.downloads.at(-1).text)),old=nativeResource(undo.state,undo.obligationContext);
+ assert.ok(old.hangingS.some(x=>x.id===55));assert.equal(undo.obligationContext.inventory.hold.id,55);assert.ok(old.pendingCenter.some(x=>x.rootId===57));assert.deepEqual(currentSeverity(old),legacySeverity(M.start(legacy.s,legacy.summary).unclassifiedS));assert.equal(old.uncertainty.S.aggregate[1],1,'Undo removes only the S55 disposal, preserving retired S26');
 }));
 
 test('unclassified S: replay does not promote a pre-existing unclassified allocation into known disposal',()=>{
@@ -108,9 +129,16 @@ test('unclassified S: replay does not promote a pre-existing unclassified alloca
 });
 
 test('unclassified S: verified first-bag source foundation keeps existing opening allocation policy',()=>{
- const Sim=require('../scripts/lib/st-simulation.cjs'),session=Sim.createSession(Sim.makeInput('empty',2026103510,24));
- for(let lock=1;lock<=7;lock++){const q=session.request(lock,Sim.CONFIG);session.execute(P.decide(q.observation,q.options));}
- const q=session.request(8,Sim.CONFIG),summary=H.resolve(q.observation,H.importContext(q.observation,q.options.resourceContext));
- assert.equal(summary.milestones.sourcePattern.at,7);assert.equal(summary.milestones.sourcePattern.id,'buri-02');
- assert.ok(summary.hangingS.unclassified.some(x=>x.sId===5));assert.ok(summary.hangingS.unclassified.every(x=>!x.requiresAccommodation));
+ const Sim=require('../scripts/lib/st-simulation.cjs'),input=Sim.makeInput('empty',2026103510,24),session=Sim.createSession(input);let state=R.createState(input.initial),history=H.start(state,{fresh:true}),cursor=0;
+ for(let lock=1;lock<=7;lock++){
+  const q=session.request(lock,Sim.CONFIG),advice=P.decide(q.observation,{...q.options,now:()=>0,deadline:Infinity}),actual=session.execute(advice);
+  // The legacy reference consumes exactly the same actual inputs
+  // and revealed pieces, not the new current controller's summary.
+  for(const step of actual.actions){const before=state;state=R.move(state,step.action);for(const type of input.future.slice(cursor,step.draws))state={...state,queue:[...state.queue,type],bag:B.consume(state.bag,type)};cursor=step.draws;history=H.applyAction(history,before,step.action,state);}
+ }
+ const q=session.request(8,Sim.CONFIG),current=Context.importState(q.options.obligationContext,{position:q.observation}),resource=nativeResource(q.observation,current),oracle=H.resolve(state,history);
+ assert.equal(q.options.resourceContext,undefined);assert.equal(current.boundary.firstBagLocks,7);assert.equal(current.boundary.sourcePatternSeen,true);assert.equal(current.state.sl.firstBagReview,'reviewed');
+ assert.equal(oracle.milestones.sourcePattern.at,7);assert.equal(oracle.milestones.sourcePattern.id,'buri-02');assert.ok(oracle.hangingS.unclassified.some(x=>x.sId===5));
+ const pattern=require('../st-opening-patterns').patterns.find(p=>p.id==='buri-02');assert.deepEqual(q.observation.board,Array(40-pattern.rows.length).fill('..........').concat(pattern.rows),'Literal source geometry still matches the reviewed first bag');
+ assert.deepEqual(currentSeverity(resource),legacySeverity(M.start(state,oracle).unclassifiedS));assert.equal(resource.uncertainty.S.aggregate[0],1);assert.equal(resource.uncertainty.S.severeCount,0);assert.ok(resource.unclassifiedS.every(x=>!x.requiresAccommodation&&!x.invalidated));
 });

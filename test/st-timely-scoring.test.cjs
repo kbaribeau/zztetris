@@ -12,7 +12,15 @@ test('timely scoring: a heuristic-only O/J replacement cannot postpone the execu
  assert.equal(a.continuation[0].event.type,'T');assert.equal(a.continuation[0].event.spin,'full');assert.equal(a.continuation[0].event.lines,2);assert.equal(a.hold,false);
  assert.equal(a.metrics.commitmentComparison.replacement,false);assert.equal(a.metrics.commitmentComparison.scoringTiming.reason,'delay-without-concrete-benefit');
  assert.deepEqual(a.metrics.commitmentComparison.scoringTiming.required,{tsds:[1],quads:[]});
- assert.equal(a.metrics.commitmentComparison.scoringTiming.endpoint.fresh.maxHeight,14);assert.equal(a.metrics.commitmentComparison.scoringTiming.endpoint.saved.maxHeight,13);
+ // The compact node key keeps score schedules distinct: T/O/J is no longer
+ // overwritten by its same-board O/J/T transposition. The former T/J/S
+ // reference remains a literal lower-height negative dominance control.
+ const literal=witnesses=>{let state=R.createState(q.observation);const path=[];for(const witness of witnesses){const r=R.replay(state,witness);assert(r.valid);assert.equal(r.events.length,1);assert(S.canonicalClear(r.events[0]));path.push({event:r.events[0],witness});state=r.state;}return{state,path,assessment:{...P.assess(state.board),structure:S.geometry(state.board)},centerContinuity:0};};
+ const score=q.commitment.advice.continuation[0].witness,original=literal([score,['L','CCW','HD'],['R','HD']]),current=literal([score,['HOLD','HD'],['HOLD','R','R180','HD']]),delayed=literal(old.continuation.map(p=>p.witness));
+ assert.equal(original.assessment.maxHeight,13);assert.equal(current.assessment.maxHeight,14);assert.deepEqual(current.state.board,delayed.state.board);
+ assert.equal(a.metrics.commitmentComparison.scoringTiming.endpoint.fresh.maxHeight,delayed.assessment.maxHeight);assert.equal(delayed.assessment.maxHeight,14);
+ assert.equal(a.metrics.commitmentComparison.scoringTiming.endpoint.saved.maxHeight,current.assessment.maxHeight);
+ for(const reference of [original,current]){assert.deepEqual(P.scoringSchedule(reference.path),{tsds:[1],quads:[]});const comparison=P.scoringReplacement(delayed,reference,{path:q.commitment.advice.continuation});assert.equal(comparison.allowed,false);assert.equal(comparison.reason,'delay-without-concrete-benefit');}
  assert(a.metrics.nodes<=45000);assert.equal(a.evidence.resourceObligations.status,'checked');assert.equal(a.evidence.gapAccess.reachable,true);replay(q.observation,a);replay(q.observation,old);
 });
 

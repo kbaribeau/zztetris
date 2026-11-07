@@ -118,7 +118,7 @@ test('opening eligibility: retired conditions never grow with repeated later loc
 });
 
 test('opening eligibility: classic script entry uses the same finite facts and handoff domain',()=>{
- const realm=vm.createContext({});for(const name of ['st-rules','st-bag','st-structure','st-access','st-pattern-history','st-reset-policy','st-opening-patterns','st-public-inventory','st-center-obligations','st-sl-obligations','st-opening-obligations','st-obligation-state','st-obligation-context','st-obligation-projection','st-opening-eligibility'])vm.runInContext(fs.readFileSync(require.resolve('../'+name),'utf8'),realm,{filename:name+'.js'});
+ const realm=vm.createContext({});for(const name of ['st-rules','st-bag','st-structure','st-access','st-pattern-history','st-reset-policy','st-opening-patterns','st-public-inventory','st-center-obligations','st-sl-obligations','st-opening-obligations','st-left-obligations','st-obligation-state','st-obligation-context','st-obligation-projection','st-opening-eligibility'])vm.runInContext(fs.readFileSync(require.resolve('../'+name),'utf8'),realm,{filename:name+'.js'});
  const a=recorded().lock(fixture.steps[0].witness).lock(fixture.steps[1].witness),options={board:a.position.board,center:a.context.state.center,right:'cap-preparation'},projection=Projection.start(a.context.state,{position:a.position,inventory:a.context.inventory});
  assert.deepEqual(copy(realm.STOpeningEligibility.resolve(copy(a.context.state.account),copy(options))),E.resolve(a.context.state.account,options));assert.deepEqual(copy(realm.STOpeningEligibility.projectHandoff(copy(projection))),E.projectHandoff(projection));
 });

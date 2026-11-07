@@ -23,11 +23,17 @@ test('visible Left repair / normal decision executes an identified J after Cente
  const r=R.replay(s,a.continuation.flatMap(p=>p.witness));assert.ok(r.valid);assert.equal(r.events.length,4);assert.ok(r.events.every(S.canonicalClear));
  assert.deepEqual(S.geometry(r.state.board).left.profile,goal.resultProfile);assert.ok(P.revalidate(s,a,opts()));
 });
-test('visible Left repair / fresh normal Worker finds the route from public history alone',()=>{
- const worker=require('../scripts/lib/st-simulation.cjs').workerPlanner();
+test('visible Left repair / node-bounded serialized Worker finds the route from public history alone',()=>{
+ const worker=require('../scripts/lib/st-simulation.cjs').workerPlanner({disableSearchTimeout:true});
  const a=worker({type:'plan',id:203,observation:root(),previous:null,commitment:null,options:{...f.options,depth:3,width:8,maxNodes:45000,timeMs:1500}});
  assert.equal(a.metrics.visibleLeftRepair?.selected,true);assert.equal(P.cycleResources(a.continuation).leftRepairs,1);assert.ok(a.metrics.nodes<=45000);
+ assert.deepEqual(a.continuation.map(p=>p.event.type),['L','Z','O','J']);
  assert.ok(R.replay(root(),a.continuation.flatMap(p=>p.witness)).valid);
+});
+test('visible Left repair / production Worker keeps its wall budget without claiming an unfinished J repair',()=>{
+ const q={type:'plan',id:204,observation:root(),previous:null,commitment:null,options:{...f.options,depth:3,width:8,maxNodes:45000,timeMs:1500}},a=require('../scripts/lib/st-simulation.cjs').workerPlanner()(q),selected=a.metrics.visibleLeftRepair?.selected===true;
+ require('./support/st-production-budget.cjs').verify(q.observation,a,q.options,selected);
+ if(selected){assert.deepEqual(a.continuation.map(p=>p.event.type),['L','Z','O','J']);assert.equal(P.cycleResources(a.continuation).leftRepairs,1);assert.equal(a.metrics.visibleLeftRepair.paymentLock,4);}
 });
 function execute(reveals=false){
  let s=root(),h=RH.importContext(s,f.options.resourceContext),a=advice();const original=clone(a.continuation.at(-1).structuralEvidence.leftRepair);
@@ -79,9 +85,9 @@ function savedSession(){
  for(const step of f.options.resourceContext.steps)for(const piece of step.revealed)s.bag=B.consume(s.bag,piece);
  const h=RH.importContext(s,f.options.resourceContext);return Session.create(s,{resourceHistory:h,resourceOriginBag:originBag,openingPhase:false,previous:P.decide(s,opts())});
 }
-test('visible Left repair / session round trip keeps replay history, not forged goal authority',()=>{
+test('visible Left repair / session round trip keeps current obligations, not forged goal authority',()=>{
  const saved=savedSession();
- const restored=Session.parse(JSON.stringify(saved)),o={...opts(),resourceContext:RH.exportContext(restored.state,restored.resourceHistory)};
+ const restored=Session.parse(JSON.stringify(saved)),o={...opts(),resourceContext:undefined,obligationContext:restored.obligationContext};
  assert.ok(P.revalidate(restored.state,restored.previous,o));
  const forged=clone(restored.previous);forged.continuation.at(-1).structuralEvidence.leftRepair.pieceId++;
  assert.equal(P.revalidate(restored.state,forged,o),null);

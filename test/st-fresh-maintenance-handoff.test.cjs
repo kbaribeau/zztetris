@@ -79,10 +79,34 @@ test('fresh handoff / imported phase labels and previous advice cannot authorize
  const a=P.decide(q.observation,{...options(q),openingPhase:false,resourceContext:RH.exportContext(q.observation,history),previous});
  assert.ok(a.target);assert.equal(a.retained,true);assert.deepEqual(a.continuation,previous.continuation);assert.ok(a.metrics.revalidationNodes>0);
 });
-test('fresh handoff / fresh production Worker performs the same supported boundary and finite goal',()=>{
- const q=request(),a=require('../scripts/lib/st-simulation.cjs').workerPlanner()(q);
+test('fresh handoff / fixed-clock 45000-node fresh Worker performs the same supported boundary and exact J goal',()=>{
+ const q=request(),before=clone(q),a=require('./support/st-fixed-clock-worker.cjs')(q);
  assert.equal(a.metrics.handoffWork.fresh.selected,true);assert.equal(a.metrics.visibleLeftRepair.selected,true);assert.equal(a.recommendation.kind,'supported');assert.ok(a.metrics.nodes<=45000);
  assert.ok(R.replay(q.observation,a.continuation.flatMap(p=>p.witness)).valid);
+ assert.equal(a.phase,'maintenance');assert.equal(a.evidence.openingHandoff.decision,'fresh-supported-maintenance');
+ assert.deepEqual(a.continuation.map(p=>p.event.type),['L','Z','O','J']);assert.equal(P.cycleResources(a.continuation).leftRepairs,1);
+ assert.equal(a.continuation.at(-1).structuralEvidence.leftRepair.pieceId,23);assert.deepEqual(a.continuation.at(-1).event.cells,[[0,34],[1,34],[0,35],[0,36]]);
+ assert.deepEqual(q,before);
+});
+test('fresh handoff / production 1500ms Worker preserves checked authority when optional fresh selection is bounded',()=>{
+ const q=request(),before=clone(q);assert.equal(q.options.timeMs,1500);assert.equal(q.options.maxNodes,45000);assert.equal(q.options.deadline,undefined);
+ const a=require('../scripts/lib/st-simulation.cjs').workerPlanner()(q),returnedAt=Date.now();assert.deepEqual(q,before);
+ require('./support/st-opening-handoff-budget.cjs')(q,a);
+ const fresh=a.metrics.handoffWork?.fresh,exact=fresh?.selected&&a.metrics.visibleLeftRepair?.selected;
+ if(exact){
+  assert.equal(a.recommendation.kind,'supported');assert.deepEqual(a.continuation.map(p=>p.event.type),['L','Z','O','J']);
+  assert.equal(a.continuation.at(-1).structuralEvidence.leftRepair.pieceId,23);assert.deepEqual(a.continuation.at(-1).event.cells,[[0,34],[1,34],[0,35],[0,36]]);
+ }else{
+  // Capture return time before independent revalidation. The explicit fresh
+  // deadline is separate from elapsedMs, which can omit request setup work.
+  const expired=Number.isFinite(fresh?.deadline)&&returnedAt>=fresh.deadline;
+  assert.ok(require('./support/st-production-budget.cjs').budgetEvidence(a,45000)||expired,'A different bounded selection needs unfinished work or an actually expired deadline');
+ }
+ if(!fresh?.selected)assert.notEqual(a.evidence?.openingHandoff?.decision,'fresh-supported-maintenance');
+ if(a.evidence?.openingHandoff?.forecast){
+  assert.equal(a.evidence.openingHandoff.forecast.status,'revalidated-after-actual-clear');assert.equal(a.metrics.handoffWork.legacy.source,'forecast-revalidated');
+  assert.deepEqual(a.continuation.map(p=>p.event.type),['O','Z']);assert.equal(P.cycleResources(a.continuation).leftRepairs,0,'The supported forecast fallback cannot claim the unselected J repair');
+ }
 });
 test('fresh handoff / zero residual nodes preserves its certified fallback without starting fresh work',()=>{
  const q=request(),fallback=P.plan(q.observation,{...options(q),disableFreshHandoff:true});assert.ok(fallback.target);
