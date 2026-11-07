@@ -13,6 +13,16 @@
 const TYPES='IJLOSTZ',clone=x=>JSON.parse(JSON.stringify(x)),same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const check=(ok,reason)=>{if(!ok)throw Error('Invalid obligation projection: '+reason);};
 const integer=Number.isSafeInteger,object=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
+// Only arrays constructed here can establish immutable request references.
+// Frozen caller arrays, proxies and serialized copies are not capabilities.
+const referenceSnapshots=new WeakSet(),emptyReferences=Object.freeze([]);
+referenceSnapshots.add(emptyReferences);
+function referenceSnapshot(raw){
+ check(Array.isArray(raw),'current caller references');const out=[];
+ for(const value of raw){check(integer(value)&&value!==0,'current caller references');out.push(value);}
+ Object.freeze(out);referenceSnapshots.add(out);return out;
+}
+const plainMovement=new Set(['L','R','SD','CW','CCW','R180']);
 function shape(x,keys,label){check(object(x)&&Object.keys(x).length===keys.length&&keys.every(key=>Object.prototype.propertyIsEnumerable.call(x,key)),label+' shape');}
 function knowledge(raw){
  if(raw===null)return null;
@@ -106,9 +116,10 @@ function extendLocal(projection){
  return read(projection);
 }
 function extendForced(current,options={}){return extendLocal(read(current,options));}
-function project(current,{position,witness,boundary={},references=[],extendForced=false,resolveView=false}={}){
+function project(current,{position,witness,boundary={},references=emptyReferences,extendForced=false,resolveView=false}={}){
  check(typeof extendForced==='boolean'&&typeof resolveView==='boolean','local output options');
- let projection=read(current,{position});const out=[];let locked=null;
+ let projection=read(current,{position});const out=[];let locked=null,settled=false;
+ const stableReferences=referenceSnapshots.has(references);
  // Public getters/serialization hooks can change values during the first read.
  // Admit only the detached, revalidated result to this private local path.
  projection.supply=readSupply(projection.supply);
@@ -122,8 +133,19 @@ function project(current,{position,witness,boundary={},references=[],extendForce
   if(action==='HD'){locked=supply.active;supply.active=after.active?supply.queue.shift():null;check(!after.active||supply.active,'missing projected lock draw');}
   supply.streamCursor=after.streamCursor;bound(supply,after);
   const operation=action==='HD'?{...boundary,kind:'lock',piece:locked,event:after.lastEvent}:{kind:'observe'};
-  const result=Q.projectTransition(before.state,operation,{before:{position:before.position,inventory:before.supply},after:{position:after,inventory:supply},references});
-  projection=readTransition(result.state,supply,after);out.push(...result.effects);
+  if(settled&&stableReferences&&plainMovement.has(action)){
+   // A full observe has already classified/compacted this private state.
+   // Plain movement preserves board, ordered supply, frontier and references.
+   // HOLD and HD always run the reducer, and the first observe is never elided.
+   bound(before.supply,before.position);
+   check(same(before.position.board,after.board),'non-lock board change');
+   check(references.every(n=>integer(n)&&n!==0),'current caller references');
+   projection=readTransition(before.state,supply,after);
+  }else{
+   const result=Q.projectTransition(before.state,operation,{before:{position:before.position,inventory:before.supply},after:{position:after,inventory:supply},references});
+   projection=readTransition(result.state,supply,after);out.push(...result.effects);
+  }
+  settled=action!=='HD';
  }
  // These are fresh local values; combining their optional extension/view
  // avoids routing them back through public imports between adjacent steps.
@@ -135,5 +157,5 @@ function resolve(current,options){
  const projection=read(current,options);
  return Q.resolveProjection(projection.state,{position:projection.position,inventory:projection.supply});
 }
-return Object.freeze({start,startUnknown,extendForced,project,resolve});
+return Object.freeze({start,startUnknown,extendForced,project,resolve,referenceSnapshot});
 });

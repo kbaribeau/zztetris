@@ -31,7 +31,7 @@ function step(current,{witness,event}={}){
  const route=read(current),before=frame(route.projection),references=A.references(route.assessment,{supply:before.supply,planReferences:route.planReferences});
  const replay=R.replay(route.projection.position,witness);check(replay.valid&&replay.events.length===1,'one legal lock witness required');
  const advanced=C.advanceBoundary(route.openingBoundary,replay.state);
- const projected=P.project(route.projection,{witness,boundary:advanced.operation,references,extendForced:route.extendForced,resolveView:true});
+ const projected=P.project(route.projection,{witness,boundary:advanced.operation,references:P.referenceSnapshot(references),extendForced:route.extendForced,resolveView:true});
  if(event!==undefined)check(same(event,projected.position.lastEvent),'reported event does not replay');
  const next=strip(projected),after={...next,view:projected.view};
  const assessed=A.transition(route.assessment,{before,after,locked:projected.locked,event:projected.position.lastEvent,effects:projected.effects});
