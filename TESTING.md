@@ -7,6 +7,11 @@ npm install --global npm@11.19.0 --registry=https://registry.npmjs.org
 npm ci && npm test
 ```
 
+If the default global npm prefix is not writable, pass `--prefix /path/to/user-owned/node`
+to the npm installation command and put that prefix's `bin` directory on `PATH`.
+Verify `node --version` and `npm --version` match the pins above before running tests
+or simulations; no administrator access is needed for a user-owned toolchain.
+
 Installation needs access to the npm registry (or a populated npm cache). **Test execution is offline**: it does not start a server, download browser binaries, or launch any browser. Production is still the same static HTML/JavaScript site; the npm dependencies are development-only. There is no build step or GitHub Actions requirement.
 
 ## Results and failures
