@@ -157,7 +157,7 @@ function projectLocal(current,{position,witness,boundary={},references=emptyRefe
    check(references.every(n=>integer(n)&&n!==0),'current caller references');
    projection=readTransition(before.state,supply,after);
   }else{
-   const result=Q.projectTransition(before.state,operation,{before:{position:before.position,inventory:before.supply},after:{position:after,inventory:supply},references});
+   const result=(owned?Q.projectTransitionOwned:Q.projectTransition)(before.state,operation,{before:{position:before.position,inventory:before.supply},after:{position:after,inventory:supply},references});
    projection=readTransition(result.state,supply,after);out.push(...result.effects);
   }
   settled=action!=='HD';
@@ -165,7 +165,8 @@ function projectLocal(current,{position,witness,boundary={},references=emptyRefe
  // These are fresh local values; combining their optional extension/view
  // avoids routing them back through public imports between adjacent steps.
  if(extendForced)projection=extendLocal(projection);
- const view=resolveView?Q.resolveProjection(projection.state,{position:projection.position,inventory:projection.supply}):null;
+ if(ownedOutput&&locked)projection.state=Q.ownProjection(projection.state);
+ const view=resolveView?(ownedOutput?Q.resolveProjectionOwned:Q.resolveProjection)(projection.state,{position:projection.position,inventory:projection.supply}):null;
  if(ownedOutput){
   // A completed HD detaches the factual components; readSupply already owns
   // every supply value. Do not brand or freeze a raw zero-lock iterator result.

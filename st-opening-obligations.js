@@ -83,6 +83,23 @@ function validate(state,projected=false){
 function importState(snapshot){validate(snapshot);return clone(snapshot);}
 function importProjection(snapshot){validate(snapshot,true);return clone(snapshot);}
 function exportState(state){return importState(state);}
+const ownedProjections=new WeakSet();
+const freezeProjection=x=>{if(x&&typeof x==='object'&&!Object.isFrozen(x)){Object.values(x).forEach(freezeProjection);Object.freeze(x);}return x;};
+function ownProjection(raw){
+ if(ownedProjections.has(raw))return raw;
+ // Validate both the input and serialized copy: toJSON/getters on an external
+ // object are not permission to mint a trusted invalid component.
+ validate(raw,true);return finishProjection(raw);
+}
+function finishProjection(raw){const state=clone(raw);validate(state,true);freezeProjection(state);ownedProjections.add(state);return state;}
+function copyProjection(s){return{...s,opening:s.opening?{...s.opening,...(s.opening.kind==='allocation'?{roof:s.opening.roof?.map(c=>c.slice())??null}:{})}:null,profile:{...s.profile,before:s.profile.before&&typeof s.profile.before==='object'?{...s.profile.before}:s.profile.before},z:{...s.z},reset:{...s.reset,...(s.reset.status==='active'?{inheritedCovered:s.reset.inheritedCovered.map(c=>c.slice())}:{})}};}
+function projectTransitionOwned(current,operation,context){
+ if(!ownedProjections.has(current))return projectTransition(current,operation,context);
+ const result=reduce(current,operation,context,true,true);
+ return{state:finishProjection(result.state),effects:result.effects};
+}
+function resolveProjectionOwned(state,context){return resolveState(state,context,true,ownedProjections.has(state));}
+
 function start({known=false}={}){
  check(typeof known==='boolean','known-origin flag');
  return{schemaVersion:1,known,firstTsd:false,allocationVerified:false,mandatoryZ:false,thirdTWindow:false,qualityCandidate:false,
@@ -91,8 +108,8 @@ function start({known=false}={}){
   z:{remaining:null,uncredited:'none'},reset:{status:'inactive'}};
 }
 function profileLost(state){return Boolean(state.profile.violation||state.profile.departure||state.profile.before==='overused'||state.reset.status==='invalid'||(state.z.remaining!==null?state.z.remaining<0:state.z.uncredited==='multiple'));}
-function resolveState(state,{board:currentBoard}={},projected=false){
- validate(state,projected);
+function resolveState(state,{board:currentBoard}={},projected=false,owned=false){
+ if(!owned)validate(state,projected);
  let status='unknown',requiredNonRightT=null,requiredNonRightZ=null;
  if(state.known){
   if(state.firstTsd){
@@ -123,8 +140,8 @@ function begin(current,{candidate,inheritedCovered=[]}={},projected=false){
  state.reset={status:'active',remaining:2,firstTId:null,inheritedCovered:clone(inheritedCovered)};
  return{state,effects:[{status:'reset-started'}]};
 }
-function reduce(current,operation,context,projected=false){
- const state=projected?importProjection(current):importState(current),effects=[];
+function reduce(current,operation,context,projected=false,owned=false){
+ const state=owned?copyProjection(current):projected?importProjection(current):importState(current),effects=[];
  check(operation?.kind==='lock','operation kind');
  const {piece,event:e}=operation;
  check(object(e)&&typeof e.type==='string'&&TYPES.includes(e.type)&&e.type.length===1&&integer(e.lines)&&e.lines>=0&&e.lines<=40&&['none','mini','full'].includes(e.spin)&&typeof e.topOut==='boolean','lock event');
@@ -232,5 +249,5 @@ function transition(current,operation,context){return reduce(current,operation,c
 function projectTransition(current,operation,context){return reduce(current,operation,context,true);}
 function beginReset(current,options){return begin(current,options);}
 function beginProjectedReset(current,options){return begin(current,options,true);}
-return Object.freeze({start,transition,projectTransition,beginReset,beginProjectedReset,resolve,resolveProjection,profileLost,exportState,importState,importProjection,predicates:Object.freeze({canonical,tsd,region,cap,quality})});
+return Object.freeze({ownProjection,projectTransitionOwned,resolveProjectionOwned,start,transition,projectTransition,beginReset,beginProjectedReset,resolve,resolveProjection,profileLost,exportState,importState,importProjection,predicates:Object.freeze({canonical,tsd,region,cap,quality})});
 });

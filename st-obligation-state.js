@@ -21,6 +21,38 @@
 const VERSION=2,clone=x=>JSON.parse(JSON.stringify(x)),same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const check=(ok,reason)=>{if(!ok)throw Error('Invalid obligation state: '+reason);};
 const object=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
+// This capability belongs only to fully detached, validated immutable projected
+// snapshots. Public imports/transitions and caller-frozen objects cannot mint it.
+const ownedProjections=new WeakSet();
+class UnsupportedProjectionData extends Error{}
+const plainData=(ok,reason)=>{if(!ok)throw new UnsupportedProjectionData('Invalid obligation state: '+reason);};
+function materialize(value,ancestors=new Set()){
+ plainData(typeof value!=='function'&&typeof value!=='symbol','plain projected data');
+ if(value===null||typeof value!=='object')return value;
+ plainData(!ancestors.has(value),'cyclic projected data');ancestors.add(value);let out;
+ if(Array.isArray(value)){const length=value.length;out=new Array(length);for(let i=0;i<length;i++)out[i]=materialize(value[i],ancestors);}
+ else{out={};for(const key of Object.keys(value))Object.defineProperty(out,key,{value:materialize(value[key],ancestors),writable:true,enumerable:true,configurable:true});}
+ ancestors.delete(value);return out;
+}
+const freezeOwned=value=>{if(value&&typeof value==='object'&&!Object.isFrozen(value)){Object.values(value).forEach(freezeOwned);Object.freeze(value);}return value;};
+function brandOwned(state){freezeOwned(state);ownedProjections.add(state);return state;}
+function finishOwned(current){return brandOwned(readState(materialize(current),true,true));}
+// An owned parent plus a captured semantic operation cannot introduce raw
+// aliases. Reducers construct/copy every changed component; final read keeps
+// all component and cross-reference checks before this result is branded.
+function finishTransitionOwned(current){
+ // Only the two component capabilities can bypass their codecs. The other
+ // facts are detached again before checking cross-component invariants.
+ const raw={...current,center:materialize(current.center),safety:materialize(current.safety),leftGoals:materialize(current.leftGoals)};
+ return brandOwned(readState(raw,true,true));
+}
+function captureOperation(raw){
+ const kind=raw?.kind,keys=['closeFoundation','firstBagReview',...(kind==='lock'?['piece','event']:kind==='begin-reset'?['candidate']:kind==='accept-left-repair'?['checked','repair']:[])],operation={kind};
+ for(const key of keys)operation[key]=raw?.[key];
+ return materialize(operation);
+}
+function ownProjection(current){return ownedProjections.has(current)?current:finishOwned(current);}
+
 function shape(x,keys,label){check(object(x)&&Object.keys(x).length===keys.length&&keys.every(key=>Object.prototype.propertyIsEnumerable.call(x,key)),label+' shape');}
 const id=n=>Number.isSafeInteger(n)&&n>0;
 function cells(value){check(Array.isArray(value)&&value.every(c=>Array.isArray(c)&&c.length===2&&Number.isInteger(c[0])&&c[0]>=0&&c[0]<10&&Number.isInteger(c[1])&&c[1]>=0&&c[1]<40)&&new Set(value.map(c=>c.join(','))).size===value.length,'current cells');return clone(value);}
@@ -48,14 +80,14 @@ function importCenter(raw,projected=false){
  return out;
 }
 function notchSnapshot(pattern){return pattern.status==='unanchored'?null:{version:PH.VERSION,status:pattern.status,anchorRow:pattern.anchorRow,blockedRows:pattern.blockedRows.slice(),source:pattern.source};}
-function readState(raw,projected=false){
+function readState(raw,projected=false,owned=false){
  // Version one had no selected Left goals. Validate its exact old shape
  // before adding an empty feature field; never infer a goal from past play.
  const legacy=raw?.schemaVersion===1;
  shape(raw,['schemaVersion','availability','center','sl','account','safety','dPending',...(!legacy?['leftGoals']:[]),...(projected?['domain']:[])],'envelope');
  if(projected)check(raw.domain==='projection','projection domain');
  check((legacy||raw.schemaVersion===VERSION)&&['known','unknown'].includes(raw.availability)&&typeof raw.dPending==='boolean','version/availability/D');
- const center=importCenter(raw.center,projected),sl=projected?SL.importProjection(raw.sl):SL.importState(raw.sl),account=projected?O.importProjection(raw.account):O.importState(raw.account);
+ const center=importCenter(raw.center,projected),sl=owned?SL.ownProjection(raw.sl):projected?SL.importProjection(raw.sl):SL.importState(raw.sl),account=owned?O.ownProjection(raw.account):projected?O.importProjection(raw.account):O.importState(raw.account);
  check((sl.status==='known')===(raw.availability==='known')&&account.known===(raw.availability==='known'),'component availability');
  check(raw.availability!=='known'||!account.firstTsd||!sl.foundationOpen,'observed first TSD requires closed S/L foundation');
  shape(raw.safety,['notches','coveredCells'],'safety');let notches=null;
@@ -92,8 +124,8 @@ function contextCheck(context,projected=false){
 function effects(domain,items){return clone(items).map(e=>({domain,...e}));}
 // The pure seam assumes the caller has authenticated the event. Both wrappers
 // below establish that boundary before calling it. No policy admission occurs.
-function reduce(current,operation,context,projected=false){
- const read=projected?importProjection:importState,state=read(current);contextCheck(context,projected);
+function reduce(current,operation,context,projected=false,owned=false){
+ const read=projected?importProjection:importState,finish=owned?finishTransitionOwned:read,state=owned?{...current}:read(current);contextCheck(context,projected);
  check(['lock','observe','handoff','begin-reset','accept-left-repair'].includes(operation?.kind),'operation kind');
  if(operation.closeFoundation!==undefined)check(typeof operation.closeFoundation==='boolean','closeFoundation boundary');
  if(operation.firstBagReview!==undefined)check(['reviewed','unreviewed'].includes(operation.firstBagReview),'firstBagReview boundary');
@@ -104,12 +136,12 @@ function reduce(current,operation,context,projected=false){
  if(operation.kind==='accept-left-repair'){
   check(same(before.position,after.position)&&same(before.inventory,after.inventory),'Left acceptance boundary');
   const result=L.accept(state.leftGoals,{board:before.position.board,repair:operation.repair,checked:operation.checked});state.leftGoals=result.goals;
-  return{state:read(state),effects:effects('left',result.effects),goalId:result.goalId};
+  return{state:finish(state),effects:effects('left',result.effects),goalId:result.goalId};
  }
  if(operation.kind==='begin-reset'){
   check(same(before.position,after.position)&&same(before.inventory,after.inventory),'Reset boundary');
   const result=(projected?O.beginProjectedReset:O.beginReset)(state.account,{candidate:operation.candidate,inheritedCovered:state.safety.coveredCells});state.account=result.state;
-  return{state:read(state),effects:effects('account',result.effects)};
+  return{state:finish(state),effects:effects('account',result.effects)};
  }
  let center={state:state.center,effects:[],pairs:[]},safety=state.safety,phase=null;
  if(operation.kind==='lock'){
@@ -127,15 +159,15 @@ function reduce(current,operation,context,projected=false){
  }
  const slContext={before:{inventory:before.inventory,center:state.center},after:{inventory:after.inventory,center:center.state},references:context.references||[]};
  const closeFoundation=operation.closeFoundation||operation.kind==='lock'&&!state.account.firstTsd&&O.predicates.tsd(operation.event);
- const sl=(projected?SL.projectTransition:SL.transition)(state.sl,{...operation,closeFoundation,centerEffects:center.effects,pairs:center.pairs},slContext);
+ const sl=(owned?SL.projectTransitionOwned:projected?SL.projectTransition:SL.transition)(state.sl,{...operation,closeFoundation,centerEffects:center.effects,pairs:center.pairs},slContext);
  const out=[...effects('center',center.effects),...effects('sl',sl.effects)];
  if(operation.kind==='lock'){
   const left=L.advance(state.leftGoals,{beforeBoard:before.position.board,event:operation.event,afterBoard:after.position.board});
   state.leftGoals=left.goals;out.push(...effects('left',left.effects));
  }
  if(operation.kind==='lock'){
-  const classified=(projected?SL.resolveProjection:SL.resolve)(sl.state,{...slContext.after,profileLost:O.profileLost(state.account)});
-  const account=(projected?O.projectTransition:O.transition)(state.account,{...operation,centerEffects:center.effects},{before:{board:before.position.board},after:{board:after.position.board,topOut:after.position.topOut,center:center.state,sl:classified,coveredCells:safety.coveredCells}});
+  const classified=(owned?SL.resolveProjectionOwned:projected?SL.resolveProjection:SL.resolve)(sl.state,{...slContext.after,profileLost:O.profileLost(state.account)});
+  const account=(owned?O.projectTransitionOwned:projected?O.projectTransition:O.transition)(state.account,{...operation,centerEffects:center.effects},{before:{board:before.position.board},after:{board:after.position.board,topOut:after.position.topOut,center:center.state,sl:classified,coveredCells:safety.coveredCells}});
   state.account=account.state;out.push(...effects('account',account.effects));
   if(!same(state.safety,safety))out.push({domain:'safety',status:'current-safety-changed'});
   if(!phase.valid)out.push({domain:'safety',status:'notch-violation',reason:phase.violation});
@@ -143,10 +175,19 @@ function reduce(current,operation,context,projected=false){
   if(pending!==state.dPending)out.push({domain:'D',status:pending?'created':'cleared'});state.dPending=pending;
  }
  state.center=centerFacts(center.state);state.sl=sl.state;state.safety=safety;
- return{state:read(state),effects:out};
+ return{state:finish(state),effects:out};
 }
 function transition(current,operation,context){return reduce(current,operation,context);}
 function projectTransition(current,operation,context){return reduce(current,operation,context,true);}
+function projectTransitionOwned(current,operation,context){
+ if(!ownedProjections.has(current))return projectTransition(current,operation,context);
+ // This new immutable entry snapshots semantic operation data once. It does
+ // not promise legacy accessor evaluation order; default APIs are unchanged.
+ // Unrelated operation metadata is ignored. Unsupported nested payloads keep
+ // the ordinary path and cannot mint an ownership capability.
+ let captured;try{captured=captureOperation(operation);}catch(error){if(error instanceof UnsupportedProjectionData)return projectTransition(current,operation,context);throw error;}
+ return reduce(current,captured,context,true,true);
+}
 function applyActual(current,{inventory,before,action,after,receipt,boundary={},references=[]}){
  check(I.matchesTransition(receipt,inventory,before,action,after),'actual controller receipt');
  check(receipt.status==='available','actual inventory result');
@@ -177,14 +218,21 @@ function project(current,{inventory,position,witness,boundary={},references=[]})
 // absence must never become a claim of complete or known-empty accounting.
 // Imported duties remain authoritative; this reads, never reconciles them
 // against board provenance or mutates/compacts the supplied current state.
-function resolveState(current,{position,inventory}={},projected=false){
- const state=projected?importProjection(current):importState(current);check(projected?projectedBound(inventory,position):I.bound(inventory,position),'status requires matching current public position/inventory');
+function resolveState(current,{position,inventory}={},projected=false,owned=false){
+ const state=owned?current:projected?importProjection(current):importState(current);check(projected?projectedBound(inventory,position):I.bound(inventory,position),'status requires matching current public position/inventory');
  if(state.availability==='known')check(inventory.originKnown,'known status requires known public supply');
- const account=(projected?O.resolveProjection:O.resolve)(state.account,{board:position.board}),sl=(projected?SL.resolveProjection:SL.resolve)(state.sl,{inventory,center:state.center,profileLost:account.profileLost});
+ const account=(owned?O.resolveProjectionOwned:projected?O.resolveProjection:O.resolve)(state.account,{board:position.board}),sl=(owned?SL.resolveProjectionOwned:projected?SL.resolveProjection:SL.resolve)(state.sl,{inventory,center:state.center,profileLost:account.profileLost});
  return{availability:state.availability,center:state.center,...sl,...account,
   coveredRepair:{cells:state.safety.coveredCells,notches:PH.resolve(position,state.safety.notches)},dPattern:{pending:state.dPending},leftGoals:state.leftGoals};
 }
 function resolve(current,context){return resolveState(current,context);}
 function resolveProjection(current,context){return resolveState(current,context,true);}
-return Object.freeze({VERSION,start,transition,projectTransition,applyActual,project,resolve,resolveProjection,importState,importProjection,toProjection,exportState:importState});
+function resolveProjectionOwned(current,context){
+ if(!ownedProjections.has(current))return resolveProjection(current,context);
+ const view=resolveState(current,context,true,true);
+ // Other selectors, including notch arrays, already return fresh values.
+ // Only these three fields alias the immutable current-state snapshot.
+ return{...view,center:materialize(view.center),coveredRepair:{...view.coveredRepair,cells:materialize(view.coveredRepair.cells)},leftGoals:materialize(view.leftGoals)};
+}
+return Object.freeze({VERSION,start,transition,projectTransition,projectTransitionOwned,ownProjection,resolveProjectionOwned,applyActual,project,resolve,resolveProjection,importState,importProjection,toProjection,exportState:importState});
 });

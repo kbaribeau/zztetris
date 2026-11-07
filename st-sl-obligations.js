@@ -84,6 +84,19 @@ function readState(raw,projected=false){
 function importState(raw){return readState(raw);}
 function importProjection(raw){return readState(raw,true);}
 function exportState(state){return importState(state);}
+// Only private normalized snapshots carry this identity. Public codecs still
+// return detached mutable data, including when their input is owned.
+const ownedProjections=new WeakSet();
+const freezeProjection=x=>{if(x&&typeof x==='object'&&!Object.isFrozen(x)){Object.values(x).forEach(freezeProjection);Object.freeze(x);}return x;};
+function ownProjection(raw){if(ownedProjections.has(raw))return raw;const state=importProjection(raw);freezeProjection(state);ownedProjections.add(state);return state;}
+function copyProjection(state){return{...state,residuals:state.residuals.map(b=>({...b,S:b.S?{...b.S}:null,L:b.L?{...b.L}:null})),uncertainty:{S:state.uncertainty.S.slice(),L:state.uncertainty.L.slice()}};}
+function projectTransitionOwned(current,operation,context){
+ if(!ownedProjections.has(current))return projectTransition(current,operation,context);
+ const result=reduce(current,operation,context,true,true);
+ return{state:ownProjection(result.state),effects:result.effects};
+}
+function resolveProjectionOwned(state,context){return ownedProjections.has(state)?resolveState(state,context):resolveProjection(state,context);}
+
 function counterpart(b,type,inventory){
  const used=b[type];if(used)return used;
  const p=live(inventory).find(p=>p.type===type&&p.bag===b.bag);if(p)return p;
@@ -138,14 +151,15 @@ function validateContext(context){
   const c=context?.[side];if(!c?.inventory||!Array.isArray(c.inventory.queue)||!Array.isArray(c.center?.pending)||!Array.isArray(c.center?.debt))throw Error('Missing current public '+side+' context.');
  }
 }
-function reduce(current,operation,context,projected=false){
+function reduce(current,operation,context,projected=false,owned=false){
+ const copy=owned?copyProjection:clone;
  validateContext(context);
  if(projected?current.domain!=='projection':current.domain!==undefined)throw Error('Invalid S/L transition domain.');
  if(!['lock','observe','handoff'].includes(operation?.kind))throw Error('Unknown S/L operation.');
- if(current.status!=='known')return{state:clone(current),effects:[]};
+ if(current.status!=='known')return{state:copy(current),effects:[]};
  if(!context.before.inventory.originKnown||!context.after.inventory.originKnown||!context.before.inventory.frontier||!context.after.inventory.frontier)throw Error('Known S/L facts require known public identities and frontier.');
- if(operation.kind==='handoff'&&current.handoff)return{state:clone(current),effects:[]};
- const before=classify(current,context.before),state=clone(current),effects=[];
+ if(operation.kind==='handoff'&&current.handoff)return{state:copy(current),effects:[]};
+ const before=classify(current,context.before),state=copy(current),effects=[];
  if(operation.kind==='handoff'){
   state.handoff=true;state.foundationOpen=false;
   if([...state.uncertainty.S,...state.uncertainty.L].some(n=>n!==0))effects.push({status:'opening-exempted',counts:clone(state.uncertainty)});
@@ -218,5 +232,5 @@ function reduce(current,operation,context,projected=false){
 }
 function transition(current,operation,context){return reduce(current,operation,context);}
 function projectTransition(current,operation,context){const result=reduce(importProjection(current),operation,context,true);return{state:importProjection(result.state),effects:result.effects};}
-return Object.freeze({start,transition,projectTransition,resolve,resolveProjection,importState,importProjection,exportState});
+return Object.freeze({ownProjection,projectTransitionOwned,resolveProjectionOwned,start,transition,projectTransition,resolve,resolveProjection,importState,importProjection,exportState});
 });

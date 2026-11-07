@@ -299,3 +299,11 @@ It includes invalid original supply, event/action/bag/history changes, budget
 expiry, immutable routing, preserved legacy forecast payload and rejection of
 construction-only forecasts by maintenance admission. The minimized fixture
 contains public observation/history and visible witnesses, not a private stream.
+
+`st-state-owned-projection.test.cjs` covers identity-gated immutable hypothetical
+transitions across the envelope, S/L and allocation components. Public codecs
+remain mutable and fully validating; caller-frozen copies and proxies do not
+inherit ownership. Tests include direct component serialization hooks, nested
+mutation isolation, signed-zero notch facts, actual classic Worker loading,
+and parity with the ordinary reducers. These are correctness checks, not a
+performance claim; measure complete searches separately on frozen revisions.
