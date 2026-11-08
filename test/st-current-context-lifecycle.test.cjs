@@ -1,4 +1,11 @@
 'use strict';
+function expectedDiagnostic(g,pattern,action){
+ const original=g.window.console.error,entries=[];g.window.console.error=(...args)=>entries.push(args);
+ try{action();}finally{g.window.console.error=original;}
+ assert.ok(entries.length>0,'Expected exception logged');
+ for(const entry of entries){assert.equal(entry[0],'[ZZTetris diagnostic]');assert.match(entry[1].error.message,pattern);}
+}
+
 const test=require('node:test'),assert=require('node:assert/strict');
 const {withPage}=require('./support/page.cjs'),R=require('../st-rules'),Session=require('../st-session'),Context=require('../st-obligation-context');
 const clone=x=>JSON.parse(JSON.stringify(x)),hidden={storage:{stGuideVisible:'false'}};
@@ -119,7 +126,7 @@ test('current lifecycle/page: post-action error retires transient construction w
  all.at(-1).respond(construction(first.observation,first.options.obligationContext));assert(g.window.stLab.exportSession().coaching.planContinuity);
  const initial=g.window.stLab.snapshot(),inventory=clone(g.window.stLab.publicInventory);
  g.window.STPlanner={...P,advance(){throw Error('Injected post-Context failure');}};
- assert.throws(()=>g.window.stLab.act('R'),/post-Context/);g.window.STPlanner=P;
+ expectedDiagnostic(g,/post-Context/,()=>assert.throws(()=>g.window.stLab.act('R'),/post-Context/));g.window.STPlanner=P;
  assert.equal(g.window.stLab.snapshot().active.x,initial.active.x+1);assert.deepEqual(clone(g.window.stLab.publicInventory),inventory);
  assert.equal(g.window.stLab.exportSession().coaching.planContinuity,null);assert.equal(g.window.stLab.result,null);
  g.window.stLab.act('L');g.advance(40);assert.equal(all.at(-1).message.options.planContinuity,undefined);assert.equal(all.at(-1).message.options.handoffRecovery,undefined);

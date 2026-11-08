@@ -1,3 +1,9 @@
+function expectedDiagnostic(g,pattern,action){
+ const original=g.window.console.error,entries=[];g.window.console.error=(...args)=>entries.push(args);
+ try{action();}finally{g.window.console.error=original;}
+ assert.ok(entries.length>0,'Expected exception logged');
+ for(const entry of entries){assert.equal(entry[0],'[ZZTetris diagnostic]');assert.match(entry[1].error.message,pattern);}
+}
 const test=require('node:test'),assert=require('node:assert/strict');
 const {withPage}=require('./support/page.cjs');
 const Session=require('../st-session'),Practice=require('../st-practice'),R=require('../st-rules'),B=require('../st-bag');
@@ -31,7 +37,7 @@ test('practice download excludes hidden tail and carries wrapper name; raw snaps
 }));
 test('failed export or rejected import cannot download stale JSON or replace the current name',()=>withPage('st-lab.html',{},g=>{
  install(g,sample('accepted.json'));download(g,'accepted.json');const original=g.window.STSession,n=g.downloads.length;
- g.window.STSession={...original,create(){throw Error('unavailable test');}};g.click('#st-export-session');assert.equal(g.downloads.length,n);assert.match(g.element('#st-import-status').textContent,/Session export unavailable/);g.window.STSession=original;
+ g.window.STSession={...original,create(){throw Error('unavailable test');}};expectedDiagnostic(g,/unavailable test/,()=>g.click('#st-export-session'));assert.equal(g.downloads.length,n);assert.match(g.element('#st-import-status').textContent,/Session export unavailable/);g.window.STSession=original;
  g.element('#st-snapshot').value=JSON.stringify({suggestedFileName:'rejected.json'});g.click('#st-import');assert.match(g.element('#st-import-status').textContent,/rejected/);download(g,'accepted.json');
- const createURL=g.window.URL.createObjectURL;g.window.URL.createObjectURL=()=>{throw Error('download host unavailable');};g.click('#st-export-session');assert.equal(g.downloads.length,n+1);assert.match(g.element('#st-import-status').textContent,/Session export unavailable: download host unavailable/);g.window.URL.createObjectURL=createURL;
+ const createURL=g.window.URL.createObjectURL;g.window.URL.createObjectURL=()=>{throw Error('download host unavailable');};expectedDiagnostic(g,/download host unavailable/,()=>g.click('#st-export-session'));assert.equal(g.downloads.length,n+1);assert.match(g.element('#st-import-status').textContent,/Session export unavailable: download host unavailable/);g.window.URL.createObjectURL=createURL;
 }));

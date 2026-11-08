@@ -1,3 +1,9 @@
+function expectedDiagnostic(g,pattern,action){
+ const original=g.window.console.error,entries=[];g.window.console.error=(...args)=>entries.push(args);
+ try{action();}finally{g.window.console.error=original;}
+ assert.ok(entries.length>0,'Expected exception logged');
+ for(const entry of entries){assert.equal(entry[0],'[ZZTetris diagnostic]');assert.match(entry[1].error.message,pattern);}
+}
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
 const {withPage}=require('./support/page.cjs'),R=require('../st-rules');
@@ -137,7 +143,7 @@ test('resource badges: advice hidden, hypothetical worker allocations, stale/err
  const all=[];g.window.Worker=class{constructor(){all.push(this);}postMessage(m){this.m=clone(m);}terminate(){}respond(){this.onmessage({data:{type:'result',id:this.m.id,revision:this.m.observation.revision,result:{status:'no-supported-continuation-found',reason:'No checked continuation.',evidence:{resourceObligations:{extraZ:'available',hangingS:[]}}}}});}};
  g.click('#st-toggle');g.advance(40);const stale=all.at(-1);g.window.stLab.act('R');g.advance(40);stale.respond();all.at(-1).respond();
  badge(g,'st-hanging-s','hanging',true);badge(g,'st-extra-z','used',true);
- g.window.stLab.act('L');g.advance(40);all.at(-1).onerror({preventDefault(){}});
+ g.window.stLab.act('L');g.advance(40);expectedDiagnostic(g,/Worker failed/,()=>all.at(-1).onerror({preventDefault(){}}));
  g.click('#st-toggle');assert.equal(g.element('#st-status').hidden,true);
  badge(g,'st-hanging-s','hanging',true);badge(g,'st-extra-z','used',true);
  assert.deepEqual(g.snapshot().board,state.board);assert.equal(g.window.stLab.resources.extraZ.remaining,facts.extraZ.remaining);

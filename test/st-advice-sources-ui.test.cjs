@@ -1,4 +1,11 @@
 'use strict';
+function expectedDiagnostic(g,pattern,action){
+ const original=g.window.console.error,entries=[];g.window.console.error=(...args)=>entries.push(args);
+ try{action();}finally{g.window.console.error=original;}
+ assert.ok(entries.length>0,'Expected exception logged');
+ for(const entry of entries){assert.equal(entry[0],'[ZZTetris diagnostic]');assert.match(entry[1].error.message,pattern);}
+}
+
 const test=require('node:test'),assert=require('node:assert/strict');
 const {withPage}=require('./support/page.cjs');
 const R=require('../st-rules.js'),F=require('../st-fixtures.js');
@@ -138,12 +145,12 @@ test('st-sources/ui: interrupted worker failures remove retained references and 
   g.window.STPlanner={...g.window.STPlanner,advance:(observation,prior)=>({...prior,witness:['HD'],retained:true})};
   g.window.stLab.act('L');assert.equal(links(g).length,1);
  };
- showRetained();g.advance(40);workers.at(-1).respond(null,{type:'error'});assertSourcesCleared(g);
+ showRetained();g.advance(40);expectedDiagnostic(g,/Worker failed/,()=>workers.at(-1).respond(null,{type:'error'}));assertSourcesCleared(g);
  assert.equal(g.element('#st-status').textContent,'The coach could not evaluate this position. You can still practice manually.');
- showRetained();g.advance(40);workers.at(-1).onerror({preventDefault(){}});assertSourcesCleared(g);
+ showRetained();g.advance(40);expectedDiagnostic(g,/Worker failed/,()=>workers.at(-1).onerror({preventDefault(){}}));assertSourcesCleared(g);
  showRetained();g.advance(3000);assertSourcesCleared(g);
  assert.equal(g.element('#st-status').textContent,'The coach timed out. A valid continuation may still exist.');
- showRetained();g.window.Worker=class{constructor(){throw new Error('Worker could not start');}};g.advance(40);assertSourcesCleared(g);
+ showRetained();g.window.Worker=class{constructor(){throw new Error('Worker could not start');}};expectedDiagnostic(g,/Worker could not start/,()=>g.advance(40));assertSourcesCleared(g);
  assert.equal(g.element('#st-target').children.length,0);
  assert.equal(g.element('#st-status').textContent,'The coach could not start. You can still practice manually.');
 }));

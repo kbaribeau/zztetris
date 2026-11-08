@@ -1,4 +1,11 @@
 'use strict';
+function expectedDiagnostic(g,pattern,action){
+ const original=g.window.console.error,entries=[];g.window.console.error=(...args)=>entries.push(args);
+ try{action();}finally{g.window.console.error=original;}
+ assert.ok(entries.length>0,'Expected exception logged');
+ for(const entry of entries){assert.equal(entry[0],'[ZZTetris diagnostic]');assert.match(entry[1].error.message,pattern);}
+}
+
 const test=require('node:test'),assert=require('node:assert/strict');
 const P=require('./support/repair-isolated-planner.cjs').planner(),R=require('../st-rules'),B=require('../st-bag'),CurrentProvider=require('../st-resource-provider'),M=require('../st-obligation-resources'),Provider=require('../st-resource-provider'),Current=require('../st-obligation-resources'),Ctx=require('../st-obligation-context'),Session=require('../st-session'),{withPage}=require('./support/page.cjs');
 const fixture=require('./fixtures/forced-bag-resource-binding.json'),clone=x=>JSON.parse(JSON.stringify(x));
@@ -44,7 +51,7 @@ test('handoff UI transport: stale same-revision worker after import cannot resur
 test('handoff UI transport: error and incompatible mid-piece advice retire execution without forgiving the S duty',()=>withPage('st-lab.html',{},g=>{
  for(const failure of ['error','incompatible']){
   const {all,advice}=setup(g);g.window.stLab.act(advice.witness[0]);g.advance(40);const worker=all.at(-1);
-  if(failure==='error')worker.onmessage({data:{type:'error',id:worker.message.id,revision:worker.message.observation.revision}});
+  if(failure==='error')expectedDiagnostic(g,/Worker failed/,()=>worker.onmessage({data:{type:'error',id:worker.message.id,revision:worker.message.observation.revision}}));
   else{const changed=clone(worker.message.previous);delete changed.evidence.openingHandoff.recovery;worker.respond(changed);}
   for(const action of advice.witness.slice(1))g.window.stLab.act(action);g.advance(40);
   assert.equal(all.at(-1).message.options.handoffRecovery,undefined);

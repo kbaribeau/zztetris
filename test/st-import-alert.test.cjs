@@ -1,4 +1,11 @@
 'use strict';
+function expectedDiagnostic(g,pattern,action){
+ const original=g.window.console.error,entries=[];g.window.console.error=(...args)=>entries.push(args);
+ try{action();}finally{g.window.console.error=original;}
+ assert.ok(entries.length>0,'Expected exception logged');
+ for(const entry of entries){assert.equal(entry[0],'[ZZTetris diagnostic]');assert.match(entry[1].error.message,pattern);}
+}
+
 const test=require('node:test'),assert=require('node:assert/strict');
 const {withPage}=require('./support/page.cjs');
 const clone=x=>JSON.parse(JSON.stringify(x));
@@ -76,6 +83,6 @@ test('st-import-alert/success, accepted-session warnings, exports and mode chang
   attempt(g,'{');g.click(button);notice(g,pattern);assert.doesNotThrow(()=>JSON.parse(button==='#st-export-session'?g.downloads.at(-1).text:g.element('#st-snapshot').value));
  }
  // Export availability is a notice, not a false claim that an import failed.
- attempt(g,'{');const original=g.window.STSession;g.window.STSession={...original,create(){throw new Error('test export unavailable');}};g.click('#st-export-session');notice(g,/^Session export unavailable: test export unavailable$/);g.window.STSession=original;
+ attempt(g,'{');const original=g.window.STSession;g.window.STSession={...original,create(){throw new Error('test export unavailable');}};expectedDiagnostic(g,/test export unavailable/,()=>g.click('#st-export-session'));notice(g,/^Session export unavailable: test export unavailable$/);g.window.STSession=original;
  attempt(g,'{');const mode=g.element('#st-fixture');mode.value='empty';mode.dispatchEvent(new g.window.Event('change'));notice(g,/^$/);assert.ok(g.snapshot().board.every(row=>row==='..........'));
 }));
