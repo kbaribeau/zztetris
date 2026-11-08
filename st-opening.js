@@ -866,6 +866,7 @@ function plan(raw,options={}){
  // they are immutable. Cache only raw read-only board facts here, never node
  // assessments that the maintenance planner decorates with proof authority.
  const featureCache=new WeakMap(),assessmentCache=new WeakMap();
+ const trace=options.searchTrace?.start('opening',P.observe(state));
  const rawFacts={usage,features:board=>{if(!featureCache.has(board))featureCache.set(board,features(board));return featureCache.get(board);},assess:board=>{if(!assessmentCache.has(board))assessmentCache.set(board,P.assess(board,{cavitiesOnly:true}));return assessmentCache.get(board);}};
  assessmentCache.set(state.board,initial);
  let beam=[{state,path:[],f:initialFacts,notches:initialFacts.notches,key:'',rank:[]}],best=null,stopped=false,stagedNext=[],searchDepth=depth,closure=null,tieExtension=null,allocationExtension=null;const extraRoots=new Set(),ambiguousRoots=new Set(),clearCandidates=[],repairCandidates=[];
@@ -915,13 +916,13 @@ function plan(raw,options={}){
    for(const p of e.placements){
     if(now()>=searchDeadline){stopped=true;break;}
     if(usage)usage.families.ordinary.examined++;
-    const pattern=validStep(parent.state.board,p,parent.notches,rawFacts);if(!pattern)continue;
+    const pattern=validStep(parent.state.board,p,parent.notches,rawFacts);if(!pattern){if(trace)trace.candidate('opening',{state:p.state,path:[...parent.path,p]},'policy-rejected',{reason:'opening-step-policy'});continue;}
     const notch={pattern},f=rawFacts.features(p.state.board);
     const step={board:p.state.board,target:p.event.target,witness:p.witness,event:p.event,hold:p.witness.includes('HOLD'),holdCount:p.witness.filter(a=>a==='HOLD').length};
     if(usage){usage.families.ordinary.admitted++;usage.families.ordinary.ranked++;}
     const path=[...parent.path,step],key=JSON.stringify([p.state.board.map(r=>r.replace(/[IJLOSTZX#]/g,'#')),p.state.active?.type,p.state.hold,p.state.queue,notch.pattern]);
     const node={state:p.state,path,f,notches:notch.pattern,key,rank:rank(f,p.event,path),allocationRank:allocationRank(path,allocationRequired,qualityPending)};
-    if(allocationSafe(node,parent))nodes.push(node);
+    if(allocationSafe(node,parent)){nodes.push(node);if(trace)trace.candidate('opening',node,'evaluated');}else if(trace)trace.candidate('opening',node,node.allocationProof?.unknown?'unfinished':'policy-rejected',{reason:'allocation-conservation'});
    }
   }
   if(!nodes.length)break;
@@ -1022,6 +1023,7 @@ function plan(raw,options={}){
    allocationExtension={nominal:best,clearCount:clearCandidates.length,repairCount:repairCandidates.length,startNodes:base.metrics.nodes};searchDepth=4;
    base.metrics.allocationCompletion={attempted:1,nominalDepth:depth,comparisonDepth:4,beamWidth:chosen.length,complete:false,selected:false,nodes:0};
   }
+  if(trace){trace.record('layer','opening',()=>({depth:d+1,complete:!stopped,width,candidates:unique.length,retained:chosen.length,enumeration:'reduced-stage-envelope-not-exhaustive'}));for(const n of unique)trace.candidate('opening',n,n.accessProof?.reachable===false?'access-rejected':chosen.includes(n)?'beam-retained':'beam-pruned',{depth:d+1,proofStatus:n.accessProof?.reachable===true?'access-verified':n.accessProof?.reachable===false?'access-rejected':'unfinished-or-unchecked'});}
   beam=chosen;if(stopped)break;
  }
  if(allocationExtension){

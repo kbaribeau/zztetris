@@ -133,7 +133,84 @@
     const a=event.target,b=candidate.target;
     return ['type','x','y','rotation'].every(key=>a[key]===b[key]);
   }
+  // Both paths use the same public decision context. Capture has its own worker
+  // and never installs advice, resource facts or gameplay state.
+  function planningRequest(type,id) { return {type,id,observation:observation(),previous:previous?clone(previous):null,
+          commitment:commitment?clone(commitment):null,
+          options:{...(planContinuity?{planContinuity:STPlanContinuity.exportState(planContinuity)}:{}),...(openingForecast?{openingForecast:clone(openingForecast)}:{}),...(pendingLHint?{pendingLHint:clone(pendingLHint)}:{}),obligationContext:STObligationContext.exportState(obligationContext),...(pendingHandoffRecovery?{handoffRecovery:clone(pendingHandoffRecovery)}:{}),...searchSettings,patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null}}; }
+  const workerWatchdogMs=2500; // Shared bound: 1500 ms search plus worker startup/transport allowance.
+  let explorerWorker=null, explorerId=0, explorerWatchdog=null;
+  function stopExplorer(message) {
+    if(!explorerWorker)return;
+    explorerWorker.terminate();explorerWorker=null;clearTimeout(explorerWatchdog);explorerWatchdog=null;
+    $('st-explore-capture').disabled=false;$('st-explore-cancel').disabled=true;
+    if(message)setText($('st-explore-status'),message);
+  }
+  function previewBoard(board,label) {
+    const box=document.createElement('figure'),caption=document.createElement('figcaption'),grid=document.createElement('div');
+    caption.textContent=label;grid.className='lab-explore-board';grid.setAttribute('role','img');
+    const rows=Array.isArray(board)?board.filter(row=>typeof row==='string'&&row.length===10).slice(-22):[];
+    grid.setAttribute('aria-label',label+'. Rows from top to bottom: '+rows.join(' / '));
+    for(const row of rows)for(const cell of row){const square=document.createElement('span');square.setAttribute('aria-hidden','true');square.style.backgroundColor=colors[cell]||'#141414';grid.append(square);}
+    box.append(caption,grid);return box;
+  }
+  function showExploration(trace,snapshot) {
+    const list=$('st-explore-events');list.replaceChildren();
+    const events=Array.isArray(trace?.events)?trace.events:[];
+    let shownCount=0;
+    const more=$('st-explore-more');
+    const summary=trace?.result||{};
+    const searchRoots=new Map((Array.isArray(trace?.searches)?trace.searches:[]).map(search=>[search.id,search]));
+    function appendPage(){
+      const shown=events.slice(shownCount,shownCount+200);shownCount+=shown.length;
+      setText($('st-explore-status'),`Frozen revision ${snapshot.revision} · ${summary.status||'Capture complete'}${summary.reason?' · '+summary.reason:''}. Showing ${shownCount} of ${events.length} captured events${trace?.truncated?' (trace limit reached)':''}.`);
+      for(const event of shown){
+        const entry=document.createElement('details'),title=document.createElement('summary');
+        const pieces=Array.isArray(event.path)?event.path.map(step=>step?.event?.target?.type||step?.event?.type||'').filter(piece=>/^[IJLOSTZ]$/.test(piece)).join(' → '):'';
+        title.textContent=`${event.id??''} ${event.scope||'search'}${event.searchId!==undefined?' · search '+event.searchId:''} · ${event.kind||'event'}${event.depth!==undefined?' · depth '+event.depth:''}${event.outcome?' · '+String(event.outcome):''}${pieces?' · '+pieces:''}`;
+        entry.append(title);
+        // Build large detail content only when the user asks for this event.
+        entry.addEventListener('toggle',()=>{if(!entry.open||entry.dataset.loaded)return;entry.dataset.loaded='true';
+          const root=searchRoots.get(event.searchId);
+          if(root?.observation){
+            entry.append(previewBoard(root.observation.board,`Frozen search root ${root.id} · ${root.scope||event.scope||'search'}`));
+            const context=document.createElement('pre');context.textContent=JSON.stringify({active:root.observation.active,hold:root.observation.hold,queue:root.observation.queue,canHold:root.observation.canHold},null,2);entry.append(context);
+          }
+          if(Array.isArray(event.board))entry.append(previewBoard(event.board,'Candidate board (after recorded path)'));
+          const detail=document.createElement('pre');detail.textContent=JSON.stringify(event,null,2);entry.append(detail);
+        });list.insertBefore(entry,detail);
+      }
+      more.hidden=shownCount>=events.length;more.textContent=`Show next ${Math.min(200,events.length-shownCount)} events`;
+    }
+    const detail=document.createElement('details'),title=document.createElement('summary'),pre=document.createElement('pre');
+    title.textContent='Capture summary and scope';pre.textContent=JSON.stringify({...trace,events:undefined},null,2);detail.append(title,pre);list.append(detail);
+    more.onclick=appendPage;appendPage();
+  }
+  function captureExploration() {
+    if(explorerWorker)return;
+    if(typeof Worker!=='function'){setText($('st-explore-status'),'Search capture is unavailable in this browser.');return;}
+    const request=clone(planningRequest('explore',++explorerId)),snapshot=request.observation;
+    $('st-explore-more').hidden=true;$('st-explore-more').onclick=null;
+    $('st-explore-events').replaceChildren();$('st-explore-start').replaceChildren(previewBoard(snapshot.board,`Frozen starting board · revision ${snapshot.revision}`));
+    const context=document.createElement('pre');context.textContent=JSON.stringify({active:snapshot.active,hold:snapshot.hold,queue:snapshot.queue,canHold:snapshot.canHold},null,2);$('st-explore-start').append(context);
+    setText($('st-explore-status'),'Capturing one decision… The live game is unchanged.');
+    try{
+      const current=new Worker('st-worker.js');explorerWorker=current;
+      $('st-explore-capture').disabled=true;$('st-explore-cancel').disabled=false;
+      current.onmessage=({data})=>{
+        if(explorerWorker!==current||data?.id!==request.id||data.revision!==snapshot.revision||state.revision!==snapshot.revision)return;
+        if(data.type!=='exploration'&&data.type!=='error')return;
+        stopExplorer();
+        if(data.type==='error'){setText($('st-explore-status'),'Capture failed. The live game is unchanged.');return;}
+        showExploration(data.trace,snapshot);
+      };
+      current.onerror=event=>{event.preventDefault?.();if(explorerWorker===current)stopExplorer('Capture failed. The live game is unchanged.');};
+      current.postMessage(request);
+      explorerWatchdog=setTimeout(()=>{if(explorerWorker===current)stopExplorer('Capture timed out. A valid continuation may still exist.');},workerWatchdogMs);
+    }catch{stopExplorer();setText($('st-explore-status'),'Capture could not start. The live game is unchanged.');}
+  }
   function requestPlan({retain=false}={}) {
+    stopExplorer('Capture cancelled because the position or coaching context changed. Capture again to inspect this decision.');
     cancel();if(!retain)result=null;
     if(!TrainingSettings.guideVisible){coachStatus='hidden';coachMessage='';render();return;}
     if(state.topOut){coachStatus='top-out';coachMessage='This position has topped out. Undo the placement or reset to continue.';render();return;}
@@ -199,13 +276,11 @@
           if(worker!==activeWorker)return;
           cancel();recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;planContinuity=null;planProof=null;coachStatus='worker-error';coachMessage='The coach could not start. You can still practice manually.';result=null;render();
         };
-        activeWorker.postMessage({type:'plan',id,observation:observation(),previous:previous?clone(previous):null,
-          commitment:commitment?clone(commitment):null,
-          options:{...(planContinuity?{planContinuity:STPlanContinuity.exportState(planContinuity)}:{}),...(openingForecast?{openingForecast:clone(openingForecast)}:{}),...(pendingLHint?{pendingLHint:clone(pendingLHint)}:{}),obligationContext:STObligationContext.exportState(obligationContext),...(pendingHandoffRecovery?{handoffRecovery:clone(pendingHandoffRecovery)}:{}),...searchSettings,patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null}});
+        activeWorker.postMessage(planningRequest('plan',id));
         watchdog=setTimeout(()=>{
           if(worker!==activeWorker)return;
           cancel();recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;result=null;planContinuity=null;planProof=null;coachStatus='budget-exhausted';coachMessage='The coach timed out. A valid continuation may still exist.';render();
-        },2500);
+        },workerWatchdogMs);
       } catch {
         cancel();recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;result=null;planContinuity=null;planProof=null;coachStatus='worker-unavailable';coachMessage='The coach could not start. You can still practice manually.';render();
       }
@@ -335,6 +410,7 @@
     if(advanced){result=advanced;previous=advanced;coachMessage=advanced.reason;coachStatus=advanced.status;}
     requestPlan({retain:Boolean(advanced)});render();
     } catch(error) {
+      stopExplorer('Capture cancelled because play was interrupted. Capture again to inspect the current position.');
       // An accepted action may already have installed its current Context.
       // Drop transient routing, never restart or reconstruct that authority.
       cancel();recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;openingForecast=null;planContinuity=null;planProof=null;result=null;previous=null;commitment=null;pendingLHint=null;
@@ -471,12 +547,14 @@
   });
   document.addEventListener('keyup',event=>{const token=repeating.get(event.code);if(token){clearTimeout(token.timeout);clearInterval(token.interval);repeating.delete(event.code);}});
   window.addEventListener('blur',stopRepeating);
-  window.addEventListener('pagehide',()=>{stopRepeating();cancel();});
+  window.addEventListener('pagehide',()=>{stopRepeating();cancel();stopExplorer('Capture cancelled.');});
   window.addEventListener('storage',event=>{if(event.key==='stGuideVisible'||event.key===null)requestPlan();else if(event.key==='bagBoundaries')render();});
   document.querySelectorAll('.lab-phase [tabindex]').forEach(badge=>{
     for(const event of ['focus','mouseenter'])badge.addEventListener(event,()=>{delete badge.dataset.detailDismissed;});
     badge.addEventListener('keydown',event=>{if(event.code==='Escape')badge.dataset.detailDismissed='true';});
   });
+  $('st-explore-capture').addEventListener('click',captureExploration);
+  $('st-explore-cancel').addEventListener('click',()=>stopExplorer('Capture cancelled. No conclusion was reached.'));
   $('st-toggle').addEventListener('click',()=>{toggle();$('st-toggle').blur();});
   $('st-reset').addEventListener('click',()=>{act('RESET');$('st-reset').blur();});
   document.querySelectorAll('[data-action]').forEach(button=>button.addEventListener('click',()=>{act(button.dataset.action);button.blur();}));

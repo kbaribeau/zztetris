@@ -116,6 +116,17 @@
       <details id="st-diagnostics"><summary>Coach diagnostics</summary><p id="st-resource-summary" class="lab-note"></p><p id="st-reset-summary" class="lab-note"></p><pre id="st-diagnostic-text"></pre></details>
       <p id="st-rules-note" class="lab-note">st-zero-v2 · zero gravity · SRS+ · unlimited hold swaps · manual hard-drop locking. Gray outline: hard-drop ghost. Gold outline: coaching target. Follow any Hold instruction before placing the highlighted piece. Advice uses only this position and the six visible previews, plus any valid observed bag evidence.</p>
     </section>
+    <details id="st-explorer" class="lab-options">
+      <summary>Search explorer · opt-in diagnostic capture</summary>
+      <p class="lab-note">Capture one decision from the current position. This is a frozen, public-only snapshot, not a move to apply. Capture is off until you press the button; playing or changing context cancels an active capture.</p>
+      <p class="lab-note">Ordinary and opening beam candidates have detailed paths and boards. Nested proof searches and special paths are summarized only. Missing candidates are not evidence of impossibility. Instrumentation affects the time budget, so a capture can differ from normal advice.</p>
+      <div class="lab-buttons"><button id="st-explore-capture" type="button">Capture this decision</button><button id="st-explore-cancel" type="button" disabled>Cancel capture</button></div>
+      <p id="st-explore-status" role="status" aria-live="polite">No capture requested.</p>
+      <div id="st-explore-start"></div>
+      <p class="lab-note">Expand an event to inspect its recorded path, priority and outcome. Events load 200 at a time; use Show next to inspect the rest of the captured trace. The trace may also have a capture limit.</p>
+      <div id="st-explore-events"></div>
+      <button id="st-explore-more" type="button" hidden>Show next 200 events</button>
+    </details>
     <section class="lab-controls" aria-label="Play controls">
       <h2>Manual controls</h2><p id="st-key-help" class="lab-note"></p>
       <div class="lab-buttons">

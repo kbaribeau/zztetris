@@ -622,3 +622,29 @@ promise unknown arrivals or continued survival after that finite route.
 The name is transport metadata, not a position, Worker input, source hash, or coaching certificate. It survives ordinary play, hold, Undo, Restart and exported-session reimport; selecting a fresh fixture/random start restores the default. Both exports still exclude private future pieces. A coaching export is always a public session, never the imported practice wrapper or stale textarea content.
 
 Builders should pass a descriptive case-based name (for example `R433-frame21-coaching-export.json`) through `STSession.create(state, {...options, suggestedFileName})` or `STPractice.create(session, tail, {suggestedFileName})`. Use `STSession.exportFilename` for the shared sanitizer; do not derive names from hidden future pieces.
+
+## Opt-in single-decision search explorer
+
+Open **Search explorer** and choose **Capture one decision** to inspect a frozen
+public starting position without playing or applying a move. This runs a separate
+worker using the same visible observation and coaching context. Normal coaching
+has no trace collector. Capture is session-local, off until requested, and is
+cancelled on movement, context changes, another capture cancellation or page exit.
+
+Expandable entries show actual ordinary/opening beam paths, resulting boards,
+priority vectors, policy rejections, deduplication (ordinary beam), and beam
+retention/pruning. Priority labels explain lexicographic order; diversity and
+proof checks remain separate from rank. The final selected continuation and
+returned evidence are retained separately from the bounded event list. Each beam
+search records its own frozen root: nested handoff paths are relative to that
+projected root, not automatically to the initial lab snapshot.
+
+This is deliberately **not a full search-tree proof**. Nested resource/access
+proofs, retained commitments, Reset and special construction families expose only
+returned summary evidence, not every internal continuation. A retained beam node
+is not necessarily certified or finally selected. An unvisited or pruned path is
+not impossible; an unfinished proof remains unknown. Opening enumeration is a
+reduced stage envelope. Events are capped (default 1,200, hard maximum 3,000),
+with explicit omission/truncation reporting. Capture overhead can change real-time
+cutoffs, so compare instrumented runs with care. No hidden queue is supplied and
+trace output is never imported as strategic authority.

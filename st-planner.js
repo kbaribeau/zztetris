@@ -1247,6 +1247,7 @@ function levelBaseReentry(s,initial,base,options,readAssessment=assess){
   evidence:{strategy:'canonical-right-ST',levelBaseReentry:proof,cycleResources:cycleResources(best.path),commitmentRetained:Boolean(saved),futureNotches:best.notches,cycleDebt:0,cavityRepair:{status:'verified-prefix-repaired',outstandingCells:[]},verifiedLocks:1,tsdAt:null,knownPieceHorizon:s.queue.length+1,rootEnumerationComplete:true,budgetExhausted:!metrics.candidateScanComplete||now()>=deadline,informationBoundary:!best.state.active,initialSealed:initial.sealed,endpointSealed:best.assessment.sealed,regionalSupport:true,channel:best.assessment.channel,endpointTEntry:'not-established',unresolvedObligations:best.assessment.obligations,structure:best.assessment.structure,claim:'One executable return to a recognized Center pattern; existing damage and future scoring remain unresolved.'}};
 }
 function planCore(raw,options={}){
+ let trace=options.searchTrace;
  const started=Date.now(),now=options.now??(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs);
  let s;try{s=observe(raw);}catch(e){return{status:'invalid-input',revision:raw?.revision??0,target:null,reason:'This snapshot could not be read. Check its format and try again.',errors:[e.message]};}
  const errors=R.validate(s);if(s.bag)errors.push(...B.validate(s.bag));
@@ -1590,7 +1591,16 @@ function planCore(raw,options={}){
  // considered instead of selecting it only to reject it at final admission.
  if(preparation&&!A.repairPrefix(s,preparation.path,{notches:initial.notches,initialDebt:initial.coveredRepair?.cells,stages:initial.coveredStages}).valid)preparation=null;
  const spendsReservedT=(p,parent=null)=>(preparation||preparationUnresolved)&&p.event.type==='T'&&p.event.lines===0&&!parent?.path.some(step=>step.event.type==='T'&&step.event.lines===2&&step.event.spin==='full');
- let frontier=qualify(root.placements.filter(p=>S.canonicalClear(p.event)&&!spendsReservedT(p)&&ordinaryCenterEligible(s,p,initial.notches)).map((p,i)=>nodeFor(p,null,initial,i,readAssessment,true)).filter(n=>n&&n.notchValid&&n.cycleDebt===0));
+ const candidateNode=(p,parent,index)=>{
+  const reason=!S.canonicalClear(p.event)?'noncanonical-clear':spendsReservedT(p,parent)?'reserved-T':!ordinaryCenterEligible(parent?.state??s,p,parent?.notches??initial.notches)?'center-policy':null;
+  if(reason){if(trace)trace.candidate('ordinary',{state:p.state,path:[...(parent?.path||[]),p]},'policy-rejected',{reason});return null;}
+  const n=nodeFor(p,parent,initial,typeof index==='function'?index():index,readAssessment,true);
+  if(!n||!n.notchValid||n.cycleDebt){if(trace)trace.candidate('ordinary',{state:p.state,path:[...(parent?.path||[]),p]},'policy-rejected',{reason:'notch-or-cycle-policy'});return null;}
+  if(trace)trace.candidate('ordinary',n,'evaluated');return n;
+ };
+ if(trace)trace=trace.start('ordinary',observe(s));
+ let rootCandidateIndex=0;
+ let frontier=qualify(trace?root.placements.map(p=>candidateNode(p,null,()=>rootCandidateIndex++)).filter(Boolean):root.placements.filter(p=>S.canonicalClear(p.event)&&!spendsReservedT(p)&&ordinaryCenterEligible(s,p,initial.notches)).map((p,i)=>nodeFor(p,null,initial,i,readAssessment,true)).filter(n=>n&&n.notchValid&&n.cycleDebt===0));
  if(preparation){preparation=qualify([preparation])[0]??preparation;base.metrics.preparationProofLocks=preparation.path.length;}
 
  let screeningLimit=limit;
@@ -1638,10 +1648,12 @@ function planCore(raw,options={}){
  remember(best);
  // References only: do not change ordinary beam generation or proof scheduling.
  let layer=diversify(frontier,width),comparisonLayer=frontier;const completedSLLayers=root.complete?[frontier]:[];
+ const traceLayer=(nodes,chosen,depth,complete)=>{if(!trace)return;trace.record('layer','ordinary',()=>({depth,complete,width,candidates:nodes.length,retained:chosen.length}));for(const n of nodes)trace.candidate('ordinary',n,chosen.includes(n)?'beam-retained':'beam-pruned',{depth,proofStatus:n.continuationChecked?'verified-prefix':n.path[0]?.gapAccess?.reachable===null||n.resourceRepair?.valid===null?'unfinished':'not-certified'});};
+ traceLayer(frontier,layer,1,root.complete&&!stopped);
  for(let depth=2;depth<=maxDepth&&!stopped&&layer.length;depth++){
   const next=[],seen=new Map();let complete=true;
   for(const n of layer){if(!n.state.active)continue;expandedRoots.add(n.rootIndex);const e=enumerate(n.state);if(!e.complete)complete=false;
-   for(const p of e.placements){if(!S.canonicalClear(p.event)||spendsReservedT(p,n)||!ordinaryCenterEligible(n.state,p,n.notches))continue;const child=nodeFor(p,n,initial,n.rootIndex,readAssessment,true);if(!child||!child.notchValid||child.cycleDebt)continue;const key=nodeKey(child),prior=seen.get(key);if(!prior||compare(child,prior)<0)seen.set(key,child);}
+   for(const p of e.placements){if(!trace&&(!S.canonicalClear(p.event)||spendsReservedT(p,n)||!ordinaryCenterEligible(n.state,p,n.notches)))continue;const child=trace?candidateNode(p,n,n.rootIndex):nodeFor(p,n,initial,n.rootIndex,readAssessment,true);if(!child||!child.notchValid||child.cycleDebt)continue;const key=nodeKey(child),prior=seen.get(key);if(!prior||compare(child,prior)<0){if(trace&&prior)trace.candidate('ordinary',prior,'deduplicated');seen.set(key,child);}else if(trace)trace.candidate('ordinary',child,'deduplicated');}
    if(stopped)break;
   }
   next.push(...qualify([...seen.values()]));if(stopped)complete=false;
@@ -1660,6 +1672,7 @@ function planCore(raw,options={}){
    }
   }
   layer=diversify(next,width,historyDiversityEnabled(initial.resources));
+  traceLayer(next,layer,depth,complete);
  }
  if(cleanupCommitment&&(!best||!coversResourceGoal(best,cleanupCommitment)))best=cleanupCommitment;
  let comparisonSaved=commitment;

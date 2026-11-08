@@ -353,3 +353,13 @@ upgraded or reclassified as passes. New traces missing or corrupting a receipt
 fail verification. The minimized `commitment-clock-replay.json` fixture covers
 the real Z/S suffix whose 2,430-node repair formerly crossed the deadline, both
 completed and expired, with exact obligation and mutation checks.
+
+### Search explorer
+
+`st-search-trace.test.cjs` checks deterministic node-bounded traced/untraced
+ordinary and opening results, independently replays captured paths, verifies
+explicit trace truncation and zero-budget limits, and executes the real worker
+script loading protocol. `st-search-explorer-ui.test.cjs` drives the actual lab
+page through opt-in capture, safe event rendering, frozen state, independent
+coaching, cancellation and stale replies. These DOM tests are not painted-pixel
+or real-worker scheduling evidence.

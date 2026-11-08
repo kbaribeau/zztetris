@@ -15,3 +15,5 @@ html{scrollbar-gutter:stable}body{margin:0;background:#222;color:#fff;font-famil
 #st-import-result[data-result="rejected"] p{margin:8px 0}
 #st-import-error-indicator{font-weight:650}
 @media(max-width:560px){#st-import-result[data-result="rejected"]{padding:12px}}
+
+#st-explorer{overflow-wrap:anywhere}#st-explorer summary{cursor:pointer}#st-explorer figure{margin:12px 0}#st-explorer figcaption{font-size:13px;margin-bottom:6px}.lab-explore-board{display:grid;grid-template-columns:repeat(10,12px);width:120px;border:1px solid #888}.lab-explore-board span{height:12px;box-sizing:border-box;border:1px solid #333}#st-explore-events{max-height:640px;overflow:auto}#st-explore-events>details{border-top:1px solid #666;padding:10px 0}#st-explorer button:disabled{opacity:.55;cursor:default}
