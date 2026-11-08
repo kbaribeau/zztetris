@@ -1,3 +1,9 @@
+function expectedDiagnostic(g,pattern,action){
+ const original=g.window.console.error,entries=[];g.window.console.error=(...args)=>entries.push(args);
+ try{action();}finally{g.window.console.error=original;}
+ assert.ok(entries.length>0,'Expected exception logged');
+ for(const entry of entries){assert.equal(entry[0],'[ZZTetris diagnostic]');assert.match(entry[1].error.message,pattern);}
+}
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const {withPage}=require('./support/page.cjs');
@@ -44,7 +50,7 @@ test('st-explorer/bounded safe details and request guards',()=>withPage('st-lab.
  assert.equal(g.element('#st-explore-more').hidden,false);g.click('#st-explore-more');assert.equal(g.element('#st-explore-events').children.length,251);assert.match(g.element('#st-explore-status').textContent,/250 of 250/);assert.equal(g.element('#st-explore-more').hidden,true);
  const finalEvent=g.element('#st-explore-events').children[249];finalEvent.open=true;finalEvent.dispatchEvent(new g.window.Event('toggle'));assert.equal(JSON.parse(finalEvent.querySelector('pre').textContent).id,249);
  g.click('#st-explore-capture');assert.equal(g.element('#st-explore-more').hidden,true);const fresh=ws.at(-1);worker.respond(trace);assert.equal(fresh.terminated,false);g.advance(2499);assert.equal(fresh.terminated,false);g.advance(1);assert.equal(fresh.terminated,true);assert.match(g.element('#st-explore-status').textContent,/timed out.*valid continuation/);
- g.click('#st-explore-capture');ws.at(-1).onerror({preventDefault(){}});assert.equal(g.element('#st-explore-capture').disabled,false);assert.match(g.element('#st-explore-status').textContent,/failed/);
+ g.click('#st-explore-capture');expectedDiagnostic(g,/Worker failed/,()=>ws.at(-1).onerror({preventDefault(){}}));assert.equal(g.element('#st-explore-capture').disabled,false);assert.match(g.element('#st-explore-status').textContent,/failed/);
 }));
 
 test('st-explorer/search roots: nested candidate previews its matching frozen root',()=>withPage('st-lab.html',{},g=>{
@@ -69,7 +75,7 @@ test('st-explorer/interrupted action: cancel worker after position changes but a
  const ws=workers(g);g.click('#st-explore-capture');const capture=ws.at(-1),before=g.snapshot();
  const original=g.window.STObligationContext;
  g.window.STObligationContext={...original,applyActual(){throw Error('Injected accounting interruption');}};
- try{assert.throws(()=>g.window.stLab.act('R'),/Injected accounting interruption/);}finally{g.window.STObligationContext=original;}
+ try{expectedDiagnostic(g,/Injected accounting interruption/,()=>assert.throws(()=>g.window.stLab.act('R'),/Injected accounting interruption/));}finally{g.window.STObligationContext=original;}
  assert.notEqual(g.snapshot().revision,before.revision);assert.equal(capture.terminated,true);
  capture.respond({events:[],result:{status:'stale-result'}});
  assert.match(g.element('#st-explore-status').textContent,/cancelled.*interrupted/);

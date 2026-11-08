@@ -7,6 +7,8 @@
   <link rel="icon" href="assets/pieceSprite/z.png">
   <link rel="stylesheet" href="styles/st-lab.css">
   <link rel="stylesheet" href="styles/navigation.css">
+  <script src="st-diagnostics.js"></script>
+  <script defer src="st-diagnostics-ui.js"></script>
   <script defer src="training-settings.js"></script>
   <script defer src="st-binding.js"></script>
   <script defer src="st-rules.js"></script>
@@ -116,6 +118,15 @@
       <details id="st-diagnostics"><summary>Coach diagnostics</summary><p id="st-resource-summary" class="lab-note"></p><p id="st-reset-summary" class="lab-note"></p><pre id="st-diagnostic-text"></pre></details>
       <p id="st-rules-note" class="lab-note">st-zero-v2 · zero gravity · SRS+ · unlimited hold swaps · manual hard-drop locking. Gray outline: hard-drop ghost. Gold outline: coaching target. Follow any Hold instruction before placing the highlighted piece. Advice uses only this position and the six visible previews, plus any valid observed bag evidence.</p>
     </section>
+    <details id="st-error-reports" class="lab-options">
+      <summary>Local error reports <span id="st-error-count"></span></summary>
+      <p class="lab-note">Unexpected errors are logged to the browser console and a bounded local history. Reports can include the visible board, hold, preview, obligations and search context. Nothing is uploaded automatically. Review before sharing.</p>
+      <p id="st-error-latest" role="status" aria-live="polite">No errors recorded.</p>
+      <div class="lab-buttons"><button id="st-error-copy" type="button">Copy diagnostics</button><button id="st-error-download" type="button">Download diagnostics</button><button id="st-error-clear" type="button">Clear reports</button></div>
+      <p id="st-error-action-status" role="status" aria-live="polite"></p>
+      <label for="st-error-json">Diagnostic JSON (available for manual copying)</label>
+      <textarea id="st-error-json" rows="8" readonly spellcheck="false"></textarea>
+    </details>
     <details id="st-explorer" class="lab-options">
       <summary>Search explorer · opt-in diagnostic capture</summary>
       <p class="lab-note">Capture one decision from the current position. This is a frozen, public-only snapshot, not a move to apply. Capture is off until you press the button; playing or changing context cancels an active capture.</p>

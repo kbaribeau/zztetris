@@ -4,6 +4,10 @@
 (() => {
   const $ = id => document.getElementById(id);
   const clone = value => JSON.parse(JSON.stringify(value));
+  const diagnostic=(error,context)=>window.STDiagnostics?.report(error,{pageBuild:'st-lab-diagnostics-2026-11-08-v1',...context});
+  const workerDiagnostic=(data,context)=>window.STDiagnostics?.captureWorker(data,{pageBuild:'st-lab-diagnostics-2026-11-08-v1',...context});
+  const diagnosticRequest=request=>window.STDiagnostics?.snapshotRequest(request);
+  const workerFailure=event=>event?.error||{name:'WorkerError',message:event?.message||'Worker failed without error details.',stack:'',filename:event?.filename,lineno:event?.lineno,colno:event?.colno};
   const colors = {I:'#00bbee',J:'#3355ff',L:'#ff8800',O:'#ffee00',S:'#33cc55',T:'#bb55ee',Z:'#ff4444',X:'#999999','#':'#999999'};
   const defaults=['ArrowLeft','ArrowRight','ArrowDown','Space','ShiftLeft','KeyX','KeyZ','KeyC','KeyR','KeyT','KeyY','160','30','15','20','100'];
   let config;
@@ -34,6 +38,7 @@
         const saved=undoHistory.at(-1);saved.inverseReceipt=pendingInverse;saved.lockedPiece=clone(operation.piece);pendingInverse=null;
       }
     }catch(error){
+      diagnostic(error,{operation:'inverse-update',stateRevision:state?.revision,transition:operation});
       // A failed Undo capability must never undo an accepted legal move or
       // replace its installed accounting. Start a fresh local Undo boundary;
       // old caller checkpoints cannot safely cross the missing inverse.
@@ -190,6 +195,7 @@
     if(explorerWorker)return;
     if(typeof Worker!=='function'){setText($('st-explore-status'),'Search capture is unavailable in this browser.');return;}
     const request=clone(planningRequest('explore',++explorerId)),snapshot=request.observation;
+    const errorContext={operation:'explorer',requestId:request.id,request:diagnosticRequest(request)};
     $('st-explore-more').hidden=true;$('st-explore-more').onclick=null;
     $('st-explore-events').replaceChildren();$('st-explore-start').replaceChildren(previewBoard(snapshot.board,`Frozen starting board · revision ${snapshot.revision}`));
     const context=document.createElement('pre');context.textContent=JSON.stringify({active:snapshot.active,hold:snapshot.hold,queue:snapshot.queue,canHold:snapshot.canHold},null,2);$('st-explore-start').append(context);
@@ -198,16 +204,19 @@
       const current=new Worker('st-worker.js');explorerWorker=current;
       $('st-explore-capture').disabled=true;$('st-explore-cancel').disabled=false;
       current.onmessage=({data})=>{
-        if(explorerWorker!==current||data?.id!==request.id||data.revision!==snapshot.revision||state.revision!==snapshot.revision)return;
+        if(explorerWorker!==current||state.revision!==snapshot.revision)return;
+        const startupError=data?.type==='error'&&data.startupDiagnostic===true;
+        if(!startupError&&(data?.id!==request.id||data.revision!==snapshot.revision))return;
         if(data.type!=='exploration'&&data.type!=='error')return;
         stopExplorer();
-        if(data.type==='error'){setText($('st-explore-status'),'Capture failed. The live game is unchanged.');return;}
+        if(data.type==='error'){workerDiagnostic(data,errorContext);setText($('st-explore-status'),'Capture failed. The live game is unchanged.');return;}
         showExploration(data.trace,snapshot);
       };
-      current.onerror=event=>{event.preventDefault?.();if(explorerWorker===current)stopExplorer('Capture failed. The live game is unchanged.');};
+      current.onerror=event=>{if(explorerWorker!==current)return;diagnostic(workerFailure(event),{...errorContext,operation:'explorer-worker-error'});stopExplorer('Capture failed. The live game is unchanged.');};
+      current.onmessageerror=()=>{if(explorerWorker!==current)return;diagnostic(new Error('Explorer worker response could not be deserialized.'),{...errorContext,operation:'explorer-messageerror'});stopExplorer('Capture failed. The live game is unchanged.');};
       current.postMessage(request);
       explorerWatchdog=setTimeout(()=>{if(explorerWorker===current)stopExplorer('Capture timed out. A valid continuation may still exist.');},workerWatchdogMs);
-    }catch{stopExplorer();setText($('st-explore-status'),'Capture could not start. The live game is unchanged.');}
+    }catch(error){diagnostic(error,{...errorContext,operation:'explorer-start-or-send'});stopExplorer();setText($('st-explore-status'),'Capture could not start. The live game is unchanged.');}
   }
   function requestPlan({retain=false}={}) {
     stopExplorer('Capture cancelled because the position or coaching context changed. Capture again to inspect this decision.');
@@ -223,12 +232,17 @@
     debounce=setTimeout(()=>{
       debounce=null;
       const id=++requestId;
+      let errorContext={operation:'coach-start',requestId:id};
       try {
+        const request=planningRequest('plan',id);
+        errorContext={operation:'coach',requestId:id,request:diagnosticRequest(request)};
         const activeWorker=new Worker('st-worker.js');worker=activeWorker;
         activeWorker.onmessage=({data})=>{
-          if(worker!==activeWorker || data?.id!==id || data.revision!==state.revision || currentRevision!==state.revision)return;
+          if(worker!==activeWorker || currentRevision!==state.revision)return;
+          const startupError=data?.type==='error'&&data.startupDiagnostic===true;
+          if(!startupError&&(data?.id!==id||data.revision!==state.revision))return;
           clearTimeout(watchdog);watchdog=null;activeWorker.terminate();worker=null;
-          if(data.type==='error'){recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;planContinuity=null;planProof=null;coachStatus='worker-error';coachMessage='The coach could not evaluate this position. You can still practice manually.';result=null;render();return;}
+          if(data.type==='error'){workerDiagnostic(data,errorContext);recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;planContinuity=null;planProof=null;coachStatus='worker-error';coachMessage='The coach could not evaluate this position. You can still practice manually.';result=null;render();return;}
           if(data.type!=='result')return;
           try{
           const candidate=data.result;
@@ -262,26 +276,33 @@
             commitment=result.recommendation?.kind!=='risky'&&!result.evidence?.opening&&(result.evidence?.strategy==='reset-coach'||STPlanner.resourceGoal(result.continuation||[]))?{observation:clone(observation()),advice:clone(result)}:null;
           }
           render();
-          }catch{
+          }catch(error){
+            diagnostic(error,{...errorContext,operation:'coach-result'});
             // A selected-work, Reset or handoff marker may already be current.
             // Async result handling has no enclosing act() catch: keep those
             // facts and their inverse, retire only stale advice, then repaint.
             cancel();recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;openingForecast=null;planContinuity=null;planProof=null;result=null;previous=null;commitment=null;pendingLHint=null;
             coachStatus='interrupted';coachMessage='Coaching was interrupted. You can continue practicing from the current position.';
-            try{if(obligationContext?.status==='available')patternHistory=clone(obligationContext.state.safety.notches);render();}catch{}
+            try{if(obligationContext?.status==='available')patternHistory=clone(obligationContext.state.safety.notches);render();}catch(error){diagnostic(error,{operation:'recovery-render',stateRevision:state?.revision});}
           }
         };
         activeWorker.onerror=event=>{
-          event.preventDefault?.();
           if(worker!==activeWorker)return;
+          diagnostic(workerFailure(event),{...errorContext,operation:'coach-worker-error'});
           cancel();recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;planContinuity=null;planProof=null;coachStatus='worker-error';coachMessage='The coach could not start. You can still practice manually.';result=null;render();
         };
-        activeWorker.postMessage(planningRequest('plan',id));
+        activeWorker.onmessageerror=()=>{
+          if(worker!==activeWorker)return;
+          diagnostic(new Error('Coach worker response could not be deserialized.'),{...errorContext,operation:'coach-messageerror'});
+          cancel();result=null;planContinuity=null;planProof=null;coachStatus='worker-error';coachMessage='The coach response could not be read. You can still practice manually.';render();
+        };
+        activeWorker.postMessage(request);
         watchdog=setTimeout(()=>{
           if(worker!==activeWorker)return;
           cancel();recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;result=null;planContinuity=null;planProof=null;coachStatus='budget-exhausted';coachMessage='The coach timed out. A valid continuation may still exist.';render();
         },workerWatchdogMs);
-      } catch {
+      } catch(error) {
+        diagnostic(error,{...errorContext,operation:'coach-start-or-send'});
         cancel();recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;result=null;planContinuity=null;planProof=null;coachStatus='worker-unavailable';coachMessage='The coach could not start. You can still practice manually.';render();
       }
     },40);
@@ -410,6 +431,7 @@
     if(advanced){result=advanced;previous=advanced;coachMessage=advanced.reason;coachStatus=advanced.status;}
     requestPlan({retain:Boolean(advanced)});render();
     } catch(error) {
+      diagnostic(error,{operation:'play-action',action,requestId,stateRevision:state?.revision});
       stopExplorer('Capture cancelled because play was interrupted. Capture again to inspect the current position.');
       // An accepted action may already have installed its current Context.
       // Drop transient routing, never restart or reconstruct that authority.
@@ -417,7 +439,7 @@
       coachStatus='interrupted';coachMessage='Coaching was interrupted. You can continue practicing from the current position.';
       // A late callback failure must not leave the old board or target visible.
       // Keep the original error if even the best-effort redraw fails.
-      try{if(obligationContext?.status==='available')patternHistory=clone(obligationContext.state.safety.notches);render();}catch{}
+      try{if(obligationContext?.status==='available')patternHistory=clone(obligationContext.state.safety.notches);render();}catch(error){diagnostic(error,{operation:'recovery-render',stateRevision:state?.revision});}
       throw error;
     }
   }
@@ -590,7 +612,7 @@
       finally{link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
       importStatus('Download requested for the current coaching session. The browser controls the filename and save location; hidden future, Undo and diagnostic counters were excluded.');
     }
-    catch(error){importStatus(`Session export unavailable: ${error.message}`);}
+    catch(error){diagnostic(error,{operation:'session-export'});importStatus(`Session export unavailable: ${error.message}`);}
   });
   $('st-export').addEventListener('click',()=>{$('st-snapshot').value=JSON.stringify({...observation(),suggestedFileName},null,2);importStatus('Exported visible state only; hidden future was excluded.');});
   $('st-snapshot').addEventListener('input',()=>{

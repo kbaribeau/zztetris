@@ -648,3 +648,30 @@ reduced stage envelope. Events are capped (default 1,200, hard maximum 3,000),
 with explicit omission/truncation reporting. Capture overhead can change real-time
 cutoffs, so compare instrumented runs with care. No hidden queue is supplied and
 trace output is never imported as strategic authority.
+
+## Local exception diagnostics
+
+The lab loads `st-diagnostics.js` before its application scripts. Unexpected page errors,
+unhandled promise rejections, resource-load failures, and caught/uncaught coach-worker
+failures are logged to the browser console and a local bounded report list. The
+**Local error reports** panel works independently of coach initialization and provides
+Copy, Download and Clear controls, with selectable JSON when clipboard/download APIs
+are unavailable. No diagnostic is uploaded automatically.
+
+Reports include error name/message/stack/cause, operation and request identity,
+independent page/worker diagnostic build markers, browser user-agent, and the public
+failed planning request (including visible queue, hold, board and current obligations).
+Private practice future supply, storage dumps and page DOM are not captured. Known
+secret-named keys and URL query/hash data are omitted; review reports before sharing
+because exception text itself may contain other information. At most 12 reports and
+240,000 serialized characters are retained under `zztetris.st.diagnostics.v1`;
+individual payloads are bounded and may be marked truncated. Storage failures leave
+in-memory viewing/export available. Clear removes this report history only.
+
+Expected search outcomes (timeout, cancellation, unsupported continuation) are not
+exceptions and do not produce exception reports. Native error handling is not
+suppressed. An OS-killed tab, out-of-memory crash or a recorder load failure cannot
+be guaranteed to produce a report. Cross-origin errors may expose limited details.
+The build markers identify this diagnostic protocol, not a Git commit; include the
+checkout/deployed revision when reporting an issue. Diagnostic data is never fed
+back into planning as additional piece knowledge.

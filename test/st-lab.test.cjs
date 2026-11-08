@@ -1,3 +1,9 @@
+function expectedDiagnostic(g,pattern,action){
+ const original=g.window.console.error,entries=[];g.window.console.error=(...args)=>entries.push(args);
+ try{action();}finally{g.window.console.error=original;}
+ assert.ok(entries.length>0,'Expected exception logged');
+ for(const entry of entries){assert.equal(entry[0],'[ZZTetris diagnostic]');assert.match(entry[1].error.message,pattern);}
+}
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
@@ -66,7 +72,7 @@ test('st-lab/worker safety: impossible target withheld and errors are nonfatal',
  const ws=workers(g),w=ws.at(-1),bad=legalResult(w.message.observation);bad.target.x=-100;
  w.respond(bad);assert.equal(g.element('#st-status').dataset.result,'invalid-witness');assert.equal(g.element('#st-target').children.length,0);
  const before=g.snapshot();g.tap('ArrowRight');assert.notEqual(g.snapshot().active.x,before.active.x);g.advance(40);
- ws.at(-1).onerror({preventDefault(){}});assert.equal(g.element('#st-status').dataset.result,'worker-error');
+ expectedDiagnostic(g,/Worker failed/,()=>ws.at(-1).onerror({preventDefault(){}}));assert.equal(g.element('#st-status').dataset.result,'worker-error');
 }));
 
 test('st-lab/hints: key and storage hide BOTH target and explanation; worker is cancelled',()=>withPage('st-lab.html',{},g=>{

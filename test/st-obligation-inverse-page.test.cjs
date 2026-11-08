@@ -1,3 +1,9 @@
+function expectedDiagnostic(g,pattern,action){
+ const original=g.window.console.error,entries=[];g.window.console.error=(...args)=>entries.push(args);
+ try{action();}finally{g.window.console.error=original;}
+ assert.ok(entries.length>0,'Expected exception logged');
+ for(const entry of entries){assert.equal(entry[0],'[ZZTetris diagnostic]');assert.match(entry[1].error.message,pattern);}
+}
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
 const {withPage}=require('./support/page.cjs'),R=require('../st-rules');
@@ -82,7 +88,7 @@ test('inverse page: failed restored Context import preserves stack, epoch and pa
  const first=g.snapshot(),firstContext=copy(g.window.stLab.obligationContext);g.window.stLab.act('HOLD');g.window.stLab.act('L');
  const partial=g.snapshot(),partialContext=copy(g.window.stLab.obligationContext),C=g.window.STObligationContext;
  g.window.STObligationContext={...C,importState(){throw Error('Injected inverse import failure');}};
- assert.throws(()=>g.window.stLab.act('UNDO'),/inverse import failure/);g.window.STObligationContext=C;
+ expectedDiagnostic(g,/inverse import failure/,()=>assert.throws(()=>g.window.stLab.act('UNDO'),/inverse import failure/));g.window.STObligationContext=C;
  assert.deepEqual(g.snapshot(),partial);assert.deepEqual(copy(g.window.stLab.obligationContext),partialContext);assert.equal(g.element('#st-undo').disabled,false);
  g.window.stLab.act('HD');g.window.stLab.act('UNDO');assert.deepEqual(semantic(g.snapshot()),semantic(first));assert.deepEqual(copy(g.window.stLab.obligationContext),firstContext);
  g.window.stLab.act('UNDO');assert.deepEqual(semantic(g.snapshot()),semantic(origin));assert.deepEqual(copy(g.window.stLab.obligationContext),originContext);
@@ -92,7 +98,7 @@ test('inverse page: wrong actual piece cannot pop a checkpoint and the same rece
  empty(g);const origin=g.snapshot(),originContext=copy(g.window.stLab.obligationContext);g.window.stLab.act('HD');
  const locked=g.snapshot(),current=copy(g.window.stLab.obligationContext),U=g.window.STObligationInverse;
  g.window.STObligationInverse={...U,undo(session,state,options){return U.undo(session,state,{...options,piece:{...options.piece,id:options.piece.id+1000}});}};
- assert.throws(()=>g.window.stLab.act('UNDO'),/does not match/);assert.deepEqual(g.snapshot(),locked);assert.deepEqual(copy(g.window.stLab.obligationContext),current);
+ expectedDiagnostic(g,/does not match/,()=>assert.throws(()=>g.window.stLab.act('UNDO'),/does not match/));assert.deepEqual(g.snapshot(),locked);assert.deepEqual(copy(g.window.stLab.obligationContext),current);
  g.window.STObligationInverse=U;g.window.stLab.act('UNDO');assert.deepEqual(semantic(g.snapshot()),semantic(origin));assert.deepEqual(copy(g.window.stLab.obligationContext),originContext);
 }));
 
@@ -102,7 +108,7 @@ test('inverse page: observer or routing failure after accepted Context never los
   if(stage==='observer')g.window.STObligationTracking={...T,create(){const observer=T.create();return{...observer,transition(){throw Error('Injected observer failure');}};}};
   squares(g);const origin=g.snapshot(),current=copy(g.window.stLab.obligationContext);
   if(stage==='routing')g.window.STPlanContinuity={...P,advance(){throw Error('Injected routing failure');}};
-  assert.throws(()=>g.window.stLab.act('HD'),new RegExp(stage+' failure'));
+  expectedDiagnostic(g,new RegExp(stage+' failure'),()=>assert.throws(()=>g.window.stLab.act('HD'),new RegExp(stage+' failure')));
   assert.notDeepEqual(g.snapshot().board,origin.board);assert.notDeepEqual(copy(g.window.stLab.obligationContext.inventory),current.inventory);
   g.window.STObligationTracking=T;g.window.STPlanContinuity=P;
   g.window.stLab.act('UNDO');assert.deepEqual(semantic(g.snapshot()),semantic(origin));assert.deepEqual(copy(g.window.stLab.obligationContext),current);
@@ -117,7 +123,7 @@ test('inverse page: late callback failure redraws accepted state and removes sta
  const selected=g.window.stLab.exportSession();assert.ok(selected.coaching.commitment);assert.ok(selected.coaching.pendingLHint);
  assert.equal(g.element('#st-target').children.length,4);assert.equal(g.element('#st-pieces-value').textContent,'0');
  const P=g.window.STPlanContinuity;g.window.STPlanContinuity={...P,advance(){throw Error('Injected after-Context routing failure');}};
- assert.throws(()=>g.window.stLab.act('HD'),/after-Context routing failure/);g.window.STPlanContinuity=P;
+ expectedDiagnostic(g,/after-Context routing failure/,()=>assert.throws(()=>g.window.stLab.act('HD'),/after-Context routing failure/));g.window.STPlanContinuity=P;
  assert.notDeepEqual(g.snapshot().board,initial.board);assert.equal(g.element('#st-target').children.length,0);assert.equal(g.element('#st-pieces-value').textContent,'1');
  assert.equal(g.element('#st-status').dataset.result,'interrupted');assert.match(g.element('#st-status').textContent,/current position/);
  assert.equal(JSON.parse(g.element('#st-diagnostic-text').textContent).revision,g.snapshot().revision);assert.equal(g.element('#st-undo').disabled,false);
@@ -134,7 +140,7 @@ test('inverse page: async Left marker callback faults retain current work and re
   g.element('#st-snapshot').value=JSON.stringify(f.observation);g.click('#st-import');assert.doesNotMatch(g.element('#st-import-status').textContent,/rejected/i);
   const checkpoint=g.snapshot(),checkpointContext=copy(g.window.stLab.obligationContext);
   g.window.stLab.act('R');g.window.stLab.act('L');g.advance(40);const worker=all.at(-1),before=g.snapshot(),beforeContext=copy(g.window.stLab.obligationContext);
-  assert.doesNotThrow(()=>worker.respond(copy(f.advice)),'Async marker failure is reported without an unhandled Worker callback error');
+  expectedDiagnostic(g,/Injected async Left/,()=>assert.doesNotThrow(()=>worker.respond(copy(f.advice)),'Async marker failure is reported without an unhandled Worker callback error'));
   const current=copy(g.window.stLab.obligationContext);assert.equal(current.state.leftGoals.length,1);assert.ok(markedReceipt);assert.equal(markedReceipt.piece,null);
   assert.deepEqual(g.snapshot(),before);assert.deepEqual(current.inventory,beforeContext.inventory);assert.deepEqual(current.boundary,beforeContext.boundary);
   assert.equal(g.window.stLab.result,null);assert.equal(g.element('#st-target').children.length,0);assert.equal(g.element('#st-status').dataset.result,'interrupted');assert.match(g.element('#st-status').textContent,/current position/);
@@ -154,7 +160,7 @@ test('inverse page: async Left marker callback faults retain current work and re
 test('inverse page: inverse recording failure preserves installed facts and starts an explicit new Undo boundary',()=>withPage('st-lab.html',hidden,g=>{
  squares(g);square(g,0);const before=g.snapshot(),prior=copy(g.window.stLab.obligationContext),U=g.window.STObligationInverse;
  g.window.STObligationInverse={...U,record(...args){U.record(...args);throw Error('Injected inverse recording failure');}};
- assert.throws(()=>g.window.stLab.act('HD'),/inverse recording failure/);g.window.STObligationInverse=U;
+ expectedDiagnostic(g,/inverse recording failure/,()=>assert.throws(()=>g.window.stLab.act('HD'),/inverse recording failure/));g.window.STObligationInverse=U;
  const accepted=g.snapshot(),current=copy(g.window.stLab.obligationContext);assert.notDeepEqual(accepted.board,before.board);assert.notDeepEqual(current.inventory,prior.inventory);
  assert.equal(g.element('#st-undo').disabled,true);assert.match(g.element('#st-game-status').textContent,/Undo is unavailable/);
  g.window.stLab.act('UNDO');assert.deepEqual(g.snapshot(),accepted);assert.deepEqual(copy(g.window.stLab.obligationContext),current);

@@ -1,3 +1,9 @@
+function expectedDiagnostic(g,pattern,action){
+ const original=g.window.console.error,entries=[];g.window.console.error=(...args)=>entries.push(args);
+ try{action();}finally{g.window.console.error=original;}
+ assert.ok(entries.length>0,'Expected exception logged');
+ for(const entry of entries){assert.equal(entry[0],'[ZZTetris diagnostic]');assert.match(entry[1].error.message,pattern);}
+}
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
 const {withPage}=require('./support/page.cjs'),R=require('../st-rules'),F=require('../st-fixtures');
@@ -50,7 +56,7 @@ test('coaching phase: pending, unsupported, stale and error responses do not bec
  select(g,'empty');phase(g,'opening','Opening');assert.equal(g.element('#st-status').dataset.result,'thinking');g.advance(40);
  stale.respond({phase:'maintenance',evidence:{openingHandoff:{}},status:'recommended-with-verified-prefix'});phase(g,'opening','Opening');
  all.at(-1).respond({phase:'maintenance',status:'no-supported-continuation-found',target:null,reason:'No checked continuation.'});phase(g,'opening','Opening');
- g.window.stLab.act('R');g.advance(40);all.at(-1).onerror({preventDefault(){}});phase(g,'opening','Opening');
+ g.window.stLab.act('R');g.advance(40);expectedDiagnostic(g,/Worker failed/,()=>all.at(-1).onerror({preventDefault(){}}));phase(g,'opening','Opening');
  g.window.stLab.act('L');g.advance(3000);assert.equal(g.element('#st-status').dataset.result,'budget-exhausted');phase(g,'opening','Opening');
 }));
 test('coaching phase: finite-queue exhaustion, top-out and restart are not a Reset coaching phase',()=>withPage('st-lab.html',{},g=>{
