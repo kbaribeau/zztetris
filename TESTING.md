@@ -317,3 +317,19 @@ Tests preserve existing placement evidence, inherited debt, the Right-piece
 gate and the distinction between a structural preference and a hard rejection.
 This is a computation reduction, not a broader regional policy or a claim
 that unfinished proofs establish impossibility.
+
+### Saved goals and symmetric landing outcomes
+
+`st-saved-outcome-extension.test.cjs` exercises optional same-horizon, Reset and
+reserved-O extensions when ordinary reduction removes a saved symmetric pose.
+Matching physical outcomes are only a discovery hint: the original saved prefix
+and resource route are preserved, and the searched tail is replayed and rebuilt
+within the shared budget. Reset still requires its literal saved event/witness
+prefix. Existing exact-event fast paths are unchanged, including their existing
+observed-result comparison scope.
+
+Tests include noncanonical I/S/Z integration controls, disabled-fallback
+sensitivity for ordinary/Reset extensions, distinct trusted accounting roots,
+real same-cell no-spin/mini events, actual HOLD identity/draw differences,
+invalid tails and interrupted replay. They establish finite compatibility and
+fail-closed behavior, not improved strategic quality or production latency.

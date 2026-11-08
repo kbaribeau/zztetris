@@ -15,10 +15,12 @@ function ordinaryRightEligible(event){return !event.cells.some(([x])=>x>=7)||['Z
 // lock outcome. HOLD count retains subject identity even when piece letters
 // match; spin and resulting supply are outcomes, not path bookkeeping.
 // The public rules enumerator and exact-target/cached queries stay unchanged.
+function ordinaryPlacementOutcomeKey(p){const e=p.event,s=p.state,cells=e.cells.slice().sort(([ax,ay],[bx,by])=>ay-by||ax-bx);
+ return JSON.stringify([e.type,cells,e.spin,e.lines,e.clearedRows,e.topOut,p.witness.filter(a=>a==='HOLD').length,s.rules,s.board,s.active,s.hold,s.canHold,s.queue,s.streamCursor,s.bag??null,s.topOut]);
+}
 function ordinaryPlacementOutcomes(placements){
  const unique=new Map();
- for(const p of placements){const e=p.event,s=p.state,cells=e.cells.slice().sort(([ax,ay],[bx,by])=>ay-by||ax-bx);
-  const key=JSON.stringify([e.type,cells,e.spin,e.lines,e.clearedRows,e.topOut,holdCount(p),s.rules,s.board,s.active,s.hold,s.canHold,s.queue,s.streamCursor,s.bag??null,s.topOut]);
+ for(const p of placements){const key=ordinaryPlacementOutcomeKey(p);
   const prior=unique.get(key);if(!prior||p.witness.length<prior.witness.length)unique.set(key,p);
  }
  return[...unique.values()];
@@ -708,6 +710,30 @@ function committedNode(s,proof,roots,initial,readAssessment=assess){
  // suffix. A merely proposed future roof is not a mandatory construction.
  if(initial.coveredRepair?.cells.length)n.path=n.path.map((p,i)=>({...p,structuralEvidence:{...p.structuralEvidence,coveredRepair:repairStepEvidence(repair,i,initial.coveredRepair.cells)}}));
  return resourceGoal(n.path)&&n.path.every(p=>S.canonicalClear(p.event))&&n.cycleDebt===0&&n.notchValid&&certifiedCavities(n)&&n.assessment.maxHeight<20&&n.assessment.regionalSupport?n:null;
+}
+// A removed pose label may hide a searched extension of a saved goal. The
+// equal outcomes are only a discovery hint: resume the actual saved node and
+// replay the searched tail, retaining its literal prefix and resource route.
+// Exact-prefix callers keep their existing fast path; this fallback requires
+// a genuine event alias, never just a different movement witness or raw flag.
+function extendSavedOutcome(saved,candidate,initial,spend,readAssessment=assess){
+ if(!saved?.path.length||candidate.path.length<=saved.path.length||
+  !saved.path.some((p,i)=>JSON.stringify(p.event)!==JSON.stringify(candidate.path[i].event))||
+  !saved.path.every((p,i)=>ordinaryPlacementOutcomeKey(p)===ordinaryPlacementOutcomeKey(candidate.path[i])))return null;
+ let n=saved;
+ for(const step of candidate.path.slice(saved.path.length)){
+  if(!spend(step.witness.length))return null;
+  const replay=R.replay(n.state,step.witness);
+  if(!replay.valid||replay.events.length!==1||JSON.stringify(replay.events[0])!==JSON.stringify(step.event))return null;
+  const p={state:replay.state,event:replay.events[0],target:replay.events[0].target,witness:step.witness,hold:step.witness.includes('HOLD'),holdCount:step.witness.filter(a=>a==='HOLD').length,
+   // These two discovery facts depend on the matched physical parent/supply,
+   // not the candidate's resource ledger or copied structural proof labels.
+   availableCap:step.availableCap,availableCleanupPreparation:step.availableCleanupPreparation};
+  if(ordinaryPlacementOutcomeKey(p)!==ordinaryPlacementOutcomeKey(step))return null;
+  n=nodeFor(p,n,initial,n.rootIndex,readAssessment);
+  if(n.cycleDebt||!n.notchValid)return null;
+ }
+ return n;
 }
 function sameConstructionResult(expected,actual){
  if(expected.rules!==actual.rules||JSON.stringify(expected.board)!==JSON.stringify(actual.board)||expected.hold!==actual.hold||expected.canHold!==actual.canHold||expected.topOut!==actual.topOut||(expected.active&&expected.active.type!==actual.active?.type)||!expected.queue.every((t,i)=>actual.queue[i]===t))return false;
@@ -1657,9 +1683,13 @@ function planCore(raw,options={}){
   // reusing searched descendants of the exact saved proof rather than hiding
   // the fresh lookahead or inventing an unsearched continuation.
   const matchesSaved=n=>n.path.length>=commitment.path.length&&commitment.path.every((p,i)=>JSON.stringify(p.event)===JSON.stringify(n.path[i].event)&&sameObservedResult(p.state,n.path[i].state));
+  const replayedExtensions=new Map(),extendSaved=n=>{
+   if(!replayedExtensions.has(n))replayedExtensions.set(n,extendSavedOutcome(commitment,n,initial,units=>{if(now()>=deadline||base.metrics.nodes+units>limit)return false;base.metrics.nodes+=units;return true;},readAssessment));
+   return replayedExtensions.get(n);
+  };
   let saved=commitment,fresh=best,replacement=false,rankingPreferred=false;
   if(fresh&&coversResourceGoal(fresh,commitment)&&fresh.path.length>saved.path.length){
-   const candidates=comparisonLayer.filter(n=>n.path.length===fresh.path.length&&matchesSaved(n)&&n.cycleDebt===0&&n.notchValid&&certifiedCavities(n)&&n.assessment.maxHeight<20&&n.assessment.regionalSupport);
+   const candidates=comparisonLayer.filter(n=>n.path.length===fresh.path.length).map(n=>matchesSaved(n)?n:extendSaved(n)).filter(n=>n&&n.cycleDebt===0&&n.notchValid&&certifiedCavities(n)&&n.assessment.maxHeight<20&&n.assessment.regionalSupport);
    const qualified=qualify(candidates).filter(n=>n.qualified&&n.assessment.right.entry?.status!=='unresolved-budget');
    saved=orderContinuations(qualified)[0]??saved;
   }
@@ -1686,6 +1716,11 @@ function planCore(raw,options={}){
   // not an unequal-horizon replacement that reorders a protected goal.
   let resetExactPrefixExtension=false;
   const literalResetSaved=options[resetScoringExtension]?options.commitment?.advice?.continuation:null;
+  // Restore a pruned symmetric pose only by actually executing the original
+  // saved prefix. Do not broaden the literal Reset exception to reordered
+  // goals or alternate same-event witnesses.
+  if(!replacement&&!pendingLCompletionPreserved&&options[resetScoringExtension]&&fresh&&Array.isArray(literalResetSaved)&&literalResetSaved.length===commitment.path.length&&
+   literalResetSaved.every((p,i)=>JSON.stringify(p.event)===JSON.stringify(commitment.path[i].event)&&JSON.stringify(p.witness)===JSON.stringify(commitment.path[i].witness)))fresh=extendSaved(fresh)??fresh;
   if(!replacement&&!pendingLCompletionPreserved&&options[resetScoringExtension]&&fresh&&Array.isArray(literalResetSaved)&&literalResetSaved.length===commitment.path.length&&commitment.path.length&&fresh.path.length>commitment.path.length&&
    literalResetSaved.every((p,i)=>JSON.stringify(p.event)===JSON.stringify(fresh.path[i].event)&&JSON.stringify(p.witness)===JSON.stringify(fresh.path[i].witness))&&
    commitment.path.every((p,i)=>JSON.stringify(p.event)===JSON.stringify(fresh.path[i].event)&&JSON.stringify(p.witness)===JSON.stringify(fresh.path[i].witness))&&
@@ -2802,7 +2837,18 @@ function reservedPiecePlan(raw,incumbent,options,collector){
  const finish=result=>({...result,metrics:{...result.metrics,nodes:spent+used,elapsedMs:(incumbent.metrics?.elapsedMs||0)+Math.max(0,Date.now()-started),reservedPiecePlan:{...telemetry,visited:used,incomplete}}});
  const bounded=()=>now()<deadline&&used<cap;
  if(!bounded()){telemetry.reason='shared-budget';return finish(incumbent);}
- const first=collector.placements.filter(p=>JSON.stringify(p.event)===JSON.stringify(incumbent.continuation?.[0]?.event)&&holdCount(p)===holdCount(incumbent));
+ let first=collector.placements.filter(p=>JSON.stringify(p.event)===JSON.stringify(incumbent.continuation?.[0]?.event)&&holdCount(p)===holdCount(incumbent));
+ // The selected first lock may use a symmetric pose omitted by ordinary
+ // reduction. Preserve that exact target/witness, rather than substitute the
+ // collector's alias or trust an incumbent's claimed endpoint.
+ const selected=incumbent.continuation?.[0];
+ if(!first.length&&selected?.witness.length&&used+selected.witness.length<=cap&&bounded()){
+  used+=selected.witness.length;const replay=R.replay(s,selected.witness);
+  if(replay.valid&&replay.events.length===1&&JSON.stringify(replay.events[0])===JSON.stringify(selected.event)){
+   const p={state:replay.state,event:replay.events[0],target:replay.events[0].target,witness:selected.witness,hold:selected.witness.includes('HOLD'),holdCount:selected.witness.filter(a=>a==='HOLD').length};
+   if(collector.placements.some(q=>ordinaryPlacementOutcomeKey(p)===ordinaryPlacementOutcomeKey(q)))first=[p];
+  }
+ }
  let layer=[{state:s,resource:root,notches:phase,path:[],debt:summary.coveredRepair?.cells||[],everDebt:false,paid:false,extraPaid:false,score:0}];
  for(let depth=0;depth<maxDepth&&layer.length&&bounded();depth++){
   const children=[];
