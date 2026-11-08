@@ -675,3 +675,18 @@ be guaranteed to produce a report. Cross-origin errors may expose limited detail
 The build markers identify this diagnostic protocol, not a Git commit; include the
 checkout/deployed revision when reporting an issue. Diagnostic data is never fed
 back into planning as additional piece knowledge.
+
+### Static asset releases
+
+The lab's local scripts/styles and both coach workers use the same release token
+(`STCoachConfig.ASSET_VERSION`, also present on the HTML asset URLs). Workers
+propagate their entry URL query to every import, including optional search tracing.
+Bump the token in config and HTML together when publishing lab/worker dependency
+changes. This prevents an old cached worker import list from loading a newer planner
+without its resource module. It does not make server deployments atomic or preserve
+immutable historical assets; after updating the checkout/site, reload the lab HTML.
+
+`st-worker-asset-version.test.cjs` checks the real page URLs and real classic worker
+imports using a minimized public empty-board request from the browser failure.
+The regression includes a missing-resource sensitivity check; no browser metadata
+or private diagnostics are committed.

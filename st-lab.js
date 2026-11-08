@@ -2,6 +2,7 @@
  * enter a planning request. Other practice pages retain their original engines. */
 'use strict';
 (() => {
+  const workerURL='st-worker.js?v='+encodeURIComponent(STCoachConfig.ASSET_VERSION);
   const $ = id => document.getElementById(id);
   const clone = value => JSON.parse(JSON.stringify(value));
   const diagnostic=(error,context)=>window.STDiagnostics?.report(error,{pageBuild:'st-lab-diagnostics-2026-11-08-v1',...context});
@@ -201,7 +202,7 @@
     const context=document.createElement('pre');context.textContent=JSON.stringify({active:snapshot.active,hold:snapshot.hold,queue:snapshot.queue,canHold:snapshot.canHold},null,2);$('st-explore-start').append(context);
     setText($('st-explore-status'),'Capturing one decision… The live game is unchanged.');
     try{
-      const current=new Worker('st-worker.js');explorerWorker=current;
+      const current=new Worker(workerURL);explorerWorker=current;
       $('st-explore-capture').disabled=true;$('st-explore-cancel').disabled=false;
       current.onmessage=({data})=>{
         if(explorerWorker!==current||state.revision!==snapshot.revision)return;
@@ -236,7 +237,7 @@
       try {
         const request=planningRequest('plan',id);
         errorContext={operation:'coach',requestId:id,request:diagnosticRequest(request)};
-        const activeWorker=new Worker('st-worker.js');worker=activeWorker;
+        const activeWorker=new Worker(workerURL);worker=activeWorker;
         activeWorker.onmessage=({data})=>{
           if(worker!==activeWorker || currentRevision!==state.revision)return;
           const startupError=data?.type==='error'&&data.startupDiagnostic===true;

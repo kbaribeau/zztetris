@@ -58,7 +58,7 @@ test('st-lab/input: focus and modifiers cannot play; release and blur stop repea
 
 test('st-lab/workers: off-main requests expose only observation and cancel stale movement results',()=>withPage('st-lab.html',{},g=>{
  const ws=workers(g),old=ws[0],oldResult=legalResult(old.message.observation);
- assert.equal(old.url,'st-worker.js');
+ assert.equal(old.url,'st-worker.js?v='+require('../st-coach-config').ASSET_VERSION);
  assert.equal(old.message.observation.queue.length,6);
  assert.equal('future' in old.message.observation,false);assert.equal('construction' in old.message.observation,false);assert.equal('seed' in old.message.observation,false);
  old.respond(oldResult);assert.equal(g.element('#st-target').children.length,4);

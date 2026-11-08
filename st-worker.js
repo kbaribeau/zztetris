@@ -1,5 +1,9 @@
 /* Classic worker: the only input is the public observation, never game RNG. */
 'use strict';
+// Carry the entry URL's release token through all classic-worker dependencies.
+// Non-browser hosts without a location retain their explicit source-map imports.
+const assetQuery=typeof self.location?.search==='string'?self.location.search:'';
+const importAssets=(...files)=>importScripts(...files.map(file=>file+assetQuery));
 let diagnosticRequest=null;
 let reportingFailure=false;
 function workerFailure(error,stage){
@@ -17,8 +21,8 @@ self.addEventListener?.('unhandledrejection',event=>workerFailure(event.reason,'
 self.addEventListener?.('messageerror',()=>workerFailure(new Error('Worker could not deserialize message'),'worker-messageerror'));
 let startupError=null;
 try {
-importScripts('st-diagnostics.js');
-importScripts('st-coach-config.js','st-rules.js','st-bag.js','st-structure.js','st-paired-repair.js','st-access.js','st-pattern-history.js', 'st-left-foundation.js','st-opening-patterns.js','st-reset-policy.js','st-public-inventory.js','st-center-obligations.js','st-handoff-continuity.js','st-obligation-admission.js','st-resource-search.js', 'st-sl-obligations.js','st-opening-obligations.js','st-left-obligations.js','st-obligation-state.js','st-obligation-context.js','st-obligation-projection.js','st-obligation-assessment.js','st-obligation-route.js','st-obligation-resources.js','st-opening-eligibility.js','st-plan-continuity.js','st-resource-provider.js','st-obligation-tracking.js','st-left-context.js','st-midgame-coaches.js','st-reset-coach.js','st-planner.js','st-opening-continuations.js','st-opening-sources.js','st-source-scoring.js','st-opening.js');
+importAssets('st-diagnostics.js');
+importAssets('st-coach-config.js','st-rules.js','st-bag.js','st-structure.js','st-paired-repair.js','st-access.js','st-pattern-history.js', 'st-left-foundation.js','st-opening-patterns.js','st-reset-policy.js','st-public-inventory.js','st-center-obligations.js','st-handoff-continuity.js','st-obligation-admission.js','st-resource-search.js', 'st-sl-obligations.js','st-opening-obligations.js','st-left-obligations.js','st-obligation-state.js','st-obligation-context.js','st-obligation-projection.js','st-obligation-assessment.js','st-obligation-route.js','st-obligation-resources.js','st-opening-eligibility.js','st-plan-continuity.js','st-resource-provider.js','st-obligation-tracking.js','st-left-context.js','st-midgame-coaches.js','st-reset-coach.js','st-planner.js','st-opening-continuations.js','st-opening-sources.js','st-source-scoring.js','st-opening.js');
 }catch(error){startupError=error;}
 self.onmessage = ({data}) => {
   if (!data || !['plan','explore'].includes(data.type)) return;
@@ -27,7 +31,7 @@ self.onmessage = ({data}) => {
     if(startupError)throw startupError;
     const options = {...(data.options || {})};
     delete options.searchTrace;
-    if(data.type==='explore'&&typeof STSearchTrace==='undefined')importScripts('st-search-trace.js');
+    if(data.type==='explore'&&typeof STSearchTrace==='undefined')importAssets('st-search-trace.js');
     const trace=data.type==='explore'?STSearchTrace.create({limit:data.traceLimit}):null;
     if(trace)options.searchTrace=trace;
     options.timeMs ??= STCoachConfig.SEARCH_TIME_MS;

@@ -60,7 +60,10 @@ async function boot(page, { storage = {}, seed = SEED, autoLoadImages = true } =
       resources: { interceptors: [requestInterceptor(request => {
         requests.push(request.url);
         if (request.url === ANIMATE) return new Response('', { headers: { 'content-type': 'text/css' } });
-        const file = resources.get(request.url);
+        const resourceURL=new URL(request.url);
+        // Permit only the shipped release token on already allowlisted local assets.
+        if(resourceURL.origin===new URL(ORIGIN).origin && resourceURL.search==='?v='+require('../../st-coach-config').ASSET_VERSION)resourceURL.search='';
+        const file = resources.get(resourceURL.href);
         if (!file) {
           errors.push(new Error(`Denied resource: ${request.url}`));
           return new Response('Denied', { status: 403 }); // never fall through to network
