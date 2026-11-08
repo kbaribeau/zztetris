@@ -10,6 +10,19 @@ const cloneNode=n=>({...clone({...n,resources:null}),resources:n.resources});
 // actual lock, including HOLD and boundary-crossing minos; existing board
 // colors, target origins and claimed region/repair labels are not authority.
 function ordinaryRightEligible(event){return !event.cells.some(([x])=>x>=7)||['Z','T','I'].includes(event.type);}
+// Within one parent, a movement witness establishes reachability rather than a
+// separate strategic choice. Keep one exact, replayable representative of each
+// lock outcome. HOLD count retains subject identity even when piece letters
+// match; spin and resulting supply are outcomes, not path bookkeeping.
+// The public rules enumerator and exact-target/cached queries stay unchanged.
+function ordinaryPlacementOutcomes(placements){
+ const unique=new Map();
+ for(const p of placements){const e=p.event,s=p.state,cells=e.cells.slice().sort(([ax,ay],[bx,by])=>ay-by||ax-bx);
+  const key=JSON.stringify([e.type,cells,e.spin,e.lines,e.clearedRows,e.topOut,holdCount(p),s.rules,s.board,s.active,s.hold,s.canHold,s.queue,s.streamCursor,s.bag??null,s.topOut]);
+  const prior=unique.get(key);if(!prior||p.witness.length<prior.witness.length)unique.set(key,p);
+ }
+ return[...unique.values()];
+}
 // The shared construction presenter also serves the existing paired-T recovery.
 // Only a freshly replay-verified, Reset-eligible proof receives this private
 // scope. No serialized construction kind or caller option can exempt a route.
@@ -1343,6 +1356,7 @@ function planCore(raw,options={}){
  });
  if(usage){usage.families.cleanupBeforeCap.verified+=Number(cleanupBeforeCap);usage.families.cleanupBeforeCap.unknown+=Number(!r.complete&&!cleanupBeforeCap);usage.costsMs.cleanupBeforeCap+=usageNow()-cleanupStarted;}
  for(const p of r.placements)p.availableCleanupPreparation=cleanupBeforeCap;
+ r.placements=ordinaryPlacementOutcomes(r.placements);
  return r;};
  const root=enumerate(s);base.metrics.roots=root.placements.length;
  if(options[riskRootCollector]?.key===stateKey(s)){options[riskRootCollector].placements=root.placements;options[riskRootCollector].complete=root.complete;}
@@ -2947,5 +2961,5 @@ function decideRequest(raw,options={}){
  return budgetTracker.nodes||recovery?{...result,metrics:{...result.metrics,nodes:(result.metrics?.nodes||0)+budgetTracker.nodes,revalidationNodes:budgetTracker.nodes,...(recovery?{handoffRecovery:recovery}:{})}}:result;
 }
 
-return Object.freeze({dPatternAdmission,importCandidateResources,checkedCoveredRepair,pendingSLAllocationComparison,qualifiedSLTailOrder,compareSLTail,visibleSLTailComparison,ordinarySAllocationComparison,slAllocationStep,placedResource,certifyStrongestAllocation,publicDrawHorizon,exactAllocationPrefix,supportedSLComparison,preserveExtraZ,orderContinuations,advicePresentation,observe,assess,plan:(...args)=>M.discloseAdvice(plan(...args)),decide:(...args)=>M.discloseAdvice(decide(...args)),captureHandoffRecovery,resetSelection,startPatternHistory:H.start,updatePatternHistory:H.update,resolvePatternHistory:H.resolve,gapAccess:A.check,checkAccessPrefix:A.prefix,startOpeningSession,updateOpeningSession,acceptOpeningResult,captureOpeningForecast,advanceOpeningForecast,revalidateOpeningForecast,revalidate:(...args)=>M.discloseAdvice(revalidate(...args)),advance:(...args)=>M.discloseAdvice(advance(...args)),cavityRepairDebt,continueCommitment:(...args)=>M.discloseAdvice(continueCommitment(...args)),cycleResources,resourceGoal,resourceGoalPrefix,scoringSchedule,scoringReplacement,centerReservationStep,centerContinuityStep,ordinaryCenterEligible,ordinaryRightEligible});
+return Object.freeze({dPatternAdmission,importCandidateResources,checkedCoveredRepair,pendingSLAllocationComparison,qualifiedSLTailOrder,compareSLTail,visibleSLTailComparison,ordinarySAllocationComparison,slAllocationStep,placedResource,certifyStrongestAllocation,publicDrawHorizon,exactAllocationPrefix,supportedSLComparison,preserveExtraZ,orderContinuations,advicePresentation,observe,assess,plan:(...args)=>M.discloseAdvice(plan(...args)),decide:(...args)=>M.discloseAdvice(decide(...args)),captureHandoffRecovery,resetSelection,startPatternHistory:H.start,updatePatternHistory:H.update,resolvePatternHistory:H.resolve,gapAccess:A.check,checkAccessPrefix:A.prefix,startOpeningSession,updateOpeningSession,acceptOpeningResult,captureOpeningForecast,advanceOpeningForecast,revalidateOpeningForecast,revalidate:(...args)=>M.discloseAdvice(revalidate(...args)),advance:(...args)=>M.discloseAdvice(advance(...args)),cavityRepairDebt,continueCommitment:(...args)=>M.discloseAdvice(continueCommitment(...args)),cycleResources,resourceGoal,resourceGoalPrefix,scoringSchedule,scoringReplacement,centerReservationStep,centerContinuityStep,ordinaryCenterEligible,ordinaryRightEligible,ordinaryPlacementOutcomes});
 });
