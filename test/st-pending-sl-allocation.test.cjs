@@ -130,7 +130,7 @@ test('pending SL grow qualifies every distinct compatible final endpoint before 
 // on physically generated final boards. Real R.placements/replay retain their
 // original closed-over physics, so this cannot manufacture a movement witness.
 // D silhouettes are neutralized ONLY in this synthetic scheduling harness to
-// keep its >2 uncached reference-endpoint population fixed. Production D pruning
+// keep its >2 reference-endpoint population fixed. Production D pruning
 // otherwise changes query reuse/order, not the all-endpoints invariant below.
 // The reorder control also neutralizes contextual Left score so that input
 // effort keeps its established >2-endpoint population; the real scoring/entry
@@ -148,7 +148,7 @@ function qualificationBoundary(mode){const silhouette=fixture.expected.goalLastB
  }});return{api,stats};}
 
 test('pending SL actual grow path reorders final endpoints after their entry qualification changes',()=>{
- const {api,stats}=qualificationBoundary('reorder'),a=api.plan(fixture.observation,opts()),m=a.metrics.pendingSLAllocation;assert(stats.calls>0);assert(stats.referenceCalls>2,'qualify all real reference endpoints, not only a raw top two');const final=m.prefixes.find(p=>p.kind==='exact-incumbent-reference').layers.find(l=>l.depth===m.horizon);assert(final.distinct>2);assert.equal(final.qualified,final.distinct);assert.equal(final.endpointOrder.length,final.distinct);assert.equal(final.retained,2);
+ const {api,stats}=qualificationBoundary('reorder'),a=api.plan(fixture.observation,opts()),m=a.metrics.pendingSLAllocation;assert(stats.calls>0);assert(stats.referenceCalls>0,'exercise the reference qualification failure; cached reuse is allowed');assert(stats.firstReference);const final=m.prefixes.find(p=>p.kind==='exact-incumbent-reference').layers.find(l=>l.depth===m.horizon);assert(final.distinct>2);assert.equal(final.qualified,final.distinct);assert.equal(final.endpointOrder.length,final.distinct);assert.equal(final.retained,2);
  assert.equal(final.endpointOrder[0].entry.status,'reachable-if-T-available');assert(final.endpointOrder.slice(1).some(n=>n.entry.status==='unreachable'),'the initially visited endpoint loses its optimistic structural band before ordering');assert.deepEqual(final.endpointOrder[0].prefix,m.referencePrefix);assert(a.metrics.nodes<=45000);assert(m.nodes<=18000);
 });
 

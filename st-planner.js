@@ -858,7 +858,7 @@ function continueConstruction(before,after,advice,event,options={}){
 }
 function continueCommitment(before,after,advice,actualEvent=after?.lastEvent,options={}){
  try{options=prepareResourceOptions(after,options);}catch{return null;}if(!resourceAvailable(after,options))return null;
- if(advice?.evidence?.strategy==='reset-coach')return Reset.continuation(before,after,advice,actualEvent,{...options,deadline:options.deadline??Date.now()+150,maxNodes:options.maxNodes??12000});
+ if(advice?.evidence?.strategy==='reset-coach')return Reset.continuation(before,after,advice,actualEvent,{...options,deadline:options.deadline??(options.now||(()=>Date.now()))()+150,maxNodes:options.maxNodes??12000});
  if(advice?.recommendation?.kind==='risky'||advice?.status==='recommended-risky-placement')return null;
  options={...options,[pendingLHint]:advice?.evidence?.pendingLStage};
  if(advice?.evidence?.construction){
@@ -891,7 +891,7 @@ function continueCommitment(before,after,advice,actualEvent=after?.lastEvent,opt
   continuation.push({...step,resultContext:context(current),structuralEvidence:{...S.transition(previousState,{event:r.events[0],state:r.state},S.assess(r.state,{notches}),{notches:previousNotches}),structure:S.assess(r.state,{notches}),centerReservation,leftRepair:step.structuralEvidence?.leftRepair??null,...(step.structuralEvidence?.hangingSAccommodation?{hangingSAccommodation:step.structuralEvidence.hangingSAccommodation}:{})}});
  }
  continuation=refreshLeftRepairs(s,continuation,options);if(!continuation)return null;
- const bounds={...options,maxNodes:options.maxNodes??12000,deadline:options.deadline??Date.now()+150},resources=checkedResourceEndpoint(s,continuation,bounds);if(!resources.valid)return null;
+ const bounds={...options,maxNodes:options.maxNodes??12000,deadline:options.deadline??(options.now||(()=>Date.now()))()+150},resources=checkedResourceEndpoint(s,continuation,bounds);if(!resources.valid)return null;
  if(debt.length||centerDebt.length||!prior.regionalSupport||!resourceGoal(continuation)&&!pendingPlan)return null;
  const repair=checkedCoveredRepair(s,continuation,options,pendingPlan);if(!repair)return null;
  const head=continuation[0],access=A.prefix(s,continuation,{...bounds,notches:H.resolve(s,options.patternHistory),maxNodes:Math.max(0,bounds.maxNodes-resources.visited)});if(access.reachable!==true)return null;return {...advice,target:head.target,witness:head.witness,hold:head.witness.includes('HOLD'),holdCount:holdCount(head),continuation:repair.steps,context:context(s),revision:s.revision,metrics:{...advice.metrics,certifiedHorizon:continuation.length,revalidationNodes:resources.visited+access.visited},

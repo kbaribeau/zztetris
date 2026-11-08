@@ -137,3 +137,48 @@ test('simulation/replay reports timed display-retention drift without weakening 
   r=>{r.advice.witness=['HD'];},r=>{r.advice.target.x=99;},
  ]){const corrupt=E.clone(records);mutate(corrupt.find(r=>r.kind==='lock'));assert.throws(()=>E.replayRecords(input,corrupt,stub));}
 });
+
+test('simulation/replay reproduces timed commitment proof decisions and rejects altered clocks/results',()=>{
+ const input=E.makeInput('empty',13,2);
+ for(const timeout of [false,true]){
+  const records=[];let liveCalls=0;
+  const api={...stub,resourceGoal:()=>true,continueCommitment(_before,_after,_advice,_event,options){
+   const start=options.now(),deadline=start+150;
+   // A deterministic fake clock models both sides of a real budget boundary.
+   const timedOut=options.now()>=deadline;
+   return timedOut?null:{goal:{kind:'checked'},continuation:[{event:{type:'T',lines:2}}],metrics:{nodes:4}};
+  }};
+  const original=Date.now;
+  try{
+   Date.now=()=>{liveCalls++;return timeout&&liveCalls%2===0?1150:1000;};
+   E.runEpisode(input,{api,planner:req=>({...hd(req.observation),evidence:{}}),onRecord:r=>records.push(r)});
+  }finally{Date.now=original;}
+  const rows=records.filter(r=>r.kind==='lock');assert.equal(rows.length,2);
+  assert.equal(rows[1].request.commitment===null,timeout);
+  const replay=E.replayRecords(input,records,api);assert.equal(replay.verified,true);assert.equal(replay.commitmentReplay,'clock-tape-v1');
+  for(const mutate of [r=>{delete r.commitmentCheck;},r=>{r.commitmentCheck=undefined;},r=>{r.commitmentCheck=null;},r=>{delete r.commitmentCheck.clock;},r=>{r.commitmentCheck.result='forged';},r=>{r.commitmentCheck.clock=[];},r=>{r.commitmentCheck.clock.push([2000,1]);},r=>{r.commitmentCheck.clock[0][1]=-1;}]){
+   const bad=E.clone(records);mutate(bad.find(r=>r.kind==='lock'));assert.throws(()=>E.replayRecords(input,bad,api));
+  }
+ }
+});
+
+test('simulation/real resource recertification replays the recorded clock and retains exact obligations',()=>{
+ const fixture=require('./fixtures/commitment-clock-replay.json');
+ for(const expire of [false,true]){
+  const session=E.createSession(fixture.input),request=session.request(1,E.CONFIG);
+  let n=0,actual;const original=Date.now;
+  // Control only the real recertification clock. This is a clock regression,
+  // not a timing-performance or planner-selection test.
+  const api={...P,continueCommitment(...args){const now=args[4].now;args[4]={...args[4],now:()=>{n++;return now();}};return P.continueCommitment(...args);}};
+  const live=E.createSession(fixture.input,api);
+  try{Date.now=()=>expire&&n>=2?1150:1000;actual=live.execute(fixture.advice);}finally{Date.now=original;}
+  assert.deepEqual(E.publicObservation(live.state),fixture.expectedAfter);
+  const retained=live.request(2,E.CONFIG).commitment;
+  assert.equal(Boolean(retained),!expire);
+  if(retained){assert.deepEqual(retained.advice.continuation.map(p=>p.event.type),['Z','S']);assert.equal(retained.advice.evidence.resourceObligations.status,'checked');assert.equal(retained.advice.metrics.revalidationNodes,2430);}
+  const records=[{kind:'tracking-start',schemaVersion:1,commitmentReplay:'clock-tape-v1'},{kind:'lock',lock:1,request,advice:fixture.advice,...actual,after:fixture.expectedAfter}];
+  const result=E.replayRecords(fixture.input,records);assert.equal(result.verified,true);
+  const malformed=[records[1],records[0]];assert.throws(()=>E.replayRecords(fixture.input,malformed),/Late replay header/);
+  const corrupt=E.clone(records);corrupt[1].advice.continuation[1].event.lines=4;assert.throws(()=>E.replayRecords(fixture.input,corrupt),/Commitment/);
+ }
+});

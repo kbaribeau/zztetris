@@ -46,10 +46,15 @@ test('visible SL tail: fixed admitted I/O routes retain the same paid SL and TSD
  assert.equal(comparison.candidate.leftScore,4);assert.equal(comparison.reference.leftScore,2);assert.deepEqual(comparison.candidate.schedule,comparison.reference.schedule);assert.deepEqual(comparison.candidate.schedule.tsds,[3]);assert.deepEqual(c.slAllocation,r.slAllocation);assert.deepEqual(c.state.active,null);assert.equal(c.state.hold,'T');assert.deepEqual(c.state.queue,[]);assert.equal(c.path.at(-1).structuralEvidence.allocation,'quad-preparation');assert.equal(P.resourceGoalPrefix(c.path,c.path),7);
  assert.deepEqual(options.candidateDraw.drawn,options.referenceDraw.drawn);assert.deepEqual(options.candidateDraw.placed.slice().sort(),options.referenceDraw.placed.slice().sort());assert(P.revalidate(fixture.observation,a,opts()));
 });
-test('visible SL tail: unrestricted Left-first search preserves its prior goal instead of selecting a weaker tail',()=>{
+test('visible SL tail: unrestricted Left-first search retains the admitted S-tier goal when a tail is not retained',()=>{
  const a=plan(),off=plan(true),t=a.metrics.ordinarySAllocation.visibleTail;
- assert.equal(a.continuation.length,5);assert.equal(t.selected,false);assert.equal(t.reason,'score-or-original-goal-regression');assert.deepEqual(noMetrics(a),noMetrics(off));
- assert.deepEqual(t.priorAdmission.continuation,off.continuation);assert.equal(t.comparison.reference.leftScore,4);assert.equal(t.comparison.candidate.leftScore,2);
+ assert.equal(a.continuation.length,5);assert.equal(t.selected,false);assert.equal(t.reason,'tail-not-retained-by-resource-goal');assert.deepEqual(noMetrics(a),noMetrics(off));
+ assert.deepEqual(t.priorAdmission.continuation,off.continuation);assert.equal(t.comparison.reference.leftScore,2);assert.equal(t.comparison.candidate.leftScore,4);
+ // This is the reviewed fresh J/O order, not the historical O/J choice. The
+ // optional seven-lock tail still cannot replace the admitted resource goal.
+ assert.deepEqual(a.continuation.map(p=>p.event.type),['J','O','T','S','L']);assert.equal(a.assessment.leftContext.tier,'S');assert.deepEqual(a.assessment.leftContext.profile,[0,0,1,1]);
+ assert.equal(P.resourceGoalPrefix(a.continuation,a.continuation),5);assert.deepEqual(t.comparison.candidate.schedule,t.comparison.reference.schedule);assert.deepEqual(t.comparison.candidate.schedule.tsds,[3]);
+ node(a,facts(a)); // Replay every event through the real rules and accounting.
  assert.equal(t.compatiblePrefixes,2);assert.equal(t.omittedPrefixes,0);assert(t.prefixes.every(p=>p.qualifiedEndpoints===2&&p.layers.every(l=>l.retained<=2)));assert(a.metrics.nodes<=45000);assert(P.revalidate(fixture.observation,a,opts()));
 });
 test('visible SL tail: former third compatible prefix creates D without immediate J',()=>{

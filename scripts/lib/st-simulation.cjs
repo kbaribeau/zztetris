@@ -104,6 +104,19 @@ function boardMetrics(state) {
 }
 function accountingFrame(current,position){return{status:current.status,state:current.state,reason:current.reason,view:Context.resolve(current,{position})};}
 function importCurrent(snapshot,position){const current=Context.importState(snapshot,{position});if(position.bag)assert.deepEqual(clone(position.bag),clone(current.inventory.knowledge),'Current public bag disagrees with supplied inventory');return current;}
+// Record only clock samples used by post-lock proof recertification. The real
+// 150 ms budget is unchanged. Replay feeds the same samples through every
+// original proof check rather than trusting a recorded keep/drop decision.
+function commitmentClock(recorded) {
+  const replay=recorded!==undefined, runs=replay?clone(recorded):[];
+  if(!Array.isArray(runs)||runs.some(r=>!Array.isArray(r)||r.length!==2||!Number.isSafeInteger(r[0])||!Number.isSafeInteger(r[1])||r[1]<1)||runs.reduce((n,r)=>n+r[1],0)>1000000)throw Error('Malformed commitment clock');
+  let index=0,used=0,exhausted=false;
+  return {now(){
+    if(replay){if(index>=runs.length){exhausted=true;throw Error('Commitment clock exhausted');}const value=runs[index][0];if(++used===runs[index][1]){index++;used=0;}return value;}
+    const value=Date.now(),last=runs.at(-1);if(last&&last[0]===value)last[1]++;else runs.push([value,1]);return value;
+  },finish(){if(replay&&(exhausted||index!==runs.length||used))throw Error('Commitment clock consumption diverged');return runs;}};
+}
+function commitmentResult(advice){const result=clone(advice);if(result?.metrics)delete result.metrics.elapsedMs;return digest(result);}
 function createSession(input, api=P) {
   if(typeof api.startOpeningSession!=='function')throw Error('Shared opening session API is not available');
   let state=R.createState(clone(input.initial)), cursor=0, commitment=null, previous=null, pendingLHint=null, pendingHandoffRecovery=null, openingForecast=null,planContinuity=null;
@@ -141,7 +154,7 @@ function createSession(input, api=P) {
     get actualLocks(){return actualLocks;},
     get resources(){return resources();}, get state(){return state;}, get cursor(){return cursor;}, get opening(){return clone(opening);},
     request(id,options) { const {handoffRecovery:ignored,pendingLHint:ignoredHint,openingForecast:ignoredForecast,resourceContext:ignoredLegacy,obligationContext:ignoredCurrent,resourceInput:ignoredInput,planContinuity:ignoredPlan,...settings}=options||{};return {type:'plan',id,observation:publicObservation(state),previous:previous?clone(previous):null,commitment:commitment?clone(commitment):null,options:{...settings,...(planContinuity?{planContinuity:PlanContinuity.exportState(planContinuity)}:{}),...(openingForecast?{openingForecast:clone(openingForecast)}:{}),...(pendingLHint?{pendingLHint:clone(pendingLHint)}:{}),...(pendingHandoffRecovery?{handoffRecovery:clone(pendingHandoffRecovery)}:{}),obligationContext:Context.exportState(current),patternHistory:patternHistory?clone(patternHistory):null,openingPhase:opening.active,openingSource:opening.source?clone(opening.source):null,openingClear:opening.clear?clone(opening.clear):null,openingRepair:opening.repair?clone(opening.repair):null}}; },
-    execute(advice,{onCoach=()=>{},lock=actualLocks+1}={}) {
+    execute(advice,{onCoach=()=>{},lock=actualLocks+1,commitmentReplay}={}) {
       try{
       const proof=validateAdvice(state,advice);
       const requiredDraws=state.queue.length-proof.state.queue.length;
@@ -164,7 +177,7 @@ function createSession(input, api=P) {
       onCoach(coachBeforeLock,false);
       previous={...clone(advice),revision:state.revision};pendingLHint=advice.evidence?.pendingLStage?clone(advice.evidence.pendingLStage):null;
       commitment=advice.recommendation?.kind!=='risky'&&!advice.evidence?.opening && (advice.evidence?.strategy==='reset-coach'||api.resourceGoal(advice.continuation||[])) ? {observation:clone(publicObservation(state)),advice:clone(advice)} : null;
-      let displayed=advice, event=null;
+      let displayed=advice, event=null, commitmentCheck=null;
       const actions=[];
       for(const action of advice.witness) {
         const before=publicObservation(state),prior=current,next=R.move(state,action);
@@ -184,7 +197,12 @@ function createSession(input, api=P) {
           pendingHandoffRecovery=recovery&&continuity?{...clone(recovery),actualEvent:clone(event),continuity}:null;recoveryExecution=null;
           opening=api.updateOpeningSession(opening,before,publicObservation(state),event);
           if(!opening.active)openingForecast=null;
-          const suffix=commitment?api.continueCommitment(commitment.observation,publicObservation(state),commitment.advice,event,{patternHistory,obligationContext:Context.exportState(current),planContinuity:PlanContinuity.exportState(planContinuity)}):null;
+          if(commitmentReplay!==undefined&&commitmentReplay!==null&&(!commitmentReplay||commitmentReplay.version!==1||!Array.isArray(commitmentReplay.clock)||typeof commitmentReplay.result!=='string'))throw Error('Malformed commitment replay');
+          if(commitmentReplay!==undefined)assert.equal(Boolean(commitment),commitmentReplay!==null,'Commitment admission diverged');
+          const clock=commitment?commitmentClock(commitmentReplay?.clock):null;
+          const suffix=commitment?api.continueCommitment(commitment.observation,publicObservation(state),commitment.advice,event,{patternHistory,obligationContext:Context.exportState(current),planContinuity:PlanContinuity.exportState(planContinuity),now:clock.now}):null;
+          commitmentCheck=clock?{version:1,clock:clock.finish(),result:commitmentResult(suffix)}:null;
+          if(commitmentReplay!==undefined)assert.deepEqual(commitmentCheck,commitmentReplay,'Commitment proof result diverged');
           commitment=suffix?{observation:clone(publicObservation(state)),advice:clone(suffix)}:null;adoptPlan(suffix);
           displayed=null;
         } else {
@@ -197,7 +215,7 @@ function createSession(input, api=P) {
       assert.deepEqual(event,clone(proof.events[0]));
       assert.deepEqual(state.board,proof.state.board);
       assert.deepEqual(R.validate(state),[]);
-      return {event,actions,coachBeforeLock};
+      return {event,actions,coachBeforeLock,commitmentCheck};
       }catch(error){pendingHandoffRecovery=null;openingForecast=null;planContinuity=null;throw error;}
     }
   };
@@ -236,7 +254,7 @@ function runEpisode(input, {config=CONFIG, planner=workerPlanner({disableSearchT
   const tracking=TrackingMetrics.create(),trackingEvents=[];
   session.onTrackingEvent(event=>{tracking.record(event);trackingEvents.push(event);});
   const record=value=>onRecord({...value,...coaches.snapshot(),...(trackingEvents.length?{trackingEvents:trackingEvents.splice(0)}:{})});
-  record({kind:'tracking-start',schemaVersion:1});
+  record({kind:'tracking-start',schemaVersion:1,commitmentReplay:'clock-tape-v1'});
   const leftShapes=LS.create(session.state.board);
   let notches=S.notchPattern(session.state.board), cavityDebt=[], centerDebt=[], awaitingRebuild=false;
   const stop=(kind,detail)=>{summary.stop=kind;summary.censored=false;summary.detail=detail;};
@@ -276,7 +294,7 @@ function runEpisode(input, {config=CONFIG, planner=workerPlanner({disableSearchT
     summary.budgetHits+=Number(Boolean(advice.evidence?.budgetExhausted));summary.peakHeight=Math.max(summary.peakHeight,metrics.height);
     const profile={lock:summary.locks,lines:summary.lines,tsds:summary.tsds,quads:summary.quads,...metrics,centerDebt:centerDebt.length,cavityDebt:cavityDebt.length};
     summary.profile.push(profile);
-    record({kind:'lock',lock:summary.locks,request,advice,elapsedMs,event,actions:actual.actions,after,opening:session.opening,draws:session.cursor,metrics:profile,flags,phaseDiagnostic:{fresh,inherited:check.pattern,rawMismatch:fresh.anchorRow!==check.pattern.anchorRow||fresh.status!==check.pattern.status}});
+    record({kind:'lock',lock:summary.locks,request,advice,elapsedMs,event,actions:actual.actions,commitmentCheck:actual.commitmentCheck,after,opening:session.opening,draws:session.cursor,metrics:profile,flags,phaseDiagnostic:{fresh,inherited:check.pattern,rawMismatch:fresh.anchorRow!==check.pattern.anchorRow||fresh.status!==check.pattern.status}});
     notches=check.pattern;
     if(session.state.topOut){stop('top-out');break;}
     if(flags.some(f=>f==='noncanonical-clear'||f==='notch-transition')){stop('policy-violation',flags);break;}
@@ -300,7 +318,7 @@ function runEpisode(input, {config=CONFIG, planner=workerPlanner({disableSearchT
 // regenerated. Exclude only that measurement, never goals, witnesses or supply.
 function replayRequest(request){const value=clone(request);if(value.commitment?.advice?.metrics)delete value.commitment.advice.metrics.elapsedMs;return value;}
 function replayRecords(input, records, api=P) {
-  const session=createSession(input,api);let locks=0;const adviceAdvanceMismatches=[];
+  const session=createSession(input,api);let locks=0,clockTape=false;const adviceAdvanceMismatches=[];
   // Per-input display retention has a real wall-clock budget. It does not
   // change the recorded uninterrupted witness or the rules state. Keep every
   // action/draw/public-state check strict, but report this timing diagnostic.
@@ -308,14 +326,17 @@ function replayRecords(input, records, api=P) {
     assert.equal(action.action==='HD'?adviceAdvanced===null:typeof adviceAdvanced==='boolean',true,'Malformed advice advancement diagnostic');
     return action;
   });
-  for(const record of records)if(record.kind==='lock') {
+  for(const record of records){
+    if(record.kind==='tracking-start'){assert.equal(locks,0,'Late replay header');assert.equal(clockTape,false,'Repeated replay header');if(record.commitmentReplay!==undefined){assert.equal(record.commitmentReplay,'clock-tape-v1');clockTape=true;}continue;}
+    if(record.kind!=='lock')continue;
+    if(clockTape)assert.equal(Object.hasOwn(record,'commitmentCheck')&&record.commitmentCheck!==undefined,true,'Missing commitment clock record');
     assert.deepEqual(replayRequest(session.request(record.lock,record.request.options)),replayRequest(record.request),'Public decision state diverged before lock '+record.lock);
-    const actual=session.execute(record.advice);
+    const actual=session.execute(record.advice,clockTape?{commitmentReplay:record.commitmentCheck}:{});
     assert.deepEqual(actual.event,record.event);assert.deepEqual(replayActions(actual.actions),replayActions(record.actions));
     actual.actions.forEach((action,index)=>{if(action.adviceAdvanced!==record.actions[index].adviceAdvanced)adviceAdvanceMismatches.push({lock:record.lock,index,action:action.action,recorded:record.actions[index].adviceAdvanced,replayed:action.adviceAdvanced});});
     assert.deepEqual(publicObservation(session.state),record.after);locks++;
   }
-  return {mode:'recorded-action-replay',locks,verified:true,finalObservation:publicObservation(session.state),ignoredVolatileRequestFields:['commitment.advice.metrics.elapsedMs'],ignoredVolatileActionFields:['adviceAdvanced'],adviceAdvanceMismatches,note:'No planner search rerun; exact actions/events/draws/public state and non-timing request data are checked. Regenerated commitment duration and wall-clock display-retention flags are excluded from equality; every display-retention difference is reported. This verifies rapid uninterrupted recorded witnesses, not slower interactive replanning.'};
+  return {mode:'recorded-action-replay',locks,verified:true,commitmentReplay:clockTape?'clock-tape-v1':'legacy-live-clock',finalObservation:publicObservation(session.state),ignoredVolatileRequestFields:['commitment.advice.metrics.elapsedMs'],ignoredVolatileActionFields:['adviceAdvanced'],adviceAdvanceMismatches,note:'No planner search rerun; exact actions/events/draws/public state and non-timing request data are checked. Post-lock commitment proofs use recorded clock samples when present (legacy traces recheck against live time). Regenerated commitment duration and wall-clock display-retention flags are excluded from equality; every display-retention difference is reported. This verifies rapid uninterrupted recorded witnesses, not slower interactive replanning.'};
 }
 // Trust one current checkpoint and verify only its finite retained action tail.
 // Recovery never reconstructs the run's past; obsolete requests are rejected.

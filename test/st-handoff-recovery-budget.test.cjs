@@ -26,9 +26,17 @@ test('handoff recovery budget: zero, expired and reduced caller allowances remai
  for(const o of [{maxNodes:0,deadline:1500},{maxNodes:45000,deadline:0}]){const a=O.plan(q.observation,{...q.options,...o,now:()=>0});assert.equal(a.target,null);assert.equal(a.metrics.nodes,0);}assert.equal(calls,0);
  const a=O.plan(q.observation,{...q.options,maxNodes:12000,deadline:Infinity,now:()=>0});assert.equal(calls,1);assert.equal(a.metrics.nodes,12000);assert.equal(a.target,null);
 });
-test('handoff recovery budget: disabled fresh handoff preserves the exact old positive prefix',()=>{
+test('handoff recovery budget: disabled fresh handoff preserves the old prefix with a checked Center preparation',()=>{
  const f=require('./fixtures/legacy-handoff-prefix.json'),q=f.request,a=P.decide(q.observation,{...q.options,disableFreshHandoff:true,previous:q.previous,commitment:q.commitment,deadline:Infinity,now:()=>0});
- assert(a.target);assert.equal(a.phase,'maintenance');assert.equal(a.evidence.openingHandoff.recovery,undefined);assert.deepEqual(a.continuation.map(p=>p.event),f.advice.continuation.map(p=>p.event));assert.equal(P.resourceGoal(a.continuation),false);assert.equal(a.metrics.handoffWork.recovery.nodes,undefined);assert(a.metrics.nodes<=45000);E.validateAdvice(q.observation,a);
+ assert(a.target);assert.equal(a.phase,'maintenance');assert.equal(a.evidence.openingHandoff.recovery,undefined);
+ // Shared landing discovery completes one additional ordinary O preparation.
+ // Keep the historical two events exact, and independently check its new duty.
+ assert.deepEqual(a.continuation.slice(0,2).map(p=>p.event),f.advice.continuation.map(p=>p.event));
+ assert.deepEqual(a.continuation.map(p=>p.event.type),['Z','S','O']);
+ assert.deepEqual(a.continuation[2].event.cells,[[4,29],[5,29],[4,30],[5,30]]);assert.equal(a.continuation[2].event.lines,0);
+ assert.equal(P.resourceGoal(a.continuation),true);
+ assert.deepEqual(a.evidence.resourceObligations.pendingCenter,[{rootId:20,bag:2,family:'OJ',alternatives:[{piece:'J',cells:[[4,28],[5,28],[6,28],[6,29]]}],created:true}]);
+ assert.deepEqual(a.evidence.resourceObligations.hangingS,[]);assert.equal(a.evidence.resourceObligations.status,'checked');assert.equal(a.metrics.handoffWork.recovery.nodes,undefined);assert(a.metrics.nodes<=45000);E.validateAdvice(q.observation,a);
 });
 test('handoff production budget: real worker uses a safe ordinary alternative instead of archived unsafe observed-S payment',()=>{
  const q=roots[0].request,a=E.workerPlanner()(q);assert.ok(a.target);assert(a.metrics.nodes<=45000);

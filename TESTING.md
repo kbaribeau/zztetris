@@ -333,3 +333,23 @@ sensitivity for ordinary/Reset extensions, distinct trusted accounting roots,
 real same-cell no-spin/mini events, actual HOLD identity/draw differences,
 invalid tails and interrupted replay. They establish finite compatibility and
 fail-closed behavior, not improved strategic quality or production latency.
+
+### Timed commitment replay
+
+Simulation traces record a `clock-tape-v1` receipt for post-lock commitment
+recertification. Run-length-encoded clock samples preserve the actual 150 ms
+proof deadline; the runner does not substitute unlimited or node-only search.
+Replay reruns the original resource, goal, event, supply and access checks with
+those samples, requires exact clock consumption, and compares the retained
+result hash as well as the next public request. This makes the retention check
+reproducible without trusting a recorded keep/drop result. Per-action display
+retention remains a separately reported timing diagnostic.
+
+Clock recording adds small per-sample bookkeeping, so instrumented wall-clock
+results still need matched comparisons; it is not a zero-overhead claim. Old
+traces without this receipt explicitly report `legacy-live-clock` and can still
+fail when timed commitment proof completion differs. They are not silently
+upgraded or reclassified as passes. New traces missing or corrupting a receipt
+fail verification. The minimized `commitment-clock-replay.json` fixture covers
+the real Z/S suffix whose 2,430-node repair formerly crossed the deadline, both
+completed and expired, with exact obligation and mutation checks.

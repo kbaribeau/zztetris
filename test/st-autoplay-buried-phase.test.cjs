@@ -47,7 +47,9 @@ test('a placement cannot substitute a different recognized phase for an establis
  assert.equal(check.valid,false);assert.equal(check.violation,'changed-established-scoring-phase');
  // Original visible order has no certified resource-safe route within this
  // bound; that is not evidence that its conflicting geometric phase is legal.
- const original=P.plan(state,{...config,deadline:Infinity});assert.equal(original.target,null);assert.equal(original.status,'budget-exhausted');
+ const original=P.plan(state,{...config,deadline:Infinity});assert.equal(original.target,null);assert.equal(original.status,'no-supported-continuation-found');
+ assert.equal(Boolean(original.metrics.proofScheduling?.unfinished||original.metrics.proofScheduling?.budgetStops),false,'Completed rejection cannot conceal unfinished proof work');
+ assert(original.metrics.nodes<config.maxNodes);assert.deepEqual(original.witness,[]);assert.deepEqual(original.continuation,[]);
  // Separate physical-completion control: make the Center partner available,
  // rather than silently changing the original queue or weakening its policy.
  const available=R.createState({...state,active:'L'}),completion=S.geometry(available.board).center.completions.find(c=>c.piece==='L');assert.ok(completion);
