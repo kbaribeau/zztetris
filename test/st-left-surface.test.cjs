@@ -39,7 +39,7 @@ test('shared Left surface / classic page and Worker dependency orders execute cu
   }
   if(mode==='worker'){realm.importScripts=(...names)=>names.forEach(loadOne);load('st-worker.js',realm);assert.equal(typeof realm.self.onmessage,'function');}
   else{
-   const names=[...fs.readFileSync(path.join(root,'st-lab.html'),'utf8').matchAll(/<script defer src="([^"]+)"/g)].map(m=>m[1]);
+   const names=[...fs.readFileSync(path.join(root,'st-lab.html'),'utf8').matchAll(/<script defer src="([^"]+)"/g)].map(m=>new URL(m[1],'https://zztetris.test/').pathname.slice(1));
    for(const name of names.slice(names.indexOf('st-rules.js'),names.indexOf('st-planner.js')+1))loadOne(name);
   }
   assert.equal(observedBeforePreference,true);assert.equal(realm.STLeftContext.isD(board([3,4,4,3])),true);
