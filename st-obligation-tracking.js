@@ -58,6 +58,10 @@ function slIssues(before,after,effects,operation,add){
  const b=before.state.sl,a=after.state.sl,sl=effects.filter(e=>e.domain==='sl');
  const handoff=operation.kind==='handoff'&&!b.handoff&&a.handoff;
  if(a.handoff!==b.handoff&&!handoff||operation.kind==='handoff'&&!a.handoff)add('handoff-mismatch');
+ if(b.status==='unknown'){
+  const expected=clone(b);if(handoff){expected.handoff=true;expected.foundationOpen=false;}
+  if(!same(expected,a)||sl.length)add('unknown-sl-changed');
+ }
  // A residual can carry a future counterpart consequence even when the current
  // selector has no hanging row. Dropping it cannot be excused by equal counts.
  for(const row of b.residuals){
@@ -192,10 +196,16 @@ function leftIssues(before,after,effects,operation,add){
 function accountIssues(before,after,effects,operation,add){
  const b=before.state.account,a=after.state.account,account=effects.filter(e=>e.domain==='account'),isLock=operation.kind==='lock',p=operation.piece,event=operation.event;
  const get=status=>account.filter(e=>e.status===status),has=status=>get(status).length===1;
- const supported=['baseline-established','reset-T-credited','reset-completed','reset-started','reset-invalidated','reset-rejected','opening-Z-paid','optional-Z-debited','first-tsd','opening-allocation-verified','profile-violation','profile-departure','quality-disqualified'];
+ const supported=['baseline-established','reset-T-observed','reset-T-credited','reset-completed','reset-started','reset-invalidated','reset-rejected','opening-Z-paid','optional-Z-debited','first-tsd','opening-allocation-verified','profile-violation','profile-departure','quality-disqualified'];
  for(const status of new Set(account.map(e=>e.status)))if(!supported.includes(status)||get(status).length!==1)add('effect-mismatch',{domain:'account',status});
- const qualified=isLock&&p?.type==='T'&&p.bag!==null&&event.type==='T'&&event.lines===0&&!event.topOut&&event.cells.every(([x])=>x<4)&&b.reset.status==='active'&&p.id!==b.reset.firstTId;
- for(const e of get('reset-T-credited'))if(!qualified||e.pieceId!==p.id||e.delta!==1)add('effect-mismatch',{domain:'account',status:e.status,pieceId:e.pieceId??null});
+ const leftT=isLock&&p?.type==='T'&&event.type==='T'&&event.lines===0&&!event.topOut&&event.cells.length===4&&event.cells.every(([x])=>x>=0&&x<4);
+ const autoStart=leftT&&b.reset.status!=='active'&&(b.firstTsd||before.state.sl.handoff);
+ const qualified=leftT&&(autoStart||b.reset.status==='active'&&p.id!==b.reset.firstTId);
+ const credit=qualified&&b.known&&b.z.remaining!==null;
+ if(get('reset-T-observed').length!==(qualified?1:0))add('reset-progress-mismatch');
+ if(get('reset-T-credited').length!==(credit?1:0))add('reset-credit-mismatch');
+ for(const e of get('reset-T-observed'))if(!qualified||e.pieceId!==p.id)add('effect-mismatch',{domain:'account',status:e.status,pieceId:e.pieceId??null});
+ for(const e of get('reset-T-credited'))if(!credit||e.pieceId!==p.id||e.delta!==1)add('effect-mismatch',{domain:'account',status:e.status,pieceId:e.pieceId??null});
  for(const e of get('optional-Z-debited'))if(!isLock||!b.firstTsd||p?.type!=='Z'||!event.cells.every(([x])=>x<7)||b.mandatoryZ&&event.lines===0||e.pieceId!==p.id||e.delta!==-1)add('effect-mismatch',{domain:'account',status:e.status,pieceId:e.pieceId??null});
  for(const e of get('baseline-established'))if(!isLock||b.z.remaining!==null||a.z.remaining!==1||e.delta!==1)add('effect-mismatch',{domain:'account',status:e.status});
  if(b.z.remaining!==null){
@@ -207,9 +217,9 @@ function accountIssues(before,after,effects,operation,add){
   if(a.z.uncredited!==expected)add('uncredited-z-mismatch',null,{expected,actual:a.z.uncredited});
  }
  if(b.reset.status==='active'){
-  const remaining=b.reset.remaining-(has('reset-T-credited')?1:0);
+  const remaining=b.reset.remaining-(has('reset-T-observed')?1:0);
   if(a.reset.status==='active'){
-   if(a.reset.remaining!==remaining||a.reset.firstTId!==(has('reset-T-credited')?p?.id:b.reset.firstTId))add('reset-progress-mismatch');
+   if(a.reset.remaining!==remaining||a.reset.firstTId!==(has('reset-T-observed')?p?.id:b.reset.firstTId))add('reset-progress-mismatch');
    const rows=isLock?event.clearedRows:[],live=new Set(after.state.safety.coveredCells.map(c=>c.join(',')));
    const expected=isLock?b.reset.inheritedCovered.filter(([,y])=>!rows.includes(y)).map(([x,y])=>[x,y+rows.filter(r=>r>y).length]).filter(c=>live.has(c.join(','))):b.reset.inheritedCovered;
    if(!same(expected,a.reset.inheritedCovered))add('reset-covered-obligation-mismatch',null,{expected,actual:a.reset.inheritedCovered});
@@ -217,11 +227,16 @@ function accountIssues(before,after,effects,operation,add){
    if(remaining!==0||!has('reset-completed'))add('reset-duty-lost');
   }else if(!has('reset-invalidated'))add('reset-duty-lost');
  }else if(a.reset.status==='active'){
-  if(operation.kind!=='begin-reset'||!has('reset-started')||a.reset.remaining!==2||a.reset.firstTId!==null||b.z.remaining!==0)add('reset-start-mismatch');
+  const selected=operation.kind==='begin-reset'&&b.z.remaining===0;
+  if(!has('reset-started')||!(selected||autoStart)||a.reset.remaining!==(autoStart?1:2)||a.reset.firstTId!==(autoStart?p.id:null))add('reset-start-mismatch');
+  const rows=isLock?event.clearedRows:[],live=new Set(after.state.safety.coveredCells.map(c=>c.join(',')));
+  const expected=isLock?before.state.safety.coveredCells.filter(([,y])=>!rows.includes(y)).map(([x,y])=>[x,y+rows.filter(r=>r>y).length]).filter(c=>live.has(c.join(','))):before.state.safety.coveredCells;
+  if(!same(expected,a.reset.inheritedCovered))add('reset-covered-obligation-mismatch',null,{expected,actual:a.reset.inheritedCovered});
  }
- for(const e of get('reset-completed'))if(b.reset.status!=='active'||b.reset.remaining!==1||!has('reset-T-credited')||a.reset.status==='active')add('effect-mismatch',{domain:'account',status:e.status});
+ if(autoStart&&(!has('reset-started')||a.reset.status!=='active'))add('reset-start-mismatch');
+ for(const e of get('reset-completed'))if(b.reset.status!=='active'||b.reset.remaining!==1||!has('reset-T-observed')||a.reset.status!=='inactive')add('effect-mismatch',{domain:'account',status:e.status});
  for(const e of get('reset-invalidated'))if(b.reset.status!=='active'||a.reset.status!=='invalid')add('effect-mismatch',{domain:'account',status:e.status});
- for(const e of get('reset-started'))if(operation.kind!=='begin-reset'||b.reset.status==='active'||a.reset.status!=='active')add('effect-mismatch',{domain:'account',status:e.status});
+ for(const e of get('reset-started'))if(b.reset.status==='active'||a.reset.status!=='active'||!(operation.kind==='begin-reset'&&e.source===undefined||autoStart&&e.source==='observed-left-T'&&e.pieceId===p.id))add('effect-mismatch',{domain:'account',status:e.status});
  for(const e of get('reset-rejected'))if(operation.kind!=='begin-reset'||!same(a,b))add('effect-mismatch',{domain:'account',status:e.status});
  const flags=[['firstTsd','first-tsd'],['allocationVerified','opening-allocation-verified']];
  for(const [field,status]of flags)if(b[field]&&!a[field]||!b[field]&&a[field]!==has(status)||has(status)&&b[field])add('account-effect-mismatch',{field,status});
@@ -241,7 +256,7 @@ function accountIssues(before,after,effects,operation,add){
  const verified=has('opening-allocation-verified'),nonRight=isLock&&event.cells.every(([x])=>x<7);
  const closesThird=b.firstTsd&&isLock&&(event.type==='T'||event.type==='Z'&&nonRight&&event.lines===0&&!b.mandatoryZ);
  if(a.thirdTWindow!==(verified?true:b.thirdTWindow&&!closesThird))add('account-effect-mismatch',{field:'thirdTWindow'});
- const closesQuality=has('baseline-established')||a.z.uncredited!=='none'||a.profile.departure||effects.some(e=>e.domain==='center'&&e.status==='debt-invalidated');
+ const closesQuality=has('baseline-established')||has('reset-T-observed')||a.z.uncredited!=='none'||a.profile.departure||effects.some(e=>e.domain==='center'&&e.status==='debt-invalidated');
  if(a.qualityCandidate!==((b.qualityCandidate||verified)&&!closesQuality))add('account-effect-mismatch',{field:'qualityCandidate'});
  if(!b.mandatoryZ&&a.mandatoryZ&&!verified)add('account-effect-mismatch',{field:'mandatoryZ'});
  const rightZ=isLock&&event.type==='Z'&&event.lines===0&&event.cells.every(([x])=>x>=8);
@@ -256,7 +271,10 @@ function accountIssues(before,after,effects,operation,add){
    if(b.opening.roof){const rows=isLock?event.clearedRows:[],roof=b.opening.roof.filter(([,y])=>!rows.includes(y)).map(([x,y])=>[x,y+rows.filter(r=>r>y).length]);if(!same(roof,a.opening.roof))add('opening-roof-lost');}
   }
  }
- if(!b.known&&(!same(a,b)||account.length))add('unknown-account-changed');
+ if(!b.known){
+  const dormant=x=>{const out=clone(x);delete out.firstTsd;delete out.reset;return out;};
+  if(!same(dormant(a),dormant(b))||account.some(e=>!['first-tsd','reset-started','reset-T-observed','reset-completed','reset-invalidated','reset-rejected'].includes(e.status)))add('unknown-account-changed');
+ }
  if(!isLock&&operation.kind!=='begin-reset'&&!same(a,b))add('account-changed-without-lock');
 }
 function currentFacts(frame){

@@ -2279,6 +2279,7 @@ function resetOrdinaryPreference(raw,advice,summary,retained,options,tracker){
 function resetDispatch(raw,options={}){
  if(options.openingPhase===true)return null;
  const summary=resourceSummary(raw,options),decision=Reset.consider(raw,summary);
+ if(summary.reset?.status==='active')return Reset.plan(raw,options);
  if(!['candidate','active'].includes(decision.status))return null;
  if(decision.status==='active')return Reset.plan(raw,options);
  const now=options.now||(()=>Date.now()),began=now(),deadline=options.deadline??(options.timeMs===undefined?Infinity:began+options.timeMs),limit=options.maxNodes??45000;

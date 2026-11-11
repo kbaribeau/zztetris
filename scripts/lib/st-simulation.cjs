@@ -242,7 +242,7 @@ function runEpisode(input, {config=CONFIG, planner=workerPlanner({disableSearchT
   session.onObligationEffect(({effects,lock,lines})=>{
     for(const effect of effects){
       if(effect.domain!=='account')continue;
-      if(effect.status==='reset-started')summary.reset.starts.push({at:lock,firstLock:lock+1,linesBefore:lines});
+      if(effect.status==='reset-started')summary.reset.starts.push({at:effect.source==='observed-left-T'?lock-1:lock,firstLock:effect.source==='observed-left-T'?lock:lock+1,linesBefore:lines});
       if(effect.status==='reset-completed'){
         const completion={completedAt:lock,lines,remainingZ:session.resources.extraZ.remaining};summary.reset.completions.push(completion);
         if(summary.reset.firstCompletion===null)summary.reset.firstCompletion=completion;

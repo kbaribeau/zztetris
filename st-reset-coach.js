@@ -6,7 +6,7 @@ const clone=x=>JSON.parse(JSON.stringify(x));
 const context=s=>JSON.stringify([s.rules,s.board,s.hold,s.canHold,s.queue,s.bag??null,s.active?.type]);
 function entry(raw,options){
  const input=Provider.prepare(raw,options),decision=Q.consider(raw,input.facts);
- if(input.status!=='available'||!['candidate','active'].includes(decision.status))return{decision};
+ if(input.status!=='available'||!['candidate','active'].includes(decision.status))return{decision,summary:input.facts};
  const frame=decision.status==='active'?input.frame:Provider.projectBeginReset(input.frame,{candidate:true}),summary=Provider.facts(frame);
  // Reset uses only its literal observed supply. Unlike ordinary maintenance,
  // its historical search never appended a forced tail to the placement queue.
@@ -90,7 +90,10 @@ function advice(raw,verified,metrics={}){
   evidence:{strategy:'reset-coach',budgetExhausted:Boolean(metrics.budgetExhausted),resetSelection:verified.start.decision,reset:{progress,projectedProgress:n.resource.resetProgress,completion:'second-actual-Left-zero-clear-T',entry:verified.start.decision.status==='candidate'},verifiedLocks:n.path.length,knownPieceHorizon:raw.queue.length+1,cycleDebt:0,gapAccess:verified.access,coveredRepair:verified.repair,resourceObligations:{status:'checked',remainingZ:n.resource.extraZRemaining,pendingCenter:clone(n.resource.pendingCenter),hangingS:clone(n.resource.hangingS),hangingL:clone(n.resource.hangingL),unclassifiedS:clone(n.resource.unclassifiedS),unclassifiedL:clone(n.resource.unclassifiedL),uncertainty:clone(n.resource.uncertainty)},claim:'Reset completes on the second qualifying actual T lock. Midgame then owns rebuilding.'}};
 }
 function plan(raw,options={}){
- const start=entry(raw,options);if(!start.resource)return null;
+ const start=entry(raw,options);if(!start.resource){
+  if(start.summary?.reset?.status!=='active')return null;
+  return{revision:raw.revision??0,target:null,witness:[],continuation:[],status:'no-supported-continuation-found',context:context(raw),reason:`Reset is observed, but no supported Reset advice is available. ${start.decision.reason}`,metrics:{nodes:0,elapsedMs:0},evidence:{strategy:'reset-coach',resetSelection:start.decision,reset:{progress:start.summary.reset.progress},budgetExhausted:false}};
+ }
  const now=options.now||(()=>Date.now()),began=now(),deadline=options.deadline??(began+(options.timeMs??750)),limit=options.maxNodes??45000;
  const base={revision:raw.revision??0,target:null,witness:[],continuation:[],status:'no-supported-continuation-found',context:context(raw),reason:'No sustainable Reset prefix was certified within the public supply and budget.',metrics:{nodes:0,elapsedMs:0},evidence:{strategy:'reset-coach',resetSelection:start.decision,reset:{progress:start.summary.reset.progress},budgetExhausted:false}};
  let visited=0,beam=[{state:R.createState(raw),allowHold:options.allowHold!==false,resource:start.resource,notches:S.notchPattern(raw.board),path:[]}],best=null;

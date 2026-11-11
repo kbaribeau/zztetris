@@ -167,7 +167,7 @@ function reduce(current,operation,context,projected=false,owned=false){
  }
  if(operation.kind==='lock'){
   const classified=(owned?SL.resolveProjectionOwned:projected?SL.resolveProjection:SL.resolve)(sl.state,{...slContext.after,profileLost:O.profileLost(state.account)});
-  const account=(owned?O.projectTransitionOwned:projected?O.projectTransition:O.transition)(state.account,{...operation,centerEffects:center.effects},{before:{board:before.position.board},after:{board:after.position.board,topOut:after.position.topOut,center:center.state,sl:classified,coveredCells:safety.coveredCells}});
+  const account=(owned?O.projectTransitionOwned:projected?O.projectTransition:O.transition)(state.account,{...operation,centerEffects:center.effects},{before:{board:before.position.board,handoff:state.sl.handoff,coveredCells:state.safety.coveredCells},after:{board:after.position.board,topOut:after.position.topOut,center:center.state,sl:classified,coveredCells:safety.coveredCells}});
   state.account=account.state;out.push(...effects('account',account.effects));
   if(!same(state.safety,safety))out.push({domain:'safety',status:'current-safety-changed'});
   if(!phase.valid)out.push({domain:'safety',status:'notch-violation',reason:phase.violation});

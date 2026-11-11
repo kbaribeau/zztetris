@@ -6,7 +6,22 @@ wholly in Left (columns 1–4), each clearing zero lines. The second such lock e
 Reset immediately. Midgame owns any rebuilding afterward; a third visible T,
 subsequent TSD, parity pattern or balanced endpoint is not a completion condition.
 
-## Entry and information
+## Observed entry and recommendation
+
+A qualifying actual Left T after an observed first TSD or explicit opening
+handoff starts Reset and counts as T 1 in the same lock, whether advice is
+hidden, pending, declined, or recommending another move. Opening Ts do not
+start Reset. This is factual recognition, not permission to recommend the
+placement. A later qualifying T can start a fresh episode after an interrupted
+Reset; existing source-profile caveats remain current.
+
+Unknown-origin imports cannot reconstruct their earlier opening or Z account.
+Until an actual TSD or explicit handoff establishes the boundary, a Left T alone
+does not classify an ambiguous imported position as post-opening. Once the
+boundary is observed, Reset progress is tracked while the Z balance stays
+unknown. Native checkpoints preserve these current facts through import/Undo.
+
+## Strategic entry and information
 
 `st-reset-policy.js` considers Reset only with available known current accounting,
 a qualified opening allocation, and exhausted ordinary extra-Z balance. It checks
@@ -28,12 +43,12 @@ promises an unseen piece or substitutes a seed for public evidence.
 ## Persistent accounting
 
 `st-obligation-context.js` owns current Reset transitions, qualifying T progress
-and the conserved Z balance. Actual markers require current eligibility at the
-selection state. Workers and native sessions carry structurally validated current
+and the conserved Z balance. Coach-selected markers require current eligibility at the
+selection state; actual player entry is recognized by the shared lock reducer. Workers and native sessions carry structurally validated current
 facts, not an authenticated history tape. HOLD changes possession, not identity
 or bag membership. Caller-owned inverse Undo restores earlier current facts.
 Position-only imports start with unknown earlier allocations and cannot acquire
-Reset eligibility from board geometry or extra diagnostic flags. Native session
+Reset recommendation eligibility from board geometry or extra diagnostic flags. Native session
 imports trust their consistent current accounting; future advice still needs
 independent validation. Completed Reset episodes are not stored as a lifetime
 archive in Context.
@@ -44,6 +59,8 @@ Consequently the ordinary starting surplus is one. The conserved balance is:
 - capacity = 1 + actual qualifying Reset T identities;
 - remaining = capacity − all subsequent actual non-Right Z allocations.
 
+Each qualifying Reset T adds one to an existing numeric balance, including an
+early or player-started Reset. Observed progress never creates a missing baseline.
 The already-spent optional Z remains subtracted, including spending before Reset
 entry or between its Ts. A second T is not a fixed allowance grant. Zero, one or
 two additional Z allocations can leave different balances. The equivalent count
@@ -55,6 +72,8 @@ non-Right work still depends independently on executable Right cap/cleanup dutie
 No S/L obligation, pending Center completion or piece/bag identity is erased at
 Reset entry or completion. Active Reset exposes its conserved balance to its own
 coach, while ordinary early/late dispatch resumes only after the second T.
+Unknown or out-of-profile active Reset is reported without unsupported advice;
+ordinary projected Left Ts remain rejected by ordinary strategic admission.
 
 ## Evidence boundaries
 

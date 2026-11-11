@@ -156,7 +156,13 @@ function reduce(current,operation,context,projected=false,owned=false){
  validateContext(context);
  if(projected?current.domain!=='projection':current.domain!==undefined)throw Error('Invalid S/L transition domain.');
  if(!['lock','observe','handoff'].includes(operation?.kind))throw Error('Unknown S/L operation.');
- if(current.status!=='known')return{state:copy(current),effects:[]};
+ if(current.status!=='known'){
+  const state=copy(current);
+  // The caller can observe leaving Opening without knowing prior bags.
+  // Record that boundary only; it grants no S/L allocation authority.
+  if(operation.kind==='handoff'){state.handoff=true;state.foundationOpen=false;}
+  return{state,effects:[]};
+ }
  if(!context.before.inventory.originKnown||!context.after.inventory.originKnown||!context.before.inventory.frontier||!context.after.inventory.frontier)throw Error('Known S/L facts require known public identities and frontier.');
  if(operation.kind==='handoff'&&current.handoff)return{state:copy(current),effects:[]};
  const before=classify(current,context.before),state=copy(current),effects=[];

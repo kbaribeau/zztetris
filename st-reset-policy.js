@@ -10,6 +10,7 @@ function consider(raw,resources){
  // Only available, known current facts establish Reset eligibility.
  const known=resources?.status==='available'&&resources.availability==='known';
  if(!known||!resources.extraZ?.baseline)return result('unknown-history','Reset requires known current opening allocation and resource eligibility.');
+ if(resources.profileLost||resources.extraZ.status==='out-of-profile')return result('out-of-profile','Observed Reset progress does not establish a supported continuation outside the current source profile.');
  if(resources.reset?.status==='active')return result('active','Continue the selected Reset until its second qualifying T.',{progress:resources.reset.progress});
  if(resources.extraZ.status!=='used')return result('ordinary-preferred','Only late Midgame considers Reset.');
  const phase=S.notchPattern(raw.board);

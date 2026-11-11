@@ -183,11 +183,12 @@ test('current tracking: unknown, unavailable and caller-censored final status re
  assert.equal(u.obligations,null);assert.equal(u.availability,'unavailable');assert.equal(u.coverage,null);assert.equal(partial.availability,'unknown');assert.equal(partial.obligations.hangingS.status,'unknown');assert.equal(partial.throughLock,14);
  assert.equal(T.status(known,{scope:'unavailable'}).obligations,null);assert.throws(()=>T.status(known,{scope:'complete'}),/scope/);
 });
-test('current tracking: trusted unknown-origin current facts stay dormant rather than becoming invented known balances',()=>{
+test('current tracking: unknown-origin numeric imports reject and supported unknown facts retain no balance',()=>{
  const position=first(),context=C.start(position),raw=C.exportState(context);
  Object.assign(raw.state.account,{firstTsd:true,allocationVerified:true,opening:null,profile:{violation:false,departure:false,before:null,capEstablished:false},z:{remaining:3,uncredited:'none'}});
+ assert.throws(()=>C.importState(raw,{position}),/Invalid unknown Z account/);raw.state.account.z.remaining=null;
  const supplied=C.importState(raw,{position}),frame={status:supplied.status,state:supplied.state,view:C.resolve(supplied,{position})};
- assert.equal(frame.state.account.z.remaining,3);assert.equal(frame.view.extraZ.remaining,null);assert.equal(frame.view.availability,'unknown');
+ assert.equal(frame.state.account.z.remaining,null);assert.equal(frame.view.extraZ.remaining,null);assert.equal(frame.view.availability,'unknown');
  assert.deepEqual(inspect({before:frame,after:frame,options:{operation:{kind:'observe'},effects:[]}}),[]);
  const final=T.status(frame);assert.equal(final.availability,'unknown');assert.equal(final.obligations.extraZ.remaining,null);assert.equal(final.obligations.extraZ.baseline,false);
  const after=R.move(position,'HD'),result=C.applyActual(supplied,{before:position,after,action:'HD'}),next={status:result.context.status,state:result.context.state,view:C.resolve(result.context,{position:after})};
@@ -225,4 +226,52 @@ test('current tracking: repeated fixed current states and retired issue identiti
 test('current tracking: classic script exposes the same dependency-free unwired observer',()=>{
  const sandbox={};vm.runInNewContext(fs.readFileSync(require.resolve('../st-obligation-tracking'),'utf8'),sandbox);assert.equal(typeof sandbox.STObligationTracking.create,'function');assert.equal(typeof sandbox.STObligationTracking.status,'function');
  const events=[],m=sandbox.STObligationTracking.create();m.subscribe(e=>events.push(e));const frame=player().frame;m.transition(frame,frame,{operation:{kind:'observe'},effects:[]});assert.deepEqual(events,[]);
+});
+
+test('current tracking: observed Left T auto-start reconciles progress separately from known credit',()=>{
+ const source=trial(1,24).frame;
+ const operation={kind:'lock',piece:{id:300,type:'T',bag:42},event:{type:'T',cells:[[1,37],[0,38],[1,38],[2,38]],lines:0,clearedRows:[],spin:'none',topOut:false}};
+ for(const status of ['inactive','invalid']){
+  const before=copy(source);before.state.account.reset={status};before.view.reset.status=status;
+  const after=copy(before);after.state.account.reset={status:'active',remaining:1,firstTId:300,inheritedCovered:copy(before.state.safety.coveredCells)};after.view.reset.status='active';after.state.account.z.remaining++;after.view.extraZ.remaining++;
+  const effects=[{domain:'account',status:'reset-started',source:'observed-left-T',pieceId:300},{domain:'account',status:'reset-T-observed',pieceId:300},{domain:'account',status:'reset-T-credited',pieceId:300,delta:1}];
+  const record={before,after,options:{operation,effects}};assert.deepEqual(inspect(record),[]);
+  for(const status of ['reset-started','reset-T-observed','reset-T-credited']){
+   const missing=copy(record);missing.options.effects=missing.options.effects.filter(e=>e.status!==status);assert.notDeepEqual(codes(missing),[],status+' missing');
+   const duplicated=copy(record);duplicated.options.effects.push(copy(effects.find(e=>e.status===status)));assert.ok(codes(duplicated).includes('effect-mismatch'),status+' duplicated');
+  }
+  const erased=copy(record);erased.after=copy(before);erased.options.effects=[];assert.ok(codes(erased).includes('reset-progress-mismatch'));assert.ok(codes(erased).includes('reset-start-mismatch'));assert.ok(codes(erased).includes('reset-credit-mismatch'));
+ }
+});
+
+test('current tracking: unknown history observes Reset progress and first TSD without inventing Z credit',()=>{
+ const source=player(first(),{fresh:false}).frame;
+ const event={type:'T',cells:[[1,37],[0,38],[1,38],[2,38]],lines:0,clearedRows:[],spin:'none',topOut:false};
+ for(const handoff of [false,true]){
+  const before=copy(source);before.state.account.firstTsd=!handoff;before.state.sl.handoff=handoff;
+  const after=copy(before);after.state.account.reset={status:'active',remaining:1,firstTId:300,inheritedCovered:[]};after.view.reset.status='active';
+  const record={before,after,options:{operation:{kind:'lock',piece:{id:300,type:'T',bag:null},event},effects:[{domain:'account',status:'reset-started',source:'observed-left-T',pieceId:300},{domain:'account',status:'reset-T-observed',pieceId:300}]}};
+  assert.deepEqual(inspect(record),[]);assert.equal(after.state.account.z.remaining,null);
+  const credited=copy(record);credited.options.effects.push({domain:'account',status:'reset-T-credited',pieceId:300,delta:1});assert.ok(codes(credited).includes('unknown-account-changed'));assert.ok(codes(credited).includes('reset-credit-mismatch'));
+  const completed=copy(record);completed.before=copy(after);completed.after=copy(after);completed.after.state.account.reset={status:'inactive'};completed.after.view.reset.status='inactive';completed.options.operation.piece.id=301;completed.options.effects=[{domain:'account',status:'reset-T-observed',pieceId:301},{domain:'account',status:'reset-completed'}];assert.deepEqual(inspect(completed),[]);
+ }
+ const after=copy(source);after.state.account.firstTsd=true;
+ assert.deepEqual(inspect({before:source,after,options:{operation:{kind:'lock',piece:{id:300,type:'T',bag:null},event:{...event,lines:2,clearedRows:[38,39],spin:'full'}},effects:[{domain:'account',status:'first-tsd',pieceId:300}]}}),[]);
+});
+
+test('current tracking: actual unknown handoff permits observed Reset without classifying historical S/L',()=>{
+ const x=player(R.createState({active:'T',queue:[...'IJLOZS'],streamCursor:1}),{fresh:false});
+ const original=copy(x.frame.state.sl),handoff=x.handoff();assert.equal(handoff.after.state.sl.handoff,true);assert.equal(handoff.after.state.sl.foundationOpen,false);
+ assert.deepEqual(handoff.after.state.sl,{...original,handoff:true,foundationOpen:false});assert.deepEqual(x.events,[]);
+ const forged=copy(handoff);forged.after.state.sl.firstBagReview='reviewed';assert.ok(codes(forged).includes('unknown-sl-changed'));
+ x.handoff();const observed=x.lock(left);assert.equal(observed.after.state.account.reset.status,'active');assert.equal(observed.after.state.account.reset.remaining,1);assert.equal(observed.after.state.account.firstTsd,false);assert.equal(observed.after.state.account.z.remaining,null);
+ assert.deepEqual(x.events,[]);assert.deepEqual(observed.after.state.sl,handoff.after.state.sl);
+});
+
+test('current tracking: a fresh regional departure invalidates restarted Reset despite the prior departure flag',()=>{
+ const source=trial(1,24).frame,account=copy(source.state.account);account.profile.departure=true;account.reset={status:'active',remaining:1,firstTId:999,inheritedCovered:[]};
+ const before=withAccount(source,account),operation={kind:'lock',piece:{id:1000,type:'J',bag:100},event:{type:'J',cells:[[8,36],[8,37],[8,38],[9,38]],lines:0,clearedRows:[],spin:'none',topOut:false}};
+ const board=Array(40).fill('..........'),result=O.transition(account,{...operation,centerEffects:[]},{before:{board},after:{board,topOut:false,center:source.state.center,sl:source.view,coveredCells:[]}});
+ assert.equal(result.state.reset.status,'invalid');assert.equal(result.state.profile.departure,true);assert.ok(result.effects.some(e=>e.status==='reset-invalidated'));assert.equal(result.effects.some(e=>e.status==='profile-departure'),false);
+ const after=withAccount(source,result.state);assert.deepEqual(inspect({before,after,options:{operation,effects:result.effects.map(e=>({domain:'account',...e}))}}),[]);
 });

@@ -73,3 +73,12 @@ test('simulation tracking: obsolete recovery payloads reject instead of losing k
  const original=rows.find(r=>r.kind==='lock');
  for(const mixed of [false,true]){const old=E.clone(original);old.request.options.resourceContext={origin:old.request.observation,steps:[]};if(!mixed)delete old.request.options.obligationContext;assert.throws(()=>E.recoverTrackingStatus(old),/Legacy resource recovery/);}
 });
+
+test('simulation tracking: player-started Reset begins on the observed lock rather than the next lock',()=>{
+ const f=require('./support/st-reset-live-cycle.json'),Context=require('../st-obligation-context');
+ const current=Context.importState(f.obligationContext,{position:f.initial});assert.equal(current.status,'available');
+ const input={scenario:'stable',initial:f.initial,obligationContext:Context.exportState(current),future:f.steps.flatMap(s=>s.actions.flatMap(a=>a.revealed)),locks:f.steps.length},rows=[];let index=0;
+ const summary=E.runEpisode(input,{api:{...api,startOpeningSession:()=>({active:false}),resourceGoal:()=>false},planner:request=>{const witness=f.steps[index++].actions.map(a=>a.action),proof=R.replay(request.observation,witness);return{target:proof.events[0].target,witness,hold:witness.includes('HOLD'),evidence:{}};},onRecord:row=>rows.push(row)});
+ assert.equal(summary.locks,f.steps.length);assert.deepEqual(summary.reset.starts,[{at:0,firstLock:1,linesBefore:0}]);assert.equal(summary.reset.firstCompletion.completedAt,8);assert.equal(summary.reset.finalStatus,'inactive');assert.equal(summary.tracking.total,0);
+ assert.deepEqual(E.recoverTrackingStatus(rows.filter(r=>r.kind==='lock').at(-1)).obligations,summary.finalObligations.obligations);
+});

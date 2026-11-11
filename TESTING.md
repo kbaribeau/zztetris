@@ -88,6 +88,14 @@ Statement coverage means lines executed; branch coverage means alternatives exec
 
 ## ST lab milestone coverage
 
+`st-player-started-reset.test.cjs` covers player Left-T entry despite declined or
+early-account coaching, same-lock first-T progress, opening exclusion, conserved
+Z balance, unknown-origin phase boundaries, current obligation preservation,
+factual projection versus strategic admission, and actual-page advice-hidden
+entry/import/Undo. Tracking and simulation suites independently check observation
+versus numeric credit, two-T completion, source eligibility, and actual start-lock
+timestamps. These are accounting/behavior checks, not improved survival evidence.
+
 `st-public-horizon.test.cjs` covers ordinary default search beyond three locks, finite public supply including HOLD and forced bag deduction, unchanged node/deadline caps, partial-search fallback, real-worker configuration, and prior production session migration without losing current obligations. Historical three-lock challenger and pending-L expiry controls now declare that scope explicitly; default-route checks separately allow already-executed quads, later scoring and longer retained commitments. The resource UI legacy-message oracle normalizes only the intentionally changed depth after asserting the new setting. Explicit depth-limited strategy fixtures keep their declared scope; these checks do not prove improved long-run play.
 
 The old advisor and its implementation-specific gates remain removed. New pure suites cover rules/rotation metadata, actual-pose witnesses, all clear counts, hold/draw accounting and uncertain bag observations. `st-fixtures.test.cjs` independently decodes source Fumens and replays legal construction from empty. Source pictures are not planner answer lookups.

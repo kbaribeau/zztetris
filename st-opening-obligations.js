@@ -2,7 +2,9 @@
  * Shared factual component; the controller and coaches own route selection.
  *
  * The caller authenticates each actual lock/public identity exactly once and
- * owns inventory, phase/Reset selection, Center/S/L/safety reducers and Undo.
+ * owns inventory, opening handoff, Center/S/L/safety reducers and Undo.
+ * A post-opening qualifying Left T starts observed Reset independently of
+ * strategic selection; numeric credit still requires an established Z account.
  * Supply the AFTER-lock Center/S/L classifications and this lock's Center
  * effects. In particular, debt-invalidated is an operation fact, not a query
  * of an old closure archive. The board predicates below are factual copies of
@@ -26,9 +28,9 @@
  * resolve intentionally does not fabricate those historical fields. An inactive
  * Reset has progress zero; completion is an effect, not a retained episode.
  * Trusted snapshots undergo structural checks, never provenance replay.
- * Unknown-origin observation diagnostics (for example an observed TSD without
- * opening authority) remain caller-owned; this slice keeps no unknown-origin
- * allocation account and does not infer eligibility from later geometry.
+ * Unknown origins retain observed first-TSD/Reset facts but never acquire an
+ * opening allocation or numeric Z balance from them. An ambiguous imported
+ * opening phase stays ambiguous until an observed TSD or explicit handoff.
  */
 (function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-reset-policy')):factory(root.STResetPolicy);if(typeof module==='object'&&module.exports)module.exports=api;else root.STOpeningObligations=api;})(typeof globalThis!=='undefined'?globalThis:this,function(ResetPolicy){
 'use strict';
@@ -77,7 +79,8 @@ function validate(state,projected=false){
  check(!o||o.kind!=='quality'||state.allocationVerified&&state.z.remaining===null&&state.qualityCandidate&&!state.profile.violation,'quality boundary');
  check(!state.qualityCandidate||o?.kind==='quality'||state.profile.violation,'consumer quality duty or source violation');
  check(state.z.remaining===null||state.allocationVerified&&!state.mandatoryZ&&o===null&&state.z.uncredited==='none','established Z account');
- check(reset.status!=='active'||state.z.remaining!==null,'Reset account');
+ // Observed Reset progress is independent of whether prior Z accounting is known.
+ check(state.known||state.z.remaining===null,'unknown Z account');
  return state;
 }
 function importState(snapshot){validate(snapshot);return clone(snapshot);}
@@ -152,22 +155,39 @@ function reduce(current,operation,context,projected=false,owned=false){
  const after=context.after;check(typeof after.topOut==='boolean','after top-out');
  check(Array.isArray(after.center?.pending)&&Array.isArray(after.center?.debt)&&Array.isArray(operation.centerEffects),'current Center facts');
  for(const kind of ['hangingS','hangingL'])check(['none-observed','hanging','unknown','out-of-profile'].includes(after.sl?.[kind]?.status),'current '+kind+' classification');
- if(state.reset.status==='active')cells(after.coveredCells,'current covered cells');
- if(!state.known)return{state,effects};
- const wasFirst=state.firstTsd,wasActive=state.reset.status==='active',isTsd=tsd(e),isCanonical=canonical(e),nonRight=e.cells.every(([x])=>x<7),rightZ=e.type==='Z'&&e.lines===0&&e.cells.every(([x])=>x>=8),place=region(e);
- let credited=false;
+ const wasFirst=state.firstTsd,isTsd=tsd(e),isCanonical=canonical(e),nonRight=e.cells.every(([x])=>x<7),rightZ=e.type==='Z'&&e.lines===0&&e.cells.every(([x])=>x>=8),place=region(e);
+ const postOpening=wasFirst||context.before.handoff===true;
+ if(state.reset.status!=='active'&&postOpening&&ResetPolicy.qualifies(e)&&!e.topOut&&!after.topOut){
+  const inherited=context.before.coveredCells||[];cells(inherited,'inherited covered cells');
+  state.reset={status:'active',remaining:2,firstTId:null,inheritedCovered:clone(inherited)};
+  addEffect(effects,'reset-started',{source:'observed-left-T',pieceId:piece.id});
+ }
+ const wasActive=state.reset.status==='active';
+ if(wasActive)cells(after.coveredCells,'current covered cells');
+ let observed=false;
  if(wasActive){
-  if(!isCanonical||e.topOut)invalidateReset(state,effects,'noncanonical-clear-or-top-out');
+  if(!isCanonical||e.topOut||after.topOut)invalidateReset(state,effects,'noncanonical-clear-or-top-out');
   else if(e.type==='T'){
-   // M's finite route already credits a qualifying synthetic Left T. Keep
-   // that explicit projection rule separate from actual observed-bag credit.
-   if(!ResetPolicy.qualifies(e)||(!projected&&piece.bag===null)||piece.id===state.reset.firstTId)invalidateReset(state,effects,'T-must-be-distinct-observed-Left-nonclear');
+   // The caller authenticated this subject. Unknown bag membership does not
+   // erase an observed placement or create knowledge of the earlier balance.
+   if(!ResetPolicy.qualifies(e)||piece.id===state.reset.firstTId)invalidateReset(state,effects,'T-must-be-distinct-observed-Left-nonclear');
    else{
-    state.z.remaining++;credited=true;state.reset.remaining--;addEffect(effects,'reset-T-credited',{pieceId:piece.id,delta:1});
+    observed=true;state.reset.remaining--;addEffect(effects,'reset-T-observed',{pieceId:piece.id});
+    if(state.z.remaining!==null){state.z.remaining++;addEffect(effects,'reset-T-credited',{pieceId:piece.id,delta:1});}
     if(state.reset.remaining===0){state.reset={status:'inactive'};addEffect(effects,'reset-completed');}
     else state.reset.firstTId=piece.id;
    }
   }
+ }
+ if(wasActive&&state.reset.status==='active'){
+  const live=new Set(after.coveredCells.map(c=>c.join(',')));
+  state.reset.inheritedCovered=translate(state.reset.inheritedCovered,e.clearedRows).filter(c=>live.has(c.join(',')));
+ }
+ const departure=!isCanonical||(place==='right'&&!'ZIT'.includes(e.type))||(place==='cross-right'&&!isTsd)||(e.type==='T'&&!isTsd&&!observed)||(e.type==='Z'&&!nonRight&&!e.cells.every(([x])=>x>=8))||e.topOut;
+ if(!state.known){
+  if(wasActive&&departure)invalidateReset(state,effects,'profile-departure');
+  if(!wasFirst&&isTsd){state.firstTsd=true;addEffect(effects,'first-tsd');}
+  validate(state,projected);return{state,effects};
  }
  const o=state.opening;
  if(o){if(e.type==='S')o.imbalance++;else if(e.type==='L')o.imbalance--;}
@@ -223,7 +243,7 @@ function reduce(current,operation,context,projected=false,owned=false){
     addEffect(effects,'optional-Z-debited',{pieceId:piece.id,delta:-1});
    }
   }
-  if(!isCanonical||(place==='right'&&!'ZIT'.includes(e.type))||(place==='cross-right'&&!isTsd)||(e.type==='T'&&!isTsd&&!credited)||(e.type==='Z'&&!nonRight&&!e.cells.every(([x])=>x>=8))||e.topOut){
+  if(departure){
    if(!state.profile.departure)addEffect(effects,'profile-departure',{pieceId:piece.id});
    state.profile.departure=true;
   }
@@ -231,17 +251,15 @@ function reduce(current,operation,context,projected=false,owned=false){
  // Consumer priority is deliberately broader than baseline eligibility. The
  // legacy gate ignores source violations; do not substitute the quality duty
  // (which correctly retires on them) or infer permission to grant a baseline.
- if(state.qualityCandidate&&(state.z.uncredited!=='none'||state.profile.departure||operation.centerEffects.some(p=>p.status==='debt-invalidated')))state.qualityCandidate=false;
+ if(state.qualityCandidate&&(observed||state.z.uncredited!=='none'||state.profile.departure||operation.centerEffects.some(p=>p.status==='debt-invalidated')))state.qualityCandidate=false;
  if(state.opening?.kind==='quality'){
-  if(state.profile.violation||state.profile.departure||state.z.uncredited!=='none')disqualifyQuality(state,effects,'allocation-or-profile-departure');
+  if(observed||state.profile.violation||state.profile.departure||state.z.uncredited!=='none')disqualifyQuality(state,effects,'allocation-or-profile-departure');
   else if(operation.centerEffects.some(p=>p.status==='debt-invalidated'))disqualifyQuality(state,effects,'invalidated-Center-debt');
   else if(!state.mandatoryZ&&state.opening.imbalance===0&&!after.center.pending.length&&!after.center.debt.length&&after.sl.hangingS.status==='none-observed'&&after.sl.hangingL.status==='none-observed'&&quality(after.board))baseline(state,effects);
  }
- if(wasActive&&(state.profile.departure||state.z.remaining<0))invalidateReset(state,effects,'profile-departure-or-Z-overspend');
- if(wasActive&&state.reset.status==='active'){
-  const live=new Set(after.coveredCells.map(c=>c.join(',')));
-  state.reset.inheritedCovered=translate(state.reset.inheritedCovered,e.clearedRows).filter(c=>live.has(c.join(',')));
- }
+ // Past policy failures remain visible but do not cancel a newly observed
+ // Reset. A new departure/overspend can still interrupt the current episode.
+ if(wasActive&&(departure||e.type==='Z'&&nonRight&&state.z.remaining!==null&&state.z.remaining<0))invalidateReset(state,effects,'profile-departure-or-Z-overspend');
  validate(state,projected);
  return{state,effects};
 }

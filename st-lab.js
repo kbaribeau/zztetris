@@ -476,7 +476,7 @@
     if(!state)return;
     const visible=TrainingSettings.guideVisible;
     // This names the session's coaching path, not search success or a local
-    // scoring-wall phase. A finite repair is not a detected community Reset.
+    // scoring-wall phase. Reset progress includes qualifying actual player placements.
     const resetting=resources().reset?.status==='active';
     $('st-phase').dataset.phase=openingPhase?'opening':resetting?'reset':'maintenance';
     setText($('st-phase-name'),openingPhase?'Opening':resetting?'Reset':'Mid-game');
@@ -503,14 +503,14 @@
     const s=currentResources.hangingS||{status:'unknown',evidence:[],unclassifiedCount:null},l=currentResources.hangingL||{status:'unknown',evidence:[],unclassifiedCount:null},z=currentResources.extraZ||{status:'unknown',remaining:null};
     const sLabel={hanging:'observed surplus','none-observed':'none currently observed',unknown:'unknown current accounting','out-of-profile':'outside the reviewed source profile'}[s.status];
     const lLabel={hanging:'observed surplus','none-observed':'none currently observed',unknown:'unknown current accounting','out-of-profile':'outside the reviewed source profile'}[l.status];
-    const zLabel=currentResources.reset?.status==='active'?`Reset in progress; observed balance ${z.remaining}`:z.status==='available'&&z.remaining>1?`${z.remaining} remaining in the current balance`:{available:'available in the current account',used:'spent in the current account',unknown:'eligibility unknown','out-of-profile':'outside the reviewed source profile'}[z.status];
+    const zLabel=currentResources.reset?.status==='active'?(z.remaining===null?'Reset in progress; earlier Z balance unknown':`Reset in progress; observed balance ${z.remaining}`):z.status==='available'&&z.remaining>1?`${z.remaining} remaining in the current balance`:{available:'available in the current account',used:'spent in the current account',unknown:'eligibility unknown','out-of-profile':'outside the reviewed source profile'}[z.status];
     renderResourceBadge('st-hanging-s',s.status,`Hanging S: ${sLabel}`,s.reason||currentResources.reason||'Current obligation facts.','hanging',currentResources.terminal,currentResources.status==='unavailable'?null:s.evidence.length,s.unclassifiedCount,s.aggregate?.reduce((a,b)=>a+b,0));
     renderResourceBadge('st-hanging-l',l.status,`Hanging L: ${lLabel}`,`${l.reason||currentResources.reason||'Current obligation facts.'} A normal Center SL awaiting its L is separate; no L repair strategy is implied.`,'hanging',currentResources.terminal,currentResources.status==='unavailable'?null:l.evidence.length,l.unclassifiedCount,l.aggregate?.reduce((a,b)=>a+b,0));
     renderResourceBadge('st-extra-z',z.status,`Extra Z: ${zLabel}`,z.reason||currentResources.reason||'Current obligation facts.','used',currentResources.terminal);
     $('st-resource-terminal').hidden=!currentResources.terminal;
     const centerLabel=currentResources.center?`${currentResources.center.pending.length} pending, ${currentResources.center.debt.length} diverted`:'unknown';
     setText($('st-resource-summary'),`${currentResources.terminal?'Game ended; historical facts only. ':''}Hanging S: ${sLabel}. Hanging L: ${lLabel}. Extra Z: ${zLabel}. Observed Center partners: ${centerLabel}. Unclassified S/L accommodation: ${s.unclassifiedCount??'?'}/${l.unclassifiedCount??'?'}; anonymous counts do not name pieces. These are diagnostics, not placement instructions.`);
-    setText($('st-reset-summary'),currentResources.reset?.status==='active'?`Reset coach: ${currentResources.reset.progress} of 2 Left T placements completed. Remaining non-Right Z balance: ${z.remaining}.`:`Current Reset: ${currentResources.reset?.status??'unavailable'}.`);
+    setText($('st-reset-summary'),currentResources.reset?.status==='active'?`Reset: ${currentResources.reset.progress} of 2 Left T placements completed. Remaining non-Right Z balance: ${z.remaining??'unknown'}.`:`Current Reset: ${currentResources.reset?.status??'unavailable'}.`);
     setText($('st-diagnostic-text'),JSON.stringify({status:coachStatus,revision:state.revision,resources:currentResources,
       ...(result?{metrics:result.metrics,evidence:result.evidence,horizon:result.horizon,continuation:result.continuation}:{}),
       note:'Only the shown sequence has been checked. Continued ST play is not guaranteed.'},null,2));

@@ -71,13 +71,13 @@ test('opening accounts: actual diverted Center debt invalidation cannot become d
  a.lock(['CW','R','HD']);assert.equal(a.state.opening,null);assert.ok(a.last.effects.some(e=>e.status==='quality-disqualified'&&e.reason==='invalidated-Center-debt'));
  a.lock(['HOLD','L','L','L','HD']);assert.equal(a.state.z.remaining,null);assert.equal(a.compare().openingAllocation.status,'verified-first-tsd');
 });
-test('opening accounts: current quality blockers can resolve, but a T departure cannot',()=>{
+test('opening accounts: current quality blockers can resolve, but an observed Reset retires the opening baseline',()=>{
  const waiting=established();waiting.z.remaining=null;waiting.opening={kind:'quality',imbalance:0};waiting.qualityCandidate=true;
  for(const blocker of [{center:{pending:[{id:'live'}],debt:[]}},{center:{pending:[],debt:[{id:'diverted'}]}},{sl:{hangingS:{status:'hanging'},hangingL:{status:'none-observed'}}},{sl:{hangingS:{status:'none-observed'},hangingL:{status:'unknown'}}}]){
   const blocked=lock(waiting,'J',1,blocker);assert.equal(blocked.state.z.remaining,null);assert.equal(blocked.state.opening.kind,'quality');assert.equal(lock(blocked.state,'J',2).state.z.remaining,1);
  }
  const unbalanced=copy(waiting);unbalanced.opening.imbalance=1;assert.equal(lock(unbalanced,'J',1).state.z.remaining,null);assert.equal(lock(unbalanced,'L',2).state.z.remaining,1);
- const departed=lock(waiting,'T',1);assert.equal(departed.state.opening,null);assert.equal(departed.state.profile.departure,true);assert.equal(lock(departed.state,'J',2).state.z.remaining,null);
+ const departed=lock(waiting,'T',1);assert.equal(departed.state.opening,null);assert.equal(departed.state.profile.departure,false);assert.equal(departed.state.reset.remaining,1);assert.equal(lock(departed.state,'J',2).state.z.remaining,null);
 });
 test('opening accounts: pre-clear quality and delayed quality have distinct Center invalidation rules',()=>{
  const before=trial(1,14),after=trial(1,15),event=after.position.lastEvent,piece=before.inventory.active;
@@ -125,16 +125,16 @@ test('opening accounts: actual completed Reset can be spent and entered again wi
  for(const [witness,revealed]of continuation)for(const action of witness)a.act(action,action==='HD'?[revealed]:[]);
  assert.equal(a.state.z.remaining,0);const begun=a.begin();assert.equal(begun.state.z.remaining,0);assert.equal(begun.state.reset.remaining,2);assert.equal(begun.state.reset.firstTId,null);
 });
-test('opening accounts: Reset overspend and a non-Left or scoring T invalidate without repair',()=>{
- const a=trial(1,24);a.begin();a.act('HOLD');for(let i=0;i<5;i++)a.lock(['HD']);assert.equal(a.state.z.remaining,-1);assert.equal(a.state.reset.status,'invalid');a.lock(['L','L','L','HD']);assert.equal(a.state.z.remaining,-1);
+test('opening accounts: Reset overspend and non-Left Ts interrupt; later qualifying T starts a new episode',()=>{
+ const a=trial(1,24);a.begin();a.act('HOLD');for(let i=0;i<5;i++)a.lock(['HD']);assert.equal(a.state.z.remaining,-1);assert.equal(a.state.reset.status,'invalid');a.lock(['L','L','L','HD']);assert.equal(a.state.z.remaining,0);assert.equal(a.state.reset.remaining,1);
  const b=trial(1,24);b.begin();b.lock(['HD']);assert.equal(b.state.reset.status,'invalid');assert.equal(b.state.z.remaining,0);
  const c=trial(1,24);c.begin();const f=require('./support/st-resource-trial-1.json');let locks=0;for(const s of f.steps){if(locks===24)c.act(s.action,s.revealed);if(s.action==='HD')locks++;if(locks===25)break;}assert.equal(c.position.lastEvent.lines,2);assert.equal(c.state.z.remaining,0);assert.equal(c.state.reset.status,'invalid');
 });
-test('opening accounts: current Reset rejects duplicate T and unknown bag without retaining paid lists',()=>{
+test('opening accounts: current Reset rejects duplicate T but unknown bag membership does not erase observed identity',()=>{
  const initial=O.beginReset(established(),{candidate:true}).state,one=lock(initial,'T',91,{bag:18}).state;
  assert.equal(one.z.remaining,1);assert.equal(one.reset.firstTId,91);assert.equal(one.reset.remaining,1);
  const duplicate=lock(one,'T',91,{bag:18});assert.equal(duplicate.state.z.remaining,1);assert.equal(duplicate.state.reset.status,'invalid');assert.equal(duplicate.effects.some(e=>e.status==='reset-T-credited'),false);
- const unknown=lock(initial,'T',92,{bag:null});assert.equal(unknown.state.z.remaining,0);assert.equal(unknown.state.reset.status,'invalid');
+ const unknown=lock(initial,'T',92,{bag:null});assert.equal(unknown.state.z.remaining,1);assert.equal(unknown.state.reset.remaining,1);
  const distinct=lock(one,'T',92,{bag:19});assert.equal(distinct.state.z.remaining,2);assert.deepEqual(distinct.state.reset,{status:'inactive'});
 });
 test('opening accounts: rejected Reset entry leaves facts unchanged and re-entry is idempotent',()=>{
@@ -196,5 +196,5 @@ test('projected opening accounts: synthetic Reset T uses a separate codec and di
  const two=project(one.state,-2);assert.equal(two.state.z.remaining,2);assert.deepEqual(two.state.reset,{status:'inactive'});assert.equal(two.effects.filter(e=>e.status==='reset-completed').length,1);
  const repeated=project(one.state,-1);assert.equal(repeated.state.reset.status,'invalid');assert.equal(repeated.state.z.remaining,1);assert.equal(repeated.effects.some(e=>e.status==='reset-T-credited'),false);
  const notLeft=project(root,-1,{cells:[[4,38],[5,38],[6,38],[5,39]]});assert.equal(notLeft.state.reset.status,'invalid');assert.equal(notLeft.state.z.remaining,0);
- assert.throws(()=>lock(actual,'T',-1,{bag:null}),/locked public identity/);assert.equal(lock(actual,'T',91,{bag:null}).state.reset.status,'invalid');assert.deepEqual(root,saved);
+ assert.throws(()=>lock(actual,'T',-1,{bag:null}),/locked public identity/);assert.equal(lock(actual,'T',91,{bag:null}).state.reset.remaining,1);assert.deepEqual(root,saved);
 });
