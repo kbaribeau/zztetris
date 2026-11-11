@@ -28,10 +28,10 @@ test('proof scheduling: deliberately unfinished access remains unknown, never a 
 
 for(const f of require('./fixtures/scheduling-selection-roots.json'))test(`proof scheduling: certified selection and incomplete coverage remain distinct at ${f.seed}/${f.lock}`,()=>{
  // These fixtures specify the original node-only subprobe selection. Keep
- // the separate fresh-handoff comparison disabled: it can finish more work
+ // the separate root-route lane and fresh-handoff comparison disabled: it can finish more work
  // and legitimately report complete search. Control nested handoff clocks,
  // too; an infinite outer deadline alone still leaves their 200-ms wall timer.
- const q=f.request,options={...q.options,disableFreshHandoff:true,previous:q.previous,commitment:q.commitment,deadline:Infinity,timeMs:undefined,now:()=>0};
+ const q=f.request,options={...q.options,disableFreshHandoff:true,disableContourRoutes:true,previous:q.previous,commitment:q.commitment,deadline:Infinity,timeMs:undefined,now:()=>0};
  const a=P.decide(q.observation,options);
  // The checked O-Left then J-Center route is also valid when contextual
  // Left precedes effort; the strict certificate/coverage assertions below

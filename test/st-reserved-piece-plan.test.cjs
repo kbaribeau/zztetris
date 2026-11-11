@@ -51,13 +51,13 @@ test('reserved plan / session round trip preserves history but no forged proof a
  assert.ok(restored.previous);assert.ok(P.revalidate(restored.state,restored.previous,{...opts(),obligationContext:restored.obligationContext}));
  const stale=clone(saved);stale.engineVersion='old-unaccepted-coach';const parsed=Session.parse(JSON.stringify(stale));assert.equal(parsed.previous,null);assert.deepEqual(parsed.state.board,s.board);
 });
-function internalPlanner(mutate=s=>s){const fs=require('fs'),path=require('path'),vm=require('vm'),filename=require.resolve('../st-planner'),m={exports:{}};let source=mutate(fs.readFileSync(filename,'utf8'));source=source.replace('return Object.freeze({dPatternAdmission,','return Object.freeze({checkedResourceEndpoint,');vm.runInNewContext(source,{module:m,require:id=>require(path.resolve(path.dirname(filename),id)),Date,performance});return m.exports;}
+function internalPlanner(mutate=s=>s){const fs=require('fs'),path=require('path'),vm=require('vm'),filename=require.resolve('../st-planner'),m={exports:{}};let source=mutate(fs.readFileSync(filename,'utf8'));source=source.replace('return Object.freeze({importCandidateResources,','return Object.freeze({checkedResourceEndpoint,');vm.runInNewContext(source,{module:m,require:id=>require(path.resolve(path.dirname(filename),id)),Date,performance});return m.exports;}
 test('reserved plan / executed J exit cannot certify a still-unpaid suffix',()=>{
  const internal=internalPlanner(),a=advice(),partial=a.continuation.slice(0,-1),checked=internal.checkedResourceEndpoint(root(),partial,opts());assert.equal(checked.valid,false);assert.equal(checked.reason,'unresolved-covered-cells');
  const forged=clone(a);forged.continuation=partial;assert.equal(P.revalidate(root(),forged,opts()),null);
 });
-test('reserved plan / removing whole-path D-exit proof loses the positive mechanism',()=>{
- const mutant=internalPlanner(s=>s.replace('const executedExit=exit?.valid','const executedExit=false&&exit?.valid')),a=mutant.decide(root(),opts());assert.notEqual(a.metrics.reservedPiecePlan?.selected,true);assert.equal(a.recommendation.kind,'risky');
+test('reserved plan / completed ordinary repair needs no separate D certificate',()=>{
+ const a=advice(),checked=internalPlanner().checkedResourceEndpoint(root(),a.continuation,opts());assert.equal(checked.valid,true,checked.reason);assert.equal(checked.resource.violations.length,0);assert.equal(checked.delayedDPlans.length,0);assert.equal(checked.checkedIExits.length,0);
 });
 
 test('reserved plan / production Worker cannot claim an unpaid reservation when its budget ends',()=>{

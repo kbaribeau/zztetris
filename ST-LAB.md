@@ -570,53 +570,21 @@ T entry. Interrupted or unsuccessful optional work preserves the incumbent.
 These are conservative finite-proof bounds, not a general instruction to grow
 Center while waiting for J or a guarantee of continued play.
 
-### Contextual explained-risk allocation
+### Root-first recorded Left routes
 
-The experimental decision layer can compare an explicit D-risk placement with
-an already supported finite alternative in one narrow public-supply situation:
-HOLD would postpone S while at least two more S than L are visible, and actually
-placing S on Left reduces that burden. The compared first locks must leave the
-same public next draw and identical Center/Right, with no increased height or
-new covered/sealed damage. Existing Center/repair commitments, retained advice,
-opening and construction plans remain protected. This is a conservative
-allocation hypothesis, not a community rule or a promise of an arriving J/L.
+The planner looks up the initial Left contour and public piece supply before
+ordinary continuation search. Matching recorded piece/contour sequences get a
+bounded first search lane, including weak intermediate shapes and finite cycles.
+Until its first certificate, the lane reserves half the remaining request
+allowance for ordinary fallback and
+never bypasses movement, resource, Center, cycle, covered-cell or access checks.
+The existing global 1500 ms / 45,000-node limits remain unchanged.
 
-The chosen D placement stays risky, with its unresolved J timing and waiting
-space explained. Advice explicitly acknowledges the supported alternative found
-and the S-accommodation tradeoff; it does not claim no supported move existed or
-that the risky move is proved superior over unseen future play. Normal risk
-import/movement/reveal rejection and fresh replanning remain unchanged.
-
-### Experimental bounded delayed-J plan
-
-A D surface can now be supported when the currently active piece first pays
-one exact authenticated pre-existing Center target, leaves Left unchanged and
-creates no new covered/Center debt, and the resulting public inventory has a
-strictly verified immediate J exit. The same canonical, notch, movement,
-resource identity and shared time/node checks remain mandatory. A J merely
-appearing somewhere in preview is not permission; arbitrary waiting and
-recursive stage chains are outside this small grammar. Recorded plan metadata
-is rebuilt during retention/import validation and is never trusted authority.
-The one-J shorter route is distinct from a longer route that spends one J in
-Center and a second J in Left. No reset detection or benchmark change is part
-of this implementation. The general 85-line target is post-first-reset, not
-an acceptance target for these experimental branches or opener-root samples.
-
-### Checked I exit and visible J allocation
-
-A bounded ordinary continuation may now use a literal immediately playable I
-as the actual next lock inside its carried route to leave D, provided it adds
-no covered cells, preserves notch/cycle/resource
-checks, stays at most 16 rows high and does not compete with Right-I preparation
-or cleanup. This is an engineered certificate, not a broader interpretation of
-Shocky's immediate-J advice. See [Left admission](docs/st-left-context.md#checked-immediate-i-alternative).
-
-A small shared-budget discovery pass can prefer J Left when another identified
-visible J actually pays the existing O/J Center target and the original Hanging S
-is accommodated. It protects an immediately executable TSD by scoring first,
-retains the checked suffix and original S identity using the existing commitment
-mechanism. Ordinary fresh beam D admission is unchanged. It does not
-promise unknown arrivals or continued survival after that finite route.
+The J-only D gate, delayed-J/I exceptions and D-specific risk comparison have
+been replaced by this general mechanism. D may resolve with L or another actual
+recorded continuation; unrelated obligations still apply. See
+[recorded contour routes](docs/st-left-context.md#root-first-recorded-contour-routes)
+for the exact matching, budget, commitment and evidence boundaries.
 
 ### Coaching-session download names
 

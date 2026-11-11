@@ -25,7 +25,14 @@ for(const [id,note] of C.CASES)test(`regional feedback: ${id} retains an executa
   // Both the bounded L/O Left route and the deeper, actually completed
   // Center S/L route are supported alternatives from this reviewed root.
   if(first.type==='L'){assert.ok(first.columns.every(x=>x>=1&&x<=4));assert.equal(first.structuralEvidence.pairFamily,null);assert.equal(c.assessment.structure.right.reservoir.status,'verified-clear-reopens-reservoir');}
-  else{assert.equal(first.type,'S');assert.deepEqual(first.columns,[5,6,7]);assert.equal(first.structuralEvidence.pairFamily,'SL');assert.equal(first.structuralEvidence.pairProgress.completionLock,2);assert.equal(c.continuation[1].type,'L');assert.deepEqual(c.continuation[1].columns,[5,6,7]);assert.equal(c.continuation[1].structuralEvidence.pairProgress.step,2);}
+  else{assert.equal(first.type,'S');assert.deepEqual(first.columns,[5,6,7]);assert.equal(first.structuralEvidence.pairFamily,'SL');
+   // Route-first may interleave Left work or a real clear before Center pays.
+   // A completed-pair description must still name its actual executed lock.
+   const completion=first.structuralEvidence.pairProgress.completionLock;
+   if(completion!==undefined){assert.equal(c.continuation[completion-1].type,'L');assert.deepEqual(c.continuation[completion-1].columns,[5,6,7]);assert.equal(c.continuation[completion-1].structuralEvidence.pairProgress.step,2);}
+   assert.equal(c.evidence.resourceObligations.status,'checked');
+   assert.ok(c.continuation.every(p=>p.type!=='T'||p.spin==='full'&&p.lines===2));
+  }
   assert.equal(c.assessment.leftSealed,0);
  }
  if(id==='marathon-preparation'){assert.equal(first.type,'I');assert.deepEqual(first.columns,[1,2,3,4]);}

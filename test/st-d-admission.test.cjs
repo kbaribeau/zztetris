@@ -1,98 +1,37 @@
-const test=require('node:test'),assert=require('node:assert/strict');
-const R=require('../st-rules'),L=require('../st-left-context'),P=require('../st-planner');
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const R=require('../st-rules'),L=require('../st-left-context'),C=require('../st-obligation-context');
 const fixtures=require('./fixtures/st-d-admission.json');
-const state=f=>R.createState({board:[...Array(20).fill('..........'),...f.board],active:f.active,hold:f.hold,queue:f.queue});
-const profile=board=>{const h=Array.from({length:4},(_,x)=>40-board.findIndex(r=>r[x]!=='.'));return h.map(v=>v-Math.min(...h));};
-const solid=h=>Array.from({length:40},(_,y)=>Array.from({length:10},(_,x)=>x<4&&y>=40-h[x]?'X':'.').join(''));
-const dState=(extra={})=>R.createState({board:solid([3,4,4,3]),active:'J',queue:['O','T'],...extra});
-for(const f of fixtures)test('D admission: exact '+f.name+' creation cannot borrow distant or consumed J',()=>{
- // Minimized original public board/inventory + exact recorded creation witness.
- // The imported seven-bag/history is deliberately unknown; no private future.
- const before=state(f),r=R.replay(before,f.witness);assert.equal(r.valid,true);assert.equal(r.events.length,1);
- assert.notDeepEqual(profile(before.board),[0,1,1,0]);assert.deepEqual(profile(r.state.board),[0,1,1,0]);
- assert.equal(L.createsD(before.board,r.state.board),true);
- const proof=P.dPatternAdmission(before,{state:r.state,event:r.events[0],witness:f.witness},{now:()=>0,deadline:1,maxNodes:4000});
- assert.equal(proof.valid,false);assert.equal(proof.reason,'D-created-without-immediate-J');assert.equal(proof.visited,0);
- if(f.active==='J'){assert.equal(r.state.active.type,'S');assert.equal(r.state.hold,'Z');assert.ok(!r.state.queue.includes('J'));}
+// Expose the shared endpoint boundary, not a bypass for its resource checks.
+function planner(){const filename=require.resolve('../st-planner'),source=fs.readFileSync(filename,'utf8'),m={exports:{}};vm.runInNewContext(source.replace('return Object.freeze({importCandidateResources,','return Object.freeze({checkedResourceEndpoint,importCandidateResources,'),{module:m,require:id=>require(path.resolve(path.dirname(filename),id)),Date,performance});return m.exports;}
+const options={now:()=>0,deadline:Infinity,maxNodes:30000};
+function steps(origin,witnesses){let s=origin;return witnesses.map(witness=>{const r=R.replay(s,witness);assert.equal(r.valid,true);assert.equal(r.events.length,1);s=r.state;return{witness,event:r.events[0],target:r.events[0].target};});}
+for(const f of fixtures)test('Left contour admission / '+f.name+' is not rejected for absent immediate J',()=>{
+ const s=R.createState({board:[...Array(20).fill('..........'),...f.board],active:f.active,hold:f.hold,queue:f.queue}),route=steps(s,[f.witness]),after=R.replay(s,f.witness).state;
+ assert(L.createsD(s.board,after.board));assert.notEqual(after.active?.type,'J');assert.notEqual(after.hold,'J');if(after.hold===null)assert.notEqual(after.queue[0],'J');
+ const result=planner().checkedResourceEndpoint(s,route,options);assert.equal(result.valid,true,result.reason);assert.equal(result.resource.violations.length,0);
+ // A legal silhouette never authenticates a changed event or illegal witness.
+ const forged=JSON.parse(JSON.stringify(route));forged[0].event.type='T';assert.equal(planner().checkedResourceEndpoint(s,forged,options).valid,false);
+ const illegal=JSON.parse(JSON.stringify(route));illegal[0].witness=['TELEPORT','HD'];assert.equal(planner().checkedResourceEndpoint(s,illegal,options).valid,false);
 });
-test('D admission: immediate active, held and empty-HOLD J have replayable clean one-lock exits',()=>{
- for(const extra of [{},{active:'T',hold:'J'},{active:'T',hold:null,queue:['J','O','T']},{active:'T',hold:'J',canHold:false}]){
-  const s=dState(extra),proof=L.dExit(s,{now:()=>0,deadline:1,maxNodes:4000});assert.equal(proof.valid,true,JSON.stringify(extra));
-  const r=R.replay(s,proof.exit.witness);assert.equal(r.valid,true);assert.equal(r.events.length,1);assert.equal(r.events[0].type,'J');assert.equal(r.events[0].lines,0);
-  assert.ok(r.events[0].cells.every(([x])=>x<4));assert.notDeepEqual(profile(r.state.board),[0,1,1,0]);
-  assert.deepEqual(profile(r.state.board),[0,2,2,2]); // independent source A silhouette
- }
+const creator=['L','L','L','CW','HD'],centerJ=['CW','R','HD'],leftJ=['L','L','R180','HD'];
+function origin(queue){const h=[6,4,6,6,4,1,2,0,0,0];return R.createState({board:Array.from({length:40},(_,y)=>h.map(v=>y>=40-v?'X':'.').join('')),active:'J',hold:'O',queue});}
+function current(s){const c=C.exportState(C.start(s));c.inventory.nextId=100;c.state.center.pending=[{id:'explicit-current-OJ',rootId:99,family:'OJ',alternatives:[{piece:'J',cells:[[5,36],[6,36],[5,37],[5,38]]}]}];return c;}
+test('Left contour admission / actual Center payment may leave D without reserving another J',()=>{
+ const s=origin(['J','O']),route=steps(s,[creator,centerJ]),after=R.replay(s,route.flatMap(p=>p.witness)).state;
+ assert(L.isD(after.board));assert.notEqual(after.active?.type,'J');assert.notEqual(after.hold,'J');if(after.hold===null)assert.notEqual(after.queue[0],'J');
+ const result=planner().checkedResourceEndpoint(s,route,{...options,obligationContext:current(s)});assert.equal(result.valid,true,result.reason);assert.deepEqual(Array.from(result.resource.pendingCenter),[]);assert.equal(result.resource.violations.length,0);
 });
-test('D admission: occupied non-J HOLD, late preview, unknown future and legacy unavailable HOLD are not immediate',()=>{
- for(const extra of [{active:'T',hold:'O',queue:['J','S']},{active:'T',hold:null,queue:['O','J']},{active:'T',queue:[],hiddenQueue:['J']},{rules:R.LEGACY_PROFILE.id,active:'T',hold:'J',canHold:false}])assert.equal(L.immediateJStarts(dState(extra)).length,0);
+test('Left contour admission / a J spent on Left still cannot pay an authenticated Center obligation',()=>{
+ const s=origin(['J','O']),route=steps(s,[creator,leftJ]),result=planner().checkedResourceEndpoint(s,route,{...options,obligationContext:current(s)});
+ assert.equal(L.isD(R.replay(s,route.flatMap(p=>p.witness)).state.board),false);assert.equal(result.valid,false);assert.equal(result.reason,'no-visible-resource-repair');
+ const replacement=origin(['J','J','O']),paid=steps(replacement,[creator,leftJ,centerJ]),ok=planner().checkedResourceEndpoint(replacement,paid,{...options,obligationContext:current(replacement)});assert.equal(ok.valid,true,ok.reason);assert.equal(ok.resource.pendingCenter.length,0);
 });
-test('D admission: presence is not reachability, and unfinished proof is not absence',()=>{
- assert.equal(L.dExit(dState({active:'T',hold:'J'}),{allowHold:false}).reason,'D-created-without-immediate-J');
- const s=dState(),limited=L.dExit(s,{now:()=>0,deadline:1,maxNodes:0});assert.equal(limited.valid,false);assert.equal(limited.complete,false);assert.equal(limited.reason,'D-J-exit-budget-unfinished');
- const high=dState({board:solid([19,20,20,19])});const p=L.dExit(high,{now:()=>0,deadline:1,maxNodes:4000});assert.equal(p.valid,false);
-});
-test('D admission: old D is not a new obligation; roofs cannot hide the D silhouette',()=>{
- const s=dState({active:'O',hold:'T',queue:['S']}),unchanged={state:s,event:{},witness:[]};
- assert.deepEqual(P.dPatternAdmission(s,unchanged),{valid:true,visited:0,reason:'no-new-D-pattern'});
- const roof=dState().board.slice();roof[39]='.XXX......';assert.equal(L.createsD(solid([2,2,2,2]),roof),true);
-});
-test('D admission: stale recommendation and in-flight retention cannot waive creation check',()=>{
- const f=fixtures[1],before=state(f),r=R.replay(before,f.witness),step={target:r.events[0].target,witness:f.witness,event:r.events[0],hold:false,holdCount:0};
- // Deliberately untrusted saved claims: target/event remain legal, but the
- // post-lock J inventory does not support the claimed repair.
- const previous={target:step.target,witness:f.witness,hold:false,holdCount:0,continuation:[step],context:JSON.stringify([before.rules,before.board,before.hold,before.canHold,before.queue,before.bag??null,before.active.type]),metrics:{},evidence:{cycleDebt:0,cavityRepair:{status:'verified-prefix-repaired'}}};
- assert.equal(P.revalidate(before,previous,{now:()=>0,deadline:1,maxNodes:8000}),null);
- const next=R.move(before,'L');assert.notEqual(next,before);
- assert.equal(P.advance(next,previous,'L',{now:()=>0,deadline:1,maxNodes:8000}),null);
-});
-test('D admission: full policy accepts actual immediate J exits, not only geometry helper',()=>{
- const f=fixtures[1],before=state({...f,queue:['J','S','O','T','I','S']}),r=R.replay(before,f.witness);
- assert.equal(r.valid,true);assert.equal(r.state.active.type,'J');
- const p={state:r.state,event:r.events[0],witness:f.witness};
- const proof=P.dPatternAdmission(before,p,{now:()=>0,deadline:1,maxNodes:8000});assert.equal(proof.valid,true,proof.reason);
- assert.equal(R.replay(r.state,proof.exit.witness).valid,true);
-});
-test('D admission: one J cannot pay Left and Center; a distinct executable replacement can',()=>{
- const C=require('../st-obligation-context'),Provider=require('../st-resource-provider');
- const heights=[6,4,6,6,4,1,2,0,0,0],board=Array.from({length:40},(_,y)=>heights.map(h=>y>=40-h?'X':'.').join(''));
- const cells=[[5,36],[6,36],[5,37],[5,38]],witness=['L','L','L','CW','HD'];
- for(const replacement of [false,true]){
-  const before=R.createState({board,active:'J',hold:'O',queue:replacement?['J','J','O']:['J','O']}),r=R.replay(before,witness);
-  // Synthetic explicit pending Center obligation, not asserted historical OJ
-  // provenance. Literal target is independently replayed in the positive arm.
-  const current=C.exportState(C.start(before));current.inventory.nextId=100;current.state.center.pending=[{id:'explicit-current-OJ',rootId:99,family:'OJ',alternatives:[{piece:'J',cells}]}];
-  const input=Provider.prepare(before,{obligationContext:current}),resource=Provider.startRoute(input,{extendForced:false});
-  const proof=P.dPatternAdmission(before,{state:r.state,event:r.events[0],witness},{resource,resourceInput:input,now:()=>0,deadline:1,maxNodes:8000});
-  assert.equal(proof.valid,replacement,proof.reason);
-  if(replacement){const finish=R.replay(proof.exit.state,['CW','R','HD']);assert.equal(finish.valid,true);assert.deepEqual(finish.events[0].cells,cells);}
-  else assert.equal(proof.reason,'D-J-exit-resources-unrepaired');
- }
-});
-const RH=require('../st-obligation-context');
-const context=s=>JSON.stringify([s.rules,s.board,s.hold,s.canHold,s.queue,s.bag??null,s.active?.type]);
-function adviceFor(origin,witnesses){let s=origin;const continuation=witnesses.map(witness=>{const r=R.replay(s,witness);assert.equal(r.valid,true);assert.equal(r.events.length,1);s=r.state;return{witness,event:r.events[0],target:r.events[0].target,hold:witness.includes('HOLD'),holdCount:witness.filter(a=>a==='HOLD').length};});return{target:continuation[0].target,witness:continuation[0].witness,hold:continuation[0].hold,holdCount:continuation[0].holdCount,continuation,context:context(origin),metrics:{},evidence:{cycleDebt:0}};}
-function applyHistory(origin,witnesses){let s=origin,h=RH.start(s);for(const w of witnesses)for(const action of w){const n=R.move(s,action);h=RH.applyActual(h,{before:s,action:action,after:n}).context;s=n;}return{state:s,history:h};}
-const creator=['L','L','L','CW','HD'],centerJ=['CW','R','HD'];
-function doubleJobOrigin(queue){const h=[6,4,6,6,4,1,2,0,0,0];return R.createState({board:Array.from({length:40},(_,y)=>h.map(v=>y>=40-v?'X':'.').join('')),active:'J',hold:'O',queue});}
-test('D admission: an actual suffix cannot divert immediate J while leaving the newly created D',()=>{
- for(const replacement of [false,true]){
-  const origin=doubleJobOrigin(replacement?['J','J','O']:['J','O','J']);
-  const creation=R.replay(origin,creator),proof=P.dPatternAdmission(origin,{state:creation.state,event:creation.events[0],witness:creator},{now:()=>0,deadline:1,maxNodes:12000});
-  assert.equal(proof.valid,true,'creation alone has an executable J exit and a separate Center repair');
-  const advice=adviceFor(origin,[creator,centerJ]);
-  assert.equal(Boolean(P.revalidate(origin,advice,{now:()=>0,deadline:1,maxNodes:30000})),replacement);
- }
-});
-test('D history: observed creation survives fresh requests and import; an imported D root is not retroactive debt',()=>{
- const origin=doubleJobOrigin(['J','O','J']),created=applyHistory(origin,[creator]);
- const summary=RH.resolve(created.history,{position:created.state});assert.deepEqual(summary.dPattern,{pending:true});
- const exported=RH.exportState(created.history),restored=RH.importState(JSON.parse(JSON.stringify(exported)),{position:created.state});
- assert.deepEqual(RH.resolve(restored,{position:created.state}).dPattern,summary.dPattern);
- const advice=adviceFor(created.state,[centerJ]);
- assert.equal(P.revalidate(created.state,advice,{obligationContext:exported,now:()=>0,deadline:1,maxNodes:12000}),null,'fresh request cannot forget observed creation');
- assert.equal(P.revalidate(created.state,advice,{now:()=>0,deadline:1,maxNodes:12000}),null,'Current D without a usable next J is not supported merely because imported creation history is unknown');
- const forged={...exported,dPattern:{pending:false}};assert.throws(()=>RH.importState(forged,{position:created.state}),'Unknown snapshot fields cannot override current duties');
- const exit=L.dExit(created.state,{now:()=>0,deadline:1,maxNodes:4000});assert.equal(exit.valid,true);
- let state=created.state,history=created.history;for(const action of exit.exit.witness){const next=R.move(state,action);history=RH.applyActual(history,{before:state,action:action,after:next}).context;state=next;}
- assert.deepEqual(RH.resolve(history,{position:state}).dPattern,{pending:false});
+test('Left contour history / legacy D facts roundtrip without becoming admission permission',()=>{
+ const s=origin(['J','O']);let position=s,history=C.start(s);
+ for(const action of creator){const after=R.move(position,action);history=C.applyActual(history,{before:position,action,after}).context;position=after;}
+ assert.deepEqual(C.resolve(history,{position}).dPattern,{pending:true});const exported=C.exportState(history),restored=C.importState(JSON.parse(JSON.stringify(exported)),{position});assert.deepEqual(C.resolve(restored,{position}).dPattern,{pending:true});
+ assert.deepEqual(C.resolve(C.start(position),{position}).dPattern,{pending:false});
+ const route=steps(position,[centerJ]);for(const obligationContext of [exported,C.exportState(C.start(position))])assert.equal(planner().checkedResourceEndpoint(position,route,{...options,obligationContext}).valid,true);
+ assert.throws(()=>C.importState({...exported,dPattern:{pending:false}},{position}),/envelope shape/);
 });

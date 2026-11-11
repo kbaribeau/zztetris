@@ -4,7 +4,7 @@
 (function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-structure')):factory(root.STRules,root.STStructure);if(typeof module==='object'&&module.exports)module.exports=api;else root.STLeftContext=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,S){
 'use strict';
 const SOURCE='https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit';
-const {catalog,classify,isD,createsD}=S.leftSurface,boardHeights=S.leftSurface.heights;
+const {catalog,classify,isD,createsD}=S.leftSurface;
 const rough=p=>p.slice(1).reduce((n,v,i)=>n+Math.abs(v-p[i]),0);
 const shapes={};for(const type of 'IJLOSZ'){
  const seen=new Set();shapes[type]=[];
@@ -77,58 +77,10 @@ function evaluate(state,{heights,covered=null,resources=null,centerDebt=[],cente
  // after Extra Z. Do not invent a second tier list: use only estimated geometric local
  // conversion improvement in that case, and retain existing generic estimate.
  const late=resources?.extraZ==='used'&&state.hold==='T';
- const immediateJ=first.some(c=>c.piece.type==='J'&&landings(h,'J').length);
  const improvement=Math.max(0,best-shape.weight)*.6;
  const fit=first.length?(fitCount?1:-2):0;
- const score=late?improvement+fit:shape.weight+improvement+fit-(shape.tier==='D'&&!immediateJ?2:0);
- return{...base,score,adjustment:score,context:late?'held-T-after-extra-Z':'visible-inventory',available:first.map(c=>({type:c.piece.type,held:c.held})),reserved:[...reserved].sort(),immediateJ,repair,fitCount};
+ const score=late?improvement+fit:shape.weight+improvement+fit;
+ return{...base,score,adjustment:score,context:late?'held-T-after-extra-Z':'visible-inventory',available:first.map(c=>({type:c.piece.type,held:c.held})),reserved:[...reserved].sort(),repair,fitCount};
 }
-// Admission is separate from the two-lock preference above. Immediate means
-// before another lock, through the rules' actual HOLD transitions (including
-// empty HOLD), never merely membership later in the visible queue.
-function immediateJStarts(state,options={}){
- const starts=[];let current=state;
- for(let count=0;count<=(options.allowHold===false?0:2);count++){
-  if(!current.active||current.topOut)break;
-  if(current.active.type==='J')starts.push({state:current,witness:Array(count).fill('HOLD')});
-  const next=R.move(current,'HOLD');if(next===current)break;current=next;
- }
- return starts;
-}
-function dExit(state,options={}){
- const now=options.now||(()=>Date.now()),deadline=options.deadline??Infinity,maxNodes=options.maxNodes??4000;
- const starts=immediateJStarts(state,options);let visited=0,complete=true;
- if(!starts.length)return{valid:false,complete:true,visited,reason:'D-created-without-immediate-J'};
- const covered=board=>{const out=new Set();for(let x=0;x<4;x++){let roof=false;for(let y=0;y<40;y++){if(board[y][x]!=='.')roof=true;else if(roof)out.add(x+','+y);}}return out;};
- const oldCovered=covered(state.board);let exit=null;
- for(const start of starts){
-  const e=R.placements(start.state,{allowHold:false,now,deadline,maxNodes:Math.max(0,maxNodes-visited),stopWhen:p=>{
-   const h=boardHeights(p.state.board),shape=classify(h);
-   if(p.event.type!=='J'||p.event.lines||p.event.topOut||!p.event.cells.every(([x])=>x<4)||Math.max(...h)>=20||!(shape&&shape.tier!=='D'||h.every(v=>v===h[0])))return false;
-   if([...covered(p.state.board)].some(c=>!oldCovered.has(c)))return false;
-   const candidate={...p,witness:[...start.witness,...p.witness],hold:start.witness.length>0,holdCount:start.witness.length};
-   if(options.acceptExit&&!options.acceptExit(candidate))return false;exit=candidate;return true;
-  }});visited+=e.visited;
-  if(exit)return{valid:true,complete:true,visited,reason:'immediate-executable-J-exit',exit};
-  if(!e.complete)complete=false;
- }
- return{valid:false,complete,visited,reason:complete?'D-created-without-usable-J-exit':'D-J-exit-budget-unfinished'};
-}
-// Descriptive dependency facts for the explicit risk channel. The caller must
-// supply the actual strict proof result and projected resource ledger; this
-// function does no search and cannot convert these warnings into admission.
-function dDependencies(after,checked,{resources,geometry}){
- if(checked.valid===true)return [];
- const immediate=immediateJStarts(after).length>0;
- const publicJ=after.active?.type==='J'||after.hold==='J'||after.queue.includes('J');
- const availability=!publicJ?'absent-from-public-supply':!immediate?'visible-but-delayed':checked.complete===false?'immediate-exit-proof-unfinished':'immediate-exit-not-established';
- const detail=!publicJ?'No supported immediate J exit is established for the Left D pattern, and no J is in the current public active, HOLD or preview; its arrival is unknown.':!immediate?'A J is known later in the public sequence, but cannot be used before another lock; the Left D pattern must wait.':checked.complete===false?'A J is immediately accessible, but its legal, resource-compatible D exit proof was unfinished within budget.':'A J is immediately accessible, but a usable, resource-compatible D exit was not established by the checked continuations.';
- const hazards=[{code:'D-J-exit-unresolved',availability,proofStatus:checked.complete===false?'unfinished':'not-established',detail,downside:'The D surface may become harder to accommodate or inaccessible before the needed J can repair it.'}];
- if(resources.pendingCenter.some(q=>q.alternatives.some(a=>a.piece==='J')))hazards.push({code:'D-J-competes-with-Center',detail:'A J is also recorded as a Center partner; it is not a free Left repair.',downside:'Spending the same J on Left can leave Center unfinished; a separate executable replacement is not promised.'});
- const cycle=geometry.right.cycle;
- if(cycle.prepareColumn!==null||cycle.cleanupColumns.length)hazards.push({code:'D-I-parking-competes-with-cleanup',detail:'Right has an observed I cleanup/preparation demand while Left waits for J.',downside:'Using I to park or reshape Left can delay Right cleanup; one I is not permission for both jobs.'});
- hazards.push({code:'D-waiting-space-unproved',detail:`Left reaches ${Math.max(...geometry.left.profile)} rows; no route for parking intervening pieces while waiting for J is certified.`,downside:'Visible pieces may exhaust the available space before the D exit becomes usable.'});
- return hazards;
-}
-return Object.freeze({dDependencies,catalog,source:SOURCE,classify,landings,evaluate,isD,createsD,immediateJStarts,dExit});
+return Object.freeze({catalog,source:SOURCE,classify,landings,evaluate,isD,createsD});
 });

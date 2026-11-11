@@ -2,7 +2,9 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const P=require('../st-planner'),R=require('../st-rules'),S=require('../st-structure'),M=require('../st-obligation-resources'),Current=require('../st-obligation-context'),CurrentProvider=require('../st-resource-provider'),H=require('../st-pattern-history');
 const fixture=require('./fixtures/ordinary-sl-allocation.json'),clone=x=>JSON.parse(JSON.stringify(x));
-const bounds={depth:3,width:8,maxNodes:45000,now:()=>0,deadline:Infinity},opts=(extra={})=>({...fixture.options,...bounds,disableVisibleSLTail:true,...extra});
+// Isolate the optional SL comparator and its saved-goal lifecycle from the
+// preceding contour lane; fresh contour selection has separate integration tests.
+const bounds={disableContourRoutes:true,depth:3,width:8,maxNodes:45000,now:()=>0,deadline:Infinity},opts=(extra={})=>({...fixture.options,...bounds,disableVisibleSLTail:true,...extra});
 const current=()=>Current.importState(fixture.options.obligationContext,{position:fixture.observation});
 const sum=()=>CurrentProvider.facts(CurrentProvider.prepare(fixture.observation,{obligationContext:Current.exportState(Current.importState(fixture.options.obligationContext,{position:fixture.observation}))}));
 const cache=new Map(),plan=(off=false)=>{if(!cache.has(off))cache.set(off,P.plan(fixture.observation,opts({disableOrdinarySAllocation:off})));return clone(cache.get(off));};

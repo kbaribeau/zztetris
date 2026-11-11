@@ -17,12 +17,12 @@ test('risk / exhausted or zero budget and invalid replay cannot manufacture reco
  const bad=clone(q.options.obligationContext);if(bad){bad.state.sl.status='invalid';assert.equal(risky({obligationContext:bad}).target,null);}
  assert.doesNotThrow(()=>P.decide({board:['bad']},{maxNodes:0}));
 });
-test('risk / B D risk seam does not weaken supported proof or other hard gates',()=>{
- const h=harness();for(const f of require('./fixtures/st-d-admission.json')){
-  const s=R.createState({board:[...Array(20).fill('..........'),...f.board],active:f.active,hold:f.hold,queue:f.queue}),p=placement(s,f.witness),proof=h.riskyDAdmission(s,p,Provider.startRoute(Provider.prepare(s),{extendForced:false}),{maxNodes:4000,now:()=>0,deadline:Infinity});
-  assert.equal(proof.valid,true);assert.ok(proof.hazards.some(h=>h.code==='D-J-exit-unresolved'));assert.equal(P.dPatternAdmission(s,p,{maxNodes:45000,now:()=>0,deadline:Infinity}).valid,false);
-  const result=h.riskyFallback(s,clone(stopped),{maxNodes:45000,now:()=>0,deadline:Infinity,openingPhase:false},{placements:[p],complete:true});
-  assert.ok(result.target,f.name+' is an admitted explicit risk under the unchanged other hard gates');assert.equal(result.recommendation.kind,'risky');assert.ok(result.recommendation.hazards.some(h=>h.code==='D-J-exit-unresolved'));assert.deepEqual(JSON.parse(JSON.stringify(result.metrics.riskFallback.rejections)),{});assert.equal(result.recommendation.hazards.some(h=>h.code==='D-I-parking-competes-with-cleanup'),f.name==='position-08-S84','Only an observed Right I demand is reported');
+test('risk / a descriptive D silhouette no longer invents a J-specific hazard',()=>{
+ for(const f of require('./fixtures/st-d-admission.json')){
+  const s=R.createState({board:[...Array(20).fill('..........'),...f.board],active:f.active,hold:f.hold,queue:f.queue}),p=placement(s,f.witness);
+  const result=harness().riskyFallback(s,clone(stopped),{maxNodes:45000,now:()=>0,deadline:Infinity,openingPhase:false},{placements:[p],complete:true});
+  assert.equal((result.recommendation?.hazards||[]).some(h=>h.code.startsWith('D-')),false);
+  if(result.target){assert.equal(result.recommendation.kind,'risky');assert.equal(R.replay(s,result.witness).valid,true);assert.equal(result.evidence.resourceObligations.status,'unverified');}
  }
 });
 test('risk / unknown Extra Z is not a risky permission',()=>{

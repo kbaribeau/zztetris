@@ -24,6 +24,7 @@
       allowCrossing = false,
       allowIntervening = false,
       allowHold = true,
+      maxStates,
     } = {},
   ) {
     const geometry =
@@ -82,6 +83,7 @@
     };
     const result = C.candidates(heights, supply, {
       canUse,
+      maxStates,
       allowCrossing,
       allowIntervening,
       allowHold,

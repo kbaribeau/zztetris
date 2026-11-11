@@ -82,76 +82,47 @@ solve the broader whole-board/resource-priority design. That requires explicit
 preparation priorities and independent validation before making source tiers
 strong enough to override existing structural or input-effort preferences.
 
-## D-pattern creation admission
+## Root-first recorded contour routes
 
-Shocky's Chapter 3.3 warns against making the D silhouette `[0,1,1,0]`
-unless a J is coming immediately. The supported ordinary-midgame channel requires
-a checked exit, separately from the existing two-lock preference score. The
-source-backed J certificate and the bounded engineered I alternative below
-are distinct claims.
-Creation is detected from actual before/after Left skylines, including covered
-columns and clear transitions. Current D geometry also requires a checked
-exit for a supported continuation even when the creator is unknown; this
-does not invent a past promise or forbid a move that actually leaves D.
-The separate [explicit risk fallback](st-risk-recommendations.md) may recommend
-a legal D continuation without that certificate, with its unresolved J, competing
-resource demands and unproved waiting capacity explained. It is not relabelled
-supported, and a later observed J cannot retroactively certify its entry.
+`st-left-contours.js` stores the oriented observed transitions. Before ordinary
+continuation search, `st-left-routes.js` queries the starting contour against
+literal active/HOLD/preview supply and current resource reservations. The query
+runs once per fresh ordinary search, never at each descendant. Unknown, missing,
+or incomplete lookup results are not negative evidence about playable routes.
 
-The operational certificate is conservative: after the proposed lock, a J must
-be playable **before any intervening lock** using actual rules/HOLD transitions.
-An active J, held J, or first-preview J through empty HOLD can qualify. A J
-consumed to make D, or one behind an intervening piece with occupied HOLD,
-cannot. The coach checks a real one-lock J witness wholly in Left, with no clear,
-no newly roofed Left cells, height below 20, and an exit to a better listed
-silhouette or flat surface. Cycle/notch and resource checks still apply; a J
-reserved for Center needs an actual bounded replacement repair, not a second
-claim on the same piece. The bounded supporting replacement cannot itself create
-another D obligation, avoiding circular certificates. These certificate limits are engineering bounds, not
-additional rules quoted from the guide. An unfinished check is not proof that
-no exit exists. Final admission and retained-advice revalidation recheck the
-condition rather than trusting saved evidence or a geometric `immediateJ` flag.
+After required legal root enumeration, the planner searches matching recorded
+routes before optional foundation/cap probes and the ordinary beam. Each stage
+must match the actual locked piece and resulting normalized contour. Outside-Left
+locks preserve progress only when that contour stays unchanged. A wrong Left
+lock abandons the route. HOLD belongs to the real movement witness, not an extra
+route stage. Distinct route stages survive qualification and beam selection;
+deduplication includes progress. A cycle can complete once without restarting.
 
-An admitted prefix may not then spend its J on a different job while leaving
-its newly created D without another immediate executable J exit. The same
-obligation survives fresh requests via replay-verified observed history: a
-post-import non-D → D lock establishes it, and an actual exit from D resolves
-it. Importing D as the initial board does not invent a past promise. Serialized
-summary flags are not authority; context is reconstructed through actual input
-replay, including HOLD/draw boundaries. This narrow D obligation is separate
-from general covered-cell repair tracking.
+Before its first certificate, the preferred lane gets at most half the remaining
+nodes and wall time. The other half remains available for ordinary fallback.
+Once a route is fully admitted, that certificate becomes the fallback and the
+lane may spend the rest of the existing shared allowance extending it. Every selected route must
+still pass legal witness, current resource identity, Center, cycle/notch,
+covered-cell restoration and access checks. Existing saved commitments take
+precedence. No tier or endpoint-score bonus is added. The first fully certified
+recorded continuation may be selected before ordinary alternatives are explored;
+this is an intentional search priority, not a claim of global optimality. The
+lane continues through the requested finite public horizon when possible, keeping
+the deepest admitted prefix and preserving an earlier certificate if deeper work
+is interrupted. T used inside this lane must actually score a canonical double.
 
-### Checked immediate I alternative
+The old J-only D admission, delayed-J certificate, special immediate-I exception,
+D-specific risk override and extra missing-J score penalty are removed. D is
+still a descriptive source contour/tier, but it creates no special admission
+debt. Recorded L and other legal resolutions use the same route machinery.
+Historical `dPattern` state remains codec-compatible, without granting or
+restricting placement permission. Existing exact retained resource goals remain
+protected by normal replay and commitment checks.
 
-A literal active or held I (including actual empty-HOLD flow) can instead exit
-D in one lock. This is an engineered extension, not a new community tier. The
-real witness must stay wholly on Left, clear no rows, leave D, preserve notch
-and cycle rules, and introduce no covered cells or internal cavity. The whole
-board must stay at most 16 rows high, leaving four visible rows of headroom.
-Observed Right-I preparation or cleanup demand excludes the alternative. The
-exact positive public I identity and a bounded resource-repair proof are
-required; a delayed, forced-but-unseen, duplicated or imagined I is not credit.
-The exit must actually occur as the very next lock inside the certified prefix;
-a D-ending prefix cannot borrow this as hypothetical support. Ordinary fresh
-beam ranking and one-placement risky advice retain the original J-only boundary.
-An unfinished proof stays unknown. All admission and retention checks recompute
-this evidence from actual public state; serialized exit labels grant no rights.
-
-A narrowly scoped discovery pass can prefer a complete Left/Center allocation
-when two distinct observed Js can pay separate jobs: J Left, actual accommodation
-of an original Hanging S, a checked immediate I exit, and payment of the original
-O/J Center obligation by the other J. It reuses the finite resource-repair search
-and ordinary full-prefix revalidation. A real immediately available TSD is
-performed first. Search uses at most four Left seeds, seven locks and 16,000
-nodes, within the existing shared 45,000-node/1500-ms request budget. Unsuccessful
-work is charged before ordinary search continues. No new private input, Reset
-permission, indefinite waiting, or guarantee beyond the checked prefix is added.
-Root-relative allocation labels are cleared on movement/retention. Fresh exit
-proofs, the existing exact Center goal, and a replay-validated original Hanging-S
-identity/cell goal preserve the executable suffix. These S goals are introduced
-only by complete allocation discovery, not generic fresh beam ranking. A fresh
-alternative without matching goal evidence cannot replace the retained route;
-this conservative comparison may retain it over an otherwise safe commutation.
+Focused coverage: `st-left-routes.test.cjs`, `st-contour-route-search.test.cjs`,
+and the migrated D/Center/I resource-boundary suites. Real route replay is finite
+correctness evidence, not proof of improved long-run survival. Production timed
+comparisons remain separate from component tests and optional parallel suites.
 
 ## Early and late logical coaches
 

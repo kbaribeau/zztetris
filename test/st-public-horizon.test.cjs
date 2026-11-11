@@ -29,7 +29,8 @@ test('public horizon: finite supply, HOLD and forced public deduction do not cre
 });
 
 test('public horizon: interrupted deeper search preserves a completed result and respects zero/deadline bounds',()=>{
- const state=F.get('o-filler').observation,config={...Session.defaults(),...untimed},root=P.plan(state,{...config,depth:1}),partial=P.plan(state,{...config,maxNodes:root.metrics.nodes+100});
+ // Isolate ordinary beam interruption; contour-lane reserve is tested separately.
+ const state=F.get('o-filler').observation,config={...Session.defaults(),...untimed,disableContourRoutes:true},root=P.plan(state,{...config,depth:1}),partial=P.plan(state,{...config,maxNodes:root.metrics.nodes+100});
  assert.equal(partial.metrics.completeDepth,1);assert.equal(partial.continuation.length,1);assert.ok(partial.metrics.nodes<=root.metrics.nodes+100);assert.equal(partial.evidence.budgetExhausted,true);replay(state,partial);
  assert.equal(P.plan(state,{...config,maxNodes:0}).status,'budget-exhausted');assert.equal(P.plan(state,{...config,deadline:0}).status,'budget-exhausted');
 });

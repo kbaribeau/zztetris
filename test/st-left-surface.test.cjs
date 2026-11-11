@@ -14,16 +14,6 @@ test('shared Left surface / oriented classification and covered cells stay descr
  assert.equal(S.leftSurface.classify([0,0,1,1]).tier,'S');assert.equal(S.leftSurface.classify([1,1,0,0]).tier,'A');
  assert.equal(Object.isFrozen(S.leftSurface.catalog[0].profile),true);
 });
-test('shared Left dependencies / verified, unknown arrival and unfinished proof remain distinct',()=>{
- const make=extra=>R.createState({board:board([3,4,4,3]),active:'T',hold:'O',queue:['S'],...extra});
- const describe=(state,proof,resources={pendingCenter:[]})=>L.dDependencies(state,proof,{resources,geometry:S.geometry(state.board)});
- assert.deepEqual(describe(make({active:'J'}),{valid:true,complete:true}),[]);
- const unknown=describe(make({}),{valid:false,complete:true});assert.equal(unknown[0].availability,'absent-from-public-supply');assert.equal(unknown[0].proofStatus,'not-established');assert.match(unknown[0].detail,/arrival is unknown/);
- const delayed=describe(make({queue:['J']}),{valid:false,complete:true});assert.equal(delayed[0].availability,'visible-but-delayed');
- const unfinished=describe(make({active:'J'}),{valid:false,complete:false});assert.equal(unfinished[0].availability,'immediate-exit-proof-unfinished');assert.equal(unfinished[0].proofStatus,'unfinished');
- const unproved=describe(make({active:'J'}),{valid:false,complete:true});assert.equal(unproved[0].availability,'immediate-exit-not-established');assert.equal(unproved[0].proofStatus,'not-established');
- const debt=describe(make({active:'J'}),{valid:false,complete:true},{pendingCenter:[{alternatives:[{piece:'J'}]}]});assert(debt.some(h=>h.code==='D-J-competes-with-Center'));assert(debt.some(h=>h.code==='D-waiting-space-unproved'));
-});
 test('shared Left surface / classic page and Worker dependency orders execute current accounting before preferences',()=>{
  const root=path.resolve(__dirname,'..'),load=(name,realm)=>vm.runInContext(fs.readFileSync(path.join(root,name),'utf8'),realm,{filename:name});
  for(const mode of ['page','worker']){
@@ -43,7 +33,7 @@ test('shared Left surface / classic page and Worker dependency orders execute cu
    for(const name of names.slice(names.indexOf('st-rules.js'),names.indexOf('st-planner.js')+1))loadOne(name);
   }
   assert.equal(observedBeforePreference,true);assert.equal(realm.STLeftContext.isD(board([3,4,4,3])),true);
-  const s=realm.STRules.createState({board:board([3,4,4,3]),active:'J',queue:['O']}),proof=realm.STLeftContext.dExit(s,{now:()=>0,deadline:1,maxNodes:4000});
-  assert.equal(proof.valid,true);assert.equal(realm.STRules.replay(s,proof.exit.witness).valid,true);
+  const s=realm.STRules.createState({board:board([3,4,4,3]),active:'J',queue:['O']}),r=realm.STRules.replay(s,['L','L','R180','HD']);
+  assert.equal(r.valid,true);assert.equal(realm.STLeftContext.isD(r.state.board),false);
  }
 });

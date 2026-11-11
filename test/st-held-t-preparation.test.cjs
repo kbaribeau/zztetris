@@ -59,8 +59,8 @@ test('old broken marathon rollout retains cleanup-order mechanics but no longer 
 
 const delayed=require('./support/st-user-delayed-cap-t.json');
 for(const timed of [false,true])test(`three-lock beam control preserves a real T through its dedicated visible cap proof (${timed?`${SEARCH_TIME_MS}ms`:'full'})`,()=>{
- // Keep the bounded historical comparison, separately from default search.
- const a=P.plan(delayed,{depth:3,...(timed?{timeMs:SEARCH_TIME_MS}:{})});
+ // Isolate the dedicated optional cap proof from route-first fresh selection.
+ const a=P.plan(delayed,{depth:3,disableContourRoutes:true,...(timed?{timeMs:SEARCH_TIME_MS}:{})});
  assert.ok(a.target,a.reason);assert.equal(a.evidence.preparationProof.kind,'visible-prefix-Z-saved-T');
  assert.equal(a.evidence.preparationProof.locks,5);assert.equal(a.continuation.length,5);
  let state=R.createState(delayed),notches=S.notchPattern(state.board);
@@ -112,8 +112,8 @@ test('cleanup prerequisite uses an actual empty-HOLD I, not just active or occup
 });
 
 
-test('delayed cap default: deeper search keeps a replayable safe prefix without inventing a T score',()=>{
- const a=P.plan(delayed,{now:()=>0,deadline:Infinity});assert.ok(a.target);assert.ok(a.metrics.completedBeamDepth>3);assert.ok(a.metrics.nodes<=45000);assert.equal(a.evidence.cycleDebt,0);
+test('delayed cap default: route-first search keeps a replayable safe prefix without inventing a T score',()=>{
+ const a=P.plan(delayed,{now:()=>0,deadline:Infinity});assert.ok(a.target);assert.ok(a.continuation.length>0);assert.ok(P.revalidate(delayed,a,{maxNodes:45000}));assert.ok(a.metrics.nodes<=45000);assert.equal(a.evidence.cycleDebt,0);
  let state=R.createState(delayed),notches=S.notchPattern(state.board);
  for(const p of a.continuation){const r=R.replay(state,p.witness);assert.ok(r.valid);assert.deepEqual(r.events,[p.event]);assert.ok(S.canonicalClear(p.event));const phase=S.advanceNotches(state.board,{state:r.state,event:r.events[0]},notches);assert.ok(phase.valid);notches=phase.pattern;assert.ok(p.event.type!=='T'||p.event.spin==='full'&&p.event.lines===2);state=r.state;}
  assert.ok(state.hold==='T'||a.continuation.some(p=>p.event.type==='T'&&p.event.lines===2));

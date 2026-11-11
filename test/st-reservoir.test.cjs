@@ -22,7 +22,7 @@ test('reservoir/counterfactual pre-cap geometry retains exact verified credit wi
  assert.equal(result.evidence.structuralScore,-11.3);assert.deepEqual(result.evidence.structuralRank,[1,1,0,-3,1,0,0,0]);assert.equal(a.leftContext.score,0);endpoint();
 });
 test('reservoir/ordinary advice cannot retain the historical non-scoring T prefix',()=>{
- const blocked=P.plan(snapshot,{depth:3,width:8,maxNodes:45000,allowHold:false});assert.equal(blocked.target,null,'The old Center L keeps inherited D without an immediate usable J');
+ const admitted=P.plan(snapshot,{depth:3,width:8,maxNodes:45000,allowHold:false});assert.deepEqual(admitted.target,{type:'L',x:4,y:25,rotation:2});assert(admitted.continuation.every(p=>p.event.type!=='T'||p.event.spin==='full'&&p.event.lines===2));assert(P.revalidate(snapshot,admitted,{maxNodes:45000,allowHold:false}),'Inherited D no longer rejects the actual supported Center payment');
  const ordinary=P.plan(snapshot,{depth:3,width:8,maxNodes:45000});assert.ok(ordinary.target);assert.ok(ordinary.continuation.every(p=>p.event.type!=='T'||p.event.spin==='full'&&p.event.lines===2));
  let state=R.createState(snapshot);const steps=[];
  for(const witness of [...historicalPrefix,result.witness]){const r=R.replay(state,witness);assert.ok(r.valid);steps.push({witness,event:r.events[0],target:r.events[0].target,hold:false,holdCount:0});state=r.state;}

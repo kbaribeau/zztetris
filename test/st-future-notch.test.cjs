@@ -18,8 +18,9 @@ test('user J snapshot reserves the future column-seven notch, not a score bonus'
 for(const timed of [false,true])test(`user J recommendation protects the future notch (${timed?`${SEARCH_TIME_MS}ms`:'full'})`,()=>{
  const a=P.plan(snapshot,{...config,...(timed?{timeMs:SEARCH_TIME_MS}:{})});assert.ok(a.target,a.reason);assert.equal(a.target.type,'J');assert.ok(a.continuation[0].event.cells.every(([x])=>x<4));
  let state=R.createState(snapshot),phase=S.notchPattern(state.board);
- for(const step of a.continuation){const p=move(state,step.witness),check=S.advanceNotches(state.board,p,phase);assert.ok(check.valid);phase=check.pattern;state=p.state;}
- if(!timed){assert.equal(a.evidence.tsdAt,3);assert.equal(a.metrics.completeDepth,3);discoveredAdvice=clone(a);}
+ for(const step of a.continuation){const p=move(state,step.witness),check=S.advanceNotches(state.board,p,phase);assert.ok(check.valid);assert.ok(S.canonicalClear(p.event));assert.ok(p.event.type!=='T'||p.event.spin==='full'&&p.event.lines===2);phase=check.pattern;state=p.state;}
+ assert.ok(P.revalidate(snapshot,a,{maxNodes:45000}));assert.equal(a.evidence.cycleDebt,0);
+ if(!timed)discoveredAdvice=clone(a);
 });
 test('current TSD arm may fill and clear its notch while higher notches translate down two rows',()=>{
  const state=F.get('direct-double').observation,phase=S.notchPattern(state.board);

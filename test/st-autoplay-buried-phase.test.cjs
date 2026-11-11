@@ -14,17 +14,7 @@ for(const c of cases)test(`observed filler preserves the buried cycle through fr
  const fresh=P.observe(c.nextSnapshot),anchored=S.notchPattern(fresh.board);
  assert.equal(fresh.lastEvent,null);assert.equal(anchored.status,'established');assert.equal(anchored.anchorRow,inherited.pattern.anchorRow);
  const imported=R.migrateState(JSON.parse(JSON.stringify(fresh)));assert.equal(S.notchPattern(imported.board).anchorRow,anchored.anchorRow);
- let planningRoot=fresh;
- if(c.seed===10342){
-  // Original S filler preserves the buried phase but creates D with O active,
-  // T held and no immediate J. Keep that original as a strict-D negative.
-  const first=R.replay(fresh,['L','L','L','HD']);assert.ok(first.valid);assert.equal(L.createsD(fresh.board,first.state.board),true);
-  assert.equal(P.dPatternAdmission(fresh,{state:first.state,event:first.events[0],witness:['L','L','L','HD']}).reason,'D-created-without-immediate-J');
-  assert.equal(P.plan(fresh,config).target,null);
-  // Separate disclosed supply variant: actual next J exits D. No fresh bag or
-  // hidden history is inferred; the original source board/phase is unchanged.
-  planningRoot={...fresh,queue:['J','I','Z','L','O','I']};delete planningRoot.bag;
- }
+ const planningRoot=fresh;
  const advice=P.plan(planningRoot,config);assert.ok(advice.target,advice.reason);
  let state=planningRoot,notches=inherited.pattern;for(const step of advice.continuation){const r=R.replay(state,step.witness);assert.ok(r.valid);const check=S.advanceNotches(state.board,{state:r.state,event:r.events[0]},notches);assert.ok(check.valid);state=r.state;notches=check.pattern;}
  assert.ok(P.revalidate(planningRoot,advice));

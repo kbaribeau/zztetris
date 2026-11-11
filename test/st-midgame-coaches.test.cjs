@@ -66,7 +66,7 @@ test('midgame coaches: planner projected nodes switch early to late without prom
  // Expose the actual node builder only in this test realm. Inputs are real
  // recorded public actions; no search target, scorer or ledger is stubbed.
  const filename=require.resolve('../st-planner'),module={exports:{}},req=require('node:module').createRequire(filename);
- const source=fs.readFileSync(filename,'utf8').replace('return Object.freeze({dPatternAdmission,','return Object.freeze({testNodeFor:nodeFor,dPatternAdmission,');
+ const source=fs.readFileSync(filename,'utf8').replace('return Object.freeze({importCandidateResources,','return Object.freeze({testNodeFor:nodeFor,');
  vm.runInNewContext(source,{module,require:req});assert.equal(typeof module.exports.testNodeFor,'function');
  const makeInitial=(t,known)=>{
   const input=Provider.prepare(t.state,{obligationContext:Current.exportState(known?t.history:Current.start(t.state)),patternHistory:PH.start(t.state)}),summary=Provider.facts(input);assert.equal(input.status,'available');

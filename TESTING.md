@@ -401,3 +401,14 @@ script loading protocol. `st-search-explorer-ui.test.cjs` drives the actual lab
 page through opt-in capture, safe event rendering, frozen state, independent
 coaching, cancellation and stale replies. These DOM tests are not painted-pixel
 or real-worker scheduling evidence.
+
+### Recorded contour route priority
+
+`st-left-routes.test.cjs` checks literal-public lookup, legal OJ alternatives,
+finite OO cycles, D-to-L identities, and exact contour-stage progress.
+`st-contour-route-search.test.cjs` checks integration before ordinary fallback,
+qualification/beam retention, shared budgets and full admission. Historical
+D/J/I suites retain independent resource, witness, movement and commitment
+checks; obsolete J-only admission assertions have been removed. Component
+comparisons explicitly disable the route lane where they isolate an older
+optional comparator. Those controls are not current strategy measurements.

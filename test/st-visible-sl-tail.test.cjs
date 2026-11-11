@@ -2,7 +2,10 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const P=require('../st-planner'),R=require('../st-rules'),S=require('../st-structure'),M=require('../st-obligation-resources'),Current=require('../st-obligation-context'),CurrentProvider=require('../st-resource-provider'),H=require('../st-pattern-history');
 const fixture=require('./fixtures/ordinary-sl-allocation.json'),clone=x=>JSON.parse(JSON.stringify(x));
-const bounds={depth:3,width:8,maxNodes:45000,now:()=>0,deadline:Infinity},opts=extra=>({...fixture.options,...bounds,...extra});
+// Historical optional-allocation component scope: exercise its identity,
+// strongest-proof and retained-goal gates without a preceding contour choice.
+// Fresh route-first selection is covered separately.
+const bounds={disableContourRoutes:true,depth:3,width:8,maxNodes:45000,now:()=>0,deadline:Infinity},opts=extra=>({...fixture.options,...bounds,...extra});
 const current=()=>Current.importState(fixture.options.obligationContext,{position:fixture.observation});
 const sum=()=>CurrentProvider.facts(CurrentProvider.prepare(fixture.observation,{obligationContext:Current.exportState(Current.importState(fixture.options.obligationContext,{position:fixture.observation}))}));
 const cache=new Map(),plan=(off=false)=>{if(!cache.has(off))cache.set(off,P.plan(fixture.observation,opts({disableVisibleSLTail:off})));return clone(cache.get(off));};
@@ -46,22 +49,18 @@ test('visible SL tail: fixed admitted I/O routes retain the same paid SL and TSD
  assert.equal(comparison.candidate.leftScore,4);assert.equal(comparison.reference.leftScore,2);assert.deepEqual(comparison.candidate.schedule,comparison.reference.schedule);assert.deepEqual(comparison.candidate.schedule.tsds,[3]);assert.deepEqual(c.slAllocation,r.slAllocation);assert.deepEqual(c.state.active,null);assert.equal(c.state.hold,'T');assert.deepEqual(c.state.queue,[]);assert.equal(c.path.at(-1).structuralEvidence.allocation,'quad-preparation');assert.equal(P.resourceGoalPrefix(c.path,c.path),7);
  assert.deepEqual(options.candidateDraw.drawn,options.referenceDraw.drawn);assert.deepEqual(options.candidateDraw.placed.slice().sort(),options.referenceDraw.placed.slice().sort());assert(P.revalidate(fixture.observation,a,opts()));
 });
-test('visible SL tail: unrestricted Left-first search retains the admitted S-tier goal when a tail is not retained',()=>{
+test('visible SL tail: newly available D prefix leaves unknown tail qualification without replacing admitted goal',()=>{
  const a=plan(),off=plan(true),t=a.metrics.ordinarySAllocation.visibleTail;
- assert.equal(a.continuation.length,5);assert.equal(t.selected,false);assert.equal(t.reason,'tail-not-retained-by-resource-goal');assert.deepEqual(noMetrics(a),noMetrics(off));
- assert.deepEqual(t.priorAdmission.continuation,off.continuation);assert.equal(t.comparison.reference.leftScore,2);assert.equal(t.comparison.candidate.leftScore,4);
- // This is the reviewed fresh J/O order, not the historical O/J choice. The
- // optional seven-lock tail still cannot replace the admitted resource goal.
+ assert.equal(a.continuation.length,5);assert.equal(t.selected,false);assert.equal(t.reason,'tail-qualification-unknown');assert.deepEqual(noMetrics(a),noMetrics(off));
+ assert.deepEqual(t.priorAdmission.continuation,off.continuation);
  assert.deepEqual(a.continuation.map(p=>p.event.type),['J','O','T','S','L']);assert.equal(a.assessment.leftContext.tier,'S');assert.deepEqual(a.assessment.leftContext.profile,[0,0,1,1]);
- assert.equal(P.resourceGoalPrefix(a.continuation,a.continuation),5);assert.deepEqual(t.comparison.candidate.schedule,t.comparison.reference.schedule);assert.deepEqual(t.comparison.candidate.schedule.tsds,[3]);
- node(a,facts(a)); // Replay every event through the real rules and accounting.
- assert.equal(t.compatiblePrefixes,2);assert.equal(t.omittedPrefixes,0);assert(t.prefixes.every(p=>p.qualifiedEndpoints===2&&p.layers.every(l=>l.retained<=2)));assert(a.metrics.nodes<=45000);assert(P.revalidate(fixture.observation,a,opts()));
+ assert.equal(P.resourceGoalPrefix(a.continuation,a.continuation),5);assert.deepEqual(P.scoringSchedule(a.continuation).tsds,[3]);node(a,facts(a));
+ assert.equal(t.compatiblePrefixes,3);assert.equal(t.omittedPrefixes,0);assert(t.prefixes.some(p=>p.qualifiedEndpoints===undefined));assert(t.prefixes.every(p=>p.layers.every(l=>l.retained<=2)));assert(a.metrics.nodes<=45000);assert(P.revalidate(fixture.observation,a,opts()));
 });
-test('visible SL tail: former third compatible prefix creates D without immediate J',()=>{
+test('visible SL tail: former third compatible prefix retains literal D geometry and public supply',()=>{
  let state=P.observe(fixture.observation);const first=R.replay(state,['L','L','L','HD']);assert(first.valid);assert.equal(first.events[0].type,'J');state=first.state;
  const witness=['HOLD','L','L','L','HD'],r=R.replay(state,witness);assert(r.valid);assert.equal(r.events[0].type,'O');
  const h=Array.from({length:4},(_,x)=>40-r.state.board.findIndex(row=>row[x]!=='.'));assert.deepEqual(h.map(v=>v-Math.min(...h)),[0,1,1,0]);
- assert.equal(P.dPatternAdmission(state,{state:r.state,event:r.events[0],witness},{now:()=>0,deadline:Infinity,maxNodes:8000}).reason,'D-created-without-immediate-J');
  assert.equal(r.state.active.type,'T');assert.equal(r.state.hold,'S');assert.deepEqual(r.state.queue,['L','I','O','T']);
 });
 test('visible SL tail comparator: no additional SL reward, identity substitution, delayed score or weakened quality',()=>{
@@ -79,9 +78,14 @@ test('visible SL tail unfinished enumeration retains the exact already selected 
  const off=plan(true);let clock=0,stopped=0;const api=moduleWith({'./st-rules.js':{...R,placements:(state,options)=>{if(state.active?.type==='O'&&state.hold==='I'&&JSON.stringify(state.queue)==='["T"]'){clock=1500;stopped++;return{placements:[],visited:19,complete:false};}return R.placements(state,options);}}});
  const a=api.plan(fixture.observation,opts({now:()=>clock,deadline:1500}));assert(stopped);assert.equal(a.metrics.ordinarySAllocation.visibleTail.selected,false);assert.deepEqual(noMetrics(a),noMetrics(off));assert.equal(a.continuation.length,5);assert(a.metrics.nodes<=45000);
 });
-test('visible SL tail failed strongest terminal proof cannot select a weaker challenger or lose the prior SL',()=>{
- const off=plan(true);let rejected=0;const api=moduleWith({'./st-obligation-resources.js':{...require('../st-obligation-resources'),checkPath:(raw,path,summary)=>{if(path.length===7){rejected++;return{valid:false,reason:'test-terminal-proof-rejected'};}return require('../st-obligation-resources').checkPath(raw,path,summary);}}});
- const a=api.plan(fixture.observation,opts());assert(rejected);assert.equal(a.metrics.ordinarySAllocation.visibleTail.selected,false);assert.deepEqual(noMetrics(a),noMetrics(off));
+test('visible SL tail failed strongest terminal proof cannot fall through to a weaker endpoint',()=>{
+ // The expanded legal prefix set now stops naturally at unknown qualification.
+ // Exercise strongest-only certification with independently admitted complete
+ // literal endpoints instead of granting the unknown endpoint fake permission.
+ const {c,r}=pair(),ordered=P.orderContinuations([c,r]),seen=[];
+ const result=P.certifyStrongestAllocation([c,r],n=>{seen.push(n);return n!==ordered[0];});
+ assert.equal(result,null);assert.deepEqual(seen,[ordered[0]]);
+ assert.equal(P.certifyStrongestAllocation([c,r],n=>n===ordered[0]),ordered[0]);
 });
 test('visible SL tail lifecycle: actual input and HOLD retain O→I cleanup after the L payment',()=>{
  let state=clone(fixture.observation),history=Current.importState(fixture.options.obligationContext,{position:state}),patterns=clone(fixture.options.patternHistory),advice=pair().a,locks=0,holds=0;const expected=advice.continuation.map(p=>p.event);

@@ -48,26 +48,11 @@ revalidation. No advisory Reset detector, Reset coach or execution handoff polic
 is added here.
 
 
-## D-pattern support versus risk (branch B)
+## Left contours and risk
 
-Supported recommendations still require a real immediate usable J exit, including
-movement, public supply and resource compatibility. A current D silhouette is a
-public geometry fact even when a snapshot cannot identify its creator: continuing
-that D without a proved next J is not labelled supported. This does not invent
-`dPattern.createdAt`, a pending piece identity or a resource permission. A move
-that actually leaves D may be supported under the ordinary gates.
-
-Only the bounded one-lock risk fallback may continue D without that certificate.
-Its warning distinguishes absent J, publicly known but delayed J, an unfinished
-immediate-exit proof, and a completed bounded check that did not establish an
-exit. It describes any recorded competing Center J obligation, observed Right I
-cleanup demand, and the unproved capacity to park intervening pieces. A later J
-seen in a manual replay is never evidence at an earlier entry boundary. No full
-parking route or future arrival is claimed. All D proof attempts share branch A's
-single 4000-node allowance within remaining production time/global nodes; there is
-no budget reservation or extra search.
-
-The R1 J17 fixture is an authentic public pre-entry session and literal one-lock
-witness, not its private practice tail. Risk eligibility does not force selecting
-it when the bounded search has a supported alternative. Existing D history and
-risk advice follow the same replay/import/recompute rules above.
+D no longer creates a J-specific admission rule or warning. The recorded-contour
+route search uses actual legal piece/contour stages with ordinary resource and
+access checks. A failed or unfinished lookup does not itself create a hazard or
+prove the position unplayable. The ordinary one-lock risk fallback still reports
+actual unresolved Center, covered-cell, resource and continuation obligations.
+Historical D fixtures remain useful for replay and those independent boundaries.

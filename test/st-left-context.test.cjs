@@ -11,12 +11,13 @@ test('Left source catalog: all twelve oriented silhouettes, translation, no mirr
 });
 test('Left context: immediate J and usable HOLD, not an arbitrary deeper preview',()=>{
  const immediate=evaluate(state('J')),late=evaluate(state('T',null,['S','J'],false)),held=evaluate(state('T','J',[])),blocked=evaluate(state('T','J',[],false));
- assert.equal(immediate.immediateJ,true);assert.equal(held.immediateJ,true);assert.equal(late.immediateJ,false);assert.equal(blocked.immediateJ,false);
+ assert(immediate.available.some(p=>p.type==='J'));assert(held.available.some(p=>p.type==='J'));assert.equal(late.available.length,0);assert.equal(blocked.available.length,0);
  assert.ok(immediate.score>late.score);assert.equal(blocked.repair,null);assert.equal(held.repair.hold,true);
- assert.equal(evaluate(state('T',null,['J'])).immediateJ,true); // empty HOLD consumes the first visible draw
- assert.equal(evaluate(state('T',null,['O','J'])).immediateJ,false);
+ assert(evaluate(state('T',null,['J'])).available.some(p=>p.type==='J')); // empty HOLD consumes the first visible draw
+ assert.equal(evaluate(state('T',null,['O','J'])).available.some(p=>p.type==='J'),false);
  assert.equal(immediate.executionVerified,false);
 });
+test('Left context: D without free J retains its source weight without a special penalty',()=>{const r=evaluate(state('T',null,[],false));assert.equal(r.score,L.catalog.find(c=>c.tier==='D').weight);assert.equal(r.repair,null);assert.equal(r.available.length,0);});
 test('Left context: holes and unlisted shapes without a visible conversion remain neutral',()=>{
  for(const options of [{covered:1},{heights:[3,6,5,3]}])assert.equal(evaluate(state(),options).adjustment,0);
  const known=evaluate(state('T',null,[],false));const unknownHeights=[3,6,5,3],rough=6;assert.ok(-rough*2.8+evaluate(state('T'),{heights:unknownHeights}).adjustment<known.score); // retain the unlisted surface's original penalty
@@ -70,7 +71,7 @@ test('Left context integration: source preference can choose between otherwise e
  s.active={type:'O',x:3,y:17,rotation:0,lastRotation:null};s.hold='I';s.canHold=true;s.queue=['J','I','O','T','S','Z'];
  const module={exports:{}},requireAt=require('node:module').createRequire(require.resolve('../st-planner'));
  vm.runInNewContext(fs.readFileSync(require.resolve('../st-planner'),'utf8'),{module,require:name=>name==='./st-left-context.js'?{...L,evaluate:(...args)=>({...L.evaluate(...args),score:0})}:requireAt(name)});
- const options={depth:2,width:8,maxNodes:45000,disableConstruction:true},a=P.plan(s,options),b=module.exports.plan(s,options);
+ const options={disableContourRoutes:true,depth:2,width:8,maxNodes:45000,disableConstruction:true},a=P.plan(s,options),b=module.exports.plan(s,options);
  assert.deepEqual([...a.evidence.structuralRank.slice(0,5)],[...b.evidence.structuralRank.slice(0,5)]);
  // Effort-neutral beam ordering changes the tied first move; the source
  // scorer still selects a different, better-Left complete prefix.
@@ -83,7 +84,7 @@ test('Left context integration: source preference can choose between otherwise e
 });
 test('ordinary ranking: Left quality precedes lines after safety, structure and scoring ties',()=>{
  const fs=require('node:fs'),vm=require('node:vm'),module={exports:{}},req=require('node:module').createRequire(require.resolve('../st-planner'));
- const source=fs.readFileSync(require.resolve('../st-planner'),'utf8').replace('return Object.freeze({dPatternAdmission,','return Object.freeze({testCompare:compare,testCompareConstruction:compareConstruction,dPatternAdmission,');
+ const source=fs.readFileSync(require.resolve('../st-planner'),'utf8').replace('return Object.freeze({importCandidateResources,','return Object.freeze({testCompare:compare,testCompareConstruction:compareConstruction,');
  vm.runInNewContext(source,{module,require:req});
  const a={rank:[1,1,0,10,2,4,0,2],key:'a'},b={rank:[1,1,0,10,2,2,0,4],key:'b'};
  for(const compare of [module.exports.testCompare,module.exports.testCompareConstruction]){

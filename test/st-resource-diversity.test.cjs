@@ -3,7 +3,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const R=require('../st-rules'),M=require('../st-obligation-resources'),C=require('../st-obligation-context'),Provider=require('../st-resource-provider');
 // Synthetic node ranks isolate scheduling, while every resource view is a
 // locally prepared immutable current route. No historical timestamps remain.
-const source=fs.readFileSync(require.resolve('../st-planner'),'utf8').replace('return Object.freeze({dPatternAdmission,','return Object.freeze({historyDiversityEnabled,diversify,dPatternAdmission,');
+const source=fs.readFileSync(require.resolve('../st-planner'),'utf8').replace('return Object.freeze({importCandidateResources,','return Object.freeze({historyDiversityEnabled,diversify,');
 const mod={exports:{}};vm.runInNewContext(source,{module:mod,require:createRequire(require.resolve('../st-planner')),Date,performance});
 const diversify=mod.exports.diversify,clone=x=>JSON.parse(JSON.stringify(x));
 function resource(at=43,change=()=>{},handoff=true){

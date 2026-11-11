@@ -47,7 +47,8 @@ test('st-advice/an existing finishing J is a completion without invented O/J pre
 test('st-advice/controlled quad S preparation does not promise an unexecuted L partner',()=>{
  const observation=F.get('after-quad').observation;
  const controlled=require('./support/st-controlled-placements.cjs')(observation,[[['R','HD'],['L','L','HD'],['R','R','R','R','CW','HD']]]);
- const plan=controlled.plan(observation,opts),first=plan.continuation[0];
+ // Isolate the optional beam explanation, not fresh contour-route selection.
+ const plan=controlled.plan(observation,{...opts,disableContourRoutes:true}),first=plan.continuation[0];
  assert.equal(first.event.type,'S');assert.ok(first.event.cells.every(([x])=>x>=4&&x<=6));
  assert.equal(first.structuralEvidence.pairFamily,'SL');
  assert.match(plan.reason,/A completing placement has not been checked yet/);
@@ -73,13 +74,17 @@ test('st-advice/previous quad L/O continuation still names its executed pair pre
  assert.equal(plan.continuation.length,2);assert.equal(new Set(plan.assessment.structure.center.profile).size,1);
 });
 
-test('st-advice/current Left-first choices describe actual roles rather than inherited Center pairs',()=>{
+test('st-advice/current routes describe actual roles without inventing Center pairs',()=>{
  for(const id of ['empty-hold','after-quad']){
-  const observation=F.get(id).observation,plan=P.plan(observation,opts);assert.ok(plan.target);assert.equal(plan.continuation.length,3);
-  assert(plan.continuation.every(p=>!p.structuralEvidence.pairFamily));assert.doesNotMatch(plan.reason,/S\/L pair|L\/O pair|O\/J pair|Then place .* to complete/);
-  let state=observation;for(const step of plan.continuation){const replay=R.replay(state,step.witness);assert(replay.valid);assert.deepEqual(replay.events,[step.event]);assert(S.canonicalClear(step.event));state=replay.state;}
-  assert.equal(P.assess(state.board).leftSealed,0);assert.equal(plan.evidence.regionalSupport,true);
-  if(id==='empty-hold'){assert.equal(plan.continuation[0].event.spin,'full');assert.equal(plan.continuation[0].event.lines,2);}
-  else{assert.equal(plan.continuation[0].event.type,'L');assert(plan.continuation[0].event.cells.every(([x])=>x<4));assert.equal(plan.assessment.structure.right.reservoir.status,'verified-clear-reopens-reservoir');}
+  const observation=F.get(id).observation,plan=P.plan(observation,opts);assert.ok(plan.target);assert.ok(plan.continuation.length>0);
+  assert.ok(P.revalidate(observation,plan,{maxNodes:45000}));
+  if(!plan.continuation.some(p=>p.structuralEvidence.pairFamily))assert.doesNotMatch(plan.reason,/S\/L pair|L\/O pair|O\/J pair|Then place .* to complete/);
+  let state=observation,notches=S.notchPattern(state.board);
+  for(const step of plan.continuation){
+   const replay=R.replay(state,step.witness);assert(replay.valid);assert.deepEqual(replay.events,[step.event]);assert(S.canonicalClear(step.event));
+   assert.ok(step.event.type!=='T'||step.event.spin==='full'&&step.event.lines===2,'ordinary routes must preserve scoring T');
+   const phase=S.advanceNotches(state.board,{event:step.event,state:replay.state},notches);assert.ok(phase.valid);notches=phase.pattern;state=replay.state;
+  }
+  assert.equal(P.assess(state.board).leftSealed,0);assert.equal(plan.evidence.regionalSupport,true);assert.equal(plan.evidence.cycleDebt,0);
  }
 });
