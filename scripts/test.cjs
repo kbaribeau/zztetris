@@ -32,6 +32,13 @@ async function main() {
     result.testFiles = fs.readdirSync('test').filter(file => file.endsWith('.test.cjs')).sort().map(file => `test/${file}`);
     if (process.version !== 'v24.22.0') throw new Error('Use the pinned Node version from .nvmrc (24.22.0)');
     if (!result.testFiles.length) throw new Error('No test files found');
+    // Keep delivery runs serial unless explicitly requested. Parallelize files,
+    // never cases within a file or the jsdom realms owned by those cases.
+    const workers = process.env.ZZTETRIS_TEST_CONCURRENCY ?? '1';
+    if (!/^[1-9]\d*$/.test(workers) || Number(workers) > 32) {
+      throw new Error('ZZTETRIS_TEST_CONCURRENCY must be an integer 1..32');
+    }
+    result.execution = { concurrency: Number(workers), isolation: 'process' };
     // Cache compiled code only, never module instances: test children and
     // jsdom realms retain their original isolation. Start cold on every run.
     // V8 coverage must opt out because cached code can reduce its precision.
@@ -49,12 +56,12 @@ async function main() {
       if (!probe.directory?.startsWith(compileCache + path.sep)) throw new Error('Child compile cache did not use the private run directory');
     }
     // Parent watchdog also bounds a child stuck in synchronous product code.
-    // The expanded serial suite can exceed five minutes. Keep the tighter
+    // The expanded suite can exceed five minutes. Keep the tighter
     // per-file deadline and product search budgets; allow thirty minutes overall.
     // Current-state transition coverage is intentionally broader; runtime is
     // monitored separately rather than making performance an acceptance gate.
     deadline = setTimeout(() => controller.abort(new Error('Suite exceeded 1800 seconds')), 1800000);
-    const stream = run({ files: result.testFiles, concurrency: 1, timeout: 15000, signal: controller.signal });
+    const stream = run({ files: result.testFiles, ...result.execution, timeout: 15000, signal: controller.signal });
     for (const outcome of ['pass', 'fail']) stream.on(`test:${outcome}`, data => {
       const file = path.relative(root, data.file || '');
       result.cases.push({ id: data.name, file, seed: seedsByFile[file] ?? SEED,

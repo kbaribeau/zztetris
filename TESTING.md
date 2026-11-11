@@ -32,6 +32,33 @@ node --test --test-name-pattern='gameplay/index.html/collision' test/gameplay.te
 
 The ordinary unfiltered `npm test` remains the delivery command. Default seed **123** and the natural ST replay's seed **29** are recorded in each manifest; the replay's case entry records 29 rather than the default. Two successful runs should agree on case ids, outcomes, counts and seeds; elapsed durations and run ids naturally differ. `host/isolation` additionally compares actual game state across two same-seed fresh realms.
 
+### Opt-in parallel files
+
+`npm test` defaults to **one test-file child at a time**. To explore a bounded
+parallel run on an otherwise idle machine:
+
+```sh
+ZZTETRIS_TEST_CONCURRENCY=2 npm test
+```
+
+The setting accepts integers **1 through 32**. It changes only the maximum
+number of test files running at once: each file still has its own process,
+individual cases keep their existing scheduling, and all discovered files run.
+The manifest records the requested concurrency and process isolation under
+`execution`. Seeds, per-test timeout, whole-suite watchdog, failure handling and
+the private cold compile cache are unchanged. Invalid settings fail with a
+retained manifest before tests start.
+
+Keep the default serial command for delivery. Several planner/research checks
+use real wall-clock budgets, so CPU contention can change the search that
+finishes and cause failures, even with isolated processes. More workers also
+increase peak memory and may not improve elapsed time. Start with two workers,
+avoid simultaneous simulations or suites, retain every run's TAP and manifest,
+and compare counts, case ids, seeds and outcomes against a serial run of the
+same commit. A parallel failure is not automatically retried or treated as a
+pass; diagnose it explicitly without increasing product search budgets or
+weakening assertions.
+
 ## The test seam
 
 `test/support/page.cjs` creates one fresh jsdom realm per page. jsdom **emulates DOM/HTML**, not a browser renderer. It consumes the actual repository HTML and classic scripts in their declared order, including `defer` and inline handlers such as the controls reset link. Tests execute product behavior through checkbox clicks, input events and keyboard events, then assert saved settings and semantic game state. The game code is unmodified.
