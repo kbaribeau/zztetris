@@ -511,7 +511,8 @@
   }
   // Necessary finite piece-flow feasibility only. Skipped locks are explicitly
   // returned, not certified placements. No bag guesses or unseen pieces enter.
-  function schedule(
+  const scheduleLimit = Symbol("schedule-limit");
+  function findSchedule(
     pieces,
     supply,
     {
@@ -519,6 +520,7 @@
       allowHold = true,
       unlimitedHold = false,
       allowIntervening = false,
+      maxStates = 4096,
     } = {},
   ) {
     if (
@@ -550,9 +552,23 @@
       return null;
     }
     if (initial.q.some((p) => !p)) return null;
+    const ids = [initial.a, initial.h, ...initial.q]
+      .filter((p) => p?.id != null)
+      .map((p) => p.id);
+    if (new Set(ids).size !== ids.length) return null;
+    const available = [initial.a, initial.h, ...initial.q].filter(Boolean);
+    for (const type of new Set(pieces))
+      if (
+        pieces.filter((p) => p === type).length >
+        available.filter((p) => p.type === type).length
+      )
+        return null;
     const todo = [initial],
       seen = new Set();
+    if (!Number.isSafeInteger(maxStates) || maxStates < 0 || maxStates > 100000)
+      throw Error("Invalid schedule state limit");
     for (let i = 0; i < todo.length; i++) {
+      if (i >= maxStates) throw scheduleLimit;
       const n = todo[i];
       if (n.index === pieces.length) return n.steps;
       if (!n.a) continue;
@@ -562,7 +578,7 @@
         n.q.map((p) => p.slot),
         n.canHold,
         n.index,
-        n.steps.filter((s) => s.dependency).map((s) => s.piece.slot),
+        n.steps.map((s) => [s.piece.slot, s.holds, s.dependency]),
       ]);
       if (seen.has(k)) continue;
       seen.add(k);
@@ -610,17 +626,34 @@
     }
     return null;
   }
+  function schedule(pieces, supply, options = {}) {
+    try {
+      const steps = findSchedule(pieces, supply, options);
+      return { status: steps ? "matched" : "unavailable", steps };
+    } catch (error) {
+      if (error !== scheduleLimit) throw error;
+      return { status: "incomplete", steps: null };
+    }
+  }
   function candidates(heights, supply, options = {}) {
     const contour = lookup(heights);
     if (!contour)
-      return { status: "unlisted", contour: null, alternatives: [] };
+      return {
+        status: "unlisted",
+        contour: null,
+        alternatives: [],
+        complete: true,
+      };
     const alternatives = [];
+    let complete = true;
     for (const alternative of contour.dependencies.alternatives) {
       const paths = alternative.paths.filter(
         (p) => options.allowCrossing === true || !p.crossesCenter,
       );
       if (!paths.length) continue;
-      const steps = schedule(alternative.pieces, supply, options);
+      const result = schedule(alternative.pieces, supply, options);
+      if (result.status === "incomplete") complete = false;
+      const steps = result.steps;
       if (steps)
         alternatives.push({
           pieces: alternative.pieces,
@@ -633,6 +666,7 @@
       status: contour.dependencies.status,
       contour: contour.id,
       alternatives,
+      complete,
     };
   }
   return Object.freeze({

@@ -27,10 +27,12 @@
     } = {},
   ) {
     const geometry =
-      heights && center && right ? null : S.geometry(state.board);
+      state.board && !(heights && center && right)
+        ? S.geometry(state.board)
+        : null;
     heights = heights || S.leftSurface.heights(state.board);
-    center = center || geometry.center;
-    right = right || geometry.right;
+    center = center || geometry?.center || {};
+    right = right || geometry?.right || {};
     const reserved = new Set(
       (resources?.pendingCenter || []).flatMap((p) =>
         (p.alternatives || []).map((a) => a.piece),

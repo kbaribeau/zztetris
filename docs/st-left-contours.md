@@ -49,6 +49,9 @@ prove a safe place to park them or that they leave the contour unchanged.
 `allowCrossing` includes flagged paths. `unlimitedHold` selects the current
 profile's unlimited swaps; otherwise `canHold` enforces legacy one-swap rules.
 `canUse` can reject an instance using the complete scheduled prefix.
+`schedule` returns matched, unavailable, or incomplete plus its steps. A bounded
+state budget (4,096 by default) stops expensive intervening-lock queries;
+`candidates.complete: false` distinguishes unfinished matching from no match.
 
 `st-left-dependencies.js` adapts current planner positions and projected resource
 views without rebuilding accounting. Its query models the actual rules profile,

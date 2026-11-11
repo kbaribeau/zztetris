@@ -11,7 +11,7 @@ const supply = (active, hold, queue, canHold = true) => ({
   canHold,
 });
 const p = (type, id) => ({ type, id });
-const seq = (pieces, s, options) => C.schedule([...pieces], s, options);
+const seq = (pieces, s, options) => C.schedule([...pieces], s, options).steps;
 const choices = (result) => result.alternatives.map((a) => a.pieces.join(""));
 const state = (active, hold = null, queue = [], extra = {}) =>
   R.createState({ active, hold, queue, ...extra });
@@ -182,4 +182,62 @@ test("Left dependency query: I and Z reservations and covered cells do not chang
     D.query(b, options),
     "same supplied contour has the same alternatives regardless of covered cells",
   );
+});
+
+test("Left dependency query: prefix-sensitive resource filters and unique instance IDs", () => {
+  const steps = seq("OJ", supply("O", "I", ["J"]), {
+    unlimitedHold: true,
+    canUse: (p, i, prefix) => i !== 1 || prefix[0].holds === 2,
+  });
+  assert.deepEqual(
+    steps.map((s) => s.holds),
+    [2, 0],
+  );
+  assert.equal(seq("OO", supply(p("O", 7), null, [p("O", 7)])), null);
+});
+
+test("Left dependency query: S identity and derived covered contour equivalence", () => {
+  const s = state("S"),
+    opts = {
+      ...options,
+      heights: [1, 0, 0, 1],
+      resources: { active: p("S", 5), hangingS: [{ id: 5 }] },
+    };
+  assert.ok(choices(D.query(s, opts)).includes("S"));
+  assert.ok(
+    !choices(
+      D.query(s, {
+        ...opts,
+        resources: { active: p("S", 6), hangingS: [{ id: 5 }] },
+      }),
+    ).includes("S"),
+  );
+  const clean = state("O", null, ["J"]);
+  clean.board = clean.board.map(
+    (row, y) =>
+      [3, 3, 4, 4].map((h) => (y >= 40 - h ? "X" : ".")).join("") +
+      row.slice(4),
+  );
+  const covered = { ...clean, board: clean.board.slice() };
+  covered.board[39] = "." + covered.board[39].slice(1);
+  assert.deepEqual(D.query(clean), D.query(covered));
+});
+
+test("Left dependency query: a bounded schedule reports incomplete rather than unavailable", () => {
+  assert.deepEqual(C.schedule(["O"], supply("O", null, []), { maxStates: 0 }), {
+    status: "incomplete",
+    steps: null,
+  });
+  const result = C.candidates([0, 0, 1, 1], supply("O", null, ["J"]), {
+    maxStates: 0,
+  });
+  assert.equal(result.complete, false);
+  assert.equal(result.status, "known");
+  assert.deepEqual(result.alternatives, []);
+  const hard = C.schedule(
+    ["O", "J"],
+    supply("O", "I", Array(13).fill("T").concat("J")),
+    { allowIntervening: true, unlimitedHold: true, maxStates: 100 },
+  );
+  assert.equal(hard.status, "incomplete");
 });
