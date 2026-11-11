@@ -3,10 +3,13 @@ const P=require('../st-planner'),M=require('../st-obligation-resources'),Context
 let exportedAtExpiry,postJRequest,targetAtExpiry,expirySimulation;
 const test=require('node:test'),assert=require('node:assert/strict'),{withPage}=require('./support/page.cjs'),{workerPlanner}=require('../scripts/lib/st-simulation.cjs'),Session=require('../st-session'),Practice=require('../st-practice'),H=require('../st-obligation-context'),f=require('./fixtures/pending-L-expiry.json'),clone=x=>JSON.parse(JSON.stringify(x));
 function packed(){return Practice.create(Session.create(f.observation,{obligationContext:f.options.obligationContext,patternHistory:f.options.patternHistory,openingPhase:false}),f.recordedReveals);}
+// Exact expiry controls retain their historical three-lock search scope.
+// Default-horizon behavior is tested separately; the real page still sends null.
+const boundedWorker=options=>{const run=workerPlanner(options);return request=>run({...request,options:{...request.options,depth:3}});};
 // Semantic assertions use the unchanged node allowance, not host throughput.
 // The separate production-budget control below checks bounded safe behavior.
-test('pending L expiry / 45000-node no-timeout page semantics retain exact J24 S25 T26 expiry and Undo',()=>withPage('st-lab.html',{},g=>{
- const workers=[],run=workerPlanner({disableSearchTimeout:true});g.window.Worker=class{constructor(){workers.push(this);}postMessage(m){this.message=clone(m);}terminate(){}respond(result){this.onmessage({data:{type:'result',id:this.message.id,revision:this.message.observation.revision,result:clone(result)}});}};
+test('pending L expiry / three-lock 45000-node no-timeout page semantics retain exact J24 S25 T26 expiry and Undo',()=>withPage('st-lab.html',{},g=>{
+ const workers=[],run=boundedWorker({disableSearchTimeout:true});g.window.Worker=class{constructor(){workers.push(this);}postMessage(m){this.message=clone(m);}terminate(){}respond(result){this.onmessage({data:{type:'result',id:this.message.id,revision:this.message.observation.revision,result:clone(result)}});}};
  g.element('#st-snapshot').value=JSON.stringify(packed());g.click('#st-import');g.advance(40);
  for(const piece of ['J','S','T']){const w=workers.at(-1),advice=run(w.message);assert.equal(advice.target?.type,piece,JSON.stringify({status:advice.status,reason:advice.reason,nodes:advice.metrics?.nodes,elapsedMs:advice.metrics?.elapsedMs}));assert.ok(advice.metrics.nodes<=45000);w.respond(advice);for(const action of advice.witness)g.window.stLab.act(action);g.advance(40);if(piece==='J')postJRequest=clone(workers.at(-1).message);}
  const request=workers.at(-1).message;assert.equal(request.observation.active.type,'I');assert.deepEqual(request.observation.queue,['O','Z','J','I','O','T']);assert.equal(request.commitment,null,'Old J/S/T goal has expired, not been revived as a forced route');
@@ -14,8 +17,8 @@ test('pending L expiry / 45000-node no-timeout page semantics retain exact J24 S
  exportedAtExpiry=clone(g.window.stLab.exportSession());assert.equal(exportedAtExpiry.coaching.commitment,null);assert.ok(exportedAtExpiry.coaching.pendingLHint);
  targetAtExpiry=clone(g.window.stLab.resources.center.pending);g.window.stLab.act('UNDO');g.advance(40);assert.equal(workers.at(-1).message.observation.active.type,'T');assert.ok(workers.at(-1).message.options.pendingLHint);
 }));
-test('pending L expiry / 45000-node no-timeout native import retains waiting hint and exact current target',()=>withPage('st-lab.html',{},g=>{
- assert.ok(exportedAtExpiry);const workers=[],run=workerPlanner({disableSearchTimeout:true});g.window.Worker=class{constructor(){workers.push(this);}postMessage(m){this.message=clone(m);}terminate(){}};
+test('pending L expiry / three-lock 45000-node no-timeout native import retains waiting hint and exact current target',()=>withPage('st-lab.html',{},g=>{
+ assert.ok(exportedAtExpiry);const workers=[],run=boundedWorker({disableSearchTimeout:true});g.window.Worker=class{constructor(){workers.push(this);}postMessage(m){this.message=clone(m);}terminate(){}};
  const install=()=>{g.element('#st-snapshot').value=JSON.stringify(exportedAtExpiry);g.click('#st-import');g.advance(40);const request=workers.at(-1).message;assert.equal(request.commitment,null);assert.ok(request.options.pendingLHint);assert.deepEqual(clone(g.window.stLab.resources.center.pending),targetAtExpiry);return request;};
  const request=install(),advice=run(request);assert.ok(advice.target);assert.equal(advice.target.type,'I');assert.ok(advice.metrics.nodes<=45000);
  const imported=install(),again=run(imported);assert.ok(again.target);assert.equal(again.target.type,'I');assert.ok(again.metrics.nodes<=45000);
@@ -34,14 +37,14 @@ test('pending L expiry / consumed alignment replays exact events before checking
  const bad=clone(hint);bad.waiting[0].event.lines=4;assert.notEqual(M.pendingLStage(end.state,end.resource,{waitingHint:bad,maxNodes:2000,now:()=>0}).valid,true,'A copied consumed-count or mismatched event cannot align the old origin');
 });
 
-test('pending L expiry / 45000-node no-timeout simulation semantics execute the exact J24 S25 T26 goal',()=>{
+test('pending L expiry / three-lock 45000-node no-timeout simulation semantics execute the exact J24 S25 T26 goal',()=>{
  const {createSession,CONFIG}=require('../scripts/lib/st-simulation.cjs'),session=createSession({scenario:'stable',initial:f.observation,obligationContext:f.options.obligationContext,future:f.recordedReveals});
- assert.deepEqual(session.request(24,CONFIG).observation,f.observation);const run=workerPlanner({disableSearchTimeout:true});
+ assert.deepEqual(session.request(24,CONFIG).observation,f.observation);const run=boundedWorker({disableSearchTimeout:true});
  for(let i=24;i<=26;i++){const request=session.request(i,CONFIG),advice=run(request);assert.equal(advice.target?.type,['J','S','T'][i-24],JSON.stringify({status:advice.status,reason:advice.reason,nodes:advice.metrics?.nodes,elapsedMs:advice.metrics?.elapsedMs}));assert.ok(advice.metrics.nodes<=45000);session.execute(advice);}
  const request=session.request(27,CONFIG);assert.equal(request.commitment,null);assert.ok(request.options.pendingLHint);assert.deepEqual(request.observation.queue,['O','Z','J','I','O','T']);expirySimulation=session;
 });
-test('pending L expiry / 45000-node no-timeout simulator retains the post-expiry I candidate',()=>{
- assert.ok(expirySimulation);const {CONFIG}=require('../scripts/lib/st-simulation.cjs'),request=expirySimulation.request(27,CONFIG),next=workerPlanner({disableSearchTimeout:true})(request);assert.ok(next.target);assert.equal(next.target.type,'I');assert.ok(next.metrics.nodes<=45000);assert.equal(request.commitment,null);assert.ok(request.options.pendingLHint);
+test('pending L expiry / three-lock 45000-node no-timeout simulator retains the post-expiry I candidate',()=>{
+ assert.ok(expirySimulation);const {CONFIG}=require('../scripts/lib/st-simulation.cjs'),request=expirySimulation.request(27,CONFIG),next=boundedWorker({disableSearchTimeout:true})(request);assert.ok(next.target);assert.equal(next.target.type,'I');assert.ok(next.metrics.nodes<=45000);assert.equal(request.commitment,null);assert.ok(request.options.pendingLHint);
 });
 
 
@@ -51,7 +54,7 @@ function actualPostJRequest(){
  // legacy fixture converted once, then consume the actual accepted J inputs.
  const E=require('../scripts/lib/st-simulation.cjs'),saved=Session.create(f.observation,{obligationContext:f.options.obligationContext,patternHistory:f.options.patternHistory,openingPhase:false});
  const session=E.createSession({scenario:'stable',initial:saved.position,obligationContext:saved.coaching.obligationContext,future:f.recordedReveals});
- const request=session.request(24,E.CONFIG),advice=workerPlanner({disableSearchTimeout:true})(request);assert.equal(advice.target?.type,'J');assert.ok(advice.metrics.nodes<=45000);session.execute(advice);
+ const request=session.request(24,E.CONFIG),advice=boundedWorker({disableSearchTimeout:true})(request);assert.equal(advice.target?.type,'J');assert.ok(advice.metrics.nodes<=45000);session.execute(advice);
  return session.request(25,E.CONFIG);
 }
 test('pending L expiry / production 1500ms post-J Worker returns a checked witness or explicit unfinished result',()=>{

@@ -2,7 +2,7 @@
 // Existing manual-playtest cases only. These are development regressions, not a
 // new held-out corpus. The planner receives observations, never reference moves.
 const R=require('../st-rules'),P=require('../st-planner'),F=require('../st-fixtures');
-const CONFIG=Object.freeze({depth:3,width:8,maxNodes:45000});
+const CONFIG=Object.freeze({depth:null,width:8,maxNodes:45000});
 const CASES=Object.freeze([
  ['direct-double','Reference takes immediate TSD; investigate renewable right structure rather than only the next hypothetical T entry.'],
  ['s-after-double','Reference places S entirely in center columns 5–7; compare continued center completion to I/J right cavity.'],

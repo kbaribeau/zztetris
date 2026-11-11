@@ -248,7 +248,10 @@ The session contains:
 - `position`: rules, board, exact active pose/rotation evidence, HOLD, six-piece
   preview, bag frontier, stream cursor, top-out and revision.
 - `search`: current shared search time plus depth/width/node settings. Only the
-  currently supported production configuration is accepted; imports cannot
+  currently supported production configuration is accepted, with `depth: null`
+  using the available public-piece horizon rather than a three-lock cutoff.
+  Former production `depth: 3` exports migrate to this setting and discard
+  cached advice, preserving current accounting. Imports cannot
   enlarge budgets or install clock/deadline callbacks.
 - `coaching`: trusted current obligation Context and public inventory, finite plan
   continuity, opener phase/source/clear/repair, and bounded advice candidates.

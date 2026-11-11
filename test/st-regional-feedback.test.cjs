@@ -22,10 +22,11 @@ for(const [id,note] of C.CASES)test(`regional feedback: ${id} retains an executa
   t.diagnostic('selection-performance '+JSON.stringify({id,selected:summarize(c.continuation),reference:summarize(reference.events)}));
  }
  if(id==='after-quad'){
-  // Left quality may choose the verified L/O Left allocation instead of a
-  // Center preparation; do not label that allocation as a completed pair.
-  assert.equal(first.type,'L');assert.ok(first.columns.every(x=>x>=1&&x<=4));assert.equal(first.structuralEvidence.pairFamily,null);
-  assert.equal(c.assessment.leftSealed,0);assert.equal(c.assessment.structure.right.reservoir.status,'verified-clear-reopens-reservoir');
+  // Both the bounded L/O Left route and the deeper, actually completed
+  // Center S/L route are supported alternatives from this reviewed root.
+  if(first.type==='L'){assert.ok(first.columns.every(x=>x>=1&&x<=4));assert.equal(first.structuralEvidence.pairFamily,null);assert.equal(c.assessment.structure.right.reservoir.status,'verified-clear-reopens-reservoir');}
+  else{assert.equal(first.type,'S');assert.deepEqual(first.columns,[5,6,7]);assert.equal(first.structuralEvidence.pairFamily,'SL');assert.equal(first.structuralEvidence.pairProgress.completionLock,2);assert.equal(c.continuation[1].type,'L');assert.deepEqual(c.continuation[1].columns,[5,6,7]);assert.equal(c.continuation[1].structuralEvidence.pairProgress.step,2);}
+  assert.equal(c.assessment.leftSealed,0);
  }
  if(id==='marathon-preparation'){assert.equal(first.type,'I');assert.deepEqual(first.columns,[1,2,3,4]);}
  if(id==='marathon-rebuild')assert.ok((first.type==='Z'&&first.columns.every(x=>x>=8))||(first.type==='I'&&JSON.stringify(first.columns)==='[1,2,3,4]'));

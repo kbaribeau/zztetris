@@ -66,7 +66,7 @@ const BASELINE_REQUESTS = [
   '9340dd798a2a444ef24ebd562ebc1c53ee005ea47f6848f6c3ba2245f3c2f3a7',
 ];
 
-test('current resource UI: compact context and current notch facts preserve prior worker semantics through HOLD, locks, Undo, branch, restarts and import', () => withPage('st-lab.html', { seed: 42 }, g => {
+test('current resource UI: compact context and current notch facts preserve prior accounting transport semantics through HOLD, locks, Undo, branch, restarts and import', () => withPage('st-lab.html', { seed: 42 }, g => {
   const all = workers(g), actual = [];
   const capture = () => {
     const message=request(g,all),proof=message.options.obligationContext;
@@ -80,6 +80,9 @@ test('current resource UI: compact context and current notch facts preserve prio
       `Current notch semantics changed at request ${actual.length}`);
     const prior=clone(message);delete prior.options.obligationContext;
     prior.options.patternHistory=clone(frozen.legacy);
+    // Search depth intentionally changed; retain the independent legacy
+    // transport oracle for all other fields, and assert the new default first.
+    assert.equal(message.options.depth,null);prior.options.depth=3;
     actual.push(hash(prior));
   };
   select(g, 'empty'); capture();

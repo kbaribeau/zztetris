@@ -5,7 +5,7 @@ test('coach budget: browser and simulation consume the shared production search 
  assert.equal(Config.SEARCH_TIME_MS,1500,'current explicitly selected production allowance');assert.equal(Object.isFrozen(Config),true);
  assert.equal(Sim.CONFIG.timeMs,Config.SEARCH_TIME_MS);assert.ok(Sim.sourceHashes()['st-coach-config.js'],'evaluation provenance includes shared config');
  const messages=[];g.window.Worker=class{postMessage(m){messages.push(JSON.parse(JSON.stringify(m)));}terminate(){}};
- g.click('#st-reset');g.advance(40);assert.equal(messages.at(-1).options.timeMs,Config.SEARCH_TIME_MS);
+ g.click('#st-reset');g.advance(40);assert.equal(messages.at(-1).options.timeMs,Config.SEARCH_TIME_MS);assert.equal(messages.at(-1).options.depth,null);
  assert.equal(g.window.STCoachConfig.SEARCH_TIME_MS,Config.SEARCH_TIME_MS);assert.equal(Object.isFrozen(g.window.STCoachConfig),true);
  // An alternate injected config proves the controller consumes the binding;
  // this does not alter the production module or its frozen exported value.

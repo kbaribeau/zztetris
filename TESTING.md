@@ -88,6 +88,8 @@ Statement coverage means lines executed; branch coverage means alternatives exec
 
 ## ST lab milestone coverage
 
+`st-public-horizon.test.cjs` covers ordinary default search beyond three locks, finite public supply including HOLD and forced bag deduction, unchanged node/deadline caps, partial-search fallback, real-worker configuration, and prior production session migration without losing current obligations. Historical three-lock challenger and pending-L expiry controls now declare that scope explicitly; default-route checks separately allow already-executed quads, later scoring and longer retained commitments. The resource UI legacy-message oracle normalizes only the intentionally changed depth after asserting the new setting. Explicit depth-limited strategy fixtures keep their declared scope; these checks do not prove improved long-run play.
+
 The old advisor and its implementation-specific gates remain removed. New pure suites cover rules/rotation metadata, actual-pose witnesses, all clear counts, hold/draw accounting and uncertain bag observations. `st-fixtures.test.cjs` independently decodes source Fumens and replays legal construction from empty. Source pictures are not planner answer lookups.
 
 `st-hard-drop-dedup.test.cjs` compares placement enumeration against an eager public-move reference on every curated board under both rules profiles. It preserves exact output/witness ordering, shortest-witness replacement, node/deadline and predicate-call accounting, spin evidence, HOLD supply, imported full rows, top-outs and immutable inputs. A board-copy observer verifies duplicate landings do not materialize discarded successors; the independent literal row fixtures remain in `st-hard-drop-rows.test.cjs`.

@@ -66,14 +66,17 @@ test('ordinary cap-first remains usable without granting an unknown optional-Z a
  // a negative in st-covered-repair-plan, not permission to keep the defect.
  const initial=clone(zFixture.initial);initial.queue[0]='O';
  const a=P.plan(initial,{maxNodes:45000});assert.ok(a.target,a.reason);assert.ok(a.metrics.capStageCandidates>0);
- assert.equal(a.continuation.length,3);assert.equal(a.continuation.at(-1).event.spin,'full');
- const state=a.continuation.reduce((s,p)=>{const r=R.replay(s,p.witness);assert.ok(r.valid);return r.state;},initial);
+ // The historical endpoint is the first scoring prefix; ordinary search may
+ // now certify further public locks after that completed cap/T goal.
+ assert.ok(a.continuation.length>=3);assert.equal(a.continuation[2].event.spin,'full');
+ const state=a.continuation.slice(0,3).reduce((s,p)=>{const r=R.replay(s,p.witness);assert.ok(r.valid);return r.state;},initial);
  assert.ok(P.assess(state.board).maxHeight<=9);assert.equal(state.board.join('').replaceAll('.','').length,44);
  assert.equal(S.geometry(state.board).center.status,'supported-partner-completion');
  // The recorded Z deferral remains certified separately. Ordinary cap-first
  // may instead preserve the reusable S/L center and finish lower (height 7),
  // so matching the old unknown-center height-9 endpoint is not required.
  assert.ok(a.continuation[0].event.cells.some(([x])=>x>=7));
+ a.continuation.reduce((s,p)=>{const r=R.replay(s,p.witness);assert.ok(r.valid);assert.deepEqual(r.events,[p.event]);assert.ok(S.canonicalClear(p.event));return r.state;},initial);
 });
 test('cap deferral exact debt remains verifiable but unknown history cannot authorize its optional Z',()=>{
  const cert=X.search(zFixture.initial,{kind:'cap-deferral'});assert.ok(cert.valid);

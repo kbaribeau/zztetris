@@ -82,7 +82,8 @@ test('center preparation with no accessible finishing L is not retained as a sup
 
 test('Center goal veto / isolated historical challenger cannot spend the visible L and recreate a waiting goal',()=>{
  const load=require('./support/st-center-goal-d-isolated.cjs'),c=timelyControl();
- const run=api=>{const saved=api.continueCommitment(c.origin,c.after,c.advice,c.event);assert.ok(saved);return api.plan(c.after,{maxNodes:45000,now:()=>0,deadline:Infinity,commitment:{observation:c.after,advice:saved}});};
+ // The injected challenger is a historical three-lock comparison control.
+ const run=api=>{const saved=api.continueCommitment(c.origin,c.after,c.advice,c.event);assert.ok(saved);return api.plan(c.after,{depth:3,maxNodes:45000,now:()=>0,deadline:Infinity,commitment:{observation:c.after,advice:saved}});};
  let comparison;
  const kept=run(load({observeComparison:value=>{comparison=value;}}));
  assert.equal(comparison.rankingPreferred,true);assert.equal(comparison.replacement,true,'The challenger would otherwise replace the saved goal');

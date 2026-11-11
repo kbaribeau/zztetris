@@ -13,7 +13,12 @@ function fixture({count=2}={}){
 }
 test('evaluation/validated protocol is deeply frozen and rejects unspecified rules',()=>{
  const f=fixture(),p=V.validateProtocol(f.p);assert.ok(Object.isFrozen(p.cohorts[0].criteria[0]));
- for(const change of [p=>p.cohorts[0].criteria=[],p=>delete p.cohorts[0].criteria[0].threshold,p=>p.cohorts[0].criteria[0].metric='madeUp',p=>p.cohorts[0].criteria[0].uncertainty={method:'normal-theory'},p=>p.sources.baseline={},p=>p.execution.config.fakeBudget=3,p=>p.execution.config.depth=.5,p=>p.cohorts[0].criteria[0].uncertainty={method:'paired-bootstrap-percentile',confidence:'0.95',samples:100,seed:1,minPairs:2}]){const p=clone(f.p);change(p);assert.throws(()=>V.validateProtocol(p));}
+ for(const change of [p=>p.execution.config.width=null,p=>p.execution.config.maxNodes=null,p=>p.execution.config.timeMs=null,p=>delete p.execution.config.depth,p=>p.cohorts[0].criteria=[],p=>delete p.cohorts[0].criteria[0].threshold,p=>p.cohorts[0].criteria[0].metric='madeUp',p=>p.cohorts[0].criteria[0].uncertainty={method:'normal-theory'},p=>p.sources.baseline={},p=>p.execution.config.fakeBudget=3,p=>p.execution.config.depth=.5,p=>p.cohorts[0].criteria[0].uncertainty={method:'paired-bootstrap-percentile',confidence:'0.95',samples:100,seed:1,minPairs:2}]){const p=clone(f.p);change(p);assert.throws(()=>V.validateProtocol(p));}
+});
+test('evaluation/public-piece depth and historical bounded depths remain distinct explicit configurations',()=>{
+ const f=fixture();assert.equal(V.validateProtocol(f.p).execution.config.depth,null);
+ const historical=clone(f.p);historical.execution.config.depth=3;assert.equal(V.validateProtocol(historical).execution.config.depth,3);
+ assert.throws(()=>V.bindProtocol(f.p,'baseline',f.p.sources.baseline,historical.execution,f.inputs),/execution/);
 });
 test('evaluation/exploration cannot affect regression or correctness and rendering is byte-identical',()=>{
  const f=fixture(),o=f.normalized();const a=V.evaluate(f.p,...o,[f.receipt],[]),b=V.evaluate(f.p,...o,[f.receipt],[{finding:'awful losing run',lines:-999,status:'fail'}]);

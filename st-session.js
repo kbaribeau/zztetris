@@ -3,7 +3,7 @@
  * No hidden generator, private future or lifetime accounting tape is stored. */
 (function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-bag'),require('./st-obligation-context'),require('./st-plan-continuity'),require('./st-pattern-history'),require('./st-planner'),require('./st-opening'),()=>require('./st-coach-config')):factory(root.STRules,root.STBag,root.STObligationContext,root.STPlanContinuity,root.STPatternHistory,root.STPlanner,root.STOpening,()=>root.STCoachConfig);if(typeof module==='object'&&module.exports)module.exports=api;else root.STSession=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,B,Context,PC,PH,P,O,C){
 'use strict';
-const FORMAT='zztetris-st-session',VERSION=2,ENGINE='st-coach-session-2026-11-07-current-obligations-v1';
+const FORMAT='zztetris-st-session',VERSION=2,ENGINE='st-coach-session-2026-11-11-public-horizon-v1';
 // Transport-only download hint; never part of a position or coaching proof.
 const DEFAULT_EXPORT_FILENAME='st-lab-coaching-export.json';
 function exportFilename(value){
@@ -32,10 +32,10 @@ function portablePendingLHint(h){try{
  }
  return{origin,rootId:h.rootId,target:{cells:clone(h.target.cells)},waiting};
  }catch{return null;}}
-const defaults=()=>({timeMs:C().SEARCH_TIME_MS,depth:3,width:8,maxNodes:45000});
+const defaults=()=>({timeMs:C().SEARCH_TIME_MS,depth:null,width:8,maxNodes:45000});
 function bounded(value){let nodes=0;const seen=new Set();function visit(x,d){if(++nodes>LIMITS.nodes||d>LIMITS.depth)throw Error('Session exceeds structural limits.');if(!x||typeof x!=='object')return;if(seen.has(x))throw Error('Session contains cycles.');seen.add(x);for(const [key,v] of Object.entries(x)){if(['__proto__','constructor','prototype'].includes(key))throw Error('Unsupported session property.');visit(v,d+1);}seen.delete(x);}visit(value,0);if(JSON.stringify(value).length>LIMITS.bytes)throw Error('Session exceeds size limit.');}
 function position(raw){if(!raw||R.validate(raw).length)throw Error('Invalid session position.');if(raw.rules!==R.PROFILE.id)throw Error('Session rules version is unsupported; import a position instead.');if(raw.queue.length>6)throw Error('Session may contain only six visible preview pieces.');if(raw.bag&&(B.validate(raw.bag).length||!Number.isInteger(raw.bag.observedCount)||raw.bag.observedCount<0||typeof raw.bag.provenance!=='string'))throw Error('Invalid session bag evidence.');const result=P.observe(raw);delete result.lastEvent;return result;}
-function settings(input){const d=defaults();if(!input||Object.keys(input).sort().join()!==Object.keys(d).sort().join()||!Object.keys(d).every(k=>input[k]===d[k]))throw Error('Unsupported session search settings; current coach settings are required.');return d;}
+function settings(input,{legacy=false}={}){const d=defaults();if(!input||Object.keys(input).sort().join()!==Object.keys(d).sort().join()||!Object.keys(d).every(k=>input[k]===d[k]||legacy&&k==='depth'&&input[k]===3))throw Error('Unsupported session search settings; current coach settings are required.');return d;}
 function candidateShape(advice){
  if(!advice||typeof advice!=='object'||!Array.isArray(advice.continuation)||!advice.continuation.length||advice.continuation.length>LIMITS.continuation)return false;
  for(const step of advice.continuation){if(!Array.isArray(step?.witness)||!step.witness.length||step.witness.length>LIMITS.witness||step.witness.at(-1)!=='HD'||step.witness.some(a=>!['L','R','SD','HD','HOLD','CW','CCW','R180'].includes(a))||!step.event||!same(step.event.target,step.target))return false;}
@@ -67,10 +67,10 @@ function create(state,options={}){
  bounded(result);return result;
 }
 function prepare(input){
- bounded(input);if(input?.format!==FORMAT||input.schemaVersion!==VERSION)throw Error('Unsupported session format version; legacy sessions must be explicitly imported as positions.');if(typeof input.engineVersion!=='string'||!input.engineVersion.trim())throw Error('Invalid coach provenance.');const differentCoach=input.engineVersion!==ENGINE;
- const state=position(input.position),search=settings(input.search),c=clone(input.coaching);
+ bounded(input);if(input?.format!==FORMAT||input.schemaVersion!==VERSION)throw Error('Unsupported session format version; legacy sessions must be explicitly imported as positions.');if(typeof input.engineVersion!=='string'||!input.engineVersion.trim())throw Error('Invalid coach provenance.');const legacyDepth=input.search?.depth===3,differentCoach=input.engineVersion!==ENGINE||legacyDepth;
+ const state=position(input.position),search=settings(input.search,{legacy:true}),c=clone(input.coaching);
  if(!c||typeof c!=='object'||typeof c.openingPhase!=='boolean')throw Error('Missing session coaching state.');
- const warnings=differentCoach?['Imported a session from a different coach version. Current accounting and settings are preserved; advice will be recomputed.']:[];let obligationContext;
+ const warnings=differentCoach?[legacyDepth?'Imported a session from an earlier search configuration. Current accounting is preserved; advice will be recomputed.':'Imported a session from a different coach version. Current accounting and settings are preserved; advice will be recomputed.']:[];if(legacyDepth)warnings.push('The former three-lock search setting was upgraded to the public-piece horizon; time, node and width limits are unchanged.');let obligationContext;
  if(['resourceContext','resourceHistory','resourceOriginBag'].some(k=>Object.hasOwn(c,k)))throw Error('Current session cannot contain legacy resource authority.');
  obligationContext=pairedContext(state,Context.importState(c.obligationContext,{position:state}));
  const patternHistory=obligationContext.status==='available'?clone(obligationContext.state.safety.notches):PH.snapshot(state,c.patternHistory);

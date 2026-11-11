@@ -1298,7 +1298,10 @@ function planCore(raw,options={}){
  }
  if(resetDecision.status==='candidate')base.evidence.resetSelection={...resetDecision,status:options.disableConstruction?'disabled':'uncertified',reason:options.disableConstruction?'Construction search is disabled; no Reset entry was selected.':'No complete recovery was certified within the available search budget; a route may still exist.'};
  if(!initial.maintenanceScope)return{...base,status:'unsupported-position',reason:initial.left.height<2||initial.center.height<3?'The stack is too low for the coach’s supported maintenance patterns. Rebuild manually or choose another position.':'This position is outside the supported right-side ST patterns. The coach expects established left and center stacks with a lower channel in column 8.',assessment:initial};
- const limit=options.maxNodes??45000,maxDepth=options.depth??3,width=options.width??8,expandedRoots=new Set(),accessCache=new Map();let stopped=false;
+ // No fixed three-lock cutoff: the finite public inventory (including HOLD
+ // and an already deduced forced tail) bounds ordinary search. Explicit depth
+ // overrides remain useful for constrained probes; node/time caps still apply.
+ const limit=options.maxNodes??45000,maxDepth=options.depth??(s.queue.length+1+(s.hold?1:0)),width=options.width??8,expandedRoots=new Set(),accessCache=new Map();let stopped=false;
  base.metrics.accessNodes=0;let searchDeadline=deadline;
  const usage=options.usageTelemetry?{schemaVersion:1,scope:'maintenance',families:{
   cleanupBeforeCap:{attempted:0,examined:0,nonISkipped:0,iColumnSkipped:0,iTransitionChecked:0,verified:0,unknown:0},

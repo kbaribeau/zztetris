@@ -142,7 +142,7 @@ test('SL retention: selected and directly certified translated paths keep the ac
 });
 test('SL session and actual page preserve selected proof through import, HOLD and Undo',()=>{
  const Session=require('../st-session'),q=fixture.equal,a=plan('equal'),history=Current.importState(q.options.obligationContext,{position:q.observation}),saved=Session.create(q.observation,{obligationContext:history,patternHistory:q.options.patternHistory,openingPhase:false,previous:a,search:Session.defaults()}),raw=JSON.stringify(saved),restored=Session.parse(raw);
- assert.deepEqual(restored.state,q.observation);assert.equal(Session.ENGINE,'st-coach-session-2026-11-07-current-obligations-v1');
+ assert.deepEqual(restored.state,q.observation);assert.equal(Session.ENGINE,'st-coach-session-2026-11-11-public-horizon-v1');
  return require('./support/page.cjs').withPage('st-lab.html',{},g=>{
   const workers=[];g.window.Worker=class{constructor(){workers.push(this);}postMessage(message){this.message=clone(message);}terminate(){}respond(result){this.onmessage({data:{type:'result',id:this.message.id,revision:this.message.observation.revision,result:clone(result)}});}};
   g.element('#st-snapshot').value=raw;g.click('#st-import');assert.match(g.element('#st-import-status').textContent,/^Session imported\./);

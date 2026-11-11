@@ -7,13 +7,14 @@ for(const version of ['legacy','practice'])for(const timed of [false,true])test(
  const source=version==='practice'?R.migrateState(input):input;
  const a=P.plan(source,timed?{timeMs:SEARCH_TIME_MS}:{});assert.ok(a.target,a.reason);
  assert.equal(a.target.type,'I');assert.equal(a.hold,true);assert.equal(a.evidence.preparationProof.kind,'visible-I-Z-held-T');
- let state=R.createState(source);
- for(const step of a.continuation){const r=R.replay(state,step.witness);assert.equal(r.valid,true);assert.deepEqual(r.events[0],step.event);state=r.state;}
+ let state=R.createState(source),scoringState;
+ for(const [i,step]of a.continuation.entries()){const r=R.replay(state,step.witness);assert.equal(r.valid,true);assert.deepEqual(r.events[0],step.event);state=r.state;if(i===2)scoringState=state;}
+ // The deeper default can execute the prepared quad after this I/Z/T prefix.
  assert.ok(a.continuation[0].event.cells.every(([x])=>x===9));
  assert.equal(a.continuation[1].structuralEvidence.allocation,'right-cap-preparation');
  assert.equal(a.continuation[2].event.spin,'full');assert.equal(a.continuation[2].event.lines,2);
- assert.equal(P.assess(state.board).maxHeight,9);
- const quad=R.placements(state).placements.find(p=>p.event.type==='I'&&p.event.lines===4&&p.event.cells.every(([x])=>x===7));
+ assert.equal(P.assess(scoringState.board).maxHeight,9);
+ const quad=R.placements(scoringState).placements.find(p=>p.event.type==='I'&&p.event.lines===4&&p.event.cells.every(([x])=>x===7));
  assert.ok(quad);assert.equal(P.assess(quad.state.board).maxHeight,5);
 });
 test('held T preparation is cap pending rather than scoring with inaccessible T entry',()=>{
@@ -57,8 +58,9 @@ test('old broken marathon rollout retains cleanup-order mechanics but no longer 
 });
 
 const delayed=require('./support/st-user-delayed-cap-t.json');
-for(const timed of [false,true])test(`visible filler prefix preserves a real T until the Z cap (${timed?`${SEARCH_TIME_MS}ms`:'full'})`,()=>{
- const a=P.plan(delayed,timed?{timeMs:SEARCH_TIME_MS}:{});
+for(const timed of [false,true])test(`three-lock beam control preserves a real T through its dedicated visible cap proof (${timed?`${SEARCH_TIME_MS}ms`:'full'})`,()=>{
+ // Keep the bounded historical comparison, separately from default search.
+ const a=P.plan(delayed,{depth:3,...(timed?{timeMs:SEARCH_TIME_MS}:{})});
  assert.ok(a.target,a.reason);assert.equal(a.evidence.preparationProof.kind,'visible-prefix-Z-saved-T');
  assert.equal(a.evidence.preparationProof.locks,5);assert.equal(a.continuation.length,5);
  let state=R.createState(delayed),notches=S.notchPattern(state.board);
@@ -87,13 +89,13 @@ test('interrupted delayed cap proof never spends T in its returned prefix or cla
  assert.equal(a.evidence?.preparationProof??null,null);assert.ok(a.metrics.nodes<=root.visited+1);
  assert.ok(a.continuation.every(p=>p.event.type!=='T'||p.event.lines===2));
 });
-test('existing o-filler lock21 keeps its stronger equally long prefix without spending the saved T',()=>{
+test('existing o-filler lock21 preserves its original cap prefix before any later T score',()=>{
  // Existing accepted 36-lock trace, not a new unseen generalization position.
  const s=require('./support/st-existing-cap-proof-tie.json'),a=P.plan(s);
  assert.equal(a.target.type,'O');assert.ok(a.continuation[0].event.cells.every(([x])=>x<4));
  assert.equal(a.continuation[1].event.type,'Z');assert.ok(a.continuation.every(p=>p.event.type!=='T'||p.event.lines===2));
- let state=R.createState(s);for(const p of a.continuation){const r=R.replay(state,p.witness);assert.ok(r.valid);assert.deepEqual(r.events,[p.event]);state=r.state;}
- assert.equal(state.hold,'T');assert.equal(a.evidence.preparationProof,null,'a different safe prefix must not inherit an unrelated proof');
+ let state=R.createState(s),prefixState;for(const [i,p]of a.continuation.entries()){const r=R.replay(state,p.witness);assert.ok(r.valid);assert.deepEqual(r.events,[p.event]);state=r.state;if(i===2)prefixState=state;}
+ assert.equal(prefixState.hold,'T','The original prefix preserves T; deeper search may legally score it afterward');assert.equal(a.evidence.preparationProof,null,'a different safe prefix must not inherit an unrelated proof');
 });
 
 test('cleanup prerequisite uses an actual empty-HOLD I, not just active or occupied hold',()=>{
@@ -107,4 +109,12 @@ test('cleanup prerequisite uses an actual empty-HOLD I, not just active or occup
  const cap=S.geometry(replay.state.board).right.completions[0];assert.ok(cap);
  const z=R.replay(replay.state,['HOLD',...cap.witness]);assert.ok(z.valid);assert.equal(z.events[0].type,'Z');
  assert.equal(S.transition(replay.state,{state:z.state,event:z.events[0]}).allocation,'right-cap-preparation');
+});
+
+
+test('delayed cap default: deeper search keeps a replayable safe prefix without inventing a T score',()=>{
+ const a=P.plan(delayed,{now:()=>0,deadline:Infinity});assert.ok(a.target);assert.ok(a.metrics.completedBeamDepth>3);assert.ok(a.metrics.nodes<=45000);assert.equal(a.evidence.cycleDebt,0);
+ let state=R.createState(delayed),notches=S.notchPattern(state.board);
+ for(const p of a.continuation){const r=R.replay(state,p.witness);assert.ok(r.valid);assert.deepEqual(r.events,[p.event]);assert.ok(S.canonicalClear(p.event));const phase=S.advanceNotches(state.board,{state:r.state,event:r.events[0]},notches);assert.ok(phase.valid);notches=phase.pattern;assert.ok(p.event.type!=='T'||p.event.spin==='full'&&p.event.lines===2);state=r.state;}
+ assert.ok(state.hold==='T'||a.continuation.some(p=>p.event.type==='T'&&p.event.lines===2));
 });

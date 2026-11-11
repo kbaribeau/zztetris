@@ -2,7 +2,7 @@
 // This evaluator owns the private stream. Only a fresh observation reaches plan().
 const R=require('../st-rules'),B=require('../st-bag'),P=require('../st-planner'),F=require('../st-fixtures');
 const {SEARCH_TIME_MS}=require('../st-coach-config');
-const CONFIG=Object.freeze({depth:3,width:8,maxNodes:45000});
+const CONFIG=Object.freeze({depth:null,width:8,maxNodes:45000});
 function execute(state,witness){const replay=R.replay(state,witness);if(!replay.valid||R.validate(replay.state).length)throw new Error('Invalid execution witness');return replay.state;}
 function replenish(state,future){let next={...state,queue:state.queue.slice()};while(next.queue.length<6&&future.length){const type=future.shift();next.queue.push(type);if(next.bag){next.bag=B.consume(next.bag,type);if(B.validate(next.bag).length)throw new Error('Contradictory newly revealed bag evidence');}}return next;}
 function closedLoop(id,{locks=12,config=CONFIG,baseline=false,bagUnaware=false,practice=false}={}){const fixture=F.get(id),future=fixture.future.slice(),steps=[];let state=practice?R.migrateState(fixture.observation):R.createState(fixture.observation),status='lock-limit',priorNonclear=false,afterDouble=false,cycle=false;

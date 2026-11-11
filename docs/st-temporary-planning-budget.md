@@ -1,11 +1,13 @@
 # Temporary planning allowance and performance debt
 
-On 2026-10-24 the user explicitly authorized temporarily relaxing the planning deadline while opening development continues. The page and simulation production configuration now use **1500 ms**, with the existing **45,000-node cap**, depth 3/width 8 maintenance settings and **2.5-second worker watchdog** unchanged. These are soft planning/operational limits, not guaranteed end-to-end latency. The original **750 ms goal remains the restoration target**, not a deleted requirement.
+On 2026-10-24 the user explicitly authorized temporarily relaxing the planning deadline while opening development continues. The page and simulation production configuration now use **1500 ms**, with the existing **45,000-node cap**, width 8 maintenance setting and **2.5-second worker watchdog** unchanged. These are soft planning/operational limits, not guaranteed end-to-end latency. The original **750 ms goal remains the restoration target**, not a deleted requirement.
 
 The shared runtime allowance is `STCoachConfig.SEARCH_TIME_MS` in
 `st-coach-config.js`; the worker, simulations and timed regressions use that
 constant. The [test-suite watchdog](../TESTING.md#results-and-failures) is separate,
 and constrained research probes and internal sub-searches retain their own limits.
+
+Ordinary maintenance search now follows the finite public-piece horizon rather than stopping at three locks. Active, HOLD, preview and a logically forced bag tail are the only available supply. The production setting is `depth: null`; explicit finite depth overrides remain available for constrained tests. Reset likewise no longer defaults to three locks, but still uses only literal observed supply and its existing seven-lock proof limit. Local repair/certification grammars retain their existing separate bounds, including seven-lock proof limits. Deeper search can consume the same node/time budget sooner and is not a promise of better play.
 
 ## Evidence and limits
 

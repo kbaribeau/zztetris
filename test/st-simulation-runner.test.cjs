@@ -16,7 +16,7 @@ test('simulation/diagnostic options are explicit, bounded and leave production b
  assert.throws(()=>CLI.parse(['--parallel']),/Missing/);
  assert.deepEqual(CLI.configuration(),E.CONFIG);
  const config=CLI.configuration({'no-search-timeout':true,'usage-telemetry':true});
- assert.deepEqual(config,{depth:3,width:8,maxNodes:45000,timeMs:null,usageTelemetry:true});
+ assert.deepEqual(config,{depth:null,width:8,maxNodes:45000,timeMs:null,usageTelemetry:true});
  assert.equal(SEARCH_TIME_MS,1500);assert.equal(E.CONFIG.timeMs,1500);
  for(const mode of [['--replay','unused'],['--compare','one','two'],['--child','unused']]){
   assert.throws(()=>CLI.main([...mode,'--parallel','2']),/new runs/);

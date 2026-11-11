@@ -94,7 +94,7 @@ function plan(raw,options={}){
  const now=options.now||(()=>Date.now()),began=now(),deadline=options.deadline??(began+(options.timeMs??750)),limit=options.maxNodes??45000;
  const base={revision:raw.revision??0,target:null,witness:[],continuation:[],status:'no-supported-continuation-found',context:context(raw),reason:'No sustainable Reset prefix was certified within the public supply and budget.',metrics:{nodes:0,elapsedMs:0},evidence:{strategy:'reset-coach',resetSelection:start.decision,reset:{progress:start.summary.reset.progress},budgetExhausted:false}};
  let visited=0,beam=[{state:R.createState(raw),allowHold:options.allowHold!==false,resource:start.resource,notches:S.notchPattern(raw.board),path:[]}],best=null;
- const maxDepth=Math.min(7,Math.max(1,options.depth??3)),width=Math.min(8,Math.max(1,options.width??4));
+ const maxDepth=Math.min(7,Math.max(1,options.depth??(raw.queue.length+1+(raw.hold?1:0)))),width=Math.min(8,Math.max(1,options.width??4));
  for(let depth=0;depth<maxDepth&&beam.length;depth++){
   const next=[];
   for(const n of beam){
