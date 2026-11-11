@@ -72,6 +72,16 @@ test('evaluation/pre-extraction and new source closures remain prospective witho
  assert.equal('st-resource-history.js' in current,false);assert.equal('st-midgame-resources.js' in current,false);
 
 });
+test('evaluation/pre-route baseline omits only its nonexistent module while candidate stays exact',()=>{
+ const f=fixture(),prior={...f.p.sources.baseline};delete prior['st-left-routes.js'];f.p.sources.baseline=prior;
+ assert.doesNotThrow(()=>V.validateProtocol(f.p));
+ const baseline=V.bindProtocol(f.p,'baseline',prior,f.p.execution,f.inputs);
+ assert.doesNotThrow(()=>V.validateBoundEpisode(baseline,prior,f.p.execution,f.inputs[0]));
+ const missingCore=clone(f.p);delete missingCore.sources.baseline['st-planner.js'];assert.throws(()=>V.validateProtocol(missingCore),/required source hashes/);
+ const missingCandidate=clone(f.p);delete missingCandidate.sources.candidate['st-left-routes.js'];assert.throws(()=>V.validateProtocol(missingCandidate),/required source hashes/);
+ const changed={...f.p.sources.candidate,'st-left-routes.js':'0'.repeat(64)};assert.throws(()=>V.bindProtocol(f.p,'candidate',changed,f.p.execution,f.inputs),/source mismatch/);
+ assert.throws(()=>V.bindProtocol(f.p,'baseline',f.p.sources.candidate,f.p.execution,f.inputs),/source mismatch/);
+});
 test('evaluation/child validates exact binding before planner execution',()=>{
  const f=fixture();assert.doesNotThrow(()=>V.validateBoundEpisode(f.a.evaluationBinding,f.a.sources,f.p.execution,f.inputs[0]));
  const changed=clone(f.inputs[0]);changed.future[0]=changed.future[0]==='I'?'J':'I';assert.throws(()=>V.validateBoundEpisode(f.a.evaluationBinding,f.a.sources,f.p.execution,changed),/input mismatch/);
