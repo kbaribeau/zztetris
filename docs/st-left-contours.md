@@ -19,7 +19,7 @@ browser script, or a worker's `importScripts`. Browser/worker exports are under
 `STLeftContours`. It has no DOM, other-module, network, or search dependencies.
 
 ```js
-const contours = require('../st-left-contours.js');
+const contours = require("../st-left-contours.js");
 contours.lookup([7, 7, 8, 8]); // LC-001, normalized key "0,0,1,1"
 contours.lookup([8, 8, 7, 7]); // LC-002, not a mirrored LC-001
 contours.lookup([0, 0, 0, 99]); // null: not in this observed catalog
@@ -105,3 +105,100 @@ the opening/covered metadata and existing skyline matches, and exercises
 unknown/known alternative schemas, repeated pieces, immutability, translation,
 orientation, invalid inputs, and browser/worker-style loading. Run the normal
 repository delivery suite with `npm test` on the pinned Node version.
+
+## Recorded one- and two-piece transitions
+
+The deeply frozen `transitions` export adds a reproducible, source-specific
+catalog of routes ending at an existing **SS or S** skyline. It contains **133
+distinct routes and 717 observed occurrences** from all 2,519 locks of the
+Shocky 1000-line recording. No tier is invented for an unrecognized skyline:
+`knownTier: null` means ungraded, not bad. The original 90 contour records,
+dependency unknowns and alternative schema are unchanged.
+
+- 39 distinct one-piece routes / 359 occurrences.
+- 94 distinct two-piece routes / 358 occurrences.
+- 132 Left-only routes / 716 occurrences; one Left/Center-crossing route /
+  one occurrence, stored separately.
+- 129 later-play routes / 713 occurrences; three opening routes / three
+  occurrences. The pair at locks 16 and 21 straddles the original opening
+  boundary at lock 17 and has its own `opening-boundary` catalog.
+- One exact-contour return route occurs three times: O then O, S → A → S,
+  at locks 228/229, 423/435 and 572/574. Intermediate C/D and ungraded contours
+  are also retained when the endpoint is SS/S.
+
+A piece counts only if it touches columns 1–4 **and changes the normalized
+contour**. Two-piece routes use consecutive such Left placements, ignoring
+intervening pieces wholly outside Left only when their contour is verified
+unchanged. A Left-touching placement that does not change the contour is an
+interruption, not a piece to skip: this occurs at J1560 and I1581. A crossing
+placement is never silently skipped to join two pure-Left moves; any route
+containing one belongs to `leftCenterCrossing`. The intermediate grade is
+unrestricted, and two contour changes may return to the starting contour.
+
+### Recorded moves, context and deduplication
+
+Every route is stored once with source identity, phase, placement class, the
+ordered contour path, actual recorded piece/rotation/pose/cell geometry and an
+aggregate `observedCount`. The runtime catalog contains **no per-occurrence
+references**: no source-lock lists, absolute bases, covered-count arrays or
+ignored-lock lists for its 717 observations. All 133 geometries are distinct,
+even when source, phase and placement class are ignored.
+
+Vertical coordinates and cleared rows are relative to the Left minimum
+immediately before each placement. Exact boards and source-lock provenance can
+be regenerated from the pinned Fumen with the extractor's optional external
+evidence output. That research file preserves every occurrence's one-based
+source locks, per-move absolute minimum, covered-cell counts and ignored locks.
+It remains outside Git and is not loaded by the runtime module. Add its
+`leftBasesBefore[i]` to the route's relative y values to recover actual poses.
+
+Replaying **all** intervening locks recovers center/right support and line
+clears; ignoring a lock for the one/two-piece count does not remove its board
+effects. The pre-lock board is the corresponding Fumen page field. Its
+post-lock board is that field after placement and line clear, including the
+final page. These are lock poses, not verified controller input sequences.
+
+Identical ordered geometry shares a route only within the same source,
+phase and placement class. Different moves, intermediate contours or clear
+geometry stay separate even when their start/end and piece names match.
+Covered/full-board variants are context-specific observations, never a claim
+that a route works for every board with the same skyline. A one-piece suffix
+and its two-piece route are intentionally different observations.
+
+### Clear-invariance check and limits
+
+All **1,506 outside-Left locks**, including **417 line-clear events / 1,000
+lines**, preserve the normalized contour in this recording. There are no
+corpus counterexamples. This is a measured property, not a universal theorem:
+if a clear removes a column's highest cell and exposes covered empty space
+below, column heights need not all decrease by the same scalar. A supported
+right-only I clear in the synthetic regression changes Left heights
+`[3,3,4,4]` to `[0,2,3,3]`, changing the normalized contour. The extractor audits
+all outside locks and explicitly records and breaks a route at any such
+counterexample instead of assuming it cannot happen.
+
+This is descriptive data, not an exhaustive search or coaching integration.
+An observed route does not prove future piece availability, resource permission,
+strategic safety, a safe continuation, universal reachability or a dependency
+alternative. No planner or browser/worker production loader consumes the new
+transition data.
+
+### Reproduce and verify
+
+Run `node scripts/record-st-left-transitions.cjs --check` to rebuild the data
+in memory and compare it with the stored payload, or `--write` to regenerate
+only the marked transition section. Run Prettier on the changed source after
+writing; the check compares parsed values rather than formatting. The script
+accepts `--evidence /absolute/path/outside/repo/new-file.json` to retain the
+regenerated occurrence evidence without adding it to the runtime catalog. It
+never overwrites an existing evidence file. The script also reports
+route/occurrence counts, full JavaScript file bytes and compact
+transition JSON bytes. The file remains a JavaScript module, not a standalone
+`.json` file.
+
+`test/st-left-transitions.test.cjs` checks exact generated data, independent
+nearest-Left occurrence enumeration, all unique moves and regenerated occurrence contexts against
+source replay, deduplication, phase boundaries, crossing segregation, cycles,
+ungraded and C/D intermediates, unchanged-Left interruptions and the synthetic
+clear counterexample. The existing contour suite independently reconstructs
+all settled boards and verifies that the original inventory is unchanged.
