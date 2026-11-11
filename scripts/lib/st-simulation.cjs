@@ -256,25 +256,26 @@ function runEpisode(input, {config=CONFIG, planner=workerPlanner({disableSearchT
   const tracking=TrackingMetrics.create(),trackingEvents=[];
   session.onTrackingEvent(event=>{tracking.record(event);trackingEvents.push(event);});
   const record=value=>onRecord({...value,...coaches.snapshot(),...(trackingEvents.length?{trackingEvents:trackingEvents.splice(0)}:{})});
-  record({kind:'tracking-start',schemaVersion:1,commitmentReplay:'clock-tape-v1'});
-  const leftShapes=LS.create(session.state.board);
+  record({kind:'tracking-start',schemaVersion:1,commitmentReplay:'clock-tape-v1',leftLookupSchemaVersion:1});
+  const leftShapes=LS.create(session.state.board),leftLookupCounts=LS.lookup.create();
   let notches=S.notchPattern(session.state.board), cavityDebt=[], centerDebt=[], awaitingRebuild=false;
   const stop=(kind,detail)=>{summary.stop=kind;summary.censored=false;summary.detail=detail;};
   for(let lock=0;lock<input.locks;lock++) {
     if(session.state.topOut){stop('top-out');break;}
     if(!session.state.active){stop('input-exhausted');break;}
     const request=session.request(lock+1,config), before=publicObservation(session.state), preAssessment=P.assess(before.board);
+    const leftLookup=LS.lookup.classify(before.board);LS.lookup.add(leftLookupCounts,leftLookup);
     let advice, elapsedMs;
     try {const t=performance.now();advice=planner(request);elapsedMs=performance.now()-t;}
-    catch(error){stop(error.code==='ERR_SCRIPT_EXECUTION_TIMEOUT'?'planner-timeout':'planner-error',error.message);record({kind:'stop',lock,request,error:summary.detail});break;}
+    catch(error){stop(error.code==='ERR_SCRIPT_EXECUTION_TIMEOUT'?'planner-timeout':'planner-error',error.message);record({kind:'stop',lock,request,leftLookup,error:summary.detail});break;}
     summary.latencies.push(elapsedMs);
     // The final dispatcher result owns the request even when it abstains.
     // Ordinary probes and projected Reset assessments do not enter a coach.
     if(advice?.evidence?.strategy==='reset-coach')coaches.enter('reset',summary.locks,'reset-dispatch');
-    if(!advice?.target){stop('abstention',{status:advice?.status||'missing-result',reason:advice?.reason});record({kind:'stop',lock,request,advice,elapsedMs});break;}
-    try {validateAdvice(session.state,advice);}catch(error){summary.invalidRecommendations++;stop('invalid-recommendation',error.message);record({kind:'stop',lock,request,advice,error:error.message});break;}
+    if(!advice?.target){stop('abstention',{status:advice?.status||'missing-result',reason:advice?.reason});record({kind:'stop',lock,request,leftLookup,advice,elapsedMs});break;}
+    try {validateAdvice(session.state,advice);}catch(error){summary.invalidRecommendations++;stop('invalid-recommendation',error.message);record({kind:'stop',lock,request,leftLookup,advice,error:error.message});break;}
     let actual;
-    try {actual=session.execute(advice,{lock:summary.locks+1,onCoach:(coach,locked)=>coaches.enter(coach,summary.locks+Number(locked),locked?'actual-lock':'accepted-handoff')});}catch(error){stop(error.code==='INPUT_EXHAUSTED'?'input-exhausted':'execution-error',error.message);record({kind:'stop',lock,request,advice,error:error.message});break;}
+    try {actual=session.execute(advice,{lock:summary.locks+1,onCoach:(coach,locked)=>coaches.enter(coach,summary.locks+Number(locked),locked?'actual-lock':'accepted-handoff')});}catch(error){stop(error.code==='INPUT_EXHAUSTED'?'input-exhausted':'execution-error',error.message);record({kind:'stop',lock,request,leftLookup,advice,error:error.message});break;}
     summary.locks++;
     coaches.enter(CE.phase(session.opening,session.resources),summary.locks,'actual-lock');
     const after=publicObservation(session.state), metrics=boardMetrics(after), assessment=P.assess(after.board),event=actual.event;
@@ -296,7 +297,7 @@ function runEpisode(input, {config=CONFIG, planner=workerPlanner({disableSearchT
     summary.budgetHits+=Number(Boolean(advice.evidence?.budgetExhausted));summary.peakHeight=Math.max(summary.peakHeight,metrics.height);
     const profile={lock:summary.locks,lines:summary.lines,tsds:summary.tsds,quads:summary.quads,...metrics,centerDebt:centerDebt.length,cavityDebt:cavityDebt.length};
     summary.profile.push(profile);
-    record({kind:'lock',lock:summary.locks,request,advice,elapsedMs,event,actions:actual.actions,commitmentCheck:actual.commitmentCheck,after,opening:session.opening,draws:session.cursor,metrics:profile,flags,phaseDiagnostic:{fresh,inherited:check.pattern,rawMismatch:fresh.anchorRow!==check.pattern.anchorRow||fresh.status!==check.pattern.status}});
+    record({kind:'lock',lock:summary.locks,request,leftLookup,advice,elapsedMs,event,actions:actual.actions,commitmentCheck:actual.commitmentCheck,after,opening:session.opening,draws:session.cursor,metrics:profile,flags,phaseDiagnostic:{fresh,inherited:check.pattern,rawMismatch:fresh.anchorRow!==check.pattern.anchorRow||fresh.status!==check.pattern.status}});
     notches=check.pattern;
     if(session.state.topOut){stop('top-out');break;}
     if(flags.some(f=>f==='noncanonical-clear'||f==='notch-transition')){stop('policy-violation',flags);break;}
@@ -310,6 +311,7 @@ function runEpisode(input, {config=CONFIG, planner=workerPlanner({disableSearchT
   summary.tracking=session.trackingHealth.status==='failed'?TrackingMetrics.unavailable('Tracking event delivery failed; recorded totals may be incomplete.'):tracking.snapshot({scope:interrupted?'retained-prefix':'entire-run',throughLock:resourceLock});
   summary.finalObligations=Tracking.status(session.frame,{scope:session.frame.status==='unavailable'?'unavailable':interrupted?'partial':'current',throughLock:resourceLock,coverage:{status:session.frame.view.availability,origin:input.obligationContext?'imported-current':input.scenario==='empty'?'fresh':'unknown-prior',throughLock:resourceLock},terminal:{stop:summary.stop,censored:summary.censored,cap:input.locks,topOut:Boolean(session.state.topOut),inputExhausted:!session.state.active},...(interrupted?{reason:'Execution interrupted; current accounting includes its last accepted action, which may exceed the completed runner lock count.'}:{})});
   summary.leftShapes=LS.finish(leftShapes);
+  summary.leftLookup=LS.lookup.finish(leftLookupCounts);
   summary.elapsedMs=performance.now()-started;summary.final=boardMetrics(session.state);summary.finalObservation=publicObservation(session.state);
   const times=summary.latencies.slice().sort((a,b)=>a-b);
   summary.timing={plans:times.length,medianMs:times.length?times[Math.floor(times.length/2)]:null,p95Ms:times.length?times[Math.ceil(times.length*.95)-1]:null,maxMs:times.at(-1)??null};

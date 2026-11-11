@@ -7,6 +7,7 @@ const Runner=require('./lib/st-simulation-runner.cjs');
 const E=require('./lib/st-simulation.cjs');
 const V=require('./lib/st-evaluation.cjs');
 const TM=require('./lib/st-tracking-metrics.cjs');
+const LeftLookup=require('./lib/st-left-shape-metrics.cjs').lookup;
 const T=require('../st-obligation-tracking');
 const ROOT=path.resolve(__dirname,'..'),MAX_FILE=64*1024*1024,MAX_TRACE_FILE=512*1024*1024;
 const json=file=>{if(fs.statSync(file).size>MAX_FILE)throw Error('Artifact exceeds 64 MiB: '+file);return JSON.parse(fs.readFileSync(file,'utf8'));};
@@ -78,9 +79,10 @@ function child(specPath) {
   }
 }
 function recoverTracking(){
-  const metrics=TM.create();let rows=0,instrumented=false,metricsStopped=false,throughLock=0,statusRows=0,reason,lastStatus,statusError;
+  const metrics=TM.create(),leftLookup=LeftLookup.recover();let rows=0,instrumented=false,metricsStopped=false,throughLock=0,statusRows=0,reason,lastStatus,statusError;
   return{
     record(record){
+      leftLookup.record(record);
       rows++;
       if(rows===1&&record?.kind==='tracking-start'&&record.schemaVersion===1){instrumented=true;return;}
       if(record?.kind==='lock'){
@@ -121,7 +123,7 @@ function recoverTracking(){
       const prefixReason='Recorded prefix only; interruption may omit events after its last retained row.';
       const tracking=instrumented?{...metrics.snapshot({scope:'retained-prefix',throughLock}),reason:reason?prefixReason+' '+reason:prefixReason}:TM.unavailable('Missing initial tracking-start schemaVersion 1 marker; legacy or missing instrumentation cannot establish zero anomalies.');
       const finalObligations=lastStatus?{...lastStatus,scope:'partial',reason:'Last authenticated retained lock only; later actions and terminal status may be unobserved.'+(statusError?' Later lock could not be authenticated: '+statusError:'')}:T.status({status:'unavailable',state:null,view:{availability:'unavailable'}},{scope:'unavailable',reason:'No retained lock has authenticated resource status.'+(statusError?' '+statusError:'')});
-      return{tracking,finalObligations};
+      return{tracking,finalObligations,leftLookup:leftLookup.finish()};
     }
   };
 }
@@ -157,10 +159,14 @@ function recoverSummary(directory,input,result){
   if(!result.error&&result.status===0&&fs.existsSync(file))try{
     const summary=json(file);
     if(summary.schemaVersion!==1||summary.scenario!==input.scenario||summary.seed!==input.seed||summary.inputHash!==input.inputHash||summary.cap!==input.locks||!V.STOPS.includes(summary.stop)||!Number.isSafeInteger(summary.locks)||summary.locks<0||summary.locks>input.locks||!Array.isArray(summary.profile)||summary.profile.length!==summary.locks||summary.censored!==['phase-cap','lock-cap','wall-cap'].includes(summary.stop))throw Error('Invalid or mismatched child summary');
-    return{...summary,tracking:summary.tracking??TM.unavailable('Summary predates tracking instrumentation.'),finalObligations:summary.finalObligations??T.status({status:'unavailable',state:null,view:{availability:'unavailable'}},{scope:'unavailable',reason:'Summary does not retain an authenticated final resource status.'})};
+    return{...summary,leftLookup:summary.leftLookup??LeftLookup.unavailable('Summary predates Left lookup instrumentation.'),tracking:summary.tracking??TM.unavailable('Summary predates tracking instrumentation.'),finalObligations:summary.finalObligations??T.status({status:'unavailable',state:null,view:{availability:'unavailable'}},{scope:'unavailable',reason:'Summary does not retain an authenticated final resource status.'})};
   }catch(error){result={...result,error:Object.assign(Error('Invalid child summary: '+error.message),{code:'INVALID_SUMMARY'})};}
   preserveChildSummary(directory);
   return fallback(directory,input,result);
+}
+function leftLookupReport(summary){
+ const m=summary.leftLookup;
+ return Number.isSafeInteger(m?.observations)?`Left lookup ${m.noKnownResolution}/${m.observations} roots without a recorded resolution (${m.unlisted} unlisted, ${m.noRecordedResolution} listed unknown)${m.scope==='retained-prefix'?' (retained prefix)':''}`:'Left lookup unavailable';
 }
 function trackingReport(summary){
   const metrics=summary.tracking,status=summary.finalObligations,obligations=status?.obligations;
@@ -241,7 +247,7 @@ async function finishRun({o,inputs,config,parallel,episodeMs,directory,manifest,
         controller.abort();
       }
       write(summaryPath,summary);summaries[index]=summary;manifest.episodes=summaries.filter(Boolean);write(manifestPath,manifest);
-      console.log(`${input.scenario} seed ${input.seed}: ${summary.locks}/${input.locks} locks, ${summary.lines} lines, ${summary.stop}${summary.censored?' (censored)':''}; ${trackingReport(summary)}`);
+      console.log(`${input.scenario} seed ${input.seed}: ${summary.locks}/${input.locks} locks, ${summary.lines} lines, ${summary.stop}${summary.censored?' (censored)':''}; ${trackingReport(summary)}; ${leftLookupReport(summary)}`);
       if(failure(summary))process.exitCode=1;
       return summary;
     },{signal:controller.signal,onError:()=>controller.abort()});
@@ -253,11 +259,11 @@ async function finishRun({o,inputs,config,parallel,episodeMs,directory,manifest,
     manifest.exitCode=process.exitCode||0;write(manifestPath,manifest);
   }
   // Normalize only after every timed child has ended, outside planner budgets.
-  const lines=['# ST simulation',`Revision: ${manifest.commit}${manifest.dirty?' (dirty; diagnostic only)':''}`,`Lane: ${manifest.lane}; parallel: ${manifest.parallel}; search timeout: ${manifest.config.timeMs===null?'disabled':manifest.config.timeMs+' ms'}; decision watchdog: ${manifest.decisionWatchdogMs===null?'disabled':manifest.decisionWatchdogMs+' ms'}; episode watchdog: ${manifest.episodeMs} ms. Fixed seeds do not imply deterministic search.`,...(manifest.lane==='diagnostic-wall-clock'?['Diagnostic only: not production-budget acceptance evidence.']:[]),...(!manifest.complete?['Incomplete run: see manifest and retained episode artifacts.']:[]),...manifest.episodes.map(e=>`- ${e.scenario}, seed ${e.seed}: ${e.locks}/${e.cap} locks, ${e.lines} lines; ${e.stop}${e.censored?' (censored)':''}; ${trackingReport(e)}.`),'','## Observed coach entries',...V.coachEntryReport(manifest.episodes.map(e=>({label:e.scenario+', seed '+e.seed,currentCoach:e.currentCoach,coachHistoryScope:e.coachHistoryScope,measurements:Object.fromEntries(Object.entries(V.COACH_ENTRY_METRICS).map(([metric,coach])=>[metric,e.coachEntries?.[coach]??null]))}))), '','No capped run certifies indefinite sustainability or a full Reset. Recorded-action replay verifies actions; rerun asks the current timed engine again.'];fs.writeFileSync(path.join(directory,'report.md'),lines.join('\n')+'\n');
+  const lines=['# ST simulation',`Revision: ${manifest.commit}${manifest.dirty?' (dirty; diagnostic only)':''}`,`Lane: ${manifest.lane}; parallel: ${manifest.parallel}; search timeout: ${manifest.config.timeMs===null?'disabled':manifest.config.timeMs+' ms'}; decision watchdog: ${manifest.decisionWatchdogMs===null?'disabled':manifest.decisionWatchdogMs+' ms'}; episode watchdog: ${manifest.episodeMs} ms. Fixed seeds do not imply deterministic search.`,...(manifest.lane==='diagnostic-wall-clock'?['Diagnostic only: not production-budget acceptance evidence.']:[]),...(!manifest.complete?['Incomplete run: see manifest and retained episode artifacts.']:[]),...manifest.episodes.map(e=>`- ${e.scenario}, seed ${e.seed}: ${e.locks}/${e.cap} locks, ${e.lines} lines; ${e.stop}${e.censored?' (censored)':''}; ${trackingReport(e)}; ${leftLookupReport(e)}.`),'','## Observed coach entries',...V.coachEntryReport(manifest.episodes.map(e=>({label:e.scenario+', seed '+e.seed,currentCoach:e.currentCoach,coachHistoryScope:e.coachHistoryScope,measurements:Object.fromEntries(Object.entries(V.COACH_ENTRY_METRICS).map(([metric,coach])=>[metric,e.coachEntries?.[coach]??null]))}))), '','No capped run certifies indefinite sustainability or a full Reset. Recorded-action replay verifies actions; rerun asks the current timed engine again.'];fs.writeFileSync(path.join(directory,'report.md'),lines.join('\n')+'\n');
   if(o['mino-ledger']&&!controller.signal.aborted){manifest.regionalMinoAnalysis={mode:'offline-after-all-episodes',episodes:exportMinoLedgers(directory,manifest.episodes),finishedAt:new Date().toISOString()};manifest.exitCode=process.exitCode||0;write(manifestPath,manifest);}
   if(manifest.complete)fs.writeFileSync(path.join(directory,'observations.json'),V.stringify(V.normalize(manifest,inputs)));
   if(runError)throw runError;
   return manifest;
 }
 if(require.main===module)Promise.resolve().then(()=>main()).catch(error=>{console.error(error.stack);process.exitCode||=1;});
-module.exports={parse,compare,main,failure,readTrace,streamTrace,configuration,exportMinoLedgers,recoverSummary,recoverTracking,trackingReport};
+module.exports={parse,compare,main,failure,readTrace,streamTrace,configuration,exportMinoLedgers,recoverSummary,recoverTracking,trackingReport,leftLookupReport};

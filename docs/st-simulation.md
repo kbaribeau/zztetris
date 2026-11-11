@@ -326,3 +326,31 @@ Recorded traces permit projected-versus-actual comparison. Simulation summaries
 now aggregate shared resource-tracking anomalies and retain a final status check,
 as described above. These diagnostics do not impose an automatic admission or
 strategy gate; use source-bound evidence before claiming preservation across a run.
+
+## Left lookup coverage
+
+Every episode reports `leftLookup`: one encounter at each actual pre-decision
+root, across all phases, including the initial root and a terminal abstention or
+failed decision. A contour encountered again at a later lock boundary counts
+again. Search nodes, internal planner calls, movement and HOLD do not add
+encounters. The board after the final capped lock is not another decision.
+
+`noKnownResolution` is the sum of `unlisted` (no normalized contour record) and
+`noRecordedResolution` (listed contour, no recorded dependency alternative).
+`recordedResolution` counts encounters with any recorded alternative.
+`crossingOnly` separately counts encounters with recorded routes but no
+non-crossing alternative allowed by the route planner.
+The observation is retained on each decision's lock/stop trace row; aggregate
+counts, percentage and bounded per-contour totals appear in the summary.
+
+This is catalog coverage, not a legal-placement or available-supply test. A known
+route missing its public pieces, reserved by another region, or failing movement
+and admission checks remains known. Availability is explicitly `not-assessed`;
+no extra dependency scheduler or planner search is run. Covered holes are counted
+separately and do not turn a recognized skyline into an unknown contour. A
+recorded route is not proof that it resolves those holes or can execute now.
+
+Interrupted child recovery reports only retained decision rows and labels the
+counts `retained-prefix`; the pending interrupted root may be absent. Missing
+instrumentation is unavailable, never a measured zero. No browser UI or planning
+policy is changed by this evaluator metric.
