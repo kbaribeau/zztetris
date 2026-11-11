@@ -396,6 +396,59 @@ test("Left transitions: a real supported outside-only clear can expose holes and
   assert.equal(after.key, "0,2,3,3");
 });
 
+test("Left transitions: regeneration preserves the observation-free contour catalog", () => {
+  const temporary = fs.mkdtempSync(
+    path.join(require("node:os").tmpdir(), "left-transition-regeneration-"),
+  );
+  try {
+    const root = path.resolve(__dirname, "..");
+    for (const file of [
+      "st-left-contours.js",
+      "st-structure.js",
+      "st-rules.js",
+      "st-bag.js",
+      "tetris-fumen.js",
+      source.sourceFile,
+      "scripts/record-st-left-transitions.cjs",
+    ]) {
+      const destination = path.join(temporary, file);
+      fs.mkdirSync(path.dirname(destination), { recursive: true });
+      fs.copyFileSync(path.join(root, file), destination);
+    }
+    const file = path.join(temporary, "st-left-contours.js"),
+      before = fs.readFileSync(file, "utf8"),
+      script = path.join(temporary, "scripts/record-st-left-transitions.cjs"),
+      run = (mode) =>
+        require("node:child_process").execFileSync(
+          process.execPath,
+          [script, mode],
+          {
+            cwd: temporary,
+            encoding: "utf8",
+            timeout: 10000,
+          },
+        );
+    run("--write");
+    run("--check");
+    const regenerated = require(file);
+    assert.deepEqual(regenerated.catalog, C.catalog);
+    assert.deepEqual(regenerated.source, C.source);
+    assert.deepEqual(regenerated.transitions, T);
+    assert.ok(
+      regenerated.catalog.every(
+        (entry) => !Object.hasOwn(entry, "observations"),
+      ),
+    );
+    const marker = "  // BEGIN RECORDED TRANSITIONS";
+    assert.equal(
+      fs.readFileSync(file, "utf8").split(marker)[0],
+      before.split(marker)[0],
+    );
+  } finally {
+    fs.rmSync(temporary, { recursive: true, force: true });
+  }
+});
+
 test("Left transitions: external evidence preserves provenance without overwrites or writes inside any worktree", () => {
   const temporary = fs.mkdtempSync(
     path.join(require("node:os").tmpdir(), "left-transition-evidence-"),

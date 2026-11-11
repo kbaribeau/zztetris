@@ -31,12 +31,14 @@ and a single Map lookup, returning the same deeply frozen record each time.
 `catalog` and `source` are also deeply frozen. IDs remain the original
 `LC-001`–`LC-090` review IDs, not a preference ranking.
 
-## Observation metadata
+## Source coverage
 
 All 2,519 post-lock, post-line-clear states and the initial empty board are
-represented. Repeated states after moves outside Left still count. Each entry
-retains source lock indices, counts, height/covered ranges, occupancy-variant
-count, and the source-based opening partition:
+represented. Repeated states after moves outside Left still count. Entries
+contain identity, profile, existing shape/tier matches, and dependencies only;
+the per-entry `observations` field is omitted. Aggregate source statistics
+remain under `source`, and the tests reconstruct them from the pinned Fumen,
+including this source-based opening partition:
 
 - 79 later-only contours and 7 seen both during opening and later play.
 - 3 opening-only contours: LC-076 `[2,1,0,3]` at lock 7, LC-081 `[4,1,0,1]`
@@ -49,8 +51,6 @@ claim that these contours can only occur in those phases. Later play includes
 resets. A translated flat surface still matches LC-090, but this recording only
 observed the empty-board instance.
 
-`cleanCount` and `holeCount` count **post-lock observations**, not cells;
-`coveredRange` counts empty cells below a roof across all observations.
 There are 65 covered observations, 19 contours with covered observations, and
 16 contours seen only with covered cells. Three contours have both clean and
 covered observations. These are 90 skylines but 93 distinct occupancy variants.
@@ -100,8 +100,9 @@ legality, admission, reset behavior, or the existing 12-shape tier catalog.
 ## Verification
 
 `test/st-left-contours.test.cjs` reconstructs every settled source board using
-the committed Fumen, verifies all 90 entries and their source positions, checks
-the opening/covered metadata and existing skyline matches, and exercises
+the committed Fumen, verifies all 90 identities/profiles, checks aggregate
+opening/covered source statistics and existing skyline matches, requires that
+entries omit `observations`, and exercises
 unknown/known alternative schemas, repeated pieces, immutability, translation,
 orientation, invalid inputs, and browser/worker-style loading. Run the normal
 repository delivery suite with `npm test` on the pinned Node version.
@@ -112,8 +113,8 @@ The deeply frozen `transitions` export adds a reproducible, source-specific
 catalog of routes ending at an existing **SS or S** skyline. It contains **133
 distinct routes and 717 observed occurrences** from all 2,519 locks of the
 Shocky 1000-line recording. No tier is invented for an unrecognized skyline:
-`knownTier: null` means ungraded, not bad. The original 90 contour records,
-dependency unknowns and alternative schema are unchanged.
+`knownTier: null` means ungraded, not bad. The 90 contour identities/profiles,
+dependency unknowns and alternative schema remain unchanged.
 
 - 39 distinct one-piece routes / 359 occurrences.
 - 94 distinct two-piece routes / 358 occurrences.
@@ -187,7 +188,8 @@ transition data.
 
 Run `node scripts/record-st-left-transitions.cjs --check` to rebuild the data
 in memory and compare it with the stored payload, or `--write` to regenerate
-only the marked transition section. Run Prettier on the changed source after
+only the marked transition section, preserving the observation-free contour
+entries. Run Prettier on the changed source after
 writing; the check compares parsed values rather than formatting. The script
 accepts `--evidence /absolute/path/outside/repo/new-file.json` to retain the
 regenerated occurrence evidence without adding it to the runtime catalog. It
