@@ -63,7 +63,7 @@ function create(state,options={}){
  const observation=position(state),current=currentContext(observation,options),savedPrevious=previous?portableAdvice(previous):null,savedCommitment=commitment?portableCommitment(commitment):null;
  const proof=savedPrevious?.evidence?.construction||savedCommitment?.advice?.evidence?.construction;
  const cursor=proof&&planContinuity?PC.importState(planContinuity,{position:observation,inventory:current.inventory,proof}):null;
- const result={format:FORMAT,schemaVersion:VERSION,engineVersion:ENGINE,suggestedFileName:exportFilename(suggestedFileName),position:observation,search:settings(search),coaching:{obligationContext:Context.exportState(current),planContinuity:PC.exportState(cursor),patternHistory:current.status==='available'?clone(current.state.safety.notches):PH.snapshot(observation,patternHistory),openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null,previous:savedPrevious,commitment:savedCommitment,pendingLHint:portablePendingLHint(pendingLHint)}};
+ const result={format:FORMAT,schemaVersion:VERSION,engineVersion:ENGINE,suggestedFileName:exportFilename(suggestedFileName),position:observation,search:settings(search),coaching:{obligationContext:Context.exportState(current),planContinuity:PC.exportState(cursor),patternHistory:current.status==='available'?clone(current.state.safety.notches):PH.snapshot(observation,patternHistory),openingPhase:openingPhase&&current.state?.account.reset.status!=='active',openingSource:current.state?.account.reset.status==='active'?null:openingSource?clone(openingSource):null,openingClear:current.state?.account.reset.status==='active'?null:openingClear?clone(openingClear):null,openingRepair:current.state?.account.reset.status==='active'?null:openingRepair?clone(openingRepair):null,previous:savedPrevious,commitment:savedCommitment,pendingLHint:portablePendingLHint(pendingLHint)}};
  bounded(result);return result;
 }
 function prepare(input){
@@ -75,6 +75,8 @@ function prepare(input){
  obligationContext=pairedContext(state,Context.importState(c.obligationContext,{position:state}));
  const patternHistory=obligationContext.status==='available'?clone(obligationContext.state.safety.notches):PH.snapshot(state,c.patternHistory);
  if(PH.resolve(state,patternHistory).status==='invalid-history')throw Error('Invalid current notch checkpoint.');
+ const observedReset=obligationContext.state?.account.reset.status==='active';
+ if(observedReset&&c.openingPhase){c.openingPhase=false;c.openingSource=null;c.openingClear=null;c.openingRepair=null;warnings.push('Current Reset progress superseded stale Opening coaching state.');}
  const opening=O.validateSessionState(state,{active:c.openingPhase,source:c.openingSource??null,clear:c.openingClear??null,repair:c.openingRepair??null},search);warnings.push(...opening.warnings);
  if(obligationContext.status==='available'&&obligationContext.state.sl.handoff&&opening.session.active)throw Error('Opening phase contradicts the current maintenance handoff.');
  let previous=null,commitment=null;const pendingLHint=differentCoach?null:portablePendingLHint(c.pendingLHint);

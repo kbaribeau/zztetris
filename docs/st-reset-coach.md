@@ -11,8 +11,9 @@ subsequent TSD, parity pattern or balanced endpoint is not a completion conditio
 A qualifying actual Left T after an observed first TSD or explicit opening
 handoff starts Reset and counts as T 1 in the same lock, whether advice is
 hidden, pending, declined, or recommending another move. Opening Ts do not
-start Reset. This is factual recognition, not permission to recommend the
-placement. A later qualifying T can start a fresh episode after an interrupted
+start Reset. An observed entry also retires any stale Opening coaching state,
+without applying opening handoff exemptions to existing obligations. This is
+factual recognition, not permission to recommend the placement. A later qualifying T can start a fresh episode after an interrupted
 Reset; existing source-profile caveats remain current.
 
 Unknown-origin imports cannot reconstruct their earlier opening or Z account.

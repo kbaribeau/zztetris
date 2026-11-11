@@ -82,3 +82,23 @@ test('simulation tracking: player-started Reset begins on the observed lock rath
  assert.equal(summary.locks,f.steps.length);assert.deepEqual(summary.reset.starts,[{at:0,firstLock:1,linesBefore:0}]);assert.equal(summary.reset.firstCompletion.completedAt,8);assert.equal(summary.reset.finalStatus,'inactive');assert.equal(summary.tracking.total,0);
  assert.deepEqual(E.recoverTrackingStatus(rows.filter(r=>r.kind==='lock').at(-1)).obligations,summary.finalObligations.obligations);
 });
+
+test('simulation tracking: observed Reset retires opening coaching without an S/L handoff and replays identically',()=>{
+ const f=require('./support/st-reset-live-cycle.json'),snapshot=E.clone(f.obligationContext);
+ snapshot.state.sl.handoff=false;
+ const input={scenario:'stable',initial:f.initial,obligationContext:snapshot,future:f.steps.flatMap(s=>s.actions.flatMap(a=>a.revealed)),locks:2},rows=[];let index=0;
+ const actualOpening={...api,startOpeningSession:()=>({active:true,clear:null,repair:null,source:null}),acceptOpeningResult:s=>s,updateOpeningSession:P.updateOpeningSession};
+ const summary=E.runEpisode(input,{api:actualOpening,planner:request=>{const witness=f.steps[index++].actions.map(a=>a.action),proof=R.replay(request.observation,witness);return{target:proof.events[0].target,witness,hold:witness.includes('HOLD'),evidence:{opening:true}};},onRecord:r=>rows.push(r)});
+ assert.equal(summary.stop,'lock-cap',summary.detail);assert.equal(summary.locks,2);assert.equal(summary.tracking.total,0);
+ const locks=rows.filter(r=>r.kind==='lock');assert.equal(locks[0].request.options.openingPhase,true);assert.deepEqual(locks[0].opening,{active:false,clear:null,repair:null,source:null});assert.equal(locks[1].request.options.openingPhase,false);
+ assert.equal(locks[1].request.options.obligationContext.state.sl.handoff,false,'Player-started Reset must not exempt S/L obligations');assert.equal(locks[1].request.options.obligationContext.state.account.reset.remaining,1);
+ assert.ok(summary.coachTransitions.some(t=>t.coach==='reset'&&t.afterLock===1));assert.equal(summary.currentCoach,'reset');
+ assert.equal(E.replayRecords(input,rows,actualOpening).verified,true);
+});
+
+test('simulation tracking: imported active Reset overrides heuristic opening initialization without accounting changes',()=>{
+ const f=require('./support/st-reset-live-cycle.json'),snapshot=E.clone(f.obligationContext);snapshot.state.sl.handoff=false;snapshot.state.account.reset={status:'active',remaining:2,firstTId:null,inheritedCovered:[]};
+ const input={scenario:'stable',initial:f.initial,obligationContext:snapshot,future:[],locks:1};
+ const session=E.createSession(input,{...api,startOpeningSession:()=>({active:true,clear:null,repair:null,source:null})});
+ assert.deepEqual(session.opening,{active:false,clear:null,repair:null,source:null});assert.equal(session.request(1,{}).options.openingPhase,false);assert.equal(session.obligationContext.state.sl.handoff,false);assert.deepEqual(session.obligationContext.state.account,snapshot.state.account);
+});

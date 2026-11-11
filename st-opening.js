@@ -281,7 +281,10 @@ function startSession(raw,{emptyMode=false}={}){
  const a=getPlanner().assess(raw.board),empty=raw.board.every(r=>r==='..........');
  return{active:Boolean(emptyMode||empty||(!a.maintenanceScope&&a.maxHeight<=4&&a.left.height<2)),clear:null,repair:null,source:emptyMode&&O.eligible(raw)?{pattern:null}:null};
 }
-function updateSession(session,before,after,event){
+function updateSession(session,before,after,event,effects=[]){
+ // Actual observed Reset ends the coaching opener without applying its S/L
+ // handoff exemptions. The account reducer already preserves current duties.
+ if(effects.some(e=>e.domain==='account'&&e.status==='reset-started'&&e.source==='observed-left-T'))return{active:false,clear:null,repair:null,source:null};
  if(!session?.active)return{active:false,clear:null,repair:null,source:null};
  let repair=null;const old=session.repair;
  if(old){const checked=checkedRepair(old,before);if(checked&&JSON.stringify(checked.path[0].event)===JSON.stringify(event)){

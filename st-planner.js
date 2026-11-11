@@ -2685,7 +2685,7 @@ function captureOpeningForecast(raw,advice){return openingModule().captureForeca
 function advanceOpeningForecast(candidate,before,after,action){return openingModule().advanceForecast(candidate,before,after,action);}
 function openingModule(){return typeof module==='object'&&module.exports?require('./st-opening.js'):globalThis.STOpening;}
 function startOpeningSession(raw,options){return openingModule().startSession(raw,options);}
-function updateOpeningSession(session,before,after,event){return openingModule().updateSession(session,before,after,event);}
+function updateOpeningSession(session,before,after,event,effects){return openingModule().updateSession(session,before,after,event,effects);}
 function acceptOpeningResult(session,result){return openingModule().acceptResult(session,result);}
 // Risk is a separate one-lock recommendation, never a weaker supported proof.
 // The collector is private to a decide request and only holds already enumerated

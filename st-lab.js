@@ -419,7 +419,7 @@
     }
     if(locked){
       if(obligationContext.status==='available')patternHistory=clone(obligationContext.state.safety.notches);
-      if(openingPhase){const phase=STPlanner.updateOpeningSession({active:openingPhase,clear:openingClear,repair:openingRepair,source:openingSource},beforeLock,observation(),state.lastEvent);openingPhase=phase.active;openingClear=phase.clear;openingRepair=phase.repair||null;openingSource=phase.source||null;}
+      if(openingPhase){const phase=STPlanner.updateOpeningSession({active:openingPhase,clear:openingClear,repair:openingRepair,source:openingSource},beforeLock,observation(),state.lastEvent,transition.effects);openingPhase=phase.active;openingClear=phase.clear;openingRepair=phase.repair||null;openingSource=phase.source||null;if(!openingPhase)pendingHandoffRecovery=null;}
       // Keep the proof's original public observation, not an input-history
       // guess. The planner checks that the actual lock matches its first step,
       // then replays the suffix using only the newly visible observation.
@@ -503,7 +503,7 @@
     const s=currentResources.hangingS||{status:'unknown',evidence:[],unclassifiedCount:null},l=currentResources.hangingL||{status:'unknown',evidence:[],unclassifiedCount:null},z=currentResources.extraZ||{status:'unknown',remaining:null};
     const sLabel={hanging:'observed surplus','none-observed':'none currently observed',unknown:'unknown current accounting','out-of-profile':'outside the reviewed source profile'}[s.status];
     const lLabel={hanging:'observed surplus','none-observed':'none currently observed',unknown:'unknown current accounting','out-of-profile':'outside the reviewed source profile'}[l.status];
-    const zLabel=currentResources.reset?.status==='active'?(z.remaining===null?'Reset in progress; earlier Z balance unknown':`Reset in progress; observed balance ${z.remaining}`):z.status==='available'&&z.remaining>1?`${z.remaining} remaining in the current balance`:{available:'available in the current account',used:'spent in the current account',unknown:'eligibility unknown','out-of-profile':'outside the reviewed source profile'}[z.status];
+    const zLabel=currentResources.reset?.status==='active'?(z.remaining===null?'Reset in progress; earlier Z balance unknown':`Reset in progress; observed balance ${z.remaining}${z.status==='out-of-profile'?'; outside the reviewed source profile':''}`):z.status==='available'&&z.remaining>1?`${z.remaining} remaining in the current balance`:{available:'available in the current account',used:'spent in the current account',unknown:'eligibility unknown','out-of-profile':'outside the reviewed source profile'}[z.status];
     renderResourceBadge('st-hanging-s',s.status,`Hanging S: ${sLabel}`,s.reason||currentResources.reason||'Current obligation facts.','hanging',currentResources.terminal,currentResources.status==='unavailable'?null:s.evidence.length,s.unclassifiedCount,s.aggregate?.reduce((a,b)=>a+b,0));
     renderResourceBadge('st-hanging-l',l.status,`Hanging L: ${lLabel}`,`${l.reason||currentResources.reason||'Current obligation facts.'} A normal Center SL awaiting its L is separate; no L repair strategy is implied.`,'hanging',currentResources.terminal,currentResources.status==='unavailable'?null:l.evidence.length,l.unclassifiedCount,l.aggregate?.reduce((a,b)=>a+b,0));
     renderResourceBadge('st-extra-z',z.status,`Extra Z: ${zLabel}`,z.reason||currentResources.reason||'Current obligation facts.','used',currentResources.terminal);

@@ -92,7 +92,8 @@ Statement coverage means lines executed; branch coverage means alternatives exec
 early-account coaching, same-lock first-T progress, opening exclusion, conserved
 Z balance, unknown-origin phase boundaries, current obligation preservation,
 factual projection versus strategic admission, and actual-page advice-hidden
-entry/import/Undo. Tracking and simulation suites independently check observation
+entry/import/Undo, inherited covered debt versus newly created roofs, and stale
+Opening retirement without S/L exemptions. Tracking and simulation suites independently check observation
 versus numeric credit, two-T completion, source eligibility, and actual start-lock
 timestamps. These are accounting/behavior checks, not improved survival evidence.
 

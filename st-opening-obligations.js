@@ -81,6 +81,7 @@ function validate(state,projected=false){
  check(state.z.remaining===null||state.allocationVerified&&!state.mandatoryZ&&o===null&&state.z.uncredited==='none','established Z account');
  // Observed Reset progress is independent of whether prior Z accounting is known.
  check(state.known||state.z.remaining===null,'unknown Z account');
+ check(state.known||before===null&&o===null,'unknown pre-clear allocation');
  return state;
 }
 function importState(snapshot){validate(snapshot);return clone(snapshot);}

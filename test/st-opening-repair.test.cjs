@@ -65,7 +65,7 @@ test('opening clear: hypothetical handoff projects current resource facts withou
   assert.equal(input.status,'available');assert.equal(input.availability,'unknown');assert.equal(input.supplied,true);
   assert.equal(input.context,null,'The endpoint remains hypothetical, never imported as actual accounting');
   assert.equal(input.frame.state.domain,'projection');assert.ok(handoffs.has(input.frame),'The query uses the explicit projected handoff boundary');
-  assert.equal(input.frame.state.sl.status,'unknown');assert.equal(input.frame.state.sl.handoff,false,'A projected marker cannot promote unknown S/L accounting');
+  assert.equal(input.frame.state.sl.status,'unknown');assert.equal(input.frame.state.sl.handoff,true,'The projected coaching boundary is known while earlier S/L accounting stays unknown');
   assert.ok(input.frame.position.streamCursor>f.before.streamCursor,'The literal projected clear consumes public supply');
   assert.deepEqual(input.frame.position.board,state.board);assert.equal(summary.extraZ.status,'unknown');
   assert.ok(options.resource,'The maintenance query receives its explicit new resource root');

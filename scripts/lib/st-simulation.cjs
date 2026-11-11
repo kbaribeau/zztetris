@@ -124,6 +124,7 @@ function createSession(input, api=P) {
   let patternHistory=current.status==='available'?clone(current.state.safety.notches):null,actualLocks=0,actualLines=0;
   const tracking=Tracking.create(),effectListeners=new Set();let effectFailure=null;
   let opening=api.startOpeningSession(publicObservation(state),{emptyMode:input.scenario==='empty'});
+  if(current.status==='available'&&current.state.account.reset.status==='active')opening={active:false,clear:null,repair:null,source:null};
   function adoptPlan(advice){const proof=advice?.evidence?.construction;planContinuity=proof?PlanContinuity.importState(PlanContinuity.exportState(planContinuity),{position:publicObservation(state),inventory:current.inventory,proof})||PlanContinuity.start(publicObservation(state),current.inventory,proof):null;}
   function resources(){return{...Context.resolve(current,{position:publicObservation(state)}),instances:{active:current.inventory.active,hold:current.inventory.hold,queue:current.inventory.queue},terminal:Boolean(state.topOut||!state.active)};}
   function installTransition(prior,before,transition,operation,lock){
@@ -191,12 +192,13 @@ function createSession(input, api=P) {
         planContinuity=PlanContinuity.advance(planContinuity,before,action,after,transition.receipt);
         if(openingForecast)openingForecast=typeof api.advanceOpeningForecast==='function'?api.advanceOpeningForecast(openingForecast,before,publicObservation(state),action):null;
         if(action==='HD') {
-          onCoach(CE.phase(opening,resources()),true);
           event=clone(state.lastEvent); previous=null;
           const continuity=Handoff.exportConnected(recoveryExecution);
           pendingHandoffRecovery=recovery&&continuity?{...clone(recovery),actualEvent:clone(event),continuity}:null;recoveryExecution=null;
-          opening=api.updateOpeningSession(opening,before,publicObservation(state),event);
+          opening=api.updateOpeningSession(opening,before,publicObservation(state),event,transition.effects);
+          if(transition.effects.some(e=>e.domain==='account'&&e.status==='reset-started'&&e.source==='observed-left-T'))pendingHandoffRecovery=null;
           if(!opening.active)openingForecast=null;
+          onCoach(CE.phase(opening,resources()),true);
           if(commitmentReplay!==undefined&&commitmentReplay!==null&&(!commitmentReplay||commitmentReplay.version!==1||!Array.isArray(commitmentReplay.clock)||typeof commitmentReplay.result!=='string'))throw Error('Malformed commitment replay');
           if(commitmentReplay!==undefined)assert.equal(Boolean(commitment),commitmentReplay!==null,'Commitment admission diverged');
           const clock=commitment?commitmentClock(commitmentReplay?.clock):null;

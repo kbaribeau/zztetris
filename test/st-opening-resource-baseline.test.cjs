@@ -75,7 +75,7 @@ test('opener resources: actual before-clear quality credit and nonrenewal have l
 
 test('opener resources: intervening non-scoring T keeps settled allocation but blocks delayed credit',()=>{
  const a=recorded();for(let i=0;i<4;i++)a.step(i);for(let i=0;i<3;i++)a.lock(['L','L','L','HD']);
- assert.equal(a.state.lastEvent.type,'T');assert.equal(a.state.lastEvent.lines,0);assert.equal(a.account.profile.departure,true);assert.equal(a.account.allocationVerified,true);assert.equal(a.account.mandatoryZ,false);assert.equal(a.account.qualityCandidate,false);assert.equal(a.diagnostics.extraZ.status,'unknown');assert.equal(a.diagnostics.extraZ.baseline,false);
+ assert.equal(a.state.lastEvent.type,'T');assert.equal(a.state.lastEvent.lines,0);assert.equal(a.account.profile.departure,false);assert.equal(a.account.reset.remaining,1);assert.equal(a.account.allocationVerified,true);assert.equal(a.account.mandatoryZ,false);assert.equal(a.account.qualityCandidate,false);assert.equal(a.diagnostics.extraZ.status,'unknown');assert.equal(a.diagnostics.extraZ.baseline,false);
 });
 
 test('opener resources: invalidated diverted Center debt is an effect and cannot pay delayed quality',()=>{

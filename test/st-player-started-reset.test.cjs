@@ -85,3 +85,33 @@ test('player Reset: out-of-profile and unknown facts do not bypass Reset advice 
   const advice=P.decide(x.position,{obligationContext:raw,maxNodes:0});assert.equal(advice.target,null);assert.equal(advice.evidence.strategy,'reset-coach');assert.equal(advice.evidence.reset.progress,1);assert.equal(advice.evidence.resetSelection.status,decision.status);assert.match(advice.reason,/Reset is observed/);
  }
 });
+
+test('player Reset: malformed unknown pre-clear duties reject before an actual TSD can invalidate accounting',()=>{
+ const O=require('../st-opening-obligations');for(const before of [{t:0,z:0,checkpoint:false},'overused']){const raw=O.start();raw.profile.before=before;assert.throws(()=>O.importState(raw),/unknown pre-clear allocation/);}
+ const raw=O.start();raw.profile.before={t:0,z:0,checkpoint:false};raw.opening={kind:'allocation',rightZ:0,imbalance:0,roof:null};assert.throws(()=>O.importState(raw),/unknown pre-clear allocation/);
+});
+
+test('player Reset UI: manual post-TSD entry retires stale Opening coaching without exempting current S/L or Center work',()=>withPage('st-lab.html',{storage:{stGuideVisible:'false'}},g=>{
+ const source=require('./support/st-resource-trial-1.json'),stream=[source.initial.active.type,...source.initial.queue,...source.steps.flatMap(s=>s.revealed)],random=[];
+ for(let k=0;k<stream.length;k+=7){const desired=stream.slice(k,k+7);desired.push(...[...'IJLOSTZ'].filter(p=>!desired.includes(p)));const bag=[...'IJLOSTZ'];for(let i=6;i>0;i--){const j=bag.indexOf(desired[i]);assert.ok(j<=i);random.push((j+.25)/(i+1));[bag[i],bag[j]]=[bag[j],bag[i]];}}
+ g.window.Math.random=()=>random.length?random.shift():.5;g.element('#st-fixture').value='empty';g.element('#st-fixture').dispatchEvent(new g.window.Event('change'));
+ let locks=0;for(const step of source.steps){if(locks===24)break;g.window.stLab.act(step.action);if(step.action==='HD')locks++;}
+ const prior=clone(g.window.stLab.exportSession());assert.equal(prior.coaching.openingPhase,true);assert.equal(prior.coaching.obligationContext.state.account.firstTsd,true);assert.equal(prior.coaching.obligationContext.state.sl.handoff,false);assert.ok(prior.coaching.obligationContext.state.center.pending.length);assert.ok(g.window.stLab.resources.hangingS.evidence.length);
+ for(const a of left)g.window.stLab.act(a);
+ const after=clone(g.window.stLab.exportSession());assert.equal(g.element('#st-phase-name').textContent,'Reset');assert.equal(after.coaching.openingPhase,false);assert.equal(after.coaching.openingClear,null);assert.equal(after.coaching.openingSource,null);assert.deepEqual(after.coaching.obligationContext.state.center,prior.coaching.obligationContext.state.center);assert.deepEqual(after.coaching.obligationContext.state.sl,prior.coaching.obligationContext.state.sl);
+ g.window.stLab.act('UNDO');assert.equal(g.element('#st-phase-name').textContent,'Opening');assert.equal(g.window.stLab.exportSession().coaching.openingPhase,true);
+ for(const a of left)g.window.stLab.act(a);assert.equal(g.element('#st-phase-name').textContent,'Reset');assert.equal(g.window.stLab.resources.reset.progress,1);assert.equal(g.window.stLab.resources.extraZ.remaining,1);
+}));
+
+test('player Reset: native transport clears contradictory Opening metadata without changing obligations',()=>{
+ const x=trial();x.lock(left);const current=C.exportState(x.context),created=Session.create(x.position,{obligationContext:current,openingPhase:true});assert.equal(created.coaching.openingPhase,false);assert.deepEqual(created.coaching.obligationContext,current);
+ const supplied=clone(created);supplied.coaching.openingPhase=true;const prepared=Session.prepare(supplied);assert.equal(prepared.openingPhase,false);assert.equal(prepared.openingClear,null);assert.equal(prepared.openingSource,null);assert.deepEqual(C.exportState(prepared.obligationContext),current);assert.ok(prepared.warnings.some(w=>w.includes('superseded stale Opening')));
+});
+
+test('player Reset: entry inherits existing covered debt without absorbing roofs created by the first T',()=>{
+ const x=trial(),raw=C.exportState(x.context),debt=[[6,30],[6,33]];raw.state.safety.coveredCells=clone(debt);
+ const actual=player(x.position,{snapshot:raw}),input=Provider.prepare(actual.position,{obligationContext:raw}),projected=Provider.project(input,{witness:left});actual.lock(left);
+ assert.equal(actual.context.status,'available',actual.context.reason);assert.deepEqual(actual.state.account.reset.inheritedCovered,debt);assert.deepEqual(actual.state.safety.coveredCells,[[6,30],[6,33],[0,29],[1,29]]);
+ assert.deepEqual(Provider.facts(projected).reset.inheritedCovered,debt);assert.deepEqual(Provider.facts(projected).coveredRepair.cells,actual.state.safety.coveredCells);
+ assert.deepEqual(actual.state.center,raw.state.center);assert.deepEqual(actual.state.sl,raw.state.sl);assert.deepEqual(C.importState(C.exportState(actual.context),{position:actual.position}),actual.context);
+});

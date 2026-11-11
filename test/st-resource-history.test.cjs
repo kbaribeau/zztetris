@@ -36,8 +36,8 @@ test('current resources: copied context, mismatched action and forged lock event
 test('current resources: movement beyond the retired tape cap does not lose known accounting',()=>{
  const s=R.createState(trial(1).initial),x=require('./support/current-player.cjs')(s);const initial=clone(x.state);for(let i=0;i<4100;i++)x.act(i%2?'R':'L');assert.equal(x.state.availability,'known');assert.deepEqual(x.state,initial);assert.equal(x.context.boundary.firstBagLocks,0);assert.equal('steps'in x.context,false);
 });
-test('current resources: later off-profile T cannot claim normal resource eligibility',()=>{
- const a=run(trial(1),{until:29});assert.equal(a.state.active.type,'T');for(const action of ['L','L','L','HD'])a.act(action);assert.equal(a.diagnostics.extraZ.status,'out-of-profile');assert.equal(a.diagnostics.hangingS.status,'out-of-profile');
+test('current resources: later non-Left non-scoring T cannot claim normal resource eligibility',()=>{
+ const a=run(trial(1),{until:29});assert.equal(a.state.active.type,'T');a.act('HD');assert.equal(a.diagnostics.extraZ.status,'out-of-profile');assert.equal(a.diagnostics.hangingS.status,'out-of-profile');
 });
 test('current resources: an unreviewed S disposition remains explicit uncertainty',()=>{const a=run(trial(1),{until:23});assert.equal(a.state.active.type,'S');a.act('HD');assert.equal(a.diagnostics.hangingS.status,'unknown');assert.ok(a.diagnostics.hangingS.unclassifiedCount>0);});
 test('current resources: HOLD top-out is an accepted terminal action without a lock',()=>{
