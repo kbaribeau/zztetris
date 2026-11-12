@@ -513,7 +513,7 @@
     setText($('st-resource-summary'),`${currentResources.terminal?'Game ended; historical facts only. ':''}Hanging S: ${sLabel}. Hanging L: ${lLabel}. Extra Z: ${zLabel}. Observed Center partners: ${centerLabel}. Unclassified S/L accommodation: ${s.unclassifiedCount??'?'}/${l.unclassifiedCount??'?'}; anonymous counts do not name pieces. These are diagnostics, not placement instructions.`);
     setText($('st-reset-summary'),currentResources.reset?.status==='active'?`Reset: ${currentResources.reset.progress} of 2 Left T placements completed. Remaining non-Right Z balance: ${z.remaining??'unknown'}.`:`Current Reset: ${currentResources.reset?.status??'unavailable'}.`);
     setText($('st-diagnostic-text'),JSON.stringify({status:coachStatus,revision:state.revision,resources:currentResources,
-      lookupContinuations:result?.revision===state.revision&&result.lookupContinuations?result.lookupContinuations:{status:'not-available-for-current-position',queries:[],routes:[],claim:'No current lookup result received; this does not mean no catalog routes exist.'},
+      lookupContinuations:result?.revision===state.revision&&result.lookupContinuations?.originRevision===state.revision?result.lookupContinuations:{status:'not-available-for-current-position',queries:[],routes:[],claim:'No current lookup result received; this does not mean no catalog routes exist.'},
       ...(result?{metrics:result.metrics,evidence:result.evidence,horizon:result.horizon,continuation:result.continuation}:{}),
       note:'Only the shown sequence has been checked. Continued ST play is not guaranteed.'},null,2));
     context.clearRect(0,0,200,440);

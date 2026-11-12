@@ -11,9 +11,9 @@ const clone=x=>JSON.parse(JSON.stringify(x));
 let lookupDiagnostics=null;
 function withLookupDiagnostics(raw,run){
  if(lookupDiagnostics)return run();
- let origin;try{origin=JSON.stringify(observe(raw));}catch{return run();}
+ let origin,originRevision;try{const current=observe(raw);origin=JSON.stringify(current);originRevision=current.revision;}catch{return run();}
  const collector={origin,queries:[],routes:[]};lookupDiagnostics=collector;
- try{const result=run();result.lookupContinuations={status:collector.queries.length?'queried':'not-queried',queries:collector.queries,routes:collector.routes,claim:'Retrieved lookup matches, not verified legal or selected continuations.'};return result;}
+ try{const result=run();result.lookupContinuations={originRevision,status:collector.queries.length?'queried':'not-queried',queries:collector.queries,routes:collector.routes,claim:'Retrieved lookup matches, not verified legal or selected continuations.'};return result;}
  finally{lookupDiagnostics=null;}
 }
 function recordLookup(raw,prepared){

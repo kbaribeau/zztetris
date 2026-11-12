@@ -162,10 +162,12 @@ test('st-lab/import: longer preview rejected rather than using bag knowledge fro
 
 for(const hold of [false,true])test(`st-lab/stability: exact ${hold?'hold':'movement'} witness preserves visible target while revalidating`,()=>withPage('st-lab.html',{},g=>{
  const ws=workers(g),w=ws.at(-1),answer=legalResult(w.message.observation,p=>p.hold===hold&&p.witness.length>1&&require('../st-obligation-resources').checkPath(w.message.observation,[p],require('../st-obligation-context').importState(w.message.options.obligationContext,{position:w.message.observation})).valid&&require('../st-structure').advanceNotches(w.message.observation.board,p).valid&&!require('../st-planner').cavityRepairDebt(require('../st-planner').assess(w.message.observation.board),require('../st-planner').assess(p.state.board),p.event).length);
+ answer.lookupContinuations={originRevision:w.message.observation.revision,status:'queried',queries:[],routes:[{id:'prior-root'}]};
  w.respond(answer);const target=g.element('#st-target').innerHTML;
  g.window.stLab.act(answer.witness[0]);
  assert.equal(g.element('#st-target').innerHTML,target,'no blank or moved target while worker is pending');
  assert.equal(g.window.stLab.result.retained,true);
+ assert.equal(JSON.parse(g.element('#st-diagnostic-text').textContent).lookupContinuations.routes.length,0,'advanced advice must not relabel prior-root lookups as current');
  assert.deepEqual(json(g.window.stLab.result.witness),answer.witness.slice(1));
  if(hold)assert.equal(g.window.stLab.result.hold,false);
  g.advance(40);const next=ws.at(-1);assert.equal(next.message.previous.retained,true);
@@ -202,7 +204,7 @@ for(const id of ['restore-the-right-cap','center-before-quad-cleanup','double-ab
 
 test('ST diagnostics show retrieved lookup routes and clear them for a changed position',()=>withPage('st-lab.html',{},g=>{
  const ws=workers(g),w=ws.at(-1),answer=legalResult(w.message.observation);
- answer.lookupContinuations={status:'queried',queries:[{status:'matched',complete:true}],routes:[{id:'route-a',pieces:['O','J'],contours:['LC-002','LC-003']},{id:'route-b',pieces:['I'],contours:['LC-004']}],claim:'Retrieved lookup matches, not verified legal or selected continuations.'};
+ answer.lookupContinuations={originRevision:w.message.observation.revision,status:'queried',queries:[{status:'matched',complete:true}],routes:[{id:'route-a',pieces:['O','J'],contours:['LC-002','LC-003']},{id:'route-b',pieces:['I'],contours:['LC-004']}],claim:'Retrieved lookup matches, not verified legal or selected continuations.'};
  w.respond(answer);
  const data=()=>JSON.parse(g.element('#st-diagnostic-text').textContent);
  assert.deepEqual(data().lookupContinuations,answer.lookupContinuations);
