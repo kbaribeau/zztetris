@@ -15,6 +15,8 @@ Turn a specific observed decision into a shared, reproducible question before ch
 
 ## Give the player a usable review packet
 
+Use the maintained `npm run review:st -- --manifest FILE --out DIR` generator described in [the generator contract](../../../docs/st-review-packet-generator.md). Inspect and extend it rather than writing ad hoc packet or Fumen link assembly. Run its validation and test actual English-viewer links in a browser when available; report a blocked browser check explicitly. The HTML is the interactive entry point; README provides portable navigation.
+
 Read the [visual packet reference](references/review-packet.md) when assembling a packet. Make its README the player-facing entry point: a prioritized case index with PNG overviews and linked SVG sources, so the player can understand starting positions and choose what to review before importing or opening Fumen. Include actual clickable import-JSON and artifact links, not just filenames, and verify their portable bundle destinations.
 
 - Provide an English-commented Fumen showing the relevant prefix and decision boundary, plus a compact coaching-session JSON at the pre-lock state. Include all available replay-backed coaching history required by the supported session format; compact means whitespace removal, not deleting context.

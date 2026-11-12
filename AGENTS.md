@@ -7,6 +7,8 @@ This file is the project's committed home for project-intrinsic agent knowledge:
 - ST-lab architecture, rules profile and acceptance limits are documented in [ST-LAB.md](./ST-LAB.md). Read [docs/st-lab-vision.md](./docs/st-lab-vision.md) for product direction and the [acceptance map](./docs/st-milestone-acceptance.md) before implementing coaching.
 - For ST strategy research, read the relevant repository skill under `.agents/skills`: [collaborative review](.agents/skills/st-collaborative-review/SKILL.md) when reviewing decisions with a player, or [controlled experiments](.agents/skills/st-controlled-experiment/SKILL.md) for an authorized bounded investigation. Both use the [evaluation process](docs/st-research-workflow.md). Keep generated experiment evidence outside Git; only process definitions and deliberately minimized regression fixtures belong in source control.
 
+- For player-facing ST review packets, use `npm run review:st -- --manifest FILE --out DIR` and the [packet generator contract](docs/st-review-packet-generator.md), not a new ad hoc renderer. It uses English Fumen fragment links and checks imports, diagrams and portable links. Keep outputs outside Git.
+
 ## Maintaining this file
 
 Keep this file for knowledge useful to almost every future agent session in this project.

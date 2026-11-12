@@ -1,6 +1,6 @@
 # Visual review packets
 
-The README should let the player recognize each starting position and prioritize review **before** opening Fumen or playing. Keep orientation short; link detailed evidence rather than burying the cases under logs. This is a packet-authoring contract, not an implemented renderer or permission to generate, upload or retrofit unrelated packets.
+The README should let the player recognize each starting position and prioritize review **before** opening Fumen or playing. Keep orientation short; link detailed evidence rather than burying the cases under logs. Use the maintained [manifest-driven generator](../../../../docs/st-review-packet-generator.md). This contract does not grant permission to generate, upload or retrofit unrelated packets.
 
 ## Entry point and case navigation
 
