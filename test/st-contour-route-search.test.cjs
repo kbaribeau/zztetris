@@ -151,3 +151,19 @@ test('lookup diagnostics retain all returned root routes in order without a pres
  const empty=h.planner.plan(position(['I']),{...options,allowHold:false});
  assert.equal(empty.lookupContinuations.status,'queried');assert.deepEqual(Array.from(empty.lookupContinuations.routes),[]);
 });
+
+test('lookup diagnostics exclude nested future roots and release collector after errors',()=>{
+ const filename=require.resolve('../st-planner'),m={exports:{}};
+ const source=fs.readFileSync(filename,'utf8').replace('return Object.freeze({importCandidateResources,','return Object.freeze({withLookupDiagnostics,recordLookup,importCandidateResources,');
+ vm.runInNewContext(source,{module:m,Date,performance,require:id=>require(path.resolve(path.dirname(filename),id))});
+ const h=m.exports,state=position(),future=position(['I']),prepared={stats:{queries:1,complete:true,status:'matched',routes:1},query:{contour:'LC-001'},routes:[{id:'root-route',pieces:['O','J'],contours:['LC-002','LC-003']}]};
+ const result=h.withLookupDiagnostics(state,()=>{
+  h.recordLookup(state,prepared);
+  h.withLookupDiagnostics(future,()=>{h.recordLookup(future,{...prepared,routes:[{id:'future-route'}]});return {};});
+  h.recordLookup(state,prepared);return {};
+ });
+ assert.deepEqual(JSON.parse(JSON.stringify(result.lookupContinuations.routes)),prepared.routes);
+ assert.equal(result.lookupContinuations.queries.length,2);
+ assert.throws(()=>h.withLookupDiagnostics(state,()=>{h.recordLookup(state,prepared);throw Error('test failure');}),/test failure/);
+ assert.equal(h.withLookupDiagnostics(state,()=>({})).lookupContinuations.status,'not-queried');
+});
