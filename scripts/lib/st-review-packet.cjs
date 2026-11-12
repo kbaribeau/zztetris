@@ -94,6 +94,7 @@ const colors = {
   T: "#b985e5",
   Z: "#e97180",
   X: "#8893a5",
+  "#": "#8893a5",
 };
 function svg(state, id) {
   const cells = state.active ? R.cells(state.active) : [],

@@ -267,6 +267,21 @@ test("packet/trace mode verifies all actions and selects precise before-lock sta
     assert.deepEqual(got.state, input.initial);
     assert.deepEqual(got.practice.privatePractice.tail, input.future);
     assert(got.boundary.includes("Before recorded lock 1"));
+    const live = E.createSession(input),
+      first = records.find((r) => r.kind === "lock");
+    live.execute(first.advice, { commitmentReplay: first.commitmentCheck });
+    records.push({ kind: "stop", lock: 1, request: live.request(2, E.CONFIG) });
+    fs.writeFileSync(
+      path.join(root, "trace.jsonl"),
+      records.map((r) => JSON.stringify(r)).join("\n"),
+    );
+    const stop = Packet.prepareCase({ ...c, beforeLock: 2 }, root);
+    assert.deepEqual(stop.state, E.publicObservation(live.state));
+    assert.deepEqual(
+      stop.practice.privatePractice.tail,
+      input.future.slice(live.cursor),
+    );
+    assert(stop.boundary.includes("Fumen page 2"));
     const lock = records.find((r) => r.kind === "lock");
     lock.after.board[39] = "XXXXXXXXXX";
     fs.writeFileSync(
@@ -289,6 +304,12 @@ test("packet/canonicalizes session transport and represents grey occupancy in Fu
     assert(!JSON.stringify(c.practice).includes("privateTape"));
     const state = S.prepare(sample()).state;
     state.board[39] = "#.........";
+    const diagram = new JSDOM(Packet.svg(state, "grey"), {
+      contentType: "image/svg+xml",
+    });
+    const cell = diagram.window.document.querySelector('rect[x="35"][y="549"]');
+    assert.equal(cell.getAttribute("fill"), "#8893a5");
+    diagram.window.close();
     const code = Packet.fumen([state], "grey");
     assert.equal(Packet.codec.decoder.decode(code)[0].field.at(0, 0), "X");
   }));
