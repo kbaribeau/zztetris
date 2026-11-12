@@ -43,6 +43,8 @@ function cap(board){const h=heights(board),top=40-h[9];return h[7]===0&&h[8]>=2&
 function quality(board){const h=heights(board);return h[4]===h[5]&&h[5]===h[6]&&Math.abs(Math.max(...h.slice(0,4))-Math.max(...h.slice(4,7)))<=3;}
 const translate=(cells,rows)=>cells.filter(([,y])=>!rows.includes(y)).map(([x,y])=>[x,y+rows.filter(r=>r>y).length]);
 const integer=n=>Number.isSafeInteger(n);
+// Legacy categories remain readable; new spending is an exact bounded-field count.
+const pendingSpend=z=>z.uncredited==='none'?0:z.uncredited==='one'?1:z.uncredited==='multiple'?null:z.uncredited;
 const object=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
 function shape(x,keys,label){if(!object(x)||Object.keys(x).length!==keys.length||!keys.every(key=>Object.prototype.propertyIsEnumerable.call(x,key)))throw TypeError('Invalid '+label+' shape.');}
 function check(ok,label){if(!ok)throw TypeError('Invalid '+label+'.');}
@@ -63,7 +65,7 @@ function validate(state,projected=false){
   check(integer(o.imbalance),'S-minus-L imbalance');
   if(o.kind==='allocation'){check([0,1].includes(o.rightZ),'opening allocation');if(o.roof!==null){cells(o.roof,'cap roof');check(o.roof.length<=2,'cap roof');}}
  }
- shape(state.z,['remaining','uncredited'],'Z account');check(state.z.remaining===null||integer(state.z.remaining),'Z balance');check(['none','one','multiple'].includes(state.z.uncredited),'uncredited Z category');
+ shape(state.z,['remaining','uncredited'],'Z account');check(state.z.remaining===null||integer(state.z.remaining),'Z balance');check(['none','one','multiple'].includes(state.z.uncredited)||integer(state.z.uncredited)&&state.z.uncredited>=1,'uncredited Z count');
  const reset=state.reset;check(object(reset)&&['inactive','active','invalid'].includes(reset.status),'Reset status');
  shape(reset,reset.status==='active'?['status','remaining','firstTId','inheritedCovered']:['status'],'Reset duty');
  if(reset.status==='active'){
@@ -73,7 +75,7 @@ function validate(state,projected=false){
  check(!state.allocationVerified||state.firstTsd,'verified allocation boundary');
  check(!state.mandatoryZ||state.allocationVerified,'mandatory Z boundary');
  check(!state.thirdTWindow||state.known&&state.allocationVerified,'third-T allocation window');
- check(!state.qualityCandidate||state.known&&state.allocationVerified&&state.z.remaining===null&&state.z.uncredited==='none'&&!state.profile.departure,'consumer quality candidate');
+ check(!state.qualityCandidate||state.known&&state.allocationVerified&&state.z.remaining===null&&pendingSpend(state.z)!==null&&!state.profile.departure,'consumer quality candidate');
  check(!state.firstTsd||before===null,'retired pre-clear thresholds');
  check(!o||o.kind!=='allocation'||!state.firstTsd&&object(before),'allocation thresholds');
  check(!o||o.kind!=='quality'||state.allocationVerified&&state.z.remaining===null&&state.qualityCandidate&&!state.profile.violation,'quality boundary');
@@ -111,7 +113,7 @@ function start({known=false}={}){
   profile:{violation:false,departure:false,before:known?{t:0,z:0,checkpoint:false}:null,capEstablished:false},
   z:{remaining:null,uncredited:'none'},reset:{status:'inactive'}};
 }
-function profileLost(state){return Boolean(state.profile.violation||state.profile.departure||state.profile.before==='overused'||state.reset.status==='invalid'||(state.z.remaining!==null?state.z.remaining<0:state.z.uncredited==='multiple'));}
+function profileLost(state){return Boolean(state.profile.violation||state.profile.departure||state.profile.before==='overused'||state.reset.status==='invalid'||(state.z.remaining!==null?state.z.remaining<0:pendingSpend(state.z)===null));}
 function resolveState(state,{board:currentBoard}={},projected=false,owned=false){
  if(!owned)validate(state,projected);
  let status='unknown',requiredNonRightT=null,requiredNonRightZ=null;
@@ -135,7 +137,7 @@ function resolve(state,context){return resolveState(state,context);}
 function resolveProjection(state,context){return resolveState(state,context,true);}
 function addEffect(effects,status,data={}){effects.push({status,...data});}
 function disqualifyQuality(state,effects,reason){if(state.opening?.kind==='quality'){state.opening=null;addEffect(effects,'quality-disqualified',{reason});}}
-function baseline(state,effects){state.qualityCandidate=false;state.z.remaining=1;state.z.uncredited='none';state.opening=null;addEffect(effects,'baseline-established',{delta:1});}
+function baseline(state,effects){check(pendingSpend(state.z)!==null,'exact pending Z debit required');state.qualityCandidate=false;state.z.remaining=1-pendingSpend(state.z);state.z.uncredited='none';state.opening=null;addEffect(effects,'baseline-established',{delta:1});}
 function invalidateReset(state,effects,reason){if(state.reset.status!=='invalid'){state.reset={status:'invalid'};addEffect(effects,'reset-invalidated',{reason});}}
 function begin(current,{candidate,inheritedCovered=[]}={},projected=false){
  const state=projected?importProjection(current):importState(current);check(typeof candidate==='boolean','caller Reset decision');cells(inheritedCovered,'inherited covered cells');
@@ -240,7 +242,7 @@ function reduce(current,operation,context,projected=false,owned=false){
    if(state.mandatoryZ&&e.lines===0){state.mandatoryZ=false;addEffect(effects,'opening-Z-paid',{pieceId:piece.id});}
    else{
     if(state.z.remaining!==null)state.z.remaining--;
-    else state.z.uncredited=state.z.uncredited==='none'?'one':'multiple';
+    else {const spent=pendingSpend(state.z);state.z.uncredited=spent===null?'multiple':spent+1;}
     addEffect(effects,'optional-Z-debited',{pieceId:piece.id,delta:-1});
    }
   }
@@ -252,9 +254,9 @@ function reduce(current,operation,context,projected=false,owned=false){
  // Consumer priority is deliberately broader than baseline eligibility. The
  // legacy gate ignores source violations; do not substitute the quality duty
  // (which correctly retires on them) or infer permission to grant a baseline.
- if(state.qualityCandidate&&(observed||state.z.uncredited!=='none'||state.profile.departure||operation.centerEffects.some(p=>p.status==='debt-invalidated')))state.qualityCandidate=false;
+ if(state.qualityCandidate&&(observed||state.profile.departure||operation.centerEffects.some(p=>p.status==='debt-invalidated')))state.qualityCandidate=false;
  if(state.opening?.kind==='quality'){
-  if(observed||state.profile.violation||state.profile.departure||state.z.uncredited!=='none')disqualifyQuality(state,effects,'allocation-or-profile-departure');
+  if(observed||state.profile.violation||state.profile.departure)disqualifyQuality(state,effects,'allocation-or-profile-departure');
   else if(operation.centerEffects.some(p=>p.status==='debt-invalidated'))disqualifyQuality(state,effects,'invalidated-Center-debt');
   else if(!state.mandatoryZ&&state.opening.imbalance===0&&!after.center.pending.length&&!after.center.debt.length&&after.sl.hangingS.status==='none-observed'&&after.sl.hangingL.status==='none-observed'&&quality(after.board))baseline(state,effects);
  }

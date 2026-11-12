@@ -1,0 +1,220 @@
+{
+  "position": {
+    "rules": "st-zero-v2",
+    "board": [
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      ".JJJLOO...",
+      ".SSJLOO...",
+      "SSOOLL....",
+      "JJOOLLL...",
+      "JJJZLSS...",
+      "JJZZSS...Z",
+      "IJZTLLL.ZZ",
+      "ITTTLSS.Z.",
+      "IIIIJOO.Z."
+    ],
+    "active": {
+      "type": "L",
+      "x": 3,
+      "y": 17,
+      "rotation": 0,
+      "lastRotation": null
+    },
+    "hold": "I",
+    "canHold": true,
+    "queue": [
+      "T",
+      "O",
+      "Z",
+      "I",
+      "S",
+      "J"
+    ],
+    "revision": 165,
+    "streamCursor": 23,
+    "topOut": false,
+    "bag": {
+      "remaining": [
+        125
+      ],
+      "observedCount": 29,
+      "provenance": "known-phase"
+    }
+  },
+  "obligationContext": {
+    "schemaVersion": 1,
+    "status": "available",
+    "reason": null,
+    "inventory": {
+      "schemaVersion": 1,
+      "status": "available",
+      "originKnown": true,
+      "nextId": 30,
+      "streamCursor": 23,
+      "active": {
+        "id": 23,
+        "type": "L",
+        "observedOrder": 22,
+        "bag": 3
+      },
+      "hold": {
+        "id": 21,
+        "type": "I",
+        "observedOrder": 20,
+        "bag": 2
+      },
+      "queue": [
+        {
+          "id": 24,
+          "type": "T",
+          "observedOrder": 23,
+          "bag": 3
+        },
+        {
+          "id": 25,
+          "type": "O",
+          "observedOrder": 24,
+          "bag": 3
+        },
+        {
+          "id": 26,
+          "type": "Z",
+          "observedOrder": 25,
+          "bag": 3
+        },
+        {
+          "id": 27,
+          "type": "I",
+          "observedOrder": 26,
+          "bag": 3
+        },
+        {
+          "id": 28,
+          "type": "S",
+          "observedOrder": 27,
+          "bag": 3
+        },
+        {
+          "id": 29,
+          "type": "J",
+          "observedOrder": 28,
+          "bag": 4
+        }
+      ],
+      "frontier": {
+        "bag": 4,
+        "seenMask": 2
+      },
+      "knowledge": {
+        "remaining": [
+          125
+        ],
+        "observedCount": 29,
+        "provenance": "known-phase"
+      }
+    },
+    "state": {
+      "schemaVersion": 2,
+      "availability": "known",
+      "center": {
+        "pending": [],
+        "debt": []
+      },
+      "sl": {
+        "schemaVersion": 1,
+        "status": "known",
+        "foundationOpen": false,
+        "firstBagReview": "reviewed",
+        "handoff": false,
+        "residuals": [],
+        "uncertainty": {
+          "S": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "L": [
+            0
+          ]
+        }
+      },
+      "account": {
+        "schemaVersion": 1,
+        "known": true,
+        "firstTsd": true,
+        "allocationVerified": true,
+        "mandatoryZ": false,
+        "thirdTWindow": true,
+        "qualityCandidate": false,
+        "opening": null,
+        "profile": {
+          "violation": false,
+          "departure": false,
+          "before": null,
+          "capEstablished": true
+        },
+        "z": {
+          "remaining": 1,
+          "uncredited": "none"
+        },
+        "reset": {
+          "status": "inactive"
+        }
+      },
+      "safety": {
+        "notches": {
+          "version": 2,
+          "status": "established",
+          "anchorRow": 36,
+          "blockedRows": [],
+          "source": "recognized-scoring-wall"
+        },
+        "coveredCells": []
+      },
+      "dPending": false,
+      "leftGoals": []
+    },
+    "boundary": {
+      "firstBagLocks": 7,
+      "sourcePatternSeen": true
+    }
+  },
+  "patternHistory": {
+    "version": 2,
+    "status": "established",
+    "anchorRow": 36,
+    "blockedRows": [],
+    "source": "recognized-scoring-wall"
+  }
+}

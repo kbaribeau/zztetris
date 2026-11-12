@@ -76,9 +76,9 @@ test('opening eligibility: source violation is not consumer quality invalidation
  const invalidated=literal(root,'J',{centerEffects:[{status:'debt-invalidated'}]});assert.equal(invalidated.account.qualityCandidate,false);assert.equal(invalidated.account.thirdTWindow,true);
  assert.equal(root.account.qualityCandidate,true,'A different branch losing debt cannot mutate the root');
 });
-test('opening eligibility: actual lost Center debt and optional Z permanently retire delayed preference',()=>{
+test('opening eligibility: actual lost Center debt retires preference but optional Z retains pending quality',()=>{
  const lost=recorded();for(const i of [0,1,2])lost.lock(fixture.steps[i].witness);lost.lock(['L','L','L','HD']);assert.equal(lost.view.qualityPending,true);lost.lock(['CW','R','HD']);assert.equal(lost.view.qualityPending,false);assert.equal(lost.context.state.account.qualityCandidate,false);
- const spent=recorded().lock(fixture.steps[0].witness).lock(fixture.steps[1].witness);spent.lock(['L','L','CW','HD']);assert.equal(spent.view.qualityPending,false);assert.equal(spent.context.state.account.z.uncredited,'one');
+ const spent=recorded().lock(fixture.steps[0].witness).lock(fixture.steps[1].witness);spent.lock(['L','L','CW','HD']);assert.equal(spent.view.qualityPending,true);assert.equal(spent.context.state.account.z.uncredited,1);
 });
 test('opening eligibility: invalid original cap and unusual prefirst Right T cannot invent third-T readiness',()=>{
  const before=trial(1,14),root=component(before);root.account.opening.roof=[[9,0],[9,1]];
@@ -93,7 +93,7 @@ test('opening eligibility: hypothetical handoff matches actual current rebase wi
 test('opening eligibility: trusted flags survive JSON, unknown remains unknown and contradictory unions fail',()=>{
  const a=recorded().lock(fixture.steps[0].witness).lock(fixture.steps[1].witness),state=copy(a.context.state.account),restored=O.importState(copy(state));assert.deepEqual(E.resolve(restored,{board:a.position.board,center:a.context.state.center}),E.resolve(state,{board:a.position.board,center:a.context.state.center}));
  const unknown=replay({active:'T',queue:['Z']},{fresh:false});assert.equal(unknown.view.thirdTReady,false);assert.equal(unknown.view.qualityPending,false);assert.equal(unknown.view.historicalHandoff,false);
- for(const mutate of [s=>delete s.thirdTWindow,s=>s.thirdTWindow=1,s=>s.qualityCandidate='yes',s=>s.allocationVerified=false,s=>s.known=false,s=>s.profile.departure=true,s=>s.z.uncredited='one',s=>s.opening=null,s=>s.qualityCandidate=false,s=>s.history=[]]){const bad=copy(state);mutate(bad);assert.throws(()=>O.importState(bad));}
+ for(const mutate of [s=>delete s.thirdTWindow,s=>s.thirdTWindow=1,s=>s.qualityCandidate='yes',s=>s.allocationVerified=false,s=>s.known=false,s=>s.profile.departure=true,s=>s.z.uncredited='multiple',s=>s.opening=null,s=>s.qualityCandidate=false,s=>s.history=[]]){const bad=copy(state);mutate(bad);assert.throws(()=>O.importState(bad));}
 });
 test('opening eligibility: retired conditions never grow with repeated later locks',()=>{
  const a=trial(1,15),ended=literal(component(a),'T'),start=copy(ended.account);let account=start;

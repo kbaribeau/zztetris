@@ -48,10 +48,10 @@ test('opener resources: trusted current duties are authoritative, while extra hi
  assert.equal(Context.resolve(Context.importState(raw,{position:a.state}),{position:a.state}).openingAllocation.requiredNonRightZ,1);
 });
 
-test('opener resources: a second late non-Right Z remains optional and cannot create a fresh baseline',()=>{
+test('opener resources: a second late non-Right Z remains optional and is debited when delayed baseline completes',()=>{
  const a=recorded();a.lock(['L','L','L','HD']);a.lock(fixture.steps[1].witness);a.lock(fixture.steps[0].witness.slice(1));
- const extra=a.lock(['HOLD','L','L','CW','HD']);assert.equal(extra.openingAllocation.requiredNonRightZ,0);assert.equal(a.account.z.uncredited,'one');assert.equal(has(a,'optional-Z-debited'),true);
- a.lock(['HOLD',...fixture.steps[3].witness]);assert.deepEqual(a.diagnostics.center.pending,[]);assert.equal(a.diagnostics.extraZ.status,'unknown');assert.equal(a.diagnostics.extraZ.baseline,false);assert.equal(a.account.z.uncredited,'one');assert.equal(a.account.qualityCandidate,false);
+ const extra=a.lock(['HOLD','L','L','CW','HD']);assert.equal(extra.openingAllocation.requiredNonRightZ,0);assert.equal(a.account.z.uncredited,1);assert.equal(has(a,'optional-Z-debited'),true);
+ a.lock(['HOLD',...fixture.steps[3].witness]);assert.deepEqual(a.diagnostics.center.pending,[]);assert.equal(a.diagnostics.extraZ.status,'used');assert.equal(a.diagnostics.extraZ.baseline,true);assert.equal(a.diagnostics.extraZ.remaining,0);assert.equal(a.account.z.uncredited,'none');assert.equal(a.account.qualityCandidate,false);
 });
 
 test('opener resources: a second actual scoring TSD cannot erase unpaid mandatory Z',()=>{
@@ -64,7 +64,7 @@ test('opener resources: a second actual scoring TSD cannot erase unpaid mandator
 
 test('opener resources: optional Z before delayed quality cannot be laundered into unused allowance',()=>{
  const a=recorded();a.step(0);a.step(1);a.lock(['L','L','CW','HD']);assert.equal(has(a,'optional-Z-debited'),true);a.step(3);a.lock(fixture.steps[4].witness);const d=a.diagnostics;
- assert.deepEqual(heights(a.state.board).slice(0,7),[10,11,11,11,9,9,9]);assert.equal(d.hangingS.status,'none-observed');assert.equal(d.hangingL.status,'none-observed');assert.deepEqual(d.center.debt,[]);assert.equal(d.openingAllocation.status,'verified-first-tsd');assert.equal(d.extraZ.baseline,false);assert.equal(d.extraZ.status,'unknown');assert.equal(a.account.z.uncredited,'one');assert.equal(a.account.qualityCandidate,false);
+ assert.deepEqual(heights(a.state.board).slice(0,7),[10,11,11,11,9,9,9]);assert.equal(d.hangingS.status,'none-observed');assert.equal(d.hangingL.status,'none-observed');assert.deepEqual(d.center.debt,[]);assert.equal(d.openingAllocation.status,'verified-first-tsd');assert.equal(d.extraZ.baseline,true);assert.equal(d.extraZ.status,'used');assert.equal(d.extraZ.remaining,0);assert.equal(a.account.z.uncredited,'none');assert.equal(a.account.qualityCandidate,false);
 });
 
 test('opener resources: actual before-clear quality credit and nonrenewal have literal current outcomes',()=>{

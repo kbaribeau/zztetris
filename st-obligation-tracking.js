@@ -196,6 +196,7 @@ function leftIssues(before,after,effects,operation,add){
 function accountIssues(before,after,effects,operation,add){
  const b=before.state.account,a=after.state.account,account=effects.filter(e=>e.domain==='account'),isLock=operation.kind==='lock',p=operation.piece,event=operation.event;
  const get=status=>account.filter(e=>e.status===status),has=status=>get(status).length===1;
+ const pendingSpend=z=>z.uncredited==='none'?0:z.uncredited==='one'?1:z.uncredited==='multiple'?null:z.uncredited;
  const supported=['baseline-established','reset-T-observed','reset-T-credited','reset-completed','reset-started','reset-invalidated','reset-rejected','opening-Z-paid','optional-Z-debited','first-tsd','opening-allocation-verified','profile-violation','profile-departure','quality-disqualified'];
  for(const status of new Set(account.map(e=>e.status)))if(!supported.includes(status)||get(status).length!==1)add('effect-mismatch',{domain:'account',status});
  const leftT=isLock&&p?.type==='T'&&event.type==='T'&&event.lines===0&&!event.topOut&&event.cells.length===4&&event.cells.every(([x])=>x>=0&&x<4);
@@ -207,13 +208,13 @@ function accountIssues(before,after,effects,operation,add){
  for(const e of get('reset-T-observed'))if(!qualified||e.pieceId!==p.id)add('effect-mismatch',{domain:'account',status:e.status,pieceId:e.pieceId??null});
  for(const e of get('reset-T-credited'))if(!credit||e.pieceId!==p.id||e.delta!==1)add('effect-mismatch',{domain:'account',status:e.status,pieceId:e.pieceId??null});
  for(const e of get('optional-Z-debited'))if(!isLock||!b.firstTsd||p?.type!=='Z'||!event.cells.every(([x])=>x<7)||b.mandatoryZ&&event.lines===0||e.pieceId!==p.id||e.delta!==-1)add('effect-mismatch',{domain:'account',status:e.status,pieceId:e.pieceId??null});
- for(const e of get('baseline-established'))if(!isLock||b.z.remaining!==null||a.z.remaining!==1||e.delta!==1)add('effect-mismatch',{domain:'account',status:e.status});
+ for(const e of get('baseline-established'))if(!isLock||b.z.remaining!==null||pendingSpend(b.z)===null||a.z.remaining!==1-pendingSpend(b.z)-get('optional-Z-debited').length||e.delta!==1)add('effect-mismatch',{domain:'account',status:e.status});
  if(b.z.remaining!==null){
   const expected=b.z.remaining+get('reset-T-credited').reduce((n,e)=>n+(e.delta===1?1:0),0)-get('optional-Z-debited').reduce((n,e)=>n+(e.delta===-1?1:0),0);
   if(a.z.remaining!==expected)add('extra-z-balance-mismatch',null,{expected,actual:a.z.remaining});
  }else if(a.z.remaining!==null&&!has('baseline-established'))add('extra-z-balance-mismatch',null,{expected:null,actual:a.z.remaining});
  else if(a.z.remaining===null){
-  const expected=has('optional-Z-debited')?(b.z.uncredited==='none'?'one':'multiple'):b.z.uncredited;
+  const expected=has('optional-Z-debited')?(pendingSpend(b.z)===null?'multiple':pendingSpend(b.z)+1):b.z.uncredited;
   if(a.z.uncredited!==expected)add('uncredited-z-mismatch',null,{expected,actual:a.z.uncredited});
  }
  if(b.reset.status==='active'){
@@ -256,7 +257,7 @@ function accountIssues(before,after,effects,operation,add){
  const verified=has('opening-allocation-verified'),nonRight=isLock&&event.cells.every(([x])=>x<7);
  const closesThird=b.firstTsd&&isLock&&(event.type==='T'||event.type==='Z'&&nonRight&&event.lines===0&&!b.mandatoryZ);
  if(a.thirdTWindow!==(verified?true:b.thirdTWindow&&!closesThird))add('account-effect-mismatch',{field:'thirdTWindow'});
- const closesQuality=has('baseline-established')||has('reset-T-observed')||a.z.uncredited!=='none'||a.profile.departure||effects.some(e=>e.domain==='center'&&e.status==='debt-invalidated');
+ const closesQuality=has('baseline-established')||has('reset-T-observed')||a.profile.departure||effects.some(e=>e.domain==='center'&&e.status==='debt-invalidated');
  if(a.qualityCandidate!==((b.qualityCandidate||verified)&&!closesQuality))add('account-effect-mismatch',{field:'qualityCandidate'});
  if(!b.mandatoryZ&&a.mandatoryZ&&!verified)add('account-effect-mismatch',{field:'mandatoryZ'});
  const rightZ=isLock&&event.type==='Z'&&event.lines===0&&event.cells.every(([x])=>x>=8);

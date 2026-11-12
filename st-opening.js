@@ -776,7 +776,7 @@ function handoff(state,proof,options,work=null,recovery=false){
  if(!result?.target||spent>allowance||(source==='forecast-revalidated'&&now()>=end))return null;
  // This recovery does not introduce a general new filler/commitment goal.
  // Accept only an immediate, actually executed payment of a still-live known S.
- if(recovery){
+ if(recovery===true){
   const path=result.continuation||[],live=[summary?.instances?.active,summary?.instances?.hold,...(summary?.instances?.queue||[])].filter(Boolean);
   const owed=(summary?.hangingS?.evidence||[]).filter(e=>Number.isInteger(e.sId)&&e.sId>0&&live.some(p=>p.id===e.sId&&p.type==='S'));
   if(summary?.availability!=='known'||summary?.hangingS?.status!=='hanging'||summary.hangingS.unclassified?.length||summary.hangingS.aggregate?.some(n=>n>0)||owed.length!==1||!Number.isInteger(owed[0].bag)||owed[0].bag<0||!path.length||path.length>2||path.at(-1).event?.type!=='S'||path.at(-1).event.lines!==0||!path.at(-1).event.cells.every(([x])=>x<4))return null;
@@ -788,7 +788,8 @@ function handoff(state,proof,options,work=null,recovery=false){
  }
 
  const evidence=event?{status:'checked-after-actual-clear',event:clone(event),balance:f.parity}:{status:'checked-after-observed-opening-quality',balance:f.parity};
- if(recovery)evidence.recovery='shared-after-legacy-budget-miss';
+ if(recovery===true)evidence.recovery='shared-after-legacy-budget-miss';
+ if(recovery==='shared')evidence.budgetRetry='remaining-shared-budget';
  if(source==='forecast-revalidated')evidence.forecast={status:'revalidated-after-actual-clear',version:forecastVersion};
  return{...result,phase:'maintenance',evidence:{...result.evidence,openingHandoff:evidence},reason:(event?'Opening handoff checked after the clear. ':'Opening handoff checked after observed allocation and quality completion. ')+result.reason};
 }
@@ -820,6 +821,20 @@ function plan(raw,options={}){
    handoffWork.fallbackNodes=fallbackNodes;
    accepted=handoff(state,options.openingClear,{...options,maxNodes:recoveryNodes,deadline:end},recovery,true);
    base.metrics.nodes+=recovery.nodes;
+  }
+ }
+ // A completed, structurally eligible opening is not unfinished merely
+ // because its initial maintenance probe exhausted the small legacy budget.
+ // Preserve the specialized S recovery above; otherwise retry ordinary
+ // maintenance with two thirds of the residual budget, reserving one third
+ // for a real opening fallback. Never restart the caller's node/time budget.
+ if(!accepted&&legacy.eligible&&legacy.status==='budget-exhausted'&&historicalHandoff&&recovery.nodes===undefined){
+  const remaining=Math.max(0,limit-base.metrics.nodes),fallbackNodes=Math.ceil(remaining/3),retryNodes=remaining-fallbackNodes;
+  const ms=Math.max(0,deadline-now()),end=Number.isFinite(deadline)?deadline-ms/3:deadline;
+  if(retryNodes&&now()<end){
+   const retry={};handoffWork.retry=retry;handoffWork.fallbackNodes=fallbackNodes;
+   accepted=handoff(state,options.openingClear,{...options,maxNodes:retryNodes,deadline:end},retry,'shared');
+   base.metrics.nodes+=retry.nodes;
   }
  }
  if(accepted){

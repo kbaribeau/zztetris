@@ -28,20 +28,29 @@ The public pre-lock-17 fixture reproduces an opening that had used two Ts outsid
 
 Tests cover observed accounting, delayed completion, unknown/forged/truncated histories, lost Center debt, Undo, node/clock rollback, causal search ablations and ordinary live-worker behavior. Matched closed-loop measurements are development evidence, not proof of indefinite survival, optimality, or all-opening coverage.
 
-## Pending allowance protection (current state)
+## Pending allowance accounting (current state)
 
-The current-state opening search must not recommend optional non-Right Z
-spending while a still-live delayed-quality duty has not established the
-extra-Z balance. It projects the actual ordered prefix: paying the mandatory
-opening Z remains allowed, and a prior lock that establishes the allowance
-permits a later optional Z. Later completion cannot authorize earlier spending.
-The same check runs at final opening admission, within the existing node/time
-budget. Unknown-origin play and factual accounting rules are unchanged.
+Optional non-Right Z spending no longer discards a live delayed-quality opening
+duty. The current account records each early debit exactly in `z.uncredited`
+(a positive integer), while `z.remaining` stays unknown until the existing
+quality, Center, S/L and mandatory-Z requirements resolve. Establishing the
+one-unit allowance settles to `1 - pending debits`, clears the pending count,
+and retires the duty once. Zero and negative balances remain exact; they are
+not clamped or mistaken for a new unused allowance.
 
-The retained November 12 checkpoint had verified first-TSD allocation but a
-hanging L, so its numeric allowance was not yet established. The former
-Z-Left / J-Left / L-Left recommendation retired that eligibility on its first
-lock. The corrected development-case recommendation accommodates held L first,
-then J and Z; actual replay establishes one allowance before spending it.
+Legacy `none` and `one` values remain readable. Legacy `multiple` is ambiguous
+and cannot authorize settlement; no exact history is invented. Unknown-origin
+positions likewise cannot earn an opening allowance from geometry alone.
+Actual play and hypothetical projection use the same reducer. Handoff carries
+this account unchanged, and caller-owned Undo receipts restore the duty and
+pending debit together, without adding history to the shared state.
+
+The November 12 checkpoint now supports manual Z-Left / J-Left / L-Left play:
+the early Z debit remains pending until L resolves the outstanding obligation,
+then the balance becomes zero. The opening recommendation still conservatively
+prefers accommodating held L before spending Z. Its ordered-prefix guard is a
+coaching restriction, not a requirement for correct factual tracking. Mandatory
+opening Z and unknown-origin coaching retain their previous behavior.
+
 This is a checkpoint/recommendation regression, not evidence of its earlier
 move history or a general survival-performance improvement.
