@@ -1,0 +1,568 @@
+{
+  "observation": {
+    "rules": "st-zero-v2",
+    "board": [
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      ".....SS...",
+      "I...SS....",
+      "I...LOO...",
+      "IOOJLOO...",
+      "IOOJLL....",
+      "JJJJLLL...",
+      "JJJJLSS...",
+      "IJOOLSS.Z.",
+      "IOOILSS.Z."
+    ],
+    "active": {
+      "type": "Z",
+      "x": 3,
+      "y": 17,
+      "rotation": 0,
+      "lastRotation": null
+    },
+    "hold": "L",
+    "canHold": true,
+    "queue": [
+      "L",
+      "J",
+      "O",
+      "S",
+      "I",
+      "T"
+    ],
+    "revision": 611,
+    "streamCursor": 85,
+    "topOut": false,
+    "bag": {
+      "remaining": [
+        0
+      ],
+      "observedCount": 91,
+      "provenance": "known-phase"
+    }
+  },
+  "options": {
+    "openingPhase": false,
+    "patternHistory": {
+      "version": 2,
+      "status": "established",
+      "anchorRow": 35,
+      "blockedRows": [],
+      "source": "recognized-next-Z-cap"
+    },
+    "obligationContext": {
+      "schemaVersion": 1,
+      "status": "available",
+      "reason": null,
+      "inventory": {
+        "schemaVersion": 1,
+        "status": "available",
+        "originKnown": true,
+        "nextId": 92,
+        "streamCursor": 85,
+        "active": {
+          "id": 85,
+          "type": "Z",
+          "observedOrder": 84,
+          "bag": 12
+        },
+        "hold": {
+          "id": 84,
+          "type": "L",
+          "observedOrder": 83,
+          "bag": 11
+        },
+        "queue": [
+          {
+            "id": 86,
+            "type": "L",
+            "observedOrder": 85,
+            "bag": 12
+          },
+          {
+            "id": 87,
+            "type": "J",
+            "observedOrder": 86,
+            "bag": 12
+          },
+          {
+            "id": 88,
+            "type": "O",
+            "observedOrder": 87,
+            "bag": 12
+          },
+          {
+            "id": 89,
+            "type": "S",
+            "observedOrder": 88,
+            "bag": 12
+          },
+          {
+            "id": 90,
+            "type": "I",
+            "observedOrder": 89,
+            "bag": 12
+          },
+          {
+            "id": 91,
+            "type": "T",
+            "observedOrder": 90,
+            "bag": 12
+          }
+        ],
+        "frontier": {
+          "bag": 13,
+          "seenMask": 0
+        },
+        "knowledge": {
+          "remaining": [
+            0
+          ],
+          "observedCount": 91,
+          "provenance": "known-phase"
+        }
+      },
+      "state": {
+        "schemaVersion": 2,
+        "availability": "known",
+        "center": {
+          "pending": [
+            {
+              "id": "piece-83",
+              "rootId": 83,
+              "family": "SL",
+              "alternatives": [
+                {
+                  "piece": "L",
+                  "cells": [
+                    [
+                      4,
+                      30
+                    ],
+                    [
+                      5,
+                      30
+                    ],
+                    [
+                      6,
+                      30
+                    ],
+                    [
+                      4,
+                      31
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          "debt": []
+        },
+        "sl": {
+          "schemaVersion": 1,
+          "status": "known",
+          "foundationOpen": false,
+          "firstBagReview": "reviewed",
+          "handoff": true,
+          "residuals": [
+            {
+              "bag": 11,
+              "S": {
+                "id": 83,
+                "region": "center",
+                "opening": false,
+                "pair": null,
+                "foundationEligible": false,
+                "firstBagEligible": false,
+                "requiresAccommodation": false,
+                "invalidated": false
+              },
+              "L": null,
+              "order": null,
+              "sOwedSinceL": false,
+              "lBeforeSPair": false
+            }
+          ],
+          "uncertainty": {
+            "S": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "L": [
+              0
+            ]
+          }
+        },
+        "account": {
+          "allocationVerified": true,
+          "firstTsd": true,
+          "known": true,
+          "mandatoryZ": false,
+          "opening": null,
+          "profile": {
+            "before": null,
+            "capEstablished": true,
+            "departure": false,
+            "violation": false
+          },
+          "qualityCandidate": false,
+          "reset": {
+            "status": "inactive"
+          },
+          "schemaVersion": 1,
+          "thirdTWindow": false,
+          "z": {
+            "remaining": 0,
+            "uncredited": "none"
+          }
+        },
+        "safety": {
+          "notches": {
+            "version": 2,
+            "status": "established",
+            "anchorRow": 35,
+            "blockedRows": [],
+            "source": "recognized-next-Z-cap"
+          },
+          "coveredCells": []
+        },
+        "dPending": false,
+        "leftGoals": []
+      },
+      "boundary": {
+        "firstBagLocks": 7,
+        "sourcePatternSeen": true
+      }
+    },
+    "depth": null
+  },
+  "knownSequence": [
+    {
+      "witness": [
+        "R",
+        "R",
+        "R",
+        "R",
+        "CW",
+        "HD"
+      ],
+      "event": {
+        "type": "Z",
+        "target": {
+          "type": "Z",
+          "x": 7,
+          "y": 34,
+          "rotation": 1
+        },
+        "cells": [
+          [
+            9,
+            35
+          ],
+          [
+            8,
+            36
+          ],
+          [
+            9,
+            36
+          ],
+          [
+            8,
+            37
+          ]
+        ],
+        "lines": 0,
+        "clearedRows": [],
+        "spin": "none",
+        "topOut": false
+      }
+    },
+    {
+      "witness": [
+        "R",
+        "R180",
+        "HD"
+      ],
+      "event": {
+        "type": "L",
+        "target": {
+          "type": "L",
+          "x": 4,
+          "y": 28,
+          "rotation": 2
+        },
+        "cells": [
+          [
+            4,
+            30
+          ],
+          [
+            5,
+            30
+          ],
+          [
+            6,
+            30
+          ],
+          [
+            4,
+            31
+          ]
+        ],
+        "lines": 0,
+        "clearedRows": [],
+        "spin": "none",
+        "topOut": false
+      }
+    },
+    {
+      "witness": [
+        "L",
+        "L",
+        "HD"
+      ],
+      "event": {
+        "type": "J",
+        "target": {
+          "type": "J",
+          "x": 1,
+          "y": 31,
+          "rotation": 0
+        },
+        "cells": [
+          [
+            1,
+            32
+          ],
+          [
+            1,
+            33
+          ],
+          [
+            2,
+            33
+          ],
+          [
+            3,
+            33
+          ]
+        ],
+        "lines": 0,
+        "clearedRows": [],
+        "spin": "none",
+        "topOut": false
+      }
+    },
+    {
+      "witness": [
+        "L",
+        "L",
+        "HD"
+      ],
+      "event": {
+        "type": "O",
+        "target": {
+          "type": "O",
+          "x": 1,
+          "y": 30,
+          "rotation": 0
+        },
+        "cells": [
+          [
+            2,
+            31
+          ],
+          [
+            3,
+            31
+          ],
+          [
+            2,
+            32
+          ],
+          [
+            3,
+            32
+          ]
+        ],
+        "lines": 0,
+        "clearedRows": [],
+        "spin": "none",
+        "topOut": false
+      }
+    },
+    {
+      "witness": [
+        "L",
+        "L",
+        "L",
+        "HD"
+      ],
+      "event": {
+        "type": "S",
+        "target": {
+          "type": "S",
+          "x": 0,
+          "y": 29,
+          "rotation": 0
+        },
+        "cells": [
+          [
+            1,
+            30
+          ],
+          [
+            2,
+            30
+          ],
+          [
+            0,
+            31
+          ],
+          [
+            1,
+            31
+          ]
+        ],
+        "lines": 0,
+        "clearedRows": [],
+        "spin": "none",
+        "topOut": false
+      }
+    },
+    {
+      "witness": [
+        "HOLD",
+        "L",
+        "L",
+        "L",
+        "R180",
+        "HD"
+      ],
+      "event": {
+        "type": "L",
+        "target": {
+          "type": "L",
+          "x": 0,
+          "y": 27,
+          "rotation": 2
+        },
+        "cells": [
+          [
+            0,
+            29
+          ],
+          [
+            1,
+            29
+          ],
+          [
+            2,
+            29
+          ],
+          [
+            0,
+            30
+          ]
+        ],
+        "lines": 0,
+        "clearedRows": [],
+        "spin": "none",
+        "topOut": false
+      }
+    },
+    {
+      "witness": [
+        "R",
+        "R",
+        "R",
+        "CW",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "CW",
+        "HD"
+      ],
+      "event": {
+        "type": "T",
+        "target": {
+          "type": "T",
+          "x": 6,
+          "y": 33,
+          "rotation": 2
+        },
+        "cells": [
+          [
+            6,
+            35
+          ],
+          [
+            7,
+            35
+          ],
+          [
+            8,
+            35
+          ],
+          [
+            7,
+            36
+          ]
+        ],
+        "lines": 2,
+        "clearedRows": [
+          35,
+          36
+        ],
+        "spin": "full",
+        "topOut": false
+      }
+    }
+  ]
+}

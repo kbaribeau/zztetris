@@ -681,3 +681,23 @@ routes are supply/resource matches, not claims of legal execution or selection.
 Future-position searches are excluded. A `not-queried` result differs from a
 query that returned no matches, and old routes are not shown as current after
 input changes the position.
+
+### Checked immediate right-side maintenance
+
+Midgame decisions may retain a checked one-lock action when broader continuation
+search cannot certify a plan: only a canonical right Z cap or a full right T-spin
+double. This is labeled `immediate`, not `supported`, with a certified horizon of
+zero and a legal horizon of one. Existing unresolved obligations are carried by
+the shared factual reducer. The local checks reject new or invalidated resource
+obligations, structural damage and covered cells; a cap also needs a replayable
+geometric T entry and cannot preempt an executable cleanup I. They do not claim
+that future repairs, T supply or a post-double rebuild have been proven.
+
+Local validation consumes the same decision budget, before deeper search. A
+validated action survives later budget exhaustion. Movement and HOLD recheck
+that action under bounded validation; serialized evidence is not authority.
+Immediate advice never creates a multi-lock commitment in either browser or
+simulator. After the lock, the next decision plans afresh. Opening and active
+Reset decisions do not use this lane. `test/st-immediate-maintenance.test.cjs`
+covers the M01 pending-L cap, a recorded full TSD, obligation/Undo preservation,
+retention, budget limits and scope exclusions without simulated cohorts.

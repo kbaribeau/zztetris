@@ -274,7 +274,7 @@
           if(result?.target){
             previous={...clone(result),revision:state.revision};pendingLHint=result.evidence?.pendingLStage?clone(result.evidence.pendingLStage):null;
 
-            commitment=result.recommendation?.kind!=='risky'&&!result.evidence?.opening&&(result.evidence?.strategy==='reset-coach'||STPlanner.resourceGoal(result.continuation||[]))?{observation:clone(observation()),advice:clone(result)}:null;
+            commitment=!['risky','immediate'].includes(result.recommendation?.kind)&&!result.evidence?.opening&&(result.evidence?.strategy==='reset-coach'||STPlanner.resourceGoal(result.continuation||[]))?{observation:clone(observation()),advice:clone(result)}:null;
           }
           render();
           }catch(error){
