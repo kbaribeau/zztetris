@@ -137,3 +137,17 @@ test('contour route search: decide retains the certified route with trace on or 
   const end=replay(origin.observation,{continuation:candidate.path});assert.deepEqual(end.state.board,candidate.board);
  }
 });
+
+test('lookup diagnostics retain all returned root routes in order without a presentation query',()=>{
+ const h=instrument(),state=position(),result=h.planner.plan(state,options);
+ const expected=require('../st-left-routes').prepare(P.observe(state),{allowHold:false});
+ assert.equal(result.lookupContinuations.status,'queried');
+ assert.deepEqual(JSON.parse(JSON.stringify(result.lookupContinuations.routes)),expected.routes);
+ assert.equal(h.calls.filter(x=>x==='lookup').length,1);
+ assert.equal(result.lookupContinuations.queries.length,1);
+ assert.match(result.lookupContinuations.claim,/not verified legal or selected/);
+ const disabled=h.planner.plan(state,{...options,disableContourRoutes:true});
+ assert.equal(disabled.lookupContinuations.status,'not-queried');assert.deepEqual(Array.from(disabled.lookupContinuations.routes),[]);
+ const empty=h.planner.plan(position(['I']),{...options,allowHold:false});
+ assert.equal(empty.lookupContinuations.status,'queried');assert.deepEqual(Array.from(empty.lookupContinuations.routes),[]);
+});

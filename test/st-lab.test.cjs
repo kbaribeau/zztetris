@@ -199,3 +199,14 @@ for(const id of ['restore-the-right-cap','center-before-quad-cleanup','double-ab
  assert.deepEqual(g.snapshot().queue,f.observation.queue);
  assert.equal(g.snapshot().hold,f.observation.hold);
 }));
+
+test('ST diagnostics show retrieved lookup routes and clear them for a changed position',()=>withPage('st-lab.html',{},g=>{
+ const ws=workers(g),w=ws.at(-1),answer=legalResult(w.message.observation);
+ answer.lookupContinuations={status:'queried',queries:[{status:'matched',complete:true}],routes:[{id:'route-a',pieces:['O','J'],contours:['LC-002','LC-003']},{id:'route-b',pieces:['I'],contours:['LC-004']}],claim:'Retrieved lookup matches, not verified legal or selected continuations.'};
+ w.respond(answer);
+ const data=()=>JSON.parse(g.element('#st-diagnostic-text').textContent);
+ assert.deepEqual(data().lookupContinuations,answer.lookupContinuations);
+ g.window.stLab.act('CW');
+ assert.equal(data().lookupContinuations.status,'not-available-for-current-position');assert.deepEqual(data().lookupContinuations.routes,[]);
+ w.respond(answer);assert.equal(data().lookupContinuations.routes.length,0,'stale worker cannot restore old lookups');
+}));

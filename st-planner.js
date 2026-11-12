@@ -6,6 +6,22 @@
 if(!LR||typeof LR.prepare!=='function')throw new Error('ST planner dependency STLeftRoutes.prepare is unavailable. Update the checkout/site and reload the ST lab to load matching assets.');
 const coaches=C.create(L);
 const clone=x=>JSON.parse(JSON.stringify(x));
+// Synchronous request-local diagnostics; never re-run lookup for presentation.
+// Nested/future-position searches cannot contribute routes for another board.
+let lookupDiagnostics=null;
+function withLookupDiagnostics(raw,run){
+ if(lookupDiagnostics)return run();
+ let origin;try{origin=JSON.stringify(observe(raw));}catch{return run();}
+ const collector={origin,queries:[],routes:[]};lookupDiagnostics=collector;
+ try{const result=run();result.lookupContinuations={status:collector.queries.length?'queried':'not-queried',queries:collector.queries,routes:collector.routes,claim:'Retrieved lookup matches, not verified legal or selected continuations.'};return result;}
+ finally{lookupDiagnostics=null;}
+}
+function recordLookup(raw,prepared){
+ const c=lookupDiagnostics;if(!c||JSON.stringify(observe(raw))!==c.origin)return;
+ c.queries.push({...prepared.stats,contour:prepared.query.contour});
+ for(const route of prepared.routes)if(!c.routes.some(r=>r.id===route.id))c.routes.push(clone(route));
+}
+
 // Node annotations may be copied; immutable finite Resources keep their
 // locally established route identity rather than being reimported as facts.
 const cloneNode=n=>({...clone({...n,resources:null}),resources:n.resources});
@@ -1134,7 +1150,7 @@ function planCore(raw,options={}){
  const readAssessment=createAssessmentReader(),initial=readAssessment(s.board);initial.state=s;initial.notches=H.resolve(s,options.patternHistory);initial.coveredRepair=summary.coveredRepair;initial.coveredStages=summary.center?.pending;initial.resources=rootResource;initial.ordinarySAllocationEnabled=!options.disableOrdinarySAllocation;
  initial.extraZPreservable=resourceKnown(raw,options)&&summary.extraZ?.status==='available'&&Boolean(summary.extraZ.baseline);
  initial.openingQualityPending=Provider.eligibility(resourceInput(raw,options)).qualityPending;
- if(!options.disableContourRoutes&&!options.constructionPrevious){initial.leftRoutes=LR.prepare(observe(raw),{resources:rootResource,center:initial.structure?.center,right:initial.structure?.right,allowHold:options.allowHold!==false});base.metrics.contourRoutes={...initial.leftRoutes.stats,attempted:false,selected:false,nodes:0,fallbackReserved:true};}
+ if(!options.disableContourRoutes&&!options.constructionPrevious){initial.leftRoutes=LR.prepare(observe(raw),{resources:rootResource,center:initial.structure?.center,right:initial.structure?.right,allowHold:options.allowHold!==false});recordLookup(raw,initial.leftRoutes);base.metrics.contourRoutes={...initial.leftRoutes.stats,attempted:false,selected:false,nodes:0,fallbackReserved:true};}
  if(!options.disableConstruction&&options.constructionPrevious?.evidence?.construction){const tracker={nodes:0},retained=revalidate(['left-support','left-scoring-foundation'].includes(options.constructionPrevious.evidence.construction.kind)?observe(raw):s,options.constructionPrevious,{...options,deadline,budgetTracker:tracker,maxNodes:Math.min(8000,Math.max(0,(options.maxNodes??45000)-base.metrics.nodes))});base.metrics.nodes+=tracker.nodes;if(retained){retained.metrics.nodes=base.metrics.nodes;return retained;}}
 
  if(!options.disableConstruction&&options.commitment?.advice?.evidence?.construction){
@@ -2183,7 +2199,7 @@ function planCore(raw,options={}){
  if(best.pendingLSelection)pendingLSelections.add(described);return described;
 }
 }
-function plan(raw,options={}){return queryRequest(()=>planRequest(raw,options));}
+function plan(raw,options={}){return withLookupDiagnostics(raw,()=>queryRequest(()=>planRequest(raw,options)));}
 function queryRequest(run){if(!R.withQueries)return run();return R.withQueries(()=>{const result=run();result.metrics={...result.metrics,queries:R.queryMetrics()};return result;});}
 // A height-risk trigger permits consideration; it does not revoke an actual
 // public scoring proof or an exact retained repair that removes the deficit.
@@ -2843,7 +2859,7 @@ function supportedMaintenanceDecision(raw,options){
 }
 function supportedPreferences(raw,initial,options,collector){if(initial.evidence?.contourRoute)return initial;return visibleLeftRepair(raw,reservedPiecePlan(raw,initial,options,collector),options,collector);}
 
-function decide(raw,options={}){return queryRequest(()=>{try{const state=observe(raw);if(R.validate(state).length||state.bag&&B.validate(state.bag).length)return planCore(raw,options);options=prepareResourceOptions(state,options);}catch(error){try{if(!raw||R.validate(observe(raw)).length)return planCore(raw,options);}catch{return planCore(raw,options);}return unavailableResources(raw,error.message);}if(!resourceAvailable(raw,options))return unavailableResources(raw,resourceInput(raw,options).reason);const now=options.now||(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs),collector={key:null,placements:null,complete:false,started:Date.now()};try{collector.key=stateKey(extendForced(observe(raw)));}catch{}options={...options,now,deadline,[riskRootCollector]:collector};const initial=decideRequest(raw,options);if(initial.evidence?.strategy==='reset-coach')return initial;const result=supportedPreferences(raw,initial,options,collector);return result.target?classifySupported(result):riskyFallback(raw,result,options,collector);});}
+function decide(raw,options={}){return withLookupDiagnostics(raw,()=>queryRequest(()=>{try{const state=observe(raw);if(R.validate(state).length||state.bag&&B.validate(state.bag).length)return planCore(raw,options);options=prepareResourceOptions(state,options);}catch(error){try{if(!raw||R.validate(observe(raw)).length)return planCore(raw,options);}catch{return planCore(raw,options);}return unavailableResources(raw,error.message);}if(!resourceAvailable(raw,options))return unavailableResources(raw,resourceInput(raw,options).reason);const now=options.now||(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs),collector={key:null,placements:null,complete:false,started:Date.now()};try{collector.key=stateKey(extendForced(observe(raw)));}catch{}options={...options,now,deadline,[riskRootCollector]:collector};const initial=decideRequest(raw,options);if(initial.evidence?.strategy==='reset-coach')return initial;const result=supportedPreferences(raw,initial,options,collector);return result.target?classifySupported(result):riskyFallback(raw,result,options,collector);}));}
 function decideRequest(raw,options={}){
  const now=options.now||(()=>Date.now()),deadline=options.deadline??(options.timeMs===undefined?Infinity:now()+options.timeMs),budgetTracker={nodes:0},limit=options.maxNodes??45000;
  options={...options,now,deadline};

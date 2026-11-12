@@ -664,3 +664,20 @@ and a minimized public request from the later Left-route failure. A missing
 `STLeftRoutes.prepare` binding now fails during initialization with reload/update
 guidance rather than a delayed `prepare` TypeError. Worker diagnostics record the
 loaded asset version. No browser metadata or private diagnostics are committed.
+
+### Opening checklist and retrieved lookup diagnostics
+
+The Opening tile's hover/focus tooltip shows observed allocation progress: two
+non-Right Ts, the required non-Right Z, the initial Right Z cap, and the first
+T-spin double. Checkmarks come from current accounting, not the recommended
+continuation. Unknown or retired unverified allocation is labeled "not confirmed";
+no piece history is added for the display. These four checks are not the entire
+handoff eligibility test.
+
+Coach diagnostics includes `lookupContinuations`: the distinct Left routes
+actually returned for the current root position, in first-returned order, plus
+query completion/status. It does not perform an additional lookup. Returned
+routes are supply/resource matches, not claims of legal execution or selection.
+Future-position searches are excluded. A `not-queried` result differs from a
+query that returned no matches, and old routes are not shown as current after
+input changes the position.
