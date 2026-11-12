@@ -2651,7 +2651,7 @@ function immediateMaintenance(raw,options={},onlyWitness=null){
  const telemetry={attempted:false,selected:false,checked:0,nodes:0,rejections:{}};
  const finish=candidate=>({candidate,nodes:telemetry.nodes,telemetry});
  const reject=reason=>{telemetry.rejections[reason]=(telemetry.rejections[reason]||0)+1;};
- if(options.disableImmediateMaintenance||options.openingPhase!==false||options.commitment||!resourceKnown(raw,options)||!resourceAvailable(raw,options))return finish(null);
+ if(options.disableImmediateMaintenance||options.openingPhase!==false||options.commitment||options.handoffRecovery||options.previous?.evidence?.strategy==='reset-coach'||!resourceKnown(raw,options)||!resourceAvailable(raw,options))return finish(null);
  const summary=resourceSummary(raw,options);if(summary.reset?.status==='active')return finish(null);
  const state=extendForced(observe(raw));if(R.validate(state).length||state.topOut||!state.active||now()>=deadline||limit<=0)return finish(null);
  const phase=H.resolve(raw,options.patternHistory);if(['invalid-history','broken'].includes(phase.status))return finish(null);

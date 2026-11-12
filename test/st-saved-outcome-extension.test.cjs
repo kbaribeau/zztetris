@@ -101,7 +101,7 @@ test('saved outcome extension: reserved O repair preserves a noncanonical incumb
  const f=clone(require('./fixtures/reserved-piece-plan.json'));let changed=false,selected;
  // Change only the already admitted first lock to an actually replayable
  // symmetric pose. The collector, complete repair search and proofs are real.
- const api=internal(s=>s.replace('const result=supportedPreferences(raw,initial,options,collector);','const result=supportedPreferences(raw,aliasIncumbent(raw,initial),options,collector);'),{aliasIncumbent:(raw,initial)=>{
+ const api=internal(s=>s.replace('const result=supportedPreferences(raw,initial,remaining,collector);','const result=supportedPreferences(raw,aliasIncumbent(raw,initial),remaining,collector);'),{aliasIncumbent:(raw,initial)=>{
   const first=initial.continuation[0],all=R.placements(raw,{maxNodes:16000,now:()=>0}).placements;
   const alias=all.find(p=>p.target.rotation!==first.target.rotation&&cells(p)===cells(first)&&p.holdCount===first.holdCount);assert.ok(alias);assert.ok(!P.ordinaryPlacementOutcomes(all).some(p=>JSON.stringify(p.event)===JSON.stringify(alias.event)));
   changed=true;selected=clone(alias);return{...initial,target:alias.target,witness:alias.witness,hold:alias.hold,holdCount:alias.holdCount,continuation:[{...first,...alias},...initial.continuation.slice(1)]};
