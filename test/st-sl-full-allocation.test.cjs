@@ -83,7 +83,9 @@ test('SL optional failure: deadline exhaustion returns exact privately admitted 
   (advice,nodes)=>{admissions++;assert.equal(clock,0);incumbent=clone(advice);admittedNodes=nodes;},()=>{admissionCalls++;assert.equal(clock,0,'No second admission after the deadline');});
  const actual=api.plan(q.observation,{...options(q),now:()=>clock,deadline:1500});
  assert.equal(admissions,1);assert.equal(admissionCalls,1);assert.equal(attempts,1);assert.equal(proofsAfterDeadline,0);assert.equal(actual.metrics.supportedSLPreference.selected,false);
- assert.deepEqual(withoutMetrics(actual),withoutMetrics(incumbent));assert.equal(actual.metrics.nodes,admittedNodes+127);assert(actual.metrics.nodes<=45000);
+ // Request-level lookup diagnostics are attached after the private incumbent is captured.
+ const {lookupContinuations,...decision}=actual;assert.equal(lookupContinuations.originRevision,q.observation.revision);assert.equal(lookupContinuations.status,'queried');
+ assert.deepEqual(withoutMetrics(decision),withoutMetrics(incumbent));assert.equal(actual.metrics.nodes,admittedNodes+127);assert(actual.metrics.nodes<=45000);
 });
 test('SL optional failure: copied positive repair flag and candidate certificate failure cannot replace incumbent',()=>{
  // Fault-inject the optional repair boundary, not the earlier contour lane.
