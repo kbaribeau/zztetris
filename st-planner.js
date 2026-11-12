@@ -2336,6 +2336,11 @@ function ordinaryPlanRequest(raw,options={}){
  if(!result?.target)return result;
  const pendingLSelected=pendingLSelections.has(result);
  const finalLimit=Math.min(options.maxNodes??45000,nodeLimit);
+ if(result.evidence?.opening){
+  const check=Provider.checkOpeningZPrefix(resourceInput(raw,options),result.continuation||[],{now,deadline:proofDeadline,maxNodes:Math.max(0,finalLimit-(result.metrics?.nodes||0))});
+  result={...result,metrics:{...result.metrics,nodes:(result.metrics?.nodes||0)+check.visited}};
+  if(!check.valid)return{...result,status:check.reason==='opening-Z-check-budget'?'budget-exhausted':'no-supported-continuation-found',target:null,witness:[],continuation:[],metrics:{...result.metrics,certifiedHorizon:0},reason:'No opening continuation preserving the pending extra-Z allowance was verified.',evidence:{...result.evidence,resourceObligations:{status:'rejected',reason:check.reason}}};
+ }
  if(!result.evidence?.opening){
   const resource=checkedResourceEndpoint(raw,result.continuation||[],constructionPolicyOptions(result,{...options,deadline:proofDeadline,maxNodes:Math.max(0,finalLimit-(result.metrics?.nodes||0))}));
   result={...result,metrics:{...result.metrics,nodes:(result.metrics?.nodes||0)+(resource.visited||0),resourceProofNodes:resource.visited||0}};

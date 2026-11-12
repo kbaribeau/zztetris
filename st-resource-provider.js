@@ -89,6 +89,24 @@ function projectBeginReset(value,{candidate,references=[]}={}){return marker(val
 function eligibility(value,{right=null}={}){const f=frame(value);return E.resolve(f.state.account,{board:f.position.board,right,center:f.state.center});}
 function conservationStep(value,previous){const f=frame(value);return E.conservationStep(f.state.account,{board:f.position.board},previous);}
 function startRoute(value,options={}){const f=frame(value);return Resources.fromProjection(strip(f),{...options,openingBoundary:f.openingBoundary});}
+// Opening construction may carry unfinished quality duties, but must not
+// spend an optional Z before its factual allowance exists. Check the actual
+// order: a preceding lock may establish that allowance; a later lock cannot
+// retroactively authorize an earlier spend. Unknown-origin play is unchanged.
+function checkOpeningZPrefix(value,path,{maxNodes=Infinity,deadline=Infinity,now=()=>Date.now()}={}){
+ let current=frame(value),visited=0;
+ if(current.state.account.opening?.kind!=='quality'||!path.some(p=>p.event?.type==='Z'&&p.event.cells.every(([x])=>x<7)))return{valid:true,visited};
+ for(const step of path){
+  const account=current.state.account,e=step.event;
+  if(account.z.remaining!==null)return{valid:true,visited};
+  if(e.type==='Z'&&e.cells.every(([x])=>x<7)&&!(account.mandatoryZ&&e.lines===0))return{valid:false,visited,reason:'opening-extra-Z-before-baseline'};
+  const work=step.witness.length*2;
+  if(now()>=deadline||visited+work>maxNodes)return{valid:false,visited,reason:'opening-Z-check-budget'};
+  visited+=work;
+  try{current=project(current,step);}catch{return{valid:false,visited,reason:'opening-Z-check-invalid-prefix'};}
+ }
+ return{valid:true,visited};
+}
 function binding(value){const f=frame(value);return Resources.factualBinding(f.state,f.supply,f.openingBoundary);}
-return Object.freeze({prepare,exportActual,withOptions,withFrame,frame,facts,bound,project,projectHandoff,projectBeginReset,eligibility,conservationStep,startRoute,binding});
+return Object.freeze({prepare,exportActual,withOptions,withFrame,frame,facts,bound,project,projectHandoff,projectBeginReset,eligibility,conservationStep,startRoute,binding,checkOpeningZPrefix});
 });

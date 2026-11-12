@@ -1,0 +1,288 @@
+{
+  "position": {
+    "rules": "st-zero-v2",
+    "board": [
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "..........",
+      "....JJJ...",
+      "..SSOOJ...",
+      "ISSIOO....",
+      "IOOIJJZ...",
+      "IOOIJZZ...",
+      "ISSIJZ...Z",
+      "SSLLLLL.ZZ",
+      "TTTLLSS.Z.",
+      "TIIIIOO.Z."
+    ],
+    "active": {
+      "type": "Z",
+      "x": 0,
+      "y": 17,
+      "rotation": 1,
+      "lastRotation": null
+    },
+    "hold": "L",
+    "canHold": true,
+    "queue": [
+      "J",
+      "I",
+      "T",
+      "S",
+      "L",
+      "O"
+    ],
+    "revision": 154,
+    "streamCursor": 22,
+    "topOut": false,
+    "bag": {
+      "remaining": [
+        0
+      ],
+      "observedCount": 28,
+      "provenance": "known-phase"
+    }
+  },
+  "obligationContext": {
+    "schemaVersion": 1,
+    "status": "available",
+    "reason": null,
+    "inventory": {
+      "schemaVersion": 1,
+      "status": "available",
+      "originKnown": true,
+      "nextId": 29,
+      "streamCursor": 22,
+      "active": {
+        "id": 22,
+        "type": "Z",
+        "observedOrder": 21,
+        "bag": 3
+      },
+      "hold": {
+        "id": 21,
+        "type": "L",
+        "observedOrder": 20,
+        "bag": 2
+      },
+      "queue": [
+        {
+          "id": 23,
+          "type": "J",
+          "observedOrder": 22,
+          "bag": 3
+        },
+        {
+          "id": 24,
+          "type": "I",
+          "observedOrder": 23,
+          "bag": 3
+        },
+        {
+          "id": 25,
+          "type": "T",
+          "observedOrder": 24,
+          "bag": 3
+        },
+        {
+          "id": 26,
+          "type": "S",
+          "observedOrder": 25,
+          "bag": 3
+        },
+        {
+          "id": 27,
+          "type": "L",
+          "observedOrder": 26,
+          "bag": 3
+        },
+        {
+          "id": 28,
+          "type": "O",
+          "observedOrder": 27,
+          "bag": 3
+        }
+      ],
+      "frontier": {
+        "bag": 4,
+        "seenMask": 0
+      },
+      "knowledge": {
+        "remaining": [
+          0
+        ],
+        "observedCount": 28,
+        "provenance": "known-phase"
+      }
+    },
+    "state": {
+      "schemaVersion": 2,
+      "availability": "known",
+      "center": {
+        "pending": [],
+        "debt": []
+      },
+      "sl": {
+        "schemaVersion": 1,
+        "status": "known",
+        "foundationOpen": false,
+        "firstBagReview": "reviewed",
+        "handoff": false,
+        "residuals": [
+          {
+            "bag": 2,
+            "S": {
+              "id": 15,
+              "region": "left",
+              "opening": true,
+              "pair": null,
+              "foundationEligible": false,
+              "firstBagEligible": false,
+              "requiresAccommodation": false,
+              "invalidated": false
+            },
+            "L": null,
+            "order": null,
+            "sOwedSinceL": false,
+            "lBeforeSPair": false
+          }
+        ],
+        "uncertainty": {
+          "S": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "L": [
+            0
+          ]
+        }
+      },
+      "account": {
+        "schemaVersion": 1,
+        "known": true,
+        "firstTsd": true,
+        "allocationVerified": true,
+        "mandatoryZ": false,
+        "thirdTWindow": true,
+        "qualityCandidate": true,
+        "opening": {
+          "kind": "quality",
+          "imbalance": 1
+        },
+        "profile": {
+          "violation": false,
+          "departure": false,
+          "before": null,
+          "capEstablished": true
+        },
+        "z": {
+          "remaining": null,
+          "uncredited": "none"
+        },
+        "reset": {
+          "status": "inactive"
+        }
+      },
+      "safety": {
+        "notches": {
+          "version": 2,
+          "status": "established",
+          "anchorRow": 36,
+          "blockedRows": [],
+          "source": "recognized-scoring-wall"
+        },
+        "coveredCells": []
+      },
+      "dPending": false,
+      "leftGoals": []
+    },
+    "boundary": {
+      "firstBagLocks": 7,
+      "sourcePatternSeen": true
+    }
+  },
+  "witnesses": [
+    [
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "HD"
+    ],
+    [
+      "L",
+      "L",
+      "L",
+      "CW",
+      "L",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "HD"
+    ],
+    [
+      "HOLD",
+      "L",
+      "CCW",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "SD",
+      "HD"
+    ]
+  ]
+}

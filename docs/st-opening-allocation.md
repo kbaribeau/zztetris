@@ -27,3 +27,21 @@ Session schema remains 1. Engine-version provenance changes; imports rebuild the
 The public pre-lock-17 fixture reproduces an opening that had used two Ts outside Right but no Z there. The old recommendation placed S Left and then cleared with T. The new worker discovers a legal Z-Center / TSD / held-S-Left / J-Center prefix, using only the original public inventory. A separate real-worker regression retains the original S/TSD order, then automatically places Z Center and its exact J partner before a replay-certified historical handoff. Actual replanning is checked separately because finding the first move is not proof the controller follows or pays every later obligation.
 
 Tests cover observed accounting, delayed completion, unknown/forged/truncated histories, lost Center debt, Undo, node/clock rollback, causal search ablations and ordinary live-worker behavior. Matched closed-loop measurements are development evidence, not proof of indefinite survival, optimality, or all-opening coverage.
+
+## Pending allowance protection (current state)
+
+The current-state opening search must not recommend optional non-Right Z
+spending while a still-live delayed-quality duty has not established the
+extra-Z balance. It projects the actual ordered prefix: paying the mandatory
+opening Z remains allowed, and a prior lock that establishes the allowance
+permits a later optional Z. Later completion cannot authorize earlier spending.
+The same check runs at final opening admission, within the existing node/time
+budget. Unknown-origin play and factual accounting rules are unchanged.
+
+The retained November 12 checkpoint had verified first-TSD allocation but a
+hanging L, so its numeric allowance was not yet established. The former
+Z-Left / J-Left / L-Left recommendation retired that eligibility on its first
+lock. The corrected development-case recommendation accommodates held L first,
+then J and Z; actual replay establishes one allowance before spending it.
+This is a checkpoint/recommendation regression, not evidence of its earlier
+move history or a general survival-performance improvement.

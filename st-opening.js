@@ -887,6 +887,12 @@ function plan(raw,options={}){
  const allocationWork={enabled:conserveAllocation,checked:0,rejected:0,unknown:0,nodes:0};
  base.metrics.openingAllocation.conservation=allocationWork;
  const allocationSafe=(node,parent=null,bounds={})=>{
+  if(!node.openingZProof){
+   node.openingZProof=Provider.checkOpeningZPrefix(input.frame,node.path,{now,deadline:Math.min(searchDeadline,bounds.deadline??Infinity),maxNodes:Math.min(bounds.maxNodes??Infinity,Math.max(0,searchLimit-reserved-base.metrics.nodes))});
+   base.metrics.nodes+=node.openingZProof.visited;
+   if(!node.openingZProof.valid){base.metrics.openingAllocation.zRejected=(base.metrics.openingAllocation.zRejected||0)+1;if(node.openingZProof.reason==='opening-Z-check-budget')stopped=true;}
+  }
+  if(!node.openingZProof.valid)return false;
   if(!conserveAllocation)return true;
   if(node.allocationProof)return node.allocationProof.safe;
   if(parent?.allocationProof?.fulfilled){node.allocationProof=parent.allocationProof;return true;}
