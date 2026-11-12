@@ -30,7 +30,7 @@ change criteria after seeing results and still call them predeclared.
 An individual bad simulation is not an automatic blocker. Declared aggregate
 criteria govern regression; explicit correctness violations remain separate.
 A simulation completing is not correctness proof. Keep source-bound full-suite,
-replay and audit receipts, independent review and browser checks distinct.
+replay and audit receipts, and independent review distinct.
 Phase/reset interpretations do not alter raw counts. The general goal of 85
 lines after a first reset is not an implicit branch acceptance gate.
 
@@ -51,8 +51,7 @@ remains unknown. A finite repair is not a Reset or indefinite sustainability.
 For player review use the skill's [packet reference](../.agents/skills/st-collaborative-review/references/review-packet.md).
 Preserve the exact pre-lock public session and connected history. Replay proposed
 alternatives with actual rules and reveal order. Validate exports against their
-recorded states. Session parsing is not proof of painted browser behavior;
-recorded replay does not rerun policy or prove a rejected continuation impossible.
+recorded states. Recorded replay does not rerun policy or prove a rejected continuation impossible.
 
 ## Evidence, review and delivery
 
@@ -66,8 +65,8 @@ Hashes establish byte identity, not authenticity or correctness.
 Use focused tests, the complete unfiltered suite and independent review of exact
 source/raw evidence. After committing, retain a clean-commit full-suite receipt.
 Do not describe separately tested changes as a verified combination. Run relevant
-real-browser/Worker checks or record the exact blocker; DOM tests are not visual
-evidence. Respect [test semantics](../TESTING.md).
+automated Worker checks or record the exact blocker. Respect
+[test semantics](../TESTING.md).
 
 Inspect status before edits; preserve unrelated work. Coordinate timed CPU work;
 never run planners and suites simultaneously. Do not weaken gates to meet a

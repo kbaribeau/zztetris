@@ -276,9 +276,9 @@ Safety/infrastructure failures and wall-censored pairs are rejected as a quality
 
 A historical example explains the need: a parity repair looked locally cleaner yet, on one developed stream, stopped at 42 locks/8 lines versus 48 locks/12 lines for TSD-first. Other streams improved. Zero invalid witnesses did not imply zero abstentions or better survival. Local geometry, correctness and longer-run policy quality remain different measures.
 
-## Relationship to unit and browser tests
+## Relationship to automated tests
 
-`npm test` still runs the focused rules, hold, bag-information, certificates, regression, UI/worker races, settings and navigation suites. `test/st-simulation.test.cjs` checks the runner itself with cheap controlled advice and real rules; this does not launch the research workload. `test/st-simulation-runner.test.cjs` covers bounded scheduling, ordered outputs, unique directories, process failures/watchdogs/cancellation, simulation-only timeout translation, CLI artifacts and compatibility guards using tiny controlled inputs. Simulations replace repeated ad hoc scratch scripts and manual strategy playthroughs, not these independent assertions. Minimize discovered failures into named regression fixtures. Keep change-triggered real-browser checks for visual/input/Worker fidelity.
+`npm test` still runs the focused rules, hold, bag-information, certificates, regression, UI/worker races, settings and navigation suites. `test/st-simulation.test.cjs` checks the runner itself with cheap controlled advice and real rules; this does not launch the research workload. `test/st-simulation-runner.test.cjs` covers bounded scheduling, ordered outputs, unique directories, process failures/watchdogs/cancellation, simulation-only timeout translation, CLI artifacts and compatibility guards using tiny controlled inputs. Simulations replace repeated ad hoc scratch scripts and manual strategy playthroughs, not these independent assertions. Minimize discovered failures into named regression fixtures.
 
 ## Regional material and original-bag accounting
 

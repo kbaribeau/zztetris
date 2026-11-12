@@ -20,7 +20,7 @@ Use the [shared research process](../../../docs/st-research-workflow.md) as the 
 2. Run baseline and candidate serially on matched actual inputs, configuration and host conditions. Read current pinned runtime and production search settings from the repository; never enlarge a budget silently to obtain a favorable result. Keep all attempts, including crashes, partial runs and losing repeats.
 3. Use recorded-action replay and Fumen/session validation to check the evidence. These do not rerun the policy or establish its strategic quality. Reconcile summaries with actual lock/clear events and resource accounting, including controls that did not improve.
 4. Generate canonical JSON and Markdown with `scripts/evaluate-st-protocol.cjs`; its executable schema owns report semantics. Report every predeclared pair and its stop classification. Reject invalid comparisons rather than quietly dropping inconvenient seeds. If a fixed-seed timed rerun diverges, retain both and narrow the conclusion.
-5. For an engine change proposed for acceptance, run the complete unfiltered suite and obtain independent review of the exact source and raw evidence. Include change-appropriate browser checks or an explicit blocker; DOM tests are not browser evidence. Keep rejected variants locally as evidence, not as accepted source changes.
+5. For an engine change proposed for acceptance, run the complete unfiltered suite and obtain independent review of the exact source and raw evidence. Keep rejected variants locally as evidence, not as accepted source changes.
 
 ## Finish honestly
 
