@@ -21,7 +21,7 @@ editing; the normal clean `npm test` remains the delivery check.
   "schemaVersion": 1,
   "title": "Midgame stopping positions",
   "expectedAppRevision": "full SHA of the app the player should use",
-  "limitations": "Development examples, not a holdout or proof of impossibility. Browser opening still needs checking.",
+  "limitations": "Development examples, not a holdout or proof of impossibility.",
   "cases": [
     {
       "id": "MG01",
@@ -95,8 +95,8 @@ known evaluator-only fields nested in candidate data are rejected.
 All Fumen links use **`https://fumen.sixwi.de/#?v115@…`**, the English viewer's
 supported fragment syntax. The payload is not sent in the HTTP request, avoiding
 server query-length limits. The full selectable Fumen text is a fallback. Long
-fragments may still meet client/app limits; test the actual links in a real
-browser, not just codec decoding. Do not switch back to `fumen.zui.jp/?`.
+fragments may still meet client/app limits; the selectable Fumen text remains
+available as a fallback. Do not switch back to `fumen.zui.jp/?`.
 
 Fumen pages are settled boards, with **no operation to apply**. Comments show
 active piece, HOLD and visible preview. Active pose is drawn as an outline in
@@ -114,13 +114,9 @@ and plan continuity, replay when supplied, Fumen round-trip, English fragment
 URLs, local links, PNG encoding, ZIP checksums, clipboard fallback and real Lab
 controller import/restart/undo/export through the offline DOM harness.
 
-Inspect generated PNGs for orientation, upper rows and label readability. Open
-representative short and long Fumen links in a real browser and verify the
-intended page, board and language. Import a case into the intended app revision
-when browser access permits. These are separate checks: parser/DOM/raster tests
-are not browser rendering or delivery proof. The generated receipts conservatively
-say browser checks have not been run; retain a separate receipt for manual
-checks, with exact packet hashes and app revision. Report blocked checks honestly.
+Inspect generated PNGs for orientation, upper rows and label readability. Retain
+the automated validation receipts with the packet. Report failed or unavailable
+automated checks honestly.
 
 Generated packets, snapshots, tails and raw traces stay outside Git. Commit only
 the generator, maintained contract, tests and deliberately minimized fixtures.

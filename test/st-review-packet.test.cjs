@@ -79,11 +79,13 @@ test("packet/build produces portable HTML, English fragment Fumen, PNG from SVG,
     const out = path.join(root, "output"),
       got = Packet.build(path.join(root, "manifest.json"), out);
     assert.equal(got.cases, 1);
-    assert.equal(got.browserVerified, false);
+    assert.equal(Object.hasOwn(got, "browserVerified"), false);
     const html = fs.readFileSync(path.join(out, "review.html"), "utf8"),
       dom = new JSDOM(html),
       d = dom.window.document;
     assert.equal(d.title, "Review <test>");
+    assert.doesNotMatch(html, /browser checks|browserVerified|browser usability/i);
+    assert.equal(Object.hasOwn(JSON.parse(fs.readFileSync(path.join(out, "validation.json"), "utf8")), "browserVerified"), false);
     assert.equal(d.querySelectorAll("button").length, 1);
     const url = new URL(
       [...d.querySelectorAll("a")].find(

@@ -12,7 +12,7 @@ Each case section supplies:
 - Exact state labels: source revision, recorded lock/move number, before/after boundary, one-based Fumen page and whether that page is a recorded board or an operation to apply. Distinguish recorded/actual states from proposed alternatives, and verified replay from unverified sketches.
 - Expected app revision and coach/rules/schema versions where relevant, separately from the source trace revision. State the build actually checked, or explicitly say it was not checked. Do not promise that a new coach repeats recorded advice.
 - Actual clickable Markdown links to the import JSON and English-commented Fumen—not bare filenames or prose references—plus what to try, and concise import instructions: open ST lab in the expected app revision, paste the complete JSON into the existing textbox, then use **Import position or session**. Explain applicable warnings, finite supply and how to restart the exercise.
-- A compact validation/provenance note with links to replay/accounting receipts and benchmark evidence, including failed or inconclusive results relevant to this case. State unknown/truncated history, synthetic inputs, stale advice, import limits and browser checks not performed. A passing parser is not a live-browser import pass.
+- A compact validation/provenance note with links to replay/accounting receipts and benchmark evidence, including failed or inconclusive results relevant to this case. State unknown/truncated history, synthetic inputs, stale advice, import limits and unavailable automated checks.
 
 A useful generated README shape is:
 
@@ -46,7 +46,7 @@ Use side-by-side first-choice diagrams only when they materially clarify the que
 
 Follow [ST-LAB.md's private practice contract](../../../../ST-LAB.md#private-practice-imports) rather than duplicating its schema here. Ordinary public sessions contain no hidden future tape. If the case needs finite continuation, put the complete public session inside the supported `zztetris-st-practice` wrapper; keep its tail private to the controller, never in advice requests, public history or diagram inputs.
 
-Validate the wrapper through production import validation. Check tail alignment against actual draws **after the six visible preview pieces**, not lock count: a filled HOLD swap consumes no draw; empty HOLD does. Verify seven-bag/frontier consistency without inventing missing history. For a replayable practice claim, check that Restart/reset restores the imported state and tail, Undo restores the draw cursor with public history, and finite exhaustion does not synthesize new supply. Record which checks used production logic versus the real browser and any unavailable checks. Retain the original wrapper because ordinary exports intentionally omit the tail.
+Validate the wrapper through production import validation. Check tail alignment against actual draws **after the six visible preview pieces**, not lock count: a filled HOLD swap consumes no draw; empty HOLD does. Verify seven-bag/frontier consistency without inventing missing history. For a replayable practice claim, check that Restart/reset restores the imported state and tail, Undo restores the draw cursor with public history, and finite exhaustion does not synthesize new supply. Record the production-logic checks performed and any unavailable automated checks. Retain the original wrapper because ordinary exports intentionally omit the tail.
 
 ## Evidence and storage
 

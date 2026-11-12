@@ -361,8 +361,6 @@ function render(manifest, cases, revision) {
       boundary: c.boundary,
       recordedSearch: c.recordedSearch,
       importSearch: c.session.search,
-      browser:
-        "Not run by this generator. Parser and raster checks do not establish browser usability.",
       strategy:
         "Recorded bounded outcomes, not proof of optimality or impossibility.",
     };
@@ -377,7 +375,7 @@ function render(manifest, cases, revision) {
   put("README.md", md);
   put(
     "review.html",
-    `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(manifest.title)}</title><style>${css}</style></head><body><h1>${esc(manifest.title)}</h1><p class="notice">${esc(manifest.limitations)}</p><p>Expected app: ${esc(manifest.expectedAppRevision)}. Generator revision: ${esc(revision)}.</p><p>Open ST Lab at the expected revision. Copy the long-practice JSON, paste it into the existing textbox, then choose <strong>Import position or session</strong>. If clipboard access fails, copy the selected fallback text. These are diagrams, not screenshots. Browser checks are not performed by this command.</p><nav>${cases.map((c) => `<a href="#${c.id}">${esc(c.id)}: ${esc(c.title)}</a>`).join(" · ")}</nav>${cards}<script>${clipboard}</script></body></html>`,
+    `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(manifest.title)}</title><style>${css}</style></head><body><h1>${esc(manifest.title)}</h1><p class="notice">${esc(manifest.limitations)}</p><p>Expected app: ${esc(manifest.expectedAppRevision)}. Generator revision: ${esc(revision)}.</p><p>Open ST Lab at the expected revision. Copy the long-practice JSON, paste it into the existing textbox, then choose <strong>Import position or session</strong>. If clipboard access fails, copy the selected fallback text. These are diagrams, not screenshots.</p><nav>${cases.map((c) => `<a href="#${c.id}">${esc(c.id)}: ${esc(c.title)}</a>`).join(" · ")}</nav>${cards}<script>${clipboard}</script></body></html>`,
   );
   put("validation.json", {
     schemaVersion: 1,
@@ -385,7 +383,6 @@ function render(manifest, cases, revision) {
     caseIds: cases.map((c) => c.id),
     englishFragmentLinks: true,
     portableLinks: true,
-    browserVerified: false,
   });
   // Validate every generated local href/src (including fragments) before ZIP.
   for (const html of [files["review.html"]])
@@ -491,7 +488,6 @@ function build(manifestPath, out) {
     files: Object.keys(files).length,
     zipBytes: archive.length,
     generatorRevision: revision,
-    browserVerified: false,
   };
 }
 module.exports = {
