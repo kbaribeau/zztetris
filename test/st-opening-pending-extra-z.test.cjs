@@ -34,3 +34,12 @@ test('opening pending extra Z: mandatory Z still allowed, unknown origin unchang
  const limited=Provider.checkOpeningZPrefix(input,advice.continuation,{maxNodes:0,now:()=>0,deadline:Infinity});assert.equal(limited.valid,false);assert.equal(limited.reason,'opening-Z-check-budget');assert.equal(limited.visited,0);
  const deadline=Provider.checkOpeningZPrefix(input,advice.continuation,{now:()=>1,deadline:1});assert.equal(deadline.valid,false);assert.equal(deadline.visited,0);
 });
+test('opening pending extra Z: fresh Worker and small request budget cannot emit the saved premature spend',()=>{
+ const worker=require('./support/st-fixed-clock-worker.cjs');
+ const result=worker({type:'plan',id:1,observation:P.observe(fixture.position),previous:null,commitment:null,options:{openingPhase:true,obligationContext:fixture.obligationContext,width:8,depth:3,maxNodes:45000,timeMs:1500}});
+ assert.equal(result.target.type,'L');assert.ok(result.metrics.nodes<=45000);
+ const input=Provider.prepare(fixture.position,options);
+ assert.equal(Provider.checkOpeningZPrefix(input,result.continuation,options).valid,true);
+ const small=P.decide(fixture.position,{...options,maxNodes:100});
+ assert.ok(small.metrics.nodes<=100);if(small.target)assert.equal(Provider.checkOpeningZPrefix(input,small.continuation,options).valid,true);
+});

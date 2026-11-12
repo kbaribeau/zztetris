@@ -931,7 +931,7 @@ function plan(raw,options={}){
     if(usage){usage.families.ordinary.admitted++;usage.families.ordinary.ranked++;}
     const path=[...parent.path,step],key=JSON.stringify([p.state.board.map(r=>r.replace(/[IJLOSTZX#]/g,'#')),p.state.active?.type,p.state.hold,p.state.queue,notch.pattern]);
     const node={state:p.state,path,f,notches:notch.pattern,key,rank:rank(f,p.event,path),allocationRank:allocationRank(path,allocationRequired,qualityPending)};
-    if(allocationSafe(node,parent)){nodes.push(node);if(trace)trace.candidate('opening',node,'evaluated');}else if(trace)trace.candidate('opening',node,node.allocationProof?.unknown?'unfinished':'policy-rejected',{reason:'allocation-conservation'});
+    if(allocationSafe(node,parent)){nodes.push(node);if(trace)trace.candidate('opening',node,'evaluated');}else if(trace)trace.candidate('opening',node,node.allocationProof?.unknown||node.openingZProof?.reason==='opening-Z-check-budget'?'unfinished':'policy-rejected',{reason:node.openingZProof?.valid===false?node.openingZProof.reason:'allocation-conservation'});
    }
   }
   if(!nodes.length)break;
