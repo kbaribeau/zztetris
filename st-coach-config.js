@@ -2,5 +2,5 @@
  * regression tests. Watchdogs and deliberately constrained probes are separate. */
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.STCoachConfig=api;})(typeof globalThis!=='undefined'?globalThis:this,function(){
 'use strict';
-return Object.freeze({SEARCH_TIME_MS:1500,ASSET_VERSION:'st-assets-20261112-1'});
+return Object.freeze({SEARCH_TIME_MS:1500,ASSET_VERSION:'st-assets-20261112-2'});
 });

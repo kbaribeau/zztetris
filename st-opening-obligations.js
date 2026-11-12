@@ -266,9 +266,22 @@ function reduce(current,operation,context,projected=false,owned=false){
  validate(state,projected);
  return{state,effects};
 }
+// Read-only player checklist. Retired thresholds are proven by verified allocation;
+// missing/unsupported history is never inferred from the current board or a plan.
+function checklist(state){
+ const p=state?.profile?.before,thresholds=object(p)?p:null;
+ const t=state?.allocationVerified?2:thresholds?.t??null;
+ const z=state?.allocationVerified?(state.mandatoryZ?0:1):thresholds?.z??null;
+ return [
+  {label:'Two non-right T placements',complete:t===2,progress:t===null?'not confirmed':`${t}/2`},
+  {label:'Required non-right Z placement',complete:z===1,progress:z===null?'not confirmed':`${z}/1`},
+  {label:'Initial right-side Z cap',complete:state?.profile?.capEstablished===true},
+  {label:'First T-spin double',complete:state?.firstTsd===true}
+ ];
+}
 function transition(current,operation,context){return reduce(current,operation,context);}
 function projectTransition(current,operation,context){return reduce(current,operation,context,true);}
 function beginReset(current,options){return begin(current,options);}
 function beginProjectedReset(current,options){return begin(current,options,true);}
-return Object.freeze({ownProjection,projectTransitionOwned,resolveProjectionOwned,start,transition,projectTransition,beginReset,beginProjectedReset,resolve,resolveProjection,profileLost,exportState,importState,importProjection,predicates:Object.freeze({canonical,tsd,region,cap,quality})});
+return Object.freeze({checklist,ownProjection,projectTransitionOwned,resolveProjectionOwned,start,transition,projectTransition,beginReset,beginProjectedReset,resolve,resolveProjection,profileLost,exportState,importState,importProjection,predicates:Object.freeze({canonical,tsd,region,cap,quality})});
 });

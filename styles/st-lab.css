@@ -19,3 +19,6 @@ html{scrollbar-gutter:stable}body{margin:0;background:#222;color:#fff;font-famil
 #st-explorer{overflow-wrap:anywhere}#st-explorer summary{cursor:pointer}#st-explorer figure{margin:12px 0}#st-explorer figcaption{font-size:13px;margin-bottom:6px}.lab-explore-board{display:grid;grid-template-columns:repeat(10,12px);width:120px;border:1px solid #888}.lab-explore-board span{height:12px;box-sizing:border-box;border:1px solid #333}#st-explore-events{max-height:640px;overflow:auto}#st-explore-events>details{border-top:1px solid #666;padding:10px 0}#st-explorer button:disabled{opacity:.55;cursor:default}
 
 #st-error-reports{overflow-wrap:anywhere;border:1px solid #947844;padding:12px}#st-error-json{box-sizing:border-box;width:100%;font-family:monospace;resize:vertical}#st-error-reports label{display:block;margin:12px 0 6px}#st-error-latest{white-space:pre-wrap}#st-error-reports button:disabled{opacity:.55}
+
+/* Preserve checklist rows in both hover and keyboard-focus tooltips. */
+#st-phase[data-phase="opening"] #st-phase-detail{white-space:pre-line}

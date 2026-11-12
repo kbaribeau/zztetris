@@ -480,6 +480,7 @@
     const resetting=resources().reset?.status==='active';
     $('st-phase').dataset.phase=openingPhase?'opening':resetting?'reset':'maintenance';
     setText($('st-phase-name'),openingPhase?'Opening':resetting?'Reset':'Mid-game');
+    setText($('st-phase-detail'),openingPhase?STOpeningObligations.checklist(obligationContext.status==='available'?obligationContext.state.account:null).map(item=>`${item.complete?'✅':'❌'} ${item.label}${item.progress?' ('+item.progress+')':''}`).join('\n'):'Coaching session, not a Reset classifier or resource allowance.');
     setText($('st-phase-symbol'),openingPhase?'◌':'▦');
     $('st-phase-indicator').hidden=false;
     $('st-undo').disabled=!undoHistory.length;
