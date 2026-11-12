@@ -58,13 +58,13 @@ test('opening accounts: a later real TSD cannot erase the still-unpaid mandatory
 test('opening accounts: noncanonical Z clear is a debit, not payment, and cannot erase mandatory work',()=>{
  const a=recorded();a.lock(['L','L','L','HD']);a.lock(opening.steps[1].witness);
  const bad=lock(a.state,'Z',100,{event:{lines:1,clearedRows:[39]}});
- assert.equal(bad.state.mandatoryZ,true);assert.equal(bad.state.z.uncredited,'one');assert.equal(bad.state.opening,null);assert.equal(O.resolve(bad.state).openingAllocation.status,'out-of-profile');assert.ok(bad.effects.some(e=>e.status==='optional-Z-debited'));
- const paid=lock(bad.state,'Z',101);assert.equal(paid.state.mandatoryZ,false);assert.equal(paid.state.z.uncredited,'one');assert.equal(paid.state.z.remaining,null);assert.equal(O.resolve(paid.state).openingAllocation.status,'verified-first-tsd');assert.ok(paid.effects.some(e=>e.status==='opening-Z-paid'));
+ assert.equal(bad.state.mandatoryZ,true);assert.equal(bad.state.z.uncredited,1);assert.equal(bad.state.opening,null);assert.equal(O.resolve(bad.state).openingAllocation.status,'out-of-profile');assert.ok(bad.effects.some(e=>e.status==='optional-Z-debited'));
+ const paid=lock(bad.state,'Z',101);assert.equal(paid.state.mandatoryZ,false);assert.equal(paid.state.z.uncredited,1);assert.equal(paid.state.z.remaining,null);assert.equal(O.resolve(paid.state).openingAllocation.status,'verified-first-tsd');assert.ok(paid.effects.some(e=>e.status==='opening-Z-paid'));
 });
-test('opening accounts: optional Z permanently retires delayed quality but not verified allocation',()=>{
+test('opening accounts: optional Z preserves delayed quality and settles prior spending',()=>{
  const a=recorded();for(const i of [0,1])a.lock(opening.steps[i].witness);a.lock(['L','L','CW','HD']);
- assert.equal(a.state.opening,null);assert.equal(a.state.z.uncredited,'one');assert.ok(a.last.effects.some(e=>e.status==='quality-disqualified'));
- for(const i of [3,4])a.lock(opening.steps[i].witness);assert.equal(a.state.z.remaining,null);assert.equal(a.compare().openingAllocation.status,'verified-first-tsd');
+ assert.equal(a.state.opening.kind,'quality');assert.equal(a.state.z.uncredited,1);assert.equal(a.last.effects.some(e=>e.status==='quality-disqualified'),false);
+ for(const i of [3,4])a.lock(opening.steps[i].witness);assert.equal(a.state.z.remaining,0);assert.equal(a.compare().openingAllocation.status,'verified-first-tsd');
 });
 test('opening accounts: actual diverted Center debt invalidation cannot become delayed quality',()=>{
  const a=recorded();for(const i of [0,1,2])a.lock(opening.steps[i].witness);a.lock(['L','L','L','HD']);assert.equal(a.state.opening.kind,'quality');
@@ -169,11 +169,11 @@ test('opening accounts: actual imported X boards and more than four cleared rows
  const unknown=O.start();assert.deepEqual(lock(unknown,'J',1,{event:after.lastEvent,before:before.board,after:after.board,topOut:after.topOut}).state,unknown,'Unknown-origin historical diagnostics are outside the account slice');
  assert.throws(()=>lock(established(),'J',1,{event:{type:5}}),TypeError);
 });
-test('opening accounts: uncredited spending retains only its policy category, not a growing count',()=>{
+test('opening accounts: uncredited spending retains one exact counter rather than a growing history',()=>{
  let state=established();state.z.remaining=null;
- state=lock(state,'Z',1).state;assert.equal(state.z.uncredited,'one');assert.equal(O.profileLost(state),false);
- state=lock(state,'Z',2).state;assert.equal(state.z.uncredited,'multiple');assert.equal(O.profileLost(state),true);const expected=copy(state);
- for(let n=3;n<503;n++)state=lock(state,'Z',n).state;assert.deepEqual(state,expected);assert.equal(O.resolve(state).extraZ.status,'unknown');
+ state=lock(state,'Z',1).state;assert.equal(state.z.uncredited,1);assert.equal(O.profileLost(state),false);
+ state=lock(state,'Z',2).state;assert.equal(state.z.uncredited,2);assert.equal(O.profileLost(state),false);const keys=Object.keys(state.z);
+ for(let n=3;n<503;n++)state=lock(state,'Z',n).state;assert.equal(state.z.uncredited,502);assert.deepEqual(Object.keys(state.z),keys);assert.equal(O.resolve(state).extraZ.status,'unknown');
 });
 test('opening accounts: equivalent repeated account cycles have identical state and serialized size',()=>{
  let state=established(),expected=copy(state),bytes=JSON.stringify(state).length;
