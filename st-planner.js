@@ -1,6 +1,9 @@
 /* Milestone-one finite-information coach. No fixture IDs, seeds or hidden queues. */
 (function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules.js'),require('./st-bag.js'),require('./st-structure.js'),require('./st-paired-repair.js'),require('./st-access.js'),require('./st-pattern-history.js'),require('./st-left-foundation.js'),require('./st-obligation-resources.js'),require('./st-left-context.js'),require('./st-midgame-coaches.js'),require('./st-reset-coach.js'),require('./st-handoff-continuity.js'),require('./st-resource-provider.js'),require('./st-plan-continuity.js'),require('./st-left-routes.js')):factory(root.STRules,root.STBag,root.STStructure,root.STPairedRepair,root.STAccess,root.STPatternHistory,root.STLeftFoundation,root.STObligationResources,root.STLeftContext,root.STMidgameCoaches,root.STResetCoach,root.STHandoffContinuity,root.STResourceProvider,root.STPlanContinuity,root.STLeftRoutes);if(typeof module==='object'&&module.exports)module.exports=api;else root.STPlanner=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,B,S,X,A,H,Y,M,L,C,Reset,HC,Provider,PC,LR){
 'use strict';
+// Classic scripts capture dependencies at initialization. A mixed asset set
+// must fail explicitly rather than crashing later or silently dropping lookups.
+if(!LR||typeof LR.prepare!=='function')throw new Error('ST planner dependency STLeftRoutes.prepare is unavailable. Update the checkout/site and reload the ST lab to load matching assets.');
 const coaches=C.create(L);
 const clone=x=>JSON.parse(JSON.stringify(x));
 // Node annotations may be copied; immutable finite Resources keep their

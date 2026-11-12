@@ -659,5 +659,8 @@ immutable historical assets; after updating the checkout/site, reload the lab HT
 
 `st-worker-asset-version.test.cjs` checks the real page URLs and real classic worker
 imports using a minimized public empty-board request from the browser failure.
-The regression includes a missing-resource sensitivity check; no browser metadata
-or private diagnostics are committed.
+The regressions include missing-resource and missing-Left-route sensitivity checks
+and a minimized public request from the later Left-route failure. A missing
+`STLeftRoutes.prepare` binding now fails during initialization with reload/update
+guidance rather than a delayed `prepare` TypeError. Worker diagnostics record the
+loaded asset version. No browser metadata or private diagnostics are committed.

@@ -12,7 +12,7 @@ function workerFailure(error,stage){
     let detail;
     try{detail=typeof STDiagnostics!=='undefined'?STDiagnostics.serializeError(error):{name:'Error',message:String(error?.message||error),stack:String(error?.stack||'')};}
     catch{detail={name:'Error',message:'Unserializable worker error'};}
-    self.postMessage({type:'error',id:diagnosticRequest?.id,revision:diagnosticRequest?.observation?.revision,message:detail.message,error:detail,stage,diagnosticBuild:'st-worker-diagnostics-2026-11-08-v1',startupDiagnostic:!diagnosticRequest});
+    self.postMessage({type:'error',id:diagnosticRequest?.id,revision:diagnosticRequest?.observation?.revision,message:detail.message,error:detail,stage,diagnosticBuild:'st-worker-diagnostics-2026-11-08-v1',assetVersion:typeof STCoachConfig!=='undefined'?STCoachConfig.ASSET_VERSION:'unknown',startupDiagnostic:!diagnosticRequest});
   }catch(postError){try{console.error('Worker diagnostic could not be delivered',postError);}catch{}}
   finally{reportingFailure=false;}
 }

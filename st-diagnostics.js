@@ -62,7 +62,7 @@
       }catch{return null;}finally{busy=false;}
     }
     function captureWorker(data,context={}) {return report(data?.error||{name:'WorkerError',message:data?.message||'Worker failed'},
-      {...context,workerBuild:data?.diagnosticBuild||'unknown',workerStage:data?.stage||'unknown'});}
+      {...context,workerBuild:data?.diagnosticBuild||'unknown',workerStage:data?.stage||'unknown',workerAssetVersion:data?.assetVersion||'unknown'});}
     function install(target=host,context={}){
       if(!target.addEventListener)return;
       target.addEventListener('error',event=>{
