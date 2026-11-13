@@ -29,3 +29,19 @@ test('target geometry obeys hard shared budget and complete does not mean full e
  const only=LR.landingTargets(state,p=>p.event.cells.every(([x])=>x<4),{allowHold:false});
  assert.ok(only.targets.length);assert.ok(only.targets.length<LR.landingTargets(state,()=>true,{allowHold:false}).targets.length);
 });
+
+test('geometry does not reject a HOLD landing using the pre-HOLD next spawn',()=>{
+ const board=R.emptyBoard().map((row,y)=>y>=21?row.slice(0,6)+'X'+row.slice(7):row);
+ const state=R.createState({board,active:'Z',queue:['I','O','T']});
+ const played=R.replay(state,['HOLD','R','CW','HD']);
+ assert.equal(played.valid,true);assert.equal(played.state.topOut,false);
+ assert.equal(played.state.active.type,'O');
+ assert.deepEqual(played.events[0].target,{type:'I',x:4,y:17,rotation:1});
+ const geometry=LR.landingTargets(state,()=>true);
+ const target=geometry.targets.find(t=>t.type==='I'&&t.x===4&&t.y===17&&t.rotation===1&&t.spin==='none');
+ assert.ok(target,'held I must remain a candidate despite original queue head I colliding');
+ const result=R.targetedPlacements(state,[target]);
+ assert.ok(result.complete);assert.equal(result.placements.length,1);
+ assert.equal(result.placements[0].state.active.type,'O');assert.equal(result.placements[0].state.topOut,false);
+ assert.equal(R.replay(state,result.placements[0].witness).valid,true);
+});

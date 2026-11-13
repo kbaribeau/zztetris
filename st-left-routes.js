@@ -122,7 +122,11 @@
               if (classified === "mini") spins.push({ spin: "full", rotation: { ...evidence, kickIndex: 4 } });
             }
             for (const variant of spins) {
-              const after = R.move({ ...state, active: { ...pose, lastRotation: variant.rotation } }, "HD");
+              // This is geometry, not a particular HOLD/supply outcome. An empty
+              // queue avoids rejecting a held-piece landing because the original
+              // queue's (already consumed) head would collide at next spawn.
+              // Actual supply and spawn safety are checked by the replayed witness.
+              const after = R.move({ ...state, queue: [], active: { ...pose, lastRotation: variant.rotation } }, "HD");
               if (!after.lastEvent || after.topOut || !accept({ state: after, event: after.lastEvent })) continue;
               targets.push({ type, x, y, rotation, spin: variant.spin });
             }
