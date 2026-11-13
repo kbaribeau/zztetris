@@ -73,6 +73,7 @@ test('st-targeted/request cache reuses only completed exact scopes with independ
    [state,[{...targets[0],witness:original[0].witness}],{allowHold:false}],
    [state,targets,{allowHold:true}],
    [state,targets,{allowHold:false,search:false}],
+   [state,targets,{allowHold:false,directOnly:true}],
    [{...state,revision:state.revision+1},targets,{allowHold:false}],
    [{...state,queue:['I','T']},targets,{allowHold:false}],
    [{...state,active:{...state.active,x:4}},targets,{allowHold:false}],
@@ -94,5 +95,44 @@ test('st-targeted/request cache does not promote interrupted target proofs into 
   }
   const complete=R.targetedPlacements(state,[target(p)],{allowHold:false});assert.ok(complete.complete);
   assert.equal(R.targetedPlacements(state,[target(p)],{allowHold:false,maxNodes:0}).queryCached,true);
+ });
+});
+
+
+test('st-targeted/direct-only stops before inverse-kick templates and BFS',()=>{
+ const s=R.createState({active:'T',board:fixtures.cap.afterCap});
+ const tsd=R.placements(s,{allowHold:false}).placements.find(p=>p.event.lines===2&&p.event.spin==='full');assert.ok(tsd);
+ const direct=R.targetedPlacements(s,[target(tsd)],{allowHold:false,directOnly:true});
+ assert.equal(direct.complete,false);assert.equal(direct.placements.length,0);assert.equal(direct.fallbackNodes,0);
+ const inverse=R.targetedPlacements(s,[target(tsd)],{allowHold:false,search:false});
+ assert.equal(inverse.complete,true);assert.ok(inverse.visited>direct.visited);validateReplay(s,inverse);
+ const supplied=R.targetedPlacements(s,[{...target(tsd),witness:tsd.witness}],{allowHold:false,directOnly:true});
+ assert.equal(supplied.complete,true);assert.equal(supplied.placements.length,1);assert.equal(supplied.fallbackNodes,0);validateReplay(s,supplied);
+});
+test('st-targeted/direct-only respects moved active and blocked actual entry',()=>{
+ const s=R.createState({active:{type:'Z',x:6,y:25,rotation:1,lastRotation:null},queue:['O','I']});
+ const t={type:'Z',x:7,y:36,rotation:1,spin:'none',witness:['CW','R','R','R','R','HD']};
+ const moved=R.targetedPlacements(s,[t],{allowHold:false,directOnly:true});
+ assert.equal(moved.complete,true);assert.deepEqual(moved.placements[0].witness,['R','HD']);validateReplay(s,moved);
+ const board=R.emptyBoard();for(let y=20;y<40;y++)board[y]='.....#....';
+ const blocked=R.createState({board,active:{type:'O',x:1,y:28,rotation:0,lastRotation:null}});
+ const result=R.targetedPlacements(blocked,[{type:'O',x:7,y:37,rotation:0}],{allowHold:false,directOnly:true});
+ assert.equal(result.complete,false);assert.equal(result.placements.length,0);assert.equal(result.fallbackNodes,0);
+});
+test('st-targeted/direct-only cache cannot reuse a broader completed proof',()=>{
+ const state=R.createState({active:'T',board:fixtures.cap.afterCap});
+ const tsd=R.placements(state,{allowHold:false}).placements.find(p=>p.event.lines===2&&p.event.spin==='full');
+ R.withQueries(()=>{
+  assert.equal(R.targetedPlacements(state,[target(tsd)],{allowHold:false}).complete,true);
+  for(let i=0;i<2;i++){
+   const direct=R.targetedPlacements(state,[target(tsd)],{allowHold:false,directOnly:true});
+   assert.notEqual(direct.queryCached,true);assert.equal(direct.complete,false);assert.equal(direct.queryStatus,'unfinished');
+  }
+ });
+ const empty=R.createState({active:'Z'}),targets=[{type:'Z',x:7,y:36,rotation:1}];
+ R.withQueries(()=>{
+  assert.equal(R.targetedPlacements(empty,targets,{allowHold:false,directOnly:true}).complete,true);
+  assert.equal(R.targetedPlacements(empty,targets,{allowHold:false,directOnly:true,maxNodes:0}).queryCached,true);
+  assert.notEqual(R.targetedPlacements(empty,targets,{allowHold:false,maxNodes:0}).queryCached,true);
  });
 });

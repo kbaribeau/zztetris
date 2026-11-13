@@ -148,7 +148,7 @@ function targetedPlacements(s,targets,options={}){
  // Never reuse a broad enumeration or a different HOLD/search policy here.
  // Budgets are work limits: a completed fact can be reused without more work,
  // including under a zero remaining budget, just like placements().
- const input={state:s,targets,allowHold:options.allowHold!==false,search:options.search!==false};
+ const input={state:s,targets,allowHold:options.allowHold!==false,search:options.search!==false,directOnly:options.directOnly===true};
  const result=query('targetedPlacements',input,options,()=>targetedPlacementsCore(s,targets,options));
  return result.queryCached?{...result,directCount:0,fallbackNodes:0}:result;
 }
@@ -220,6 +220,9 @@ function targetedPlacementsCore(s,targets,options={}){
    if(!complete)return result();
   }
  }
+ // Canonical templates must not silently expand into rotation/path search.
+ // Unmatched feasible targets remain unresolved, not proven inaccessible.
+ if(options.directOnly===true){complete=!jobs.some(j=>j.remaining.length);return result();}
  // A tuck/spin has a finite set of inverse-kick predecessor poses. Verify the
  // final kick geometrically first, then replay a simple descent to that pose.
  // This avoids a movement flood for canonical right TSDs without inventing

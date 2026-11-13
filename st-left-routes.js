@@ -100,6 +100,15 @@
         types.add(next.active?.type); current = next;
       }
     }
+    const center = options.centerTemplates ? S.centerTargets(state.board, options.notches) : null;
+    if (center) for (const target of center) {
+      if (!types.has(target.type) || options.types && !options.types.includes(target.type)) continue;
+      if (visited >= maxNodes || now() >= deadline) return { targets, visited, complete: false };
+      visited++;
+      const played = R.replay(R.createState({ board: state.board, active: target.type, canHold: false }), target.witness);
+      if (played.valid && played.events.length === 1 && accept({ state: played.state, event: played.events[0] }))
+        targets.push({ ...target, centerTemplate: true });
+    }
     const supports = Array.from({ length: 10 }, (_, x) =>
       [40, ...state.board.flatMap((row, y) => row[x] !== "." && (y === 0 || state.board[y - 1][x] === ".") ? [y] : [])]);
     for (const type of types) {
@@ -110,6 +119,9 @@
         // Only a bottommost mino in a shape column can contact its support.
         const bottom = offsets.filter(([dx, dy]) => !offsets.some(([x, y]) => x === dx && y > dy));
         for (let x = -lo; x < 10 - hi; x++) {
+          // Canonical Center has a finite construction grammar. Cross-region
+          // placements and unknown Center shapes keep the ordinary inventory.
+          if (center && x + lo >= 4 && x + hi <= 6) continue;
           const ys = new Set(bottom.flatMap(([dx, dy]) => supports[x + dx].map(y => y - dy - 1)));
           for (const y of ys) {
             if (visited >= maxNodes || now() >= deadline) return { targets, visited, complete: false };

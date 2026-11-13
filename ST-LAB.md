@@ -701,3 +701,21 @@ simulator. After the lock, the next decision plans afresh. Opening and active
 Reset decisions do not use this lane. `test/st-immediate-maintenance.test.cjs`
 covers the M01 pending-L cap, a recorded full TSD, obligation/Undo preservation,
 retention, budget limits and scope exclusions without simulated cohorts.
+
+### Targeted Center construction
+
+Lookup-directed maintenance search generates known Center destinations from the
+recognized modular construction stage, rather than probing every Center support
+pose. Actual active/HOLD roots replay straight-drop templates or the existing
+J-first/Z-second slide-under template. These Center requests stop before inverse
+kick exploration or movement BFS; literal replay, notch, supply and obligation
+checks still apply. Cross-region targets retain normal reachability checks.
+Unknown/advanced partial Center shapes (including OSIO) retain ordinary target
+inventory. A blocked/moved-pose template falls back to the separate full
+placement query, never certifying failure or poisoning its cache.
+
+This optimizes the existing narrow lookup-directed path, not every planner
+query. Root enumeration and broad/preview-delayed route search still use the
+full placement query so that repairs, competing moves and reusable enumeration
+facts are preserved. Direct Center target completeness is only completeness of
+that named target set, not all possible moves.

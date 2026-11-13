@@ -1258,12 +1258,19 @@ function planCore(raw,options={}){
  const rootRoutePieces=[initial.state.active?.type];
  if(options.allowHold!==false){let q=initial.state;for(let i=0;i<2;i++){const next=R.move(q,'HOLD');if(next===q||next.topOut)break;rootRoutePieces.push(next.active?.type);q=next;}}
  const narrowLookup=initial.leftRoutes?.routes.length&&initial.leftRoutes.routes.every(r=>r.pieces.length===1)&&initial.leftRoutes.routes.some(r=>rootRoutePieces.includes(r.pieces[0]));
- const enumerate=(state,routeProgress=null)=>{const remaining=searchLimit-base.metrics.nodes;if(remaining<=0||now()>=searchDeadline){stopped=true;return{placements:[],complete:false};}
+ const enumerate=(state,routeProgress=null,notches)=>{const remaining=searchLimit-base.metrics.nodes;if(remaining<=0||now()>=searchDeadline){stopped=true;return{placements:[],complete:false};}
  let r;
 
  if(routeProgress&&narrowLookup&&!routeProgress.some(p=>p.complete)&&options.targetKnownLandings!==false){
-  const targets=LR.landingTargets(state,p=>ordinaryRightEligible(p.event)&&S.canonicalClear(p.event)&&LR.permits(initial.leftRoutes,routeProgress,state,p),{allowHold:options.allowHold!==false,maxNodes:remaining,deadline:searchDeadline,now});
-  const reached=targets.complete?R.targetedPlacements(state,targets.targets,{allowHold:options.allowHold!==false,maxNodes:Math.max(0,remaining-targets.visited),deadline:searchDeadline,now}):{placements:[],visited:0,complete:false};
+  const targets=LR.landingTargets(state,p=>ordinaryRightEligible(p.event)&&S.canonicalClear(p.event)&&LR.permits(initial.leftRoutes,routeProgress,state,p),{allowHold:options.allowHold!==false,maxNodes:remaining,deadline:searchDeadline,now,centerTemplates:true,notches});
+  const center=targets.targets.filter(t=>t.centerTemplate),other=targets.targets.filter(t=>!t.centerTemplate);
+  const direct=targets.complete?R.targetedPlacements(state,center,{allowHold:options.allowHold!==false,directOnly:true,maxNodes:Math.max(0,remaining-targets.visited),deadline:searchDeadline,now}):{placements:[],visited:0,complete:false};
+  // A failed template is not an unreachable placement. Fall back to the FULL
+  // ordinary query, with its separate cache, rather than searching center spins
+  // or caching this restricted inventory as complete whole-board enumeration.
+  const rest=direct.complete?R.targetedPlacements(state,other,{allowHold:options.allowHold!==false,maxNodes:Math.max(0,remaining-targets.visited-direct.visited),deadline:searchDeadline,now}):R.placements(state,{allowHold:options.allowHold!==false,maxNodes:Math.max(0,remaining-targets.visited-direct.visited),deadline:searchDeadline,now});
+  const reached={...rest,placements:direct.complete?[...direct.placements,...rest.placements]:rest.placements,visited:direct.visited+rest.visited,directCount:(direct.directCount||0)+(rest.directCount||0),fallbackNodes:rest.fallbackNodes||0};
+  const cm=base.metrics.centerTemplates||(base.metrics.centerTemplates={queries:0,targets:0,direct:0,fallbacks:0});cm.queries++;cm.targets+=center.length;cm.direct+=direct.directCount||0;cm.fallbacks+=Number(!direct.complete);
   r={...reached,visited:targets.visited+reached.visited};
   const m=base.metrics.targetedLandings||(base.metrics.targetedLandings={queries:0,targets:0,geometryNodes:0,direct:0,fallbackNodes:0});
   m.queries++;m.targets+=targets.targets.length;m.geometryNodes+=targets.visited;m.direct+=reached.directCount||0;m.fallbackNodes+=reached.fallbackNodes||0;
@@ -1548,7 +1555,7 @@ function planCore(raw,options={}){
     if(trace){trace.record('layer','contour-route',()=>({depth,complete:!stopped,width,candidates:lane.length,retained:retained.length}));for(const n of lane)trace.candidate('contour-route',n,retained.includes(n)?'beam-retained':'beam-pruned',{depth,routeProgress:n.leftRoutes});}
     for(const n of retained){
      if(!n.state.active)continue;routeMetrics.expanded++;
-     const enumerated=enumerate(n.state,n.leftRoutes);
+     const enumerated=enumerate(n.state,n.leftRoutes,n.notches);
      for(const p of enumerated.placements){const child=candidateNode(p,n,n.rootIndex);if(!child?.leftRoutes.length)continue;const key=nodeKey(child),prior=next.get(key);if(!prior||LR.compare(child.leftRoutes,prior.leftRoutes)<0||LR.compare(child.leftRoutes,prior.leftRoutes)===0&&compare(child,prior)<0)next.set(key,child);}
      if(stopped)break;
     }

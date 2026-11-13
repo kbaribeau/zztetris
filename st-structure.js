@@ -354,6 +354,30 @@ function geometry(board,options={}){const notches=options.notches??notchPattern(
  const g={frontierDebt,scoringRowDebt,left:{profile:left,flat:flatLeft,roughness:rough(left),covered:leftInternal,horizontalI:flatLeft?{status:'straight-drop-platform',columns:[1,2,3,4]}:null,completions:leftCompletions},center:{foundation:centerFoundation(board,notches),profile:center,status:centerStatus,motif,patternSupport:motifSupported?'reference-supported':'unrecognized',coveredInternal:centerInternal,sealedVoids:centerInternal,coveredCavities:covered(board,[4,5,6],h),completionDebt:centerStatus==='unrecognized'?1:0,completions:centerCompletions},right:{profile:right,shapeStatus:rightShape,cycle,renewalDebt,reservoir:capReservoir(board,h),completions:rightShape==='cap-preparation'?capCompletions(board):[]},supportEstimate:(flatLeft?2:0)-rough(left)*1.5-leftInternal*8+(motifSupported?(flatCenter?4:2):centerCompletions.some(c=>c.patternSupport==='reference-supported')?0:-8)-centerInternal*6-renewalDebt*6-frontierDebt*4-scoringRowDebt*3,uncertainty:rightShape==='unrecognized'||centerStatus==='unrecognized'||!motifSupported};
  if(cache.size>=2048)cache.clear();cache.set(key,g);return g;
 }
+// Known Center construction destinations. Translation comes from the live
+// skyline; movement templates contain no movement-tree/spin enumeration. The
+// caller must still replay each template against the actual active/HOLD roots.
+// null means unknown geometry, not an empty set of legal Center moves.
+let centerTargetCache=new WeakMap();
+function centerTargets(board,notches=notchPattern(board)){
+ const g=geometry(board,{notches});
+ if(g.center.status==='unrecognized'||g.center.patternSupport!=='reference-supported'||g.center.foundation.status!=='aligned')return null;
+ if(centerTargetCache.has(g))return centerTargetCache.get(g);
+ const candidates=[...localDrops(board,4,6,'SLOJZ'),...g.center.completions];
+ const targets=[],seen=new Set();
+ for(const c of candidates){
+  const source=R.createState({board,active:c.piece,canHold:false}),played=R.replay(source,c.witness);
+  if(!played.valid||played.events.length!==1||played.events[0].lines||played.state.topOut)continue;
+  const p={state:played.state,event:played.events[0]},phase=advanceNotches(board,p,notches);
+  if(!phase.valid)continue;
+  const nextBoard=p.state.board;
+  if(centerFoundation(nextBoard,phase.pattern).status!=='aligned'||
+   !CENTER_MOTIFS.has(centerMotif(nextBoard))&&!reversedZJCompletion(nextBoard,phase.pattern,heights(nextBoard)))continue;
+  const key=JSON.stringify([c.piece,c.cells.slice().sort()]);if(seen.has(key))continue;seen.add(key);
+  targets.push({type:c.piece,cells:c.cells.map(v=>v.slice()),spin:'none',witness:c.witness.slice()});
+ }
+ centerTargetCache.set(g,targets);return targets;
+}
 function instances(state){const out=[];if(state.active)out.push({id:'active',piece:state.active.type,source:'active',available:'now'});if(state.hold)out.push({id:'hold',piece:state.hold,source:'hold',available:state.canHold?'hold-now':'after-next-lock'});(state.queue||[]).forEach((piece,i)=>out.push({id:'queue:'+i,piece,source:'visible',drawOffset:i+1,available:'when-drawn'}));if(state.bag){const p=B.forcedNext(state.bag);if(p)out.push({id:'forced-next',piece:p,source:'forced-beyond-preview',available:'after-preview'});}return out;}
 function allocate(obligations,supply){
  const weight=o=>o.priority==='essential'?100:o.kind==='left-surface'?1:10;
@@ -421,5 +445,5 @@ function transition(before,p,afterStructure,options={}){const beforeNotches=opti
  const reason=allocation==='horizontal-left-I'?'Keep the left region flat.':allocation==='center-partner-preparation'?partner?'Start the ordered '+type+'/'+partner.piece+' center pair.':'Prepare the center; no ordered level-finishing pair has been established.':allocation==='center-completion'?'Complete the center pattern.':allocation==='scoring-double'?'Take the T-spin double and assess its rebuild.':allocation==='scoring-T-diversion'?'Diverts a T from the scoring role; another T may remain, but its timely use is not established.':allocation==='quad-preparation'?'Prepare the right-side I cleanup while keeping column eight open.':allocation==='quad-cleanup'?'Clear the scoring channel with a quad.':allocation==='unrecognized-role'?'This allocation needs additional regional repair evidence.':allocation==='right-cap-extension'?'Extends an existing cap; renewed entry still needs checking.':'Preserve a supported regional piece role.';
  return{reason,cycleViolations,pairFamily,pairProgress,pairEvidence:pairFamily?'ordered actual preparation plus checked level-finishing placement':null,opportunityCost,leftSubstitutes:substitutes,regions,crossRegion:regions.length>1,allocation,status:['unrecognized-role','scoring-T-diversion','right-cap-extension'].includes(allocation)?'requires-repair-evidence':'supported-local-role',dependencyDebt:debt,newlyCovered,regionalRepair,repairCredit:Math.min(8,repaired*2),note:'Crossing a boundary is not forbidden. Debt measures unsupported allocation and new structural repair burden; a later checked repair may repay it.'};
 }
-return Object.freeze({leftSurface,assess,transition,geometry,cavityFacts,cavityRepairDebt,instances,allocate,canonicalClear,centerFoundation,centerLevelBase,notchPattern,advanceNotches,supportedCenterCompletion,CENTER_PAIRS,centerPairFamily,centerPairCompletion,leftSubstitutes,clearCache:()=>{cache.clear();substituteCache.clear();}});
+return Object.freeze({leftSurface,assess,transition,geometry,cavityFacts,cavityRepairDebt,instances,allocate,canonicalClear,centerTargets,centerFoundation,centerLevelBase,notchPattern,advanceNotches,supportedCenterCompletion,CENTER_PAIRS,centerPairFamily,centerPairCompletion,leftSubstitutes,clearCache:()=>{cache.clear();substituteCache.clear();centerTargetCache=new WeakMap();}});
 });
