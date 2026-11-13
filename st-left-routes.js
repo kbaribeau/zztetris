@@ -2,11 +2,11 @@
  * admission proof. Progress is earned only by the planner's emitted locks. */
 (function (root, factory) {
   const api = typeof module === "object" && module.exports
-    ? factory(require("./st-left-dependencies"), require("./st-left-contours"), require("./st-structure"))
-    : factory(root.STLeftDependencies, root.STLeftContours, root.STStructure);
+    ? factory(require("./st-left-dependencies"), require("./st-left-contours"), require("./st-structure"), require("./st-rules"))
+    : factory(root.STLeftDependencies, root.STLeftContours, root.STStructure, root.STRules);
   if (typeof module === "object" && module.exports) module.exports = api;
   else root.STLeftRoutes = api;
-})(typeof globalThis !== "undefined" ? globalThis : this, function (D, C, S) {
+})(typeof globalThis !== "undefined" ? globalThis : this, function (D, C, S, R) {
   "use strict";
   const contourKey = state => C.key(S.leftSurface.heights(state.board));
   const profiles = new Map(C.catalog.map(c => [c.id, c.key]));
@@ -84,6 +84,66 @@
     }
     return next;
   }
+  // Geometry selects possible destinations only. No synthetic pose below is
+  // returned as playable: targetedPlacements must replay a real input witness.
+  // Support-cell candidates include buried tucks, not only skyline hard drops.
+  function landingTargets(state, accept, options = {}) {
+    const now = options.now || (() => Date.now()), deadline = options.deadline ?? Infinity;
+    const maxNodes = options.maxNodes ?? Infinity, targets = [];
+    let visited = 0;
+    const types = new Set([state.active?.type]);
+    if (options.allowHold !== false) {
+      let current = state;
+      for (let i = 0; i < 2; i++) {
+        const next = R.move(current, "HOLD");
+        if (next === current || next.topOut) break;
+        types.add(next.active?.type); current = next;
+      }
+    }
+    const supports = Array.from({ length: 10 }, (_, x) =>
+      [40, ...state.board.flatMap((row, y) => row[x] !== "." && (y === 0 || state.board[y - 1][x] === ".") ? [y] : [])]);
+    for (const type of types) {
+      if (!type || options.types && !options.types.includes(type)) continue;
+      for (let rotation = 0; rotation < 4; rotation++) {
+        const offsets = R.cells({ type, x: 0, y: 0, rotation });
+        const lo = Math.min(...offsets.map(c => c[0])), hi = Math.max(...offsets.map(c => c[0]));
+        for (let x = -lo; x < 10 - hi; x++) {
+          const ys = new Set(offsets.flatMap(([dx, dy]) => supports[x + dx].map(y => y - dy - 1)));
+          for (const y of ys) {
+            if (visited >= maxNodes || now() >= deadline) return { targets, visited, complete: false };
+            visited++;
+            const pose = { type, x, y, rotation, lastRotation: null };
+            if (!R.fits(state.board, pose) || R.fits(state.board, { ...pose, y: y + 1 })) continue;
+            const spins = [{ spin: "none", rotation: null }];
+            if (type === "T") {
+              const evidence = { from: (rotation + 3) % 4, to: rotation, kickIndex: 0 };
+              const classified = R.spin(state.board, { ...pose, lastRotation: evidence });
+              if (classified !== "none") spins.push({ spin: classified, rotation: evidence });
+              if (classified === "mini") spins.push({ spin: "full", rotation: { ...evidence, kickIndex: 4 } });
+            }
+            for (const variant of spins) {
+              const after = R.move({ ...state, active: { ...pose, lastRotation: variant.rotation } }, "HD");
+              if (!after.lastEvent || after.topOut || !accept({ state: after, event: after.lastEvent })) continue;
+              targets.push({ type, x, y, rotation, spin: variant.spin });
+            }
+          }
+        }
+      }
+    }
+    return { targets, visited, complete: true };
+  }
+  function permits(root, progress, before, placement) {
+    // Resource-identity filtering remains in advance after a witnessed lock.
+    // This prefilter must be a superset of all progress-preserving landings.
+    const from = contourKey(before), to = contourKey(placement.state), e = placement.event;
+    if (progress.some(p => p.complete)) return true;
+    return progress.some(p => {
+      const route = root.routes.find(r => r.id === p.routeId);
+      if (!route || route.stages[p.index] !== from) return false;
+      return e.cells.every(([x]) => x >= 4) ? from === to :
+        e.type === route.pieces[p.index] && to === route.stages[p.index + 1];
+    });
+  }
   function signatures(progress) {
     return progress.map(p => JSON.stringify([p.routeId, p.index, p.complete])).sort();
   }
@@ -97,5 +157,5 @@
     const ar = rank(a), br = rank(b);
     return br[0] - ar[0] || br[1] - ar[1];
   }
-  return Object.freeze({ prepare, start, advance, signatures, key, rank, compare });
+  return Object.freeze({ prepare, start, advance, landingTargets, permits, signatures, key, rank, compare });
 });

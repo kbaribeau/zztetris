@@ -1251,7 +1251,16 @@ function planCore(raw,options={}){
  };
  s=extendForced(s);
  if(trace)trace=trace.start('ordinary',observe(s));
- const enumerate=state=>{const remaining=searchLimit-base.metrics.nodes;if(remaining<=0||now()>=searchDeadline){stopped=true;return{placements:[],complete:false};}const r=R.placements(state,{allowHold:options.allowHold!==false,maxNodes:remaining,deadline:searchDeadline,now});base.metrics.nodes+=r.visited;if(!r.complete)stopped=true;r.placements=r.placements.filter(p=>ordinaryRightEligible(p.event));const priorGeometry=S.geometry(state.board),caps=priorGeometry.right.completions;const sameCells=(a,b)=>a.length===b.length&&a.every(([x,y])=>b.some(([u,v])=>x===u&&y===v));const availableCap=r.placements.some(p=>p.event.type==='Z'&&caps.some(c=>sameCells(p.event.cells,c.cells)));for(const p of r.placements)p.availableCap=availableCap;
+ const enumerate=(state,routeProgress=null)=>{const remaining=searchLimit-base.metrics.nodes;if(remaining<=0||now()>=searchDeadline){stopped=true;return{placements:[],complete:false};}
+ let r;
+ if(routeProgress&&!routeProgress.some(p=>p.complete)&&options.targetKnownLandings!==false){
+  const targets=LR.landingTargets(state,p=>ordinaryRightEligible(p.event)&&S.canonicalClear(p.event)&&LR.permits(initial.leftRoutes,routeProgress,state,p),{allowHold:options.allowHold!==false,maxNodes:remaining,deadline:searchDeadline,now});
+  const reached=targets.complete?R.targetedPlacements(state,targets.targets,{allowHold:options.allowHold!==false,maxNodes:Math.max(0,remaining-targets.visited),deadline:searchDeadline,now}):{placements:[],visited:0,complete:false};
+  r={...reached,visited:targets.visited+reached.visited};
+  const m=base.metrics.targetedLandings||(base.metrics.targetedLandings={queries:0,targets:0,geometryNodes:0,direct:0,fallbackNodes:0});
+  m.queries++;m.targets+=targets.targets.length;m.geometryNodes+=targets.visited;m.direct+=reached.directCount||0;m.fallbackNodes+=reached.fallbackNodes||0;
+ }else r=R.placements(state,{allowHold:options.allowHold!==false,maxNodes:remaining,deadline:searchDeadline,now});
+ base.metrics.nodes+=r.visited;if(!r.complete)stopped=true;r.placements=r.placements.filter(p=>ordinaryRightEligible(p.event));const priorGeometry=S.geometry(state.board),caps=priorGeometry.right.completions;const sameCells=(a,b)=>a.length===b.length&&a.every(([x,y])=>b.some(([u,v])=>x===u&&y===v));const availableCap=r.placements.some(p=>p.event.type==='Z'&&caps.some(c=>sameCells(p.event.cells,c.cells)));for(const p of r.placements)p.availableCap=availableCap;
  // The cap must not seal a currently executable outer-I cleanup preparation.
  // Establish both placements from actual supply; a geometric I silhouette or
  // a hypothetical future Z is insufficient to constrain another root move.
@@ -1531,7 +1540,7 @@ function planCore(raw,options={}){
     if(trace){trace.record('layer','contour-route',()=>({depth,complete:!stopped,width,candidates:lane.length,retained:retained.length}));for(const n of lane)trace.candidate('contour-route',n,retained.includes(n)?'beam-retained':'beam-pruned',{depth,routeProgress:n.leftRoutes});}
     for(const n of retained){
      if(!n.state.active)continue;routeMetrics.expanded++;
-     const enumerated=enumerate(n.state);
+     const enumerated=enumerate(n.state,n.leftRoutes);
      for(const p of enumerated.placements){const child=candidateNode(p,n,n.rootIndex);if(!child?.leftRoutes.length)continue;const key=nodeKey(child),prior=next.get(key);if(!prior||LR.compare(child.leftRoutes,prior.leftRoutes)<0||LR.compare(child.leftRoutes,prior.leftRoutes)===0&&compare(child,prior)<0)next.set(key,child);}
      if(stopped)break;
     }
@@ -2659,7 +2668,15 @@ function immediateMaintenance(raw,options={},onlyWitness=null){
  const available=[state.active.type,...(options.allowHold===false?[]:[state.hold,...(!state.hold?[state.queue[0]]:[])])];
  if(!available.includes('T')&&!(available.includes('Z')&&geometry.right.completions.length))return finish(null);
  telemetry.attempted=true;
- const enumeration=R.placements(state,{allowHold:options.allowHold!==false,maxNodes:limit,deadline,now});telemetry.nodes+=enumeration.visited;
+ const sameCap=(cells,cap)=>cells.length===cap.cells.length&&cells.every(([x,y])=>cap.cells.some(([u,v])=>x===u&&y===v));
+ const targets=LR.landingTargets(state,p=>
+  p.event.type==='Z'&&!p.event.lines&&geometry.right.completions.some(cap=>sameCap(p.event.cells,cap))||
+  p.event.type==='T'&&p.event.spin==='full'&&p.event.lines===2&&S.canonicalClear(p.event)||
+  p.event.type==='I'&&geometry.right.cycle.prepareColumn!==null&&p.event.cells.every(([x])=>x===geometry.right.cycle.prepareColumn),
+  {types:['Z','T','I'],allowHold:options.allowHold!==false,maxNodes:limit,deadline,now});
+ const enumeration=targets.complete?R.targetedPlacements(state,targets.targets,{allowHold:options.allowHold!==false,maxNodes:Math.max(0,limit-targets.visited),deadline,now}):{placements:[],visited:0,complete:false};
+ telemetry.nodes+=targets.visited+enumeration.visited;
+ telemetry.targetedLandings={targets:targets.targets.length,geometryNodes:targets.visited,direct:enumeration.directCount||0,fallbackNodes:enumeration.fallbackNodes||0};
  // Complete enumeration establishes whether an executable cleanup I must be
  // preserved before a cap. A partial scan is not evidence that no I exists.
  if(!enumeration.complete||now()>=deadline){reject('incomplete-root-enumeration');return finish(null);}
@@ -2688,7 +2705,14 @@ function immediateMaintenance(raw,options={},onlyWitness=null){
   if(A.newlyCovered(state.board,p.state.board,event,node.notches).length||node.coveredRepairDebt.length>(summary.coveredRepair?.cells?.length||0)){reject('new-covered-cells');continue;}
   // The Z roof must retain an actual geometric/SRS T entry. This checks one
   // hypothetical T placement only; it promises neither T supply nor a plan.
-  let entry=null;if(cap){entry=R.tDoubleAccess(p.state.board,{deadline,now,maxNodes:Math.max(0,limit-telemetry.nodes)});telemetry.nodes+=entry.visited||0;if(entry.reachable!==true){reject('cap-T-entry-unverified');continue;}}
+  let entry=null;if(cap){
+   const hypothetical=R.createState({board:p.state.board,active:'T',canHold:false});
+   const tTargets=LR.landingTargets(hypothetical,q=>q.event.type==='T'&&q.event.spin==='full'&&q.event.lines===2&&S.canonicalClear(q.event),{allowHold:false,maxNodes:Math.max(0,limit-telemetry.nodes),deadline,now});telemetry.nodes+=tTargets.visited;
+   const direct=tTargets.complete?R.targetedPlacements(hypothetical,tTargets.targets,{allowHold:false,search:false,maxNodes:Math.max(0,limit-telemetry.nodes),deadline,now}):{placements:[],visited:0};telemetry.nodes+=direct.visited;
+   if(direct.placements.length){const q=direct.placements[0];entry={reachable:true,witness:q.witness,event:q.event,visited:tTargets.visited+direct.visited,complete:true};}
+   else{entry=R.tDoubleAccess(p.state.board,{deadline,now,maxNodes:Math.max(0,limit-telemetry.nodes)});telemetry.nodes+=entry.visited||0;}
+   if(entry.reachable!==true){reject('cap-T-entry-unverified');continue;}
+  }
   if(now()>=deadline||telemetry.nodes>limit)break;
   const step={target:event.target,witness:witness.slice(),event:clone(event),hold:witness.includes('HOLD'),holdCount:witness.filter(a=>a==='HOLD').length,resultContext:context(p.state)};
   const kind=cap?'right-Z-cap':'T-spin-double',claim='Immediate placement checked; follow-up remains to be planned.';

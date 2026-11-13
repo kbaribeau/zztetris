@@ -74,3 +74,21 @@ window. Publication needs current authorization, intended paths only, remote
 advancement checks and a non-forcing update; verify the resulting remote tree
 and applicable CI. Distinguish accepted, rejected, incomplete, blocked and
 not-run work. Local commits alone are not publication.
+
+### Targeted known landings
+
+The planner's recorded-Left-route lane generates grounded target poses matching
+its current contour stage before asking the rules kernel for witnesses. The
+canonical immediate Right lane similarly requests only cap Z, full right TSD,
+and competing cleanup-I targets. Geometry is not a reachability certificate:
+`STRules.targetedPlacements` replays direct templates from each actual HOLD
+supply state, then uses bounded targeted reachability for unresolved spins or
+blocked starts. Its `complete` flag covers only the requested targets, not all
+possible moves. The ordinary fallback still enumerates uncatalogued options.
+
+The geometric prefilter must retain all progress-compatible target/spin/supply
+outcomes. Resource identities, notch/access checks and admission remain separate
+and unchanged. Metrics record geometric work, direct witnesses and fallback
+nodes; the work is charged to the existing shared budget. A direct witness
+checks inputs but avoids exploring a movement tree. No path can be accepted only
+because a contour or target matches.
