@@ -15,3 +15,5 @@ Keep this file for knowledge useful to almost every future agent session in this
 Do not repeat what the codebase already shows; point to the authoritative file or command instead.
 Prefer rewriting or pruning existing entries over appending new ones.
 When updating this file, preserve this bar for all agents and keep entries concise.
+
+When reporting multiple ST simulations, follow the [abstention versus budget reporting contract](docs/st-simulation.md#reporting-abstentions-versus-search-budgets): distinguish terminal stops from per-decision exhaustion, with explicit denominators and unknown coverage.

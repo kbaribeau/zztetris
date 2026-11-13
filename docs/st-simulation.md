@@ -354,3 +354,40 @@ Interrupted child recovery reports only retained decision rows and labels the
 counts `retained-prefix`; the pending interrupted root may be absent. Missing
 instrumentation is unavailable, never a measured zero. No browser UI or planning
 policy is changed by this evaluator metric.
+
+## Reporting abstentions versus search budgets
+
+Every multi-run report must separate **terminal run outcomes** from **per-decision
+search budget observations**, using explicit counts and denominators. An abstention
+means the dispatcher returned no recommendation. It may be budget-limited or may
+report no exhaustion. A recommendation can also arrive after budget exhaustion.
+Neither category alone says that no playable continuation exists.
+
+`summary.outcomes` (schema 1) cross-tabulates returned dispatcher decisions by
+recommendation/abstention and exhaustion reported/not-reported/unknown, including
+the final abstention. `decisionOutcome` on trace records preserves the per-decision
+classification. `not-reported` requires an explicit false budget flag; absent
+legacy flags remain unknown. The legacy `budgetHits` counter counts only executed
+recommendations and must NOT be used as total budget exhaustion or terminal stops.
+
+Report each run's stop category: budget-reported abstention, explicit-no-exhaustion
+abstention, unknown-budget abstention, top-out, invalid recommendation, planner or
+execution error, VM watchdog, episode watchdog, and lock/phase caps. Do not pool
+watchdogs with normal planner abstentions. Incomplete/legacy runs lacking these
+metrics have unknown decision coverage, never zero exhaustion.
+
+State revision, start cohort, host, serial/parallel mode, decision time and node
+budgets, width/depth, nested limits, VM/episode watchdogs, lock and line caps.
+Node/time threshold observations can overlap; they are evidence of a reached
+threshold, not an exclusive or causal stop reason. `searchIncomplete` is separate.
+The final flag may summarize truncated enumeration or a nested proof budget even
+when the outer deadline was not reached. Inspect raw evidence before attributing
+it to CPU time; distinguish outer time, node, nested proof, and undetermined limits.
+Never infer an exhaustive search from a fast abstention or an explicit false flag:
+only report completeness where that exact supported search actually certifies it.
+
+Prioritize profiling/optimization when budget-limited stops dominate, but inspect
+node and nested limits rather than assuming a faster CPU alone fixes them. Use
+human review packets for supported-search failures without reported exhaustion,
+while treating incomplete or unknown searches as unproven. A single profile is
+not a new cohort rate, and differently budgeted/hosted runs are not paired evidence.

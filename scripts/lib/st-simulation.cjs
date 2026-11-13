@@ -17,6 +17,7 @@ const PlanContinuity = require('../../st-plan-continuity');
 const LeftPlan = require('../../st-left-plan');
 const Tracking = require('../../st-obligation-tracking');
 const TrackingMetrics = require('./st-tracking-metrics.cjs');
+const Outcomes = require('./st-outcome-metrics.cjs');
 const F = require('../../st-fixtures');
 const LS = require('./st-left-shape-metrics.cjs');
 const CE = require('./st-coach-entry-metrics.cjs');
@@ -239,6 +240,7 @@ function runEpisode(input, {config=CONFIG, planner=workerPlanner({disableSearchT
   validatePhaseCap(input);
   const session=createSession(input,api), started=performance.now();
   const summary={schemaVersion:1,scenario:input.scenario,seed:input.seed,inputHash:input.inputHash,cap:input.locks,config,stop:'lock-cap',censored:true,locks:0,lines:0,tsds:0,quads:0,invalidRecommendations:0,budgetHits:0,firstTsdAt:null,firstQuadAt:null,rebuildAfterTsdEvents:0,holds:0,nodes:0,peakHeight:boardMetrics(session.state).height,profile:[],latencies:[]};
+  summary.outcomes=Outcomes.create();
   if(input.phaseCap)summary.phaseCap=clone(input.phaseCap);
   summary.reset={starts:[],completions:[],firstCompletion:null,postFirstLines:null,postFirstLocks:null,intervals:[]};
   session.onObligationEffect(({effects,lock,lines})=>{
@@ -269,13 +271,14 @@ function runEpisode(input, {config=CONFIG, planner=workerPlanner({disableSearchT
     try {const t=performance.now();advice=planner(request);elapsedMs=performance.now()-t;}
     catch(error){stop(error.code==='ERR_SCRIPT_EXECUTION_TIMEOUT'?'planner-timeout':'planner-error',error.message);record({kind:'stop',lock,request,leftLookup,error:summary.detail});break;}
     summary.latencies.push(elapsedMs);
+    const decisionOutcome=Outcomes.add(summary.outcomes,Outcomes.decision(advice,config));
     // The final dispatcher result owns the request even when it abstains.
     // Ordinary probes and projected Reset assessments do not enter a coach.
     if(advice?.evidence?.strategy==='reset-coach')coaches.enter('reset',summary.locks,'reset-dispatch');
-    if(!advice?.target){stop('abstention',{status:advice?.status||'missing-result',reason:advice?.reason});record({kind:'stop',lock,request,leftLookup,advice,elapsedMs});break;}
-    try {validateAdvice(session.state,advice);}catch(error){summary.invalidRecommendations++;stop('invalid-recommendation',error.message);record({kind:'stop',lock,request,leftLookup,advice,error:error.message});break;}
+    if(!advice?.target){stop('abstention',{status:advice?.status||'missing-result',reason:advice?.reason});record({kind:'stop',lock,request,leftLookup,decisionOutcome,advice,elapsedMs});break;}
+    try {validateAdvice(session.state,advice);}catch(error){summary.invalidRecommendations++;stop('invalid-recommendation',error.message);record({kind:'stop',lock,request,leftLookup,decisionOutcome,advice,error:error.message});break;}
     let actual;
-    try {actual=session.execute(advice,{lock:summary.locks+1,onCoach:(coach,locked)=>coaches.enter(coach,summary.locks+Number(locked),locked?'actual-lock':'accepted-handoff')});}catch(error){stop(error.code==='INPUT_EXHAUSTED'?'input-exhausted':'execution-error',error.message);record({kind:'stop',lock,request,leftLookup,advice,error:error.message});break;}
+    try {actual=session.execute(advice,{lock:summary.locks+1,onCoach:(coach,locked)=>coaches.enter(coach,summary.locks+Number(locked),locked?'actual-lock':'accepted-handoff')});}catch(error){stop(error.code==='INPUT_EXHAUSTED'?'input-exhausted':'execution-error',error.message);record({kind:'stop',lock,request,leftLookup,decisionOutcome,advice,error:error.message});break;}
     summary.locks++;
     coaches.enter(CE.phase(session.opening,session.resources),summary.locks,'actual-lock');
     const after=publicObservation(session.state), metrics=boardMetrics(after), assessment=P.assess(after.board),event=actual.event;
@@ -297,7 +300,7 @@ function runEpisode(input, {config=CONFIG, planner=workerPlanner({disableSearchT
     summary.budgetHits+=Number(Boolean(advice.evidence?.budgetExhausted));summary.peakHeight=Math.max(summary.peakHeight,metrics.height);
     const profile={lock:summary.locks,lines:summary.lines,tsds:summary.tsds,quads:summary.quads,...metrics,centerDebt:centerDebt.length,cavityDebt:cavityDebt.length};
     summary.profile.push(profile);
-    record({kind:'lock',lock:summary.locks,request,leftLookup,advice,elapsedMs,event,actions:actual.actions,commitmentCheck:actual.commitmentCheck,after,opening:session.opening,draws:session.cursor,metrics:profile,flags,phaseDiagnostic:{fresh,inherited:check.pattern,rawMismatch:fresh.anchorRow!==check.pattern.anchorRow||fresh.status!==check.pattern.status}});
+    record({kind:'lock',lock:summary.locks,request,leftLookup,decisionOutcome,advice,elapsedMs,event,actions:actual.actions,commitmentCheck:actual.commitmentCheck,after,opening:session.opening,draws:session.cursor,metrics:profile,flags,phaseDiagnostic:{fresh,inherited:check.pattern,rawMismatch:fresh.anchorRow!==check.pattern.anchorRow||fresh.status!==check.pattern.status}});
     notches=check.pattern;
     if(session.state.topOut){stop('top-out');break;}
     if(flags.some(f=>f==='noncanonical-clear'||f==='notch-transition')){stop('policy-violation',flags);break;}

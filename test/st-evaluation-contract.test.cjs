@@ -216,3 +216,12 @@ test('evaluation/coach metrics reject invalid counts and contradictions with raw
  for(const value of ['invalid',[]]){const f=fixture();f.b.episodes[0].coachEntries=value;assert.throws(()=>f.normalized(),/coachEntries must be an object/);}
  const f=fixture();f.b.episodes[0].coachEntries={opening:1};const o=f.normalized();o[1].episodes[0].measurements.openingEntries=2;assert.throws(()=>V.evaluate(f.p,...o,[f.receipt]),/Raw measurement mismatch/);
 });
+test('evaluation/canonical reports preserve terminal and decision budget distinctions',()=>{
+ const O=require('../scripts/lib/st-outcome-metrics.cjs'),f=fixture();
+ f.a.episodes[0].stop='abstention';f.a.episodes[0].censored=false;f.a.episodes[0].detail={status:'budget-exhausted'};
+ f.b.episodes[0].stop='abstention';f.b.episodes[0].censored=false;
+ const o=O.create();O.add(o,O.decision({target:{},evidence:{budgetExhausted:true}}));O.add(o,O.decision({evidence:{budgetExhausted:false}}));f.b.episodes[0].outcomes=o;
+ const result=V.evaluate(f.p,...f.normalized(),[f.receipt]),pair=result.regression.cohorts[0].pairs[0],md=V.render(result);
+ assert.equal(pair.baseline.terminalOutcome,'abstention/reported');assert.equal(pair.candidate.terminalOutcome,'abstention/not-reported');
+ assert.equal(pair.candidate.outcomes.decisions,2);assert.match(md,/abstention\/not-reported/);assert.match(md,/recommendation: exhaustion reported 1/);assert.match(md,/0\/2 runs/);
+});

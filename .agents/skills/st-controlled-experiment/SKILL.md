@@ -28,3 +28,12 @@ Use the [shared research process](../../../docs/st-research-workflow.md) as the 
 - Save a concise local index of what changed, all results, source identities, reproducible commands, review findings, limitations and next unanswered question. Generated logs, traces, Fumens, sessions, receipts and archives remain outside Git.
 - Report accepted, rejected, inconclusive, blocked and not-run work distinctly. Stop new work early enough to honor the current window; preserve partial results when a limit is reached. Do not lower gates to meet the deadline.
 - A local commit is not publication. Publish only with current authorization, using verified available tools and a non-forcing expected-parent update; then verify the remote revision. See the shared process for concurrency and delivery checks.
+
+## Simulation outcome reporting
+
+Follow [abstention/budget reporting](../../../docs/st-simulation.md#reporting-abstentions-versus-search-budgets)
+for every multi-run result: terminal stop counts and per-decision exhaustion are
+separate denominators. Supported advice can exhaust a budget; an abstention can
+be budget-limited, explicitly not exhausted, or unknown. Separate time, node and
+nested proof limits from watchdogs and caps; never claim exhaustive failure from
+absence of a budget flag. Use this distinction to recommend review versus profiling.
