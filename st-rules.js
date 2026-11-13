@@ -144,6 +144,15 @@ function placementsCore(s,options={}){
 // never to enumeration of all possible placements. Unspecified spin accepts any
 // one actual spin class; callers needing distinct outcomes request each class.
 function targetedPlacements(s,targets,options={}){
+ // Target order, spin classes and supplied witnesses are part of the scope.
+ // Never reuse a broad enumeration or a different HOLD/search policy here.
+ // Budgets are work limits: a completed fact can be reused without more work,
+ // including under a zero remaining budget, just like placements().
+ const input={state:s,targets,allowHold:options.allowHold!==false,search:options.search!==false};
+ const result=query('targetedPlacements',input,options,()=>targetedPlacementsCore(s,targets,options));
+ return result.queryCached?{...result,directCount:0,fallbackNodes:0}:result;
+}
+function targetedPlacementsCore(s,targets,options={}){
  const out=[];let visited=0,directCount=0,fallbackNodes=0,complete=true;
  const maxNodes=options.maxNodes??16000,deadline=options.deadline??Infinity,now=options.now??(()=>Date.now());
  if(!Array.isArray(targets))throw new TypeError('targets must be an array');

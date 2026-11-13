@@ -107,13 +107,15 @@
       for (let rotation = 0; rotation < 4; rotation++) {
         const offsets = R.cells({ type, x: 0, y: 0, rotation });
         const lo = Math.min(...offsets.map(c => c[0])), hi = Math.max(...offsets.map(c => c[0]));
+        // Only a bottommost mino in a shape column can contact its support.
+        const bottom = offsets.filter(([dx, dy]) => !offsets.some(([x, y]) => x === dx && y > dy));
         for (let x = -lo; x < 10 - hi; x++) {
-          const ys = new Set(offsets.flatMap(([dx, dy]) => supports[x + dx].map(y => y - dy - 1)));
+          const ys = new Set(bottom.flatMap(([dx, dy]) => supports[x + dx].map(y => y - dy - 1)));
           for (const y of ys) {
             if (visited >= maxNodes || now() >= deadline) return { targets, visited, complete: false };
             visited++;
             const pose = { type, x, y, rotation, lastRotation: null };
-            if (!R.fits(state.board, pose) || R.fits(state.board, { ...pose, y: y + 1 })) continue;
+            if (!R.fits(state.board, pose)) continue;
             const spins = [{ spin: "none", rotation: null }];
             if (type === "T") {
               const evidence = { from: (rotation + 3) % 4, to: rotation, kickIndex: 0 };

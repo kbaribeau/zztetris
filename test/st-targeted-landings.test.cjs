@@ -57,3 +57,42 @@ test('st-targeted/left tuck uses actual inverse-kick entry, with no synthetic sp
  const bounded=R.targetedPlacements(s,[target(tuck)],{allowHold:false,maxNodes:10});
  assert.equal(bounded.complete,false);assert.equal(bounded.visited,10);assert.equal(bounded.placements.length,0);
 });
+
+test('st-targeted/request cache reuses only completed exact scopes with independent results',()=>{
+ const state=R.createState({active:'Z',hold:'O',queue:['T','I']});
+ const targets=[{type:'Z',x:7,y:36,rotation:1,spin:'none'}];
+ let original;
+ R.withQueries(()=>{
+  const first=R.targetedPlacements(state,targets,{allowHold:false});assert.ok(first.complete);assert.ok(first.visited>0);
+  original=JSON.parse(JSON.stringify(first.placements));
+  first.placements[0].witness.push('NO');first.placements[0].state.board[39]='XXXXXXXXXX';
+  const cached=R.targetedPlacements(state,targets,{allowHold:false,maxNodes:0,deadline:0});
+  assert.equal(cached.queryCached,true);assert.equal(cached.visited,0);assert.equal(cached.fallbackNodes,0);assert.equal(cached.directCount,0);assert.deepEqual(cached.placements,original);
+  const misses=[
+   [state,[{...targets[0],spin:undefined}],{allowHold:false}],
+   [state,[{...targets[0],witness:original[0].witness}],{allowHold:false}],
+   [state,targets,{allowHold:true}],
+   [state,targets,{allowHold:false,search:false}],
+   [{...state,revision:state.revision+1},targets,{allowHold:false}],
+   [{...state,queue:['I','T']},targets,{allowHold:false}],
+   [{...state,active:{...state.active,x:4}},targets,{allowHold:false}],
+   [{...state,bag:{remaining:['Z']}},targets,{allowHold:false}]
+  ];
+  for(const [s,t,o] of misses)assert.notEqual(R.targetedPlacements(s,t,{...o,maxNodes:0}).queryCached,true);
+  assert.equal(R.placements(state,{allowHold:false,maxNodes:0}).complete,false);
+  assert.equal(R.queryMetrics().hits,1);
+ });
+ R.withQueries(()=>assert.notEqual(R.targetedPlacements(state,targets,{allowHold:false}).queryCached,true));
+});
+test('st-targeted/request cache does not promote interrupted target proofs into failures',()=>{
+ const state=R.createState({active:'T',board:fixtures.cap.afterCap});
+ const p=R.placements(state,{allowHold:false}).placements.find(p=>p.event.spin==='full'&&p.event.lines===2);
+ R.withQueries(()=>{
+  for(let i=0;i<2;i++){
+   const r=R.targetedPlacements(state,[target(p)],{allowHold:false,maxNodes:1});
+   assert.equal(r.complete,false);assert.equal(r.queryStatus,'unfinished');assert.equal(r.visited,1);assert.notEqual(r.queryCached,true);
+  }
+  const complete=R.targetedPlacements(state,[target(p)],{allowHold:false});assert.ok(complete.complete);
+  assert.equal(R.targetedPlacements(state,[target(p)],{allowHold:false,maxNodes:0}).queryCached,true);
+ });
+});

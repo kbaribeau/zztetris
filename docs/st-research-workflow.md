@@ -77,8 +77,11 @@ not-run work. Local commits alone are not publication.
 
 ### Targeted known landings
 
-The planner's recorded-Left-route lane generates grounded target poses matching
-its current contour stage before asking the rules kernel for witnesses. The
+For immediately available one-piece Left lookups, the planner's route lane
+generates grounded target poses matching its current contour stage before asking
+the rules kernel for witnesses. Preview-delayed and multi-piece root lookups
+retain shared full enumeration: later ordinary fallback reuses those complete
+queries, and replacing them with partial queries can exhaust its node budget. The
 canonical immediate Right lane similarly requests only cap Z, full right TSD,
 and competing cleanup-I targets. Geometry is not a reachability certificate:
 `STRules.targetedPlacements` replays direct templates from each actual HOLD

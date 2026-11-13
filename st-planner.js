@@ -1251,9 +1251,17 @@ function planCore(raw,options={}){
  };
  s=extendForced(s);
  if(trace)trace=trace.start('ordinary',observe(s));
+ // Keep broad/interleaved routes on shared full-query discovery: the ordinary
+ // fallback reuses those complete results. Direct targeting is a narrow lane
+ // for an immediately available one-piece lookup, not a replacement for that
+ // query-planning contract.
+ const rootRoutePieces=[initial.state.active?.type];
+ if(options.allowHold!==false){let q=initial.state;for(let i=0;i<2;i++){const next=R.move(q,'HOLD');if(next===q||next.topOut)break;rootRoutePieces.push(next.active?.type);q=next;}}
+ const narrowLookup=initial.leftRoutes?.routes.length&&initial.leftRoutes.routes.every(r=>r.pieces.length===1)&&initial.leftRoutes.routes.some(r=>rootRoutePieces.includes(r.pieces[0]));
  const enumerate=(state,routeProgress=null)=>{const remaining=searchLimit-base.metrics.nodes;if(remaining<=0||now()>=searchDeadline){stopped=true;return{placements:[],complete:false};}
  let r;
- if(routeProgress&&!routeProgress.some(p=>p.complete)&&options.targetKnownLandings!==false){
+
+ if(routeProgress&&narrowLookup&&!routeProgress.some(p=>p.complete)&&options.targetKnownLandings!==false){
   const targets=LR.landingTargets(state,p=>ordinaryRightEligible(p.event)&&S.canonicalClear(p.event)&&LR.permits(initial.leftRoutes,routeProgress,state,p),{allowHold:options.allowHold!==false,maxNodes:remaining,deadline:searchDeadline,now});
   const reached=targets.complete?R.targetedPlacements(state,targets.targets,{allowHold:options.allowHold!==false,maxNodes:Math.max(0,remaining-targets.visited),deadline:searchDeadline,now}):{placements:[],visited:0,complete:false};
   r={...reached,visited:targets.visited+reached.visited};

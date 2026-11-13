@@ -21,7 +21,7 @@ function instrument(){
  vm.runInNewContext(source,{module:m,Date,performance,observeQualification:(nodes,routeFirst)=>{if(routeFirst)groups.push(nodes);},require:id=>{
   const real=require(path.resolve(path.dirname(filename),id));
   if(id==='./st-left-routes.js')return {...real,prepare:(...args)=>{calls.push('lookup');return real.prepare(...args);}};
-  if(id==='./st-rules.js')return {...real,placements:(...args)=>{calls.push('enumeration');return real.placements(...args);}};
+  if(id==='./st-rules.js')return {...real,placements:(...args)=>{calls.push('enumeration');return real.placements(...args);},targetedPlacements:(...args)=>{const result=real.targetedPlacements(...args);calls.push(result.placements.some(p=>p.event.cells.some(([x])=>x<4))?'targeted-left':'targeted');return result;}};
   return real;
  }});
  return {planner:m.exports,calls,groups};
@@ -166,4 +166,13 @@ test('lookup diagnostics exclude nested future roots and release collector after
  assert.equal(result.lookupContinuations.queries.length,2);
  assert.throws(()=>h.withLookupDiagnostics(state,()=>{h.recordLookup(state,prepared);throw Error('test failure');}),/test failure/);
  assert.equal(h.withLookupDiagnostics(state,()=>({})).lookupContinuations.status,'not-queried');
+});
+
+
+test('contour route search: immediately available one-piece lookups use targeted Left witnesses',()=>{
+ const h=instrument(),state=R.createState({...position(['J','Z','T','O'],[5,5,4,4],'O'),hold:'J'});
+ const result=h.planner.plan(state,{...options,allowHold:true,width:4,depth:3});
+ assert.ok(result.target);assert.equal(result.metrics.contourRoutes.selected,true);
+ assert.ok(result.metrics.targetedLandings.queries>0);assert.ok(h.calls.includes('targeted-left'));
+ replay(state,result);assert.ok(result.metrics.nodes<=options.maxNodes);
 });
