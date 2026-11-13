@@ -7,6 +7,27 @@ const kicks={"N0-1": [[0, 0], [-1, 0], [-1, 1], [0, -2], [-1, -2]], "N1-0": [[0,
 function freezeData(x){Object.values(x).forEach(v=>{if(v&&typeof v==='object')freezeData(v);});return Object.freeze(x);}
 freezeData(pieces);freezeData(kicks);
 const TYPES='IJLOSTZ';
+// One synchronous coach request owns these facts. They are not saved in game
+// state, imported from a session, or retained across requests/manual edits.
+let coachClearContext=null;
+function withCoachNoClear(run){
+ if(coachClearContext)return run();
+ coachClearContext={boards:new WeakMap(),metrics:{boardsChecked:0,nonRightSkipped:0,nonRightFallbacks:0,rightScans:0}};
+ try{return run();}finally{coachClearContext=null;}
+}
+function coachClearMetrics(){return coachClearContext?{...coachClearContext.metrics}:null;}
+function coachNoClear(board,occupied){
+ const ctx=coachClearContext;if(!ctx)return false;
+ for(let i=0;i<occupied.length;i++)if(occupied[i][0]>=7){ctx.metrics.rightScans++;return false;}
+ let clean=ctx.boards.get(board);
+ if(clean===undefined){ctx.metrics.boardsChecked++;clean=board.every(row=>row.includes('.'));ctx.boards.set(board,clean);}
+ // An unchanged empty Right cell prevents a full row regardless of what was
+ // placed in Left/Center (including their shared boundary). No row-completion
+ // scan is needed once this invariant and absence of old full rows are known.
+ if(clean){let previous=-1;for(let i=0;i<occupied.length;i++){const y=occupied[i][1];if(y===previous)continue;previous=y;const row=board[y];if(row[7]!=='.'&&row[8]!=='.'&&row[9]!=='.'){ctx.metrics.nonRightFallbacks++;return false;}}ctx.metrics.nonRightSkipped++;return true;}
+ ctx.metrics.nonRightFallbacks++;return false;
+}
+
 const offsets=Object.fromEntries(Object.entries(pieces).map(([t,rots])=>[t,rots.map(shape=>shape.flatMap((r,y)=>r.flatMap((v,x)=>v?[[x,y]]:[])))]));
 const PROFILE=Object.freeze({id:'st-zero-v2',width:10,height:40,hiddenRows:20,spawn:Object.freeze({x:3,y:17}),gravity:0,kickset:'SRS+',hold:'unlimited',lock:'manual-hard-drop',spin:'three-corner-front-or-quarter-turn-fifth-kick',topOut:'blocked-spawn-or-lock-entirely-above-visible'});
 const LEGACY_PROFILE=Object.freeze({...PROFILE,id:'st-zero-v1',hold:'once-per-lock'});
@@ -14,7 +35,7 @@ const emptyBoard=()=>Array(40).fill('..........');
 const spawn=type=>type?{type,x:3,y:17,rotation:0,lastRotation:null}:null;
 function cells(a){return a&&offsets[a.type]?.[a.rotation]?offsets[a.type][a.rotation].map(([x,y])=>[a.x+x,a.y+y]):[];}
 function fits(board,a){const coords=a&&offsets[a.type]?.[a.rotation];if(!coords)return false;for(const[dx,dy]of coords){const x=a.x+dx,y=a.y+dy;if(x<0||x>=10||y<0||y>=40||board[y][x]!=='.')return false;}return true;}
-function createState(input={}){const active=typeof input.active==='string'?spawn(input.active):input.active?{...input.active,lastRotation:input.active.lastRotation?{...input.active.lastRotation}:null}:null;return {rules:input.rules??PROFILE.id,board:(input.board??emptyBoard()).slice(),active,hold:input.hold||null,canHold:input.canHold??true,queue:(input.queue??[]).slice(),revision:input.revision??0,streamCursor:input.streamCursor??0,topOut:input.topOut??false,...(input.bag?{bag:JSON.parse(JSON.stringify(input.bag))}:{}),lastEvent:null};}
+function createState(input={}){const board=(input.board??emptyBoard()).slice();if(coachClearContext&&input.board){const known=coachClearContext.boards.get(input.board);if(known!==undefined)coachClearContext.boards.set(board,known);}const active=typeof input.active==='string'?spawn(input.active):input.active?{...input.active,lastRotation:input.active.lastRotation?{...input.active.lastRotation}:null}:null;return {rules:input.rules??PROFILE.id,board,active,hold:input.hold||null,canHold:input.canHold??true,queue:(input.queue??[]).slice(),revision:input.revision??0,streamCursor:input.streamCursor??0,topOut:input.topOut??false,...(input.bag?{bag:JSON.parse(JSON.stringify(input.bag))}:{}),lastEvent:null};}
 // Migration is explicit: legacy witnesses still replay under their original rules.
 function migrateState(input){const state=createState(input);const errors=validate(state);if(errors.length)throw new Error(errors.join('; '));return createState({...state,rules:PROFILE.id,canHold:true});}
 function validate(s){const e=[];if(!s||typeof s!=='object')return['state must be an object'];if(s.rules!==PROFILE.id&&s.rules!==LEGACY_PROFILE.id)e.push('unsupported-profile');if(!Array.isArray(s.board)||s.board.length!==40||s.board.some(r=>typeof r!=='string'||r.length!==10||/[^.X#IJLOSTZ]/.test(r)))e.push('invalid-board');if(!Array.isArray(s.queue)||s.queue.some(t=>!TYPES.includes(t)||t.length!==1))e.push('invalid-queue');if(s.hold!==null&&(!TYPES.includes(s.hold)||s.hold.length!==1))e.push('invalid-hold');if(typeof s.canHold!=='boolean')e.push('invalid-hold-availability');if(!Number.isInteger(s.revision)||s.revision<0)e.push('invalid-revision');if(!Number.isInteger(s.streamCursor)||s.streamCursor<0)e.push('invalid-stream-cursor');if(s.active){const a=s.active;if(!TYPES.includes(a.type)||a.type.length!==1||!Number.isInteger(a.x)||!Number.isInteger(a.y)||!Number.isInteger(a.rotation)||a.rotation<0||a.rotation>3)e.push('invalid-active');else if(!e.includes('invalid-board')&&!s.topOut&&!fits(s.board,a))e.push('active-collision');if(a.lastRotation&&(!Number.isInteger(a.lastRotation.from)||!Number.isInteger(a.lastRotation.to)||a.lastRotation.to!==a.rotation||a.lastRotation.from<0||a.lastRotation.from>3||!Number.isInteger(a.lastRotation.kickIndex)||a.lastRotation.kickIndex<0||!kicks[`${a.type==='I'?'I':'N'}${a.lastRotation.from}-${a.lastRotation.to}`]||a.lastRotation.kickIndex>=kicks[`${a.type==='I'?'I':'N'}${a.lastRotation.from}-${a.lastRotation.to}`].length))e.push('invalid-rotation-evidence');}return e;}
@@ -40,7 +61,7 @@ function lockLanding(s,landing,classification){const occupied=cells(landing),boa
  }
  // Imported positions may already contain full rows outside the piece.
  // Keep the complete scan and original pre-clear row indices/order.
- const cleared=[];let rows=board.filter((r,i)=>{if(!r.includes('.')){cleared.push(i);return false;}return true;});while(rows.length<40)rows.unshift('..........');const active=spawn(s.queue[0]);const topOut=occupied.every(([,y])=>y<20)||(active!==null&&!fits(rows,active));const event={type:landing.type,target:{type:landing.type,x:landing.x,y:landing.y,rotation:landing.rotation},cells:occupied,lines:cleared.length,clearedRows:cleared,spin:classification,topOut};
+ const cleared=[];let rows=coachNoClear(s.board,occupied)?board:board.filter((r,i)=>{if(!r.includes('.')){cleared.push(i);return false;}return true;});while(rows.length<40)rows.unshift('..........');if(coachClearContext)coachClearContext.boards.set(rows,true);const active=spawn(s.queue[0]);const topOut=occupied.every(([,y])=>y<20)||(active!==null&&!fits(rows,active));const event={type:landing.type,target:{type:landing.type,x:landing.x,y:landing.y,rotation:landing.rotation},cells:occupied,lines:cleared.length,clearedRows:cleared,spin:classification,topOut};
  return{...s,board:rows,active,canHold:true,queue:s.queue.slice(1),streamCursor:s.streamCursor+(active?1:0),topOut,lastEvent:event,revision:s.revision+1};
 }
 function replay(state,actions){let s=state;const events=[];for(let i=0;i<actions.length;i++){const n=move(s,actions[i]);if(n===s)return{state:s,events,valid:false,failedAt:i};s=n;if(s.lastEvent)events.push(s.lastEvent);}return{state:s,events,valid:true,failedAt:null};}
@@ -307,5 +328,5 @@ function tDoubleAccessCore(board,options={}){
  }
  return{reachable:false,witness:[],event:null,visited,complete:true};
 }
-return Object.freeze({withQueries,queryMetrics,PROFILE,LEGACY_PROFILE,migrateState,pieces,kicks,cells,emptyBoard,spawn,fits,createState,validate,move,replay,placements,targetedPlacements,spin,tDoubleAccess});
+return Object.freeze({withCoachNoClear,coachClearMetrics,withQueries,queryMetrics,PROFILE,LEGACY_PROFILE,migrateState,pieces,kicks,cells,emptyBoard,spawn,fits,createState,validate,move,replay,placements,targetedPlacements,spin,tDoubleAccess});
 });

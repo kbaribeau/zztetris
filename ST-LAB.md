@@ -719,3 +719,22 @@ query. Root enumeration and broad/preview-delayed route search still use the
 full placement query so that repairs, competing moves and reusable enumeration
 facts are preserved. Direct Center target completeness is only completeness of
 that named target set, not all possible moves.
+
+### Non-scoring Left/Center locks
+
+All three coaches treat clears made wholly outside the Right region as out of
+scope; ordinary ST scoring remains the checked Right T-spin double or I quad.
+During synchronous coach planning, an immutable-board proof now avoids the full
+row-clear scan when no complete rows pre-exist and each touched row retains an
+empty Right cell. This includes Left/Center-boundary crossings, but never a
+Right-touching TSD. Proof facts and aggregate counters live only for the current
+request and are not added to saved game or obligation state.
+
+Failure to prove that invariant does not mean a row will clear. Those unusual
+positions retain exact physical fallback, and actual noncanonical clears remain
+rejected by coaching admission. Manual play, imports, full rows supplied in an
+import, and all scoring locks keep their physical clearing behavior. No fake
+zero-line events are created. The opt-in diagnostic `R.coachClearMetrics()`
+snapshot distinguishes skipped scans, non-Right physical fallbacks, Right scans
+and boundary boards checked while a scope is active. Cache-dependent counts
+are not added to ordinary advice or mistaken for deterministic play evidence.

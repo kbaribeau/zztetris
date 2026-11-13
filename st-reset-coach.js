@@ -135,5 +135,5 @@ function continuation(before,after,previous,event,options={}){
  const steps=previous.continuation.slice(1),first=steps[0];
  return retain(after,{...previous,target:first.target,witness:first.witness,continuation:steps,evidence:{...previous.evidence,gapAccess:{...previous.evidence.gapAccess,steps:previous.evidence.gapAccess.steps.slice(1)}}},options);
 }
-return Object.freeze({plan:(...args)=>M.discloseAdvice(plan(...args)),check,retain:(...args)=>M.discloseAdvice(retain(...args)),continuation:(...args)=>M.discloseAdvice(continuation(...args)),consider:Q.consider});
+return Object.freeze({plan:(...args)=>R.withCoachNoClear(()=>M.discloseAdvice(plan(...args))),check,retain:(...args)=>M.discloseAdvice(retain(...args)),continuation:(...args)=>M.discloseAdvice(continuation(...args)),consider:Q.consider});
 });

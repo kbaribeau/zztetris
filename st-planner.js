@@ -2224,7 +2224,7 @@ function planCore(raw,options={}){
 }
 }
 function plan(raw,options={}){return withLookupDiagnostics(raw,()=>queryRequest(()=>planRequest(raw,options)));}
-function queryRequest(run){if(!R.withQueries)return run();return R.withQueries(()=>{const result=run();result.metrics={...result.metrics,queries:R.queryMetrics()};return result;});}
+function queryRequest(run){const execute=()=>{if(!R.withQueries)return run();return R.withQueries(()=>{const result=run();result.metrics={...result.metrics,queries:R.queryMetrics()};return result;});};return R.withCoachNoClear?R.withCoachNoClear(execute):execute();}
 // A height-risk trigger permits consideration; it does not revoke an actual
 // public scoring proof or an exact retained repair that removes the deficit.
 function resetOrdinaryPreference(raw,advice,summary,retained,options,tracker){

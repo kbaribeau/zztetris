@@ -1159,5 +1159,5 @@ function validateSessionState(raw,session,{maxNodes=45000,timeMs=1500,now=()=>Da
  return{session:result,warnings};
 }
 
-return Object.freeze({retainScoring,validateSessionState,balance,features,facts,repairEndpoint,foundationTargets,foundationTransition,foundationWitnesses,handoffGeometry,handoff,plan,retainSource,startSession,updateSession,acceptResult,repairCertificate,closureCertificate,checkedRepair,goalPaid,captureForecast,advanceForecast});
+return Object.freeze({retainScoring,validateSessionState,balance,features,facts,repairEndpoint,foundationTargets,foundationTransition,foundationWitnesses,handoffGeometry,handoff,plan:(...args)=>R.withCoachNoClear(()=>plan(...args)),retainSource,startSession,updateSession,acceptResult,repairCertificate,closureCertificate,checkedRepair,goalPaid,captureForecast,advanceForecast});
 });
