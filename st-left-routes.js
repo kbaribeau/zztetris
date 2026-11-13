@@ -100,7 +100,11 @@
         types.add(next.active?.type); current = next;
       }
     }
-    const center = options.centerTemplates ? S.centerTargets(state.board, options.notches) : null;
+    const spawn = state.active && R.spawn(state.active.type);
+    const fresh = spawn && ["x", "y", "rotation"].every(k => state.active[k] === spawn[k]);
+    // Fresh-spawn templates cannot exhaust the options of an already moved
+    // active piece below/beyond an obstacle. Keep the generic inventory there.
+    const center = options.centerTemplates && fresh ? S.centerTargets(state.board, options.notches) : null;
     if (center) for (const target of center) {
       if (!types.has(target.type) || options.types && !options.types.includes(target.type)) continue;
       if (visited >= maxNodes || now() >= deadline) return { targets, visited, complete: false };

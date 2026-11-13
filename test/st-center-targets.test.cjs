@@ -53,3 +53,33 @@ test('center targets leave advanced OSIO partial to generic inventory instead of
  const reached=R.targetedPlacements(state,collected.targets,{allowHold:false});
  assert.ok(reached.placements.some(q=>signature(q)===signature(p)));replay(state,reached);
 });
+
+test('center targets fallback when blocked fresh spawn hides an actual moved S landing',()=>{
+ const board=F.get('cap-rebuild').observation.board.slice();
+ board[19]=board[19].slice(0,3)+'X'+board[19].slice(4);
+ const state=R.createState({board,active:{type:'S',x:4,y:23,rotation:0,lastRotation:null},hold:null,queue:[]});
+ assert.deepEqual(R.validate(state),[]);assert.equal(R.fits(board,R.spawn('S')),false);
+ const played=R.replay(state,['HD']);assert.equal(played.valid,true);
+ const p={state:played.state,event:played.events[0]};assert.equal(P.ordinaryCenterEligible(state,p),true);
+ assert.equal(S.centerTargets(board),null,'blocked hypothetical spawn cannot certify complete center inventory');
+ const accept=q=>pure(q)&&!q.event.lines&&P.ordinaryCenterEligible(state,q);
+ const inventory=LR.landingTargets(state,accept,{allowHold:false,centerTemplates:true});
+ assert.equal(inventory.complete,true);
+ const actual=R.targetedPlacements(state,inventory.targets,{allowHold:false});
+ assert.ok(actual.placements.some(q=>signature(q)===signature(p)));replay(state,actual);
+});
+
+test('center templates retain generic inventory for a non-spawn active pose',()=>{
+ for(const active of [
+  {type:'S',x:4,y:23,rotation:0,lastRotation:null},
+  {type:'Z',x:4,y:22,rotation:1,lastRotation:{from:0,to:1,kickIndex:0}}
+ ]){
+  const state=R.createState({board:F.get('cap-rebuild').observation.board,active,hold:'L',queue:['O']});
+  assert.deepEqual(R.validate(state),[]);assert.ok(S.centerTargets(state.board));
+  const accept=()=>true;
+  const before=LR.landingTargets(state,accept),after=LR.landingTargets(state,accept,{centerTemplates:true});
+  assert.equal(before.complete,true);assert.equal(after.complete,true);
+  assert.deepEqual(after.targets,before.targets,'moved active must use unchanged generic inventory');
+  assert.equal(after.visited,before.visited);
+ }
+});

@@ -362,6 +362,10 @@ let centerTargetCache=new WeakMap();
 function centerTargets(board,notches=notchPattern(board)){
  const g=geometry(board,{notches});
  if(g.center.status==='unrecognized'||g.center.patternSupport!=='reference-supported'||g.center.foundation.status!=='aligned')return null;
+ // Template inventory must not silently omit a piece whose actual moved
+ // pose is below a blocked spawn. That state needs ordinary reachability.
+ if(board.slice(0,R.PROFILE.spawn.y+4).some(row=>/[^.]/.test(row)))return null;
+ if([...'SLOJZ'].some(type=>!R.fits(board,R.spawn(type))))return null;
  if(centerTargetCache.has(g))return centerTargetCache.get(g);
  const candidates=[...localDrops(board,4,6,'SLOJZ'),...g.center.completions];
  const targets=[],seen=new Set();
