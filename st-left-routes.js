@@ -12,7 +12,11 @@
   const profiles = new Map(C.catalog.map(c => [c.id, c.key]));
   function prepare(state, options = {}) {
     // Do not pass inferred arrivals or any search-node supply to this lookup.
+    const coach = options.coach === undefined ? "midgame" : options.coach;
     const query = D.query(state, {
+      coach,
+      openingAllocation: options.openingAllocation,
+      allowCrossing: coach === "opener",
       resources: options.resources,
       centerDebt: options.centerDebt,
       center: options.center,
@@ -27,6 +31,8 @@
         const id = [query.contour, alternative.pieces.join(""), ...path.contours].join(":");
         routes.push({
           id,
+          coach,
+          crossesCenter: path.crossesCenter,
           pieces: alternative.pieces.slice(),
           contours: path.contours.slice(),
           stages: [contourKey(state), ...path.contours.map(id => profiles.get(id))],
@@ -46,10 +52,11 @@
       eligibleIds[type] = publicPieces.filter(p => p?.type === type && p.id != null && hanging.has(p.id)).map(p => p.id);
     }
     const root = {
+      coach,
       routes,
       eligibleIds,
       query,
-      stats: { queries: 1, complete: query.complete, status: query.status, routes: routes.length },
+      stats: { coach, queries: 1, complete: query.complete, status: query.status, routes: routes.length },
     };
     root.progress = start(root);
     return root;
@@ -72,12 +79,17 @@
       if (progress.complete) { next.push(progress); continue; }
       if (from !== route.stages[progress.index]) continue;
       if (!touchesLeft) {
+        // The incomplete opening hint loses its source stage if another T
+        // is spent, or if the initial-empty crossing L is no longer first.
+        // Completed progress above remains a historical fact, not a restart.
+        if (root.coach === "opener" && (event.type === "T" || route.crossesCenter)) continue;
         if (from === to) next.push(progress);
         continue;
       }
       const type = route.pieces[progress.index];
       if (event.type !== type || to !== route.stages[progress.index + 1]) continue;
-      if ((type === "S" || type === "L") &&
+      if (type === "T" && (event.lines !== 0 || event.cells.some(([x]) => x >= 4))) continue;
+      if (root.coach !== "opener" && (type === "S" || type === "L") &&
           (actualResource?.type !== type || !root.eligibleIds[type].includes(actualResource.id))) continue;
       const index = progress.index + 1;
       next.push({ routeId: route.id, index, complete: index === route.pieces.length });

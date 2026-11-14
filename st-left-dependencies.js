@@ -17,6 +17,8 @@
     state,
     {
       heights,
+      coach = "midgame",
+      openingAllocation = null,
       resources = null,
       centerDebt = [],
       center,
@@ -53,8 +55,18 @@
       canHold: state.canHold,
     };
     const canUse = (piece, index, steps) => {
-      if (!piece || reserved.has(piece.type) || piece.type === "T")
-        return false;
+      if (!piece) return false;
+      // This lookup is discovery only. Opening construction has its own
+      // existing allocation/T/crossing policy; ordinary admission is not its
+      // authority. Reset retains ordinary reservations and identity checks,
+      // with its already-scoped Left T permission checked on actual locks.
+      if (coach === "opener") {
+        if (piece.type === "T") return openingAllocation?.status === "pending" && openingAllocation.requiredNonRightT === 1;
+        if (piece.type === "L") return steps.length === 0 && state.board.every(row => row === "..........");
+        return true;
+      }
+      if (reserved.has(piece.type)) return false;
+      if (piece.type === "T") return coach === "reset" && resources?.resetActive === true && resources.resetProgress === 1;
       if (
         piece.type === "I" &&
         (right?.cycle?.prepareColumn != null ||
@@ -82,6 +94,7 @@
       return "IJO".includes(piece.type);
     };
     const result = C.candidates(heights, supply, {
+      coach,
       canUse,
       maxStates,
       allowCrossing,

@@ -1,13 +1,13 @@
 /* Oriented Left contour dependencies. Numeric path IDs refer to the stable
- * LC-001..LC-090 inventory. Applicability is by normalized contour; actual
- * placement legality and resource admission remain the planner's job. */
+ * LC-001..LC-090 inventory. Archival identity is by normalized contour; live
+ * coach membership is explicit. Placement/resource admission belongs to coaches. */
 (function (root, factory) {
   const api = factory();
   if (typeof module === "object" && module.exports) module.exports = api;
   else root.STLeftContours = api;
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";
-  const schemaVersion = 2;
+  const schemaVersion = 3;
   // [profile, existing shape number, tier, alternatives].
   // Alternative: [ordered pieces, target paths, optional crossing-path indexes].
   const data = [
@@ -505,9 +505,171 @@
       throw Error("Invalid Left contour: " + c.id);
     byKey.set(c.key, deepFreeze(c));
   }
-  function lookup(heights) {
+  // Coach context is source-observed, not applicability or placement authority.
+  // See docs/st-left-continuation-sets.md for the independently checked source
+  // boundary and the conservative runtime-lifecycle interpretation of Reset.
+  const routeKey = (from, pieces, contours) => [from, pieces.join(""), ...contours].join(":");
+  const special = new Map([
+    ["LC-090:L:LC-001", "opener"],
+    ["LC-081:T:LC-005", "opener"],
+    ["LC-029:IT:LC-081:LC-005", "opener"],
+    ["LC-024:T:LC-006", "reset"],
+    ["LC-027:ST:LC-024:LC-006", "reset"],
+    ["LC-055:T:LC-003", "reset"],
+    ["LC-024:IT:LC-055:LC-003", "reset"],
+    ["LC-072:JO:LC-015:LC-003", "unresolved"],
+    ["LC-024:TL:LC-006:LC-001", "unresolved"],
+  ]);
+  const midgameKeys = new Set([
+  "LC-001:L:LC-005",
+  "LC-001:IL:LC-038:LC-005",
+  "LC-001:JO:LC-015:LC-003",
+  "LC-001:LI:LC-004:LC-005",
+  "LC-001:LO:LC-005:LC-006",
+  "LC-001:OJ:LC-002:LC-003",
+  "LC-001:OJ:LC-002:LC-006",
+  "LC-001:OO:LC-002:LC-001",
+  "LC-001:SL:LC-009:LC-006",
+  "LC-001:ZJ:LC-066:LC-006",
+  "LC-002:J:LC-003",
+  "LC-002:J:LC-006",
+  "LC-002:O:LC-001",
+  "LC-002:IJ:LC-017:LC-003",
+  "LC-002:JI:LC-006:LC-003",
+  "LC-002:LO:LC-010:LC-005",
+  "LC-002:LO:LC-031:LC-006",
+  "LC-002:OL:LC-001:LC-005",
+  "LC-003:L:LC-001",
+  "LC-003:IO:LC-030:LC-005",
+  "LC-003:JO:LC-016:LC-001",
+  "LC-003:JS:LC-007:LC-001",
+  "LC-003:OI:LC-004:LC-005",
+  "LC-003:SJ:LC-012:LC-001",
+  "LC-004:I:LC-005",
+  "LC-004:IO:LC-005:LC-006",
+  "LC-004:JJ:LC-002:LC-003",
+  "LC-004:JJ:LC-002:LC-006",
+  "LC-004:JO:LC-002:LC-001",
+  "LC-004:OI:LC-070:LC-006",
+  "LC-004:OJ:LC-013:LC-001",
+  "LC-005:O:LC-006",
+  "LC-005:IO:LC-042:LC-003",
+  "LC-005:JJ:LC-002:LC-003",
+  "LC-005:JJ:LC-002:LC-006",
+  "LC-005:JO:LC-002:LC-001",
+  "LC-005:LS:LC-007:LC-001",
+  "LC-005:OI:LC-006:LC-003",
+  "LC-006:I:LC-003",
+  "LC-006:L:LC-001",
+  "LC-006:IL:LC-003:LC-001",
+  "LC-007:S:LC-001",
+  "LC-007:JO:LC-031:LC-006",
+  "LC-007:LS:LC-059:LC-005",
+  "LC-007:OL:LC-009:LC-006",
+  "LC-007:SL:LC-001:LC-005",
+  "LC-008:IO:LC-010:LC-005",
+  "LC-008:JL:LC-018:LC-006",
+  "LC-008:OI:LC-004:LC-005",
+  "LC-009:L:LC-006",
+  "LC-009:IJ:LC-020:LC-005",
+  "LC-009:IL:LC-025:LC-003",
+  "LC-009:JI:LC-004:LC-005",
+  "LC-009:LI:LC-006:LC-003",
+  "LC-010:O:LC-005",
+  "LC-010:OO:LC-005:LC-006",
+  "LC-011:IS:LC-007:LC-001",
+  "LC-012:J:LC-001",
+  "LC-012:JL:LC-001:LC-005",
+  "LC-013:J:LC-001",
+  "LC-013:JL:LC-001:LC-005",
+  "LC-014:SJ:LC-002:LC-003",
+  "LC-014:SJ:LC-002:LC-006",
+  "LC-014:SO:LC-002:LC-001",
+  "LC-015:O:LC-003",
+  "LC-016:O:LC-001",
+  "LC-016:OL:LC-001:LC-005",
+  "LC-017:J:LC-003",
+  "LC-018:L:LC-006",
+  "LC-018:II:LC-079:LC-001",
+  "LC-018:OJ:LC-002:LC-003",
+  "LC-018:OJ:LC-002:LC-006",
+  "LC-019:I:LC-001",
+  "LC-020:J:LC-005",
+  "LC-020:JO:LC-005:LC-006",
+  "LC-021:II:LC-004:LC-005",
+  "LC-022:IJ:LC-002:LC-003",
+  "LC-022:IO:LC-002:LC-001",
+  "LC-022:JI:LC-044:LC-006",
+  "LC-025:L:LC-003",
+  "LC-026:IL:LC-061:LC-005",
+  "LC-026:JJ:LC-050:LC-001",
+  "LC-026:LI:LC-004:LC-005",
+  "LC-028:OJ:LC-017:LC-003",
+  "LC-028:SL:LC-025:LC-003",
+  "LC-028:ZJ:LC-067:LC-003",
+  "LC-030:O:LC-005",
+  "LC-031:O:LC-006",
+  "LC-031:IO:LC-015:LC-003",
+  "LC-031:OI:LC-006:LC-003",
+  "LC-033:IS:LC-007:LC-001",
+  "LC-033:SI:LC-019:LC-001",
+  "LC-034:SS:LC-007:LC-001",
+  "LC-035:I:LC-006",
+  "LC-035:IL:LC-006:LC-001",
+  "LC-035:JO:LC-002:LC-001",
+  "LC-036:IJ:LC-002:LC-003",
+  "LC-036:IO:LC-002:LC-001",
+  "LC-036:OI:LC-019:LC-001",
+  "LC-038:L:LC-005",
+  "LC-038:LO:LC-005:LC-006",
+  "LC-039:JO:LC-016:LC-001",
+  "LC-042:O:LC-003",
+  "LC-043:J:LC-001",
+  "LC-043:OI:LC-035:LC-006",
+  "LC-044:I:LC-006",
+  "LC-045:JO:LC-016:LC-001",
+  "LC-047:SL:LC-061:LC-005",
+  "LC-050:J:LC-001",
+  "LC-050:IJ:LC-043:LC-001",
+  "LC-059:S:LC-005",
+  "LC-059:SO:LC-005:LC-006",
+  "LC-061:L:LC-005",
+  "LC-061:LO:LC-005:LC-006",
+  "LC-066:J:LC-006",
+  "LC-066:JI:LC-006:LC-003",
+  "LC-067:J:LC-003",
+  "LC-068:JO:LC-031:LC-006",
+  "LC-070:I:LC-006",
+  "LC-079:I:LC-001",
+  "LC-080:IJ:LC-002:LC-003",
+  "LC-083:JJ:LC-002:LC-003",
+  "LC-084:LI:LC-044:LC-006",
+  "LC-086:SL:LC-038:LC-005"
+]);
+  const continuationSets = { opener: [], midgame: [], reset: [], unresolved: [] };
+  const membership = new Map();
+  for (const c of catalog) for (const a of c.dependencies.alternatives) for (const p of a.paths) {
+    const key = routeKey(c.id, a.pieces, p.contours);
+    const coach = special.get(key) || (midgameKeys.has(key) ? "midgame" : "unresolved");
+    membership.set(key, coach);
+    continuationSets[coach].push({ from: c.id, pieces: a.pieces, ...p });
+  }
+  for (const key of [...special.keys(), ...midgameKeys]) if (!membership.has(key)) throw Error("Missing coach route: " + key);
+  deepFreeze(continuationSets);
+  const coachCatalogs = new Map(["opener", "midgame", "reset"].map(coach => [coach,
+    new Map(catalog.map(c => {
+      const alternatives = c.dependencies.alternatives.map(a => ({ ...a,
+        paths: a.paths.filter(p => membership.get(routeKey(c.id, a.pieces, p.contours)) === coach),
+      })).filter(a => a.paths.length);
+      return [c.key, deepFreeze({ ...c, dependencies: {
+        status: alternatives.length ? "known" : "unknown", alternatives,
+      } })];
+    }))]));
+  function lookup(heights, coach) {
     const k = key(heights);
-    return k === null ? null : byKey.get(k) || null;
+    if (k === null) return null;
+    // No coach means the archival union, never an implicit runtime permission.
+    return (coach === undefined ? byKey : coachCatalogs.get(coach))?.get(k) || null;
   }
   // Necessary finite piece-flow feasibility only. Skipped locks are explicitly
   // returned, not certified placements. No bag guesses or unseen pieces enter.
@@ -636,7 +798,7 @@
     }
   }
   function candidates(heights, supply, options = {}) {
-    const contour = lookup(heights);
+    const contour = lookup(heights, options.coach);
     if (!contour)
       return {
         status: "unlisted",
@@ -671,6 +833,7 @@
   }
   return Object.freeze({
     schemaVersion,
+    continuationSets,
     catalog: Object.freeze(catalog),
     normalize,
     key,

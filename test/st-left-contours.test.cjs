@@ -11,7 +11,7 @@ const root = path.resolve(__dirname, ".."),
   script = fs.readFileSync(path.join(root, "st-left-contours.js"), "utf8");
 
 test("Left contours: exact observed inventory, stable identities and descriptive limits", () => {
-  assert.equal(C.schemaVersion, 2);
+  assert.equal(C.schemaVersion, 3);
   assert.equal(C.catalog.length, 90);
   assert.deepEqual(
     C.catalog.map((c) => c.id),

@@ -1,6 +1,6 @@
 /* Separate, bounded Reset coach. A sustainable public prefix is not a promise
  * about an unseen bag. Completion is exclusively two actual Left zero-clear Ts. */
-(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-structure'),require('./st-access'),require('./st-resource-provider'),require('./st-obligation-resources'),require('./st-reset-policy'),require('./st-left-context')):factory(root.STRules,root.STStructure,root.STAccess,root.STResourceProvider,root.STObligationResources,root.STResetPolicy,root.STLeftContext);if(typeof module==='object'&&module.exports)module.exports=api;else root.STResetCoach=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,S,A,Provider,M,Q,L){
+(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-structure'),require('./st-access'),require('./st-resource-provider'),require('./st-obligation-resources'),require('./st-reset-policy'),require('./st-left-context'),()=>require('./st-left-routes')):factory(root.STRules,root.STStructure,root.STAccess,root.STResourceProvider,root.STObligationResources,root.STResetPolicy,root.STLeftContext,()=>root.STLeftRoutes);if(typeof module==='object'&&module.exports)module.exports=api;else root.STResetCoach=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,S,A,Provider,M,Q,L,getLR){
 'use strict';
 const clone=x=>JSON.parse(JSON.stringify(x));
 const context=s=>JSON.stringify([s.rules,s.board,s.hold,s.canHold,s.queue,s.bag??null,s.active?.type]);
@@ -30,6 +30,10 @@ function cleanupAvailable(state,allowHold){
  }
  if(!cleanupCache.has(state))cleanupCache.set(state,new Map());cleanupCache.get(state).set(key,found);return found;
 }
+// Resolve the actually consumed identity through literal HOLD actions. A
+// schedule's chosen S instance cannot authorize a different same-letter token.
+function placedIdentity(resource,witness){let active=resource.active,hold=resource.hold,queue=resource.queue.slice();for(const action of witness)if(action==='HOLD'){if(hold){const old=active;active=hold;hold=old;}else{hold=active;active=queue.shift()||null;}}return active;}
+function routeCompare(a,b){return getLR().compare(a.leftRoutes||[],b.leftRoutes||[]);}
 function transition(n,p){
  const e=p.event;if(e.topOut||p.state.topOut||!S.canonicalClear(e)||e.cells.some(([x])=>x>=7)&&!'ZTI'.includes(e.type))return null;
  if(e.type==='T'&&!Q.qualifies(e))return null;
@@ -43,7 +47,8 @@ function transition(n,p){
  if(resource.violations.length||M.resetLosesObligation(n.resource,resource))return null;
  const path=[...n.path,{witness:p.witness.slice(),event:clone(e),target:clone(e.target),hold:p.witness.includes('HOLD'),structuralEvidence:structural}];
  const score=L.evaluate(p.state,{resources:resource}).score;
- return{state:p.state,allowHold:n.allowHold,notches:phase.pattern,resource,path,score:score+geom.supportEstimate,done:resource.resetCompleted};
+ const leftRoutes=n.leftRouteRoot?.routes.length?getLR().advance(n.leftRouteRoot,n.leftRoutes,n.state,p,placedIdentity(n.resource,p.witness)):[];
+ return{state:p.state,allowHold:n.allowHold,notches:phase.pattern,resource,path,score:score+geom.supportEstimate,done:resource.resetCompleted,leftRouteRoot:n.leftRouteRoot,leftRoutes};
 }
 // Replay supplied movement-access witnesses rather than enumerate on the UI
 // thread. Every newly roofed cell must be covered by an actual legal witness.
@@ -68,7 +73,7 @@ function checkEntry(raw,steps,options,start){
  const now=options.now||(()=>Date.now()),deadline=options.deadline??Infinity,limit=options.maxNodes??45000;
  if(!start.resource)return{valid:false,reason:'reset-not-admitted',visited:0};
  if(!Array.isArray(steps)||!steps.length||steps.length>7||steps.some(p=>!Array.isArray(p.witness)||p.witness.length>256||options.allowHold===false&&p.witness.includes('HOLD')))return{valid:false,reason:'reset-prefix-limit',visited:0};
- let n={state:R.createState(raw),allowHold:options.allowHold!==false,notches:S.notchPattern(raw.board),resource:start.resource,path:[]},visited=0;
+ let n={state:R.createState(raw),allowHold:options.allowHold!==false,notches:S.notchPattern(raw.board),resource:start.resource,path:[],leftRouteRoot:start.leftRouteRoot,leftRoutes:start.leftRouteRoot?.progress||[]},visited=0;
  for(const [i,step]of steps.entries()){
   if(now()>=deadline||visited+(step.witness?.length||0)>limit)return{valid:false,reason:'reset-validation-budget',visited};visited+=step.witness?.length||0;
   const r=R.replay(n.state,step.witness);if(!r.valid||r.events.length!==1||step.event&&JSON.stringify(step.event)!==JSON.stringify(r.events[0]))return{valid:false,reason:'reset-witness-mismatch',visited};
@@ -96,7 +101,11 @@ function plan(raw,options={}){
  }
  const now=options.now||(()=>Date.now()),began=now(),deadline=options.deadline??(began+(options.timeMs??750)),limit=options.maxNodes??45000;
  const base={revision:raw.revision??0,target:null,witness:[],continuation:[],status:'no-supported-continuation-found',context:context(raw),reason:'No sustainable Reset prefix was certified within the public supply and budget.',metrics:{nodes:0,elapsedMs:0},evidence:{strategy:'reset-coach',resetSelection:start.decision,reset:{progress:start.summary.reset.progress},budgetExhausted:false}};
- let visited=0,beam=[{state:R.createState(raw),allowHold:options.allowHold!==false,resource:start.resource,notches:S.notchPattern(raw.board),path:[]}],best=null;
+ // Entry remains the only authority for Reset, including its T exception.
+ // Query literal observed supply once; unfinished/no-match lookup stays neutral.
+ if(!options.disableContourRoutes&&limit>0&&now()<deadline)start.leftRouteRoot=getLR().prepare(raw,{coach:'reset',resources:start.resource,allowHold:options.allowHold!==false});
+ const contourMetrics=start.leftRouteRoot?{...start.leftRouteRoot.stats,selected:false}:null;
+ let visited=0,beam=[{state:R.createState(raw),allowHold:options.allowHold!==false,resource:start.resource,notches:S.notchPattern(raw.board),path:[],leftRouteRoot:start.leftRouteRoot,leftRoutes:start.leftRouteRoot?.progress||[]}],best=null;
  const maxDepth=Math.min(7,Math.max(1,options.depth??(raw.queue.length+1+(raw.hold?1:0)))),width=Math.min(8,Math.max(1,options.width??4));
  for(let depth=0;depth<maxDepth&&beam.length;depth++){
   const next=[];
@@ -105,22 +114,23 @@ function plan(raw,options={}){
    const enumeration=R.placements(n.state,{allowHold:options.allowHold!==false,maxNodes:Math.max(0,limit-visited),deadline,now});visited+=enumeration.visited;
    for(const p of enumeration.placements){if(now()>=deadline||visited>=limit)break;const node=transition(n,p);if(node)next.push(node);}
   }
-  next.sort((a,b)=>b.resource.resetProgress-a.resource.resetProgress||b.score-a.score||a.path.length-b.path.length||a.path[0].witness.length-b.path[0].witness.length);
+  next.sort((a,b)=>b.resource.resetProgress-a.resource.resetProgress||b.score-a.score||routeCompare(a,b)||a.path.length-b.path.length||a.path[0].witness.length-b.path[0].witness.length);
   // Certify before spending the rest of the beam budget. A validated incumbent
   // survives incomplete deeper exploration; no unchecked fallback is admitted.
   // Beam width limits expansion, not certification of already-enumerated
   // candidates. Failed proofs must not hide a lower-ranked valid incumbent.
   for(const n of next){
    if(now()>=deadline||visited>=limit)break;
-   if(best&&(n.resource.resetProgress<best.node.resource.resetProgress||n.resource.resetProgress===best.node.resource.resetProgress&&n.score<=best.node.score))continue;
+   if(best&&(n.resource.resetProgress<best.node.resource.resetProgress||n.resource.resetProgress===best.node.resource.resetProgress&&(n.score<best.node.score||n.score===best.node.score&&routeCompare(n,best.node)>=0)))continue;
    const verified=checkEntry(raw,n.path,{...options,deadline,now,maxNodes:Math.max(0,limit-visited)},start);visited+=verified.visited;
    if(verified.valid){best=verified;if(n.done)break;}
   }
   if(best?.node.done)break;
-  const seen=new Set();beam=next.filter(n=>{if(n.done)return false;const key=JSON.stringify([n.state.board,n.state.active,n.state.hold,n.state.queue,M.binding(n.resource)]);if(seen.has(key))return false;seen.add(key);return true;}).slice(0,width);
+  const seen=new Set();beam=next.filter(n=>{if(n.done)return false;const key=JSON.stringify([n.state.board,n.state.active,n.state.hold,n.state.queue,M.binding(n.resource),getLR().key(n.leftRoutes)]);if(seen.has(key))return false;seen.add(key);return true;}).slice(0,width);
  }
- base.metrics={nodes:visited,elapsedMs:now()-began};base.evidence.budgetExhausted=now()>=deadline||visited>=limit;
- return best?advice(raw,best,{nodes:visited,elapsedMs:now()-began,budgetExhausted:base.evidence.budgetExhausted}):base;
+ if(contourMetrics)contourMetrics.selected=Boolean(best?.node.leftRoutes.some(p=>p.complete));
+ base.metrics={nodes:visited,elapsedMs:now()-began,...(contourMetrics?{contourRoutes:contourMetrics}:{})};base.evidence.budgetExhausted=now()>=deadline||visited>=limit;
+ return best?advice(raw,best,{...base.metrics,budgetExhausted:base.evidence.budgetExhausted}):base;
 }
 function retain(raw,previous,options={},action=null){
  if(previous?.evidence?.strategy!=='reset-coach'||!previous.target||!Array.isArray(previous.evidence.gapAccess?.steps))return null;
