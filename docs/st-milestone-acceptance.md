@@ -1,5 +1,9 @@
 # Milestone-one acceptance map
 
+## Development baseline versus player release
+
+`main` is the current development baseline with known limitations documented; work toward a polished player release continues there. A checked development change may merge without declaring this whole milestone or the player release accepted. Preserve revision-bound implementation and browser evidence, and keep the strategic-quality and learning questions below open until they are actually evaluated. See [current limitations](../ST-LAB.md#development-status-and-known-limitations).
+
 The 2026-10-22 regional checkpoint recorded 249/250 passing (73.59 seconds), including a cap-to-double selection failure; this is historical evidence, not the current suite status. See [the subsequent cap/pair fixes](st-cap-pair-review.md) and [current test coverage](../TESTING.md#st-lab-milestone-coverage). The regional experiment has a material failed 36-lock sustainability comparison and must not be marked accepted. This maps the approved Notion plan to actual implementation evidence. “Automated” does not mean visual browser or learning acceptance. The action must remain open for those checks.
 
 | Approved acceptance | Evidence / status |
@@ -22,7 +26,7 @@ The 2026-10-22 regional checkpoint recorded 249/250 passing (73.59 seconds), inc
 - Actual prefix search allocates pieces through real hold/draw transitions. A single hypothetical T-entry proof does not certify every geometric cavity, satisfy two obligations with one T, or assert the T will arrive. Compatibility is proved only for pieces actually placed in the checked continuation.
 - The current maintenance admission boundaries and exclusions are defined in [ST lab](../ST-LAB.md#architecture-and-information-contract). Separate bounded empty-board coaching has its own [opening scope and handoff contract](st-opening.md); it does not itself establish general recovery. The separate [Reset coach](st-reset-coach.md) requires known current resource eligibility and independent validation.
 
-## Still required before overall acceptance
+## Still required before overall player-facing milestone acceptance
 
 1. A real browser run on a named browser/device: worker script loading, desktop and narrow layout, painted target/ghost separation, true input repeat and focus, settings propagation, reset/import, cancellation responsiveness and console errors. Record the actual current browser result or blocker; jsdom is not visual evidence.
 2. Kevin's brief playtest: follow advice, make a reasonable alternative, then solve related cases with hints hidden. Record whether the reasons improve independent judgment and where they confuse.

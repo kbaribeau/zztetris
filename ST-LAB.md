@@ -1,5 +1,17 @@
 # ST stacking lab
 
+## Development status and known limitations
+
+`main` is the current development baseline. The lab is still being developed toward a polished player release; implementation correctness and player-release acceptance are separate claims.
+
+- Coaching supports the right-hand stack under `st-zero-v2`: zero gravity, manual hard-drop lock, SRS+ and unlimited hold swaps. The vision's broader gravity support is not implemented.
+- Advice proves only a finite executable continuation within supported geometry and public supply. It can abstain, does not establish impossibility, and does not guarantee arbitrary recovery or indefinite sustainable play.
+- Position-only imports leave prior resource history unknown. Native current coaching sessions carry explicit facts; retired historical session/tape formats are not supported.
+- ST Lab has Undo but no Redo; full Fumen/editor tools remain in ordinary practice. Stored continuation knowledge is retained, but a human education interface has not been developed.
+- Automated replay/accounting checks establish their tested implementation contracts. Real-browser checks establish only the recorded browser scenarios. Strategic quality and whether explanations improve independent judgment still require player evaluation; see the [acceptance map](docs/st-milestone-acceptance.md).
+
+Planning limits and watchdogs remain operational safeguards, not release-quality targets. Development can continue on `main` with these limitations disclosed.
+
 The lab offers separate bounded opening and maintenance coaching for a **right-hand ST stack**, without guaranteeing indefinite survival. The screen offers exactly two play modes: **Empty board** (partial construction using visible pieces) and **Stable ST stack** (the existing Independent rebuild position, the default). The other development fixtures remain internal regression inputs, not selectable starts.
 
 Current [opening allocation and delayed quality](docs/st-opening-allocation.md) keep a known missing opening Z and early Center/S/L obligations distinct from optional stack growth. Imported geometry alone does not invent this history or an Extra-Z allowance.

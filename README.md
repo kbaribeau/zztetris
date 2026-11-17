@@ -1,5 +1,11 @@
 # ZZTetris
 
+## Development status
+
+`main` is the current development baseline, with known limitations documented. Work toward a polished player release continues on `main`. Merging tested implementation changes does not by itself establish player-release readiness or learning effectiveness.
+
+The [ST lab](ST-LAB.md) provides bounded coaching under its explicit rules and can abstain when it cannot establish a supported continuation. Its [release status and known limitations](ST-LAB.md#development-status-and-known-limitations) and [milestone acceptance map](docs/st-milestone-acceptance.md) separate implementation checks from remaining browser, strategic-quality and player-learning evidence.
+
 [![Discord Shield](https://discordapp.com/api/guilds/948358018247032883/widget.png?style=shield)](https://discord.gg/Z3qDF4DVxJ)
 [![Open issues](https://img.shields.io/github/issues/g3ner1c/wikimedia-cli)](https://github.com/swng/zztetris/issues)
 [![Open PRs](https://img.shields.io/github/issues-pr/g3ner1c/wikimedia-cli)](https://github.com/swng/zztetris/pulls)
