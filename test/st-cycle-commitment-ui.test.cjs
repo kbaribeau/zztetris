@@ -2,6 +2,7 @@
 const {SEARCH_TIME_MS}=require('../st-coach-config');
 // X.search research certificates retain their separate 750 ms sub-search ceiling.
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const D=require('./support/st-search-diagnostic.cjs');
 const {withPage}=require('./support/page.cjs');
 const R=require('../st-rules');
 const json=x=>JSON.parse(JSON.stringify(x));
@@ -121,7 +122,7 @@ test('st-cycle-ui/finite paired-T proof does not authorize an unready Reset thro
  const P=require('../st-planner'),X=require('../st-paired-repair'),fixture=require('./support/st-construction-recovery.json'),workers=setup(g);
  g.window.STFixtures={...g.window.STFixtures,get:()=>({observation:fixture.initial,future:['J','L','O'],label:'Synthetic public construction control'})};
  g.window.stLab.loadFixture('synthetic-construction-control');g.advance(40);
- let request=workers.at(-1).message;const certificate=X.search(request.observation,{timeMs:750});assert.ok(certificate.valid,'Low-level finite route remains mechanically verified');
+ let request=workers.at(-1).message;const certificate=X.search(request.observation,{timeMs:750});D.check(certificate.valid,'Low-level finite route remains mechanically verified',{request:{observation:request.observation,options:{timeMs:750}},result:certificate});
  assert.ok(X.validateCertificate(request.observation,certificate.continuation).valid);
  const proof={origin:request.observation,steps:certificate.continuation.map(p=>({witness:p.witness})),consumed:0};
  let plan=P.plan(request.observation,{...request.options,timeMs:SEARCH_TIME_MS});assert.equal(plan.target,null,'High Left with depleted Center is not accepted as Reset readiness');workers.at(-1).respond(plan);

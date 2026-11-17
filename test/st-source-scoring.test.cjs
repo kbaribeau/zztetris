@@ -2,12 +2,13 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const R=require('../st-rules'),P=require('../st-planner'),Q=require('../st-source-scoring'),Sim=require('../scripts/lib/st-simulation.cjs');
 const clone=x=>JSON.parse(JSON.stringify(x)),config={...Sim.CONFIG,now:()=>0};
+const D=require('./support/st-search-diagnostic.cjs');
 let fixture;
 function actualRoot(){
  const session=Sim.createSession(Sim.makeInput('empty',2026114046,24));
  for(let lock=1;lock<=14;lock++){
   const request=session.request(lock,config),advice=P.decide(request.observation,request.options);
-  assert.ok(advice.evidence?.opening?.sourcePlan,'actual source construction at '+lock);
+  D.check(advice.evidence?.opening?.sourcePlan,'actual source construction at '+lock,{request,result:advice});
   session.execute(advice);
  }
  assert.equal(session.opening.source.history.steps.length,7);
@@ -16,7 +17,7 @@ function actualRoot(){
  return session;
 }
 function base(){
- if(!fixture){const session=actualRoot(),request=session.request(15,config),advice=P.decide(request.observation,request.options);assert.ok(advice.evidence?.opening?.scoringPlan);fixture={request,advice};}
+ if(!fixture){const session=actualRoot(),request=session.request(15,config),advice=P.decide(request.observation,request.options);D.check(advice.evidence?.opening?.scoringPlan,'fixture scoring proof',{request,result:advice});fixture={request,advice};}
  const request=clone(fixture.request),advice=clone(fixture.advice);request.options.now=()=>0;
  const accepted=P.acceptOpeningResult({active:true,clear:null,repair:null,source:request.options.openingSource},advice);
  return{request,advice,options:{...request.options,openingSource:accepted.source}};
@@ -27,7 +28,7 @@ test('source scoring: actual source history reaches first TSD through live movem
  const session=actualRoot();let types=[],holds=0,advanced=0,draws=session.cursor;
  for(let lock=15;lock<=20;lock++){
   const request=session.request(lock,Sim.CONFIG),advice=P.decide(request.observation,request.options);
-  assert.ok(advice.evidence?.opening?.scoringPlan,'scoring proof at '+lock);
+  D.check(advice.evidence?.opening?.scoringPlan,'scoring proof at '+lock,{request,result:advice});
   assert.equal(advice.phase,'opening');assert.equal(session.opening.active,true);assert.equal(session.opening.clear,null);
   assert.ok(advice.metrics.nodes<=Sim.CONFIG.maxNodes);assert.ok(advice.continuation.length<=21-lock);
   const actual=session.execute(advice);types.push(actual.event.type);holds+=actual.actions.filter(x=>x.action==='HOLD').length;

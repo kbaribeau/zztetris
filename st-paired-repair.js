@@ -11,7 +11,7 @@ function competingDemand(state){const right=S.geometry(state.board).right;
 function validateCertificate(initial,steps,options={}){
  const P=getPlanner(),capMode=options.kind==='cap-deferral';
  const started=performance.now(),budget=bound(options.timeMs,750,750);
- const fail=(reason,lock=null)=>({valid:false,status:'uncertified',reason,lock,elapsedMs:performance.now()-started});
+ const fail=(reason,lock=null,stop=null)=>({valid:false,status:'uncertified',reason,lock,elapsedMs:performance.now()-started,...(stop?{stop}:{})});
  if(!initial||!Array.isArray(initial.queue)||initial.queue.length>6)return fail('public-preview-must-contain-at-most-six-pieces');
  if(!Array.isArray(steps)||!steps.length||steps.length>7)return fail('certificate-must-have-one-to-seven-locks');
  let state;try{state=P.observe(initial);if(R.validate(state).length)return fail('invalid-observation');}catch{return fail('invalid-observation');}
@@ -21,7 +21,7 @@ function validateCertificate(initial,steps,options={}){
  if(state.topOut||notches.status!=='established'||(capMode?!capTargets.length:S.geometry(state.board).right.shapeStatus!=='staggered-scoring-wall'))return fail('established-scoring-geometry-required');
  const fillers=[],verified=[];let returnedDouble=false;
  for(let i=0;i<steps.length;i++){
-  if(performance.now()-started>=budget)return fail('certificate-budget-exhausted',i);
+  const sampledNow=performance.now();if(sampledNow-started>=budget)return fail('certificate-budget-exhausted',i,{phase:'certificate-lock',reason:'deadline',verifiedLocks:verified.length,budget,started,sampledNow});
   const witness=steps[i]?.witness;if(!Array.isArray(witness)||!witness.length||witness.length>256)return fail('bounded-input-witness-required',i);
   let replay;try{replay=R.replay(state,witness);}catch{return fail('invalid-input-witness',i);}
   if(!replay.valid||replay.events.length!==1)return fail('witness-must-execute-exactly-one-legal-lock',i);
@@ -58,7 +58,7 @@ function validateCertificate(initial,steps,options={}){
   verified.push({witness:witness.slice(),event:clone(event),structuralEvidence:{...structure,centerReservation:reservation}});
   state=replay.state;notches=notch.pattern;assessment=next;
  }
- if(performance.now()-started>=budget)return fail('certificate-budget-exhausted');
+ const sampledNow=performance.now();if(sampledNow-started>=budget)return fail('certificate-budget-exhausted',null,{phase:'certificate-end',reason:'deadline',verifiedLocks:verified.length,budget,started,sampledNow});
  if(!returnedDouble||(capMode?capPaidAt===null:fillers.length!==2||fillers[0].parity+fillers[1].parity!==0))return fail('construction-and-subsequent-double-not-proved');
  if(verified.at(-1).event.type!=='T'||verified.at(-1).event.spin!=='full'||verified.at(-1).event.lines!==2||!assessment.regionalSupport)return fail('supported-double-endpoint-required');
  if(centerDebt.length)return fail('unresolved-center-reservation');
@@ -71,11 +71,12 @@ function stagePlacements(state,{deadline=Infinity,maxNodes=2000}={}){
  let visited=0;const out=[],outSeen=new Set(),roots=[{s:state,w:[]}],rootSeen=new Set();let hold=state;
  for(let i=1;i<=2;i++){const n=R.move(hold,'HOLD');if(n===hold||n.topOut)break;hold=n;roots.push({s:hold,w:Array(i).fill('HOLD')});}
  for(const root of roots){const rootkey=JSON.stringify([root.s.active,root.s.hold,root.s.queue]);if(rootSeen.has(rootkey))continue;rootSeen.add(rootkey);if(!root.s.active)continue;
-  const air=[root],airSeen=new Set([poseKey(root.s.active)]);for(let i=0;i<air.length;i++){if(performance.now()>=deadline)return{placements:out,visited,complete:false};const n=air[i];for(const act of ['L','R','CW','CCW','R180']){const s=R.move(n.s,act);if(s===n.s||s.active.y!==root.s.active.y)continue;const k=poseKey(s.active);if(!airSeen.has(k)){airSeen.add(k);air.push({s,w:[...n.w,act]});}}}
+  const air=[root],airSeen=new Set([poseKey(root.s.active)]);for(let i=0;i<air.length;i++){const sampledNow=performance.now();if(sampledNow>=deadline)return{placements:out,visited,complete:false,stop:{phase:'air',reason:'deadline',visited,maxNodes,deadline,sampledNow}};const n=air[i];for(const act of ['L','R','CW','CCW','R180']){const s=R.move(n.s,act);if(s===n.s||s.active.y!==root.s.active.y)continue;const k=poseKey(s.active);if(!airSeen.has(k)){airSeen.add(k);air.push({s,w:[...n.w,act]});}}}
   const q=[],seen=new Set();function addDrop(n){const run=[n];let cur=n;while(performance.now()<deadline){const s=R.move(cur.s,'SD');if(s===cur.s)break;cur={s,w:[...cur.w,'SD']};run.push(cur);}for(const k of run.slice(-4)){const key=poseKey(k.s.active);if(!seen.has(key)){seen.add(key);q.push(k);}}}
   for(const n of air)addDrop(n);
   for(let i=0;i<q.length;i++){
-   if(visited++>=maxNodes||performance.now()>=deadline)return{placements:out,visited,complete:false};
+   const before=visited++;if(before>=maxNodes)return{placements:out,visited,complete:false,stop:{phase:'ground',reason:'nodes',visited,checkedVisited:before,maxNodes,deadline}};
+   const sampledNow=performance.now();if(sampledNow>=deadline)return{placements:out,visited,complete:false,stop:{phase:'ground',reason:'deadline',visited,maxNodes,deadline,sampledNow}};
    const n=q[i];if(R.move(n.s,'SD')===n.s){const s=R.move(n.s,'HD'),event=s.lastEvent;if(event&&!event.topOut){const key=JSON.stringify([event,s.active,s.hold,s.queue]);if(!outSeen.has(key)){outSeen.add(key);out.push({state:s,event,witness:[...n.w,'HD']});}}}
    for(const act of ['L','R','CW','CCW','R180']){const s=R.move(n.s,act);if(s===n.s)continue;addDrop({s,w:[...n.w,act]});}
   }
@@ -93,19 +94,20 @@ function search(initial,options={}){
  const start=performance.now(),deadline=start+bound(options.timeMs,750,750);
  const maxNodes=bound(options.maxNodes,45000,45000),depth=Math.floor(bound(options.depth,7,7));
  const width=Math.floor(bound(options.width,3,8,1));let visited=0,reachedDepth=0,incomplete=false;
- const miss=reason=>({valid:false,status:'uncertified',reason,visited,reachedDepth,elapsedMs:performance.now()-start});
+ let stop=null,lastValidation=null,lastEnumeration=null;
+ const miss=reason=>({valid:false,status:'uncertified',reason,visited,reachedDepth,elapsedMs:performance.now()-start,diagnostic:{stop,lastValidation,lastEnumeration,maxNodes,deadline,depth,width}});
  let state;try{if(!Array.isArray(initial.queue)||initial.queue.length>6)return miss('invalid-public-preview');state=P.observe(initial);if(R.validate(state).length)return miss('invalid-observation');}catch{return miss('invalid-observation');}
  const notches=S.notchPattern(state.board),capTargets=S.geometry(state.board).right.completions.map(c=>c.cells);if(notches.status!=='established'||(capMode?!capTargets.length:S.geometry(state.board).right.shapeStatus!=='staggered-scoring-wall'))return miss('established-scoring-geometry-required');
  let beam=[{state,notches,path:[],parities:[],centerDebt:[],assessment:P.assess(state.board)}];
  for(let d=0;d<depth&&beam.length;d++){
   const next=[];
   for(const n of beam){
-   if(performance.now()>=deadline||visited>=maxNodes)return miss('bounded-search-budget-exhausted');
+   const sampledNow=performance.now();if(sampledNow>=deadline||visited>=maxNodes){stop={phase:'parent',reason:sampledNow>=deadline?'deadline':'nodes',visited,maxNodes,reachedDepth,deadline,sampledNow};return miss('bounded-search-budget-exhausted');}
    if(capMode&&(S.geometry(n.state.board).right.cycle.prepareColumn!==null||S.geometry(n.state.board).right.cycle.cleanupColumns.length))continue;
    if(!capMode&&competingDemand(n.state))continue;
-   const enumeration=stagePlacements(n.state,{maxNodes:maxNodes-visited,deadline,now:()=>performance.now()});visited+=enumeration.visited;incomplete ||= !enumeration.complete;
+   const enumeration=stagePlacements(n.state,{maxNodes:maxNodes-visited,deadline,now:()=>performance.now()});visited+=enumeration.visited;incomplete ||= !enumeration.complete;lastEnumeration={visited:enumeration.visited,complete:enumeration.complete,envelopeComplete:enumeration.envelopeComplete??false,stop:enumeration.stop??null};
    for(const p of enumeration.placements){
-    if(performance.now()>=deadline)return miss('bounded-search-budget-exhausted');
+    const sampledNow=performance.now();if(sampledNow>=deadline){stop={phase:'placement',reason:'deadline',visited,maxNodes,reachedDepth,deadline,sampledNow};return miss('bounded-search-budget-exhausted');}
     const e=p.event;if(!S.canonicalClear(e)||e.topOut||(!capMode&&e.lines&&n.parities.length<2))continue;
     if(capMode&&!n.path.length&&(e.type!=='Z'||e.lines||e.cells.some(([x])=>x>=7)))continue;
     const capPaid=n.capPaid||(capMode&&n.path.length>0&&e.type==='Z'&&capTargets.some(c=>JSON.stringify(c.slice().sort())===JSON.stringify(e.cells.slice().sort())));
@@ -118,6 +120,7 @@ function search(initial,options={}){
     const centerDebt=P.centerReservationStep(n.state,p,n.centerDebt,n.notches).debt,path=[...n.path,{witness:p.witness}];
     if(e.type==='T'&&e.spin==='full'&&e.lines===2){
      const result=validateCertificate(initial,path,{kind:options.kind,timeMs:Math.max(0,deadline-performance.now())});
+     lastValidation=result;
      if(result.valid)return {...result,search:{visited,depth:path.length,elapsedMs:performance.now()-start}};
      continue;
     }
