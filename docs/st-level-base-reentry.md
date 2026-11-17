@@ -1,5 +1,7 @@
 # One-lock re-entry from a level-two Center base
 
+> Historical timing context: the measurements and 750 ms restoration-goal references below record the earlier investigation. Kevin superseded that goal on 2026-11-15. Current [planning guidance](st-temporary-planning-budget.md) treats deadlines and watchdogs as operational safeguards, not coach correctness/quality goals or acceptance criteria; runtime safeguards are unchanged.
+
 The maintenance height gate could reject an already checked Center preparation
 after the preceding double left a phase-aligned level-two base. The recorded
 502400001 stop at lock 98 already carried a one-lock S preparation commitment;

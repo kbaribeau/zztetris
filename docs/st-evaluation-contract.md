@@ -1,5 +1,7 @@
 # Executable ST evaluation contract (v1)
 
+Current guidance follows the [ST Lab vision](st-lab-vision.md) and [planning safeguards](st-temporary-planning-budget.md): operational deadlines and watchdogs are not coach correctness/quality goals or acceptance criteria. The schema capabilities below describe what the existing evaluator can encode, not authorization to introduce timeout-derived numerical gates. Preserve timing, exhaustion and censored-run data as diagnostics and evidence limits. Do not optimize abstention counts in isolation or infer quality from completing within a watchdog.
+
 The executable schema, validation, computations and renderer live in
 [`scripts/lib/st-evaluation.cjs`](../scripts/lib/st-evaluation.cjs). Its strict
 `validateProtocol` is the authority; it returns a deeply frozen copy. The CLI is

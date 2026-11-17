@@ -1,5 +1,7 @@
 # Checked cap fallback before optional preparation
 
+> Historical timing context: the measurements and 750 ms restoration-goal references below record the earlier investigation. Kevin superseded that goal on 2026-11-15. Current [planning guidance](st-temporary-planning-budget.md) treats deadlines and watchdogs as operational safeguards, not coach correctness/quality goals or acceptance criteria; runtime safeguards are unchanged.
+
 Development change, 2026-10-24. This is not an opening handoff rule, future T-arrival certificate, or sustainability guarantee.
 
 ## Motivation and scope

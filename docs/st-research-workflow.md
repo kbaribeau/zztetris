@@ -19,6 +19,11 @@ For routine diagnostic simulation batches, use four parallel episode workers
 `--no-search-timeout` only as an explicit diagnostic choice. Parallel results
 remain descriptive: CPU contention and nested wall timers can change decisions.
 The production acceptance procedure below remains serial with ordinary timeouts.
+Those timeouts and watchdogs are operational safeguards, not coach correctness or
+quality goals or acceptance criteria. Follow the [current planning guidance](st-temporary-planning-budget.md);
+do not derive numerical gates from their values. Preserve honest abstention and
+evaluate supported continuation, straightforward execution and truthful explanations
+against the [vision](st-lab-vision.md), with independent player judgment as the success goal.
 
 For an engine change, freeze sources, actual inputs, cohorts, explicit metrics,
 thresholds, uncertainty rules, budgets and stopping caps before the first planner

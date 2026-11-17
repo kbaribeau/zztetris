@@ -1,5 +1,7 @@
 # Coach-specific Left continuation sets
 
+Stored Left and Center continuations are mostly an optimization, and also a library of known good play. They could support an education tool for human players, but that feature has not been developed. This document describes the Left catalog mechanics; catalog membership does not establish current move permission.
+
 The 133 stored source-specific routes retain their archival identities. Runtime
 catalog membership is explicit: 3 opener, 124 midgame, 4 Reset, and 2 unresolved
 phase-straddling routes. Unresolved routes remain in the archival union but are

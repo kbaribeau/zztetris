@@ -1,5 +1,7 @@
 # ST closed-loop simulation
 
+Simulation evidence should serve the [ST Lab vision](st-lab-vision.md). Deadlines and watchdogs bound execution; they do not define good coaching or numerical acceptance targets. Preserve their existing behavior and report their outcomes separately. References below to production-budget acceptance describe evidence collected under the production configuration, not acceptance for meeting a timeout. Serial matched runs control timing-sensitive comparisons; they do not make elapsed time a correctness test.
+
 Run from the repository root with the pinned Node 24.22.0 and existing npm installation. No browser, server, new npm dependencies or schedule is required.
 
 **Use four parallel episode workers (`--parallel 4`) for routine diagnostic
@@ -36,7 +38,7 @@ Empty starts use a seeded uniform seven-bag generator. Stable starts select a pr
 
 ## Budget and reproducibility limits
 
-The production lane uses the page's maintenance configuration: depth 3, width 8, 45,000 nodes, temporarily 1500 ms. The original 750 ms goal remains explicit performance debt; see [budget decision](st-temporary-planning-budget.md). Opening/construction code retains its production internal budgets. Every run records source hashes as well as configuration. Changes during an episode invalidate its evidence.
+The production lane uses the page's maintenance configuration: `depth: null` (finite public-piece horizon), width 8, 45,000 nodes and 1500 ms. These operational settings are not coach correctness or quality goals or acceptance criteria; the earlier 750 ms restoration target was superseded on 2026-11-15. See [planning safeguards and historical evidence](st-temporary-planning-budget.md). Opening/construction code retains its production internal budgets. Every run records source hashes as well as configuration. Changes during an episode invalidate its evidence.
 
 **Fixed seeds do not make current search deterministic.** Nested repairs and certificates use wall-clock deadlines too. `--lane deterministic` is deliberately rejected. Node-only budgets or a fake outer clock would not establish control of all nested timers. Timed runs may diverge across machines, load or repetitions; compare serially under controlled conditions and retain all outcomes.
 
@@ -386,7 +388,7 @@ it to CPU time; distinguish outer time, node, nested proof, and undetermined lim
 Never infer an exhaustive search from a fast abstention or an explicit false flag:
 only report completeness where that exact supported search actually certifies it.
 
-Prioritize profiling/optimization when budget-limited stops dominate, but inspect
+Use budget-limited stops to identify possible profiling work, not a mandate to reduce abstentions or meet a timing target. Honest abstention remains appropriate when a supported continuation cannot be established. Judge proposed changes by supported doubles-focused play, execution and explanation quality, with player learning assessed separately. Inspect
 node and nested limits rather than assuming a faster CPU alone fixes them. Use
 human review packets for supported-search failures without reported exhaustion,
 while treating incomplete or unknown searches as unproven. A single profile is

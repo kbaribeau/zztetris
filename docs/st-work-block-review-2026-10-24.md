@@ -1,5 +1,7 @@
 # Development block review, October 24–25, 2026
 
+> Historical timing context: the measurements and 750 ms restoration-goal references below record the earlier investigation. Kevin superseded that goal on 2026-11-15. Current [planning guidance](st-temporary-planning-budget.md) treats deadlines and watchdogs as operational safeguards, not coach correctness/quality goals or acceptance criteria; runtime safeguards are unchanged.
+
 ## Retained changes
 
 1. **Earlier certified cap backup and cheaper necessary checks.** Cleanup

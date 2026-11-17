@@ -4,7 +4,7 @@ Empty board now uses `st-opening.js`, separately from established-stack maintena
 
 ## What is checked
 
-Each proposed move has a replayable legal input witness. Search uses only the active piece, hold and six visible preview pieces. It evaluates a reduced placement envelope, normally three locks deep with six retained families, under the same 750 ms / 45,000-node request budget. Completing this envelope is not exhaustive movement search. A miss is lack of a checked move, not proof that the position cannot be played.
+Each proposed move has a replayable legal input witness. Search uses only the active piece, hold and six visible preview pieces. It evaluates a reduced placement envelope, normally three locks deep with six retained families, under the shared request allowance and 45,000-node cap; see [current planning safeguards](st-temporary-planning-budget.md). Completing this envelope is not exhaustive movement search. A miss is lack of a checked move, not proof that the position cannot be played.
 
 Construction diagnostics use occupied cells rather than colors: Left checkerboard balance, Center foundation coverage, anchored column-seven cadence, scoring-row coverage, reachable versus sealed vacancies and regional height. Nonzero balance is reported as unresolved; no unseen T is promised. A hypothetical geometric foundation fit is a ranking signal only, never an available piece or an executed continuation. The search does not require the first two Ts to go left, an exactly flat Left, or a replay-specific prefix.
 

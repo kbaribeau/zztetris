@@ -1,5 +1,7 @@
 # Visible opening closure review, 2026-10-24
 
+> Historical timing context: the measurements and 750 ms restoration-goal references below record the earlier investigation. Kevin superseded that goal on 2026-11-15. Current [planning guidance](st-temporary-planning-budget.md) treats deadlines and watchdogs as operational safeguards, not coach correctness/quality goals or acceptance criteria; runtime safeguards are unchanged.
+
 ## What changed
 
 The opening coach can now retain a bounded five-lock construction when the original public supply proves both cancellation of the observed Left imbalance and an exact Center-partner completion. It does not retire that combined goal when the balancing T alone lands. Every actual lock, HOLD, refreshed public preview and Undo is revalidated. Discovery does not use private future pieces or a recorded sequence lookup.
@@ -40,4 +42,4 @@ All three user-supplied Reset research positions are preserved separately, with 
 
 After the matched 750 ms trials, the user explicitly permitted temporary timing relaxation while retaining 750 ms as the restoration goal. A predeclared 12-call exact-root ABBA comparison on frozen 266282c kept the 45,000-node limit and compared 750/1500/1500/750 ms at O6, maintenance24 and maintenance41. O6 completed the same five-lock route at either allowance. At maintenance24, one 750 ms call abstained and one returned a zero-completed-layer Z-cap; both 1500 ms calls returned the cap with two completed layers. Maintenance41 completed two layers at 750 ms and three at 1500 ms, with the same initial S. All returned witnesses were valid. This is compute/coverage evidence, not a new long-run reliability result.
 
-The page and simulator now use an explicitly temporary 1500 ms soft deadline, retaining 45,000 nodes and the 2.5-second worker watchdog. Manifests record actual budgets and mixed-budget comparisons remain rejected. See [performance debt, profiling caveats and restoration goal](st-temporary-planning-budget.md). No fallback policy, ranking weight or safety guard was loosened.
+The page and simulator now use an explicitly temporary 1500 ms soft deadline, retaining 45,000 nodes and the 2.5-second worker watchdog. Manifests record actual budgets and mixed-budget comparisons remain rejected. See [current planning guidance and historical profiling evidence](st-temporary-planning-budget.md). No fallback policy, ranking weight or safety guard was loosened.
