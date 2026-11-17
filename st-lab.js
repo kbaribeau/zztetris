@@ -22,6 +22,7 @@
   const context=$('b').getContext('2d');
   let suggestedFileName=STSession.DEFAULT_EXPORT_FILENAME;
   let state, origin, future=[], futureCursor=0, generated=false, privatePractice=false, openingPhase=false, openingClear=null, openingRepair=null, openingSource=null, patternHistory=null, obligationContext=null;
+  let replayTape=null;
   let undoHistory=[], turnStart=null, inverseSession=null, pendingInverse=null, planContinuity=null, planProof=null;
   let tracking=STObligationTracking.create();const trackingListeners=new Map();
   function resetTracking(){tracking=STObligationTracking.create();for(const listener of trackingListeners.keys())trackingListeners.set(listener,tracking.subscribe(listener));}
@@ -31,6 +32,7 @@
   function resetInverse(){inverseSession=STObligationInverse.start(obligationContext,{requestEpoch:revision});pendingInverse=null;}
   function installTransition(prior,before,transition,operation,lock=lockCount){
     obligationContext=transition.context;
+    if(!['observe','lock'].includes(operation.kind))replayTape=STSession.replay.record(replayTape,before,prior,{marker:operation.kind,...(operation.kind==='accept-left-repair'?{repair:operation.repair}:{})});
     // Current Context has already committed. Retain only changed before-images
     // in the caller's placement checkpoint, before observers/routing can fail.
     try{
@@ -329,8 +331,9 @@
       if(frontier)frontier=STBag.consume(frontier,type);
     }
     if(added.length&&frontier)state={...state,bag:frontier};
+    return added;
   }
-  function resetState(input,{tail=[],random=false,history=null,note='',keepOrigin=false,opening=false,counterLabel='Lines since start',suggestedFileName:filename=STSession.DEFAULT_EXPORT_FILENAME}={}) {
+  function resetState(input,{tail=[],random=false,history=null,note='',keepOrigin=false,opening=false,counterLabel='Lines since start',suggestedFileName:filename=STSession.DEFAULT_EXPORT_FILENAME,replayBoundary='mode'}={}) {
     cancel();stopRepeating();planContinuity=null;planProof=null;recoveryOrigin=null;recoveryExecution=null;pendingHandoffRecovery=null;future=tail.slice();futureCursor=0;undoHistory=[];turnStart=null;generated=random;privatePractice=false;openingPhase=opening;openingClear=null;openingRepair=null;openingForecast=null;
     state=STRules.migrateState({...clone(input),revision:++revision});
     const errors=STRules.validate(state);if(errors.length)throw new Error(errors.join('; '));
@@ -340,6 +343,7 @@
     // consumes the frontier; Undo already restores it in the state snapshot.
     if(history)state={...state,bag:STBag.fromObserved({observed:history,startPhase:0})};
     replenish();searchSettings=STSession.defaults();openingSource=STPlanner.startOpeningSession(observation(),{emptyMode:random&&opening}).source;patternHistory=STPlanner.startPatternHistory(observation());obligationContext=STObligationContext.start(observation(),{fresh:random&&opening});resetInverse();patternHistory=clone(obligationContext.state.safety.notches);resetTracking();previous=null;result=null;commitment=null;pendingLHint=null;lockCount=0;clearedLines=0;lineLabel=counterLabel;
+    replayTape=STSession.replay.start(observation(),obligationContext,keepOrigin?'restart':replayBoundary);
     if(!keepOrigin)origin={input:clone(input),options:{tail:tail.slice(),random,history:history?.slice()||null,note,opening,counterLabel,suggestedFileName}};
     setText($('st-position-note'),note);setText($('st-game-status'),'');requestPlan();render();
   }
@@ -350,14 +354,14 @@
     const input=fixture.observation || fixture.state;
     resetState(input,{tail:fixture.future||[],note:id===stableId?'Stable ST stack. Continue from the Independent rebuild position with a defined practice sequence.':`${fixture.label||fixture.name||id}. ${fixture.description||''} Preview/hold context is defined by this training fixture, not inferred from a recording.`});
   }
-  function empty() {
+  function empty(replayBoundary='start') {
     const initial=bag();selectedId='empty';$('st-fixture').value='empty';
     const active=initial.shift();
     resetState({rules:profile,board:STRules.emptyBoard(),active:{type:active,x:3,y:17,rotation:0,lastRotation:null},hold:null,canHold:true,queue:initial,streamCursor:1},
-      {random:true,opening:true,history:[active,...initial],note:'Empty-board opening practice. The coach checks partial construction using visible pieces; completing the opening is not guaranteed.'});
+      {replayBoundary,random:true,opening:true,history:[active,...initial],note:'Empty-board opening practice. The coach checks partial construction using visible pieces; completing the opening is not guaranteed.'});
   }
   function checkpoint() {
-    return {state:clone(state),futureCursor,planContinuity:STPlanContinuity.exportState(planContinuity),planProof:planProof?clone(planProof):null,
+    return {state:clone(state),futureCursor,replayTape,planContinuity:STPlanContinuity.exportState(planContinuity),planProof:planProof?clone(planProof):null,
       patternHistory:patternHistory?clone(patternHistory):null,openingPhase,openingSource:openingSource?clone(openingSource):null,openingClear:openingClear?clone(openingClear):null,openingRepair:openingRepair?clone(openingRepair):null,
       commitment:commitment?clone(commitment):null,pendingLHint:pendingLHint?clone(pendingLHint):null,lockCount,clearedLines};
   }
@@ -371,6 +375,7 @@
     undoHistory.pop();state=restoredState;revision=state.revision;futureCursor=saved.futureCursor;pendingInverse=null;
     openingPhase=saved.openingPhase;openingSource=saved.openingSource?clone(saved.openingSource):null;openingClear=saved.openingClear?clone(saved.openingClear):null;openingRepair=saved.openingRepair?clone(saved.openingRepair):null;
     patternHistory=saved.patternHistory?clone(saved.patternHistory):null;obligationContext=restored.state;resetTracking();planProof=saved.planProof?clone(saved.planProof):null;planContinuity=planProof?STPlanContinuity.importState(saved.planContinuity,{position:observation(),inventory:obligationContext.inventory,proof:planProof}):null;
+    replayTape=STSession.replay.record(saved.replayTape,observation(),obligationContext,{boundary:'undo',revision:state.revision});
     commitment=saved.commitment?clone(saved.commitment):null;pendingLHint=saved.pendingLHint?clone(saved.pendingLHint):null;lockCount=saved.lockCount;clearedLines=saved.clearedLines;
     // Never resurrect displayed advice or an old worker response. The saved
     // proof is only a candidate for replay against this restored public state.
@@ -381,7 +386,7 @@
   function act(action) {
     try {
     if(action==='UNDO'){undo();return;}
-    if(action==='RESET'){if(origin?.session){const saved=clone(origin.session);installSession(STSession.prepare(saved),origin.tail??null);}else if(origin)resetState(origin.input,{...origin.options,keepOrigin:true});return;}
+    if(action==='RESET'){if(origin?.session){const saved=clone(origin.session);installSession(STSession.prepare(saved),origin.tail??null,true);}else if(origin)resetState(origin.input,{...origin.options,keepOrigin:true});return;}
     if(!state.active)return;
     const beforeAction=observation(),beforeLock=action==='HD'?beforeAction:null;
     const next=STRules.move(state,action);
@@ -402,12 +407,13 @@
       setText($('st-game-status'),event?.topOut?'Top out. Undo the placement or reset to try again.':`${event?.lines||0} lines cleared${event?.spin&&event.spin!=='none'?` · ${event.spin} T-spin`:''}. ${lockCount} piece${lockCount===1?'':'s'} locked.`);
     }
     // Active movement does not expose pieces; only draws shorten the preview.
-    replenish();
+    const revealed=replenish();
     const afterAction={...observation(),lastEvent:state.lastEvent},prior=obligationContext;
     // Context owns the one current inventory and creates exactly one genuine
     // receipt. Accepted gameplay still advances when accounting is unavailable.
     const transition=STObligationContext.applyActual(prior,{before:beforeAction,action,after:afterAction});
     const inventoryTransition=transition.receipt;
+    replayTape=STSession.replay.record(replayTape,beforeAction,prior,{action,revealed});
     installTransition(prior,beforeAction,transition,locked?{kind:'lock',piece:inventoryTransition.locked,event:state.lastEvent}:{kind:'observe'},locked?lockCount:lockCount+1);
     recoveryExecution=STHandoffContinuity.advance(recoveryExecution,beforeAction,action,afterAction,inventoryTransition);
     planContinuity=STPlanContinuity.advance(planContinuity,beforeAction,action,afterAction,inventoryTransition);
@@ -553,13 +559,13 @@
     const action=keys[event.code];if(!action)return;event.preventDefault();
     if(event.repeat||repeating.has(event.code))return;
     if(action==='RESET'){
-      if(selectedId==='empty')empty();
+      if(selectedId==='empty')empty('restart');
       else if(origin?.session){act('RESET');return;}
       else if(origin){
         const initial=bag(),active=initial.shift();
         const input={...clone(origin.input),active:{type:active,x:3,y:17,rotation:0,lastRotation:null},queue:initial,streamCursor:1,topOut:false};
         delete input.bag;
-        resetState(input,{random:true,history:[active,...initial],opening:origin.options.opening,counterLabel:origin.options.counterLabel,note:'Fresh random piece sequence from the starting position.'});
+        resetState(input,{replayBoundary:'restart',random:true,history:[active,...initial],opening:origin.options.opening,counterLabel:origin.options.counterLabel,note:'Fresh random piece sequence from the starting position.'});
       }
     }else act(action);
     if(['L','R','SD'].includes(action)){
@@ -585,9 +591,9 @@
   document.querySelectorAll('[data-action]').forEach(button=>button.addEventListener('click',()=>{act(button.dataset.action);button.blur();}));
   $('st-fixture').addEventListener('change',()=>{chooseMode($('st-fixture').value);$('st-fixture').blur();});
   function exportSession() {
-    return STSession.create(observation(),{obligationContext,planContinuity:STPlanContinuity.exportState(planContinuity),patternHistory,openingPhase,openingSource,openingClear,openingRepair,previous,commitment,pendingLHint,search:searchSettings,suggestedFileName});
+    return STSession.create(observation(),{replay:replayTape,obligationContext,planContinuity:STPlanContinuity.exportState(planContinuity),patternHistory,openingPhase,openingSource,openingClear,openingRepair,previous,commitment,pendingLHint,search:searchSettings,suggestedFileName});
   }
-  function installSession(prepared,tail=null) {
+  function installSession(prepared,tail=null,restarting=false) {
     // Normalize before mutation: Reset must restore the current checkpoint,
     // not an older envelope or discarded executable certificates.
     const envelope=STSession.create(prepared.state,prepared);
@@ -598,6 +604,8 @@
     state=STRules.createState(prepared.state);revision=state.revision;
     future=tail?.slice()||[];futureCursor=0;generated=false;privatePractice=tail!==null;undoHistory=[];turnStart=null;
     obligationContext=prepared.obligationContext;resetInverse();resetTracking();
+    replayTape=prepared.replay||STSession.replay.start(observation(),obligationContext,'import');
+    if(restarting)replayTape=STSession.replay.record(replayTape,observation(),obligationContext,{boundary:'restart',revision:state.revision});
     patternHistory=prepared.patternHistory;
     openingPhase=prepared.openingPhase;openingSource=prepared.openingSource;openingClear=prepared.openingClear;openingRepair=prepared.openingRepair;
     previous=prepared.previous;commitment=prepared.commitment;planProof=clone(previous?.evidence?.construction||commitment?.advice?.evidence?.construction||null);planContinuity=planProof?STPlanContinuity.importState(prepared.planContinuity,{position:observation(),inventory:obligationContext.inventory,proof:planProof}):null;pendingLHint=prepared.pendingLHint;searchSettings=prepared.search;
@@ -627,7 +635,7 @@
       // Explicit whitelist prevents an import from injecting a hidden queue/seed.
       const clean={rules:input.rules,board:input.board,active:input.active,hold:input.hold,canHold:input.canHold,queue:input.queue.slice(0,6),streamCursor:input.streamCursor||0,topOut:Boolean(input.topOut)};
       if(input.bag){const bagErrors=STBag.validate(input.bag);if(bagErrors.length)throw new Error(bagErrors.join('; '));clean.bag=input.bag;}
-      resetState(clean,{suggestedFileName:input.suggestedFileName,counterLabel:'Lines since import',opening:STPlanner.startOpeningSession(clean).active,note:'Imported visible snapshot. Missing bag history remains unknown; preview is finite.'});selectedId=null;$('st-fixture').value='';importStatus(input.rules===STRules.LEGACY_PROFILE.id?'Snapshot imported and migrated from v1 to unlimited-hold v2.':'Snapshot imported.');
+      resetState(clean,{replayBoundary:'import',suggestedFileName:input.suggestedFileName,counterLabel:'Lines since import',opening:STPlanner.startOpeningSession(clean).active,note:'Imported visible snapshot. Missing bag history remains unknown; preview is finite.'});selectedId=null;$('st-fixture').value='';importStatus(input.rules===STRules.LEGACY_PROFILE.id?'Snapshot imported and migrated from v1 to unlimited-hold v2.':'Snapshot imported.');
     }catch(error){importStatus(`Import rejected: ${error.message}`,{rejected:true});}
   });
   for(const mode of playModes){const option=document.createElement('option');option.value=mode.id;option.textContent=mode.label;$('st-fixture').append(option);}

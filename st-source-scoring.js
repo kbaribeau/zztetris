@@ -11,11 +11,11 @@ const tsd=e=>e.type==='T'&&e.lines===2&&e.spin==='full'&&e.cells.every(([x])=>x>
 const poseKey=a=>[a.type,a.x,a.y,a.rotation,a.type==='T'&&a.lastRotation?((a.lastRotation.to-a.lastRotation.from+4)%4!==2&&a.lastRotation.kickIndex===4?'upgrade':'rotation'):'none'].join(',');
 function meter(options){
  const now=options.now||(()=>performance.now()),started=now(),limit=Math.min(45000,Math.max(0,options.maxNodes??45000)),deadline=Math.min(options.deadline??Infinity,started+1500);
- const stats={frontierNodes:0,guards:0,replayActions:0,accessNodes:0,moveAttempts:0,successorStates:0};let ceiling=limit,end=deadline;
+ const stats={frontierNodes:0,guards:0,replayActions:0,accessNodes:0,moveAttempts:0,successorStates:0};let ceiling=limit,end=deadline,phase='validation',stop=null;
  const visited=()=>stats.frontierNodes+stats.guards+stats.replayActions+stats.accessNodes;
- function charge(key,n=1){if(now()>=end||visited()+(PRIMARY.has(key)?n:0)>ceiling)throw STOP;stats[key]=(stats[key]||0)+n;}
+ function charge(key,n=1){const sampledNow=now();if(sampledNow>=end||visited()+(PRIMARY.has(key)?n:0)>ceiling){stop={phase,reason:sampledNow>=end?'deadline':'nodes',operation:key,requested:n,visited:visited(),ceiling,deadline:end,sampledNow};throw STOP;}stats[key]=(stats[key]||0)+n;}
  const move=(state,action)=>{charge('moveAttempts');const result=R.move(state,action);if(result!==state)charge('successorStates');return result;};
- return{now,started,limit,deadline,stats,visited,charge,move,setPhase:(c,d)=>{ceiling=c;end=d;},remaining:()=>Math.max(0,ceiling-visited()),end:()=>end,finish:()=>({nodes:visited(),elapsedMs:now()-started,primaryUnits:visited(),operations:{...stats},accounting:'Primary: expanded movement/drop candidates, guards, explicit/nested-prefix replay actions and returned access nodes. Other recorded operations are telemetry, not additional node charges.'})};
+ return{now,started,limit,deadline,stats,visited,charge,move,setPhase:(c,d,p)=>{ceiling=c;end=d;phase=p;},accessStop:proof=>{stop={phase,reason:'nested-access-incomplete',visited:visited(),ceiling,deadline:end,proof};},remaining:()=>Math.max(0,ceiling-visited()),end:()=>end,finish:()=>({nodes:visited(),elapsedMs:now()-started,primaryUnits:visited(),operations:{...stats},stop,accounting:'Primary: expanded movement/drop candidates, guards, explicit/nested-prefix replay actions and returned access nodes. Other recorded operations are telemetry, not additional node charges.'})};
 }
 function callbacks(options){return options.callbacks||options;}
 function countsAfter(counts,e){return{...counts,[e.type]:(counts[e.type]||0)+1};}
@@ -44,7 +44,7 @@ function verify(state,path,options,m){
  // Precharge that actual nested replay so it cannot disappear from accounting.
  m.charge('replayActions',checked.reduce((n,p)=>n+p.witness.length,0));m.charge('accessCalls');
  const access=cb.checkAccessPrefix(state,checked,{notches:options.notches,now:m.now,deadline:m.end(),maxNodes:m.remaining()});m.charge('accessNodes',access.visited||0);
- if(access.reachable===null)throw STOP;if(access.reachable!==true)return null;m.charge('proofChecks');
+ if(access.reachable===null){m.accessStop(access);throw STOP;}if(access.reachable!==true)return null;m.charge('proofChecks');
  return{state:current,notches,counts,path:checked,quality,access};
 }
 function validate(state,path,options={}){const m=meter(options);let candidate=null,unknown=false;try{candidate=verify(state,path,options,m);if(candidate){candidate=rankNode(candidate,callbacks(options),m);m.charge('finalChecks');}}catch(e){if(e!==STOP)throw e;unknown=true;candidate=null;}return{valid:Boolean(candidate),candidate,visited:m.visited(),unknown,telemetry:m.finish()};}
@@ -67,7 +67,7 @@ function search(state,options={}){
  try{
   if(!acceptableRoot(state,options,m)||!solid(state.board))return{candidate:null,visited:m.visited(),unknown:false,complete:true,telemetry:m.finish()};
   const reserve=Math.min(6000,Math.floor(m.limit*2/15)),timeReserve=Math.min(300,Math.max(0,m.deadline-m.started)/5);
-  m.setPhase(m.limit-reserve,m.deadline-timeReserve);
+  m.setPhase(m.limit-reserve,m.deadline-timeReserve,'collection');
   let beam=[{state,notches:options.notches,path:[],counts:{...options.counts}}];
   for(let depth=1;depth<=6&&beam.length;depth++){
    const next=new Map(),layer={depth,complete:false};layers.push(layer);
@@ -81,7 +81,7 @@ function search(state,options={}){
    }}
    Object.assign(layer,{complete:true,retained:next.size,goalAlternatives:goals.size});beam=[...next.values()];
   }
-  complete=true;m.setPhase(m.limit,m.deadline);const ranked=[...goals.values()].sort(compare);
+  complete=true;m.setPhase(m.limit,m.deadline,'validation');const ranked=[...goals.values()].sort(compare);
   // Select the highest existing-comparator A-qualified goal only after the
   // entire six-lock collection completed. A budget miss is not invalidity.
   for(const n of ranked){const checked=verify(state,n.path,{...options,corridor:true},m);if(checked){candidate={...n,...checked};break;}}

@@ -58,12 +58,96 @@ function currentContext(state,options){
  if(Object.hasOwn(options,'patternHistory')){const notches=PH.snapshot(state,options.patternHistory);if(PH.resolve(state,notches).status==='invalid-history')throw Error('Invalid current notch checkpoint.');const snapshot=Context.exportState(current);snapshot.state.safety.notches=notches;current=Context.importState(snapshot,{position:state});}
  return current;
 }
+// Optional review evidence, never planner input or accounting authority. The
+// origin is an imported checkpoint, not a claim about the game before it.
+const REPLAY_LIMITS=Object.freeze({steps:2048,bytes:512*1024});
+const replaySizes=new WeakMap();
+const canonical=x=>Array.isArray(x)?x.map(canonical):x&&typeof x==='object'?Object.fromEntries(Object.keys(x).sort().map(k=>[k,canonical(x[k])])):x;
+const equal=(a,b)=>same(canonical(a),canonical(b));
+function replayCheck(ok,why){if(!ok)throw Error('Invalid session replay: '+why);}
+function replayKeys(x,keys){return x&&typeof x==='object'&&!Array.isArray(x)&&Object.keys(x).sort().join()===keys.slice().sort().join();}
+function replayPosition(raw){
+ const p=position(raw);
+ replayCheck(equal(raw,p),'public position properties');
+ return p;
+}
+function replayStart(state,current,boundary='import',coverage='from-boundary'){
+ replayCheck(['start','mode','import','restart','limit','interrupted'].includes(boundary),'origin boundary');
+ replayCheck(['from-boundary','truncated'].includes(coverage),'coverage');
+ const p=position(state),context=Context.exportState(current);
+ const result={schemaVersion:1,coverage,boundary,origin:{position:p,obligationContext:context},steps:[]};
+ return JSON.stringify(result).length<=REPLAY_LIMITS.bytes?result:{schemaVersion:1,coverage:'unavailable',reason:'checkpoint-limit'};
+}
+function replayRecord(tape,before,current,step){
+ // Immutable branch references can be retained by the existing bounded Undo
+ // stack. No abandoned action or reveal survives restoring that reference.
+ let base=tape?.coverage==='unavailable'?replayStart(before,current,'interrupted','truncated'):tape||replayStart(before,current);
+ if(base.coverage==='unavailable')return base;
+ const size=replaySizes.get(base)??JSON.stringify(base).length,extra=JSON.stringify(step).length+1;
+ if(base.steps.length>=REPLAY_LIMITS.steps||size+extra>REPLAY_LIMITS.bytes)base=replayStart(before,current,'limit','truncated');
+ if(base.coverage==='unavailable')return base;
+ const result={...base,steps:[...base.steps,clone(step)]};
+ const bytes=(base===tape?size:JSON.stringify(base).length)+extra;
+ if(bytes>REPLAY_LIMITS.bytes)return{schemaVersion:1,coverage:'unavailable',reason:'step-limit'};
+ replaySizes.set(result,bytes);
+ return result;
+}
+function replayValidate(raw,endpoint,current){
+ if(raw?.coverage==='unavailable'){
+  replayCheck(replayKeys(raw,['schemaVersion','coverage','reason'])&&raw.schemaVersion===1&&['checkpoint-limit','step-limit'].includes(raw.reason),'unavailable evidence');
+  return{tape:clone(raw),state:null,obligationContext:null,events:null,coverage:'unavailable'};
+ }
+ replayCheck(replayKeys(raw,['schemaVersion','coverage','boundary','origin','steps'])&&raw.schemaVersion===1,'envelope');
+ replayCheck(['from-boundary','truncated'].includes(raw.coverage),'coverage');
+ replayCheck(['start','mode','import','restart','limit','interrupted'].includes(raw.boundary),'origin boundary');
+ replayCheck(raw.boundary!=='limit'||raw.coverage==='truncated','limit must disclose truncation');
+ replayCheck(replayKeys(raw.origin,['position','obligationContext']),'origin');
+ replayCheck(Array.isArray(raw.steps)&&raw.steps.length<=REPLAY_LIMITS.steps&&JSON.stringify(raw).length<=REPLAY_LIMITS.bytes,'retention limit');
+ let state=replayPosition(raw.origin.position),context=pairedContext(state,Context.importState(raw.origin.obligationContext,{position:state}));
+ const events=[];
+ for(const step of raw.steps){
+  if(Object.hasOwn(step||{},'action')){
+   replayCheck(replayKeys(step,['action','revealed'])&&['L','R','SD','HD','HOLD','CW','CCW','R180'].includes(step.action),'action');
+   replayCheck(Array.isArray(step.revealed)&&step.revealed.every(t=>typeof t==='string'&&/^[IJLOSTZ]$/.test(t)),'reveals');
+   const before=state,next=R.move(state,step.action);
+   replayCheck(next!==state,'rejected action');
+   // Normally a draw exposes one preview slot. A short imported preview
+   // can also acquire the one forced public-bag remainder on its next input.
+   const drawn=before.queue.length-next.queue.length;
+   replayCheck(next.queue.length+step.revealed.length<=6,'preview overflow');
+   replayCheck(step.revealed.length<=drawn||(step.revealed.length===1&&before.bag&&B.forcedNext(before.bag)===step.revealed[0]),'reveal without draw');
+   state={...next,queue:[...next.queue,...step.revealed]};
+   if(state.bag)for(const t of step.revealed){state={...state,bag:B.consume(state.bag,t)};replayCheck(!B.validate(state.bag).length,'reveal contradicts bag');}
+   context=Context.applyActual(context,{before,action:step.action,after:state}).context;
+   if(state.lastEvent)events.push(clone(state.lastEvent));
+  }else if(Object.hasOwn(step||{},'boundary')){
+   replayCheck(replayKeys(step,['boundary','revision'])&&['undo','restart'].includes(step.boundary)&&Number.isSafeInteger(step.revision)&&step.revision>=state.revision,'branch boundary');
+   state={...state,revision:step.revision,lastEvent:null};
+  }else{
+   replayCheck(replayKeys(step,step?.marker==='accept-left-repair'?['marker','repair']:['marker']),'accounting marker');
+   if(step.marker==='handoff')context=Context.handoff(context,{position:state}).context;
+   else if(step.marker==='begin-reset')context=Context.beginReset(context,{position:state,candidate:true}).context;
+   else if(step.marker==='accept-left-repair'){
+    replayCheck(replayKeys(step.repair,['cells','resultProfile'])&&Array.isArray(step.repair.cells)&&step.repair.cells.length===4&&step.repair.cells.every(c=>Array.isArray(c)&&c.length===2&&c.every(Number.isInteger))&&Array.isArray(step.repair.resultProfile)&&step.repair.resultProfile.length===4&&step.repair.resultProfile.every(n=>Number.isInteger(n)&&n>=0&&n<=40),'Left repair properties');
+    const accepted=Context.acceptLeftRepair(context,{position:state,repair:step.repair,checked:true});
+    replayCheck(accepted.goalId!==null,'unaccepted Left repair');context=accepted.context;
+   }
+   else replayCheck(false,'unknown accounting marker');
+  }
+ }
+ replayCheck(equal(position(state),position(endpoint)),'endpoint position mismatch');
+ replayCheck(equal(Context.exportState(context),Context.exportState(current)),'endpoint accounting mismatch');
+ return{tape:clone(raw),state:position(state),obligationContext:context,events,coverage:raw.coverage};
+}
+const replay=Object.freeze({LIMITS:REPLAY_LIMITS,start:replayStart,record:replayRecord,validate:replayValidate});
+
 function create(state,options={}){
  const {patternHistory=null,planContinuity=null,openingPhase=false,openingSource=null,openingClear=null,openingRepair=null,previous=null,commitment=null,pendingLHint=null,search=defaults(),suggestedFileName=DEFAULT_EXPORT_FILENAME}=options;
  const observation=position(state),current=currentContext(observation,options),savedPrevious=previous?portableAdvice(previous):null,savedCommitment=commitment?portableCommitment(commitment):null;
  const proof=savedPrevious?.evidence?.construction||savedCommitment?.advice?.evidence?.construction;
  const cursor=proof&&planContinuity?PC.importState(planContinuity,{position:observation,inventory:current.inventory,proof}):null;
  const result={format:FORMAT,schemaVersion:VERSION,engineVersion:ENGINE,suggestedFileName:exportFilename(suggestedFileName),position:observation,search:settings(search),coaching:{obligationContext:Context.exportState(current),planContinuity:PC.exportState(cursor),patternHistory:current.status==='available'?clone(current.state.safety.notches):PH.snapshot(observation,patternHistory),openingPhase:openingPhase&&current.state?.account.reset.status!=='active',openingSource:current.state?.account.reset.status==='active'?null:openingSource?clone(openingSource):null,openingClear:current.state?.account.reset.status==='active'?null:openingClear?clone(openingClear):null,openingRepair:current.state?.account.reset.status==='active'?null:openingRepair?clone(openingRepair):null,previous:savedPrevious,commitment:savedCommitment,pendingLHint:portablePendingLHint(pendingLHint)}};
+ if(options.replay)result.replay=replayValidate(options.replay,observation,current).tape;
  bounded(result);return result;
 }
 function prepare(input){
@@ -90,8 +174,9 @@ function prepare(input){
  if(payload&&!planContinuity)warnings.push('Saved construction cursor was discarded; future advice requires fresh validation.');
  // Candidates remain subject to the normal planner's resource, access, source
  // and construction revalidation. Import never displays them as advice.
- return{suggestedFileName:exportFilename(input.suggestedFileName),state,search,obligationContext,planContinuity,patternHistory,...{openingPhase:opening.session.active,openingSource:opening.session.source,openingClear:opening.session.clear,openingRepair:opening.session.repair},previous,commitment,pendingLHint,warnings};
+ const recorded=input.replay===undefined||input.replay===null?null:replayValidate(input.replay,state,obligationContext).tape;
+ return{replay:recorded,suggestedFileName:exportFilename(input.suggestedFileName),state,search,obligationContext,planContinuity,patternHistory,...{openingPhase:opening.session.active,openingSource:opening.session.source,openingClear:opening.session.clear,openingRepair:opening.session.repair},previous,commitment,pendingLHint,warnings};
 }
 function parse(text){if(typeof text!=='string'||text.length>LIMITS.bytes)throw Error('Session exceeds size limit.');return prepare(JSON.parse(text));}
-return Object.freeze({FORMAT,VERSION,ENGINE,LIMITS,DEFAULT_EXPORT_FILENAME,exportFilename,defaults,create,prepare,parse});
+return Object.freeze({FORMAT,VERSION,ENGINE,LIMITS,DEFAULT_EXPORT_FILENAME,exportFilename,defaults,create,prepare,parse,replay});
 });

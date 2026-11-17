@@ -412,3 +412,25 @@ D/J/I suites retain independent resource, witness, movement and commitment
 checks; obsolete J-only admission assertions have been removed. Component
 comparisons explicitly disable the route lane where they isolate an older
 optional comparator. Those controls are not current strategy measurements.
+
+### Bounded-search failure diagnostics
+
+The source-scoring, construction recovery, buried-phase and paired-T controller
+checks retain their complete public request/result in a failing assertion via
+`test/support/st-search-diagnostic.cjs`. Formatting is lazy; successful timed
+searches do not serialize these receipts. The construction fixture cache stores
+only a certificate that passed its existing validity assertion, so one failed
+search cannot poison later tests with a missing continuation.
+
+Search stop telemetry records the existing stopping branch, charged work,
+applicable limit and the clock sample already used by that check. A null clock
+sample means the node-first check short-circuited before reading the clock.
+A null limit means positive infinity (unbounded), encoded explicitly so receipts
+retain their meaning through JSON transport; finite samples/counters stay exact.
+Ordinary search retains a count and first/last records, plus root completeness
+and final outcome; this bounds record count, not the byte size of embedded
+finite proofs. Nested incomplete results without their own classified stop are
+explicitly unclassified. These receipts explain new observations only: they do
+not reconstruct missing diagnostics from historical runs, establish strategic
+quality, or turn exhausted search into exhaustive rejection. Existing product
+budgets, test deadlines and the suite watchdog remain unchanged.

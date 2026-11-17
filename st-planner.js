@@ -1186,6 +1186,8 @@ function planCore(raw,options={}){
  // overrides remain useful for constrained probes; node/time caps still apply.
  const limit=options.maxNodes??45000,maxDepth=options.depth??(s.queue.length+1+(s.hold?1:0)),width=options.width??8,expandedRoots=new Set(),accessCache=new Map();let stopped=false;
  base.metrics.accessNodes=0;let searchDeadline=deadline,searchLimit=limit,routeFirst=false;
+ // Bounded observational receipt: never sample a clock or decide policy here.
+ const recordStop=(branch,details)=>{const receipt={branch,nodes:base.metrics.nodes,searchLimit,searchDeadline,...details},stops=base.metrics.searchStops||(base.metrics.searchStops={count:0,first:null,last:null});for(const key of Object.keys(receipt))if(receipt[key]===Infinity)receipt[key]=null;stops.count++;stops.first??=receipt;stops.last=receipt;};
  const usage=options.usageTelemetry?{schemaVersion:1,scope:'maintenance',families:{
   cleanupBeforeCap:{attempted:0,examined:0,nonISkipped:0,iColumnSkipped:0,iTransitionChecked:0,verified:0,unknown:0},
   earlyCapFallback:{scanEligible:0,attempted:0,verified:0,selected:0,nodes:0},
@@ -1210,7 +1212,7 @@ function planCore(raw,options={}){
    if(n.qualified)return;
    const key=n.state.board.map(row=>row.replace(/[IJLOSTZX#]/g,'#')).join('');
    let access=accessCache.get(key);
-   if(!access){access=R.tDoubleAccess(n.state.board,{maxNodes:Math.max(0,nodeLimit-base.metrics.nodes),deadline:searchDeadline,now});base.metrics.accessNodes+=access.visited;base.metrics.nodes+=access.visited;if(access.complete)accessCache.set(key,access);else stopped=true;}
+   if(!access){access=R.tDoubleAccess(n.state.board,{maxNodes:Math.max(0,nodeLimit-base.metrics.nodes),deadline:searchDeadline,now});base.metrics.accessNodes+=access.visited;base.metrics.nodes+=access.visited;if(access.complete)accessCache.set(key,access);else{stopped=true;recordStop('entry-qualification',{visited:access.visited,stop:access.stop??{reason:access.reason??'nested-incomplete-unclassified'}});}}
    n.qualified=true;n.assessment.right.entry={status:access.reachable===true?'reachable-if-T-available':access.reachable===false?'unreachable':'unresolved-budget',witness:access.witness||null,target:access.event?.target||null};
    // A failed entry proof is structural repair work, not merely a lost
    // tactical tie-break. Otherwise inaccessible cavities can look renewable.
@@ -1258,7 +1260,8 @@ function planCore(raw,options={}){
  const rootRoutePieces=[initial.state.active?.type];
  if(options.allowHold!==false){let q=initial.state;for(let i=0;i<2;i++){const next=R.move(q,'HOLD');if(next===q||next.topOut)break;rootRoutePieces.push(next.active?.type);q=next;}}
  const narrowLookup=initial.leftRoutes?.routes.length&&initial.leftRoutes.routes.every(r=>r.pieces.length===1)&&initial.leftRoutes.routes.some(r=>rootRoutePieces.includes(r.pieces[0]));
- const enumerate=(state,routeProgress=null,notches)=>{const remaining=searchLimit-base.metrics.nodes;if(remaining<=0||now()>=searchDeadline){stopped=true;return{placements:[],complete:false};}
+ const enumerate=(state,routeProgress=null,notches)=>{const remaining=searchLimit-base.metrics.nodes;if(remaining<=0){stopped=true;recordStop('enumeration-precheck',{reason:'nodes',remaining,sampledNow:null});return{placements:[],complete:false};}
+ const sampledNow=now();if(sampledNow>=searchDeadline){stopped=true;recordStop('enumeration-precheck',{reason:'deadline',remaining,sampledNow});return{placements:[],complete:false};}
  let r;
 
  if(routeProgress&&narrowLookup&&!routeProgress.some(p=>p.complete)&&options.targetKnownLandings!==false){
@@ -1275,7 +1278,7 @@ function planCore(raw,options={}){
   const m=base.metrics.targetedLandings||(base.metrics.targetedLandings={queries:0,targets:0,geometryNodes:0,direct:0,fallbackNodes:0});
   m.queries++;m.targets+=targets.targets.length;m.geometryNodes+=targets.visited;m.direct+=reached.directCount||0;m.fallbackNodes+=reached.fallbackNodes||0;
  }else r=R.placements(state,{allowHold:options.allowHold!==false,maxNodes:remaining,deadline:searchDeadline,now});
- base.metrics.nodes+=r.visited;if(!r.complete)stopped=true;r.placements=r.placements.filter(p=>ordinaryRightEligible(p.event));const priorGeometry=S.geometry(state.board),caps=priorGeometry.right.completions;const sameCells=(a,b)=>a.length===b.length&&a.every(([x,y])=>b.some(([u,v])=>x===u&&y===v));const availableCap=r.placements.some(p=>p.event.type==='Z'&&caps.some(c=>sameCells(p.event.cells,c.cells)));for(const p of r.placements)p.availableCap=availableCap;
+ base.metrics.nodes+=r.visited;if(!r.complete){stopped=true;recordStop(state===s?'root-enumeration':'beam-enumeration',{visited:r.visited,remaining,placements:r.placements.length,stop:r.stop??{reason:r.stopReason??'nested-incomplete-unclassified'}});}r.placements=r.placements.filter(p=>ordinaryRightEligible(p.event));const priorGeometry=S.geometry(state.board),caps=priorGeometry.right.completions;const sameCells=(a,b)=>a.length===b.length&&a.every(([x,y])=>b.some(([u,v])=>x===u&&y===v));const availableCap=r.placements.some(p=>p.event.type==='Z'&&caps.some(c=>sameCells(p.event.cells,c.cells)));for(const p of r.placements)p.availableCap=availableCap;
  // The cap must not seal a currently executable outer-I cleanup preparation.
  // Establish both placements from actual supply; a geometric I silhouette or
  // a hypothetical future Z is insufficient to constrain another root move.
@@ -1574,7 +1577,7 @@ function planCore(raw,options={}){
  let screeningLimit=limit;
  const screeningAllowance=limit>=20000&&!options.disableOpening&&!options.disableConstruction?Math.min(6000,Math.floor(limit/5)):Infinity;
  const screening=base.metrics.proofScheduling={enabled:Number.isFinite(screeningAllowance),allowance:Number.isFinite(screeningAllowance)?screeningAllowance:null,calls:0,nodes:0,unfinished:0,budgetStops:0};
- const accessSafe=n=>{const restoration=A.repairPrefix(s,n.path,{notches:initial.notches,initialDebt:initial.coveredRepair?.cells,stages:initial.coveredStages});if(!restoration.valid)return false;n.coveredRepairProof=restoration;if(initial.coveredRepair?.cells.length)n.path=n.path.map((p,i)=>({...p,structuralEvidence:{...p.structuralEvidence,coveredRepair:repairStepEvidence(restoration,i,initial.coveredRepair.cells)}}));const proof=A.prefix(s,n.path,{notches:initial.notches,deadline,now,maxNodes:Math.max(0,Math.min(limit,screeningLimit)-base.metrics.nodes)});base.metrics.nodes+=proof.visited;if(proof.reachable===null)screening.unfinished++;base.metrics.gapAccessNodes=(base.metrics.gapAccessNodes||0)+proof.visited;n.path[0].gapAccess=proof;return proof.reachable===true;};
+ const accessSafe=n=>{const restoration=A.repairPrefix(s,n.path,{notches:initial.notches,initialDebt:initial.coveredRepair?.cells,stages:initial.coveredStages});if(!restoration.valid)return false;n.coveredRepairProof=restoration;if(initial.coveredRepair?.cells.length)n.path=n.path.map((p,i)=>({...p,structuralEvidence:{...p.structuralEvidence,coveredRepair:repairStepEvidence(restoration,i,initial.coveredRepair.cells)}}));const proof=A.prefix(s,n.path,{notches:initial.notches,deadline,now,maxNodes:Math.max(0,Math.min(limit,screeningLimit)-base.metrics.nodes)});base.metrics.nodes+=proof.visited;if(proof.reachable===null){screening.unfinished++;recordStop('access-screening',{visited:proof.visited,screeningLimit,proof});}base.metrics.gapAccessNodes=(base.metrics.gapAccessNodes||0)+proof.visited;n.path[0].gapAccess=proof;return proof.reachable===true;};
  const repairCache=new Map();
  const resourceSafe=n=>{
   const restoration=n.coveredRepairProof||A.repairPrefix(s,n.path,{notches:initial.notches,initialDebt:initial.coveredRepair?.cells,stages:initial.coveredStages});if(!restoration.valid)return false;n.coveredRepairProof=restoration;
@@ -1583,7 +1586,7 @@ function planCore(raw,options={}){
   if(!n.resources?.hangingS.length&&!n.resources?.pendingCenter.length)return true;
   const key=JSON.stringify([observe(n.state),M.binding(n.resources),n.notches,n.coveredRepairProof?.outstandingCells||[],options[pendingLHint]??null]);let proof=repairCache.get(key);
   if(!proof){proof=resourceRepair(n.state,n.resources,{...options,notches:n.notches,coveredDebt:n.coveredRepairProof?.outstandingCells||[],maxNodes:Math.min(4000,Math.max(0,Math.min(limit,screeningLimit)-base.metrics.nodes)),deadline,now});base.metrics.nodes+=proof.visited;if(proof.valid!==null)repairCache.set(key,proof);}
-  n.resourceRepair=proof;if(proof.valid===null)screening.unfinished++;return proof.valid===true;
+  n.resourceRepair=proof;if(proof.valid===null){screening.unfinished++;recordStop('resource-screening',{visited:proof.visited,screeningLimit,proof});}return proof.valid===true;
  };
  // Early endpoint screening must leave work for the next beam layer. A
  // bounded unfinished proof stays unknown and is never cached as rejection.
@@ -1601,13 +1604,13 @@ function planCore(raw,options={}){
   const start=base.metrics.nodes,prior=screeningLimit;screening.calls++;
   screeningLimit=Math.min(prior,start+allowance);
   try{const ordered=nodes.filter(n=>n.cycleDebt===0&&certifiedCavities(n)).sort(pendingLOrder);let unknownHigher=0;for(const n of ordered){
-   if(now()>=deadline){screening.budgetStops++;return null;}
+   const sampledNow=now();if(sampledNow>=deadline){screening.budgetStops++;recordStop('screening-precheck',{reason:'deadline',deadline,sampledNow,screeningLimit});return null;}
    const beforeUnknown=screening.unfinished;
    if(certifyContinuation(n)){if(n.resourceRepair?.waitingStage)n.pendingLSelection={scope:'same-horizon-searched-candidates',horizon:n.path.length,currentPendingClosures:currentLClosureLocks(n).length,currentPendingClosureLocks:currentLClosureLocks(n),higherRankedUnresolved:unknownHigher,globallyOptimal:false};return preserveExtraZ(n,ordered,{protect:incumbent=>{remember(incumbent);return admittedNode===incumbent;},certify:candidate=>now()<deadline&&base.metrics.nodes<limit&&certifyContinuation(candidate)});}
    if(screening.unfinished>beforeUnknown)unknownHigher++;
    // Completed cached/no-work proofs remain usable at zero remaining nodes.
    // A zero allowance cannot turn an unfinished query into negative evidence.
-   if(base.metrics.nodes>=screeningLimit&&screening.unfinished>beforeUnknown)screening.budgetStops++;
+   if(base.metrics.nodes>=screeningLimit&&screening.unfinished>beforeUnknown){screening.budgetStops++;recordStop('screening-node-limit',{reason:'nodes',screeningLimit});}
   }return null;}finally{screening.nodes+=base.metrics.nodes-start;screeningLimit=prior;}
  };
  const rootScreenIncomplete=screening.unfinished+screening.budgetStops;
@@ -1718,7 +1721,7 @@ function planCore(raw,options={}){
   if(!replacement)best=commitment;
  }
 
- if(now()>=deadline)stopped=true;
+ const finalSampledNow=now();if(finalSampledNow>=deadline){stopped=true;recordStop('final-deadline',{reason:'deadline',deadline,sampledNow:finalSampledNow});}
  base.metrics.rootExpanded=expandedRoots.size;base.metrics.elapsedMs=Date.now()-started;
  // Compare cap deferral with ordinary play at equal completed locks. If the
  // ordinary prefix commutes with the macro, replay its remaining witness to
@@ -1779,6 +1782,7 @@ function planCore(raw,options={}){
  // A rejected endpoint does not complete other budget-truncated proofs.
  // Classify abstention only; a certified best move below remains unchanged.
  const searchIncomplete=Boolean(stopped||screening.unfinished||screening.budgetStops);
+ if(searchIncomplete)base.metrics.searchCompletion={stopped,screeningUnfinished:screening.unfinished,screeningBudgetStops:screening.budgetStops,rootComplete:root.complete,rootPlacements:root.placements.length,bestPresent:Boolean(best),outcome:!best?'no-best':best.assessment.maxHeight>=20||!best.assessment.regionalSupport?'unsupported-best':'supported-best'};
  const abstentionStatus=searchIncomplete?'budget-exhausted':'no-supported-continuation-found';
  const incompleteReason='The search limit was reached before finding a checked move. A valid continuation may still exist.';
  if(!best)return{...base,status:abstentionStatus,reason:searchIncomplete?incompleteReason:'No supported ST sequence was found within this search. Other continuations may exist.'};

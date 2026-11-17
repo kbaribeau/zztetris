@@ -104,7 +104,7 @@ function placements(s,options={}){return query('placements',s,options,()=>placem
 function tDoubleAccess(board,options={}){return query('tDoubleAccess',board,options,()=>tDoubleAccessCore(board,options));}
 
 function placementsCore(s,options={}){
- const out=[],seenOut=new Map();let visited=0,complete=true;
+ const out=[],seenOut=new Map();let visited=0,complete=true,stop;
  const maxNodes=options.maxNodes??16000,deadline=options.deadline??Infinity,now=options.now??(()=>Date.now()),stopWhen=typeof options.stopWhen==='function'?options.stopWhen:null;
  if(validate(s).length||!s.active||s.topOut)return{placements:out,visited,complete:true};
  const unlimited=s.rules===PROFILE.id;
@@ -134,7 +134,8 @@ function placementsCore(s,options={}){
  const queues=roots.map(r=>[{state:r.state,parent:-1,action:null,depth:r.witness.length}]),seen=roots.map(r=>new Set([poseKey(r.state.active)])),heads=roots.map(()=>0);
  outer:while(queues.some((q,i)=>heads[i]<q.length)){for(let k=0;k<queues.length;k++){
   if(heads[k]>=queues[k].length)continue;
-  if(visited>=maxNodes||now()>=deadline){complete=false;break outer;}
+  if(visited>=maxNodes){stop={reason:'nodes',visited,maxNodes:maxNodes===Infinity?null:maxNodes,deadline:deadline===Infinity?null:deadline,sampledNow:null};complete=false;break outer;}
+  const sampledNow=now();if(sampledNow>=deadline){stop={reason:'deadline',visited,maxNodes:maxNodes===Infinity?null:maxNodes,deadline:deadline===Infinity?null:deadline,sampledNow};complete=false;break outer;}
   const indexInQueue=heads[k]++,n=queues[k][indexInQueue];visited++;
   const landing=dropLanding(n.state.board,n.state.active),classification=spin(n.state.board,landing);
   // In v2 deduplicate equivalent outcomes, not merely matching targets: an
@@ -156,7 +157,7 @@ function placementsCore(s,options={}){
    const key=poseKey(next.active);if(seen[k].has(key))continue;seen[k].add(key);
    queues[k].push({state:next,parent:indexInQueue,action,depth:n.depth+1});
   }
- }}return{placements:out,complete,visited};
+ }}return{placements:out,complete,visited,...(stop?{stop}:{})};
 }
 // Resolve only explicitly requested landings. A target is not proof of access:
 // every returned placement is reached by real inputs from an actual HOLD root.
@@ -317,7 +318,8 @@ function tDoubleAccessCore(board,options={}){
  while(state.active.y<plane){state=move(state,'SD');prefix.push('SD');}
  const queue=[{state,parent:-1,action:null}],seen=new Set([poseKey(state.active)]);let head=0;
  while(head<queue.length){
-  if(visited>=maxNodes||now()>=deadline)return{reachable:null,witness:[],event:null,visited,complete:false};
+  if(visited>=maxNodes)return{reachable:null,witness:[],event:null,visited,complete:false,stop:{reason:'nodes',visited,maxNodes:maxNodes===Infinity?null:maxNodes,deadline:deadline===Infinity?null:deadline,sampledNow:null}};
+  const sampledNow=now();if(sampledNow>=deadline)return{reachable:null,witness:[],event:null,visited,complete:false,stop:{reason:'deadline',visited,maxNodes:maxNodes===Infinity?null:maxNodes,deadline:deadline===Infinity?null:deadline,sampledNow}};
   const index=head++,n=queue[index],a=n.state.active;visited++;
   if(!fits(board,{...a,y:a.y+1})&&spin(board,a)==='full'){
    const occupied=cells(a),rows=new Set(occupied.map(c=>c[1]));let lines=existingFullRows;

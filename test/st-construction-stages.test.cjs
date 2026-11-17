@@ -5,8 +5,9 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const P=require('../st-planner'),R=require('../st-rules'),S=require('../st-structure'),X=require('../st-paired-repair');
 const fixture=require('./support/st-construction-recovery.json'),ordinary=require('./support/st-construction-ordinary-control.json');
 const clone=x=>JSON.parse(JSON.stringify(x));
-let recoveryCertificate;
-function actualRecoveryCertificate(){if(!recoveryCertificate){S.clearCache();recoveryCertificate=X.search(fixture.initial,{timeMs:750});assert.ok(recoveryCertificate.valid,recoveryCertificate.reason);}return clone(recoveryCertificate);}
+const D=require('./support/st-search-diagnostic.cjs');
+const recoveryCertificate=D.validatedCache(()=>{S.clearCache();return X.search(fixture.initial,{timeMs:750});},cert=>D.check(cert.valid,cert.reason,{request:{initial:fixture.initial,options:{timeMs:750}},result:cert}));
+function actualRecoveryCertificate(){return clone(recoveryCertificate());}
 function researchAdvice(){const cert=actualRecoveryCertificate(),first=cert.continuation[0];return{target:first.event.target,witness:first.witness,continuation:cert.continuation,evidence:{construction:{origin:P.observe(fixture.initial),steps:cert.continuation.map(p=>({witness:p.witness})),consumed:0}}};}
 test('research search still discovers the seven-lock recovery while production declines its high-Left start',()=>{
  S.clearCache();const started=performance.now(),cert=actualRecoveryCertificate();

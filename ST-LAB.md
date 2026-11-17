@@ -247,8 +247,9 @@ current facts without claiming a verified historical witness.
 The import box accepts either the existing lightweight position JSON or a
 `zztetris-st-session` envelope (`schemaVersion: 2`). **Export coaching session**
 adds the current recommendation inputs to the visible position; **Export visible
-snapshot** is unchanged. Neither exports hidden future bags/RNG, Undo history,
-footer totals. Imported play has a
+snapshot** is unchanged. Neither exports unused hidden future bags/RNG, the Undo stack or
+footer totals. Coaching sessions additionally preserve bounded played-history
+evidence; visible-snapshot exports do not. Imported play has a
 finite visible queue (plus the existing logically forced bag remainder).
 
 The session contains:
@@ -280,7 +281,8 @@ Malformed current accounting rejects atomically rather than becoming unknown.
 Only session schema 2 and current notch checkpoints are accepted. Old session
 and notch tapes are rejected explicitly. To discard old accounting deliberately,
 import a separate position-only JSON, which starts unknown prior allocations.
-There are no lifetime replay limits, imported capabilities or authenticity claims.
+Current accounting has no lifetime replay requirement. There are no imported
+capabilities or authenticity claims.
 Actual locks preserve notch translation and sticky broken state. Bounded Undo
 remains external to the current accounting state.
 
@@ -290,6 +292,44 @@ identity prevents a late response from an earlier session with the same revision
 being accepted. Restart restores that imported session; Undo begins empty.
 Plain position imports retain their existing rules migration and unknown-history
 behavior. Selecting a play mode replaces the imported session origin.
+
+### Played-history replay evidence
+
+Optional top-level `replay` (its own `schemaVersion: 1`) records a public origin
+position and current obligation checkpoint, accepted movement/HOLD/rotation/HD
+inputs, and only the letters actually revealed into preview after each input.
+Accepted handoff, Begin Reset and Left-repair accounting markers are recorded
+without the associated advice tree. Import and export replay the rules and these
+accounting transitions, checking the exact current position and Context. This
+establishes internal consistency from the supplied checkpoint, not authenticity,
+prior allocation history, strategic quality or a complete game. Saved advice is
+still independently untrusted. Neither the tape nor its origin reaches workers.
+
+`coverage: from-boundary` means complete only from the stated origin (`start`,
+`mode`, `import` or `restart`). Old exports omit replay; parsing returns null,
+without synthesizing earlier actions. Continuing an old import starts an explicit
+import boundary. Loading a session with a valid tape preserves that tape. Undo
+restores the surviving branch, discards the undone actions/reveals and records a
+revision boundary. Restart restores the imported prefix (when present) with a
+restart boundary, or starts a new origin for a normal board; keyboard fresh-piece
+restarts also identify that boundary. Mode changes and position imports start
+new origins. The tape is not an Undo capability or a record of abandoned branches.
+
+Retention is bounded to 2,048 entries and 512 Ki JSON characters. At a limit the
+next entry starts a checkpointed suffix with `coverage: truncated` and boundary
+`limit`; earlier actions are unavailable. If an otherwise valid current checkpoint
+cannot fit, `coverage: unavailable` and reason `checkpoint-limit` (or `step-limit`)
+preserve the session and gameplay without claiming a replay. Recording may resume
+from a later checkpoint as a truncated suffix. The existing 4 MiB session and
+structural import limits remain. Malformed or endpoint-mismatched supplied tapes
+reject atomically; deleting an optional tape explicitly retains checkpoint-only
+import semantics. A valid replay never grants new accounting or advice permission.
+
+`test/st-session-replay.test.cjs` checks actual controller paths, reveals, marker
+transitions, branch boundaries, bounded storage and rejection atomicity. Its
+minimized seed10331 checkpoints preserve the before-lock65 import and the later
+O/hold-T endpoint; only the endpoint's supplied TSD witness is replayed. No
+intervening player moves are known or invented.
 
 Tests in `test/st-session.test.cjs` exercise actual-page request round-trips,
 source progress through the second bag and first TSD, repair/commitment evidence,
