@@ -25,9 +25,10 @@ function base(){
 function syncSource(advice,options){options.openingSource=clone(advice.evidence.opening.scoringPlan.source);}
 
 test('source scoring: actual source history reaches first TSD through live movement/HOLD/refill and only then normal handoff',()=>{
+ // Fresh decisions use deterministic search time; execute still checks live movement retention.
  const session=actualRoot();let types=[],holds=0,advanced=0,draws=session.cursor;
  for(let lock=15;lock<=20;lock++){
-  const request=session.request(lock,Sim.CONFIG),advice=P.decide(request.observation,request.options);
+  const request=session.request(lock,config),advice=P.decide(request.observation,request.options);
   D.check(advice.evidence?.opening?.scoringPlan,'scoring proof at '+lock,{request,result:advice});
   assert.equal(advice.phase,'opening');assert.equal(session.opening.active,true);assert.equal(session.opening.clear,null);
   assert.ok(advice.metrics.nodes<=Sim.CONFIG.maxNodes);assert.ok(advice.continuation.length<=21-lock);
@@ -39,7 +40,7 @@ test('source scoring: actual source history reaches first TSD through live movem
  }
  assert.deepEqual(types,['O','S','I','J','L','T']);assert.ok(holds>0&&advanced>0&&session.cursor>draws);
  assert.equal(session.opening.clear.event.lines,2);assert.equal(session.opening.source,null);
- const request=session.request(21,Sim.CONFIG),next=P.decide(request.observation,request.options);
+ const request=session.request(21,config),next=P.decide(request.observation,request.options);
  assert.equal(next.phase,'maintenance');assert.ok(next.evidence.openingHandoff);
  assert.equal(P.acceptOpeningResult(session.opening,next).active,false);
 });
