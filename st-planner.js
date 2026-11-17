@@ -1187,7 +1187,7 @@ function planCore(raw,options={}){
  const limit=options.maxNodes??45000,maxDepth=options.depth??(s.queue.length+1+(s.hold?1:0)),width=options.width??8,expandedRoots=new Set(),accessCache=new Map();let stopped=false;
  base.metrics.accessNodes=0;let searchDeadline=deadline,searchLimit=limit,routeFirst=false;
  // Bounded observational receipt: never sample a clock or decide policy here.
- const recordStop=(branch,details)=>{const receipt={branch,nodes:base.metrics.nodes,searchLimit,searchDeadline,...details},stops=base.metrics.searchStops||(base.metrics.searchStops={count:0,first:null,last:null});stops.count++;stops.first??=receipt;stops.last=receipt;};
+ const recordStop=(branch,details)=>{const receipt={branch,nodes:base.metrics.nodes,searchLimit,searchDeadline,...details},stops=base.metrics.searchStops||(base.metrics.searchStops={count:0,first:null,last:null});for(const key of Object.keys(receipt))if(receipt[key]===Infinity)receipt[key]=null;stops.count++;stops.first??=receipt;stops.last=receipt;};
  const usage=options.usageTelemetry?{schemaVersion:1,scope:'maintenance',families:{
   cleanupBeforeCap:{attempted:0,examined:0,nonISkipped:0,iColumnSkipped:0,iTransitionChecked:0,verified:0,unknown:0},
   earlyCapFallback:{scanEligible:0,attempted:0,verified:0,selected:0,nodes:0},

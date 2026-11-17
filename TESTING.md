@@ -425,6 +425,8 @@ search cannot poison later tests with a missing continuation.
 Search stop telemetry records the existing stopping branch, charged work,
 applicable limit and the clock sample already used by that check. A null clock
 sample means the node-first check short-circuited before reading the clock.
+A null limit means positive infinity (unbounded), encoded explicitly so receipts
+retain their meaning through JSON transport; finite samples/counters stay exact.
 Ordinary search retains a count and first/last records, plus root completeness
 and final outcome; this bounds record count, not the byte size of embedded
 finite proofs. Nested incomplete results without their own classified stop are

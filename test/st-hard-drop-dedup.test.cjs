@@ -8,7 +8,7 @@ const freeze=value=>{if(value&&typeof value==='object'){for(const child of Objec
 // but does not use the production landing/locking split or numeric identities.
 const pose=a=>JSON.stringify([a.type,a.x,a.y,a.rotation,a.type==='T'&&a.lastRotation?((a.lastRotation.to-a.lastRotation.from+4)%4!==2&&a.lastRotation.kickIndex===4?'fifth':'rotation'):'none']);
 function eagerPlacements(s,options={},stats={}){
- const out=[],outcomes=new Map();let visited=0,complete=true;
+ const out=[],outcomes=new Map();let visited=0,complete=true,stop;
  const maxNodes=options.maxNodes??16000,deadline=options.deadline??Infinity,now=options.now??(()=>0),stopWhen=typeof options.stopWhen==='function'?options.stopWhen:null;
  if(R.validate(s).length||!s.active||s.topOut)return{placements:out,visited,complete:true};
  const unlimited=s.rules===R.PROFILE.id,rootKey=s=>JSON.stringify([pose(s.active),s.hold,s.queue,s.canHold,s.streamCursor]);
@@ -23,7 +23,8 @@ function eagerPlacements(s,options={},stats={}){
  const queues=roots.map(r=>[{state:r.state,actions:r.actions}]),seen=roots.map(r=>new Set([pose(r.state.active)])),heads=roots.map(()=>0);
  outer:while(queues.some((q,i)=>heads[i]<q.length))for(let k=0;k<queues.length;k++){
   if(heads[k]>=queues[k].length)continue;
-  if(visited>=maxNodes||now()>=deadline){complete=false;break outer;}
+  if(visited>=maxNodes){stop={reason:'nodes',visited,maxNodes:maxNodes===Infinity?null:maxNodes,deadline:deadline===Infinity?null:deadline,sampledNow:null};complete=false;break outer;}
+  const sampledNow=now();if(sampledNow>=deadline){stop={reason:'deadline',visited,maxNodes:maxNodes===Infinity?null:maxNodes,deadline:deadline===Infinity?null:deadline,sampledNow};complete=false;break outer;}
   const n=queues[k][heads[k]++];visited++;
   const locked=R.move(n.state,'HD'),event=locked.lastEvent;
   if(event&&!event.topOut){
@@ -39,7 +40,7 @@ function eagerPlacements(s,options={},stats={}){
    queues[k].push({state:next,actions:n.actions.concat(action)});
   }
  }
- return{placements:out,complete,visited};
+ return{placements:out,complete,visited,...(stop?{stop}:{})};
 }
 function compare(s,options={}){
  const snapshot=JSON.stringify(s),expected=eagerPlacements(s,options),actual=R.placements(s,{now:()=>0,...options});

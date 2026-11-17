@@ -44,3 +44,12 @@ test('search diagnostics: an actual failed child test preserves the receipt and 
  const child=spawnSync(process.execPath,['--test-reporter=tap','-e',`const test=require('node:test'),D=require('./test/support/st-search-diagnostic.cjs');test('controlled diagnostic failure',()=>D.check(false,'required certificate',{request:{options:{timeMs:750}},result:{valid:false,diagnostic:{stop:{reason:'nodes',visited:17,maxNodes:17}},tail:'complete-result-sentinel'}}));`],{cwd:require('node:path').resolve(__dirname,'..'),encoding:'utf8',timeout:15000,env});
  assert.equal(child.error,undefined);assert.equal(child.status,1);assert.match(child.stdout,/not ok 1/);assert.match(child.stdout,/SEARCH DIAGNOSTIC/);assert.match(child.stdout,/complete-result-sentinel/);assert.match(child.stdout,/visited: 17/);
 });
+
+
+test('search diagnostics: unbounded limits are explicit and survive JSON transport',()=>{
+ const state=R.createState({active:'T'});
+ for(const run of [options=>R.placements(state,options),options=>R.tDoubleAccess(fixture.initial.board,options),options=>X.stagePlacements(state,options)]){
+  const nodes=run({maxNodes:0,now:()=>0});assert.equal(nodes.stop.reason,'nodes');assert.equal(nodes.stop.deadline,null);assert.deepEqual(JSON.parse(JSON.stringify(nodes.stop)),nodes.stop);
+ }
+ const expired=R.placements(state,{maxNodes:Infinity,deadline:0,now:()=>0});assert.equal(expired.stop.maxNodes,null);assert.equal(expired.stop.sampledNow,0);assert.deepEqual(JSON.parse(JSON.stringify(expired.stop)),expired.stop);
+});

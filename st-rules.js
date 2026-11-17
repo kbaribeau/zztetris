@@ -134,8 +134,8 @@ function placementsCore(s,options={}){
  const queues=roots.map(r=>[{state:r.state,parent:-1,action:null,depth:r.witness.length}]),seen=roots.map(r=>new Set([poseKey(r.state.active)])),heads=roots.map(()=>0);
  outer:while(queues.some((q,i)=>heads[i]<q.length)){for(let k=0;k<queues.length;k++){
   if(heads[k]>=queues[k].length)continue;
-  if(visited>=maxNodes){stop={reason:'nodes',visited,maxNodes,deadline,sampledNow:null};complete=false;break outer;}
-  const sampledNow=now();if(sampledNow>=deadline){stop={reason:'deadline',visited,maxNodes,deadline,sampledNow};complete=false;break outer;}
+  if(visited>=maxNodes){stop={reason:'nodes',visited,maxNodes:maxNodes===Infinity?null:maxNodes,deadline:deadline===Infinity?null:deadline,sampledNow:null};complete=false;break outer;}
+  const sampledNow=now();if(sampledNow>=deadline){stop={reason:'deadline',visited,maxNodes:maxNodes===Infinity?null:maxNodes,deadline:deadline===Infinity?null:deadline,sampledNow};complete=false;break outer;}
   const indexInQueue=heads[k]++,n=queues[k][indexInQueue];visited++;
   const landing=dropLanding(n.state.board,n.state.active),classification=spin(n.state.board,landing);
   // In v2 deduplicate equivalent outcomes, not merely matching targets: an
@@ -318,8 +318,8 @@ function tDoubleAccessCore(board,options={}){
  while(state.active.y<plane){state=move(state,'SD');prefix.push('SD');}
  const queue=[{state,parent:-1,action:null}],seen=new Set([poseKey(state.active)]);let head=0;
  while(head<queue.length){
-  if(visited>=maxNodes)return{reachable:null,witness:[],event:null,visited,complete:false,stop:{reason:'nodes',visited,maxNodes,deadline,sampledNow:null}};
-  const sampledNow=now();if(sampledNow>=deadline)return{reachable:null,witness:[],event:null,visited,complete:false,stop:{reason:'deadline',visited,maxNodes,deadline,sampledNow}};
+  if(visited>=maxNodes)return{reachable:null,witness:[],event:null,visited,complete:false,stop:{reason:'nodes',visited,maxNodes:maxNodes===Infinity?null:maxNodes,deadline:deadline===Infinity?null:deadline,sampledNow:null}};
+  const sampledNow=now();if(sampledNow>=deadline)return{reachable:null,witness:[],event:null,visited,complete:false,stop:{reason:'deadline',visited,maxNodes:maxNodes===Infinity?null:maxNodes,deadline:deadline===Infinity?null:deadline,sampledNow}};
   const index=head++,n=queue[index],a=n.state.active;visited++;
   if(!fits(board,{...a,y:a.y+1})&&spin(board,a)==='full'){
    const occupied=cells(a),rows=new Set(occupied.map(c=>c[1]));let lines=existingFullRows;
