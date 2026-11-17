@@ -33,19 +33,16 @@ test('pending L refill / fresh choices transport the waiting hint even when the 
  assert.equal(checked.valid,true);assert.deepEqual(checked.resource.violations,[]);assert.equal(checked.resource.pendingCenter.length,1);assert.equal(checked.resource.pendingCenter[0].rootId,hint.rootId);
  const replay=R.replay(f.afterT.observation,joined.flatMap(p=>p.witness));assert.equal(replay.valid,true);assert.equal(replay.events.reduce((n,e)=>n+e.lines,0),6);assert.equal(replay.events.at(-1).type,'T');assert.equal(replay.events.at(-1).lines,2);assert.equal(replay.state.active,null);assert.deepEqual(replay.state.queue,[]);assert.equal(replay.state.hold,'Z');assert.equal(replay.state.topOut,false);
 });
-test('pending L refill / literal TSD then right-cap Z retires its goal-free suffix without erasing its waiting hint',()=>{
+test('pending L refill / literal TSD then right-cap Z cannot authorize a floating I in its waiting hint',()=>{
  const raw=f.afterS.observation,witnesses=[route.steps[1].witness,['HOLD','R','R','R','R','CW','HD']];let state=raw;
  const continuation=witnesses.map(witness=>{const r=R.replay(state,witness);assert.equal(r.valid,true);state=r.state;const event=r.events[0];return{witness,event,target:event.target,hold:witness.includes('HOLD'),holdCount:witness.filter(a=>a==='HOLD').length,resultContext:context(state)};});
  const summary=CurrentProvider.facts(CurrentProvider.prepare(raw,{obligationContext:Current.exportState(Current.importState(f.afterS.options.obligationContext,{position:raw}))})),end=M.checkPath(raw,continuation,Current.importState(f.afterS.options.obligationContext,{position:raw}));assert.equal(end.valid,true);
  const pending=end.resource.pendingCenter[0],origin=clone(state),waiting=[['L','L','HD'],['HOLD','R','R','R','CW','R','HD'],['HOLD','R','R','R','R','CW','HD'],['HOLD','L','L','HD'],['L','L','HD']].map(witness=>{const r=R.replay(state,witness);assert.equal(r.valid,true);state=r.state;return{witness,event:r.events[0]};});
  assert.equal(state.active,null);assert.deepEqual(state.queue,[]);
  const hint={rootId:pending.rootId,origin,target:{cells:clone(pending.alternatives[0].cells)},waiting},head=continuation[0],proposed={target:head.target,witness:head.witness,hold:head.hold,holdCount:head.holdCount,continuation,context:context(raw),evidence:{pendingLStage:hint}};
- const admitted=P.revalidate(raw,proposed,{...f.afterS.options,...bounds});assert.ok(admitted,'The literal cap route and its complete waiting tape are independently admitted');assert.equal(admitted.continuation.length,2);
- const suffix=admitted.continuation[1];assert.equal(suffix.event.type,'Z');assert.equal(suffix.event.lines,0);assert.ok(suffix.event.cells.every(([x])=>x>=7));const beforeCap=R.replay(raw,admitted.witness).state,cap=R.replay(beforeCap,suffix.witness);assert.equal(cap.valid,true);assert.equal(S.transition(beforeCap,{state:cap.state,event:cap.events[0]}).allocation,'right-cap-preparation');assert.equal(suffix.structuralEvidence.coveredRepair.required,false);assert.equal(admitted.evidence.coveredRepairPlan,null);
- assert.equal(P.resourceGoal([suffix]),false,'A non-scoring right Z cap alone is not a scoring, Pocket, Center or repair commitment');
- const actual=R.replay(raw,admitted.witness);assert.equal(actual.events[0].spin,'full');assert.equal(actual.events[0].lines,2);assert.deepEqual(actual.state.board,f.afterT.observation.board);
- assert.equal(P.continueCommitment(raw,f.afterT.observation,admitted,actual.events[0],{...f.afterT.options,...bounds}),null);
- assert.ok(admitted.evidence.pendingLStage,'The waiting hint remains available independently of the expired goal');
+ const floating=waiting.find(p=>!S.rightIFloorAllowed(p.event));assert.ok(floating,'The old waiting route contains an I above the column-ten floor');assert.equal(floating.event.type,'I');
+ assert.equal(P.revalidate(raw,proposed,{...f.afterS.options,...bounds}),null,'A legal cap cannot authorize its forbidden future I');
+ assert.equal(CurrentProvider.facts(CurrentProvider.prepare(raw,f.afterS.options)).center.pending.length,1,'Rejecting advice cannot discharge the factual pending Center duty');
 });
 test('pending L refill / hint identity, endpoint, inventory, event and witness cannot substitute for current proof',()=>{
  const {result}=saved||lifecycle(),summary=CurrentProvider.facts(CurrentProvider.prepare(f.afterT.observation,{obligationContext:Current.exportState(Current.importState(f.afterT.options.obligationContext,{position:f.afterT.observation}))})),end=M.checkPath(f.afterT.observation,result.continuation,Current.importState(f.afterT.options.obligationContext,{position:f.afterT.observation})),hint=result.evidence.pendingLStage;

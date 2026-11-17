@@ -49,14 +49,10 @@ test('Combined allocation: real Left estimates do not replace an existing execut
  assert.equal(a.evidence.resourceObligations.status,'checked');assert.equal(a.evidence.gapAccess.reachable,true);actualPrefix(timing.request.observation,a);
 });
 
-test('Combined allocation eligible-I branch harness: real Left estimates cannot turn unknown optional cap proof into authority',()=>{
- const q=eligible.request();let unknown=0;
- const watched=observePlanner({tDoubleAccess(board,options){
-  unknown++;return{reachable:null,complete:false,witness:[],event:null,visited:Math.min(7,options.maxNodes)};
- }},true);
- const off=observePlanner({},true),incumbent=decide(off.planner,q,{disableRightCapPreference:true}),actual=decide(watched.planner,q);
- assert(watched.calls.total>0&&off.calls.total>0);assert(unknown>0,'controlled seam must reach the optional query');
- assert.equal(actual.metrics.rightCapPreference.selected,false);assert(actual.metrics.rightCapPreference.unknown>0);
- assert.deepEqual(samePayload(actual),samePayload(incumbent));assert(actual.metrics.nodes<=45000);
- actualPrefix(q.observation,actual);
+test('Combined allocation: real Left estimates cannot authorize the old floating Right I',()=>{
+ const q=eligible.request(),watched=observePlanner(),actual=decide(watched.planner,q);
+ assert(watched.calls.total>0);assert(actual.target);actualPrefix(q.observation,actual);
+ assert(actual.continuation.every(p=>require('../st-structure').rightIFloorAllowed(p.event)));
+ const old=require('../st-rules').replay(q.observation,eligible.incumbentWitness);assert(old.valid);
+ assert.equal(watched.planner.ordinaryRightEligible(old.events[0]),false);
 });

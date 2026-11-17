@@ -39,13 +39,7 @@ test('Right roles supersede the old O-Right incumbent without disabling the cap/
  for(const p of a.continuation)assert(p.event.cells.every(([x])=>x<7)||['Z','T','I'].includes(p.event.type));
 });
 
-test('Right cap branch harness: actual goal-free I incumbent and ILeft/Z/held-T proof keep every admission guard',()=>{
- const q=eligible.request();assert.equal(q.observation.bag,undefined);assert.equal(q.options.obligationContext.inventory.originKnown,false);assert.equal('steps' in q.options.obligationContext,false);assert.equal(RH.resolve(RH.importState(q.options.obligationContext,{position:q.observation}),{position:q.observation}).availability,'unknown');
- const r=R.replay(q.observation,eligible.incumbentWitness);assert(r.valid);assert.equal(r.events[0].type,'I');assert.equal(r.events[0].lines,0);assert(r.events[0].cells.every(([x])=>x===9));
- const old=decide({disableRightCapPreference:true},q,eligible.planner());assert.equal(old.target.type,'I');assert.equal(P.resourceGoal(old.continuation),false);assert(P.revalidate(q.observation,old,{...q.options,...bounds}));
- assert(old.continuation[0].event.cells.some(c=>f.expectedCapCells.some(d=>cells([c])===cells([d]))));
- const a=decide({},q,eligible.planner());assert.equal(a.metrics.rightCapPreference.selected,true);assert.equal(cells(a.continuation[0].event.cells),cells(eligible.firstCells));assert.equal(cells(a.continuation[1].event.cells),cells(f.expectedCapCells));assert.deepEqual(a.continuation.map(p=>[p.event.type,p.event.lines]),[['I',0],['Z',0],['T',2]]);assert.equal(a.continuation[2].holdCount,1);assert.equal(replay(q.observation,a).lines,2);assert.equal(a.evidence.resourceObligations.status,'checked');assert.equal(a.evidence.gapAccess.reachable,true);assert(a.metrics.nodes<=45000);
-});
+
 
 test('Right cap preference: synthetic positive needs no repair while the original accessible roof is rejected',()=>{
  const a=decide(),first=a.continuation[0],r=R.replay(R.createState(f.request.observation),first.witness);
@@ -78,32 +72,13 @@ test('Right cap preference: actual locks, normal reveals and HOLD retain the fin
  assert.equal(draws,3);assert.equal(RH.resolve(history,{position:state}).availability,'unknown');
 });
 
-test('Right cap eligible-I branch harness: unknown optional access returns the exact already certified incumbent',()=>{
- const q=eligible.request();let interrupted=0;
- const planner=eligible.planner({tDoubleAccess(board,options){interrupted++;return{reachable:null,complete:false,witness:[],event:null,visited:Math.min(7,options.maxNodes)};}});
- const old=decide({disableRightCapPreference:true},q,eligible.planner()),a=decide({},q,planner);
- assert(interrupted>0);assert.equal(a.metrics.rightCapPreference?.selected,false);assert(a.metrics.rightCapPreference.unknown>0);assert.deepEqual(withoutMetrics(a),withoutMetrics(old));assert(a.metrics.nodes<=45000);replay(q.observation,a);
-});
 
-test('Right cap eligible-I branch harness: exhausted optional work cannot force reproof of its incumbent',()=>{
- const q=eligible.request();let spent=0;
- const planner=eligible.planner({tDoubleAccess(board,options){spent=options.maxNodes;return{reachable:null,complete:false,witness:[],event:null,visited:options.maxNodes};}});
- const old=decide({disableRightCapPreference:true},q,eligible.planner()),a=decide({},q,planner);
- assert(spent>0);assert.equal(a.metrics.nodes,45000);assert.equal(a.metrics.rightCapPreference.selected,false);assert.deepEqual(withoutMetrics(a),withoutMetrics(old));
-});
 
-test('Right cap eligible-I branch harness: optional proof crossing the wall deadline preserves its checked incumbent',()=>{
- const q=eligible.request(),deadline=100000;let clock=0,expired=0;
- const planner=eligible.planner({tDoubleAccess(board,options){expired++;clock=deadline+1;return{reachable:null,complete:false,witness:[],event:null,visited:Math.min(7,options.maxNodes)};}});
- const old=decide({disableRightCapPreference:true,deadline},q,eligible.planner()),a=decide({now:()=>clock,deadline},q,planner);
- assert(expired>0);assert(clock>deadline);assert.equal(a.metrics.rightCapPreference.selected,false);assert.deepEqual(withoutMetrics(a),withoutMetrics(old));assert(a.metrics.nodes<=45000);
-});
 
-test('Right cap eligible-I branch harness: complete negative optional entry also preserves the incumbent',()=>{
- const q=eligible.request();let denied=0;
- const planner=eligible.planner({tDoubleAccess(){denied++;return{reachable:false,complete:true,witness:[],event:null,visited:0};}});
- const old=decide({disableRightCapPreference:true},q,eligible.planner()),a=decide({},q,planner);assert(denied>0);assert.equal(a.metrics.rightCapPreference.selected,false);assert.deepEqual(withoutMetrics(a),withoutMetrics(old));
-});
+
+
+
+
 
 test('Right cap preference: caller/imported metadata is not optional admission authority',()=>{
  const a=decide({rightCapAdmission:()=>{throw Error('caller callback must not run');},rightCapPreference:{selected:true,lostCapCells:[]}});
@@ -126,10 +101,16 @@ test('Right cap preference: existing actual scoring commitment is not replaced b
  const a=decide({},timing.request),off=decide({disableRightCapPreference:true},timing.request);assert.equal(a.continuation[0].event.type,'T');assert.equal(a.continuation[0].event.lines,2);assert.equal(a.metrics.rightCapPreference,undefined);assert.deepEqual(withoutMetrics(a),withoutMetrics(off));
 });
 
-test('Right cap eligible-I branch harness: caller flags and serialized stale proofs cannot supply private admission authority',()=>{
- const q=eligible.request(),a=decide({rightCapAdmission:()=>{throw Error('caller callback must not run');},rightCapPreference:{selected:true,lostCapCells:[]}},q,eligible.planner());assert.equal(a.metrics.rightCapPreference.selected,true);
- const forged=clone(a);forged.continuation[1].witness=['HD'];assert.equal(P.revalidate(q.observation,forged,{...q.options,...bounds}),null);
- const fresh=decide({previous:forged},q,eligible.planner());assert.equal(fresh.metrics.rightCapPreference.selected,true);assert.deepEqual(withoutMetrics(fresh),withoutMetrics(a));
- const stale=clone(a);stale.context='not-the-current-public-request';assert.equal(P.revalidate(q.observation,stale,{...q.options,...bounds}),null);
- const invalid=clone(q);invalid.options.obligationContext.inventory.nextId=0;assert.equal(decide({},invalid,eligible.planner()).target,null);
+
+
+// The old optional-branch harness forced a physically real but now forbidden
+// floating Right I. Keep that position as a rejection, not an eligible control.
+test('Right cap floor rule rejects the old floating-I incumbent without caller overrides',()=>{
+ const q=eligible.request(),r=R.replay(q.observation,eligible.incumbentWitness);assert(r.valid);const event=r.events[0];
+ assert(event.cells.every(([x])=>x===9));assert(!event.cells.some(([,y])=>y===39));assert.equal(P.ordinaryRightEligible(event),false);
+ const step={target:event.target,event,witness:eligible.incumbentWitness,hold:false,holdCount:0};
+ const old={...step,continuation:[step],context:JSON.stringify([q.observation.rules,q.observation.board,q.observation.hold,q.observation.canHold,q.observation.queue,q.observation.bag??null,q.observation.active.type]),evidence:{cycleDebt:0}};
+ assert.equal(P.revalidate(q.observation,old,{...q.options,...bounds}),null);
+ const a=decide({rightCapAdmission:()=>{throw Error('caller callback must not run');},rightCapPreference:{selected:true,lostCapCells:[]}},q);
+ assert(a.target);assert(a.continuation.every(p=>S.rightIFloorAllowed(p.event)));replay(q.observation,a);assert(P.revalidate(q.observation,a,{...q.options,...bounds}));
 });

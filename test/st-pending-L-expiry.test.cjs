@@ -1,5 +1,5 @@
 'use strict';
-const P=require('../st-planner'),M=require('../st-obligation-resources'),Context=require('../st-obligation-context'),R=require('../st-rules');
+const P=require('../st-planner'),M=require('../st-obligation-resources'),Context=require('../st-obligation-context'),R=require('../st-rules'),S=require('../st-structure');
 let exportedAtExpiry,postJRequest,targetAtExpiry,expirySimulation;
 const test=require('node:test'),assert=require('node:assert/strict'),{withPage}=require('./support/page.cjs'),{workerPlanner}=require('../scripts/lib/st-simulation.cjs'),Session=require('../st-session'),Practice=require('../st-practice'),H=require('../st-obligation-context'),f=require('./fixtures/pending-L-expiry.json'),clone=x=>JSON.parse(JSON.stringify(x));
 function packed(){return Practice.create(Session.create(f.observation,{obligationContext:f.options.obligationContext,patternHistory:f.options.patternHistory,openingPhase:false}),f.recordedReveals);}
@@ -17,11 +17,11 @@ test('pending L expiry / three-lock 45000-node no-timeout page semantics retain 
  exportedAtExpiry=clone(g.window.stLab.exportSession());assert.equal(exportedAtExpiry.coaching.commitment,null);assert.ok(exportedAtExpiry.coaching.pendingLHint);
  targetAtExpiry=clone(g.window.stLab.resources.center.pending);g.window.stLab.act('UNDO');g.advance(40);assert.equal(workers.at(-1).message.observation.active.type,'T');assert.ok(workers.at(-1).message.options.pendingLHint);
 }));
-test('pending L expiry / three-lock 45000-node no-timeout native import retains waiting hint and exact current target',()=>withPage('st-lab.html',{},g=>{
+test('pending L expiry / three-lock 45000-node no-timeout native import retains waiting hint and preserves exact accounting when the floor policy changes route selection',()=>withPage('st-lab.html',{},g=>{
  assert.ok(exportedAtExpiry);const workers=[],run=boundedWorker({disableSearchTimeout:true});g.window.Worker=class{constructor(){workers.push(this);}postMessage(m){this.message=clone(m);}terminate(){}};
  const install=()=>{g.element('#st-snapshot').value=JSON.stringify(exportedAtExpiry);g.click('#st-import');g.advance(40);const request=workers.at(-1).message;assert.equal(request.commitment,null);assert.ok(request.options.pendingLHint);assert.deepEqual(clone(g.window.stLab.resources.center.pending),targetAtExpiry);return request;};
- const request=install(),advice=run(request);assert.ok(advice.target);assert.equal(advice.target.type,'I');assert.ok(advice.metrics.nodes<=45000);
- const imported=install(),again=run(imported);assert.ok(again.target);assert.equal(again.target.type,'I');assert.ok(again.metrics.nodes<=45000);
+ const request=install(),advice=run(request);assert.ok(advice.target);assert.equal(advice.target.type,'Z');assert.ok(advice.continuation.every(p=>S.rightIFloorAllowed(p.event)));assert.ok(advice.metrics.nodes<=45000);
+ const imported=install(),again=run(imported);assert.ok(again.target);assert.equal(again.target.type,'Z');assert.ok(again.continuation.every(p=>S.rightIFloorAllowed(p.event)));assert.ok(again.metrics.nodes<=45000);
  const bounded=P.decide(imported.observation,{...imported.options,maxNodes:1,now:()=>0,deadline:Infinity});assert.equal(bounded.target,null);assert.deepEqual(clone(g.window.stLab.resources.center.pending),targetAtExpiry,'Budget failure cannot discharge the recorded target');
 }));
 test('pending L expiry / imported hint is bounded whitelisted suggestion, never copied authority',()=>{
@@ -43,8 +43,8 @@ test('pending L expiry / three-lock 45000-node no-timeout simulation semantics e
  for(let i=24;i<=26;i++){const request=session.request(i,CONFIG),advice=run(request);assert.equal(advice.target?.type,['J','S','T'][i-24],JSON.stringify({status:advice.status,reason:advice.reason,nodes:advice.metrics?.nodes,elapsedMs:advice.metrics?.elapsedMs}));assert.ok(advice.metrics.nodes<=45000);session.execute(advice);}
  const request=session.request(27,CONFIG);assert.equal(request.commitment,null);assert.ok(request.options.pendingLHint);assert.deepEqual(request.observation.queue,['O','Z','J','I','O','T']);expirySimulation=session;
 });
-test('pending L expiry / three-lock 45000-node no-timeout simulator retains the post-expiry I candidate',()=>{
- assert.ok(expirySimulation);const {CONFIG}=require('../scripts/lib/st-simulation.cjs'),request=expirySimulation.request(27,CONFIG),next=boundedWorker({disableSearchTimeout:true})(request);assert.ok(next.target);assert.equal(next.target.type,'I');assert.ok(next.metrics.nodes<=45000);assert.equal(request.commitment,null);assert.ok(request.options.pendingLHint);
+test('pending L expiry / three-lock 45000-node no-timeout simulator selects an allowed post-expiry route and retains its hint',()=>{
+ assert.ok(expirySimulation);const {CONFIG}=require('../scripts/lib/st-simulation.cjs'),request=expirySimulation.request(27,CONFIG),next=boundedWorker({disableSearchTimeout:true})(request);assert.ok(next.target);assert.equal(next.target.type,'Z');assert.ok(next.continuation.every(p=>S.rightIFloorAllowed(p.event)));assert.ok(next.metrics.nodes<=45000);assert.equal(request.commitment,null);assert.ok(request.options.pendingLHint);
 });
 
 

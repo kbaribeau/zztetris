@@ -59,8 +59,8 @@ test('public horizon: Reset explores past three literal locks while retaining it
 });
 
 
-test('public horizon: a longer pending-L commitment remains valid after the former three-lock expiry',()=>{
+test('public horizon: pending-L goal retirement preserves the hint after floor-policy route selection',()=>{
  const f=require('./fixtures/pending-L-expiry.json'),session=Sim.createSession({scenario:'stable',initial:f.observation,obligationContext:f.options.obligationContext,future:f.recordedReveals}),run=Sim.workerPlanner({disableSearchTimeout:true});
  for(let lock=24;lock<=26;lock++){const request=session.request(lock,Sim.CONFIG),advice=run(request);assert.ok(advice.target);assert.ok(advice.metrics.nodes<=45000);Sim.validateAdvice(request.observation,advice);session.execute(advice);}
- const request=session.request(27,Sim.CONFIG),saved=request.commitment?.advice;assert.ok(saved?.continuation.length>0);replay(request.observation,saved);assert.ok(P.revalidate(request.observation,saved,{...request.options,...untimed}));
+ const request=session.request(27,Sim.CONFIG),saved=request.commitment?.advice;assert.equal(saved,undefined);assert.ok(request.options.pendingLHint);const next=run(request);assert.ok(next.target);replay(request.observation,next);assert.ok(next.continuation.every(p=>require('../st-structure').rightIFloorAllowed(p.event)));assert.ok(P.revalidate(request.observation,next,{...request.options,...untimed}));
 });
