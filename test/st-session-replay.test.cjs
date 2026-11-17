@@ -55,6 +55,8 @@ test('session replay: tampered, incomplete, oversized and hidden-field payloads 
  install(g,fixture.endpoint);for(const a of fixture.tsd.witness)g.window.stLab.act(a);const valid=read(g).x;
  const changes=[x=>x.replay.schemaVersion++,x=>x.replay.steps.pop(),x=>x.replay.steps[0].action='NOPE',x=>x.replay.steps[1].revealed=['I'],x=>x.replay.steps.at(-1).revealed=['I'],x=>x.replay.steps.at(-1).revealed.push('J'),x=>x.replay.origin.position.queue.push('I'),x=>x.replay.origin.position.future=['I'],x=>x.replay.steps[0].future=['T'],x=>x.replay.origin.obligationContext.inventory.active.id=999,x=>x.replay.coverage='complete-game',x=>x.replay.steps=Array(S.replay.LIMITS.steps+1).fill({action:'L',revealed:[]}),x=>x.replay.steps[1]={boundary:'undo',revision:0},x=>x.replay.steps[1]={marker:'imagined-reset'}];
  for(const change of changes){const bad=clone(valid);change(bad);assert.throws(()=>S.prepare(bad));const prior=g.snapshot();g.element('#st-snapshot').value=JSON.stringify(bad);g.click('#st-import');assert.match(g.element('#st-import-status').textContent,/rejected/i);assert.deepEqual(g.snapshot(),prior);}
+ const mismatched=clone(valid);mismatched.coaching.obligationContext.state.sl.uncertainty.L=[1];
+ assert.throws(()=>S.prepare(mismatched),/endpoint accounting mismatch/);const before=g.snapshot();g.element('#st-snapshot').value=JSON.stringify(mismatched);g.click('#st-import');assert.match(g.element('#st-import-status').textContent,/endpoint accounting mismatch/);assert.deepEqual(g.snapshot(),before);
  const got=S.prepare(valid);assert.deepEqual(S.create(got.state,got),valid);
 }));
 

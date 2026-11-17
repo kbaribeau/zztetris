@@ -15,7 +15,8 @@ function workers(g){const all=[];g.window.Worker=class{constructor(){all.push(th
 function hd(state,extra={}){const witness=['HD'],proof=R.replay(state,witness);return{target:proof.events[0].target,witness,hold:false,evidence:{opening:true},...extra};}
 
 test('current lifecycle/page: native import trusts current duties and ignores conflicting old notch sidecars',()=>withPage('st-lab.html',hidden,g=>{
- const saved=clone(g.window.stLab.exportSession()),snapshot=saved.coaching.obligationContext;snapshot.inventory.nextId=200;
+ const saved=clone(g.window.stLab.exportSession()),snapshot=saved.coaching.obligationContext;delete saved.replay; // Checkpoint-only fixture; no historical replay asserted.
+ snapshot.inventory.nextId=200;
  snapshot.state.center.pending=[{id:'trusted-current-center',rootId:100,family:'OJ',alternatives:[{piece:'J',cells:[[4,20],[4,21],[5,21],[6,21]]}]}];
  snapshot.state.safety.coveredCells=[[1,25]];saved.coaching.patternHistory={origin:[],steps:[]};
  install(g,saved);assert.deepEqual(clone(g.window.stLab.resources.center),snapshot.state.center);assert.deepEqual(clone(g.window.stLab.resources.coveredRepair.cells),[[1,25]]);
@@ -25,7 +26,8 @@ test('current lifecycle/page: native import trusts current duties and ignores co
 }));
 
 test('current lifecycle/page: anonymous accommodation counts are shown without invented identities',()=>withPage('st-lab.html',hidden,g=>{
- selectEmpty(g);const saved=g.window.stLab.exportSession();saved.coaching.obligationContext.state.sl.uncertainty.L=[3];install(g,saved);
+ selectEmpty(g);const saved=g.window.stLab.exportSession();delete saved.replay; // Checkpoint-only fixture; no historical replay asserted.
+ saved.coaching.obligationContext.state.sl.uncertainty.L=[3];install(g,saved);
  const current=g.window.stLab.resources.hangingL;assert.equal(current.unclassifiedCount,3);assert.equal(current.unclassified.length,0);assert.deepEqual(clone(current.aggregate),[3]);
  assert.match(g.element('#st-hanging-l').getAttribute('aria-label'),/unresolved accommodation: 3; anonymous count: 3/);
  assert.match(g.element('#st-resource-summary').textContent,/Unclassified S\/L accommodation: 0\/3/);
@@ -34,7 +36,8 @@ test('current lifecycle/page: anonymous accommodation counts are shown without i
 }));
 
 test('current lifecycle/page: unavailable imported accounting advances HOLD and lock without restart',()=>withPage('st-lab.html',hidden,g=>{
- selectEmpty(g);const saved=g.window.stLab.exportSession();Object.assign(saved.coaching.obligationContext,{status:'unavailable',reason:'Unavailable imported accounting',state:null});install(g,saved);
+ selectEmpty(g);const saved=g.window.stLab.exportSession();delete saved.replay; // Checkpoint-only fixture; no historical replay asserted.
+ Object.assign(saved.coaching.obligationContext,{status:'unavailable',reason:'Unavailable imported accounting',state:null});install(g,saved);
  const before=g.window.stLab.publicInventory;g.window.stLab.act('HOLD');g.window.stLab.act('HD');
  assert.equal(g.window.stLab.obligationContext.status,'unavailable');assert.equal(g.window.stLab.obligationContext.state,null);assert.equal(g.window.stLab.publicInventory.hold.id,before.active.id);assert.equal(g.window.stLab.publicInventory.active.id,before.queue[1].id);
  assert.doesNotMatch(g.element('#st-hanging-s').getAttribute('aria-label'),/confirmed count: 0/);
