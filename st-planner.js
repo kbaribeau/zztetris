@@ -28,7 +28,7 @@ const cloneNode=n=>({...clone({...n,resources:null}),resources:n.resources});
 // Ordinary midgame assigns Right (columns 8–10) to Z, T and I. Inspect the
 // actual lock, including HOLD and boundary-crossing minos; existing board
 // colors, target origins and claimed region/repair labels are not authority.
-function ordinaryRightEligible(event){return !event.cells.some(([x])=>x>=7)||['Z','T','I'].includes(event.type);}
+function ordinaryRightEligible(event){return S.rightIFloorAllowed(event)&&(!event.cells.some(([x])=>x>=7)||['Z','T','I'].includes(event.type));}
 // Within one parent, a movement witness establishes reachability rather than a
 // separate strategic choice. Keep one exact, replayable representative of each
 // lock outcome. HOLD count retains subject identity even when piece letters

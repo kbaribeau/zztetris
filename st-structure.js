@@ -235,6 +235,10 @@ function rightCycle(board,h){
  const prepareColumn=leftCenterBase&&wallSolid&&wall>=3&&eightEmpty&&tenEmpty?9:null;
  return {shape,phase,cleanupColumns,prepareColumn,wallSolid,channelBase};
 }
+// Coach policy uses original occupied cells, before any row-clear translation.
+// Any I touching column ten must itself reach its bottom cell. Manual rules
+// and historical accounting remain unchanged.
+function rightIFloorAllowed(event){return event.type!=='I'||!event.cells.some(([x])=>x===9)||event.cells.some(([x,y])=>x===9&&y===39);}
 function canonicalClear(event){return event.lines===0||
  (event.type==='T'&&event.spin==='full'&&event.lines===2&&event.cells.every(([x])=>x>=6))||
  (event.type==='I'&&event.lines===4&&event.cells.every(([x])=>x>=7));}
@@ -438,6 +442,7 @@ function transition(before,p,afterStructure,options={}){const beforeNotches=opti
  debt+=opportunityCost;
  if(finish&&pure==='center')allocation='center-completion';
  const cycleViolations=[];
+ if(!rightIFloorAllowed(p.event))cycleViolations.push('right-I-must-reach-floor');
  if(p.availableCleanupPreparation===true&&allocation==='right-cap-preparation'&&prior.right.cycle.prepareColumn!==null)cycleViolations.push('capped-before-available-cleanup-I');
  if(opportunityCost)cycleViolations.push('spent-cap-Z-on-optional-work');
  // The planner supplies this only after actual-pose/hold enumeration finds
@@ -449,5 +454,5 @@ function transition(before,p,afterStructure,options={}){const beforeNotches=opti
  const reason=allocation==='horizontal-left-I'?'Keep the left region flat.':allocation==='center-partner-preparation'?partner?'Start the ordered '+type+'/'+partner.piece+' center pair.':'Prepare the center; no ordered level-finishing pair has been established.':allocation==='center-completion'?'Complete the center pattern.':allocation==='scoring-double'?'Take the T-spin double and assess its rebuild.':allocation==='scoring-T-diversion'?'Diverts a T from the scoring role; another T may remain, but its timely use is not established.':allocation==='quad-preparation'?'Prepare the right-side I cleanup while keeping column eight open.':allocation==='quad-cleanup'?'Clear the scoring channel with a quad.':allocation==='unrecognized-role'?'This allocation needs additional regional repair evidence.':allocation==='right-cap-extension'?'Extends an existing cap; renewed entry still needs checking.':'Preserve a supported regional piece role.';
  return{reason,cycleViolations,pairFamily,pairProgress,pairEvidence:pairFamily?'ordered actual preparation plus checked level-finishing placement':null,opportunityCost,leftSubstitutes:substitutes,regions,crossRegion:regions.length>1,allocation,status:['unrecognized-role','scoring-T-diversion','right-cap-extension'].includes(allocation)?'requires-repair-evidence':'supported-local-role',dependencyDebt:debt,newlyCovered,regionalRepair,repairCredit:Math.min(8,repaired*2),note:'Crossing a boundary is not forbidden. Debt measures unsupported allocation and new structural repair burden; a later checked repair may repay it.'};
 }
-return Object.freeze({leftSurface,assess,transition,geometry,cavityFacts,cavityRepairDebt,instances,allocate,canonicalClear,centerTargets,centerFoundation,centerLevelBase,notchPattern,advanceNotches,supportedCenterCompletion,CENTER_PAIRS,centerPairFamily,centerPairCompletion,leftSubstitutes,clearCache:()=>{cache.clear();substituteCache.clear();centerTargetCache=new WeakMap();}});
+return Object.freeze({leftSurface,assess,transition,geometry,cavityFacts,cavityRepairDebt,instances,allocate,rightIFloorAllowed,canonicalClear,centerTargets,centerFoundation,centerLevelBase,notchPattern,advanceNotches,supportedCenterCompletion,CENTER_PAIRS,centerPairFamily,centerPairCompletion,leftSubstitutes,clearCache:()=>{cache.clear();substituteCache.clear();centerTargetCache=new WeakMap();}});
 });

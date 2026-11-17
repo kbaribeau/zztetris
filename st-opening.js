@@ -104,6 +104,7 @@ function handoffGeometry(state){const f=facts(state.board),a=getPlanner().assess
 function sameCells(a,b){return JSON.stringify(a.map(c=>c.join(',')).sort())===JSON.stringify(b.map(c=>c.join(',')).sort());}
 function publicMatch(expected,actual){return JSON.stringify(expected.board)===JSON.stringify(actual.board)&&JSON.stringify(expected.active)===JSON.stringify(actual.active)&&expected.hold===actual.hold&&expected.canHold===actual.canHold&&expected.streamCursor===actual.streamCursor&&expected.topOut===actual.topOut&&expected.queue.every((t,i)=>actual.queue[i]===t);}
 function validStep(before,p,notches,raw=null){
+ if(!S.rightIFloorAllowed(p.event))return rejectedStep(raw,'right-I-must-reach-floor');
  const P=getPlanner(),e=p.event,feature=raw?.features||features,assessment=raw?.assess||P.assess;if(p.state.topOut||!p.state.active||!S.canonicalClear(e))return rejectedStep(raw,'noncanonical-or-terminal');
  if(e.type==='T'&&!e.lines&&!e.cells.every(([x])=>x<4))return rejectedStep(raw,'nonclearing-T-outside-Left');
  if(e.lines&&!e.cells.some(([x])=>x>=7))return rejectedStep(raw,'clear-outside-Right');
