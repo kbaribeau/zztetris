@@ -5,3 +5,7 @@ test-results/
 tetris-fumen/
 tetris-fumen.js
 .husky/_/
+# Original user session archive: regression-tested byte-for-byte.
+examples/st-stacking/kevin-208-lines.json
+# Compact source-pattern asset with an existing shipped-size contract.
+st-opening-patterns.js

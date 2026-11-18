@@ -1,4 +1,5 @@
 'use strict';
+const sourceSeam = require('./support/source-seam.cjs');
 const test = require('node:test'),
   assert = require('node:assert/strict');
 const fs = require('node:fs'),
@@ -193,12 +194,11 @@ test('midgame coaches: planner projected nodes switch early to late without prom
   const filename = require.resolve('../st-planner'),
     module = { exports: {} },
     req = require('node:module').createRequire(filename);
-  const source = fs
-    .readFileSync(filename, 'utf8')
-    .replace(
-      'return Object.freeze({importCandidateResources,',
-      'return Object.freeze({testNodeFor:nodeFor,',
-    );
+  let source = fs.readFileSync(filename, 'utf8');
+  source = source.replace(
+    sourceSeam(source, 'return Object.freeze({importCandidateResources,'),
+    'return Object.freeze({testNodeFor:nodeFor,',
+  );
   vm.runInNewContext(source, { module, require: req });
   assert.equal(typeof module.exports.testNodeFor, 'function');
   const makeInitial = (t, known) => {

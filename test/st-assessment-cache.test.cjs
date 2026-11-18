@@ -1,4 +1,5 @@
 'use strict';
+const sourceSeam = require('./support/source-seam.cjs');
 const { SEARCH_TIME_MS } = require('../st-coach-config');
 const test = require('node:test'),
   assert = require('node:assert/strict'),
@@ -24,7 +25,10 @@ function load({ rules = R, onReader = null } = {}) {
   );
   if (onReader)
     text = text.replace(
-      'function createAssessmentReader(read=assess){const cache=new Map();',
+      sourceSeam(
+        source,
+        'function createAssessmentReader(read=assess){const cache=new Map();',
+      ),
       'function createAssessmentReader(read=assess){const cache=new Map();onReader(cache);',
     );
   vm.runInNewContext(text, {

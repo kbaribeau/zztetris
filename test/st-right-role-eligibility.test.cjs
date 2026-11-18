@@ -1,4 +1,5 @@
 'use strict';
+const sourceSeam = require('./support/source-seam.cjs');
 const test = require('node:test'),
   assert = require('node:assert/strict'),
   fs = require('node:fs'),
@@ -68,10 +69,11 @@ function assertPrefix(state, result) {
 function isolated({ structure = S, substitute = null, candidate = null } = {}) {
   const filename = require.resolve('../st-planner'),
     module = { exports: {} },
-    seam =
+    compactSeam =
       'const result=planCore(raw,{...options,deadline,normalOpeningDecision,checkOpeningFallback,admitMaintenance,[contourRouteAdmission]:admitContour,[rightCapAdmission]:admitRightCap,[supportedSLAdmission]:admitSupportedSL,[openingHandoffBoundary]:candidate=>{handoffResult=candidate;}});';
   let source = fs.readFileSync(filename, 'utf8');
   if (substitute) {
+    const seam = sourceSeam(source, compactSeam);
     assert.equal(
       source.split(seam).length,
       2,

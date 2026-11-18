@@ -1,4 +1,5 @@
 'use strict';
+const sourceSeam = require('./support/source-seam.cjs');
 const test = require('node:test'),
   assert = require('node:assert/strict');
 const P = require('../st-planner'),
@@ -204,9 +205,12 @@ test('timely / Extra-Z orchestration seam: unknown optional work cannot erase th
     attempts = 0,
     protectedCount = 0,
     callerCalls = 0;
-  const selector = 'function preserveExtraZ(baseline,nodes,{protect,certify}){',
-    admission = 'remember(commitment);';
   let source = fs.readFileSync(plannerPath, 'utf8');
+  const selector = sourceSeam(
+      source,
+      'function preserveExtraZ(baseline,nodes,{protect,certify}){',
+    ),
+    admission = 'remember(commitment);';
   assert.equal(
     source.split(selector).length,
     2,

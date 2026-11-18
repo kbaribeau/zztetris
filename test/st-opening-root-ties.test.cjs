@@ -1,4 +1,5 @@
 'use strict';
+const sourceSeam = require('./support/source-seam.cjs');
 const test = require('node:test'),
   assert = require('node:assert/strict'),
   fs = require('node:fs'),
@@ -291,7 +292,7 @@ test('opening final selection cannot turn an unrelated deeper handoff priority i
   const { nominal, adaptive } = setup(),
     module = { exports: {} },
     source = fs.readFileSync(require.resolve('../st-opening'), 'utf8'),
-    seam = 'if(verified)best=verified;';
+    seam = sourceSeam(source, 'if(verified)best=verified;');
   assert.equal(source.split(seam).length, 2);
   let nominated = null;
   // Selection-order unit control only: substitute an actually searched legal

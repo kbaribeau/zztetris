@@ -840,8 +840,8 @@ test('source scoring v2: ordinary sequences are cut at first canonical Right TSD
     fs
       .readFileSync(file, 'utf8')
       .replace(
-        'return Object.freeze({retainScoring,',
-        'return Object.freeze({firstScoringPrefix,retainScoring,',
+        'return Object.freeze({',
+        'return Object.freeze({firstScoringPrefix,',
       ),
     file,
   );

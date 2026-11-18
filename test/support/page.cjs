@@ -455,7 +455,7 @@ async function boot(
       },
       resetControls() {
         const reset = [...window.document.querySelectorAll('a, button')].find(
-          (a) => a.textContent === 'Reset to Defaults',
+          (a) => a.textContent.trim() === 'Reset to Defaults',
         );
         assert.ok(reset);
         const before = navigationCount;

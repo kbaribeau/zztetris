@@ -1,4 +1,5 @@
 'use strict';
+const sourceSeam = require('./support/source-seam.cjs');
 const test = require('node:test'),
   assert = require('node:assert/strict');
 const R = require('../st-rules'),
@@ -528,7 +529,10 @@ test('Reset ordinary probe charges nonzero resource verification work exactly on
     req = createRequire(file),
     f = require('./support/st-reset-retained-support-alternative.json');
   const source = fs.readFileSync(file, 'utf8'),
-    needle = 'const result=resourceEndpointCore(raw,path,options);';
+    needle = sourceSeam(
+      source,
+      'const result=resourceEndpointCore(raw,path,options);',
+    );
   assert.equal(source.split(needle).length, 2);
   const box = { module: { exports: {} }, require: req, Date };
   vm.runInNewContext(

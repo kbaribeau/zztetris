@@ -13,7 +13,9 @@ Installation needs access to the npm registry (or a populated npm cache). **Test
 
 After selecting the pinned Node/npm versions above, run `npm ci` in the Git
 checkout. Its `prepare` lifecycle installs Husky's pre-commit hook automatically;
-no global formatter, copied hook, or CI service is required. Keep development
+no global formatter, copied hook, or CI service is required. The project `.npmrc`
+keeps npm's cache in ignored `.npm-cache/`, including in cloud sandboxes with
+a read-only home directory. Keep development
 dependencies and lifecycle scripts enabled. If installation used `--ignore-scripts`,
 run `npm run prepare` afterward. `git config --get core.hooksPath` should report
 `.husky/_`. Husky manages that setting; review any existing custom hooks before
@@ -30,7 +32,9 @@ After rejection, format, review the diff, then stage the intended changes again.
 With partial staging, review/reselect hunks explicitly; the hook never stages
 unrelated edits for you. Deleted files, symlinks and unsupported binary formats
 are not formatted. The third-party `tetris-fumen.js` bundle and generated or
-local output are excluded in `.prettierignore`. Temporary snapshots are removed
+local output are excluded in `.prettierignore`, as is the byte-preserved original
+`examples/st-stacking/kevin-208-lines.json` session archive and the compact
+`st-opening-patterns.js` asset with its existing shipped-size contract. Temporary snapshots are removed
 on success and failure. Missing dependencies or formatter errors fail the check.
 
 `test/format-hook.test.cjs` exercises real commits in disposable repositories,

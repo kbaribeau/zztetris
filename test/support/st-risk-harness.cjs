@@ -1,4 +1,5 @@
 'use strict';
+const sourceSeam = require('./source-seam.cjs');
 const fs = require('node:fs'),
   path = require('node:path'),
   vm = require('node:vm');
@@ -8,7 +9,10 @@ const fs = require('node:fs'),
 module.exports = function riskHarness() {
   const filename = require.resolve('../../st-planner'),
     source = fs.readFileSync(filename, 'utf8'),
-    seam = 'return Object.freeze({importCandidateResources,';
+    seam = sourceSeam(
+      source,
+      'return Object.freeze({importCandidateResources,',
+    );
   if (source.split(seam).length !== 2) throw Error('Risk test seam changed');
   const module = { exports: {} };
   vm.runInNewContext(

@@ -1,4 +1,5 @@
 'use strict';
+const sourceSeam = require('./source-seam.cjs');
 // TEST ONLY: the historical waiting challenger now violates strict D admission.
 // Isolate that newly stronger eligibility gate solely to exercise the older
 // Center-goal replacement veto. This is not production admission evidence for
@@ -15,8 +16,10 @@ module.exports = function centerGoalHarness({
   // tiebreak. The nodes and repair certificates are still constructed by the real
   // search; no safety facts or guard outcome are fabricated. Neutral production
   // ranking need not happen to choose this adversarial challenger.
-  const rank =
-    'tsds*2,leftContext.score,0,path.reduce((n,v)=>n+v.event.lines,0)';
+  const rank = sourceSeam(
+    source,
+    'tsds*2,leftContext.score,0,path.reduce((n,v)=>n+v.event.lines,0)',
+  );
   if (source.split(rank).length !== 2)
     throw Error('Center-goal ranking control seam changed');
   source = source.replace(
@@ -24,7 +27,10 @@ module.exports = function centerGoalHarness({
     'tsds*2,leftContext.score,-path.reduce((n,v)=>n+v.witness.length+holdCount(v)*2,0),path.reduce((n,v)=>n+v.event.lines,0)',
   );
   if (disablePreservation) {
-    const seam = 'if(pendingLCompletionPreserved)replacement=false;';
+    const seam = sourceSeam(
+      source,
+      'if(pendingLCompletionPreserved)replacement=false;',
+    );
     if (source.split(seam).length !== 2)
       throw Error('Center-goal mutation seam changed');
     source = source.replace(
@@ -32,7 +38,7 @@ module.exports = function centerGoalHarness({
       'if(pendingLCompletionPreserved){pendingLCompletionPreserved=false;}',
     );
   }
-  const guard = 'let pendingLCompletionPreserved=false;';
+  const guard = sourceSeam(source, 'let pendingLCompletionPreserved=false;');
   if (source.split(guard).length !== 2)
     throw Error('Center-goal observation seam changed');
   source = source.replace(

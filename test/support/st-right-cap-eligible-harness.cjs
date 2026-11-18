@@ -1,4 +1,5 @@
 'use strict';
+const sourceSeam = require('./source-seam.cjs');
 const fs = require('node:fs'),
   path = require('node:path'),
   Module = require('node:module');
@@ -49,9 +50,14 @@ function planner(overrides = {}, leftContext = null) {
         ? leftContext
         : req(id);
   let code = fs.readFileSync(filename, 'utf8');
-  const seam = 'const literal=observe(raw),first=best.path[0];',
-    optional =
-      'preference.candidates=alternatives.length;\n  for(const n of alternatives){\n   if(now()>=deadline||base.metrics.nodes>=limit)break;\n   for(const cap of lostCaps){';
+  const seam = sourceSeam(
+      code,
+      'const literal=observe(raw),first=best.path[0];',
+    ),
+    optional = sourceSeam(
+      code,
+      'preference.candidates=alternatives.length;\n  for(const n of alternatives){\n   if(now()>=deadline||base.metrics.nodes>=limit)break;\n   for(const cap of lostCaps){',
+    );
   if (code.split(seam).length !== 2 || code.split(optional).length !== 2)
     throw Error(
       'Right-cap branch seam changed; review the eligibility harness.',
@@ -74,7 +80,7 @@ function planner(overrides = {}, leftContext = null) {
     .replace(
       optional,
       optional.replace(
-        'preference.candidates=alternatives.length;',
+        sourceSeam(optional, 'preference.candidates=alternatives.length;'),
         'preference.candidates=alternatives.length;module.rightCapOptional=true;',
       ),
     );

@@ -78,11 +78,16 @@ test('shared Left surface / classic page and Worker dependency orders execute cu
       load('st-worker.js', realm);
       assert.equal(typeof realm.self.onmessage, 'function');
     } else {
-      const names = [
-        ...fs
-          .readFileSync(path.join(root, 'st-lab.html'), 'utf8')
-          .matchAll(/<script defer src="([^"]+)"/g),
-      ].map((m) => new URL(m[1], 'https://zztetris.test/').pathname.slice(1));
+      const document = require('jsdom').JSDOM.fragment(
+        fs.readFileSync(path.join(root, 'st-lab.html'), 'utf8'),
+      );
+      const names = [...document.querySelectorAll('script[defer][src]')].map(
+        (script) =>
+          new URL(
+            script.getAttribute('src'),
+            'https://zztetris.test/',
+          ).pathname.slice(1),
+      );
       for (const name of names.slice(
         names.indexOf('st-rules.js'),
         names.indexOf('st-planner.js') + 1,

@@ -1,4 +1,5 @@
 'use strict';
+const sourceSeam = require('./support/source-seam.cjs');
 const { extendPublic } = require('./support/current-resource-test.cjs');
 const test = require('node:test'),
   assert = require('node:assert/strict'),
@@ -116,13 +117,16 @@ function moduleWith(
     );
   let source = fs.readFileSync(require.resolve('../st-planner'), 'utf8');
   if (observeIncumbent) {
-    const seam = 'preference.incumbentAdmission=admission(incumbent);';
+    const seam = sourceSeam(
+      source,
+      'preference.incumbentAdmission=admission(incumbent);',
+    );
     assert.equal(source.split(seam).length, 2);
     source = source.replace(
       seam,
       seam + 'observeIncumbent(incumbent,base.metrics.nodes);',
     );
-    const call = '[supportedSLAdmission]:admitSupportedSL';
+    const call = sourceSeam(source, '[supportedSLAdmission]:admitSupportedSL');
     assert.equal(source.split(call).length, 2);
     source = source.replace(
       call,
@@ -970,7 +974,10 @@ test('SL unknown public horizon returns exact incumbent, and caller/copied admis
     module = { exports: {} },
     requireAt = require('node:module').createRequire(filename),
     source = fs.readFileSync(filename, 'utf8');
-  const seam = 'function publicDrawHorizon(raw,path,summary){';
+  const seam = sourceSeam(
+    source,
+    'function publicDrawHorizon(raw,path,summary){',
+  );
   assert(source.includes(seam));
   vm.runInNewContext(source.replace(seam, seam + 'return null;'), {
     module,

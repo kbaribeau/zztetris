@@ -1,4 +1,5 @@
 'use strict';
+const sourceSeam = require('./support/source-seam.cjs');
 const test = require('node:test'),
   assert = require('node:assert/strict'),
   fs = require('node:fs'),
@@ -54,14 +55,13 @@ function instrument() {
   const filename = require.resolve('../st-planner'),
     calls = [],
     groups = [];
-  let source = fs
-    .readFileSync(filename, 'utf8')
-    .replace(
-      'return Object.freeze({importCandidateResources,',
-      'return Object.freeze({diversify,importCandidateResources,',
-    );
+  let source = fs.readFileSync(filename, 'utf8');
   source = source.replace(
-    'const pending=nodes.slice(),selected=[];',
+    sourceSeam(source, 'return Object.freeze({importCandidateResources,'),
+    'return Object.freeze({diversify,importCandidateResources,',
+  );
+  source = source.replace(
+    sourceSeam(source, 'const pending=nodes.slice(),selected=[];'),
     'observeQualification(nodes,routeFirst);const pending=nodes.slice(),selected=[];',
   );
   const m = { exports: {} };
@@ -381,12 +381,11 @@ test('lookup diagnostics retain all returned root routes in order without a pres
 test('lookup diagnostics exclude nested future roots and release collector after errors', () => {
   const filename = require.resolve('../st-planner'),
     m = { exports: {} };
-  const source = fs
-    .readFileSync(filename, 'utf8')
-    .replace(
-      'return Object.freeze({importCandidateResources,',
-      'return Object.freeze({withLookupDiagnostics,recordLookup,importCandidateResources,',
-    );
+  let source = fs.readFileSync(filename, 'utf8');
+  source = source.replace(
+    sourceSeam(source, 'return Object.freeze({importCandidateResources,'),
+    'return Object.freeze({withLookupDiagnostics,recordLookup,importCandidateResources,',
+  );
   vm.runInNewContext(source, {
     module: m,
     Date,

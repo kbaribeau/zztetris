@@ -151,7 +151,7 @@ test('navigation/controls: popup mode links retain native navigation, saved sett
       assert.equal(JSON.parse(saved.config)[11], '185');
       assert.equal(saved.bagBoundaries, 'true');
       const save = [...g.window.document.querySelectorAll('button')].find(
-        (el) => el.textContent === 'Save & Close',
+        (el) => el.textContent.trim() === 'Save & Close',
       );
       assert.ok(save);
       save.click();

@@ -135,11 +135,11 @@ test('st-sources/ui: current checked advice links to named community sections wi
       );
     }
     assert.match(
-      g.element('#st-sources').textContent,
+      g.element('#st-sources').textContent.replace(/\s+/g, ' ').trim(),
       /community concepts, not universal placement rules/,
     );
     assert.match(
-      g.element('#st-sources').textContent,
+      g.element('#st-sources').textContent.replace(/\s+/g, ' ').trim(),
       /coach checks this specific move; the guides do not certify it/,
     );
     assert.equal(
@@ -422,8 +422,14 @@ test('st-sources/ui: interrupted worker failures remove retained references and 
 
 test('st-sources/help: current unlimited HOLD practice is distinct from legacy v1 replay and ordinary practice', () =>
   withPage('st-lab.html', {}, (g) => {
-    const current = g.element('#st-rules-note').textContent,
-      legacy = g.element('#st-legacy-rules-note').textContent;
+    const current = g
+        .element('#st-rules-note')
+        .textContent.replace(/\s+/g, ' ')
+        .trim(),
+      legacy = g
+        .element('#st-legacy-rules-note')
+        .textContent.replace(/\s+/g, ' ')
+        .trim();
     assert.match(current, /st-zero-v2.*unlimited hold swaps/);
     assert.match(
       current,
@@ -443,7 +449,10 @@ test('st-sources/help: current unlimited HOLD practice is distinct from legacy v
       ordinary.querySelector('a').getAttribute('href'),
       'index.html',
     );
-    assert.match(ordinary.textContent, /Those modes are unchanged\./);
+    assert.match(
+      ordinary.textContent.replace(/\s+/g, ' ').trim(),
+      /Those modes are unchanged\./,
+    );
     assert.doesNotMatch(ordinary.textContent, /unlimited-hold rules are not/);
     const snapshot = F.get('empty-hold').observation;
     g.element('#st-snapshot').value = JSON.stringify(snapshot);

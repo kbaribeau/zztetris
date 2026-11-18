@@ -1,4 +1,5 @@
 'use strict';
+const sourceSeam = require('./support/source-seam.cjs');
 const test = require('node:test'),
   assert = require('node:assert/strict'),
   fs = require('node:fs'),
@@ -10,7 +11,10 @@ const P = require('../st-planner');
 function supported() {
   const filename = require.resolve('../st-planner'),
     source = fs.readFileSync(filename, 'utf8'),
-    seam = 'return Object.freeze({importCandidateResources,';
+    seam = sourceSeam(
+      source,
+      'return Object.freeze({importCandidateResources,',
+    );
   if (source.split(seam).length !== 2)
     throw Error('Supported-decision seam changed');
   const module = { exports: {} };

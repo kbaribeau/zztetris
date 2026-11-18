@@ -1,4 +1,5 @@
 'use strict';
+const sourceSeam = require('./support/source-seam.cjs');
 const test = require('node:test'),
   assert = require('node:assert/strict'),
   fs = require('node:fs'),
@@ -378,7 +379,10 @@ test('saved outcome extension: ordinary comparison extends a noncanonical saved 
   replayPath(c.snapshot, result.continuation);
   const disabled = internal((s) =>
     s.replace(
-      'function extendSavedOutcome(saved,candidate,initial,spend,readAssessment=assess){',
+      sourceSeam(
+        s,
+        'function extendSavedOutcome(saved,candidate,initial,spend,readAssessment=assess){',
+      ),
       'function extendSavedOutcome(saved,candidate,initial,spend,readAssessment=assess){return null;',
     ),
   ).plan(c.snapshot, options);
@@ -446,7 +450,10 @@ test('saved outcome extension: Reset extends a noncanonical saved S pose by lite
   replayPath(f.initial, result.continuation);
   const disabled = internal((s) =>
     s.replace(
-      'function extendSavedOutcome(saved,candidate,initial,spend,readAssessment=assess){',
+      sourceSeam(
+        s,
+        'function extendSavedOutcome(saved,candidate,initial,spend,readAssessment=assess){',
+      ),
       'function extendSavedOutcome(saved,candidate,initial,spend,readAssessment=assess){return null;',
     ),
   ).plan(f.initial, options);
@@ -466,7 +473,10 @@ test('saved outcome extension: reserved O repair preserves a noncanonical incumb
   const api = internal(
     (s) =>
       s.replace(
-        'const result=supportedPreferences(raw,initial,remaining,collector);',
+        sourceSeam(
+          s,
+          'const result=supportedPreferences(raw,initial,remaining,collector);',
+        ),
         'const result=supportedPreferences(raw,aliasIncumbent(raw,initial),remaining,collector);',
       ),
     {

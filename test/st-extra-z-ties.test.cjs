@@ -1,4 +1,5 @@
 'use strict';
+const sourceSeam = require('./support/source-seam.cjs');
 const test = require('node:test'),
   assert = require('node:assert/strict');
 const P = require('../st-planner'),
@@ -373,12 +374,14 @@ test('Extra-Z ties: optional challenger exhaustion preserves the fully admitted 
     injections = 0,
     protectedCount = 0,
     callerCalls = 0;
-  const source = fs
-    .readFileSync(require.resolve('../st-planner'), 'utf8')
-    .replace(
+  let source = fs.readFileSync(require.resolve('../st-planner'), 'utf8');
+  source = source.replace(
+    sourceSeam(
+      source,
       'function preserveExtraZ(baseline,nodes,{protect,certify}){',
-      'function preserveExtraZ(baseline,nodes,{protect,certify}){ return extraZTieProbe(baseline,nodes,{protect,certify});',
-    );
+    ),
+    'function preserveExtraZ(baseline,nodes,{protect,certify}){ return extraZTieProbe(baseline,nodes,{protect,certify});',
+  );
   const mod = { exports: {} };
   const access = {
     ...A,

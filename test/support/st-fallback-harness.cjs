@@ -1,4 +1,5 @@
 'use strict';
+const sourceSeam = require('./source-seam.cjs');
 const fs = require('node:fs'),
   vm = require('node:vm'),
   path = require('node:path');
@@ -10,8 +11,10 @@ const fs = require('node:fs'),
 module.exports = function fallbackHarness() {
   const filename = require.resolve('../../st-planner'),
     source = fs.readFileSync(filename, 'utf8');
-  const seam =
-    'let best=preparation&&resourceSafe(preparation)?preparation:cleanBest(frontier,screeningAllowance);';
+  const seam = sourceSeam(
+    source,
+    'let best=preparation&&resourceSafe(preparation)?preparation:cleanBest(frontier,screeningAllowance);',
+  );
   if (source.split(seam).length !== 2)
     throw Error(
       'Optional-result seam changed; review the fallback branch-coverage harness.',

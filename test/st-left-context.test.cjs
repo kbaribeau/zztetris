@@ -1,3 +1,4 @@
+const sourceSeam = require('./support/source-seam.cjs');
 const test = require('node:test'),
   assert = require('node:assert/strict');
 const L = require('../st-left-context.js');
@@ -277,12 +278,11 @@ test('ordinary ranking: Left quality precedes lines after safety, structure and 
     req = require('node:module').createRequire(
       require.resolve('../st-planner'),
     );
-  const source = fs
-    .readFileSync(require.resolve('../st-planner'), 'utf8')
-    .replace(
-      'return Object.freeze({importCandidateResources,',
-      'return Object.freeze({testCompare:compare,testCompareConstruction:compareConstruction,',
-    );
+  let source = fs.readFileSync(require.resolve('../st-planner'), 'utf8');
+  source = source.replace(
+    sourceSeam(source, 'return Object.freeze({importCandidateResources,'),
+    'return Object.freeze({testCompare:compare,testCompareConstruction:compareConstruction,',
+  );
   vm.runInNewContext(source, { module, require: req });
   const a = { rank: [1, 1, 0, 10, 2, 4, 0, 2], key: 'a' },
     b = { rank: [1, 1, 0, 10, 2, 2, 0, 4], key: 'b' };

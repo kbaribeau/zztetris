@@ -1,4 +1,5 @@
 'use strict';
+const sourceSeam = require('./support/source-seam.cjs');
 const test = require('node:test'),
   assert = require('node:assert/strict'),
   fs = require('node:fs'),
@@ -10,12 +11,11 @@ const R = require('../st-rules'),
   Provider = require('../st-resource-provider');
 // Synthetic node ranks isolate scheduling, while every resource view is a
 // locally prepared immutable current route. No historical timestamps remain.
-const source = fs
-  .readFileSync(require.resolve('../st-planner'), 'utf8')
-  .replace(
-    'return Object.freeze({importCandidateResources,',
-    'return Object.freeze({historyDiversityEnabled,diversify,',
-  );
+let source = fs.readFileSync(require.resolve('../st-planner'), 'utf8');
+source = source.replace(
+  sourceSeam(source, 'return Object.freeze({importCandidateResources,'),
+  'return Object.freeze({historyDiversityEnabled,diversify,',
+);
 const mod = { exports: {} };
 vm.runInNewContext(source, {
   module: mod,

@@ -1,4 +1,5 @@
 'use strict';
+const sourceSeam = require('./support/source-seam.cjs');
 const test = require('node:test'),
   assert = require('node:assert/strict'),
   fs = require('node:fs'),
@@ -15,7 +16,7 @@ function planner() {
     m = { exports: {} };
   vm.runInNewContext(
     source.replace(
-      'return Object.freeze({importCandidateResources,',
+      sourceSeam(source, 'return Object.freeze({importCandidateResources,'),
       'return Object.freeze({checkedResourceEndpoint,importCandidateResources,',
     ),
     {
