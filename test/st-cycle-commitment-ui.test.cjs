@@ -1,151 +1,585 @@
 'use strict';
-const {SEARCH_TIME_MS}=require('../st-coach-config');
+const { SEARCH_TIME_MS } = require('../st-coach-config');
 // X.search research certificates retain their separate 750 ms sub-search ceiling.
-const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
-const D=require('./support/st-search-diagnostic.cjs');
-const {withPage}=require('./support/page.cjs');
-const R=require('../st-rules');
-const json=x=>JSON.parse(JSON.stringify(x));
-function setup(g){
- const workers=[];g.window.Worker=class{constructor(){workers.push(this);}postMessage(m){this.message=json(m);}terminate(){this.terminated=true;}respond(result){this.onmessage({data:{type:'result',id:this.message.id,revision:this.message.observation.revision,result}});}};
- g.click('#st-reset');g.advance(40);return workers;
+const test = require('node:test'),
+  assert = require('node:assert/strict'),
+  fs = require('node:fs'),
+  vm = require('node:vm'),
+  path = require('node:path');
+const D = require('./support/st-search-diagnostic.cjs');
+const { withPage } = require('./support/page.cjs');
+const R = require('../st-rules');
+const json = (x) => JSON.parse(JSON.stringify(x));
+function setup(g) {
+  const workers = [];
+  g.window.Worker = class {
+    constructor() {
+      workers.push(this);
+    }
+    postMessage(m) {
+      this.message = json(m);
+    }
+    terminate() {
+      this.terminated = true;
+    }
+    respond(result) {
+      this.onmessage({
+        data: {
+          type: 'result',
+          id: this.message.id,
+          revision: this.message.observation.revision,
+          result,
+        },
+      });
+    }
+  };
+  g.click('#st-reset');
+  g.advance(40);
+  return workers;
 }
-function advice(s){const p=R.placements(s,{maxNodes:8000}).placements.find(p=>p.witness.at(-1)==='HD');assert.ok(p);return {status:'recommended-with-verified-prefix',target:p.target,hold:p.hold,holdCount:p.holdCount,witness:p.witness,continuation:[{target:p.target,witness:p.witness,event:p.event}],reason:'Verified test plan.'};}
+function advice(s) {
+  const p = R.placements(s, { maxNodes: 8000 }).placements.find(
+    (p) => p.witness.at(-1) === 'HD',
+  );
+  assert.ok(p);
+  return {
+    status: 'recommended-with-verified-prefix',
+    target: p.target,
+    hold: p.hold,
+    holdCount: p.holdCount,
+    witness: p.witness,
+    continuation: [{ target: p.target, witness: p.witness, event: p.event }],
+    reason: 'Verified test plan.',
+  };
+}
 // Plumbing-only fixtures stub goal accounting as well as suffix replay. Real
 // commitment validity is exercised separately below with the production API.
-function stubContinuation(g,returnSuffix=true){const calls=[];g.window.STPlanner={...g.window.STPlanner,resourceGoal:()=>true,cycleResources:()=>({tsds:1,quads:0,pocket:0}),continueCommitment:(before,after,plan)=>{calls.push(json({before,after,plan}));return returnSuffix?{...advice(after),marker:'remaining-cycle-proof'}:null;}};return calls;}
-test('st-cycle-ui/matching hard drop retains origin-bound proof after preview refresh',()=>withPage('st-lab.html',{},g=>{
- const workers=setup(g),initial=workers.at(-1).message.observation,plan=advice(initial),calls=stubContinuation(g);
- workers.at(-1).respond(plan);
- // Cosmetic deviation and return do not rewrite the origin of the checked lock.
- g.window.stLab.act('L');g.window.stLab.act('R');
- for(const action of plan.witness)g.window.stLab.act(action);
- assert.equal(calls.length,1);assert.deepEqual(calls[0].before,initial);assert.deepEqual(calls[0].plan,plan);
- assert.equal(calls[0].after.queue.length,6);assert.deepEqual(calls[0].after,g.snapshot());
- g.advance(40);const next=workers.at(-1).message;
- assert.equal(next.previous,null);assert.equal(next.commitment.advice.marker,'remaining-cycle-proof');assert.deepEqual(next.commitment.observation,next.observation);
- g.click('#st-export');const exported=JSON.parse(g.element('#st-snapshot').value);assert.equal(exported.commitment,undefined);
-}));
-test('st-cycle-ui/reset and imported metadata cannot resurrect a commitment',()=>withPage('st-lab.html',{},g=>{
- const workers=setup(g),plan=advice(workers.at(-1).message.observation);stubContinuation(g);workers.at(-1).respond(plan);
- g.click('#st-reset');g.advance(40);assert.equal(workers.at(-1).message.commitment,null);
- workers.at(-1).respond(advice(workers.at(-1).message.observation));
- g.element('#st-snapshot').value=JSON.stringify({...g.snapshot(),commitment:{observation:g.snapshot(),advice:plan}});g.click('#st-import');g.advance(40);
- assert.equal(workers.at(-1).message.commitment,null);
-}));
-test('st-cycle-ui/rejected actual lock retires the old resource proof',()=>withPage('st-lab.html',{},g=>{
- const workers=setup(g),plan=advice(workers.at(-1).message.observation),calls=stubContinuation(g,false);workers.at(-1).respond(plan);
- g.window.stLab.act('HD');g.advance(40);assert.equal(calls.length,1);assert.equal(workers.at(-1).message.commitment,null);
-}));
-test('st-cycle-ui/hidden guidance still advances proof on a manual lock',()=>withPage('st-lab.html',{},g=>{
- const workers=setup(g),plan=advice(workers.at(-1).message.observation),calls=stubContinuation(g);workers.at(-1).respond(plan);g.click('#st-toggle');
- for(const action of plan.witness)g.window.stLab.act(action);
- assert.equal(calls.length,1);g.click('#st-toggle');g.advance(40);assert.equal(workers.at(-1).message.commitment.advice.marker,'remaining-cycle-proof');
-}));
-test('st-worker/forwards previous advice and cycle commitment to the shared decision entry',()=>{
- const calls=[],messages=[],commitment={observation:{board:['public']},advice:{witness:['HD']}},context={Date,self:{postMessage:x=>messages.push(x)},importScripts(){},STPlanner:{revalidate(){throw Error('worker must not bypass shared decision');},plan(){throw Error('worker must not bypass shared decision');},decide(observation,options){calls.push({observation,options});return {status:'fresh-comparison'};}}};
- vm.createContext(context);vm.runInContext(fs.readFileSync(path.join(__dirname,'../st-worker.js'),'utf8'),context);
- context.self.onmessage({data:{type:'plan',id:4,observation:{revision:7},previous:{target:{}},commitment,options:{timeMs:SEARCH_TIME_MS}}});
- assert.equal(calls.length,1);assert.deepEqual(calls[0].options.commitment,commitment);assert.deepEqual(calls[0].options.previous,{target:{}});assert.equal(messages[0].result.status,'fresh-comparison');
+function stubContinuation(g, returnSuffix = true) {
+  const calls = [];
+  g.window.STPlanner = {
+    ...g.window.STPlanner,
+    resourceGoal: () => true,
+    cycleResources: () => ({ tsds: 1, quads: 0, pocket: 0 }),
+    continueCommitment: (before, after, plan) => {
+      calls.push(json({ before, after, plan }));
+      return returnSuffix
+        ? { ...advice(after), marker: 'remaining-cycle-proof' }
+        : null;
+    },
+  };
+  return calls;
+}
+test('st-cycle-ui/matching hard drop retains origin-bound proof after preview refresh', () =>
+  withPage('st-lab.html', {}, (g) => {
+    const workers = setup(g),
+      initial = workers.at(-1).message.observation,
+      plan = advice(initial),
+      calls = stubContinuation(g);
+    workers.at(-1).respond(plan);
+    // Cosmetic deviation and return do not rewrite the origin of the checked lock.
+    g.window.stLab.act('L');
+    g.window.stLab.act('R');
+    for (const action of plan.witness) g.window.stLab.act(action);
+    assert.equal(calls.length, 1);
+    assert.deepEqual(calls[0].before, initial);
+    assert.deepEqual(calls[0].plan, plan);
+    assert.equal(calls[0].after.queue.length, 6);
+    assert.deepEqual(calls[0].after, g.snapshot());
+    g.advance(40);
+    const next = workers.at(-1).message;
+    assert.equal(next.previous, null);
+    assert.equal(next.commitment.advice.marker, 'remaining-cycle-proof');
+    assert.deepEqual(next.commitment.observation, next.observation);
+    g.click('#st-export');
+    const exported = JSON.parse(g.element('#st-snapshot').value);
+    assert.equal(exported.commitment, undefined);
+  }));
+test('st-cycle-ui/reset and imported metadata cannot resurrect a commitment', () =>
+  withPage('st-lab.html', {}, (g) => {
+    const workers = setup(g),
+      plan = advice(workers.at(-1).message.observation);
+    stubContinuation(g);
+    workers.at(-1).respond(plan);
+    g.click('#st-reset');
+    g.advance(40);
+    assert.equal(workers.at(-1).message.commitment, null);
+    workers.at(-1).respond(advice(workers.at(-1).message.observation));
+    g.element('#st-snapshot').value = JSON.stringify({
+      ...g.snapshot(),
+      commitment: { observation: g.snapshot(), advice: plan },
+    });
+    g.click('#st-import');
+    g.advance(40);
+    assert.equal(workers.at(-1).message.commitment, null);
+  }));
+test('st-cycle-ui/rejected actual lock retires the old resource proof', () =>
+  withPage('st-lab.html', {}, (g) => {
+    const workers = setup(g),
+      plan = advice(workers.at(-1).message.observation),
+      calls = stubContinuation(g, false);
+    workers.at(-1).respond(plan);
+    g.window.stLab.act('HD');
+    g.advance(40);
+    assert.equal(calls.length, 1);
+    assert.equal(workers.at(-1).message.commitment, null);
+  }));
+test('st-cycle-ui/hidden guidance still advances proof on a manual lock', () =>
+  withPage('st-lab.html', {}, (g) => {
+    const workers = setup(g),
+      plan = advice(workers.at(-1).message.observation),
+      calls = stubContinuation(g);
+    workers.at(-1).respond(plan);
+    g.click('#st-toggle');
+    for (const action of plan.witness) g.window.stLab.act(action);
+    assert.equal(calls.length, 1);
+    g.click('#st-toggle');
+    g.advance(40);
+    assert.equal(
+      workers.at(-1).message.commitment.advice.marker,
+      'remaining-cycle-proof',
+    );
+  }));
+test('st-worker/forwards previous advice and cycle commitment to the shared decision entry', () => {
+  const calls = [],
+    messages = [],
+    commitment = {
+      observation: { board: ['public'] },
+      advice: { witness: ['HD'] },
+    },
+    context = {
+      Date,
+      self: { postMessage: (x) => messages.push(x) },
+      importScripts() {},
+      STPlanner: {
+        revalidate() {
+          throw Error('worker must not bypass shared decision');
+        },
+        plan() {
+          throw Error('worker must not bypass shared decision');
+        },
+        decide(observation, options) {
+          calls.push({ observation, options });
+          return { status: 'fresh-comparison' };
+        },
+      },
+    };
+  vm.createContext(context);
+  vm.runInContext(
+    fs.readFileSync(path.join(__dirname, '../st-worker.js'), 'utf8'),
+    context,
+  );
+  context.self.onmessage({
+    data: {
+      type: 'plan',
+      id: 4,
+      observation: { revision: 7 },
+      previous: { target: {} },
+      commitment,
+      options: { timeMs: SEARCH_TIME_MS },
+    },
+  });
+  assert.equal(calls.length, 1);
+  assert.deepEqual(calls[0].options.commitment, commitment);
+  assert.deepEqual(calls[0].options.previous, { target: {} });
+  assert.equal(messages[0].result.status, 'fresh-comparison');
 });
-test('st-cycle-ui/stale worker cannot replace a newer cycle proof',()=>withPage('st-lab.html',{},g=>{
- const workers=setup(g),old=workers.at(-1),oldPlan={...advice(old.message.observation),marker:'old'};stubContinuation(g);
- old.respond(oldPlan);g.window.stLab.act('R');g.advance(40);
- const fresh=workers.at(-1),newPlan={...advice(fresh.message.observation),marker:'new'};fresh.respond(newPlan);old.respond(oldPlan);
- g.window.stLab.act('L');g.advance(40);assert.equal(workers.at(-1).message.commitment.advice.marker,'new');
- assert.deepEqual(workers.at(-1).message.commitment.observation,fresh.message.observation);
-}));
-test('st-cycle-ui/hold swaps do not mutate the proof origin or expose hidden pieces',()=>withPage('st-lab.html',{},g=>{
- const workers=setup(g),initial=workers.at(-1).message.observation,plan=advice(initial);stubContinuation(g);workers.at(-1).respond(plan);
- g.window.stLab.act('HOLD');g.window.stLab.act('HOLD');g.advance(40);
- const request=workers.at(-1).message;assert.deepEqual(request.commitment.observation,initial);assert.deepEqual(request.commitment.advice,plan);
- assert.equal(request.observation.queue.length,6);assert.equal('future' in request.commitment.observation,false);assert.equal('seed' in request.commitment.observation,false);
-}));
+test('st-cycle-ui/stale worker cannot replace a newer cycle proof', () =>
+  withPage('st-lab.html', {}, (g) => {
+    const workers = setup(g),
+      old = workers.at(-1),
+      oldPlan = { ...advice(old.message.observation), marker: 'old' };
+    stubContinuation(g);
+    old.respond(oldPlan);
+    g.window.stLab.act('R');
+    g.advance(40);
+    const fresh = workers.at(-1),
+      newPlan = { ...advice(fresh.message.observation), marker: 'new' };
+    fresh.respond(newPlan);
+    old.respond(oldPlan);
+    g.window.stLab.act('L');
+    g.advance(40);
+    assert.equal(workers.at(-1).message.commitment.advice.marker, 'new');
+    assert.deepEqual(
+      workers.at(-1).message.commitment.observation,
+      fresh.message.observation,
+    );
+  }));
+test('st-cycle-ui/hold swaps do not mutate the proof origin or expose hidden pieces', () =>
+  withPage('st-lab.html', {}, (g) => {
+    const workers = setup(g),
+      initial = workers.at(-1).message.observation,
+      plan = advice(initial);
+    stubContinuation(g);
+    workers.at(-1).respond(plan);
+    g.window.stLab.act('HOLD');
+    g.window.stLab.act('HOLD');
+    g.advance(40);
+    const request = workers.at(-1).message;
+    assert.deepEqual(request.commitment.observation, initial);
+    assert.deepEqual(request.commitment.advice, plan);
+    assert.equal(request.observation.queue.length, 6);
+    assert.equal('future' in request.commitment.observation, false);
+    assert.equal('seed' in request.commitment.observation, false);
+  }));
 // These use the real planner API, not the plumbing stub above. The two known
 // fixtures exercise an occupied hold and the empty-hold preview expansion.
-for(const id of ['o-before-double','empty-hold'])test(`st-cycle-ui/controlled real ${id} resource suffix survives locks and retires after its final protected goal`,()=>withPage('st-lab.html',{},g=>{
- const P=require('../st-planner'),workers=setup(g);g.window.stLab.loadFixture(id);g.advance(40);
- let request=workers.at(-1).message;
- // These literal scoring routes isolate controller commitment lifecycle from
- // fresh selection. The O/T prefix retires at the score; T/S/L also retains
- // its post-score Center goal. Unrestricted admission is checked below.
- const route=id==='empty-hold'?require('./support/st-empty-hold-orders.json').orders.scoreFirst:require('./fixtures/effort-neutral-scoring-routes.json').routes.baseline.witnesses.slice(0,2);
- const planner=require('./support/st-controlled-placements.cjs')(request.observation,[route]);
- const plan=planner.plan(request.observation,{depth:3,width:8,maxNodes:45000});
- assert.ok(P.revalidate(request.observation,plan,{maxNodes:45000}),'the controlled route passes unrestricted admission');
- assert.ok(plan.target);assert.ok(plan.continuation.some(s=>s.event.type==='T'&&s.event.lines===2));workers.at(-1).respond(plan);
- const originalSteps=json(plan.continuation),doubleIndex=originalSteps.findIndex(s=>s.event.type==='T'&&s.event.lines===2);
- for(let lock=0;lock<originalSteps.length;lock++){
-  for(const action of originalSteps[lock].witness)g.window.stLab.act(action);
-  g.advance(40);request=workers.at(-1).message;
-  if(lock<doubleIndex){assert.ok(request.commitment,'remaining scoring goal survives a fresh request');assert.deepEqual(request.commitment.observation,request.observation);assert.ok(request.commitment.advice.continuation.some(s=>s.event.type==='T'&&s.event.lines===2));}
-  else if(id==='empty-hold'&&lock<originalSteps.length-1){assert.ok(request.commitment,'the accepted S/L goal survives scoring first');assert.ok(P.cycleResources(request.commitment.advice.continuation).centerCompletions>0);}
-  else assert.equal(request.commitment,null,'the fulfilled resource route retires its commitment');
- }
-}));
-test('st-cycle-ui/real mismatched manual lock discards the old scoring commitment',()=>withPage('st-lab.html',{},g=>{
- const P=require('../st-planner'),workers=setup(g),request=workers.at(-1).message;
- const plan=P.plan(request.observation,{depth:3,width:8,maxNodes:45000});assert.ok(plan.target);assert.ok(plan.continuation.length>1);
- const actual=R.replay(request.observation,['HD']);assert.notDeepEqual(actual.events[0].target,plan.target);workers.at(-1).respond(plan);
- g.window.stLab.act('HD');g.advance(40);assert.equal(workers.at(-1).message.commitment,null);
-}));
-test('st-cycle-ui/real reserved I requires credited spin and fills the Pocket across fresh workers',()=>withPage('st-lab.html',{},g=>{
- const P=require('../st-planner'),snapshot=require('./support/st-cycle-resources.json').holdI.snapshot,workers=setup(g),events=[];
- g.element('#st-snapshot').value=JSON.stringify(snapshot);g.click('#st-import');g.advance(40);
- for(let lock=0;lock<3;lock++){
-  const request=workers.at(-1).message,plan=P.plan(request.observation,{depth:3,width:8,maxNodes:45000,commitment:request.commitment});assert.ok(plan.target,plan.reason);
-  if(lock===0){
-   // Reuse the original plan to check its retained scoring suffix before
-   // preview refill/replanning: board equality alone cannot pay a spin goal.
-   const first=R.replay(request.observation,plan.witness);assert.ok(first.valid);
-   const scoring=P.continueCommitment(request.observation,first.state,plan,first.events[0],{now:()=>0,deadline:Infinity,maxNodes:12000});assert.ok(scoring);assert.equal(scoring.continuation[0].event.spin,'full');
-   const atTarget=R.replay(first.state,scoring.witness.slice(0,-1));assert.ok(atTarget.valid);
-   const noRotation=R.createState({...atTarget.state,active:{...atTarget.state.active,lastRotation:null}}),uncredited=R.move(noRotation,'HD'),scored=R.replay(first.state,scoring.witness);
-   assert.deepEqual(uncredited.board,scored.state.board);assert.deepEqual(uncredited.lastEvent.target,scored.events[0].target);assert.equal(uncredited.lastEvent.lines,2);assert.equal(uncredited.lastEvent.spin,'none');
-   assert.ok(P.continueCommitment(first.state,scored.state,scoring,scored.events[0],{now:()=>0,deadline:Infinity,maxNodes:12000}));
-   assert.equal(P.continueCommitment(first.state,uncredited,scoring,uncredited.lastEvent,{now:()=>0,deadline:Infinity,maxNodes:12000}),null);
-  }
-  events.push(R.replay(request.observation,plan.witness).events[0]);workers.at(-1).respond(plan);
-  for(const action of plan.witness)g.window.stLab.act(action);g.advance(40);
-  const next=workers.at(-1).message;
-  if(lock<2){assert.ok(next.commitment);assert.ok(next.commitment.advice.continuation.some(s=>s.event.type==='I'&&s.structuralEvidence.allocation==='quad-preparation'));}
-  else assert.equal(next.commitment,null,'fulfilled Pocket preparation retires its commitment');
-  if(lock===0)assert.equal(g.snapshot().hold,'I');
- }
- assert.deepEqual(events.map(e=>e.type),['L','T','I']);assert.equal(events[1].lines,2);assert.equal(events[1].spin,'full');assert.ok(events[2].cells.every(([x])=>x===9));
-}));
-test('st-cycle-ui/goal-free filler advice never becomes a cycle commitment',()=>withPage('st-lab.html',{},g=>{
- const workers=setup(g),plan=advice(workers.at(-1).message.observation);assert.equal(require('../st-planner').cycleResources(plan.continuation).tsds,0);
- workers.at(-1).respond(plan);g.window.stLab.act('L');g.advance(40);assert.equal(workers.at(-1).message.commitment,null);
-}));
-test('st-cycle-ui/finite paired-T proof does not authorize an unready Reset through HOLD or import',()=>withPage('st-lab.html',{},g=>{
- const P=require('../st-planner'),X=require('../st-paired-repair'),fixture=require('./support/st-construction-recovery.json'),workers=setup(g);
- g.window.STFixtures={...g.window.STFixtures,get:()=>({observation:fixture.initial,future:['J','L','O'],label:'Synthetic public construction control'})};
- g.window.stLab.loadFixture('synthetic-construction-control');g.advance(40);
- let request=workers.at(-1).message;const certificate=X.search(request.observation,{timeMs:750});D.check(certificate.valid,'Low-level finite route remains mechanically verified',{request:{observation:request.observation,options:{timeMs:750}},result:certificate});
- assert.ok(X.validateCertificate(request.observation,certificate.continuation).valid);
- const proof={origin:request.observation,steps:certificate.continuation.map(p=>({witness:p.witness})),consumed:0};
- let plan=P.plan(request.observation,{...request.options,timeMs:SEARCH_TIME_MS});assert.equal(plan.target,null,'High Left with depleted Center is not accepted as Reset readiness');workers.at(-1).respond(plan);
- assert.equal(g.window.stLab.result.target,null);assert.equal(g.element('#st-phase-name').textContent,'Mid-game');assert.doesNotMatch(g.element('#st-status').textContent,/begin the checked paired-T|Use this recovery/);
- g.window.stLab.act('HOLD');g.advance(40);request=workers.at(-1).message;assert.equal(request.commitment,null);
- plan=P.plan(request.observation,{...request.options,timeMs:SEARCH_TIME_MS});assert.equal(plan.target,null);workers.at(-1).respond(plan);
- const snapshot=g.snapshot();g.element('#st-snapshot').value=JSON.stringify({...snapshot,construction:proof});g.click('#st-import');g.advance(40);assert.equal(workers.at(-1).message.commitment,null);
- g.click('#st-reset');g.advance(40);assert.equal(workers.at(-1).message.commitment,null);
-}));
-test('st-cycle-ui/replacement-Z geometry does not invent an Extra-Z allowance in an imported position',()=>withPage('st-lab.html',{},g=>{
- const P=require('../st-planner'),X=require('../st-paired-repair'),fixture=require('./support/st-visible-z-deferral.json'),workers=setup(g);
- g.window.STFixtures={...g.window.STFixtures,get:()=>({observation:fixture.initial,future:['J','L','O'],label:'Synthetic public construction control'})};
- g.window.stLab.loadFixture('synthetic-construction-control');g.advance(40);
- const request=workers.at(-1).message,cert=X.search(request.observation,{kind:'cap-deferral'});assert.ok(cert.valid);
- const checked=X.validateCertificate(request.observation,cert.continuation,{kind:'cap-deferral'});assert.ok(checked.valid);assert.ok(checked.cap.targets.length,'The exact replacement cells remain part of the low-level certificate');
- let replay=request.observation;for(const step of cert.continuation){const r=R.replay(replay,step.witness);assert.ok(r.valid);assert.deepEqual(r.events[0],step.event);replay=r.state;}assert.equal(replay.lastEvent.spin,'full');assert.equal(replay.lastEvent.lines,2);
- const proof={kind:'cap-deferral',origin:request.observation,steps:cert.continuation.map(p=>({witness:p.witness})),consumed:0};
- const plan=P.plan(request.observation,{...request.options,timeMs:SEARCH_TIME_MS,commitment:{observation:request.observation,advice:{evidence:{construction:proof}}}});
- assert.equal(plan.target,null,'A complete local cap proof cannot establish historical Extra-Z availability');assert.equal(plan.evidence.resourceObligations.reason,'extra-Z-not-available');workers.at(-1).respond(plan);
- assert.equal(g.window.stLab.result.target,null);assert.equal(g.window.stLab.resources.extraZ.status,'unknown');assert.doesNotMatch(g.element('#st-status').textContent,/checked sequence restores/);
- // Manual play is still legal, but does not turn the refused route into a
- // retained commitment or reset the unknown historical allowance.
- for(const a of cert.continuation[0].witness)g.window.stLab.act(a);g.advance(40);
- const next=workers.at(-1).message;assert.equal(next.commitment,null);assert.equal(next.observation.queue.length,6);assert.equal(g.window.stLab.resources.extraZ.status,'unknown');
- g.element('#st-snapshot').value=JSON.stringify({...g.snapshot(),construction:proof,extraZ:{status:'available'}});g.click('#st-import');g.advance(40);assert.equal(workers.at(-1).message.commitment,null);assert.equal(g.window.stLab.resources.extraZ.status,'unknown');
-}));
+for (const id of ['o-before-double', 'empty-hold'])
+  test(`st-cycle-ui/controlled real ${id} resource suffix survives locks and retires after its final protected goal`, () =>
+    withPage('st-lab.html', {}, (g) => {
+      const P = require('../st-planner'),
+        workers = setup(g);
+      g.window.stLab.loadFixture(id);
+      g.advance(40);
+      let request = workers.at(-1).message;
+      // These literal scoring routes isolate controller commitment lifecycle from
+      // fresh selection. The O/T prefix retires at the score; T/S/L also retains
+      // its post-score Center goal. Unrestricted admission is checked below.
+      const route =
+        id === 'empty-hold'
+          ? require('./support/st-empty-hold-orders.json').orders.scoreFirst
+          : require('./fixtures/effort-neutral-scoring-routes.json').routes.baseline.witnesses.slice(
+              0,
+              2,
+            );
+      const planner = require('./support/st-controlled-placements.cjs')(
+        request.observation,
+        [route],
+      );
+      const plan = planner.plan(request.observation, {
+        depth: 3,
+        width: 8,
+        maxNodes: 45000,
+      });
+      assert.ok(
+        P.revalidate(request.observation, plan, { maxNodes: 45000 }),
+        'the controlled route passes unrestricted admission',
+      );
+      assert.ok(plan.target);
+      assert.ok(
+        plan.continuation.some(
+          (s) => s.event.type === 'T' && s.event.lines === 2,
+        ),
+      );
+      workers.at(-1).respond(plan);
+      const originalSteps = json(plan.continuation),
+        doubleIndex = originalSteps.findIndex(
+          (s) => s.event.type === 'T' && s.event.lines === 2,
+        );
+      for (let lock = 0; lock < originalSteps.length; lock++) {
+        for (const action of originalSteps[lock].witness)
+          g.window.stLab.act(action);
+        g.advance(40);
+        request = workers.at(-1).message;
+        if (lock < doubleIndex) {
+          assert.ok(
+            request.commitment,
+            'remaining scoring goal survives a fresh request',
+          );
+          assert.deepEqual(request.commitment.observation, request.observation);
+          assert.ok(
+            request.commitment.advice.continuation.some(
+              (s) => s.event.type === 'T' && s.event.lines === 2,
+            ),
+          );
+        } else if (id === 'empty-hold' && lock < originalSteps.length - 1) {
+          assert.ok(
+            request.commitment,
+            'the accepted S/L goal survives scoring first',
+          );
+          assert.ok(
+            P.cycleResources(request.commitment.advice.continuation)
+              .centerCompletions > 0,
+          );
+        } else
+          assert.equal(
+            request.commitment,
+            null,
+            'the fulfilled resource route retires its commitment',
+          );
+      }
+    }));
+test('st-cycle-ui/real mismatched manual lock discards the old scoring commitment', () =>
+  withPage('st-lab.html', {}, (g) => {
+    const P = require('../st-planner'),
+      workers = setup(g),
+      request = workers.at(-1).message;
+    const plan = P.plan(request.observation, {
+      depth: 3,
+      width: 8,
+      maxNodes: 45000,
+    });
+    assert.ok(plan.target);
+    assert.ok(plan.continuation.length > 1);
+    const actual = R.replay(request.observation, ['HD']);
+    assert.notDeepEqual(actual.events[0].target, plan.target);
+    workers.at(-1).respond(plan);
+    g.window.stLab.act('HD');
+    g.advance(40);
+    assert.equal(workers.at(-1).message.commitment, null);
+  }));
+test('st-cycle-ui/real reserved I requires credited spin and fills the Pocket across fresh workers', () =>
+  withPage('st-lab.html', {}, (g) => {
+    const P = require('../st-planner'),
+      snapshot = require('./support/st-cycle-resources.json').holdI.snapshot,
+      workers = setup(g),
+      events = [];
+    g.element('#st-snapshot').value = JSON.stringify(snapshot);
+    g.click('#st-import');
+    g.advance(40);
+    for (let lock = 0; lock < 3; lock++) {
+      const request = workers.at(-1).message,
+        plan = P.plan(request.observation, {
+          depth: 3,
+          width: 8,
+          maxNodes: 45000,
+          commitment: request.commitment,
+        });
+      assert.ok(plan.target, plan.reason);
+      if (lock === 0) {
+        // Reuse the original plan to check its retained scoring suffix before
+        // preview refill/replanning: board equality alone cannot pay a spin goal.
+        const first = R.replay(request.observation, plan.witness);
+        assert.ok(first.valid);
+        const scoring = P.continueCommitment(
+          request.observation,
+          first.state,
+          plan,
+          first.events[0],
+          { now: () => 0, deadline: Infinity, maxNodes: 12000 },
+        );
+        assert.ok(scoring);
+        assert.equal(scoring.continuation[0].event.spin, 'full');
+        const atTarget = R.replay(first.state, scoring.witness.slice(0, -1));
+        assert.ok(atTarget.valid);
+        const noRotation = R.createState({
+            ...atTarget.state,
+            active: { ...atTarget.state.active, lastRotation: null },
+          }),
+          uncredited = R.move(noRotation, 'HD'),
+          scored = R.replay(first.state, scoring.witness);
+        assert.deepEqual(uncredited.board, scored.state.board);
+        assert.deepEqual(uncredited.lastEvent.target, scored.events[0].target);
+        assert.equal(uncredited.lastEvent.lines, 2);
+        assert.equal(uncredited.lastEvent.spin, 'none');
+        assert.ok(
+          P.continueCommitment(
+            first.state,
+            scored.state,
+            scoring,
+            scored.events[0],
+            { now: () => 0, deadline: Infinity, maxNodes: 12000 },
+          ),
+        );
+        assert.equal(
+          P.continueCommitment(
+            first.state,
+            uncredited,
+            scoring,
+            uncredited.lastEvent,
+            { now: () => 0, deadline: Infinity, maxNodes: 12000 },
+          ),
+          null,
+        );
+      }
+      events.push(R.replay(request.observation, plan.witness).events[0]);
+      workers.at(-1).respond(plan);
+      for (const action of plan.witness) g.window.stLab.act(action);
+      g.advance(40);
+      const next = workers.at(-1).message;
+      if (lock < 2) {
+        assert.ok(next.commitment);
+        assert.ok(
+          next.commitment.advice.continuation.some(
+            (s) =>
+              s.event.type === 'I' &&
+              s.structuralEvidence.allocation === 'quad-preparation',
+          ),
+        );
+      } else
+        assert.equal(
+          next.commitment,
+          null,
+          'fulfilled Pocket preparation retires its commitment',
+        );
+      if (lock === 0) assert.equal(g.snapshot().hold, 'I');
+    }
+    assert.deepEqual(
+      events.map((e) => e.type),
+      ['L', 'T', 'I'],
+    );
+    assert.equal(events[1].lines, 2);
+    assert.equal(events[1].spin, 'full');
+    assert.ok(events[2].cells.every(([x]) => x === 9));
+  }));
+test('st-cycle-ui/goal-free filler advice never becomes a cycle commitment', () =>
+  withPage('st-lab.html', {}, (g) => {
+    const workers = setup(g),
+      plan = advice(workers.at(-1).message.observation);
+    assert.equal(
+      require('../st-planner').cycleResources(plan.continuation).tsds,
+      0,
+    );
+    workers.at(-1).respond(plan);
+    g.window.stLab.act('L');
+    g.advance(40);
+    assert.equal(workers.at(-1).message.commitment, null);
+  }));
+test('st-cycle-ui/finite paired-T proof does not authorize an unready Reset through HOLD or import', () =>
+  withPage('st-lab.html', {}, (g) => {
+    const P = require('../st-planner'),
+      X = require('../st-paired-repair'),
+      fixture = require('./support/st-construction-recovery.json'),
+      workers = setup(g);
+    g.window.STFixtures = {
+      ...g.window.STFixtures,
+      get: () => ({
+        observation: fixture.initial,
+        future: ['J', 'L', 'O'],
+        label: 'Synthetic public construction control',
+      }),
+    };
+    g.window.stLab.loadFixture('synthetic-construction-control');
+    g.advance(40);
+    let request = workers.at(-1).message;
+    const certificate = X.search(request.observation, { timeMs: 750 });
+    D.check(
+      certificate.valid,
+      'Low-level finite route remains mechanically verified',
+      {
+        request: { observation: request.observation, options: { timeMs: 750 } },
+        result: certificate,
+      },
+    );
+    assert.ok(
+      X.validateCertificate(request.observation, certificate.continuation)
+        .valid,
+    );
+    const proof = {
+      origin: request.observation,
+      steps: certificate.continuation.map((p) => ({ witness: p.witness })),
+      consumed: 0,
+    };
+    let plan = P.plan(request.observation, {
+      ...request.options,
+      timeMs: SEARCH_TIME_MS,
+    });
+    assert.equal(
+      plan.target,
+      null,
+      'High Left with depleted Center is not accepted as Reset readiness',
+    );
+    workers.at(-1).respond(plan);
+    assert.equal(g.window.stLab.result.target, null);
+    assert.equal(g.element('#st-phase-name').textContent, 'Mid-game');
+    assert.doesNotMatch(
+      g.element('#st-status').textContent,
+      /begin the checked paired-T|Use this recovery/,
+    );
+    g.window.stLab.act('HOLD');
+    g.advance(40);
+    request = workers.at(-1).message;
+    assert.equal(request.commitment, null);
+    plan = P.plan(request.observation, {
+      ...request.options,
+      timeMs: SEARCH_TIME_MS,
+    });
+    assert.equal(plan.target, null);
+    workers.at(-1).respond(plan);
+    const snapshot = g.snapshot();
+    g.element('#st-snapshot').value = JSON.stringify({
+      ...snapshot,
+      construction: proof,
+    });
+    g.click('#st-import');
+    g.advance(40);
+    assert.equal(workers.at(-1).message.commitment, null);
+    g.click('#st-reset');
+    g.advance(40);
+    assert.equal(workers.at(-1).message.commitment, null);
+  }));
+test('st-cycle-ui/replacement-Z geometry does not invent an Extra-Z allowance in an imported position', () =>
+  withPage('st-lab.html', {}, (g) => {
+    const P = require('../st-planner'),
+      X = require('../st-paired-repair'),
+      fixture = require('./support/st-visible-z-deferral.json'),
+      workers = setup(g);
+    g.window.STFixtures = {
+      ...g.window.STFixtures,
+      get: () => ({
+        observation: fixture.initial,
+        future: ['J', 'L', 'O'],
+        label: 'Synthetic public construction control',
+      }),
+    };
+    g.window.stLab.loadFixture('synthetic-construction-control');
+    g.advance(40);
+    const request = workers.at(-1).message,
+      cert = X.search(request.observation, { kind: 'cap-deferral' });
+    assert.ok(cert.valid);
+    const checked = X.validateCertificate(
+      request.observation,
+      cert.continuation,
+      { kind: 'cap-deferral' },
+    );
+    assert.ok(checked.valid);
+    assert.ok(
+      checked.cap.targets.length,
+      'The exact replacement cells remain part of the low-level certificate',
+    );
+    let replay = request.observation;
+    for (const step of cert.continuation) {
+      const r = R.replay(replay, step.witness);
+      assert.ok(r.valid);
+      assert.deepEqual(r.events[0], step.event);
+      replay = r.state;
+    }
+    assert.equal(replay.lastEvent.spin, 'full');
+    assert.equal(replay.lastEvent.lines, 2);
+    const proof = {
+      kind: 'cap-deferral',
+      origin: request.observation,
+      steps: cert.continuation.map((p) => ({ witness: p.witness })),
+      consumed: 0,
+    };
+    const plan = P.plan(request.observation, {
+      ...request.options,
+      timeMs: SEARCH_TIME_MS,
+      commitment: {
+        observation: request.observation,
+        advice: { evidence: { construction: proof } },
+      },
+    });
+    assert.equal(
+      plan.target,
+      null,
+      'A complete local cap proof cannot establish historical Extra-Z availability',
+    );
+    assert.equal(
+      plan.evidence.resourceObligations.reason,
+      'extra-Z-not-available',
+    );
+    workers.at(-1).respond(plan);
+    assert.equal(g.window.stLab.result.target, null);
+    assert.equal(g.window.stLab.resources.extraZ.status, 'unknown');
+    assert.doesNotMatch(
+      g.element('#st-status').textContent,
+      /checked sequence restores/,
+    );
+    // Manual play is still legal, but does not turn the refused route into a
+    // retained commitment or reset the unknown historical allowance.
+    for (const a of cert.continuation[0].witness) g.window.stLab.act(a);
+    g.advance(40);
+    const next = workers.at(-1).message;
+    assert.equal(next.commitment, null);
+    assert.equal(next.observation.queue.length, 6);
+    assert.equal(g.window.stLab.resources.extraZ.status, 'unknown');
+    g.element('#st-snapshot').value = JSON.stringify({
+      ...g.snapshot(),
+      construction: proof,
+      extraZ: { status: 'available' },
+    });
+    g.click('#st-import');
+    g.advance(40);
+    assert.equal(workers.at(-1).message.commitment, null);
+    assert.equal(g.window.stLab.resources.extraZ.status, 'unknown');
+  }));

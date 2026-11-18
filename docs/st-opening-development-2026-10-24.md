@@ -25,10 +25,10 @@ The joint criterion is a checked opening handoff followed by two Tetrises with a
 
 [Compact per-seed results](st-opening-development-2026-10-24.csv) include every run and equal-exposure lines, mass and height. This small summary deliberately excludes bulky traces and unused advice metadata.
 
-| Cohort | Baseline | Handoffs before → after | Joint successes before → after |
-|---|---|---:|---:|
-| Seven repeated development streams | `eb3c9c3` |5→4|4→3|
-| Eight predeclared additional development streams | `c209e600` |4→3|1→0|
+| Cohort                                           | Baseline   | Handoffs before → after | Joint successes before → after |
+| ------------------------------------------------ | ---------- | ----------------------: | -----------------------------: |
+| Seven repeated development streams               | `eb3c9c3`  |                     5→4 |                            4→3 |
+| Eight predeclared additional development streams | `c209e600` |                     4→3 |                            1→0 |
 
 Do not pool those different baseline comparisons into a causal improvement estimate. All 15 final runs abstained. None ended with an illegal move, top-out, recorded policy violation or harness failure, but that does not mean all construction debts were repaired or all positions remained strategically healthy. The selected development sample does not establish the requested >99% success rate at 95% confidence. No dedicated Reset coach was started.
 

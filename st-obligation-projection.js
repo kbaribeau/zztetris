@@ -8,178 +8,523 @@
  * is identified. All factual changes use the shared explicit projection codec;
  * actual imports reject this domain even when every subject is observed.
  */
-(function(root,factory){const api=typeof module==='object'&&module.exports?factory(require('./st-rules'),require('./st-bag'),require('./st-public-inventory'),require('./st-obligation-state')):factory(root.STRules,root.STBag,root.STPublicInventory,root.STObligationState);if(typeof module==='object'&&module.exports)module.exports=api;else root.STObligationProjection=api;})(typeof globalThis!=='undefined'?globalThis:this,function(R,B,I,Q){
-'use strict';
-const TYPES='IJLOSTZ',clone=x=>JSON.parse(JSON.stringify(x)),same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
-const check=(ok,reason)=>{if(!ok)throw Error('Invalid obligation projection: '+reason);};
-const integer=Number.isSafeInteger,object=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
-// Only arrays constructed here can establish immutable request references.
-// Frozen caller arrays, proxies and serialized copies are not capabilities.
-const referenceSnapshots=new WeakSet(),emptyReferences=Object.freeze([]);
-referenceSnapshots.add(emptyReferences);
-function referenceSnapshot(raw){
- check(Array.isArray(raw),'current caller references');const out=[];
- for(const value of raw){check(integer(value)&&value!==0,'current caller references');out.push(value);}
- Object.freeze(out);referenceSnapshots.add(out);return out;
-}
-const plainMovement=new Set(['L','R','SD','CW','CCW','R180']);
-const ownedFrames=new WeakSet();
-const freeze=x=>{if(x&&typeof x==='object'&&!Object.isFrozen(x)){Object.values(x).forEach(freeze);Object.freeze(x);}return x;};
-function shape(x,keys,label){check(object(x)&&Object.keys(x).length===keys.length&&keys.every(key=>Object.prototype.propertyIsEnumerable.call(x,key)),label+' shape');}
-function knowledge(raw){
- if(raw===null)return null;
- check(object(raw)&&Array.isArray(raw.remaining)&&raw.remaining.length<=128&&raw.remaining.every(n=>integer(n)&&n>=0&&n<=127)&&new Set(raw.remaining).size===raw.remaining.length,'bag knowledge');
- check(raw.error?['contradictory-observed-stream','invalid-bag-knowledge'].includes(raw.error)&&raw.remaining.length===0:raw.remaining.length>0,'bag knowledge availability');
- if(!raw.error)check(integer(raw.observedCount??0)&&(raw.observedCount??0)>=0&&typeof(raw.provenance??'observed')==='string'&&(raw.provenance??'observed').length<=128,'bag knowledge metadata');
- return clone(raw);
-}
-function readSupply(raw){
- shape(raw,['schemaVersion','domain','originKnown','nextObservedId','nextSyntheticId','streamCursor','active','hold','queue','frontier','knowledge'],'supply');
- check(raw.schemaVersion===1&&raw.domain==='projection'&&typeof raw.originKnown==='boolean','supply domain');
- check(integer(raw.nextObservedId)&&raw.nextObservedId>0&&integer(raw.nextSyntheticId)&&raw.nextSyntheticId<0&&integer(raw.streamCursor)&&raw.streamCursor>=0,'supply allocators/cursor');
- check(Array.isArray(raw.queue)&&raw.queue.length<=7,'request preview');
- const ids=new Set();
- const subject=p=>{
-  if(p===null)return null;
-  shape(p,['id','type','bag','observedOrder'],'subject');
-  check(integer(p.id)&&p.id!==0&&!ids.has(p.id)&&typeof p.type==='string'&&p.type.length===1&&TYPES.includes(p.type),'subject identity/type');ids.add(p.id);
-  if(p.id<0)check(p.id>raw.nextSyntheticId&&p.bag===null&&p.observedOrder===null,'synthetic subject origin');
-  else{
-   check(p.id<raw.nextObservedId,'observed allocator');
-   check(raw.originKnown?integer(p.bag)&&p.bag>=0&&integer(p.observedOrder)&&p.observedOrder>=0:p.bag===null&&p.observedOrder===null,'observed subject origin');
-  }
-  return clone(p);
- };
- let frontier=null;
- if(raw.originKnown){shape(raw.frontier,['bag','seenMask'],'observed frontier');check(integer(raw.frontier.bag)&&raw.frontier.bag>=0&&integer(raw.frontier.seenMask)&&raw.frontier.seenMask>=0&&raw.frontier.seenMask<127,'observed frontier');frontier=clone(raw.frontier);}
- else check(raw.frontier===null,'unknown observed frontier');
- // Construct a plain queue by index. A caller's map, iterator or species
- // must not return aliases after the subject validation/copy callbacks run.
- const queued=values=>Array.from({length:values.length},(_,index)=>{const p=values[index];check(p!==null,'missing queued subject');return subject(p);});
- const supply={schemaVersion:1,domain:'projection',originKnown:raw.originKnown,nextObservedId:raw.nextObservedId,nextSyntheticId:raw.nextSyntheticId,streamCursor:raw.streamCursor,active:subject(raw.active),hold:subject(raw.hold),queue:queued(raw.queue),frontier,knowledge:knowledge(raw.knowledge)};
- if(frontier)for(const p of [supply.active,supply.hold,...supply.queue].filter(p=>p&&p.id>0))check(p.bag<frontier.bag||p.bag===frontier.bag&&Boolean(frontier.seenMask&(1<<TYPES.indexOf(p.type))),'observed subject exceeds frontier');
- return supply;
-}
-function bound(supply,position){
- check(R.validate(position).length===0,'public position');
- check(supply.streamCursor===position.streamCursor&&(supply.active?.type??null)===(position.active?.type??null)&&(supply.hold?.type??null)===(position.hold??null)&&same(supply.queue.map(p=>p.type),position.queue),'position/supply boundary');
-}
-// Same current-role checks as actual Context, but the negative allocator is a
-// disjoint request namespace. No consumed history or original-bag guess needed.
-function namespace(state,supply){
- const live=new Set([supply.active,supply.hold,...supply.queue].filter(Boolean).map(p=>p.id)),roles=new Map();
- const rootTypes={SL:'S',LO:'L',OJ:'O',ZJ:'JZ'},partnerTypes={SL:'L',LO:'O',OJ:'J',ZJ:'JZ'};
- const consumed=(id,types)=>{
-  if(id===null)return;
-  check(integer(id)&&id!==0&&(id>0?id<supply.nextObservedId:id>supply.nextSyntheticId)&&!live.has(id),'consumed subject collides with supply/allocator');
-  const compatible=[...(roles.get(id)||types)].filter(t=>types.includes(t)).join('');check(compatible.length>0,'contradictory consumed subject roles');roles.set(id,compatible);
- };
- for(const b of state.sl.residuals)for(const t of ['S','L'])if(b[t])consumed(b[t].id,t);
- for(const p of [...state.center.pending,...state.center.debt]){consumed(p.rootId,rootTypes[p.family]);if(p.divertedPieceId!==undefined)consumed(p.divertedPieceId,partnerTypes[p.family]||TYPES);}
- if(state.account.reset.status==='active')consumed(state.account.reset.firstTId,'T');
- check(state.availability!=='known'||supply.originKnown,'known facts require the observed origin');
-}
-function read(current,{position}={}){
- check(object(current),'request state');
- const state=Q.importProjection(current.state),supply=readSupply(current.supply),p=clone(current.position);
- if(position!==undefined)check(same(position,p),'explicit position differs from request state');
- bound(supply,p);namespace(state,supply);return{state,supply,position:p};
-}
-// Only completed projections constructed here enter this path. Their state,
-// subjects, frontier and knowledge are immutable plain data, never raw aliases.
-// Keep a writable local shell/queue and ordinary position normalization even
-// when a caller-supplied witness iterator yields no actions.
-function copyOwned(current,{position}={}){
- const state=current.state,supply={...current.supply,queue:current.supply.queue.slice()},p=clone(current.position);
- if(position!==undefined)check(same(position,p),'explicit position differs from request state');
- bound(supply,p);namespace(state,supply);return{state,supply,position:p};
-}
-// Q.projectTransition has already normalized and validated this fresh local
-// state. Retain supply, position and cross-component checks without importing
-// that state a second time. No caller-provided state reaches this helper.
-function readTransition(state,supply,position){
- // supply is a detached copy of this call's validated supply, advanced only
- // by moving its existing subjects. position is the matching R.move result.
- // Neither is exposed to the caller until this entire witness completes.
- bound(supply,position);namespace(state,supply);return{state,supply,position};
-}
-function start(actualFacts,{position,inventory}={}){
- check(I.bound(inventory,position),'matching actual public inventory');
- const inv=I.exportState(inventory),supply={schemaVersion:1,domain:'projection',originKnown:inv.originKnown,nextObservedId:inv.nextId,nextSyntheticId:-1,streamCursor:inv.streamCursor,active:inv.active,hold:inv.hold,queue:inv.queue,frontier:inv.frontier,knowledge:inv.knowledge};
- return read({state:Q.toProjection(actualFacts),supply,position});
-}
-function startUnknown(position){
- // Establish only an explicitly unknown factual origin. I.start observes the
- // public shape but issues no operation receipt; its temporary IDs are not
- // promoted into this request's unavailable-identity fallback.
- const inventory=I.start(position);check(inventory.status==='available','unknown public origin');
- const projection=start(Q.start(position,{inventory}),{position,inventory});let next=-1;
- const subject=p=>p?{id:next--,type:p.type,bag:null,observedOrder:null}:null;
- projection.supply.active=subject(projection.supply.active);projection.supply.hold=subject(projection.supply.hold);projection.supply.queue=projection.supply.queue.map(subject);projection.supply.nextObservedId=1;projection.supply.nextSyntheticId=next;
- return read(projection);
-}
-function extendLocal(projection){
- const {supply,position}=projection,type=supply.knowledge&&!supply.knowledge.error?B.forcedNext(supply.knowledge):null;
- if(!type)return projection;
- check(supply.queue.length<7,'forced request preview');
- const id=supply.nextSyntheticId--;check(integer(supply.nextSyntheticId),'synthetic identity range exhausted');
- supply.queue.push({id,type,bag:null,observedOrder:null});supply.knowledge=B.consume(supply.knowledge,type);
- position.queue.push(type);position.bag=clone(supply.knowledge);
- // A deduction is not a newly observed identity. It cannot change the known
- // S/L counterpart frontier or create an actual inventory capability.
- return read(projection);
-}
-function extendForced(current,options={}){return extendLocal(read(current,options));}
-function projectLocal(current,{position,witness,boundary={},references=emptyReferences,extendForced=false,resolveView=false}={},ownedOutput=false){
- check(typeof extendForced==='boolean'&&typeof resolveView==='boolean','local output options');
- const owned=ownedOutput&&ownedFrames.has(current);
- let projection=owned?copyOwned(current,{position}):read(current,{position});const out=[];let locked=null,settled=false;
- const stableReferences=referenceSnapshots.has(references);
- // Public getters/serialization hooks can change values during the first read.
- // Admit only the detached, revalidated result to this private local path.
- if(!owned)projection.supply=readSupply(projection.supply);
- check(Array.isArray(witness)&&witness.length>0&&witness.length<=256&&witness.at(-1)==='HD'&&witness.filter(a=>a==='HD').length===1,'one-lock witness');
- for(const action of witness){
-  const before=projection,after=R.move(before.position,action);check(after!==before.position,'rejected projected input');
-  // Existing subjects, frontier and knowledge stay read-only within this
-  // call. Only possession, the copied queue and the cursor advance.
-  const supply={...before.supply,queue:before.supply.queue.slice()};
-  if(action==='HOLD'){if(supply.hold)[supply.active,supply.hold]=[supply.hold,supply.active];else{supply.hold=supply.active;supply.active=supply.queue.shift();check(supply.active,'missing projected HOLD draw');}}
-  if(action==='HD'){locked=supply.active;supply.active=after.active?supply.queue.shift():null;check(!after.active||supply.active,'missing projected lock draw');}
-  supply.streamCursor=after.streamCursor;bound(supply,after);
-  const operation=action==='HD'?{...boundary,kind:'lock',piece:locked,event:after.lastEvent}:{kind:'observe'};
-  if(settled&&stableReferences&&plainMovement.has(action)){
-   // A full observe has already classified/compacted this private state.
-   // Plain movement preserves board, ordered supply, frontier and references.
-   // HOLD and HD always run the reducer, and the first observe is never elided.
-   bound(before.supply,before.position);
-   check(same(before.position.board,after.board),'non-lock board change');
-   check(references.every(n=>integer(n)&&n!==0),'current caller references');
-   projection=readTransition(before.state,supply,after);
-  }else{
-   const result=(owned?Q.projectTransitionOwned:Q.projectTransition)(before.state,operation,{before:{position:before.position,inventory:before.supply},after:{position:after,inventory:supply},references});
-   projection=readTransition(result.state,supply,after);out.push(...result.effects);
-  }
-  settled=action!=='HD';
- }
- // These are fresh local values; combining their optional extension/view
- // avoids routing them back through public imports between adjacent steps.
- if(extendForced)projection=extendLocal(projection);
- if(ownedOutput&&locked)projection.state=Q.ownProjection(projection.state);
- const view=resolveView?(ownedOutput?Q.resolveProjectionOwned:Q.resolveProjection)(projection.state,{position:projection.position,inventory:projection.supply}):null;
- if(ownedOutput){
-  // A completed HD detaches the factual components; readSupply already owns
-  // every supply value. Do not brand or freeze a raw zero-lock iterator result.
-  const frame={...projection};if(locked){freeze(frame);ownedFrames.add(frame);}
-  return{projection:frame,effects:out,locked:clone(locked),...(resolveView?{view}:{})};
- }
- return{...projection,effects:out,locked:clone(locked),...(resolveView?{view}:{})};
-}
-function project(current,options){return projectLocal(current,options);}
-function projectOwned(current,options){return projectLocal(current,options,true);}
-function resolve(current,options){
- const projection=read(current,options);
- return Q.resolveProjection(projection.state,{position:projection.position,inventory:projection.supply});
-}
-return Object.freeze({start,startUnknown,extendForced,project,projectOwned,resolve,referenceSnapshot});
-});
+(function (root, factory) {
+  const api =
+    typeof module === 'object' && module.exports
+      ? factory(
+          require('./st-rules'),
+          require('./st-bag'),
+          require('./st-public-inventory'),
+          require('./st-obligation-state'),
+        )
+      : factory(
+          root.STRules,
+          root.STBag,
+          root.STPublicInventory,
+          root.STObligationState,
+        );
+  if (typeof module === 'object' && module.exports) module.exports = api;
+  else root.STObligationProjection = api;
+})(
+  typeof globalThis !== 'undefined' ? globalThis : this,
+  function (R, B, I, Q) {
+    'use strict';
+    const TYPES = 'IJLOSTZ',
+      clone = (x) => JSON.parse(JSON.stringify(x)),
+      same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+    const check = (ok, reason) => {
+      if (!ok) throw Error('Invalid obligation projection: ' + reason);
+    };
+    const integer = Number.isSafeInteger,
+      object = (x) => x !== null && typeof x === 'object' && !Array.isArray(x);
+    // Only arrays constructed here can establish immutable request references.
+    // Frozen caller arrays, proxies and serialized copies are not capabilities.
+    const referenceSnapshots = new WeakSet(),
+      emptyReferences = Object.freeze([]);
+    referenceSnapshots.add(emptyReferences);
+    function referenceSnapshot(raw) {
+      check(Array.isArray(raw), 'current caller references');
+      const out = [];
+      for (const value of raw) {
+        check(integer(value) && value !== 0, 'current caller references');
+        out.push(value);
+      }
+      Object.freeze(out);
+      referenceSnapshots.add(out);
+      return out;
+    }
+    const plainMovement = new Set(['L', 'R', 'SD', 'CW', 'CCW', 'R180']);
+    const ownedFrames = new WeakSet();
+    const freeze = (x) => {
+      if (x && typeof x === 'object' && !Object.isFrozen(x)) {
+        Object.values(x).forEach(freeze);
+        Object.freeze(x);
+      }
+      return x;
+    };
+    function shape(x, keys, label) {
+      check(
+        object(x) &&
+          Object.keys(x).length === keys.length &&
+          keys.every((key) =>
+            Object.prototype.propertyIsEnumerable.call(x, key),
+          ),
+        label + ' shape',
+      );
+    }
+    function knowledge(raw) {
+      if (raw === null) return null;
+      check(
+        object(raw) &&
+          Array.isArray(raw.remaining) &&
+          raw.remaining.length <= 128 &&
+          raw.remaining.every((n) => integer(n) && n >= 0 && n <= 127) &&
+          new Set(raw.remaining).size === raw.remaining.length,
+        'bag knowledge',
+      );
+      check(
+        raw.error
+          ? ['contradictory-observed-stream', 'invalid-bag-knowledge'].includes(
+              raw.error,
+            ) && raw.remaining.length === 0
+          : raw.remaining.length > 0,
+        'bag knowledge availability',
+      );
+      if (!raw.error)
+        check(
+          integer(raw.observedCount ?? 0) &&
+            (raw.observedCount ?? 0) >= 0 &&
+            typeof (raw.provenance ?? 'observed') === 'string' &&
+            (raw.provenance ?? 'observed').length <= 128,
+          'bag knowledge metadata',
+        );
+      return clone(raw);
+    }
+    function readSupply(raw) {
+      shape(
+        raw,
+        [
+          'schemaVersion',
+          'domain',
+          'originKnown',
+          'nextObservedId',
+          'nextSyntheticId',
+          'streamCursor',
+          'active',
+          'hold',
+          'queue',
+          'frontier',
+          'knowledge',
+        ],
+        'supply',
+      );
+      check(
+        raw.schemaVersion === 1 &&
+          raw.domain === 'projection' &&
+          typeof raw.originKnown === 'boolean',
+        'supply domain',
+      );
+      check(
+        integer(raw.nextObservedId) &&
+          raw.nextObservedId > 0 &&
+          integer(raw.nextSyntheticId) &&
+          raw.nextSyntheticId < 0 &&
+          integer(raw.streamCursor) &&
+          raw.streamCursor >= 0,
+        'supply allocators/cursor',
+      );
+      check(
+        Array.isArray(raw.queue) && raw.queue.length <= 7,
+        'request preview',
+      );
+      const ids = new Set();
+      const subject = (p) => {
+        if (p === null) return null;
+        shape(p, ['id', 'type', 'bag', 'observedOrder'], 'subject');
+        check(
+          integer(p.id) &&
+            p.id !== 0 &&
+            !ids.has(p.id) &&
+            typeof p.type === 'string' &&
+            p.type.length === 1 &&
+            TYPES.includes(p.type),
+          'subject identity/type',
+        );
+        ids.add(p.id);
+        if (p.id < 0)
+          check(
+            p.id > raw.nextSyntheticId &&
+              p.bag === null &&
+              p.observedOrder === null,
+            'synthetic subject origin',
+          );
+        else {
+          check(p.id < raw.nextObservedId, 'observed allocator');
+          check(
+            raw.originKnown
+              ? integer(p.bag) &&
+                  p.bag >= 0 &&
+                  integer(p.observedOrder) &&
+                  p.observedOrder >= 0
+              : p.bag === null && p.observedOrder === null,
+            'observed subject origin',
+          );
+        }
+        return clone(p);
+      };
+      let frontier = null;
+      if (raw.originKnown) {
+        shape(raw.frontier, ['bag', 'seenMask'], 'observed frontier');
+        check(
+          integer(raw.frontier.bag) &&
+            raw.frontier.bag >= 0 &&
+            integer(raw.frontier.seenMask) &&
+            raw.frontier.seenMask >= 0 &&
+            raw.frontier.seenMask < 127,
+          'observed frontier',
+        );
+        frontier = clone(raw.frontier);
+      } else check(raw.frontier === null, 'unknown observed frontier');
+      // Construct a plain queue by index. A caller's map, iterator or species
+      // must not return aliases after the subject validation/copy callbacks run.
+      const queued = (values) =>
+        Array.from({ length: values.length }, (_, index) => {
+          const p = values[index];
+          check(p !== null, 'missing queued subject');
+          return subject(p);
+        });
+      const supply = {
+        schemaVersion: 1,
+        domain: 'projection',
+        originKnown: raw.originKnown,
+        nextObservedId: raw.nextObservedId,
+        nextSyntheticId: raw.nextSyntheticId,
+        streamCursor: raw.streamCursor,
+        active: subject(raw.active),
+        hold: subject(raw.hold),
+        queue: queued(raw.queue),
+        frontier,
+        knowledge: knowledge(raw.knowledge),
+      };
+      if (frontier)
+        for (const p of [supply.active, supply.hold, ...supply.queue].filter(
+          (p) => p && p.id > 0,
+        ))
+          check(
+            p.bag < frontier.bag ||
+              (p.bag === frontier.bag &&
+                Boolean(frontier.seenMask & (1 << TYPES.indexOf(p.type)))),
+            'observed subject exceeds frontier',
+          );
+      return supply;
+    }
+    function bound(supply, position) {
+      check(R.validate(position).length === 0, 'public position');
+      check(
+        supply.streamCursor === position.streamCursor &&
+          (supply.active?.type ?? null) === (position.active?.type ?? null) &&
+          (supply.hold?.type ?? null) === (position.hold ?? null) &&
+          same(
+            supply.queue.map((p) => p.type),
+            position.queue,
+          ),
+        'position/supply boundary',
+      );
+    }
+    // Same current-role checks as actual Context, but the negative allocator is a
+    // disjoint request namespace. No consumed history or original-bag guess needed.
+    function namespace(state, supply) {
+      const live = new Set(
+          [supply.active, supply.hold, ...supply.queue]
+            .filter(Boolean)
+            .map((p) => p.id),
+        ),
+        roles = new Map();
+      const rootTypes = { SL: 'S', LO: 'L', OJ: 'O', ZJ: 'JZ' },
+        partnerTypes = { SL: 'L', LO: 'O', OJ: 'J', ZJ: 'JZ' };
+      const consumed = (id, types) => {
+        if (id === null) return;
+        check(
+          integer(id) &&
+            id !== 0 &&
+            (id > 0
+              ? id < supply.nextObservedId
+              : id > supply.nextSyntheticId) &&
+            !live.has(id),
+          'consumed subject collides with supply/allocator',
+        );
+        const compatible = [...(roles.get(id) || types)]
+          .filter((t) => types.includes(t))
+          .join('');
+        check(compatible.length > 0, 'contradictory consumed subject roles');
+        roles.set(id, compatible);
+      };
+      for (const b of state.sl.residuals)
+        for (const t of ['S', 'L']) if (b[t]) consumed(b[t].id, t);
+      for (const p of [...state.center.pending, ...state.center.debt]) {
+        consumed(p.rootId, rootTypes[p.family]);
+        if (p.divertedPieceId !== undefined)
+          consumed(p.divertedPieceId, partnerTypes[p.family] || TYPES);
+      }
+      if (state.account.reset.status === 'active')
+        consumed(state.account.reset.firstTId, 'T');
+      check(
+        state.availability !== 'known' || supply.originKnown,
+        'known facts require the observed origin',
+      );
+    }
+    function read(current, { position } = {}) {
+      check(object(current), 'request state');
+      const state = Q.importProjection(current.state),
+        supply = readSupply(current.supply),
+        p = clone(current.position);
+      if (position !== undefined)
+        check(
+          same(position, p),
+          'explicit position differs from request state',
+        );
+      bound(supply, p);
+      namespace(state, supply);
+      return { state, supply, position: p };
+    }
+    // Only completed projections constructed here enter this path. Their state,
+    // subjects, frontier and knowledge are immutable plain data, never raw aliases.
+    // Keep a writable local shell/queue and ordinary position normalization even
+    // when a caller-supplied witness iterator yields no actions.
+    function copyOwned(current, { position } = {}) {
+      const state = current.state,
+        supply = { ...current.supply, queue: current.supply.queue.slice() },
+        p = clone(current.position);
+      if (position !== undefined)
+        check(
+          same(position, p),
+          'explicit position differs from request state',
+        );
+      bound(supply, p);
+      namespace(state, supply);
+      return { state, supply, position: p };
+    }
+    // Q.projectTransition has already normalized and validated this fresh local
+    // state. Retain supply, position and cross-component checks without importing
+    // that state a second time. No caller-provided state reaches this helper.
+    function readTransition(state, supply, position) {
+      // supply is a detached copy of this call's validated supply, advanced only
+      // by moving its existing subjects. position is the matching R.move result.
+      // Neither is exposed to the caller until this entire witness completes.
+      bound(supply, position);
+      namespace(state, supply);
+      return { state, supply, position };
+    }
+    function start(actualFacts, { position, inventory } = {}) {
+      check(I.bound(inventory, position), 'matching actual public inventory');
+      const inv = I.exportState(inventory),
+        supply = {
+          schemaVersion: 1,
+          domain: 'projection',
+          originKnown: inv.originKnown,
+          nextObservedId: inv.nextId,
+          nextSyntheticId: -1,
+          streamCursor: inv.streamCursor,
+          active: inv.active,
+          hold: inv.hold,
+          queue: inv.queue,
+          frontier: inv.frontier,
+          knowledge: inv.knowledge,
+        };
+      return read({ state: Q.toProjection(actualFacts), supply, position });
+    }
+    function startUnknown(position) {
+      // Establish only an explicitly unknown factual origin. I.start observes the
+      // public shape but issues no operation receipt; its temporary IDs are not
+      // promoted into this request's unavailable-identity fallback.
+      const inventory = I.start(position);
+      check(inventory.status === 'available', 'unknown public origin');
+      const projection = start(Q.start(position, { inventory }), {
+        position,
+        inventory,
+      });
+      let next = -1;
+      const subject = (p) =>
+        p ? { id: next--, type: p.type, bag: null, observedOrder: null } : null;
+      projection.supply.active = subject(projection.supply.active);
+      projection.supply.hold = subject(projection.supply.hold);
+      projection.supply.queue = projection.supply.queue.map(subject);
+      projection.supply.nextObservedId = 1;
+      projection.supply.nextSyntheticId = next;
+      return read(projection);
+    }
+    function extendLocal(projection) {
+      const { supply, position } = projection,
+        type =
+          supply.knowledge && !supply.knowledge.error
+            ? B.forcedNext(supply.knowledge)
+            : null;
+      if (!type) return projection;
+      check(supply.queue.length < 7, 'forced request preview');
+      const id = supply.nextSyntheticId--;
+      check(
+        integer(supply.nextSyntheticId),
+        'synthetic identity range exhausted',
+      );
+      supply.queue.push({ id, type, bag: null, observedOrder: null });
+      supply.knowledge = B.consume(supply.knowledge, type);
+      position.queue.push(type);
+      position.bag = clone(supply.knowledge);
+      // A deduction is not a newly observed identity. It cannot change the known
+      // S/L counterpart frontier or create an actual inventory capability.
+      return read(projection);
+    }
+    function extendForced(current, options = {}) {
+      return extendLocal(read(current, options));
+    }
+    function projectLocal(
+      current,
+      {
+        position,
+        witness,
+        boundary = {},
+        references = emptyReferences,
+        extendForced = false,
+        resolveView = false,
+      } = {},
+      ownedOutput = false,
+    ) {
+      check(
+        typeof extendForced === 'boolean' && typeof resolveView === 'boolean',
+        'local output options',
+      );
+      const owned = ownedOutput && ownedFrames.has(current);
+      let projection = owned
+        ? copyOwned(current, { position })
+        : read(current, { position });
+      const out = [];
+      let locked = null,
+        settled = false;
+      const stableReferences = referenceSnapshots.has(references);
+      // Public getters/serialization hooks can change values during the first read.
+      // Admit only the detached, revalidated result to this private local path.
+      if (!owned) projection.supply = readSupply(projection.supply);
+      check(
+        Array.isArray(witness) &&
+          witness.length > 0 &&
+          witness.length <= 256 &&
+          witness.at(-1) === 'HD' &&
+          witness.filter((a) => a === 'HD').length === 1,
+        'one-lock witness',
+      );
+      for (const action of witness) {
+        const before = projection,
+          after = R.move(before.position, action);
+        check(after !== before.position, 'rejected projected input');
+        // Existing subjects, frontier and knowledge stay read-only within this
+        // call. Only possession, the copied queue and the cursor advance.
+        const supply = { ...before.supply, queue: before.supply.queue.slice() };
+        if (action === 'HOLD') {
+          if (supply.hold)
+            [supply.active, supply.hold] = [supply.hold, supply.active];
+          else {
+            supply.hold = supply.active;
+            supply.active = supply.queue.shift();
+            check(supply.active, 'missing projected HOLD draw');
+          }
+        }
+        if (action === 'HD') {
+          locked = supply.active;
+          supply.active = after.active ? supply.queue.shift() : null;
+          check(!after.active || supply.active, 'missing projected lock draw');
+        }
+        supply.streamCursor = after.streamCursor;
+        bound(supply, after);
+        const operation =
+          action === 'HD'
+            ? {
+                ...boundary,
+                kind: 'lock',
+                piece: locked,
+                event: after.lastEvent,
+              }
+            : { kind: 'observe' };
+        if (settled && stableReferences && plainMovement.has(action)) {
+          // A full observe has already classified/compacted this private state.
+          // Plain movement preserves board, ordered supply, frontier and references.
+          // HOLD and HD always run the reducer, and the first observe is never elided.
+          bound(before.supply, before.position);
+          check(
+            same(before.position.board, after.board),
+            'non-lock board change',
+          );
+          check(
+            references.every((n) => integer(n) && n !== 0),
+            'current caller references',
+          );
+          projection = readTransition(before.state, supply, after);
+        } else {
+          const result = (
+            owned ? Q.projectTransitionOwned : Q.projectTransition
+          )(before.state, operation, {
+            before: { position: before.position, inventory: before.supply },
+            after: { position: after, inventory: supply },
+            references,
+          });
+          projection = readTransition(result.state, supply, after);
+          out.push(...result.effects);
+        }
+        settled = action !== 'HD';
+      }
+      // These are fresh local values; combining their optional extension/view
+      // avoids routing them back through public imports between adjacent steps.
+      if (extendForced) projection = extendLocal(projection);
+      if (ownedOutput && locked)
+        projection.state = Q.ownProjection(projection.state);
+      const view = resolveView
+        ? (ownedOutput ? Q.resolveProjectionOwned : Q.resolveProjection)(
+            projection.state,
+            { position: projection.position, inventory: projection.supply },
+          )
+        : null;
+      if (ownedOutput) {
+        // A completed HD detaches the factual components; readSupply already owns
+        // every supply value. Do not brand or freeze a raw zero-lock iterator result.
+        const frame = { ...projection };
+        if (locked) {
+          freeze(frame);
+          ownedFrames.add(frame);
+        }
+        return {
+          projection: frame,
+          effects: out,
+          locked: clone(locked),
+          ...(resolveView ? { view } : {}),
+        };
+      }
+      return {
+        ...projection,
+        effects: out,
+        locked: clone(locked),
+        ...(resolveView ? { view } : {}),
+      };
+    }
+    function project(current, options) {
+      return projectLocal(current, options);
+    }
+    function projectOwned(current, options) {
+      return projectLocal(current, options, true);
+    }
+    function resolve(current, options) {
+      const projection = read(current, options);
+      return Q.resolveProjection(projection.state, {
+        position: projection.position,
+        inventory: projection.supply,
+      });
+    }
+    return Object.freeze({
+      start,
+      startUnknown,
+      extendForced,
+      project,
+      projectOwned,
+      resolve,
+      referenceSnapshot,
+    });
+  },
+);

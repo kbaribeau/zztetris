@@ -3,10 +3,10 @@
  * coach membership is explicit. Placement/resource admission belongs to coaches. */
 (function (root, factory) {
   const api = factory();
-  if (typeof module === "object" && module.exports) module.exports = api;
+  if (typeof module === 'object' && module.exports) module.exports = api;
   else root.STLeftContours = api;
-})(typeof globalThis !== "undefined" ? globalThis : this, function () {
-  "use strict";
+})(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+  'use strict';
   const schemaVersion = 3;
   // [profile, existing shape number, tier, alternatives].
   // Alternative: [ordered pieces, target paths, optional crossing-path indexes].
@@ -14,137 +14,137 @@
     [
       [0, 0, 1, 1],
       3,
-      "S",
+      'S',
       [
-        ["L", [[5]]],
-        ["IL", [[38, 5]]],
-        ["JO", [[15, 3]]],
-        ["LI", [[4, 5]]],
-        ["LO", [[5, 6]]],
+        ['L', [[5]]],
+        ['IL', [[38, 5]]],
+        ['JO', [[15, 3]]],
+        ['LI', [[4, 5]]],
+        ['LO', [[5, 6]]],
         [
-          "OJ",
+          'OJ',
           [
             [2, 3],
             [2, 6],
           ],
         ],
-        ["OO", [[2, 1]]],
-        ["SL", [[9, 6]]],
-        ["ZJ", [[66, 6]]],
+        ['OO', [[2, 1]]],
+        ['SL', [[9, 6]]],
+        ['ZJ', [[66, 6]]],
       ],
     ],
     [
       [1, 1, 0, 0],
       5,
-      "A",
+      'A',
       [
-        ["J", [[3], [6]]],
-        ["O", [[1]]],
-        ["IJ", [[17, 3]]],
-        ["JI", [[6, 3]]],
+        ['J', [[3], [6]]],
+        ['O', [[1]]],
+        ['IJ', [[17, 3]]],
+        ['JI', [[6, 3]]],
         [
-          "LO",
+          'LO',
           [
             [10, 5],
             [31, 6],
           ],
         ],
-        ["OL", [[1, 5]]],
+        ['OL', [[1, 5]]],
       ],
     ],
     [
       [0, 0, 0, 2],
       1,
-      "SS",
+      'SS',
       [
-        ["L", [[1]]],
-        ["IO", [[30, 5]]],
-        ["JO", [[16, 1]]],
-        ["JS", [[7, 1]]],
-        ["OI", [[4, 5]]],
-        ["SJ", [[12, 1]]],
+        ['L', [[1]]],
+        ['IO', [[30, 5]]],
+        ['JO', [[16, 1]]],
+        ['JS', [[7, 1]]],
+        ['OI', [[4, 5]]],
+        ['SJ', [[12, 1]]],
       ],
     ],
     [
       [0, 2, 2, 2],
       6,
-      "A",
+      'A',
       [
-        ["I", [[5]]],
-        ["IO", [[5, 6]]],
+        ['I', [[5]]],
+        ['IO', [[5, 6]]],
         [
-          "JJ",
+          'JJ',
           [
             [2, 3],
             [2, 6],
           ],
         ],
-        ["JO", [[2, 1]]],
-        ["OI", [[70, 6]]],
-        ["OJ", [[13, 1]]],
+        ['JO', [[2, 1]]],
+        ['OI', [[70, 6]]],
+        ['OJ', [[13, 1]]],
       ],
     ],
     [
       [2, 0, 0, 0],
       2,
-      "SS",
+      'SS',
       [
-        ["O", [[6]]],
-        ["IO", [[42, 3]]],
+        ['O', [[6]]],
+        ['IO', [[42, 3]]],
         [
-          "JJ",
+          'JJ',
           [
             [2, 3],
             [2, 6],
           ],
         ],
-        ["JO", [[2, 1]]],
-        ["LS", [[7, 1]]],
-        ["OI", [[6, 3]]],
+        ['JO', [[2, 1]]],
+        ['LS', [[7, 1]]],
+        ['OI', [[6, 3]]],
       ],
     ],
     [
       [2, 2, 2, 0],
       4,
-      "S",
+      'S',
       [
-        ["I", [[3]]],
-        ["L", [[1]]],
-        ["IL", [[3, 1]]],
+        ['I', [[3]]],
+        ['L', [[1]]],
+        ['IL', [[3, 1]]],
       ],
     ],
     [
       [1, 0, 0, 1],
       8,
-      "B",
+      'B',
       [
-        ["S", [[1]]],
-        ["JO", [[31, 6]]],
-        ["LS", [[59, 5]]],
-        ["OL", [[9, 6]]],
-        ["SL", [[1, 5]]],
+        ['S', [[1]]],
+        ['JO', [[31, 6]]],
+        ['LS', [[59, 5]]],
+        ['OL', [[9, 6]]],
+        ['SL', [[1, 5]]],
       ],
     ],
     [
       [0, 2, 0, 0],
       9,
-      "B",
+      'B',
       [
-        ["IO", [[10, 5]]],
-        ["JL", [[18, 6]]],
-        ["OI", [[4, 5]]],
+        ['IO', [[10, 5]]],
+        ['JL', [[18, 6]]],
+        ['OI', [[4, 5]]],
       ],
     ],
     [
       [0, 1, 1, 0],
       12,
-      "D",
+      'D',
       [
-        ["L", [[6]]],
-        ["IJ", [[20, 5]]],
-        ["IL", [[25, 3]]],
-        ["JI", [[4, 5]]],
-        ["LI", [[6, 3]]],
+        ['L', [[6]]],
+        ['IJ', [[20, 5]]],
+        ['IL', [[25, 3]]],
+        ['JI', [[4, 5]]],
+        ['LI', [[6, 3]]],
       ],
     ],
     [
@@ -152,18 +152,18 @@
       null,
       null,
       [
-        ["O", [[5]]],
-        ["OO", [[5, 6]]],
+        ['O', [[5]]],
+        ['OO', [[5, 6]]],
       ],
     ],
-    [[4, 3, 3, 0], null, null, [["IS", [[7, 1]]]]],
+    [[4, 3, 3, 0], null, null, [['IS', [[7, 1]]]]],
     [
       [0, 2, 3, 3],
       null,
       null,
       [
-        ["J", [[1]]],
-        ["JL", [[1, 5]]],
+        ['J', [[1]]],
+        ['JL', [[1, 5]]],
       ],
     ],
     [
@@ -171,8 +171,8 @@
       null,
       null,
       [
-        ["J", [[1]]],
-        ["JL", [[1, 5]]],
+        ['J', [[1]]],
+        ['JL', [[1, 5]]],
       ],
     ],
     [
@@ -181,35 +181,35 @@
       null,
       [
         [
-          "SJ",
+          'SJ',
           [
             [2, 3],
             [2, 6],
           ],
         ],
-        ["SO", [[2, 1]]],
+        ['SO', [[2, 1]]],
       ],
     ],
-    [[0, 0, 2, 4], null, null, [["O", [[3]]]]],
+    [[0, 0, 2, 4], null, null, [['O', [[3]]]]],
     [
       [0, 0, 3, 3],
       null,
       null,
       [
-        ["O", [[1]]],
-        ["OL", [[1, 5]]],
+        ['O', [[1]]],
+        ['OL', [[1, 5]]],
       ],
     ],
-    [[1, 1, 0, 4], null, null, [["J", [[3]]]]],
+    [[1, 1, 0, 4], null, null, [['J', [[3]]]]],
     [
       [3, 3, 0, 0],
       null,
       null,
       [
-        ["L", [[6]]],
-        ["II", [[79, 1]]],
+        ['L', [[6]]],
+        ['II', [[79, 1]]],
         [
-          "OJ",
+          'OJ',
           [
             [2, 3],
             [2, 6],
@@ -217,25 +217,25 @@
         ],
       ],
     ],
-    [[0, 4, 5, 5], null, null, [["I", [[1]]]]],
+    [[0, 4, 5, 5], null, null, [['I', [[1]]]]],
     [
       [4, 1, 1, 0],
       null,
       null,
       [
-        ["J", [[5]]],
-        ["JO", [[5, 6]]],
+        ['J', [[5]]],
+        ['JO', [[5, 6]]],
       ],
     ],
-    [[2, 4, 4, 0], null, null, [["II", [[4, 5]]]]],
+    [[2, 4, 4, 0], null, null, [['II', [[4, 5]]]]],
     [
       [5, 5, 4, 0],
       null,
       null,
       [
-        ["IJ", [[2, 3]]],
-        ["IO", [[2, 1]]],
-        ["JI", [[44, 6]]],
+        ['IJ', [[2, 3]]],
+        ['IO', [[2, 1]]],
+        ['JI', [[44, 6]]],
       ],
     ],
     [[0, 3, 2, 1], null, null, []],
@@ -244,43 +244,43 @@
       null,
       null,
       [
-        ["T", [[6]]],
-        ["IT", [[55, 3]]],
-        ["TL", [[6, 1]]],
+        ['T', [[6]]],
+        ['IT', [[55, 3]]],
+        ['TL', [[6, 1]]],
       ],
     ],
-    [[0, 1, 1, 4], null, null, [["L", [[3]]]]],
+    [[0, 1, 1, 4], null, null, [['L', [[3]]]]],
     [
       [1, 3, 2, 0],
       null,
       null,
       [
-        ["IL", [[61, 5]]],
-        ["JJ", [[50, 1]]],
-        ["LI", [[4, 5]]],
+        ['IL', [[61, 5]]],
+        ['JJ', [[50, 1]]],
+        ['LI', [[4, 5]]],
       ],
     ],
-    [[3, 2, 1, 0], null, null, [["ST", [[24, 6]]]]],
+    [[3, 2, 1, 0], null, null, [['ST', [[24, 6]]]]],
     [
       [0, 0, 1, 5],
       null,
       null,
       [
-        ["OJ", [[17, 3]]],
-        ["SL", [[25, 3]]],
-        ["ZJ", [[67, 3]]],
+        ['OJ', [[17, 3]]],
+        ['SL', [[25, 3]]],
+        ['ZJ', [[67, 3]]],
       ],
     ],
-    [[0, 1, 0, 1], null, null, [["IT", [[81, 5]]]]],
-    [[4, 0, 0, 2], null, null, [["O", [[5]]]]],
+    [[0, 1, 0, 1], null, null, [['IT', [[81, 5]]]]],
+    [[4, 0, 0, 2], null, null, [['O', [[5]]]]],
     [
       [0, 0, 2, 0],
       7,
-      "A",
+      'A',
       [
-        ["O", [[6]]],
-        ["IO", [[15, 3]]],
-        ["OI", [[6, 3]]],
+        ['O', [[6]]],
+        ['IO', [[15, 3]]],
+        ['OI', [[6, 3]]],
       ],
     ],
     [[0, 1, 2, 3], null, null, []],
@@ -289,19 +289,19 @@
       null,
       null,
       [
-        ["IS", [[7, 1]]],
-        ["SI", [[19, 1]]],
+        ['IS', [[7, 1]]],
+        ['SI', [[19, 1]]],
       ],
     ],
-    [[1, 0, 2, 3], null, null, [["SS", [[7, 1]]]]],
+    [[1, 0, 2, 3], null, null, [['SS', [[7, 1]]]]],
     [
       [4, 4, 0, 2],
       null,
       null,
       [
-        ["I", [[6]]],
-        ["IL", [[6, 1]]],
-        ["JO", [[2, 1]]],
+        ['I', [[6]]],
+        ['IL', [[6, 1]]],
+        ['JO', [[2, 1]]],
       ],
     ],
     [
@@ -309,9 +309,9 @@
       null,
       null,
       [
-        ["IJ", [[2, 3]]],
-        ["IO", [[2, 1]]],
-        ["OI", [[19, 1]]],
+        ['IJ', [[2, 3]]],
+        ['IO', [[2, 1]]],
+        ['OI', [[19, 1]]],
       ],
     ],
     [[2, 1, 3, 0], null, null, []],
@@ -320,27 +320,27 @@
       null,
       null,
       [
-        ["L", [[5]]],
-        ["LO", [[5, 6]]],
+        ['L', [[5]]],
+        ['LO', [[5, 6]]],
       ],
     ],
-    [[0, 2, 6, 6], null, null, [["JO", [[16, 1]]]]],
+    [[0, 2, 6, 6], null, null, [['JO', [[16, 1]]]]],
     [[4, 3, 0, 0], null, null, []],
     [[0, 4, 6, 8], null, null, []],
-    [[2, 0, 0, 4], null, null, [["O", [[3]]]]],
+    [[2, 0, 0, 4], null, null, [['O', [[3]]]]],
     [
       [2, 2, 0, 2],
       10,
-      "B",
+      'B',
       [
-        ["J", [[1]]],
-        ["OI", [[35, 6]]],
+        ['J', [[1]]],
+        ['OI', [[35, 6]]],
       ],
     ],
-    [[6, 6, 6, 0], null, null, [["I", [[6]]]]],
-    [[0, 2, 5, 5], null, null, [["JO", [[16, 1]]]]],
+    [[6, 6, 6, 0], null, null, [['I', [[6]]]]],
+    [[0, 2, 5, 5], null, null, [['JO', [[16, 1]]]]],
     [[0, 3, 4, 3], null, null, []],
-    [[5, 1, 0, 0], null, null, [["SL", [[61, 5]]]]],
+    [[5, 1, 0, 0], null, null, [['SL', [[61, 5]]]]],
     [[0, 1, 3, 2], null, null, []],
     [[0, 1, 5, 4], null, null, []],
     [
@@ -348,15 +348,15 @@
       null,
       null,
       [
-        ["J", [[1]]],
-        ["IJ", [[43, 1]]],
+        ['J', [[1]]],
+        ['IJ', [[43, 1]]],
       ],
     ],
     [[4, 5, 2, 0], null, null, []],
     [[4, 6, 4, 0], null, null, []],
     [[5, 5, 2, 0], null, null, []],
     [[7, 7, 4, 0], null, null, []],
-    [[1, 0, 1, 4], null, null, [["T", [[3]]]]],
+    [[1, 0, 1, 4], null, null, [['T', [[3]]]]],
     [[1, 0, 3, 3], null, null, []],
     [[1, 0, 3, 7], null, null, []],
     [[3, 5, 4, 0], null, null, []],
@@ -365,8 +365,8 @@
       null,
       null,
       [
-        ["S", [[5]]],
-        ["SO", [[5, 6]]],
+        ['S', [[5]]],
+        ['SO', [[5, 6]]],
       ],
     ],
     [[5, 1, 0, 4], null, null, []],
@@ -375,8 +375,8 @@
       null,
       null,
       [
-        ["L", [[5]]],
-        ["LO", [[5, 6]]],
+        ['L', [[5]]],
+        ['LO', [[5, 6]]],
       ],
     ],
     [[8, 10, 8, 0], null, null, []],
@@ -388,38 +388,38 @@
       null,
       null,
       [
-        ["J", [[6]]],
-        ["JI", [[6, 3]]],
+        ['J', [[6]]],
+        ['JI', [[6, 3]]],
       ],
     ],
-    [[0, 2, 3, 5], null, null, [["J", [[3]]]]],
-    [[0, 2, 5, 3], null, null, [["JO", [[31, 6]]]]],
+    [[0, 2, 3, 5], null, null, [['J', [[3]]]]],
+    [[0, 2, 5, 3], null, null, [['JO', [[31, 6]]]]],
     [[0, 3, 3, 0], null, null, []],
-    [[0, 4, 4, 2], null, null, [["I", [[6]]]]],
+    [[0, 4, 4, 2], null, null, [['I', [[6]]]]],
     [[0, 6, 6, 6], null, null, []],
-    [[1, 0, 0, 5], null, null, [["JO", [[15, 3]]]]],
+    [[1, 0, 0, 5], null, null, [['JO', [[15, 3]]]]],
     [[1, 0, 5, 5], null, null, []],
     [[1, 2, 3, 0], null, null, []],
-    [[2, 0, 2, 2], 11, "C", []],
+    [[2, 0, 2, 2], 11, 'C', []],
     [[2, 1, 0, 3], null, null, []],
     [[2, 3, 3, 0], null, null, []],
     [[3, 0, 1, 2], null, null, []],
-    [[3, 3, 4, 0], null, null, [["I", [[1]]]]],
-    [[4, 0, 3, 3], null, null, [["IJ", [[2, 3]]]]],
-    [[4, 1, 0, 1], null, null, [["T", [[5]]]]],
+    [[3, 3, 4, 0], null, null, [['I', [[1]]]]],
+    [[4, 0, 3, 3], null, null, [['IJ', [[2, 3]]]]],
+    [[4, 1, 0, 1], null, null, [['T', [[5]]]]],
     [[4, 10, 8, 0], null, null, []],
-    [[4, 4, 3, 0], null, null, [["JJ", [[2, 3]]]]],
-    [[4, 5, 5, 0], null, null, [["LI", [[44, 6]]]]],
+    [[4, 4, 3, 0], null, null, [['JJ', [[2, 3]]]]],
+    [[4, 5, 5, 0], null, null, [['LI', [[44, 6]]]]],
     [[4, 7, 7, 0], null, null, []],
-    [[5, 0, 0, 1], null, null, [["SL", [[38, 5]]]]],
+    [[5, 0, 0, 1], null, null, [['SL', [[38, 5]]]]],
     [[5, 5, 0, 0], null, null, []],
     [[6, 0, 0, 0], null, null, []],
     [[8, 6, 4, 0], null, null, []],
-    [[0, 0, 0, 0], null, null, [["L", [[1]], [0]]]],
+    [[0, 0, 0, 0], null, null, [['L', [[1]], [0]]]],
   ];
-  const id = (n) => "LC-" + String(n).padStart(3, "0");
+  const id = (n) => 'LC-' + String(n).padStart(3, '0');
   function deepFreeze(value) {
-    if (value && typeof value === "object" && !Object.isFrozen(value)) {
+    if (value && typeof value === 'object' && !Object.isFrozen(value)) {
       Object.values(value).forEach(deepFreeze);
       Object.freeze(value);
     }
@@ -434,20 +434,20 @@
   }
   function key(heights) {
     const profile = normalize(heights);
-    return profile ? profile.join(",") : null;
+    return profile ? profile.join(',') : null;
   }
-  const pieceType = (p) => typeof p === "string" && /^[IJLOSTZ]$/.test(p);
+  const pieceType = (p) => typeof p === 'string' && /^[IJLOSTZ]$/.test(p);
   const catalog = data.map(([profile, shape, tier, alternatives], i) => ({
     id: id(i + 1),
-    key: profile.join(","),
+    key: profile.join(','),
     profile,
-    knownShape: shape === null ? null : "shocky-left-" + shape,
+    knownShape: shape === null ? null : 'shocky-left-' + shape,
     knownTier: tier,
     dependencies: {
-      status: alternatives.length ? "known" : "unknown",
+      status: alternatives.length ? 'known' : 'unknown',
       alternatives: alternatives.map(([sequence, paths, crossing = []]) => ({
         pieces: [...sequence],
-        order: "ordered",
+        order: 'ordered',
         paths: paths.map((targets, i) => ({
           contours: targets.map(id),
           crossesCenter: crossing.includes(i),
@@ -458,13 +458,13 @@
   const byId = new Map(catalog.map((c) => [c.id, c]));
   function validateDependencies(value) {
     if (!value || !Array.isArray(value.alternatives)) return false;
-    if (value.status === "unknown") return value.alternatives.length === 0;
-    if (value.status !== "known" || !value.alternatives.length) return false;
+    if (value.status === 'unknown') return value.alternatives.length === 0;
+    if (value.status !== 'known' || !value.alternatives.length) return false;
     const seen = new Set();
     for (const a of value.alternatives) {
       if (
         !a ||
-        a.order !== "ordered" ||
+        a.order !== 'ordered' ||
         !Array.isArray(a.pieces) ||
         !a.pieces.length ||
         !Array.from(a.pieces).every(pieceType) ||
@@ -472,21 +472,21 @@
         !a.paths.length
       )
         return false;
-      const sequence = a.pieces.join("");
+      const sequence = a.pieces.join('');
       if (seen.has(sequence)) return false;
       seen.add(sequence);
       const paths = new Set();
       for (const p of a.paths) {
         if (
           !p ||
-          typeof p.crossesCenter !== "boolean" ||
+          typeof p.crossesCenter !== 'boolean' ||
           !Array.isArray(p.contours) ||
           p.contours.length !== a.pieces.length ||
           !Array.from(p.contours).every((c) => byId.has(c))
         )
           return false;
         const end = byId.get(p.contours.at(-1));
-        if (!["SS", "S"].includes(end.knownTier)) return false;
+        if (!['SS', 'S'].includes(end.knownTier)) return false;
         const path = JSON.stringify([p.contours, p.crossesCenter]);
         if (paths.has(path)) return false;
         paths.add(path);
@@ -502,178 +502,210 @@
       byKey.has(c.key) ||
       !validateDependencies(c.dependencies)
     )
-      throw Error("Invalid Left contour: " + c.id);
+      throw Error('Invalid Left contour: ' + c.id);
     byKey.set(c.key, deepFreeze(c));
   }
   // Coach context is source-observed, not applicability or placement authority.
   // See docs/st-left-continuation-sets.md for the independently checked source
   // boundary and the conservative runtime-lifecycle interpretation of Reset.
-  const routeKey = (from, pieces, contours) => [from, pieces.join(""), ...contours].join(":");
+  const routeKey = (from, pieces, contours) =>
+    [from, pieces.join(''), ...contours].join(':');
   const special = new Map([
-    ["LC-090:L:LC-001", "opener"],
-    ["LC-081:T:LC-005", "opener"],
-    ["LC-029:IT:LC-081:LC-005", "opener"],
-    ["LC-024:T:LC-006", "reset"],
-    ["LC-027:ST:LC-024:LC-006", "reset"],
-    ["LC-055:T:LC-003", "reset"],
-    ["LC-024:IT:LC-055:LC-003", "reset"],
-    ["LC-072:JO:LC-015:LC-003", "unresolved"],
-    ["LC-024:TL:LC-006:LC-001", "unresolved"],
+    ['LC-090:L:LC-001', 'opener'],
+    ['LC-081:T:LC-005', 'opener'],
+    ['LC-029:IT:LC-081:LC-005', 'opener'],
+    ['LC-024:T:LC-006', 'reset'],
+    ['LC-027:ST:LC-024:LC-006', 'reset'],
+    ['LC-055:T:LC-003', 'reset'],
+    ['LC-024:IT:LC-055:LC-003', 'reset'],
+    ['LC-072:JO:LC-015:LC-003', 'unresolved'],
+    ['LC-024:TL:LC-006:LC-001', 'unresolved'],
   ]);
   const midgameKeys = new Set([
-  "LC-001:L:LC-005",
-  "LC-001:IL:LC-038:LC-005",
-  "LC-001:JO:LC-015:LC-003",
-  "LC-001:LI:LC-004:LC-005",
-  "LC-001:LO:LC-005:LC-006",
-  "LC-001:OJ:LC-002:LC-003",
-  "LC-001:OJ:LC-002:LC-006",
-  "LC-001:OO:LC-002:LC-001",
-  "LC-001:SL:LC-009:LC-006",
-  "LC-001:ZJ:LC-066:LC-006",
-  "LC-002:J:LC-003",
-  "LC-002:J:LC-006",
-  "LC-002:O:LC-001",
-  "LC-002:IJ:LC-017:LC-003",
-  "LC-002:JI:LC-006:LC-003",
-  "LC-002:LO:LC-010:LC-005",
-  "LC-002:LO:LC-031:LC-006",
-  "LC-002:OL:LC-001:LC-005",
-  "LC-003:L:LC-001",
-  "LC-003:IO:LC-030:LC-005",
-  "LC-003:JO:LC-016:LC-001",
-  "LC-003:JS:LC-007:LC-001",
-  "LC-003:OI:LC-004:LC-005",
-  "LC-003:SJ:LC-012:LC-001",
-  "LC-004:I:LC-005",
-  "LC-004:IO:LC-005:LC-006",
-  "LC-004:JJ:LC-002:LC-003",
-  "LC-004:JJ:LC-002:LC-006",
-  "LC-004:JO:LC-002:LC-001",
-  "LC-004:OI:LC-070:LC-006",
-  "LC-004:OJ:LC-013:LC-001",
-  "LC-005:O:LC-006",
-  "LC-005:IO:LC-042:LC-003",
-  "LC-005:JJ:LC-002:LC-003",
-  "LC-005:JJ:LC-002:LC-006",
-  "LC-005:JO:LC-002:LC-001",
-  "LC-005:LS:LC-007:LC-001",
-  "LC-005:OI:LC-006:LC-003",
-  "LC-006:I:LC-003",
-  "LC-006:L:LC-001",
-  "LC-006:IL:LC-003:LC-001",
-  "LC-007:S:LC-001",
-  "LC-007:JO:LC-031:LC-006",
-  "LC-007:LS:LC-059:LC-005",
-  "LC-007:OL:LC-009:LC-006",
-  "LC-007:SL:LC-001:LC-005",
-  "LC-008:IO:LC-010:LC-005",
-  "LC-008:JL:LC-018:LC-006",
-  "LC-008:OI:LC-004:LC-005",
-  "LC-009:L:LC-006",
-  "LC-009:IJ:LC-020:LC-005",
-  "LC-009:IL:LC-025:LC-003",
-  "LC-009:JI:LC-004:LC-005",
-  "LC-009:LI:LC-006:LC-003",
-  "LC-010:O:LC-005",
-  "LC-010:OO:LC-005:LC-006",
-  "LC-011:IS:LC-007:LC-001",
-  "LC-012:J:LC-001",
-  "LC-012:JL:LC-001:LC-005",
-  "LC-013:J:LC-001",
-  "LC-013:JL:LC-001:LC-005",
-  "LC-014:SJ:LC-002:LC-003",
-  "LC-014:SJ:LC-002:LC-006",
-  "LC-014:SO:LC-002:LC-001",
-  "LC-015:O:LC-003",
-  "LC-016:O:LC-001",
-  "LC-016:OL:LC-001:LC-005",
-  "LC-017:J:LC-003",
-  "LC-018:L:LC-006",
-  "LC-018:II:LC-079:LC-001",
-  "LC-018:OJ:LC-002:LC-003",
-  "LC-018:OJ:LC-002:LC-006",
-  "LC-019:I:LC-001",
-  "LC-020:J:LC-005",
-  "LC-020:JO:LC-005:LC-006",
-  "LC-021:II:LC-004:LC-005",
-  "LC-022:IJ:LC-002:LC-003",
-  "LC-022:IO:LC-002:LC-001",
-  "LC-022:JI:LC-044:LC-006",
-  "LC-025:L:LC-003",
-  "LC-026:IL:LC-061:LC-005",
-  "LC-026:JJ:LC-050:LC-001",
-  "LC-026:LI:LC-004:LC-005",
-  "LC-028:OJ:LC-017:LC-003",
-  "LC-028:SL:LC-025:LC-003",
-  "LC-028:ZJ:LC-067:LC-003",
-  "LC-030:O:LC-005",
-  "LC-031:O:LC-006",
-  "LC-031:IO:LC-015:LC-003",
-  "LC-031:OI:LC-006:LC-003",
-  "LC-033:IS:LC-007:LC-001",
-  "LC-033:SI:LC-019:LC-001",
-  "LC-034:SS:LC-007:LC-001",
-  "LC-035:I:LC-006",
-  "LC-035:IL:LC-006:LC-001",
-  "LC-035:JO:LC-002:LC-001",
-  "LC-036:IJ:LC-002:LC-003",
-  "LC-036:IO:LC-002:LC-001",
-  "LC-036:OI:LC-019:LC-001",
-  "LC-038:L:LC-005",
-  "LC-038:LO:LC-005:LC-006",
-  "LC-039:JO:LC-016:LC-001",
-  "LC-042:O:LC-003",
-  "LC-043:J:LC-001",
-  "LC-043:OI:LC-035:LC-006",
-  "LC-044:I:LC-006",
-  "LC-045:JO:LC-016:LC-001",
-  "LC-047:SL:LC-061:LC-005",
-  "LC-050:J:LC-001",
-  "LC-050:IJ:LC-043:LC-001",
-  "LC-059:S:LC-005",
-  "LC-059:SO:LC-005:LC-006",
-  "LC-061:L:LC-005",
-  "LC-061:LO:LC-005:LC-006",
-  "LC-066:J:LC-006",
-  "LC-066:JI:LC-006:LC-003",
-  "LC-067:J:LC-003",
-  "LC-068:JO:LC-031:LC-006",
-  "LC-070:I:LC-006",
-  "LC-079:I:LC-001",
-  "LC-080:IJ:LC-002:LC-003",
-  "LC-083:JJ:LC-002:LC-003",
-  "LC-084:LI:LC-044:LC-006",
-  "LC-086:SL:LC-038:LC-005"
-]);
-  const continuationSets = { opener: [], midgame: [], reset: [], unresolved: [] };
+    'LC-001:L:LC-005',
+    'LC-001:IL:LC-038:LC-005',
+    'LC-001:JO:LC-015:LC-003',
+    'LC-001:LI:LC-004:LC-005',
+    'LC-001:LO:LC-005:LC-006',
+    'LC-001:OJ:LC-002:LC-003',
+    'LC-001:OJ:LC-002:LC-006',
+    'LC-001:OO:LC-002:LC-001',
+    'LC-001:SL:LC-009:LC-006',
+    'LC-001:ZJ:LC-066:LC-006',
+    'LC-002:J:LC-003',
+    'LC-002:J:LC-006',
+    'LC-002:O:LC-001',
+    'LC-002:IJ:LC-017:LC-003',
+    'LC-002:JI:LC-006:LC-003',
+    'LC-002:LO:LC-010:LC-005',
+    'LC-002:LO:LC-031:LC-006',
+    'LC-002:OL:LC-001:LC-005',
+    'LC-003:L:LC-001',
+    'LC-003:IO:LC-030:LC-005',
+    'LC-003:JO:LC-016:LC-001',
+    'LC-003:JS:LC-007:LC-001',
+    'LC-003:OI:LC-004:LC-005',
+    'LC-003:SJ:LC-012:LC-001',
+    'LC-004:I:LC-005',
+    'LC-004:IO:LC-005:LC-006',
+    'LC-004:JJ:LC-002:LC-003',
+    'LC-004:JJ:LC-002:LC-006',
+    'LC-004:JO:LC-002:LC-001',
+    'LC-004:OI:LC-070:LC-006',
+    'LC-004:OJ:LC-013:LC-001',
+    'LC-005:O:LC-006',
+    'LC-005:IO:LC-042:LC-003',
+    'LC-005:JJ:LC-002:LC-003',
+    'LC-005:JJ:LC-002:LC-006',
+    'LC-005:JO:LC-002:LC-001',
+    'LC-005:LS:LC-007:LC-001',
+    'LC-005:OI:LC-006:LC-003',
+    'LC-006:I:LC-003',
+    'LC-006:L:LC-001',
+    'LC-006:IL:LC-003:LC-001',
+    'LC-007:S:LC-001',
+    'LC-007:JO:LC-031:LC-006',
+    'LC-007:LS:LC-059:LC-005',
+    'LC-007:OL:LC-009:LC-006',
+    'LC-007:SL:LC-001:LC-005',
+    'LC-008:IO:LC-010:LC-005',
+    'LC-008:JL:LC-018:LC-006',
+    'LC-008:OI:LC-004:LC-005',
+    'LC-009:L:LC-006',
+    'LC-009:IJ:LC-020:LC-005',
+    'LC-009:IL:LC-025:LC-003',
+    'LC-009:JI:LC-004:LC-005',
+    'LC-009:LI:LC-006:LC-003',
+    'LC-010:O:LC-005',
+    'LC-010:OO:LC-005:LC-006',
+    'LC-011:IS:LC-007:LC-001',
+    'LC-012:J:LC-001',
+    'LC-012:JL:LC-001:LC-005',
+    'LC-013:J:LC-001',
+    'LC-013:JL:LC-001:LC-005',
+    'LC-014:SJ:LC-002:LC-003',
+    'LC-014:SJ:LC-002:LC-006',
+    'LC-014:SO:LC-002:LC-001',
+    'LC-015:O:LC-003',
+    'LC-016:O:LC-001',
+    'LC-016:OL:LC-001:LC-005',
+    'LC-017:J:LC-003',
+    'LC-018:L:LC-006',
+    'LC-018:II:LC-079:LC-001',
+    'LC-018:OJ:LC-002:LC-003',
+    'LC-018:OJ:LC-002:LC-006',
+    'LC-019:I:LC-001',
+    'LC-020:J:LC-005',
+    'LC-020:JO:LC-005:LC-006',
+    'LC-021:II:LC-004:LC-005',
+    'LC-022:IJ:LC-002:LC-003',
+    'LC-022:IO:LC-002:LC-001',
+    'LC-022:JI:LC-044:LC-006',
+    'LC-025:L:LC-003',
+    'LC-026:IL:LC-061:LC-005',
+    'LC-026:JJ:LC-050:LC-001',
+    'LC-026:LI:LC-004:LC-005',
+    'LC-028:OJ:LC-017:LC-003',
+    'LC-028:SL:LC-025:LC-003',
+    'LC-028:ZJ:LC-067:LC-003',
+    'LC-030:O:LC-005',
+    'LC-031:O:LC-006',
+    'LC-031:IO:LC-015:LC-003',
+    'LC-031:OI:LC-006:LC-003',
+    'LC-033:IS:LC-007:LC-001',
+    'LC-033:SI:LC-019:LC-001',
+    'LC-034:SS:LC-007:LC-001',
+    'LC-035:I:LC-006',
+    'LC-035:IL:LC-006:LC-001',
+    'LC-035:JO:LC-002:LC-001',
+    'LC-036:IJ:LC-002:LC-003',
+    'LC-036:IO:LC-002:LC-001',
+    'LC-036:OI:LC-019:LC-001',
+    'LC-038:L:LC-005',
+    'LC-038:LO:LC-005:LC-006',
+    'LC-039:JO:LC-016:LC-001',
+    'LC-042:O:LC-003',
+    'LC-043:J:LC-001',
+    'LC-043:OI:LC-035:LC-006',
+    'LC-044:I:LC-006',
+    'LC-045:JO:LC-016:LC-001',
+    'LC-047:SL:LC-061:LC-005',
+    'LC-050:J:LC-001',
+    'LC-050:IJ:LC-043:LC-001',
+    'LC-059:S:LC-005',
+    'LC-059:SO:LC-005:LC-006',
+    'LC-061:L:LC-005',
+    'LC-061:LO:LC-005:LC-006',
+    'LC-066:J:LC-006',
+    'LC-066:JI:LC-006:LC-003',
+    'LC-067:J:LC-003',
+    'LC-068:JO:LC-031:LC-006',
+    'LC-070:I:LC-006',
+    'LC-079:I:LC-001',
+    'LC-080:IJ:LC-002:LC-003',
+    'LC-083:JJ:LC-002:LC-003',
+    'LC-084:LI:LC-044:LC-006',
+    'LC-086:SL:LC-038:LC-005',
+  ]);
+  const continuationSets = {
+    opener: [],
+    midgame: [],
+    reset: [],
+    unresolved: [],
+  };
   const membership = new Map();
-  for (const c of catalog) for (const a of c.dependencies.alternatives) for (const p of a.paths) {
-    const key = routeKey(c.id, a.pieces, p.contours);
-    const coach = special.get(key) || (midgameKeys.has(key) ? "midgame" : "unresolved");
-    membership.set(key, coach);
-    continuationSets[coach].push({ from: c.id, pieces: a.pieces, ...p });
-  }
-  for (const key of [...special.keys(), ...midgameKeys]) if (!membership.has(key)) throw Error("Missing coach route: " + key);
+  for (const c of catalog)
+    for (const a of c.dependencies.alternatives)
+      for (const p of a.paths) {
+        const key = routeKey(c.id, a.pieces, p.contours);
+        const coach =
+          special.get(key) || (midgameKeys.has(key) ? 'midgame' : 'unresolved');
+        membership.set(key, coach);
+        continuationSets[coach].push({ from: c.id, pieces: a.pieces, ...p });
+      }
+  for (const key of [...special.keys(), ...midgameKeys])
+    if (!membership.has(key)) throw Error('Missing coach route: ' + key);
   deepFreeze(continuationSets);
-  const coachCatalogs = new Map(["opener", "midgame", "reset"].map(coach => [coach,
-    new Map(catalog.map(c => {
-      const alternatives = c.dependencies.alternatives.map(a => ({ ...a,
-        paths: a.paths.filter(p => membership.get(routeKey(c.id, a.pieces, p.contours)) === coach),
-      })).filter(a => a.paths.length);
-      return [c.key, deepFreeze({ ...c, dependencies: {
-        status: alternatives.length ? "known" : "unknown", alternatives,
-      } })];
-    }))]));
+  const coachCatalogs = new Map(
+    ['opener', 'midgame', 'reset'].map((coach) => [
+      coach,
+      new Map(
+        catalog.map((c) => {
+          const alternatives = c.dependencies.alternatives
+            .map((a) => ({
+              ...a,
+              paths: a.paths.filter(
+                (p) =>
+                  membership.get(routeKey(c.id, a.pieces, p.contours)) ===
+                  coach,
+              ),
+            }))
+            .filter((a) => a.paths.length);
+          return [
+            c.key,
+            deepFreeze({
+              ...c,
+              dependencies: {
+                status: alternatives.length ? 'known' : 'unknown',
+                alternatives,
+              },
+            }),
+          ];
+        }),
+      ),
+    ]),
+  );
   function lookup(heights, coach) {
     const k = key(heights);
     if (k === null) return null;
     // No coach means the archival union, never an implicit runtime permission.
-    return (coach === undefined ? byKey : coachCatalogs.get(coach))?.get(k) || null;
+    return (
+      (coach === undefined ? byKey : coachCatalogs.get(coach))?.get(k) || null
+    );
   }
   // Necessary finite piece-flow feasibility only. Skipped locks are explicitly
   // returned, not certified placements. No bag guesses or unseen pieces enter.
-  const scheduleLimit = Symbol("schedule-limit");
+  const scheduleLimit = Symbol('schedule-limit');
   function findSchedule(
     pieces,
     supply,
@@ -696,16 +728,16 @@
       return null;
     const token = (p, slot) => {
       if (p === null || p === undefined) return null;
-      const type = typeof p === "string" ? p : p.type;
-      if (!pieceType(type)) throw Error("Invalid public piece");
-      return { type, id: typeof p === "object" ? (p.id ?? null) : null, slot };
+      const type = typeof p === 'string' ? p : p.type;
+      if (!pieceType(type)) throw Error('Invalid public piece');
+      return { type, id: typeof p === 'object' ? (p.id ?? null) : null, slot };
     };
     let initial;
     try {
       initial = {
-        a: token(supply.active, "active"),
-        h: token(supply.hold, "hold"),
-        q: Array.from(supply.queue, (p, i) => token(p, "queue-" + i)),
+        a: token(supply.active, 'active'),
+        h: token(supply.hold, 'hold'),
+        q: Array.from(supply.queue, (p, i) => token(p, 'queue-' + i)),
         canHold: supply.canHold !== false,
         index: 0,
         steps: [],
@@ -728,7 +760,7 @@
     const todo = [initial],
       seen = new Set();
     if (!Number.isSafeInteger(maxStates) || maxStates < 0 || maxStates > 100000)
-      throw Error("Invalid schedule state limit");
+      throw Error('Invalid schedule state limit');
     for (let i = 0; i < todo.length; i++) {
       if (i >= maxStates) throw scheduleLimit;
       const n = todo[i];
@@ -791,17 +823,17 @@
   function schedule(pieces, supply, options = {}) {
     try {
       const steps = findSchedule(pieces, supply, options);
-      return { status: steps ? "matched" : "unavailable", steps };
+      return { status: steps ? 'matched' : 'unavailable', steps };
     } catch (error) {
       if (error !== scheduleLimit) throw error;
-      return { status: "incomplete", steps: null };
+      return { status: 'incomplete', steps: null };
     }
   }
   function candidates(heights, supply, options = {}) {
     const contour = lookup(heights, options.coach);
     if (!contour)
       return {
-        status: "unlisted",
+        status: 'unlisted',
         contour: null,
         alternatives: [],
         complete: true,
@@ -814,7 +846,7 @@
       );
       if (!paths.length) continue;
       const result = schedule(alternative.pieces, supply, options);
-      if (result.status === "incomplete") complete = false;
+      if (result.status === 'incomplete') complete = false;
       const steps = result.steps;
       if (steps)
         alternatives.push({

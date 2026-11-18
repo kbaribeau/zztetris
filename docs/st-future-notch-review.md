@@ -45,11 +45,11 @@ All three traces complete 36 locks, with no inherited notch violations or fresh-
 phase mismatches. Of 27 existing first recommendations, only `o-filler` changes
 (from holding J to using active O).
 
-| Trace | Previous TSD / quad / ending height | New TSD / quad / ending height |
-| --- | --- | --- |
-| o-filler | 5 / 0 / 13 | 5 / 0 / 13 |
-| marathon-rebuild | 3 / 1 / 16 | 4 / 0 / 18 |
-| marathon-preparation | 4 / 1 / 16 | 5 / 0 / 16 |
+| Trace                | Previous TSD / quad / ending height | New TSD / quad / ending height |
+| -------------------- | ----------------------------------- | ------------------------------ |
+| o-filler             | 5 / 0 / 13                          | 5 / 0 / 13                     |
+| marathon-rebuild     | 3 / 1 / 16                          | 4 / 0 / 18                     |
+| marathon-preparation | 4 / 1 / 16                          | 5 / 0 / 16                     |
 
 The old o-filler trace was notch-valid; its metrics remain unchanged after the
 cleanup-phase continuity corrections. The old Marathon traces first filled a

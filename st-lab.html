@@ -1,169 +1,487 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>ZZTetris · ST stacking lab</title>
-  <link rel="icon" href="assets/pieceSprite/z.png">
-  <link rel="stylesheet" href="styles/st-lab.css?v=st-assets-20261113-1">
-  <link rel="stylesheet" href="styles/navigation.css?v=st-assets-20261113-1">
-  <script src="st-diagnostics.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-diagnostics-ui.js?v=st-assets-20261113-1"></script>
-  <script defer src="training-settings.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-binding.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-rules.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-bag.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-fixtures.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-structure.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-paired-repair.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-access.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-pattern-history.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-left-foundation.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-opening-patterns.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-coach-config.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-reset-policy.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-public-inventory.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-handoff-continuity.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-center-obligations.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-obligation-admission.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-resource-search.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-sl-obligations.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-opening-obligations.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-left-obligations.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-obligation-state.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-obligation-context.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-obligation-inverse.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-obligation-projection.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-obligation-assessment.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-obligation-route.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-obligation-resources.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-opening-eligibility.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-plan-continuity.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-resource-provider.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-obligation-tracking.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-left-context.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-midgame-coaches.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-reset-coach.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-left-contours.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-left-dependencies.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-left-routes.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-planner.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-opening-continuations.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-opening-sources.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-source-scoring.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-opening.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-session.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-practice.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-left-plan.js?v=st-assets-20261113-1"></script>
-  <script defer src="st-lab.js?v=st-assets-20261113-1"></script>
-  <script defer src="navigation.js?v=st-assets-20261113-1"></script>
-</head>
-<body data-st-lab>
-  <nav class="app-nav" aria-label="Main navigation"></nav>
-  <header>
-    <h1>ST stacking lab</h1>
-    <p>Start from an empty board or practice maintaining a stable ST stack. Opening advice checks partial construction; maintenance advice checks finite continuations. Neither guarantees indefinite survival.</p>
-  </header>
-  <main>
-    <section class="lab-toolbar" aria-label="Play mode">
-      <label for="st-fixture">Play mode</label>
-      <select id="st-fixture"></select>
-      <button id="st-reset" type="button">Restart current board</button>
-      <button id="st-undo" type="button" data-action="UNDO" disabled>Undo last placement</button>
-      <p class="lab-note">Undo restores the start of the previous placement, including hold. The piece sequence stays the same. Up to 100 placements are retained; restart, mode changes and imports clear undo history.</p>
-      <p id="st-position-note" class="lab-note"></p>
-    </section>
-    <div id="st-phase-indicator" class="lab-phase" role="group" aria-label="Coaching phase and observed resources" hidden>
-      <span id="st-phase" class="lab-phase-badge" role="status" aria-live="polite" tabindex="0" aria-describedby="st-phase-detail">
-        <span id="st-phase-symbol" class="lab-badge-mark" aria-hidden="true"></span><span id="st-phase-name"></span>
-        <span id="st-phase-detail" class="lab-badge-detail" role="tooltip">Coaching session, not a Reset classifier or resource allowance.</span>
-      </span>
-      <span id="st-hanging-s" class="lab-resource-badge" role="status" aria-live="polite" aria-atomic="true" tabindex="0" aria-describedby="st-hanging-s-detail">
-        <span class="lab-badge-mark" aria-hidden="true"><span id="st-hanging-s-piece"><svg viewBox="0 0 16 12" focusable="false"><path d="M6 1h4v4H6zM11 1h4v4h-4zM1 6h4v4H1zM6 6h4v4H6z"/></svg></span></span><span id="st-hanging-s-symbol" class="lab-badge-annotation" aria-hidden="true"></span><span id="st-hanging-s-name">Hanging S</span>
-        <span id="st-hanging-s-detail" class="lab-badge-detail" role="tooltip"></span>
-      </span>
-      <span id="st-hanging-l" class="lab-resource-badge" role="status" aria-live="polite" aria-atomic="true" tabindex="0" aria-describedby="st-hanging-l-detail">
-        <span class="lab-badge-mark" aria-hidden="true"><span id="st-hanging-l-piece"><svg viewBox="0 0 16 12" focusable="false"><path d="M11 1h4v4h-4zM1 6h4v4H1zM6 6h4v4H6zM11 6h4v4h-4z"/></svg></span></span><span id="st-hanging-l-symbol" class="lab-badge-annotation" aria-hidden="true"></span><span id="st-hanging-l-name">Hanging L</span>
-        <span id="st-hanging-l-detail" class="lab-badge-detail" role="tooltip"></span>
-      </span>
-      <span id="st-extra-z" class="lab-resource-badge" role="status" aria-live="polite" aria-atomic="true" tabindex="0" aria-describedby="st-extra-z-detail">
-        <span class="lab-badge-mark" aria-hidden="true"><span id="st-extra-z-piece"><svg viewBox="0 0 16 12" focusable="false"><path d="M1 1h4v4H1zM6 1h4v4H6zM6 6h4v4H6zM11 6h4v4h-4z"/></svg></span></span><span id="st-extra-z-symbol" class="lab-badge-annotation" aria-hidden="true"></span><span id="st-extra-z-name">Extra Z</span>
-        <span id="st-extra-z-detail" class="lab-badge-detail" role="tooltip"></span>
-      </span>
-    </div>
-    <p id="st-resource-terminal" class="lab-resource-terminal" hidden>Game ended · resource badges show historical facts only.</p>
-    <div class="lab-field-scroll"><div class="lab-field">
-      <div class="queue"><h2>HOLD</h2><canvas id="h" width="90" height="70" aria-label="Held piece"></canvas><p id="st-hold-state" class="lab-note"></p></div>
-      <div class="lab-board-stack">
-        <div class="lab-board"><canvas id="b" width="200" height="440" aria-label="Tetris board"></canvas><svg id="st-target" width="200" height="440" viewBox="0 0 200 440" aria-hidden="true"></svg></div>
-        <div id="st-counters" class="lab-session-counters" role="group" aria-label="Session statistics" aria-describedby="st-lines-scope">
-          <div id="st-pieces" class="lab-session-counter" role="status" aria-live="polite" aria-atomic="true" aria-label="0 pieces locked since start">
-            <span id="st-pieces-label" class="lab-counter-label">Pieces locked</span>
-            <span id="st-pieces-value" class="lab-counter-value">0</span>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>ZZTetris · ST stacking lab</title>
+    <link rel="icon" href="assets/pieceSprite/z.png" />
+    <link rel="stylesheet" href="styles/st-lab.css?v=st-assets-20261113-1" />
+    <link
+      rel="stylesheet"
+      href="styles/navigation.css?v=st-assets-20261113-1"
+    />
+    <script src="st-diagnostics.js?v=st-assets-20261113-1"></script>
+    <script defer src="st-diagnostics-ui.js?v=st-assets-20261113-1"></script>
+    <script defer src="training-settings.js?v=st-assets-20261113-1"></script>
+    <script defer src="st-binding.js?v=st-assets-20261113-1"></script>
+    <script defer src="st-rules.js?v=st-assets-20261113-1"></script>
+    <script defer src="st-bag.js?v=st-assets-20261113-1"></script>
+    <script defer src="st-fixtures.js?v=st-assets-20261113-1"></script>
+    <script defer src="st-structure.js?v=st-assets-20261113-1"></script>
+    <script defer src="st-paired-repair.js?v=st-assets-20261113-1"></script>
+    <script defer src="st-access.js?v=st-assets-20261113-1"></script>
+    <script defer src="st-pattern-history.js?v=st-assets-20261113-1"></script>
+    <script defer src="st-left-foundation.js?v=st-assets-20261113-1"></script>
+    <script defer src="st-opening-patterns.js?v=st-assets-20261113-1"></script>
+    <script defer src="st-coach-config.js?v=st-assets-20261113-1"></script>
+    <script defer src="st-reset-policy.js?v=st-assets-20261113-1"></script>
+    <script defer src="st-public-inventory.js?v=st-assets-20261113-1"></script>
+    <script
+      defer
+      src="st-handoff-continuity.js?v=st-assets-20261113-1"
+    ></script>
+    <script
+      defer
+      src="st-center-obligations.js?v=st-assets-20261113-1"
+    ></script>
+    <script
+      defer
+      src="st-obligation-admission.js?v=st-assets-20261113-1"
+    ></script>
+    <script defer src="st-resource-search.js?v=st-assets-20261113-1"></script>
+    <script defer src="st-sl-obligations.js?v=st-assets-20261113-1"></script>
+    <script
+      defer
+      src="st-opening-obligations.js?v=st-assets-20261113-1"
+    ></script>
+    <script defer src="st-left-obligations.js?v=st-assets-20261113-1"></script>
+    <script defer src="st-obligation-state.js?v=st-assets-20261113-1"></script>
+    <script
+      defer
+      src="st-obligation-context.js?v=st-assets-20261113-1"
+    ></script>
+    <script
+      defer
+      src="st-obligation-inverse.js?v=st-assets-20261113-1"
+    ></script>
+    <script
+      defer
+      src="st-obligation-projection.js?v=st-assets-20261113-1"
+    ></script>
+    <script
+      defer
+      src="st-obligation-assessment.js?v=st-assets-20261113-1"
+    ></script>
+    <script defer src="st-obligation-route.js?v=st-assets-20261113-1"></script>
+    <script
+      defer
+      src="st-obligation-resources.js?v=st-assets-20261113-1"
+    ></script>
+    <script
+      defer
+      src="st-opening-eligibility.js?v=st-assets-20261113-1"
+    ></script>
+    <script defer src="st-plan-continuity.js?v=st-assets-20261113-1"></script>
+    <script defer src="st-resource-provider.js?v=st-assets-20261113-1"></script>
+    <script
+      defer
+      src="st-obligation-tracking.js?v=st-assets-20261113-1"
+    ></script>
+    <script defer src="st-left-context.js?v=st-assets-20261113-1"></script>
+    <script defer src="st-midgame-coaches.js?v=st-assets-20261113-1"></script>
+    <script defer src="st-reset-coach.js?v=st-assets-20261113-1"></script>
+    <script defer src="st-left-contours.js?v=st-assets-20261113-1"></script>
+    <script defer src="st-left-dependencies.js?v=st-assets-20261113-1"></script>
+    <script defer src="st-left-routes.js?v=st-assets-20261113-1"></script>
+    <script defer src="st-planner.js?v=st-assets-20261113-1"></script>
+    <script
+      defer
+      src="st-opening-continuations.js?v=st-assets-20261113-1"
+    ></script>
+    <script defer src="st-opening-sources.js?v=st-assets-20261113-1"></script>
+    <script defer src="st-source-scoring.js?v=st-assets-20261113-1"></script>
+    <script defer src="st-opening.js?v=st-assets-20261113-1"></script>
+    <script defer src="st-session.js?v=st-assets-20261113-1"></script>
+    <script defer src="st-practice.js?v=st-assets-20261113-1"></script>
+    <script defer src="st-left-plan.js?v=st-assets-20261113-1"></script>
+    <script defer src="st-lab.js?v=st-assets-20261113-1"></script>
+    <script defer src="navigation.js?v=st-assets-20261113-1"></script>
+  </head>
+  <body data-st-lab>
+    <nav class="app-nav" aria-label="Main navigation"></nav>
+    <header>
+      <h1>ST stacking lab</h1>
+      <p>
+        Start from an empty board or practice maintaining a stable ST stack.
+        Opening advice checks partial construction; maintenance advice checks
+        finite continuations. Neither guarantees indefinite survival.
+      </p>
+    </header>
+    <main>
+      <section class="lab-toolbar" aria-label="Play mode">
+        <label for="st-fixture">Play mode</label>
+        <select id="st-fixture"></select>
+        <button id="st-reset" type="button">Restart current board</button>
+        <button id="st-undo" type="button" data-action="UNDO" disabled>
+          Undo last placement
+        </button>
+        <p class="lab-note">
+          Undo restores the start of the previous placement, including hold. The
+          piece sequence stays the same. Up to 100 placements are retained;
+          restart, mode changes and imports clear undo history.
+        </p>
+        <p id="st-position-note" class="lab-note"></p>
+      </section>
+      <div
+        id="st-phase-indicator"
+        class="lab-phase"
+        role="group"
+        aria-label="Coaching phase and observed resources"
+        hidden
+      >
+        <span
+          id="st-phase"
+          class="lab-phase-badge"
+          role="status"
+          aria-live="polite"
+          tabindex="0"
+          aria-describedby="st-phase-detail"
+        >
+          <span
+            id="st-phase-symbol"
+            class="lab-badge-mark"
+            aria-hidden="true"
+          ></span
+          ><span id="st-phase-name"></span>
+          <span id="st-phase-detail" class="lab-badge-detail" role="tooltip"
+            >Coaching session, not a Reset classifier or resource
+            allowance.</span
+          >
+        </span>
+        <span
+          id="st-hanging-s"
+          class="lab-resource-badge"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          tabindex="0"
+          aria-describedby="st-hanging-s-detail"
+        >
+          <span class="lab-badge-mark" aria-hidden="true"
+            ><span id="st-hanging-s-piece"
+              ><svg viewBox="0 0 16 12" focusable="false">
+                <path
+                  d="M6 1h4v4H6zM11 1h4v4h-4zM1 6h4v4H1zM6 6h4v4H6z"
+                /></svg></span></span
+          ><span
+            id="st-hanging-s-symbol"
+            class="lab-badge-annotation"
+            aria-hidden="true"
+          ></span
+          ><span id="st-hanging-s-name">Hanging S</span>
+          <span
+            id="st-hanging-s-detail"
+            class="lab-badge-detail"
+            role="tooltip"
+          ></span>
+        </span>
+        <span
+          id="st-hanging-l"
+          class="lab-resource-badge"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          tabindex="0"
+          aria-describedby="st-hanging-l-detail"
+        >
+          <span class="lab-badge-mark" aria-hidden="true"
+            ><span id="st-hanging-l-piece"
+              ><svg viewBox="0 0 16 12" focusable="false">
+                <path
+                  d="M11 1h4v4h-4zM1 6h4v4H1zM6 6h4v4H6zM11 6h4v4h-4z"
+                /></svg></span></span
+          ><span
+            id="st-hanging-l-symbol"
+            class="lab-badge-annotation"
+            aria-hidden="true"
+          ></span
+          ><span id="st-hanging-l-name">Hanging L</span>
+          <span
+            id="st-hanging-l-detail"
+            class="lab-badge-detail"
+            role="tooltip"
+          ></span>
+        </span>
+        <span
+          id="st-extra-z"
+          class="lab-resource-badge"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          tabindex="0"
+          aria-describedby="st-extra-z-detail"
+        >
+          <span class="lab-badge-mark" aria-hidden="true"
+            ><span id="st-extra-z-piece"
+              ><svg viewBox="0 0 16 12" focusable="false">
+                <path
+                  d="M1 1h4v4H1zM6 1h4v4H6zM6 6h4v4H6zM11 6h4v4h-4z"
+                /></svg></span></span
+          ><span
+            id="st-extra-z-symbol"
+            class="lab-badge-annotation"
+            aria-hidden="true"
+          ></span
+          ><span id="st-extra-z-name">Extra Z</span>
+          <span
+            id="st-extra-z-detail"
+            class="lab-badge-detail"
+            role="tooltip"
+          ></span>
+        </span>
+      </div>
+      <p id="st-resource-terminal" class="lab-resource-terminal" hidden>
+        Game ended · resource badges show historical facts only.
+      </p>
+      <div class="lab-field-scroll">
+        <div class="lab-field">
+          <div class="queue">
+            <h2>HOLD</h2>
+            <canvas
+              id="h"
+              width="90"
+              height="70"
+              aria-label="Held piece"
+            ></canvas>
+            <p id="st-hold-state" class="lab-note"></p>
           </div>
-          <div id="st-lines" class="lab-session-counter" role="status" aria-live="polite" aria-atomic="true" aria-label="0 lines cleared since start">
-            <span id="st-lines-label" class="lab-counter-label">Lines cleared</span>
-            <span id="st-lines-value" class="lab-counter-value">0</span>
+          <div class="lab-board-stack">
+            <div class="lab-board">
+              <canvas
+                id="b"
+                width="200"
+                height="440"
+                aria-label="Tetris board"
+              ></canvas
+              ><svg
+                id="st-target"
+                width="200"
+                height="440"
+                viewBox="0 0 200 440"
+                aria-hidden="true"
+              ></svg>
+            </div>
+            <div
+              id="st-counters"
+              class="lab-session-counters"
+              role="group"
+              aria-label="Session statistics"
+              aria-describedby="st-lines-scope"
+            >
+              <div
+                id="st-pieces"
+                class="lab-session-counter"
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+                aria-label="0 pieces locked since start"
+              >
+                <span id="st-pieces-label" class="lab-counter-label"
+                  >Pieces locked</span
+                >
+                <span id="st-pieces-value" class="lab-counter-value">0</span>
+              </div>
+              <div
+                id="st-lines"
+                class="lab-session-counter"
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+                aria-label="0 lines cleared since start"
+              >
+                <span id="st-lines-label" class="lab-counter-label"
+                  >Lines cleared</span
+                >
+                <span id="st-lines-value" class="lab-counter-value">0</span>
+              </div>
+              <span id="st-lines-scope" class="lab-counter-scope"
+                >since start</span
+              >
+            </div>
           </div>
-          <span id="st-lines-scope" class="lab-counter-scope">since start</span>
+          <div class="queue">
+            <h2>NEXT</h2>
+            <canvas
+              id="n"
+              width="90"
+              height="360"
+              aria-label="Six visible upcoming pieces"
+            ></canvas>
+          </div>
         </div>
       </div>
-      <div class="queue"><h2>NEXT</h2><canvas id="n" width="90" height="360" aria-label="Six visible upcoming pieces"></canvas></div>
-    </div></div>
-    <section class="lab-advice" aria-label="Strategy advice">
-      <button id="st-toggle" type="button" aria-pressed="true">Advice ON · KeyA</button>
-      <p id="st-status" role="status" aria-live="polite">Starting coach…</p>
-      <div id="st-sources" class="lab-note" hidden>
-        <p>Community guidance:</p>
-        <ul id="st-source-list"></ul>
-        <p>These guides explain community concepts, not universal placement rules. The coach checks this specific move; the guides do not certify it.</p>
-      </div>
-      <details id="st-diagnostics"><summary>Coach diagnostics</summary><p id="st-resource-summary" class="lab-note"></p><p id="st-reset-summary" class="lab-note"></p><pre id="st-diagnostic-text"></pre></details>
-      <p id="st-rules-note" class="lab-note">st-zero-v2 · zero gravity · SRS+ · unlimited hold swaps · manual hard-drop locking. Gray outline: hard-drop ghost. Gold outline: coaching target. Follow any Hold instruction before placing the highlighted piece. Advice uses only this position and the six visible previews, plus any valid observed bag evidence.</p>
-    </section>
-    <details id="st-error-reports" class="lab-options">
-      <summary>Local error reports <span id="st-error-count"></span></summary>
-      <p class="lab-note">Unexpected errors are logged to the browser console and a bounded local history. Reports can include the visible board, hold, preview, obligations and search context. Nothing is uploaded automatically. Review before sharing.</p>
-      <p id="st-error-latest" role="status" aria-live="polite">No errors recorded.</p>
-      <div class="lab-buttons"><button id="st-error-copy" type="button">Copy diagnostics</button><button id="st-error-download" type="button">Download diagnostics</button><button id="st-error-clear" type="button">Clear reports</button></div>
-      <p id="st-error-action-status" role="status" aria-live="polite"></p>
-      <label for="st-error-json">Diagnostic JSON (available for manual copying)</label>
-      <textarea id="st-error-json" rows="8" readonly spellcheck="false"></textarea>
-    </details>
-    <details id="st-explorer" class="lab-options">
-      <summary>Search explorer · opt-in diagnostic capture</summary>
-      <p class="lab-note">Capture one decision from the current position. This is a frozen, public-only snapshot, not a move to apply. Capture is off until you press the button; playing or changing context cancels an active capture.</p>
-      <p class="lab-note">Ordinary and opening beam candidates have detailed paths and boards. Nested proof searches and special paths are summarized only. Missing candidates are not evidence of impossibility. Instrumentation affects the time budget, so a capture can differ from normal advice.</p>
-      <div class="lab-buttons"><button id="st-explore-capture" type="button">Capture this decision</button><button id="st-explore-cancel" type="button" disabled>Cancel capture</button></div>
-      <p id="st-explore-status" role="status" aria-live="polite">No capture requested.</p>
-      <div id="st-explore-start"></div>
-      <p class="lab-note">Expand an event to inspect its recorded path, priority and outcome. Events load 200 at a time; use Show next to inspect the rest of the captured trace. The trace may also have a capture limit.</p>
-      <div id="st-explore-events"></div>
-      <button id="st-explore-more" type="button" hidden>Show next 200 events</button>
-    </details>
-    <section class="lab-controls" aria-label="Play controls">
-      <h2>Manual controls</h2><p id="st-key-help" class="lab-note"></p>
-      <div class="lab-buttons">
-        <button data-action="L" aria-label="Move left">←</button><button data-action="R" aria-label="Move right">→</button>
-        <button data-action="SD">Down</button><button data-action="CCW">↶</button><button data-action="CW">↷</button>
-        <button data-action="R180">180°</button><button data-action="HOLD">Hold</button><button data-action="HD">Hard drop</button>
-      </div>
-      <p id="st-game-status" role="status" aria-live="polite"></p>
-    </section>
-    <details id="st-import-options" class="lab-options"><summary>Position and session import / export<span id="st-import-error-indicator" hidden> · Import rejected</span></summary>
-      <p>JSON snapshots contain the current board, pose, hold, visible queue and optional observed bag evidence. They do not export hidden future pieces. Coaching sessions additionally preserve versioned, validated resource and construction evidence. They exclude Undo history and diagnostic counters. The same Import button also accepts a private practice package: a coaching session bundled with a finite draw sequence. Only six preview pieces reach the coach; Restart replays the exact sequence and Undo rewinds it. Both export buttons exclude private future pieces. Imported supply is finite; no random order is substituted when it ends.</p>
-      <p>Export coaching session downloads the current session without replacing the text below. Imports may provide a <code>suggestedFileName</code>; otherwise the default is <code>st-lab-coaching-export.json</code>. The browser controls the final filename and save location.</p>
-      <p id="st-legacy-rules-note">Legacy st-zero-v1 uses one hold per lock for historical replay. Importing a v1 snapshot into this lab migrates it to unlimited-hold st-zero-v2.</p>
-      <label for="st-snapshot">Snapshot JSON</label><textarea id="st-snapshot" rows="8" spellcheck="false"></textarea>
-      <div id="st-import-result">
-        <h2 id="st-import-error-title" hidden><span class="lab-error-symbol" aria-hidden="true">!</span> Import rejected</h2>
-        <p id="st-import-status" role="status" aria-live="polite" aria-atomic="true"></p>
-        <p id="st-import-error-note" class="lab-note" hidden>Your input and current game are unchanged.</p>
-      </div>
-      <button id="st-import" type="button">Import position or session</button><button id="st-export" type="button">Export visible snapshot</button><button id="st-export-session" type="button">Export coaching session</button>
-      <p id="st-ordinary-practice-note">For legacy board drawing, Fumen tools, redo, gravity and other kicksets, use <a href="index.html">ordinary practice</a>. Those modes are unchanged.</p>
-    </details>
-  </main>
-  <footer><a href="ST-LAB.md">Rules and limitations</a> · <a href="controls.html">Game Settings</a> · <a href="LICENSE">MIT license</a></footer>
-</body>
+      <section class="lab-advice" aria-label="Strategy advice">
+        <button id="st-toggle" type="button" aria-pressed="true">
+          Advice ON · KeyA
+        </button>
+        <p id="st-status" role="status" aria-live="polite">Starting coach…</p>
+        <div id="st-sources" class="lab-note" hidden>
+          <p>Community guidance:</p>
+          <ul id="st-source-list"></ul>
+          <p>
+            These guides explain community concepts, not universal placement
+            rules. The coach checks this specific move; the guides do not
+            certify it.
+          </p>
+        </div>
+        <details id="st-diagnostics">
+          <summary>Coach diagnostics</summary>
+          <p id="st-resource-summary" class="lab-note"></p>
+          <p id="st-reset-summary" class="lab-note"></p>
+          <pre id="st-diagnostic-text"></pre>
+        </details>
+        <p id="st-rules-note" class="lab-note">
+          st-zero-v2 · zero gravity · SRS+ · unlimited hold swaps · manual
+          hard-drop locking. Gray outline: hard-drop ghost. Gold outline:
+          coaching target. Follow any Hold instruction before placing the
+          highlighted piece. Advice uses only this position and the six visible
+          previews, plus any valid observed bag evidence.
+        </p>
+      </section>
+      <details id="st-error-reports" class="lab-options">
+        <summary>Local error reports <span id="st-error-count"></span></summary>
+        <p class="lab-note">
+          Unexpected errors are logged to the browser console and a bounded
+          local history. Reports can include the visible board, hold, preview,
+          obligations and search context. Nothing is uploaded automatically.
+          Review before sharing.
+        </p>
+        <p id="st-error-latest" role="status" aria-live="polite">
+          No errors recorded.
+        </p>
+        <div class="lab-buttons">
+          <button id="st-error-copy" type="button">Copy diagnostics</button
+          ><button id="st-error-download" type="button">
+            Download diagnostics</button
+          ><button id="st-error-clear" type="button">Clear reports</button>
+        </div>
+        <p id="st-error-action-status" role="status" aria-live="polite"></p>
+        <label for="st-error-json"
+          >Diagnostic JSON (available for manual copying)</label
+        >
+        <textarea
+          id="st-error-json"
+          rows="8"
+          readonly
+          spellcheck="false"
+        ></textarea>
+      </details>
+      <details id="st-explorer" class="lab-options">
+        <summary>Search explorer · opt-in diagnostic capture</summary>
+        <p class="lab-note">
+          Capture one decision from the current position. This is a frozen,
+          public-only snapshot, not a move to apply. Capture is off until you
+          press the button; playing or changing context cancels an active
+          capture.
+        </p>
+        <p class="lab-note">
+          Ordinary and opening beam candidates have detailed paths and boards.
+          Nested proof searches and special paths are summarized only. Missing
+          candidates are not evidence of impossibility. Instrumentation affects
+          the time budget, so a capture can differ from normal advice.
+        </p>
+        <div class="lab-buttons">
+          <button id="st-explore-capture" type="button">
+            Capture this decision</button
+          ><button id="st-explore-cancel" type="button" disabled>
+            Cancel capture
+          </button>
+        </div>
+        <p id="st-explore-status" role="status" aria-live="polite">
+          No capture requested.
+        </p>
+        <div id="st-explore-start"></div>
+        <p class="lab-note">
+          Expand an event to inspect its recorded path, priority and outcome.
+          Events load 200 at a time; use Show next to inspect the rest of the
+          captured trace. The trace may also have a capture limit.
+        </p>
+        <div id="st-explore-events"></div>
+        <button id="st-explore-more" type="button" hidden>
+          Show next 200 events
+        </button>
+      </details>
+      <section class="lab-controls" aria-label="Play controls">
+        <h2>Manual controls</h2>
+        <p id="st-key-help" class="lab-note"></p>
+        <div class="lab-buttons">
+          <button data-action="L" aria-label="Move left">←</button
+          ><button data-action="R" aria-label="Move right">→</button>
+          <button data-action="SD">Down</button
+          ><button data-action="CCW">↶</button
+          ><button data-action="CW">↷</button>
+          <button data-action="R180">180°</button
+          ><button data-action="HOLD">Hold</button
+          ><button data-action="HD">Hard drop</button>
+        </div>
+        <p id="st-game-status" role="status" aria-live="polite"></p>
+      </section>
+      <details id="st-import-options" class="lab-options">
+        <summary>
+          Position and session import / export<span
+            id="st-import-error-indicator"
+            hidden
+          >
+            · Import rejected</span
+          >
+        </summary>
+        <p>
+          JSON snapshots contain the current board, pose, hold, visible queue
+          and optional observed bag evidence. They do not export hidden future
+          pieces. Coaching sessions additionally preserve versioned, validated
+          resource and construction evidence. They exclude Undo history and
+          diagnostic counters. The same Import button also accepts a private
+          practice package: a coaching session bundled with a finite draw
+          sequence. Only six preview pieces reach the coach; Restart replays the
+          exact sequence and Undo rewinds it. Both export buttons exclude
+          private future pieces. Imported supply is finite; no random order is
+          substituted when it ends.
+        </p>
+        <p>
+          Export coaching session downloads the current session without
+          replacing the text below. Imports may provide a
+          <code>suggestedFileName</code>; otherwise the default is
+          <code>st-lab-coaching-export.json</code>. The browser controls the
+          final filename and save location.
+        </p>
+        <p id="st-legacy-rules-note">
+          Legacy st-zero-v1 uses one hold per lock for historical replay.
+          Importing a v1 snapshot into this lab migrates it to unlimited-hold
+          st-zero-v2.
+        </p>
+        <label for="st-snapshot">Snapshot JSON</label
+        ><textarea id="st-snapshot" rows="8" spellcheck="false"></textarea>
+        <div id="st-import-result">
+          <h2 id="st-import-error-title" hidden>
+            <span class="lab-error-symbol" aria-hidden="true">!</span> Import
+            rejected
+          </h2>
+          <p
+            id="st-import-status"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          ></p>
+          <p id="st-import-error-note" class="lab-note" hidden>
+            Your input and current game are unchanged.
+          </p>
+        </div>
+        <button id="st-import" type="button">Import position or session</button
+        ><button id="st-export" type="button">Export visible snapshot</button
+        ><button id="st-export-session" type="button">
+          Export coaching session
+        </button>
+        <p id="st-ordinary-practice-note">
+          For legacy board drawing, Fumen tools, redo, gravity and other
+          kicksets, use <a href="index.html">ordinary practice</a>. Those modes
+          are unchanged.
+        </p>
+      </details>
+    </main>
+    <footer>
+      <a href="ST-LAB.md">Rules and limitations</a> ·
+      <a href="controls.html">Game Settings</a> ·
+      <a href="LICENSE">MIT license</a>
+    </footer>
+  </body>
 </html>

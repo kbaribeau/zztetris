@@ -1,121 +1,121 @@
 function garbageHeight() {
-	for (row = 0; row < board.length; row++) {
-		for (col = 0; col < board[0].length; col++) {
-			if (board[row][col].c == 'X') return board.length - row;
-		}
-	}
-	return 0;
+  for (row = 0; row < board.length; row++) {
+    for (col = 0; col < board[0].length; col++) {
+      if (board[row][col].c == 'X') return board.length - row;
+    }
+  }
+  return 0;
 }
 
 function restart() {
-	if (board[board.length - 1].filter((c) => c.t == 0).length == boardSize[0]) {
-		// lazy check, will have false positives, but whatever
-		if (queue[6] == '|' && holdP == '') {
-			// if they reset after resetting, just restart hist
-			hist = [
-				{
-					board: JSON.stringify(board),
-					queue: JSON.stringify(queue),
-					hold: holdP,
-					piece: piece,
-				},
-			];
-			histPos = 0;
-		}
-	}
-	board = [];
-	for (let i = 0; i < boardSize[1]; i++) {
-		board.push(aRow());
-	}
+  if (board[board.length - 1].filter((c) => c.t == 0).length == boardSize[0]) {
+    // lazy check, will have false positives, but whatever
+    if (queue[6] == '|' && holdP == '') {
+      // if they reset after resetting, just restart hist
+      hist = [
+        {
+          board: JSON.stringify(board),
+          queue: JSON.stringify(queue),
+          hold: holdP,
+          piece: piece,
+        },
+      ];
+      histPos = 0;
+    }
+  }
+  board = [];
+  for (let i = 0; i < boardSize[1]; i++) {
+    board.push(aRow());
+  }
 
-	curCol = Math.floor(Math.random() * 10);
-	while (garbageHeight() < 10) {
-		while (curCol == lastCol) {
-			curCol = Math.floor(Math.random() * 10);
-		}
-		garbage(curCol);
-		lastCol = curCol;
-	}
+  curCol = Math.floor(Math.random() * 10);
+  while (garbageHeight() < 10) {
+    while (curCol == lastCol) {
+      curCol = Math.floor(Math.random() * 10);
+    }
+    garbage(curCol);
+    lastCol = curCol;
+  }
 
-	queue = [];
-	rot = 0;
-	piece = '';
-	holdP = '';
-	held = false;
-	xPOS = spawn[0];
-	yPOS = spawn[1];
-	xGHO = spawn[0];
-    yGHO = spawn[1];
+  queue = [];
+  rot = 0;
+  piece = '';
+  holdP = '';
+  held = false;
+  xPOS = spawn[0];
+  yPOS = spawn[1];
+  xGHO = spawn[0];
+  yGHO = spawn[1];
 
-    combo = -1;
-    b2b = -1;
-	newPiece();
+  combo = -1;
+  b2b = -1;
+  newPiece();
 }
 
 function updateQueue() {
-	drawQueuePreview(queue, holdP, imgs, ctxN, ctxH);
+  drawQueuePreview(queue, holdP, imgs, ctxN, ctxH);
 }
 
 function shuffleQueue() {
-	// locate bag separator
-	index = 0;
-	while (index < queue.length && queue[index] != '|') index++;
+  // locate bag separator
+  index = 0;
+  while (index < queue.length && queue[index] != '|') index++;
 
-	tempQueue = queue.slice(0, index).concat(piece).shuffle().concat('|');
-	// the queue before the bag separator (the current bag), plus active piece; shuffle it; add bag separator to end
-	piece = tempQueue.shift();
-	queue = tempQueue;
+  tempQueue = queue.slice(0, index).concat(piece).shuffle().concat('|');
+  // the queue before the bag separator (the current bag), plus active piece; shuffle it; add bag separator to end
+  piece = tempQueue.shift();
+  queue = tempQueue;
 
-	while (queue.length < 10) {
-		var shuf = names.shuffle();
-		shuf.map((p) => queue.push(p));
-		queue.push('|');
-	}
-	xPOS = spawn[0];
-	yPOS = spawn[1];
-	rot = 0;
-	clearActive();
-	checkTopOut();
-	updateQueue();
-	updateGhost();
-	setShape();
-	updateHistory();
+  while (queue.length < 10) {
+    var shuf = names.shuffle();
+    shuf.map((p) => queue.push(p));
+    queue.push('|');
+  }
+  xPOS = spawn[0];
+  yPOS = spawn[1];
+  rot = 0;
+  clearActive();
+  checkTopOut();
+  updateQueue();
+  updateGhost();
+  setShape();
+  updateHistory();
 }
 
 function shuffleQueuePlusHold() {
-	if (!holdP) {
-		shuffleQueue();
-		return;
-	}
+  if (!holdP) {
+    shuffleQueue();
+    return;
+  }
 
-	index = 0;
-	while (index < queue.length && queue[index] != '|') index++;
+  index = 0;
+  while (index < queue.length && queue[index] != '|') index++;
 
-	tempQueue = queue.slice(0, index).concat(piece, holdP).shuffle().concat('|');
-	holdP = tempQueue.shift();
-	piece = tempQueue.shift();
-	queue = tempQueue;
+  tempQueue = queue.slice(0, index).concat(piece, holdP).shuffle().concat('|');
+  holdP = tempQueue.shift();
+  piece = tempQueue.shift();
+  queue = tempQueue;
 
-	while (queue.length < 10) {
-		var shuf = names.shuffle();
-		shuf.map((p) => queue.push(p));
-		queue.push('|');
-	}
-	xPOS = spawn[0];
-	yPOS = spawn[1];
-	rot = 0;
-	clearActive();
-	checkTopOut();
-	updateQueue();
-	updateGhost();
-	setShape();
-	updateHistory();
+  while (queue.length < 10) {
+    var shuf = names.shuffle();
+    shuf.map((p) => queue.push(p));
+    queue.push('|');
+  }
+  xPOS = spawn[0];
+  yPOS = spawn[1];
+  rot = 0;
+  clearActive();
+  checkTopOut();
+  updateQueue();
+  updateGhost();
+  setShape();
+  updateHistory();
 }
 
 function updateKickTable() {
-	kicks = kicksets[document.getElementById('kickset').value];
+  kicks = kicksets[document.getElementById('kickset').value];
 }
 
 function game() {
-	callback(undefined, true, true);
+  callback(undefined, true, true);
 }

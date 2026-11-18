@@ -53,22 +53,13 @@
     },
     "hold": "O",
     "canHold": true,
-    "queue": [
-      "Z",
-      "T",
-      "L",
-      "J",
-      "S",
-      "I"
-    ],
+    "queue": ["Z", "T", "L", "J", "S", "I"],
     "revision": 344,
     "streamCursor": 91,
     "topOut": false,
     "lastEvent": null,
     "bag": {
-      "remaining": [
-        8
-      ],
+      "remaining": [8],
       "observedCount": 97,
       "provenance": "known-phase"
     }
@@ -144,9 +135,7 @@
         ],
         "frontier": null,
         "knowledge": {
-          "remaining": [
-            8
-          ],
+          "remaining": [8],
           "observedCount": 97,
           "provenance": "known-phase"
         }
@@ -166,15 +155,8 @@
           "handoff": false,
           "residuals": [],
           "uncertainty": {
-            "S": [
-              0,
-              0,
-              0,
-              0
-            ],
-            "L": [
-              0
-            ]
+            "S": [0, 0, 0, 0],
+            "L": [0]
           }
         },
         "account": {
@@ -221,25 +203,10 @@
   },
   "steps": [
     {
-      "witness": [
-        "CW",
-        "L",
-        "L",
-        "L",
-        "L",
-        "L",
-        "HD"
-      ]
+      "witness": ["CW", "L", "L", "L", "L", "L", "HD"]
     },
     {
-      "witness": [
-        "CW",
-        "R",
-        "R",
-        "R",
-        "R",
-        "HD"
-      ]
+      "witness": ["CW", "R", "R", "R", "R", "HD"]
     },
     {
       "witness": [
@@ -271,20 +238,8 @@
     }
   ],
   "expected": {
-    "placed": [
-      51,
-      52,
-      53
-    ],
-    "clearedRows": [
-      34,
-      35
-    ],
-    "foundationCells": [
-      [
-        0,
-        34
-      ]
-    ]
+    "placed": [51, 52, 53],
+    "clearedRows": [34, 35],
+    "foundationCells": [[0, 34]]
   }
 }

@@ -46,7 +46,7 @@ The lab uses its own zero-gravity SRS+ profile with **unlimited hold swaps**, wi
 - Image import works through clipboard
 - Undo/redo with board history
 - Optional bag boundaries (enable in **Game Settings → Training**): a 2px corner on the last NEXT piece before each explicit queue-segment boundary; a top-edge cue when that piece is already active. Custom and special-mode segments can have different lengths, and queues without separators have no inferred boundary.
-- *Full* fumen import/export sets your board state history as the fumen pages and vice versa.
+- _Full_ fumen import/export sets your board state history as the fumen pages and vice versa.
 - Drawing garbage on the board
 
 ## Regression tests

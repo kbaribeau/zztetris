@@ -53,21 +53,12 @@
     },
     "hold": "L",
     "canHold": true,
-    "queue": [
-      "J",
-      "Z",
-      "S",
-      "I",
-      "J",
-      "T"
-    ],
+    "queue": ["J", "Z", "S", "I", "J", "T"],
     "revision": 208,
     "streamCursor": 19,
     "topOut": false,
     "bag": {
-      "remaining": [
-        76
-      ],
+      "remaining": [76],
       "observedCount": 25,
       "provenance": "known-phase"
     }
@@ -130,21 +121,12 @@
       },
       "hold": "L",
       "canHold": true,
-      "queue": [
-        "O",
-        "J",
-        "Z",
-        "S",
-        "I",
-        "J"
-      ],
+      "queue": ["O", "J", "Z", "S", "I", "J"],
       "revision": 207,
       "streamCursor": 18,
       "topOut": false,
       "bag": {
-        "remaining": [
-          108
-        ],
+        "remaining": [108],
         "observedCount": 24,
         "provenance": "known-phase"
       }
@@ -158,28 +140,13 @@
         "rotation": 2
       },
       "cells": [
-        [
-          6,
-          37
-        ],
-        [
-          7,
-          37
-        ],
-        [
-          8,
-          37
-        ],
-        [
-          7,
-          38
-        ]
+        [6, 37],
+        [7, 37],
+        [8, 37],
+        [7, 38]
       ],
       "lines": 2,
-      "clearedRows": [
-        37,
-        38
-      ],
+      "clearedRows": [37, 38],
       "spin": "full",
       "topOut": false
     }
@@ -249,9 +216,7 @@
         "seenMask": 51
       },
       "knowledge": {
-        "remaining": [
-          76
-        ],
+        "remaining": [76],
         "observedCount": 25,
         "provenance": "known-phase"
       }
@@ -289,15 +254,8 @@
           }
         ],
         "uncertainty": {
-          "S": [
-            0,
-            0,
-            1,
-            0
-          ],
-          "L": [
-            0
-          ]
+          "S": [0, 0, 1, 0],
+          "L": [0]
         }
       },
       "account": {

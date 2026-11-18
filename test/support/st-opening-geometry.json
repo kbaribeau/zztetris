@@ -133,42 +133,15 @@
     ],
     "expected": {
       "leftCheckerboard": 0,
-      "leftHeights": [
-        0,
-        0,
-        0,
-        0
-      ],
-      "centerHeights": [
-        0,
-        0,
-        0
-      ],
-      "rightHeights": [
-        0,
-        0,
-        0
-      ],
+      "leftHeights": [0, 0, 0, 0],
+      "centerHeights": [0, 0, 0],
+      "rightHeights": [0, 0, 0],
       "leftSealed": 0,
       "regionalSupport": false,
       "notches": {
         "status": "established",
         "anchorRow": 37,
-        "protectedRows": [
-          37,
-          34,
-          31,
-          28,
-          25,
-          22,
-          19,
-          16,
-          13,
-          10,
-          7,
-          4,
-          1
-        ],
+        "protectedRows": [37, 34, 31, 28, 25, 22, 19, 16, 13, 10, 7, 4, 1],
         "blockedRows": [],
         "source": "witnessed-floor-Z-cap"
       },
@@ -228,22 +201,10 @@
     "referencePlacement": {
       "type": "J",
       "cells": [
-        [
-          4,
-          39
-        ],
-        [
-          2,
-          38
-        ],
-        [
-          3,
-          38
-        ],
-        [
-          4,
-          38
-        ]
+        [4, 39],
+        [2, 38],
+        [3, 38],
+        [4, 38]
       ],
       "lines": 0,
       "clearedRows": [],
@@ -336,42 +297,15 @@
     ],
     "expected": {
       "leftCheckerboard": 0,
-      "leftHeights": [
-        1,
-        1,
-        2,
-        2
-      ],
-      "centerHeights": [
-        2,
-        2,
-        2
-      ],
-      "rightHeights": [
-        0,
-        0,
-        0
-      ],
+      "leftHeights": [1, 1, 2, 2],
+      "centerHeights": [2, 2, 2],
+      "rightHeights": [0, 0, 0],
       "leftSealed": 0,
       "regionalSupport": false,
       "notches": {
         "status": "established",
         "anchorRow": 37,
-        "protectedRows": [
-          37,
-          34,
-          31,
-          28,
-          25,
-          22,
-          19,
-          16,
-          13,
-          10,
-          7,
-          4,
-          1
-        ],
+        "protectedRows": [37, 34, 31, 28, 25, 22, 19, 16, 13, 10, 7, 4, 1],
         "blockedRows": [],
         "source": "witnessed-floor-Z-cap"
       },
@@ -431,22 +365,10 @@
     "referencePlacement": {
       "type": "T",
       "cells": [
-        [
-          1,
-          38
-        ],
-        [
-          1,
-          37
-        ],
-        [
-          2,
-          37
-        ],
-        [
-          1,
-          36
-        ]
+        [1, 38],
+        [1, 37],
+        [2, 37],
+        [1, 36]
       ],
       "lines": 0,
       "clearedRows": [],
@@ -539,42 +461,15 @@
     ],
     "expected": {
       "leftCheckerboard": 2,
-      "leftHeights": [
-        1,
-        4,
-        3,
-        2
-      ],
-      "centerHeights": [
-        5,
-        5,
-        5
-      ],
-      "rightHeights": [
-        0,
-        2,
-        3
-      ],
+      "leftHeights": [1, 4, 3, 2],
+      "centerHeights": [5, 5, 5],
+      "rightHeights": [0, 2, 3],
       "leftSealed": 0,
       "regionalSupport": true,
       "notches": {
         "status": "established",
         "anchorRow": 37,
-        "protectedRows": [
-          37,
-          34,
-          31,
-          28,
-          25,
-          22,
-          19,
-          16,
-          13,
-          10,
-          7,
-          4,
-          1
-        ],
+        "protectedRows": [37, 34, 31, 28, 25, 22, 19, 16, 13, 10, 7, 4, 1],
         "blockedRows": [],
         "source": "recognized-scoring-wall"
       },
@@ -634,22 +529,10 @@
     "referencePlacement": {
       "type": "I",
       "cells": [
-        [
-          0,
-          38
-        ],
-        [
-          0,
-          37
-        ],
-        [
-          0,
-          36
-        ],
-        [
-          0,
-          35
-        ]
+        [0, 38],
+        [0, 37],
+        [0, 36],
+        [0, 35]
       ],
       "lines": 0,
       "clearedRows": [],
@@ -742,42 +625,15 @@
     ],
     "expected": {
       "leftCheckerboard": 2,
-      "leftHeights": [
-        5,
-        4,
-        3,
-        2
-      ],
-      "centerHeights": [
-        5,
-        5,
-        5
-      ],
-      "rightHeights": [
-        0,
-        2,
-        3
-      ],
+      "leftHeights": [5, 4, 3, 2],
+      "centerHeights": [5, 5, 5],
+      "rightHeights": [0, 2, 3],
       "leftSealed": 0,
       "regionalSupport": true,
       "notches": {
         "status": "established",
         "anchorRow": 37,
-        "protectedRows": [
-          37,
-          34,
-          31,
-          28,
-          25,
-          22,
-          19,
-          16,
-          13,
-          10,
-          7,
-          4,
-          1
-        ],
+        "protectedRows": [37, 34, 31, 28, 25, 22, 19, 16, 13, 10, 7, 4, 1],
         "blockedRows": [],
         "source": "recognized-scoring-wall"
       },
@@ -837,22 +693,10 @@
     "referencePlacement": {
       "type": "T",
       "cells": [
-        [
-          3,
-          37
-        ],
-        [
-          2,
-          36
-        ],
-        [
-          3,
-          36
-        ],
-        [
-          3,
-          35
-        ]
+        [3, 37],
+        [2, 36],
+        [3, 36],
+        [3, 35]
       ],
       "lines": 0,
       "clearedRows": [],
@@ -945,42 +789,15 @@
     ],
     "expected": {
       "leftCheckerboard": 0,
-      "leftHeights": [
-        5,
-        4,
-        4,
-        5
-      ],
-      "centerHeights": [
-        5,
-        5,
-        5
-      ],
-      "rightHeights": [
-        0,
-        2,
-        3
-      ],
+      "leftHeights": [5, 4, 4, 5],
+      "centerHeights": [5, 5, 5],
+      "rightHeights": [0, 2, 3],
       "leftSealed": 0,
       "regionalSupport": true,
       "notches": {
         "status": "established",
         "anchorRow": 37,
-        "protectedRows": [
-          37,
-          34,
-          31,
-          28,
-          25,
-          22,
-          19,
-          16,
-          13,
-          10,
-          7,
-          4,
-          1
-        ],
+        "protectedRows": [37, 34, 31, 28, 25, 22, 19, 16, 13, 10, 7, 4, 1],
         "blockedRows": [],
         "source": "recognized-scoring-wall"
       },
@@ -1048,22 +865,10 @@
     "referencePlacement": {
       "type": "L",
       "cells": [
-        [
-          4,
-          27
-        ],
-        [
-          4,
-          26
-        ],
-        [
-          5,
-          26
-        ],
-        [
-          6,
-          26
-        ]
+        [4, 27],
+        [4, 26],
+        [5, 26],
+        [6, 26]
       ],
       "lines": 0,
       "clearedRows": [],
@@ -1156,42 +961,15 @@
     ],
     "expected": {
       "leftCheckerboard": 0,
-      "leftHeights": [
-        11,
-        11,
-        12,
-        12
-      ],
-      "centerHeights": [
-        14,
-        14,
-        14
-      ],
-      "rightHeights": [
-        0,
-        2,
-        3
-      ],
+      "leftHeights": [11, 11, 12, 12],
+      "centerHeights": [14, 14, 14],
+      "rightHeights": [0, 2, 3],
       "leftSealed": 0,
       "regionalSupport": true,
       "notches": {
         "status": "established",
         "anchorRow": 37,
-        "protectedRows": [
-          37,
-          34,
-          31,
-          28,
-          25,
-          22,
-          19,
-          16,
-          13,
-          10,
-          7,
-          4,
-          1
-        ],
+        "protectedRows": [37, 34, 31, 28, 25, 22, 19, 16, 13, 10, 7, 4, 1],
         "blockedRows": [],
         "source": "recognized-scoring-wall"
       },
@@ -1259,28 +1037,13 @@
     "referencePlacement": {
       "type": "T",
       "cells": [
-        [
-          7,
-          38
-        ],
-        [
-          6,
-          37
-        ],
-        [
-          7,
-          37
-        ],
-        [
-          8,
-          37
-        ]
+        [7, 38],
+        [6, 37],
+        [7, 37],
+        [8, 37]
       ],
       "lines": 2,
-      "clearedRows": [
-        37,
-        38
-      ],
+      "clearedRows": [37, 38],
       "spin": "not-independently-verified",
       "inputWitness": null
     },
@@ -1370,42 +1133,15 @@
     ],
     "expected": {
       "leftCheckerboard": 0,
-      "leftHeights": [
-        9,
-        9,
-        10,
-        10
-      ],
-      "centerHeights": [
-        12,
-        12,
-        12
-      ],
-      "rightHeights": [
-        0,
-        1,
-        0
-      ],
+      "leftHeights": [9, 9, 10, 10],
+      "centerHeights": [12, 12, 12],
+      "rightHeights": [0, 1, 0],
       "leftSealed": 0,
       "regionalSupport": true,
       "notches": {
         "status": "established",
         "anchorRow": 36,
-        "protectedRows": [
-          36,
-          33,
-          30,
-          27,
-          24,
-          21,
-          18,
-          15,
-          12,
-          9,
-          6,
-          3,
-          0
-        ],
+        "protectedRows": [36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3, 0],
         "blockedRows": [],
         "source": "recognized-next-Z-cap"
       },
@@ -1465,22 +1201,10 @@
     "referencePlacement": {
       "type": "S",
       "cells": [
-        [
-          4,
-          37
-        ],
-        [
-          5,
-          37
-        ],
-        [
-          5,
-          36
-        ],
-        [
-          6,
-          36
-        ]
+        [4, 37],
+        [5, 37],
+        [5, 36],
+        [6, 36]
       ],
       "lines": 0,
       "clearedRows": [],
@@ -1573,42 +1297,15 @@
     ],
     "expected": {
       "leftCheckerboard": 0,
-      "leftHeights": [
-        1,
-        1,
-        2,
-        2
-      ],
-      "centerHeights": [
-        3,
-        4,
-        4
-      ],
-      "rightHeights": [
-        0,
-        0,
-        0
-      ],
+      "leftHeights": [1, 1, 2, 2],
+      "centerHeights": [3, 4, 4],
+      "rightHeights": [0, 0, 0],
       "leftSealed": 0,
       "regionalSupport": true,
       "notches": {
         "status": "established",
         "anchorRow": 37,
-        "protectedRows": [
-          37,
-          34,
-          31,
-          28,
-          25,
-          22,
-          19,
-          16,
-          13,
-          10,
-          7,
-          4,
-          1
-        ],
+        "protectedRows": [37, 34, 31, 28, 25, 22, 19, 16, 13, 10, 7, 4, 1],
         "blockedRows": [],
         "source": "witnessed-floor-Z-cap"
       },
@@ -1752,42 +1449,15 @@
     ],
     "expected": {
       "leftCheckerboard": 0,
-      "leftHeights": [
-        0,
-        0,
-        0,
-        0
-      ],
-      "centerHeights": [
-        0,
-        0,
-        0
-      ],
-      "rightHeights": [
-        0,
-        0,
-        0
-      ],
+      "leftHeights": [0, 0, 0, 0],
+      "centerHeights": [0, 0, 0],
+      "rightHeights": [0, 0, 0],
       "leftSealed": 0,
       "regionalSupport": false,
       "notches": {
         "status": "established",
         "anchorRow": 37,
-        "protectedRows": [
-          37,
-          34,
-          31,
-          28,
-          25,
-          22,
-          19,
-          16,
-          13,
-          10,
-          7,
-          4,
-          1
-        ],
+        "protectedRows": [37, 34, 31, 28, 25, 22, 19, 16, 13, 10, 7, 4, 1],
         "blockedRows": [],
         "source": "witnessed-floor-Z-cap"
       },
@@ -1847,22 +1517,10 @@
     "referencePlacement": {
       "type": "S",
       "cells": [
-        [
-          4,
-          39
-        ],
-        [
-          3,
-          38
-        ],
-        [
-          4,
-          38
-        ],
-        [
-          3,
-          37
-        ]
+        [4, 39],
+        [3, 38],
+        [4, 38],
+        [3, 37]
       ],
       "lines": 0,
       "clearedRows": [],
@@ -1955,42 +1613,15 @@
     ],
     "expected": {
       "leftCheckerboard": 0,
-      "leftHeights": [
-        1,
-        3,
-        3,
-        3
-      ],
-      "centerHeights": [
-        2,
-        0,
-        0
-      ],
-      "rightHeights": [
-        0,
-        2,
-        3
-      ],
+      "leftHeights": [1, 3, 3, 3],
+      "centerHeights": [2, 0, 0],
+      "rightHeights": [0, 2, 3],
       "leftSealed": 0,
       "regionalSupport": false,
       "notches": {
         "status": "established",
         "anchorRow": 37,
-        "protectedRows": [
-          37,
-          34,
-          31,
-          28,
-          25,
-          22,
-          19,
-          16,
-          13,
-          10,
-          7,
-          4,
-          1
-        ],
+        "protectedRows": [37, 34, 31, 28, 25, 22, 19, 16, 13, 10, 7, 4, 1],
         "blockedRows": [],
         "source": "recognized-scoring-wall"
       },
@@ -2050,22 +1681,10 @@
     "referencePlacement": {
       "type": "T",
       "cells": [
-        [
-          1,
-          36
-        ],
-        [
-          2,
-          36
-        ],
-        [
-          3,
-          36
-        ],
-        [
-          2,
-          35
-        ]
+        [1, 36],
+        [2, 36],
+        [3, 36],
+        [2, 35]
       ],
       "lines": 0,
       "clearedRows": [],
@@ -2158,42 +1777,15 @@
     ],
     "expected": {
       "leftCheckerboard": 2,
-      "leftHeights": [
-        5,
-        4,
-        5,
-        4
-      ],
-      "centerHeights": [
-        2,
-        2,
-        2
-      ],
-      "rightHeights": [
-        0,
-        2,
-        3
-      ],
+      "leftHeights": [5, 4, 5, 4],
+      "centerHeights": [2, 2, 2],
+      "rightHeights": [0, 2, 3],
       "leftSealed": 0,
       "regionalSupport": false,
       "notches": {
         "status": "established",
         "anchorRow": 37,
-        "protectedRows": [
-          37,
-          34,
-          31,
-          28,
-          25,
-          22,
-          19,
-          16,
-          13,
-          10,
-          7,
-          4,
-          1
-        ],
+        "protectedRows": [37, 34, 31, 28, 25, 22, 19, 16, 13, 10, 7, 4, 1],
         "blockedRows": [],
         "source": "recognized-scoring-wall"
       },
@@ -2253,22 +1845,10 @@
     "referencePlacement": {
       "type": "S",
       "cells": [
-        [
-          4,
-          34
-        ],
-        [
-          5,
-          34
-        ],
-        [
-          5,
-          33
-        ],
-        [
-          6,
-          33
-        ]
+        [4, 34],
+        [5, 34],
+        [5, 33],
+        [6, 33]
       ],
       "lines": 0,
       "clearedRows": [],
@@ -2361,42 +1941,15 @@
     ],
     "expected": {
       "leftCheckerboard": 2,
-      "leftHeights": [
-        5,
-        6,
-        7,
-        8
-      ],
-      "centerHeights": [
-        6,
-        7,
-        7
-      ],
-      "rightHeights": [
-        0,
-        2,
-        3
-      ],
+      "leftHeights": [5, 6, 7, 8],
+      "centerHeights": [6, 7, 7],
+      "rightHeights": [0, 2, 3],
       "leftSealed": 0,
       "regionalSupport": true,
       "notches": {
         "status": "established",
         "anchorRow": 37,
-        "protectedRows": [
-          37,
-          34,
-          31,
-          28,
-          25,
-          22,
-          19,
-          16,
-          13,
-          10,
-          7,
-          4,
-          1
-        ],
+        "protectedRows": [37, 34, 31, 28, 25, 22, 19, 16, 13, 10, 7, 4, 1],
         "blockedRows": [],
         "source": "recognized-scoring-wall"
       },
@@ -2464,22 +2017,10 @@
     "referencePlacement": {
       "type": "O",
       "cells": [
-        [
-          5,
-          36
-        ],
-        [
-          6,
-          36
-        ],
-        [
-          5,
-          35
-        ],
-        [
-          6,
-          35
-        ]
+        [5, 36],
+        [6, 36],
+        [5, 35],
+        [6, 35]
       ],
       "lines": 0,
       "clearedRows": [],
@@ -2572,42 +2113,15 @@
     ],
     "expected": {
       "leftCheckerboard": 2,
-      "leftHeights": [
-        5,
-        4,
-        5,
-        4
-      ],
-      "centerHeights": [
-        5,
-        5,
-        5
-      ],
-      "rightHeights": [
-        0,
-        2,
-        3
-      ],
+      "leftHeights": [5, 4, 5, 4],
+      "centerHeights": [5, 5, 5],
+      "rightHeights": [0, 2, 3],
       "leftSealed": 0,
       "regionalSupport": true,
       "notches": {
         "status": "established",
         "anchorRow": 37,
-        "protectedRows": [
-          37,
-          34,
-          31,
-          28,
-          25,
-          22,
-          19,
-          16,
-          13,
-          10,
-          7,
-          4,
-          1
-        ],
+        "protectedRows": [37, 34, 31, 28, 25, 22, 19, 16, 13, 10, 7, 4, 1],
         "blockedRows": [],
         "source": "recognized-scoring-wall"
       },
@@ -2675,22 +2189,10 @@
     "referencePlacement": {
       "type": "T",
       "cells": [
-        [
-          0,
-          34
-        ],
-        [
-          0,
-          33
-        ],
-        [
-          1,
-          33
-        ],
-        [
-          0,
-          32
-        ]
+        [0, 34],
+        [0, 33],
+        [1, 33],
+        [0, 32]
       ],
       "lines": 0,
       "clearedRows": [],
@@ -2783,42 +2285,15 @@
     ],
     "expected": {
       "leftCheckerboard": 0,
-      "leftHeights": [
-        8,
-        7,
-        7,
-        8
-      ],
-      "centerHeights": [
-        6,
-        7,
-        7
-      ],
-      "rightHeights": [
-        0,
-        2,
-        3
-      ],
+      "leftHeights": [8, 7, 7, 8],
+      "centerHeights": [6, 7, 7],
+      "rightHeights": [0, 2, 3],
       "leftSealed": 0,
       "regionalSupport": true,
       "notches": {
         "status": "established",
         "anchorRow": 37,
-        "protectedRows": [
-          37,
-          34,
-          31,
-          28,
-          25,
-          22,
-          19,
-          16,
-          13,
-          10,
-          7,
-          4,
-          1
-        ],
+        "protectedRows": [37, 34, 31, 28, 25, 22, 19, 16, 13, 10, 7, 4, 1],
         "blockedRows": [],
         "source": "recognized-scoring-wall"
       },
@@ -2886,22 +2361,10 @@
     "referencePlacement": {
       "type": "L",
       "cells": [
-        [
-          4,
-          33
-        ],
-        [
-          4,
-          32
-        ],
-        [
-          5,
-          32
-        ],
-        [
-          6,
-          32
-        ]
+        [4, 33],
+        [4, 32],
+        [5, 32],
+        [6, 32]
       ],
       "lines": 0,
       "clearedRows": [],
@@ -2994,42 +2457,15 @@
     ],
     "expected": {
       "leftCheckerboard": 0,
-      "leftHeights": [
-        11,
-        11,
-        12,
-        12
-      ],
-      "centerHeights": [
-        8,
-        8,
-        8
-      ],
-      "rightHeights": [
-        0,
-        2,
-        3
-      ],
+      "leftHeights": [11, 11, 12, 12],
+      "centerHeights": [8, 8, 8],
+      "rightHeights": [0, 2, 3],
       "leftSealed": 0,
       "regionalSupport": true,
       "notches": {
         "status": "established",
         "anchorRow": 37,
-        "protectedRows": [
-          37,
-          34,
-          31,
-          28,
-          25,
-          22,
-          19,
-          16,
-          13,
-          10,
-          7,
-          4,
-          1
-        ],
+        "protectedRows": [37, 34, 31, 28, 25, 22, 19, 16, 13, 10, 7, 4, 1],
         "blockedRows": [],
         "source": "recognized-scoring-wall"
       },
@@ -3097,28 +2533,13 @@
     "referencePlacement": {
       "type": "T",
       "cells": [
-        [
-          7,
-          38
-        ],
-        [
-          6,
-          37
-        ],
-        [
-          7,
-          37
-        ],
-        [
-          8,
-          37
-        ]
+        [7, 38],
+        [6, 37],
+        [7, 37],
+        [8, 37]
       ],
       "lines": 2,
-      "clearedRows": [
-        37,
-        38
-      ],
+      "clearedRows": [37, 38],
       "spin": "not-independently-verified",
       "inputWitness": null
     },
@@ -3208,42 +2629,15 @@
     ],
     "expected": {
       "leftCheckerboard": 0,
-      "leftHeights": [
-        9,
-        9,
-        10,
-        10
-      ],
-      "centerHeights": [
-        6,
-        6,
-        6
-      ],
-      "rightHeights": [
-        0,
-        1,
-        0
-      ],
+      "leftHeights": [9, 9, 10, 10],
+      "centerHeights": [6, 6, 6],
+      "rightHeights": [0, 1, 0],
       "leftSealed": 0,
       "regionalSupport": true,
       "notches": {
         "status": "established",
         "anchorRow": 36,
-        "protectedRows": [
-          36,
-          33,
-          30,
-          27,
-          24,
-          21,
-          18,
-          15,
-          12,
-          9,
-          6,
-          3,
-          0
-        ],
+        "protectedRows": [36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3, 0],
         "blockedRows": [],
         "source": "recognized-next-Z-cap"
       },
@@ -3303,22 +2697,10 @@
     "referencePlacement": {
       "type": "L",
       "cells": [
-        [
-          4,
-          37
-        ],
-        [
-          5,
-          37
-        ],
-        [
-          4,
-          36
-        ],
-        [
-          4,
-          35
-        ]
+        [4, 37],
+        [5, 37],
+        [4, 36],
+        [4, 35]
       ],
       "lines": 0,
       "clearedRows": [],
@@ -3411,42 +2793,15 @@
     ],
     "expected": {
       "leftCheckerboard": 2,
-      "leftHeights": [
-        5,
-        4,
-        5,
-        4
-      ],
-      "centerHeights": [
-        5,
-        3,
-        2
-      ],
-      "rightHeights": [
-        0,
-        2,
-        3
-      ],
+      "leftHeights": [5, 4, 5, 4],
+      "centerHeights": [5, 3, 2],
+      "rightHeights": [0, 2, 3],
       "leftSealed": 0,
       "regionalSupport": true,
       "notches": {
         "status": "established",
         "anchorRow": 37,
-        "protectedRows": [
-          37,
-          34,
-          31,
-          28,
-          25,
-          22,
-          19,
-          16,
-          13,
-          10,
-          7,
-          4,
-          1
-        ],
+        "protectedRows": [37, 34, 31, 28, 25, 22, 19, 16, 13, 10, 7, 4, 1],
         "blockedRows": [],
         "source": "recognized-scoring-wall"
       },
@@ -3590,42 +2945,15 @@
     ],
     "expected": {
       "leftCheckerboard": 0,
-      "leftHeights": [
-        0,
-        0,
-        0,
-        0
-      ],
-      "centerHeights": [
-        0,
-        0,
-        0
-      ],
-      "rightHeights": [
-        0,
-        0,
-        0
-      ],
+      "leftHeights": [0, 0, 0, 0],
+      "centerHeights": [0, 0, 0],
+      "rightHeights": [0, 0, 0],
       "leftSealed": 0,
       "regionalSupport": false,
       "notches": {
         "status": "established",
         "anchorRow": 37,
-        "protectedRows": [
-          37,
-          34,
-          31,
-          28,
-          25,
-          22,
-          19,
-          16,
-          13,
-          10,
-          7,
-          4,
-          1
-        ],
+        "protectedRows": [37, 34, 31, 28, 25, 22, 19, 16, 13, 10, 7, 4, 1],
         "blockedRows": [],
         "source": "witnessed-floor-Z-cap"
       },
@@ -3685,22 +3013,10 @@
     "referencePlacement": {
       "type": "J",
       "cells": [
-        [
-          8,
-          39
-        ],
-        [
-          7,
-          39
-        ],
-        [
-          6,
-          39
-        ],
-        [
-          6,
-          38
-        ]
+        [8, 39],
+        [7, 39],
+        [6, 39],
+        [6, 38]
       ],
       "lines": 0,
       "clearedRows": [],
@@ -3793,22 +3109,9 @@
     ],
     "expected": {
       "leftCheckerboard": 0,
-      "leftHeights": [
-        0,
-        0,
-        0,
-        0
-      ],
-      "centerHeights": [
-        0,
-        0,
-        2
-      ],
-      "rightHeights": [
-        1,
-        1,
-        0
-      ],
+      "leftHeights": [0, 0, 0, 0],
+      "centerHeights": [0, 0, 2],
+      "rightHeights": [1, 1, 0],
       "leftSealed": 0,
       "regionalSupport": false,
       "notches": {
@@ -3874,22 +3177,10 @@
     "referencePlacement": {
       "type": "T",
       "cells": [
-        [
-          2,
-          38
-        ],
-        [
-          3,
-          37
-        ],
-        [
-          2,
-          37
-        ],
-        [
-          2,
-          36
-        ]
+        [2, 38],
+        [3, 37],
+        [2, 37],
+        [2, 36]
       ],
       "lines": 0,
       "clearedRows": [],
@@ -3982,42 +3273,15 @@
     ],
     "expected": {
       "leftCheckerboard": -2,
-      "leftHeights": [
-        2,
-        3,
-        4,
-        3
-      ],
-      "centerHeights": [
-        7,
-        7,
-        7
-      ],
-      "rightHeights": [
-        0,
-        1,
-        2
-      ],
+      "leftHeights": [2, 3, 4, 3],
+      "centerHeights": [7, 7, 7],
+      "rightHeights": [0, 1, 2],
       "leftSealed": 0,
       "regionalSupport": true,
       "notches": {
         "status": "established",
         "anchorRow": 38,
-        "protectedRows": [
-          38,
-          35,
-          32,
-          29,
-          26,
-          23,
-          20,
-          17,
-          14,
-          11,
-          8,
-          5,
-          2
-        ],
+        "protectedRows": [38, 35, 32, 29, 26, 23, 20, 17, 14, 11, 8, 5, 2],
         "blockedRows": [],
         "source": "recognized-scoring-wall"
       },
@@ -4085,22 +3349,10 @@
     "referencePlacement": {
       "type": "Z",
       "cells": [
-        [
-          0,
-          37
-        ],
-        [
-          1,
-          36
-        ],
-        [
-          0,
-          36
-        ],
-        [
-          1,
-          35
-        ]
+        [0, 37],
+        [1, 36],
+        [0, 36],
+        [1, 35]
       ],
       "lines": 0,
       "clearedRows": [],
@@ -4193,42 +3445,15 @@
     ],
     "expected": {
       "leftCheckerboard": -2,
-      "leftHeights": [
-        4,
-        5,
-        6,
-        5
-      ],
-      "centerHeights": [
-        7,
-        7,
-        7
-      ],
-      "rightHeights": [
-        0,
-        1,
-        2
-      ],
+      "leftHeights": [4, 5, 6, 5],
+      "centerHeights": [7, 7, 7],
+      "rightHeights": [0, 1, 2],
       "leftSealed": 0,
       "regionalSupport": true,
       "notches": {
         "status": "established",
         "anchorRow": 38,
-        "protectedRows": [
-          38,
-          35,
-          32,
-          29,
-          26,
-          23,
-          20,
-          17,
-          14,
-          11,
-          8,
-          5,
-          2
-        ],
+        "protectedRows": [38, 35, 32, 29, 26, 23, 20, 17, 14, 11, 8, 5, 2],
         "blockedRows": [],
         "source": "recognized-scoring-wall"
       },
@@ -4296,22 +3521,10 @@
     "referencePlacement": {
       "type": "T",
       "cells": [
-        [
-          2,
-          38
-        ],
-        [
-          3,
-          37
-        ],
-        [
-          2,
-          37
-        ],
-        [
-          2,
-          36
-        ]
+        [2, 38],
+        [3, 37],
+        [2, 37],
+        [2, 36]
       ],
       "lines": 0,
       "clearedRows": [],
@@ -4404,42 +3617,15 @@
     ],
     "expected": {
       "leftCheckerboard": -2,
-      "leftHeights": [
-        2,
-        3,
-        4,
-        3
-      ],
-      "centerHeights": [
-        7,
-        7,
-        7
-      ],
-      "rightHeights": [
-        0,
-        1,
-        2
-      ],
+      "leftHeights": [2, 3, 4, 3],
+      "centerHeights": [7, 7, 7],
+      "rightHeights": [0, 1, 2],
       "leftSealed": 0,
       "regionalSupport": true,
       "notches": {
         "status": "established",
         "anchorRow": 38,
-        "protectedRows": [
-          38,
-          35,
-          32,
-          29,
-          26,
-          23,
-          20,
-          17,
-          14,
-          11,
-          8,
-          5,
-          2
-        ],
+        "protectedRows": [38, 35, 32, 29, 26, 23, 20, 17, 14, 11, 8, 5, 2],
         "blockedRows": [],
         "source": "recognized-scoring-wall"
       },
@@ -4507,22 +3693,10 @@
     "referencePlacement": {
       "type": "T",
       "cells": [
-        [
-          0,
-          35
-        ],
-        [
-          1,
-          34
-        ],
-        [
-          0,
-          34
-        ],
-        [
-          0,
-          33
-        ]
+        [0, 35],
+        [1, 34],
+        [0, 34],
+        [0, 33]
       ],
       "lines": 0,
       "clearedRows": [],
@@ -4615,42 +3789,15 @@
     ],
     "expected": {
       "leftCheckerboard": 0,
-      "leftHeights": [
-        7,
-        6,
-        6,
-        5
-      ],
-      "centerHeights": [
-        7,
-        7,
-        7
-      ],
-      "rightHeights": [
-        0,
-        1,
-        2
-      ],
+      "leftHeights": [7, 6, 6, 5],
+      "centerHeights": [7, 7, 7],
+      "rightHeights": [0, 1, 2],
       "leftSealed": 0,
       "regionalSupport": true,
       "notches": {
         "status": "established",
         "anchorRow": 38,
-        "protectedRows": [
-          38,
-          35,
-          32,
-          29,
-          26,
-          23,
-          20,
-          17,
-          14,
-          11,
-          8,
-          5,
-          2
-        ],
+        "protectedRows": [38, 35, 32, 29, 26, 23, 20, 17, 14, 11, 8, 5, 2],
         "blockedRows": [],
         "source": "recognized-scoring-wall"
       },
@@ -4718,22 +3865,10 @@
     "referencePlacement": {
       "type": "I",
       "cells": [
-        [
-          3,
-          30
-        ],
-        [
-          2,
-          30
-        ],
-        [
-          1,
-          30
-        ],
-        [
-          0,
-          30
-        ]
+        [3, 30],
+        [2, 30],
+        [1, 30],
+        [0, 30]
       ],
       "lines": 0,
       "clearedRows": [],
@@ -4826,42 +3961,15 @@
     ],
     "expected": {
       "leftCheckerboard": 0,
-      "leftHeights": [
-        10,
-        10,
-        10,
-        10
-      ],
-      "centerHeights": [
-        10,
-        10,
-        10
-      ],
-      "rightHeights": [
-        0,
-        1,
-        2
-      ],
+      "leftHeights": [10, 10, 10, 10],
+      "centerHeights": [10, 10, 10],
+      "rightHeights": [0, 1, 2],
       "leftSealed": 0,
       "regionalSupport": true,
       "notches": {
         "status": "established",
         "anchorRow": 38,
-        "protectedRows": [
-          38,
-          35,
-          32,
-          29,
-          26,
-          23,
-          20,
-          17,
-          14,
-          11,
-          8,
-          5,
-          2
-        ],
+        "protectedRows": [38, 35, 32, 29, 26, 23, 20, 17, 14, 11, 8, 5, 2],
         "blockedRows": [],
         "source": "recognized-scoring-wall"
       },
@@ -4929,28 +4037,13 @@
     "referencePlacement": {
       "type": "T",
       "cells": [
-        [
-          7,
-          39
-        ],
-        [
-          8,
-          38
-        ],
-        [
-          7,
-          38
-        ],
-        [
-          6,
-          38
-        ]
+        [7, 39],
+        [8, 38],
+        [7, 38],
+        [6, 38]
       ],
       "lines": 2,
-      "clearedRows": [
-        38,
-        39
-      ],
+      "clearedRows": [38, 39],
       "spin": "not-independently-verified",
       "inputWitness": null
     },
@@ -5040,42 +4133,15 @@
     ],
     "expected": {
       "leftCheckerboard": 0,
-      "leftHeights": [
-        8,
-        8,
-        8,
-        8
-      ],
-      "centerHeights": [
-        8,
-        8,
-        8
-      ],
-      "rightHeights": [
-        0,
-        0,
-        0
-      ],
+      "leftHeights": [8, 8, 8, 8],
+      "centerHeights": [8, 8, 8],
+      "rightHeights": [0, 0, 0],
       "leftSealed": 0,
       "regionalSupport": true,
       "notches": {
         "status": "established",
         "anchorRow": 37,
-        "protectedRows": [
-          37,
-          34,
-          31,
-          28,
-          25,
-          22,
-          19,
-          16,
-          13,
-          10,
-          7,
-          4,
-          1
-        ],
+        "protectedRows": [37, 34, 31, 28, 25, 22, 19, 16, 13, 10, 7, 4, 1],
         "blockedRows": [],
         "source": "witnessed-floor-Z-cap"
       },
@@ -5135,27 +4201,13 @@
     "referencePlacement": {
       "type": "T",
       "cells": [
-        [
-          9,
-          39
-        ],
-        [
-          9,
-          38
-        ],
-        [
-          8,
-          38
-        ],
-        [
-          9,
-          37
-        ]
+        [9, 39],
+        [9, 38],
+        [8, 38],
+        [9, 37]
       ],
       "lines": 1,
-      "clearedRows": [
-        39
-      ],
+      "clearedRows": [39],
       "spin": "not-independently-verified",
       "inputWitness": null
     },
@@ -5245,42 +4297,15 @@
     ],
     "expected": {
       "leftCheckerboard": 0,
-      "leftHeights": [
-        2,
-        3,
-        1,
-        2
-      ],
-      "centerHeights": [
-        2,
-        3,
-        3
-      ],
-      "rightHeights": [
-        0,
-        1,
-        2
-      ],
+      "leftHeights": [2, 3, 1, 2],
+      "centerHeights": [2, 3, 3],
+      "rightHeights": [0, 1, 2],
       "leftSealed": 0,
       "regionalSupport": true,
       "notches": {
         "status": "established",
         "anchorRow": 38,
-        "protectedRows": [
-          38,
-          35,
-          32,
-          29,
-          26,
-          23,
-          20,
-          17,
-          14,
-          11,
-          8,
-          5,
-          2
-        ],
+        "protectedRows": [38, 35, 32, 29, 26, 23, 20, 17, 14, 11, 8, 5, 2],
         "blockedRows": [],
         "source": "recognized-scoring-wall"
       },
@@ -5424,42 +4449,15 @@
     ],
     "expected": {
       "leftCheckerboard": 0,
-      "leftHeights": [
-        0,
-        0,
-        0,
-        0
-      ],
-      "centerHeights": [
-        0,
-        0,
-        0
-      ],
-      "rightHeights": [
-        0,
-        0,
-        0
-      ],
+      "leftHeights": [0, 0, 0, 0],
+      "centerHeights": [0, 0, 0],
+      "rightHeights": [0, 0, 0],
       "leftSealed": 0,
       "regionalSupport": false,
       "notches": {
         "status": "established",
         "anchorRow": 37,
-        "protectedRows": [
-          37,
-          34,
-          31,
-          28,
-          25,
-          22,
-          19,
-          16,
-          13,
-          10,
-          7,
-          4,
-          1
-        ],
+        "protectedRows": [37, 34, 31, 28, 25, 22, 19, 16, 13, 10, 7, 4, 1],
         "blockedRows": [],
         "source": "witnessed-floor-Z-cap"
       },
@@ -5519,22 +4517,10 @@
     "referencePlacement": {
       "type": "L",
       "cells": [
-        [
-          2,
-          39
-        ],
-        [
-          3,
-          39
-        ],
-        [
-          4,
-          39
-        ],
-        [
-          4,
-          38
-        ]
+        [2, 39],
+        [3, 39],
+        [4, 39],
+        [4, 38]
       ],
       "lines": 0,
       "clearedRows": [],
@@ -5627,42 +4613,15 @@
     ],
     "expected": {
       "leftCheckerboard": 0,
-      "leftHeights": [
-        0,
-        0,
-        1,
-        1
-      ],
-      "centerHeights": [
-        2,
-        0,
-        0
-      ],
-      "rightHeights": [
-        0,
-        0,
-        0
-      ],
+      "leftHeights": [0, 0, 1, 1],
+      "centerHeights": [2, 0, 0],
+      "rightHeights": [0, 0, 0],
       "leftSealed": 0,
       "regionalSupport": false,
       "notches": {
         "status": "established",
         "anchorRow": 37,
-        "protectedRows": [
-          37,
-          34,
-          31,
-          28,
-          25,
-          22,
-          19,
-          16,
-          13,
-          10,
-          7,
-          4,
-          1
-        ],
+        "protectedRows": [37, 34, 31, 28, 25, 22, 19, 16, 13, 10, 7, 4, 1],
         "blockedRows": [],
         "source": "witnessed-floor-Z-cap"
       },
@@ -5722,22 +4681,10 @@
     "referencePlacement": {
       "type": "T",
       "cells": [
-        [
-          0,
-          38
-        ],
-        [
-          0,
-          37
-        ],
-        [
-          1,
-          37
-        ],
-        [
-          0,
-          36
-        ]
+        [0, 38],
+        [0, 37],
+        [1, 37],
+        [0, 36]
       ],
       "lines": 0,
       "clearedRows": [],
@@ -5830,42 +4777,15 @@
     ],
     "expected": {
       "leftCheckerboard": -2,
-      "leftHeights": [
-        4,
-        3,
-        2,
-        1
-      ],
-      "centerHeights": [
-        2,
-        0,
-        0
-      ],
-      "rightHeights": [
-        0,
-        0,
-        0
-      ],
+      "leftHeights": [4, 3, 2, 1],
+      "centerHeights": [2, 0, 0],
+      "rightHeights": [0, 0, 0],
       "leftSealed": 0,
       "regionalSupport": false,
       "notches": {
         "status": "established",
         "anchorRow": 37,
-        "protectedRows": [
-          37,
-          34,
-          31,
-          28,
-          25,
-          22,
-          19,
-          16,
-          13,
-          10,
-          7,
-          4,
-          1
-        ],
+        "protectedRows": [37, 34, 31, 28, 25, 22, 19, 16, 13, 10, 7, 4, 1],
         "blockedRows": [],
         "source": "witnessed-floor-Z-cap"
       },
@@ -5925,22 +4845,10 @@
     "referencePlacement": {
       "type": "I",
       "cells": [
-        [
-          0,
-          35
-        ],
-        [
-          0,
-          34
-        ],
-        [
-          0,
-          33
-        ],
-        [
-          0,
-          32
-        ]
+        [0, 35],
+        [0, 34],
+        [0, 33],
+        [0, 32]
       ],
       "lines": 0,
       "clearedRows": [],
@@ -6033,42 +4941,15 @@
     ],
     "expected": {
       "leftCheckerboard": -2,
-      "leftHeights": [
-        8,
-        5,
-        4,
-        5
-      ],
-      "centerHeights": [
-        8,
-        8,
-        8
-      ],
-      "rightHeights": [
-        0,
-        0,
-        0
-      ],
+      "leftHeights": [8, 5, 4, 5],
+      "centerHeights": [8, 8, 8],
+      "rightHeights": [0, 0, 0],
       "leftSealed": 0,
       "regionalSupport": true,
       "notches": {
         "status": "established",
         "anchorRow": 37,
-        "protectedRows": [
-          37,
-          34,
-          31,
-          28,
-          25,
-          22,
-          19,
-          16,
-          13,
-          10,
-          7,
-          4,
-          1
-        ],
+        "protectedRows": [37, 34, 31, 28, 25, 22, 19, 16, 13, 10, 7, 4, 1],
         "blockedRows": [],
         "source": "witnessed-floor-Z-cap"
       },
@@ -6128,22 +5009,10 @@
     "referencePlacement": {
       "type": "T",
       "cells": [
-        [
-          2,
-          35
-        ],
-        [
-          1,
-          34
-        ],
-        [
-          2,
-          34
-        ],
-        [
-          3,
-          34
-        ]
+        [2, 35],
+        [1, 34],
+        [2, 34],
+        [3, 34]
       ],
       "lines": 0,
       "clearedRows": [],
@@ -6236,42 +5105,15 @@
     ],
     "expected": {
       "leftCheckerboard": 0,
-      "leftHeights": [
-        8,
-        6,
-        6,
-        6
-      ],
-      "centerHeights": [
-        8,
-        8,
-        8
-      ],
-      "rightHeights": [
-        0,
-        0,
-        0
-      ],
+      "leftHeights": [8, 6, 6, 6],
+      "centerHeights": [8, 8, 8],
+      "rightHeights": [0, 0, 0],
       "leftSealed": 0,
       "regionalSupport": true,
       "notches": {
         "status": "established",
         "anchorRow": 37,
-        "protectedRows": [
-          37,
-          34,
-          31,
-          28,
-          25,
-          22,
-          19,
-          16,
-          13,
-          10,
-          7,
-          4,
-          1
-        ],
+        "protectedRows": [37, 34, 31, 28, 25, 22, 19, 16, 13, 10, 7, 4, 1],
         "blockedRows": [],
         "source": "witnessed-floor-Z-cap"
       },
@@ -6331,22 +5173,10 @@
     "referencePlacement": {
       "type": "J",
       "cells": [
-        [
-          1,
-          32
-        ],
-        [
-          2,
-          32
-        ],
-        [
-          2,
-          31
-        ],
-        [
-          2,
-          30
-        ]
+        [1, 32],
+        [2, 32],
+        [2, 31],
+        [2, 30]
       ],
       "lines": 0,
       "clearedRows": [],
@@ -6439,42 +5269,15 @@
     ],
     "expected": {
       "leftCheckerboard": 0,
-      "leftHeights": [
-        8,
-        8,
-        10,
-        12
-      ],
-      "centerHeights": [
-        8,
-        8,
-        8
-      ],
-      "rightHeights": [
-        0,
-        2,
-        3
-      ],
+      "leftHeights": [8, 8, 10, 12],
+      "centerHeights": [8, 8, 8],
+      "rightHeights": [0, 2, 3],
       "leftSealed": 0,
       "regionalSupport": true,
       "notches": {
         "status": "established",
         "anchorRow": 37,
-        "protectedRows": [
-          37,
-          34,
-          31,
-          28,
-          25,
-          22,
-          19,
-          16,
-          13,
-          10,
-          7,
-          4,
-          1
-        ],
+        "protectedRows": [37, 34, 31, 28, 25, 22, 19, 16, 13, 10, 7, 4, 1],
         "blockedRows": [],
         "source": "recognized-scoring-wall"
       },
@@ -6542,28 +5345,13 @@
     "referencePlacement": {
       "type": "T",
       "cells": [
-        [
-          7,
-          38
-        ],
-        [
-          6,
-          37
-        ],
-        [
-          7,
-          37
-        ],
-        [
-          8,
-          37
-        ]
+        [7, 38],
+        [6, 37],
+        [7, 37],
+        [8, 37]
       ],
       "lines": 2,
-      "clearedRows": [
-        37,
-        38
-      ],
+      "clearedRows": [37, 38],
       "spin": "not-independently-verified",
       "inputWitness": null
     },
@@ -6653,42 +5441,15 @@
     ],
     "expected": {
       "leftCheckerboard": 0,
-      "leftHeights": [
-        6,
-        6,
-        8,
-        10
-      ],
-      "centerHeights": [
-        6,
-        6,
-        6
-      ],
-      "rightHeights": [
-        0,
-        1,
-        0
-      ],
+      "leftHeights": [6, 6, 8, 10],
+      "centerHeights": [6, 6, 6],
+      "rightHeights": [0, 1, 0],
       "leftSealed": 0,
       "regionalSupport": true,
       "notches": {
         "status": "established",
         "anchorRow": 36,
-        "protectedRows": [
-          36,
-          33,
-          30,
-          27,
-          24,
-          21,
-          18,
-          15,
-          12,
-          9,
-          6,
-          3,
-          0
-        ],
+        "protectedRows": [36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3, 0],
         "blockedRows": [],
         "source": "recognized-next-Z-cap"
       },
@@ -6748,22 +5509,10 @@
     "referencePlacement": {
       "type": "Z",
       "cells": [
-        [
-          5,
-          37
-        ],
-        [
-          5,
-          36
-        ],
-        [
-          6,
-          36
-        ],
-        [
-          6,
-          35
-        ]
+        [5, 37],
+        [5, 36],
+        [6, 36],
+        [6, 35]
       ],
       "lines": 0,
       "clearedRows": [],
@@ -6856,42 +5605,15 @@
     ],
     "expected": {
       "leftCheckerboard": -2,
-      "leftHeights": [
-        4,
-        3,
-        2,
-        1
-      ],
-      "centerHeights": [
-        2,
-        4,
-        5
-      ],
-      "rightHeights": [
-        0,
-        0,
-        0
-      ],
+      "leftHeights": [4, 3, 2, 1],
+      "centerHeights": [2, 4, 5],
+      "rightHeights": [0, 0, 0],
       "leftSealed": 0,
       "regionalSupport": true,
       "notches": {
         "status": "established",
         "anchorRow": 37,
-        "protectedRows": [
-          37,
-          34,
-          31,
-          28,
-          25,
-          22,
-          19,
-          16,
-          13,
-          10,
-          7,
-          4,
-          1
-        ],
+        "protectedRows": [37, 34, 31, 28, 25, 22, 19, 16, 13, 10, 7, 4, 1],
         "blockedRows": [],
         "source": "witnessed-floor-Z-cap"
       },

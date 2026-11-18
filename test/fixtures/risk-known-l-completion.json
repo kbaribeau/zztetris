@@ -53,21 +53,12 @@
     },
     "hold": "L",
     "canHold": true,
-    "queue": [
-      "Z",
-      "T",
-      "O",
-      "J",
-      "I",
-      "L"
-    ],
+    "queue": ["Z", "T", "O", "J", "I", "L"],
     "revision": 853,
     "streamCursor": 148,
     "topOut": false,
     "bag": {
-      "remaining": [
-        0
-      ],
+      "remaining": [0],
       "observedCount": 154,
       "provenance": "known-phase"
     }
@@ -143,9 +134,7 @@
         ],
         "frontier": null,
         "knowledge": {
-          "remaining": [
-            0
-          ],
+          "remaining": [0],
           "observedCount": 154,
           "provenance": "known-phase"
         }
@@ -163,22 +152,10 @@
                 {
                   "piece": "L",
                   "cells": [
-                    [
-                      4,
-                      35
-                    ],
-                    [
-                      5,
-                      35
-                    ],
-                    [
-                      6,
-                      35
-                    ],
-                    [
-                      4,
-                      36
-                    ]
+                    [4, 35],
+                    [5, 35],
+                    [6, 35],
+                    [4, 36]
                   ]
                 }
               ]
@@ -194,15 +171,8 @@
           "handoff": false,
           "residuals": [],
           "uncertainty": {
-            "S": [
-              0,
-              0,
-              0,
-              0
-            ],
-            "L": [
-              0
-            ]
+            "S": [0, 0, 0, 0],
+            "L": [0]
           }
         },
         "account": {
@@ -247,17 +217,6 @@
       }
     }
   },
-  "payment": [
-    "HOLD",
-    "R",
-    "R180",
-    "HD"
-  ],
-  "diversion": [
-    "HOLD",
-    "L",
-    "L",
-    "CW",
-    "HD"
-  ]
+  "payment": ["HOLD", "R", "R180", "HD"],
+  "diversion": ["HOLD", "L", "L", "CW", "HD"]
 }

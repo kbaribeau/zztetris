@@ -30,11 +30,11 @@ The [retained before/after summary](st-cap-pair-comparison.json) compares d8a01a
 
 All three existing streams complete 36 locks without witness failures:
 
-| Existing stream | Old ending height → new | Old TSD count → new |
-| --- | --- | --- |
-| o-filler | 19 → 17 | 2 → 2 |
-| marathon-rebuild | 18 → 14 | 2 → 3 |
-| marathon-preparation | 17 → 15 | 3 → 4 |
+| Existing stream      | Old ending height → new | Old TSD count → new |
+| -------------------- | ----------------------- | ------------------- |
+| o-filler             | 19 → 17                 | 2 → 2               |
+| marathon-rebuild     | 18 → 14                 | 2 → 3               |
+| marathon-preparation | 17 → 15                 | 3 → 4               |
 
 All three final endpoints still lack reachable hypothetical T-double entry in a completed search. These are improvements over the immediately preceding regional revision, not recovery of the older pre-regional results or proof of sustainability.
 

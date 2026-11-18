@@ -86,12 +86,12 @@ structural caches per request, identical 750 ms / 45,000-node budgets, six visib
 preview pieces and a 130-lock cap. Hidden extensions stayed evaluator-private.
 Baseline was ee852be; candidate was d81558e. The run completed in 6m52s.
 
-| Existing scenario / seed | Supported locks, old → new | Mean height at common lock horizon | Occupied cells at common horizon |
-| --- | --- | --- | --- |
-| Independent preparation / 10333 | 42 → 89 | 16.0 → 9.9 (42 locks) | 134 → 94 |
-| Independent rebuild / 20333 | 66 → 53 | 12.1 → 14.0 (53 locks) | 106 → 126 |
-| Direct double / 20339 | 127 → 121 | 12.1 → 12.7 (121 locks) | 108 → 108 |
-| Restore the right cap / 20336 | 103 → 84 | 7.5 → 15.6 (84 locks) | 64 → 144 |
+| Existing scenario / seed        | Supported locks, old → new | Mean height at common lock horizon | Occupied cells at common horizon |
+| ------------------------------- | -------------------------- | ---------------------------------- | -------------------------------- |
+| Independent preparation / 10333 | 42 → 89                    | 16.0 → 9.9 (42 locks)              | 134 → 94                         |
+| Independent rebuild / 20333     | 66 → 53                    | 12.1 → 14.0 (53 locks)             | 106 → 126                        |
+| Direct double / 20339           | 127 → 121                  | 12.1 → 12.7 (121 locks)            | 108 → 108                        |
+| Restore the right cap / 20336   | 103 → 84                   | 7.5 → 15.6 (84 locks)              | 64 → 144                         |
 
 All eight runs ended in an honest no-supported-continuation abstention, not a
 proven top-out. No returned move triggered canonical-clear, inherited-notch,

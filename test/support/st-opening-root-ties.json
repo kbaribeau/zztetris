@@ -53,21 +53,12 @@
     },
     "hold": "T",
     "canHold": true,
-    "queue": [
-      "O",
-      "S",
-      "J",
-      "J",
-      "S",
-      "L"
-    ],
+    "queue": ["O", "S", "J", "J", "S", "L"],
     "revision": 47,
     "streamCursor": 4,
     "topOut": false,
     "bag": {
-      "remaining": [
-        105
-      ],
+      "remaining": [105],
       "observedCount": 10,
       "provenance": "known-phase"
     }
@@ -80,48 +71,15 @@
     "source": "witnessed-floor-Z-cap"
   },
   "expectedFirstCells": [
-    [
-      0,
-      36
-    ],
-    [
-      0,
-      37
-    ],
-    [
-      0,
-      38
-    ],
-    [
-      0,
-      39
-    ]
+    [0, 36],
+    [0, 37],
+    [0, 38],
+    [0, 39]
   ],
-  "expectedPieces": [
-    "I",
-    "O",
-    "T",
-    "J"
-  ],
+  "expectedPieces": ["I", "O", "T", "J"],
   "uiBags": [
-    [
-      "Z",
-      "T",
-      "L",
-      "I",
-      "O",
-      "S",
-      "J"
-    ],
-    [
-      "J",
-      "S",
-      "L",
-      "Z",
-      "O",
-      "T",
-      "I"
-    ]
+    ["Z", "T", "L", "I", "O", "S", "J"],
+    ["J", "S", "L", "Z", "O", "T", "I"]
   ],
   "uiPrefix": [
     [

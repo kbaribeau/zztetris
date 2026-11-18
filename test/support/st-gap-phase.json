@@ -53,31 +53,17 @@
       },
       "hold": "S",
       "canHold": true,
-      "queue": [
-        "T",
-        "L",
-        "O",
-        "I",
-        "J",
-        "S"
-      ],
+      "queue": ["T", "L", "O", "I", "J", "S"],
       "revision": 247,
       "streamCursor": 14,
       "topOut": false,
       "bag": {
-        "remaining": [
-          64
-        ],
+        "remaining": [64],
         "observedCount": 20,
         "provenance": "known-phase"
       }
     },
-    "witness": [
-      "HOLD",
-      "L",
-      "CCW",
-      "HD"
-    ]
+    "witness": ["HOLD", "L", "CCW", "HD"]
   },
   "quad": {
     "observation": {
@@ -133,31 +119,17 @@
       },
       "hold": "T",
       "canHold": true,
-      "queue": [
-        "L",
-        "S",
-        "J",
-        "Z",
-        "S",
-        "L"
-      ],
+      "queue": ["L", "S", "J", "Z", "S", "L"],
       "revision": 677,
       "streamCursor": 75,
       "topOut": false,
       "bag": {
-        "remaining": [
-          41
-        ],
+        "remaining": [41],
         "observedCount": 81,
         "provenance": "known-phase"
       }
     },
-    "witness": [
-      "R",
-      "R",
-      "CW",
-      "HD"
-    ]
+    "witness": ["R", "R", "CW", "HD"]
   },
   "after": {
     "observation": {
@@ -213,28 +185,16 @@
       },
       "hold": "T",
       "canHold": true,
-      "queue": [
-        "S",
-        "J",
-        "Z",
-        "S",
-        "L",
-        "O"
-      ],
+      "queue": ["S", "J", "Z", "S", "L", "O"],
       "revision": 681,
       "streamCursor": 76,
       "topOut": false,
       "bag": {
-        "remaining": [
-          33
-        ],
+        "remaining": [33],
         "observedCount": 82,
         "provenance": "known-phase"
       }
     },
-    "witness": [
-      "R",
-      "HD"
-    ]
+    "witness": ["R", "HD"]
   }
 }

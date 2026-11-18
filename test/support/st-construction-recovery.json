@@ -55,14 +55,7 @@
     },
     "hold": "T",
     "canHold": true,
-    "queue": [
-      "T",
-      "S",
-      "J",
-      "Z",
-      "I",
-      "T"
-    ],
+    "queue": ["T", "S", "J", "Z", "I", "T"],
     "revision": 0,
     "streamCursor": 0,
     "topOut": false,

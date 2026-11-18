@@ -57,33 +57,18 @@
         },
         "hold": "T",
         "canHold": true,
-        "queue": [
-          "T",
-          "I",
-          "L",
-          "Z",
-          "T",
-          "I"
-        ],
+        "queue": ["T", "I", "L", "Z", "T", "I"],
         "revision": 299,
         "streamCursor": 61,
         "topOut": false,
         "bag": {
-          "remaining": [
-            26
-          ],
+          "remaining": [26],
           "observedCount": 67,
           "provenance": "known-phase"
         },
         "lastEvent": null
       },
-      "witness": [
-        "R",
-        "R",
-        "R",
-        "R",
-        "HD"
-      ],
+      "witness": ["R", "R", "R", "R", "HD"],
       "nextSnapshot": {
         "rules": "st-zero-v2",
         "board": [
@@ -137,21 +122,12 @@
         },
         "hold": "T",
         "canHold": true,
-        "queue": [
-          "I",
-          "L",
-          "Z",
-          "T",
-          "I",
-          "S"
-        ],
+        "queue": ["I", "L", "Z", "T", "I", "S"],
         "revision": 304,
         "streamCursor": 62,
         "topOut": false,
         "bag": {
-          "remaining": [
-            10
-          ],
+          "remaining": [10],
           "observedCount": 68,
           "provenance": "known-phase"
         },
@@ -215,35 +191,18 @@
         },
         "hold": "T",
         "canHold": true,
-        "queue": [
-          "S",
-          "O",
-          "I",
-          "Z",
-          "L",
-          "O"
-        ],
+        "queue": ["S", "O", "I", "Z", "L", "O"],
         "revision": 319,
         "streamCursor": 72,
         "topOut": false,
         "bag": {
-          "remaining": [
-            119
-          ],
+          "remaining": [119],
           "observedCount": 78,
           "provenance": "known-phase"
         },
         "lastEvent": null
       },
-      "witness": [
-        "R",
-        "R",
-        "R",
-        "R",
-        "CCW",
-        "R",
-        "HD"
-      ],
+      "witness": ["R", "R", "R", "R", "CCW", "R", "HD"],
       "nextSnapshot": {
         "rules": "st-zero-v2",
         "board": [
@@ -297,21 +256,12 @@
         },
         "hold": "T",
         "canHold": true,
-        "queue": [
-          "O",
-          "I",
-          "Z",
-          "L",
-          "O",
-          "I"
-        ],
+        "queue": ["O", "I", "Z", "L", "O", "I"],
         "revision": 326,
         "streamCursor": 73,
         "topOut": false,
         "bag": {
-          "remaining": [
-            118
-          ],
+          "remaining": [118],
           "observedCount": 79,
           "provenance": "known-phase"
         },

@@ -52,31 +52,16 @@
     },
     "hold": "Z",
     "canHold": true,
-    "queue": [
-      "T",
-      "J",
-      "Z",
-      "S",
-      "L",
-      "O"
-    ],
+    "queue": ["T", "J", "Z", "S", "L", "O"],
     "revision": 265,
     "streamCursor": 55,
     "topOut": false,
     "bag": {
-      "remaining": [
-        33
-      ],
+      "remaining": [33],
       "observedCount": 61,
       "provenance": "known-phase"
     },
     "lastEvent": null
   },
-  "witness": [
-    "R",
-    "R",
-    "R",
-    "CW",
-    "HD"
-  ]
+  "witness": ["R", "R", "R", "CW", "HD"]
 }

@@ -58,62 +58,23 @@
     },
     "hold": "O",
     "canHold": true,
-    "queue": [
-      "T",
-      "J",
-      "Z",
-      "L",
-      "S",
-      "L"
-    ],
+    "queue": ["T", "J", "Z", "L", "S", "L"],
     "revision": 814,
     "streamCursor": 101,
     "topOut": false,
     "bag": {
-      "remaining": [
-        107
-      ],
+      "remaining": [107],
       "observedCount": 107,
       "provenance": "known-phase"
     }
   },
   "reference": {
     "witnesses": [
-      [
-        "CW",
-        "R",
-        "R",
-        "R",
-        "R",
-        "HD"
-      ],
-      [
-        "HOLD",
-        "L",
-        "L",
-        "HD"
-      ],
-      [
-        "CW",
-        "L",
-        "L",
-        "L",
-        "L",
-        "HD"
-      ],
-      [
-        "CW",
-        "R",
-        "R",
-        "R",
-        "R",
-        "HD"
-      ],
-      [
-        "R180",
-        "R",
-        "HD"
-      ],
+      ["CW", "R", "R", "R", "R", "HD"],
+      ["HOLD", "L", "L", "HD"],
+      ["CW", "L", "L", "L", "L", "HD"],
+      ["CW", "R", "R", "R", "R", "HD"],
+      ["R180", "R", "HD"],
       [
         "HOLD",
         "R",
@@ -142,22 +103,8 @@
         "HD"
       ]
     ],
-    "types": [
-      "I",
-      "O",
-      "J",
-      "Z",
-      "L",
-      "T"
-    ],
-    "lines": [
-      4,
-      0,
-      0,
-      0,
-      0,
-      2
-    ],
+    "types": ["I", "O", "J", "Z", "L", "T"],
+    "lines": [4, 0, 0, 0, 0, 2],
     "finalBoard": [
       "..........",
       "..........",

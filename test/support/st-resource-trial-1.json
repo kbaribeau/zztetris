@@ -54,21 +54,12 @@
     },
     "hold": null,
     "canHold": true,
-    "queue": [
-      "L",
-      "J",
-      "Z",
-      "T",
-      "O",
-      "I"
-    ],
+    "queue": ["L", "J", "Z", "T", "O", "I"],
     "revision": 1,
     "streamCursor": 1,
     "topOut": false,
     "bag": {
-      "remaining": [
-        0
-      ],
+      "remaining": [0],
       "observedCount": 7,
       "provenance": "known-phase"
     }
@@ -84,9 +75,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "J"
-      ]
+      "revealed": ["J"]
     },
     {
       "action": "L",
@@ -102,9 +91,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "I"
-      ]
+      "revealed": ["I"]
     },
     {
       "action": "L",
@@ -196,9 +183,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "Z"
-      ]
+      "revealed": ["Z"]
     },
     {
       "action": "R",
@@ -222,9 +207,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "S"
-      ]
+      "revealed": ["S"]
     },
     {
       "action": "L",
@@ -244,9 +227,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "L"
-      ]
+      "revealed": ["L"]
     },
     {
       "action": "R",
@@ -254,9 +235,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "T"
-      ]
+      "revealed": ["T"]
     },
     {
       "action": "CCW",
@@ -264,15 +243,11 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "O"
-      ]
+      "revealed": ["O"]
     },
     {
       "action": "HOLD",
-      "revealed": [
-        "O"
-      ]
+      "revealed": ["O"]
     },
     {
       "action": "L",
@@ -368,9 +343,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "T"
-      ]
+      "revealed": ["T"]
     },
     {
       "action": "R",
@@ -438,9 +411,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "J"
-      ]
+      "revealed": ["J"]
     },
     {
       "action": "HOLD",
@@ -508,9 +479,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "I"
-      ]
+      "revealed": ["I"]
     },
     {
       "action": "HOLD",
@@ -594,9 +563,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "Z"
-      ]
+      "revealed": ["Z"]
     },
     {
       "action": "L",
@@ -676,9 +643,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "S"
-      ]
+      "revealed": ["S"]
     },
     {
       "action": "HOLD",
@@ -754,9 +719,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "L"
-      ]
+      "revealed": ["L"]
     },
     {
       "action": "L",
@@ -832,9 +795,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "Z"
-      ]
+      "revealed": ["Z"]
     },
     {
       "action": "R",
@@ -930,9 +891,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "I"
-      ]
+      "revealed": ["I"]
     },
     {
       "action": "HOLD",
@@ -948,9 +907,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "L"
-      ]
+      "revealed": ["L"]
     },
     {
       "action": "L",
@@ -962,9 +919,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "S"
-      ]
+      "revealed": ["S"]
     },
     {
       "action": "R",
@@ -988,9 +943,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "T"
-      ]
+      "revealed": ["T"]
     },
     {
       "action": "L",
@@ -1006,9 +959,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "J"
-      ]
+      "revealed": ["J"]
     },
     {
       "action": "L",
@@ -1028,9 +979,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "O"
-      ]
+      "revealed": ["O"]
     },
     {
       "action": "R",
@@ -1042,9 +991,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "L"
-      ]
+      "revealed": ["L"]
     },
     {
       "action": "HOLD",
@@ -1056,9 +1003,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "Z"
-      ]
+      "revealed": ["Z"]
     },
     {
       "action": "L",
@@ -1074,9 +1019,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "T"
-      ]
+      "revealed": ["T"]
     },
     {
       "action": "R",
@@ -1084,9 +1027,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "I"
-      ]
+      "revealed": ["I"]
     },
     {
       "action": "R",
@@ -1178,9 +1119,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "J"
-      ]
+      "revealed": ["J"]
     },
     {
       "action": "L",
@@ -1200,9 +1139,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "O"
-      ]
+      "revealed": ["O"]
     },
     {
       "action": "L",
@@ -1214,9 +1151,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "S"
-      ]
+      "revealed": ["S"]
     },
     {
       "action": "R",
@@ -1228,9 +1163,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "J"
-      ]
+      "revealed": ["J"]
     },
     {
       "action": "R",
@@ -1254,9 +1187,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "S"
-      ]
+      "revealed": ["S"]
     },
     {
       "action": "R",
@@ -1344,9 +1275,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "I"
-      ]
+      "revealed": ["I"]
     },
     {
       "action": "R",
@@ -1370,9 +1299,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "L"
-      ]
+      "revealed": ["L"]
     },
     {
       "action": "L",
@@ -1396,9 +1323,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "O"
-      ]
+      "revealed": ["O"]
     }
   ]
 }

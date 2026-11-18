@@ -26,7 +26,7 @@ Movement BFS starts at the supplied actual pose and interleaves no-hold and lega
 
 ## Bag knowledge and information boundary
 
-`st-bag.js` (`STBag`) represents possible *remaining sets* after all observed original draw positions, including preview. `fromObserved({observed:[types...],startPhase})` accepts original draw order, **not placement order**. A trusted `startPhase:0` means the first observed draw starts a fresh bag; 1–6 identify a known partial-bag phase. `null` preserves all compatible phases and remaining sets. This is conservative exact set inference for a contiguous observed stream.
+`st-bag.js` (`STBag`) represents possible _remaining sets_ after all observed original draw positions, including preview. `fromObserved({observed:[types...],startPhase})` accepts original draw order, **not placement order**. A trusted `startPhase:0` means the first observed draw starts a fresh bag; 1–6 identify a known partial-bag phase. `null` preserves all compatible phases and remaining sets. This is conservative exact set inference for a contiguous observed stream.
 
 `consume(knowledge,type)` applies one newly observed draw; `possibilities` returns the union of possible next kinds; `forcedNext` returns a kind only when every compatible state forces it. A zero remaining mask marks a completed bag; the next draw may be any kind. Contradictory evidence produces an explicit error and no deduction.
 

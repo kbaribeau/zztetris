@@ -58,20 +58,11 @@
     "streamCursor": 16,
     "topOut": false,
     "bag": {
-      "remaining": [
-        126
-      ],
+      "remaining": [126],
       "observedCount": 22,
       "provenance": "known-phase"
     },
-    "queue": [
-      "S",
-      "I",
-      "Z",
-      "L",
-      "O",
-      "I"
-    ]
+    "queue": ["S", "I", "Z", "L", "O", "I"]
   },
   "previous": null,
   "commitment": null,
@@ -141,9 +132,7 @@
           "seenMask": 1
         },
         "knowledge": {
-          "remaining": [
-            126
-          ],
+          "remaining": [126],
           "observedCount": 22,
           "provenance": "known-phase"
         }
@@ -163,15 +152,8 @@
           "handoff": false,
           "residuals": [],
           "uncertainty": {
-            "S": [
-              0,
-              0,
-              0,
-              0
-            ],
-            "L": [
-              0
-            ]
+            "S": [0, 0, 0, 0],
+            "L": [0]
           }
         },
         "account": {
@@ -187,14 +169,8 @@
             "imbalance": 0,
             "rightZ": 1,
             "roof": [
-              [
-                9,
-                37
-              ],
-              [
-                9,
-                38
-              ]
+              [9, 37],
+              [9, 38]
             ]
           },
           "profile": {

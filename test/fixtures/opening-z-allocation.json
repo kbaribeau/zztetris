@@ -56,21 +56,12 @@
       },
       "hold": "Z",
       "canHold": true,
-      "queue": [
-        "T",
-        "Z",
-        "J",
-        "L",
-        "J",
-        "T"
-      ],
+      "queue": ["T", "Z", "J", "L", "J", "T"],
       "revision": 217,
       "streamCursor": 18,
       "topOut": false,
       "bag": {
-        "remaining": [
-          89
-        ],
+        "remaining": [89],
         "observedCount": 24,
         "provenance": "known-phase"
       }
@@ -158,9 +149,7 @@
             "seenMask": 38
           },
           "knowledge": {
-            "remaining": [
-              89
-            ],
+            "remaining": [89],
             "observedCount": 24,
             "provenance": "known-phase"
           }
@@ -195,15 +184,8 @@
               }
             ],
             "uncertainty": {
-              "S": [
-                0,
-                0,
-                0,
-                0
-              ],
-              "L": [
-                0
-              ]
+              "S": [0, 0, 0, 0],
+              "L": [0]
             }
           },
           "account": {
@@ -219,14 +201,8 @@
               "rightZ": 1,
               "imbalance": -1,
               "roof": [
-                [
-                  9,
-                  37
-                ],
-                [
-                  9,
-                  38
-                ]
+                [9, 37],
+                [9, 38]
               ]
             },
             "profile": {
@@ -269,12 +245,7 @@
   },
   "steps": [
     {
-      "witness": [
-        "HOLD",
-        "R",
-        "CW",
-        "HD"
-      ],
+      "witness": ["HOLD", "R", "CW", "HD"],
       "event": {
         "type": "Z",
         "target": {
@@ -284,22 +255,10 @@
           "rotation": 1
         },
         "cells": [
-          [
-            6,
-            29
-          ],
-          [
-            5,
-            30
-          ],
-          [
-            6,
-            30
-          ],
-          [
-            5,
-            31
-          ]
+          [6, 29],
+          [5, 30],
+          [6, 30],
+          [5, 31]
         ],
         "lines": 0,
         "clearedRows": [],
@@ -343,41 +302,19 @@
           "rotation": 2
         },
         "cells": [
-          [
-            6,
-            37
-          ],
-          [
-            7,
-            37
-          ],
-          [
-            8,
-            37
-          ],
-          [
-            7,
-            38
-          ]
+          [6, 37],
+          [7, 37],
+          [8, 37],
+          [7, 38]
         ],
         "lines": 2,
-        "clearedRows": [
-          37,
-          38
-        ],
+        "clearedRows": [37, 38],
         "spin": "full",
         "topOut": false
       }
     },
     {
-      "witness": [
-        "R",
-        "R",
-        "R",
-        "R",
-        "CW",
-        "HD"
-      ],
+      "witness": ["R", "R", "R", "R", "CW", "HD"],
       "event": {
         "type": "Z",
         "target": {
@@ -387,22 +324,10 @@
           "rotation": 1
         },
         "cells": [
-          [
-            9,
-            36
-          ],
-          [
-            8,
-            37
-          ],
-          [
-            9,
-            37
-          ],
-          [
-            8,
-            38
-          ]
+          [9, 36],
+          [8, 37],
+          [9, 37],
+          [8, 38]
         ],
         "lines": 0,
         "clearedRows": [],
@@ -411,10 +336,7 @@
       }
     },
     {
-      "witness": [
-        "CW",
-        "HD"
-      ],
+      "witness": ["CW", "HD"],
       "event": {
         "type": "J",
         "target": {
@@ -424,22 +346,10 @@
           "rotation": 1
         },
         "cells": [
-          [
-            4,
-            31
-          ],
-          [
-            5,
-            31
-          ],
-          [
-            4,
-            32
-          ],
-          [
-            4,
-            33
-          ]
+          [4, 31],
+          [5, 31],
+          [4, 32],
+          [4, 33]
         ],
         "lines": 0,
         "clearedRows": [],
@@ -448,13 +358,7 @@
       }
     },
     {
-      "witness": [
-        "HOLD",
-        "L",
-        "L",
-        "L",
-        "HD"
-      ],
+      "witness": ["HOLD", "L", "L", "L", "HD"],
       "event": {
         "type": "S",
         "target": {
@@ -464,22 +368,10 @@
           "rotation": 0
         },
         "cells": [
-          [
-            1,
-            31
-          ],
-          [
-            2,
-            31
-          ],
-          [
-            0,
-            32
-          ],
-          [
-            1,
-            32
-          ]
+          [1, 31],
+          [2, 31],
+          [0, 32],
+          [1, 32]
         ],
         "lines": 0,
         "clearedRows": [],

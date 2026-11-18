@@ -95,22 +95,10 @@
       "before": {
         "type": "T",
         "cells": [
-          [
-            6,
-            37
-          ],
-          [
-            7,
-            37
-          ],
-          [
-            8,
-            37
-          ],
-          [
-            7,
-            38
-          ]
+          [6, 37],
+          [7, 37],
+          [8, 37],
+          [7, 38]
         ],
         "lines": 2,
         "spin": "full",
@@ -119,22 +107,10 @@
       "after": {
         "type": "S",
         "cells": [
-          [
-            5,
-            27
-          ],
-          [
-            6,
-            27
-          ],
-          [
-            4,
-            28
-          ],
-          [
-            5,
-            28
-          ]
+          [5, 27],
+          [6, 27],
+          [4, 28],
+          [5, 28]
         ],
         "lines": 0,
         "spin": "none",
@@ -147,22 +123,10 @@
       "before": {
         "type": "Z",
         "cells": [
-          [
-            2,
-            28
-          ],
-          [
-            1,
-            29
-          ],
-          [
-            2,
-            29
-          ],
-          [
-            1,
-            30
-          ]
+          [2, 28],
+          [1, 29],
+          [2, 29],
+          [1, 30]
         ],
         "lines": 0,
         "spin": "none",
@@ -171,22 +135,10 @@
       "after": {
         "type": "Z",
         "cells": [
-          [
-            9,
-            36
-          ],
-          [
-            8,
-            37
-          ],
-          [
-            9,
-            37
-          ],
-          [
-            8,
-            38
-          ]
+          [9, 36],
+          [8, 37],
+          [9, 37],
+          [8, 38]
         ],
         "lines": 0,
         "spin": "none",
@@ -199,22 +151,10 @@
       "before": {
         "type": "T",
         "cells": [
-          [
-            6,
-            37
-          ],
-          [
-            7,
-            37
-          ],
-          [
-            8,
-            37
-          ],
-          [
-            7,
-            38
-          ]
+          [6, 37],
+          [7, 37],
+          [8, 37],
+          [7, 38]
         ],
         "lines": 2,
         "spin": "full",
@@ -223,22 +163,10 @@
       "after": {
         "type": "Z",
         "cells": [
-          [
-            2,
-            24
-          ],
-          [
-            1,
-            25
-          ],
-          [
-            2,
-            25
-          ],
-          [
-            1,
-            26
-          ]
+          [2, 24],
+          [1, 25],
+          [2, 25],
+          [1, 26]
         ],
         "lines": 0,
         "spin": "none",
@@ -256,14 +184,7 @@
         "before": {
           "active": "J",
           "hold": null,
-          "queue": [
-            "O",
-            "I",
-            "Z",
-            "L",
-            "S",
-            "J"
-          ],
+          "queue": ["O", "I", "Z", "L", "S", "J"],
           "slots": [
             {
               "x": 6,
@@ -291,14 +212,9 @@
         "obligations": [
           {
             "kind": "T-slot",
-            "demands": [
-              "T"
-            ],
+            "demands": ["T"],
             "status": "unresolved",
-            "at": [
-              6,
-              35
-            ],
+            "at": [6, 35],
             "note": "Geometric slot; arrival and executable entry not yet proved."
           }
         ],
@@ -306,14 +222,7 @@
         "lines": 0,
         "spin": "none",
         "hold": true,
-        "witness": [
-          "HOLD",
-          "L",
-          "L",
-          "L",
-          "L",
-          "HD"
-        ],
+        "witness": ["HOLD", "L", "L", "L", "L", "HD"],
         "regionalSupport": true,
         "openChannel": true,
         "maxHeight": 8,
@@ -325,14 +234,7 @@
         "before": {
           "active": "J",
           "hold": null,
-          "queue": [
-            "O",
-            "I",
-            "Z",
-            "L",
-            "S",
-            "J"
-          ],
+          "queue": ["O", "I", "Z", "L", "S", "J"],
           "slots": [
             {
               "x": 6,
@@ -360,14 +262,9 @@
         "obligations": [
           {
             "kind": "T-slot",
-            "demands": [
-              "T"
-            ],
+            "demands": ["T"],
             "status": "unresolved",
-            "at": [
-              6,
-              35
-            ],
+            "at": [6, 35],
             "note": "Geometric slot; arrival and executable entry not yet proved."
           },
           {
@@ -382,10 +279,7 @@
         "lines": 0,
         "spin": "none",
         "hold": false,
-        "witness": [
-          "R",
-          "HD"
-        ],
+        "witness": ["R", "HD"],
         "regionalSupport": true,
         "openChannel": true,
         "maxHeight": 10,
@@ -401,14 +295,7 @@
         "before": {
           "active": "J",
           "hold": "I",
-          "queue": [
-            "Z",
-            "I",
-            "L",
-            "J",
-            "T",
-            "O"
-          ],
+          "queue": ["Z", "I", "L", "J", "T", "O"],
           "slots": [],
           "leftSealed": 0,
           "sealed": 0
@@ -422,11 +309,7 @@
         "lines": 0,
         "spin": "none",
         "hold": false,
-        "witness": [
-          "L",
-          "L",
-          "HD"
-        ],
+        "witness": ["L", "L", "HD"],
         "regionalSupport": true,
         "openChannel": true,
         "maxHeight": 14,
@@ -438,14 +321,7 @@
         "before": {
           "active": "J",
           "hold": "I",
-          "queue": [
-            "Z",
-            "I",
-            "L",
-            "J",
-            "T",
-            "O"
-          ],
+          "queue": ["Z", "I", "L", "J", "T", "O"],
           "slots": [],
           "leftSealed": 0,
           "sealed": 0
@@ -459,15 +335,7 @@
         "lines": 0,
         "spin": "none",
         "hold": true,
-        "witness": [
-          "HOLD",
-          "L",
-          "L",
-          "L",
-          "CCW",
-          "L",
-          "HD"
-        ],
+        "witness": ["HOLD", "L", "L", "L", "CCW", "L", "HD"],
         "regionalSupport": true,
         "openChannel": true,
         "maxHeight": 15,
@@ -483,14 +351,7 @@
         "before": {
           "active": "J",
           "hold": "I",
-          "queue": [
-            "Z",
-            "I",
-            "L",
-            "J",
-            "T",
-            "O"
-          ],
+          "queue": ["Z", "I", "L", "J", "T", "O"],
           "slots": [],
           "leftSealed": 0,
           "sealed": 0
@@ -504,11 +365,7 @@
         "lines": 0,
         "spin": "none",
         "hold": false,
-        "witness": [
-          "L",
-          "L",
-          "HD"
-        ],
+        "witness": ["L", "L", "HD"],
         "regionalSupport": true,
         "openChannel": true,
         "maxHeight": 14,
@@ -520,14 +377,7 @@
         "before": {
           "active": "J",
           "hold": "I",
-          "queue": [
-            "Z",
-            "I",
-            "L",
-            "J",
-            "T",
-            "O"
-          ],
+          "queue": ["Z", "I", "L", "J", "T", "O"],
           "slots": [],
           "leftSealed": 0,
           "sealed": 0
@@ -541,15 +391,7 @@
         "lines": 0,
         "spin": "none",
         "hold": true,
-        "witness": [
-          "HOLD",
-          "L",
-          "L",
-          "L",
-          "CCW",
-          "L",
-          "HD"
-        ],
+        "witness": ["HOLD", "L", "L", "L", "CCW", "L", "HD"],
         "regionalSupport": true,
         "openChannel": true,
         "maxHeight": 15,

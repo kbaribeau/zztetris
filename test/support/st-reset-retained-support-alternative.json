@@ -53,21 +53,12 @@
     },
     "hold": "J",
     "canHold": true,
-    "queue": [
-      "L",
-      "I",
-      "S",
-      "O",
-      "J",
-      "Z"
-    ],
+    "queue": ["L", "I", "S", "O", "J", "Z"],
     "revision": 519,
     "streamCursor": 59,
     "topOut": false,
     "bag": {
-      "remaining": [
-        61
-      ],
+      "remaining": [61],
       "observedCount": 65,
       "provenance": "known-phase"
     }
@@ -81,11 +72,7 @@
   },
   "baselineContinuation": [
     {
-      "witness": [
-        "HOLD",
-        "CW",
-        "HD"
-      ],
+      "witness": ["HOLD", "CW", "HD"],
       "event": {
         "type": "J",
         "target": {
@@ -95,22 +82,10 @@
           "rotation": 1
         },
         "cells": [
-          [
-            4,
-            33
-          ],
-          [
-            5,
-            33
-          ],
-          [
-            4,
-            34
-          ],
-          [
-            4,
-            35
-          ]
+          [4, 33],
+          [5, 33],
+          [4, 34],
+          [4, 35]
         ],
         "lines": 0,
         "clearedRows": [],
@@ -180,21 +155,12 @@
       },
       "hold": "J",
       "canHold": true,
-      "queue": [
-        "L",
-        "I",
-        "S",
-        "O",
-        "J",
-        "Z"
-      ],
+      "queue": ["L", "I", "S", "O", "J", "Z"],
       "revision": 519,
       "streamCursor": 59,
       "topOut": false,
       "bag": {
-        "remaining": [
-          61
-        ],
+        "remaining": [61],
         "observedCount": 65,
         "provenance": "known-phase"
       }
@@ -209,11 +175,7 @@
       },
       "hold": true,
       "holdCount": 1,
-      "witness": [
-        "HOLD",
-        "CW",
-        "HD"
-      ],
+      "witness": ["HOLD", "CW", "HD"],
       "continuation": [
         {
           "target": {
@@ -224,11 +186,7 @@
           },
           "hold": true,
           "holdCount": 1,
-          "witness": [
-            "HOLD",
-            "CW",
-            "HD"
-          ],
+          "witness": ["HOLD", "CW", "HD"],
           "event": {
             "type": "J",
             "target": {
@@ -238,22 +196,10 @@
               "rotation": 1
             },
             "cells": [
-              [
-                4,
-                33
-              ],
-              [
-                5,
-                33
-              ],
-              [
-                4,
-                34
-              ],
-              [
-                4,
-                35
-              ]
+              [4, 33],
+              [5, 33],
+              [4, 34],
+              [4, 35]
             ],
             "lines": 0,
             "clearedRows": [],
@@ -269,9 +215,7 @@
             "pairEvidence": null,
             "opportunityCost": 0,
             "leftSubstitutes": [],
-            "regions": [
-              "center"
-            ],
+            "regions": ["center"],
             "crossRegion": false,
             "allocation": "center-completion",
             "status": "supported-local-role",
@@ -284,12 +228,7 @@
               "frontierDebt": 0,
               "scoringRowDebt": 0,
               "left": {
-                "profile": [
-                  10,
-                  12,
-                  12,
-                  12
-                ],
+                "profile": [10, 12, 12, 12],
                 "flat": false,
                 "roughness": 2,
                 "covered": 0,
@@ -300,17 +239,9 @@
                 "foundation": {
                   "status": "aligned",
                   "vacancies": [],
-                  "profile": [
-                    7,
-                    7,
-                    7
-                  ]
+                  "profile": [7, 7, 7]
                 },
-                "profile": [
-                  7,
-                  7,
-                  7
-                ],
+                "profile": [7, 7, 7],
                 "status": "level",
                 "motif": "###/###/##.",
                 "patternSupport": "reference-supported",
@@ -321,11 +252,7 @@
                 "completions": []
               },
               "right": {
-                "profile": [
-                  0,
-                  4,
-                  5
-                ],
+                "profile": [0, 4, 5],
                 "shapeStatus": "staggered-scoring-wall",
                 "cycle": {
                   "shape": "staggered-scoring-wall",
@@ -339,18 +266,9 @@
                 "reservoir": {
                   "status": "clear-witness-required",
                   "cells": [
-                    [
-                      9,
-                      37
-                    ],
-                    [
-                      9,
-                      38
-                    ],
-                    [
-                      9,
-                      39
-                    ]
+                    [9, 37],
+                    [9, 38],
+                    [9, 39]
                   ],
                   "roofRow": 36,
                   "pattern": "canonical-Z-cap-reservoir"
@@ -365,9 +283,7 @@
               "obligations": [
                 {
                   "kind": "scoring-cycle",
-                  "alternatives": [
-                    "T"
-                  ],
+                  "alternatives": ["T"],
                   "completions": [],
                   "note": "Normal scoring-wall shape; actual T-spin entry and line completion require execution verification.",
                   "supply": [
@@ -455,22 +371,10 @@
                 {
                   "piece": "J",
                   "cells": [
-                    [
-                      4,
-                      33
-                    ],
-                    [
-                      5,
-                      33
-                    ],
-                    [
-                      4,
-                      34
-                    ],
-                    [
-                      4,
-                      35
-                    ]
+                    [4, 33],
+                    [5, 33],
+                    [4, 34],
+                    [4, 35]
                   ]
                 }
               ]
@@ -529,9 +433,7 @@
               "quads": []
             },
             "fresh": {
-              "tsds": [
-                3
-              ],
+              "tsds": [3],
               "quads": []
             },
             "delayed": []
@@ -610,20 +512,7 @@
         "futureNotches": {
           "status": "established",
           "anchorRow": 35,
-          "protectedRows": [
-            35,
-            32,
-            29,
-            26,
-            23,
-            20,
-            17,
-            14,
-            11,
-            8,
-            5,
-            2
-          ],
+          "protectedRows": [35, 32, 29, 26, 23, 20, 17, 14, 11, 8, 5, 2],
           "blockedRows": [],
           "source": "translated-established-cycle"
         },
@@ -653,9 +542,7 @@
         "unresolvedObligations": [
           {
             "kind": "scoring-cycle",
-            "alternatives": [
-              "T"
-            ],
+            "alternatives": ["T"],
             "completions": [],
             "note": "Normal scoring-wall shape; actual T-spin entry and line completion require execution verification.",
             "supply": [
@@ -670,38 +557,19 @@
           },
           {
             "kind": "T-slot",
-            "demands": [
-              "T"
-            ],
+            "demands": ["T"],
             "status": "unresolved",
-            "at": [
-              6,
-              33
-            ],
+            "at": [6, 33],
             "note": "Geometric slot; arrival and executable entry not yet proved."
           }
         ],
         "structuralScore": -19.200000000000003,
-        "structuralRank": [
-          1,
-          1,
-          0,
-          -5,
-          0,
-          0,
-          0,
-          0
-        ],
+        "structuralRank": [1, 1, 0, -5, 0, 0, 0, 0],
         "structure": {
           "frontierDebt": 0,
           "scoringRowDebt": 0,
           "left": {
-            "profile": [
-              10,
-              12,
-              12,
-              12
-            ],
+            "profile": [10, 12, 12, 12],
             "flat": false,
             "roughness": 2,
             "covered": 0,
@@ -712,17 +580,9 @@
             "foundation": {
               "status": "aligned",
               "vacancies": [],
-              "profile": [
-                7,
-                7,
-                7
-              ]
+              "profile": [7, 7, 7]
             },
-            "profile": [
-              7,
-              7,
-              7
-            ],
+            "profile": [7, 7, 7],
             "status": "level",
             "motif": "###/###/##.",
             "patternSupport": "reference-supported",
@@ -733,11 +593,7 @@
             "completions": []
           },
           "right": {
-            "profile": [
-              0,
-              4,
-              5
-            ],
+            "profile": [0, 4, 5],
             "shapeStatus": "staggered-scoring-wall",
             "cycle": {
               "shape": "staggered-scoring-wall",
@@ -751,18 +607,9 @@
             "reservoir": {
               "status": "clear-witness-required",
               "cells": [
-                [
-                  9,
-                  37
-                ],
-                [
-                  9,
-                  38
-                ],
-                [
-                  9,
-                  39
-                ]
+                [9, 37],
+                [9, 38],
+                [9, 39]
               ],
               "roofRow": 36,
               "pattern": "canonical-Z-cap-reservoir"
@@ -777,9 +624,7 @@
           "obligations": [
             {
               "kind": "scoring-cycle",
-              "alternatives": [
-                "T"
-              ],
+              "alternatives": ["T"],
               "completions": [],
               "note": "Normal scoring-wall shape; actual T-spin entry and line completion require execution verification.",
               "supply": [
@@ -938,34 +783,14 @@
           "height": 0,
           "openBelowStack": true
         },
-        "heights": [
-          10,
-          12,
-          12,
-          12,
-          7,
-          7,
-          7,
-          0,
-          4,
-          5
-        ],
+        "heights": [10, 12, 12, 12, 7, 7, 7, 0, 4, 5],
         "maxHeight": 12,
         "headroom": 8,
         "sealed": 3,
         "sealedCells": [
-          [
-            9,
-            37
-          ],
-          [
-            9,
-            38
-          ],
-          [
-            9,
-            39
-          ]
+          [9, 37],
+          [9, 38],
+          [9, 39]
         ],
         "leftSealed": 0,
         "covered": 4,
@@ -977,11 +802,7 @@
         },
         "center": {
           "height": 7,
-          "profile": [
-            7,
-            7,
-            7
-          ],
+          "profile": [7, 7, 7],
           "partnerDeficit": 0,
           "partnerStatus": "level-surface"
         },
@@ -1000,9 +821,7 @@
         "obligations": [
           {
             "kind": "scoring-cycle",
-            "alternatives": [
-              "T"
-            ],
+            "alternatives": ["T"],
             "completions": [],
             "note": "Normal scoring-wall shape; actual T-spin entry and line completion require execution verification.",
             "supply": [
@@ -1017,14 +836,9 @@
           },
           {
             "kind": "T-slot",
-            "demands": [
-              "T"
-            ],
+            "demands": ["T"],
             "status": "unresolved",
-            "at": [
-              6,
-              33
-            ],
+            "at": [6, 33],
             "note": "Geometric slot; arrival and executable entry not yet proved."
           }
         ],
@@ -1036,12 +850,7 @@
           "frontierDebt": 0,
           "scoringRowDebt": 0,
           "left": {
-            "profile": [
-              10,
-              12,
-              12,
-              12
-            ],
+            "profile": [10, 12, 12, 12],
             "flat": false,
             "roughness": 2,
             "covered": 0,
@@ -1052,17 +861,9 @@
             "foundation": {
               "status": "aligned",
               "vacancies": [],
-              "profile": [
-                7,
-                7,
-                7
-              ]
+              "profile": [7, 7, 7]
             },
-            "profile": [
-              7,
-              7,
-              7
-            ],
+            "profile": [7, 7, 7],
             "status": "level",
             "motif": "###/###/##.",
             "patternSupport": "reference-supported",
@@ -1073,11 +874,7 @@
             "completions": []
           },
           "right": {
-            "profile": [
-              0,
-              4,
-              5
-            ],
+            "profile": [0, 4, 5],
             "shapeStatus": "staggered-scoring-wall",
             "cycle": {
               "shape": "staggered-scoring-wall",
@@ -1091,18 +888,9 @@
             "reservoir": {
               "status": "clear-witness-required",
               "cells": [
-                [
-                  9,
-                  37
-                ],
-                [
-                  9,
-                  38
-                ],
-                [
-                  9,
-                  39
-                ]
+                [9, 37],
+                [9, 38],
+                [9, 39]
               ],
               "roofRow": 36,
               "pattern": "canonical-Z-cap-reservoir"
@@ -1117,9 +905,7 @@
           "obligations": [
             {
               "kind": "scoring-cycle",
-              "alternatives": [
-                "T"
-              ],
+              "alternatives": ["T"],
               "completions": [],
               "note": "Normal scoring-wall shape; actual T-spin entry and line completion require execution verification.",
               "supply": [
@@ -1206,12 +992,7 @@
           "source": "https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit",
           "shape": "shocky-left-6",
           "tier": "A",
-          "profile": [
-            0,
-            2,
-            2,
-            2
-          ],
+          "profile": [0, 2, 2, 2],
           "score": 0,
           "adjustment": 0,
           "context": "held-T-after-extra-Z",
@@ -1233,11 +1014,7 @@
   },
   "retrospectivePublicContinuation": [
     {
-      "witness": [
-        "HOLD",
-        "CW",
-        "HD"
-      ],
+      "witness": ["HOLD", "CW", "HD"],
       "event": {
         "type": "J",
         "target": {
@@ -1247,22 +1024,10 @@
           "rotation": 1
         },
         "cells": [
-          [
-            4,
-            33
-          ],
-          [
-            5,
-            33
-          ],
-          [
-            4,
-            34
-          ],
-          [
-            4,
-            35
-          ]
+          [4, 33],
+          [5, 33],
+          [4, 34],
+          [4, 35]
         ],
         "lines": 0,
         "clearedRows": [],
@@ -1278,10 +1043,7 @@
       "hold": true
     },
     {
-      "witness": [
-        "CW",
-        "HD"
-      ],
+      "witness": ["CW", "HD"],
       "event": {
         "type": "L",
         "target": {
@@ -1291,22 +1053,10 @@
           "rotation": 1
         },
         "cells": [
-          [
-            4,
-            30
-          ],
-          [
-            4,
-            31
-          ],
-          [
-            4,
-            32
-          ],
-          [
-            5,
-            32
-          ]
+          [4, 30],
+          [4, 31],
+          [4, 32],
+          [5, 32]
         ],
         "lines": 0,
         "clearedRows": [],
@@ -1322,14 +1072,7 @@
       "hold": false
     },
     {
-      "witness": [
-        "L",
-        "L",
-        "L",
-        "CCW",
-        "L",
-        "HD"
-      ],
+      "witness": ["L", "L", "L", "CCW", "L", "HD"],
       "event": {
         "type": "I",
         "target": {
@@ -1339,22 +1082,10 @@
           "rotation": 3
         },
         "cells": [
-          [
-            0,
-            26
-          ],
-          [
-            0,
-            27
-          ],
-          [
-            0,
-            28
-          ],
-          [
-            0,
-            29
-          ]
+          [0, 26],
+          [0, 27],
+          [0, 28],
+          [0, 29]
         ],
         "lines": 0,
         "clearedRows": [],
@@ -1404,28 +1135,13 @@
           "rotation": 2
         },
         "cells": [
-          [
-            6,
-            35
-          ],
-          [
-            7,
-            35
-          ],
-          [
-            8,
-            35
-          ],
-          [
-            7,
-            36
-          ]
+          [6, 35],
+          [7, 35],
+          [8, 35],
+          [7, 36]
         ],
         "lines": 2,
-        "clearedRows": [
-          35,
-          36
-        ],
+        "clearedRows": [35, 36],
         "spin": "full",
         "topOut": false
       },
@@ -1503,9 +1219,7 @@
         "seenMask": 66
       },
       "knowledge": {
-        "remaining": [
-          61
-        ],
+        "remaining": [61],
         "observedCount": 65,
         "provenance": "known-phase"
       }
@@ -1523,22 +1237,10 @@
               {
                 "piece": "J",
                 "cells": [
-                  [
-                    4,
-                    33
-                  ],
-                  [
-                    5,
-                    33
-                  ],
-                  [
-                    4,
-                    34
-                  ],
-                  [
-                    4,
-                    35
-                  ]
+                  [4, 33],
+                  [5, 33],
+                  [4, 34],
+                  [4, 35]
                 ]
               }
             ]
@@ -1554,15 +1256,8 @@
         "handoff": true,
         "residuals": [],
         "uncertainty": {
-          "S": [
-            0,
-            0,
-            0,
-            0
-          ],
-          "L": [
-            0
-          ]
+          "S": [0, 0, 0, 0],
+          "L": [0]
         }
       },
       "account": {

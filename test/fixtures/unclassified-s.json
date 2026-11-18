@@ -59,21 +59,12 @@
           },
           "hold": "S",
           "canHold": true,
-          "queue": [
-            "J",
-            "O",
-            "L",
-            "T",
-            "L",
-            "Z"
-          ],
+          "queue": ["J", "O", "L", "T", "L", "Z"],
           "revision": 227,
           "streamCursor": 18,
           "topOut": false,
           "bag": {
-            "remaining": [
-              27
-            ],
+            "remaining": [27],
             "observedCount": 24,
             "provenance": "known-phase"
           }
@@ -161,9 +152,7 @@
                 "seenMask": 100
               },
               "knowledge": {
-                "remaining": [
-                  27
-                ],
+                "remaining": [27],
                 "observedCount": 24,
                 "provenance": "known-phase"
               }
@@ -181,22 +170,10 @@
                       {
                         "piece": "L",
                         "cells": [
-                          [
-                            4,
-                            31
-                          ],
-                          [
-                            5,
-                            31
-                          ],
-                          [
-                            6,
-                            31
-                          ],
-                          [
-                            4,
-                            32
-                          ]
+                          [4, 31],
+                          [5, 31],
+                          [6, 31],
+                          [4, 32]
                         ]
                       }
                     ]
@@ -236,15 +213,8 @@
                   }
                 ],
                 "uncertainty": {
-                  "S": [
-                    0,
-                    0,
-                    0,
-                    0
-                  ],
-                  "L": [
-                    0
-                  ]
+                  "S": [0, 0, 0, 0],
+                  "L": [0]
                 }
               },
               "account": {
@@ -352,21 +322,12 @@
           },
           "hold": "S",
           "canHold": true,
-          "queue": [
-            "O",
-            "L",
-            "T",
-            "L",
-            "Z",
-            "I"
-          ],
+          "queue": ["O", "L", "T", "L", "Z", "I"],
           "revision": 241,
           "streamCursor": 19,
           "topOut": false,
           "bag": {
-            "remaining": [
-              26
-            ],
+            "remaining": [26],
             "observedCount": 25,
             "provenance": "known-phase"
           }
@@ -454,9 +415,7 @@
                 "seenMask": 101
               },
               "knowledge": {
-                "remaining": [
-                  26
-                ],
+                "remaining": [26],
                 "observedCount": 25,
                 "provenance": "known-phase"
               }
@@ -476,15 +435,8 @@
                 "handoff": false,
                 "residuals": [],
                 "uncertainty": {
-                  "S": [
-                    0,
-                    0,
-                    1,
-                    0
-                  ],
-                  "L": [
-                    0
-                  ]
+                  "S": [0, 0, 1, 0],
+                  "L": [0]
                 }
               },
               "account": {
@@ -590,9 +542,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "I"
-      ]
+      "revealed": ["I"]
     }
   ]
 }

@@ -53,31 +53,19 @@
     },
     "hold": "T",
     "canHold": true,
-    "queue": [
-      "Z",
-      "J",
-      "I",
-      "T",
-      "Z",
-      "L"
-    ],
+    "queue": ["Z", "J", "I", "T", "Z", "L"],
     "revision": 444,
     "streamCursor": 39,
     "topOut": false,
     "bag": {
-      "remaining": [
-        27
-      ],
+      "remaining": [27],
       "observedCount": 45,
       "provenance": "known-phase"
     }
   },
   "oldSteps": [
     {
-      "witness": [
-        "CW",
-        "HD"
-      ],
+      "witness": ["CW", "HD"],
       "event": {
         "type": "L",
         "target": {
@@ -87,22 +75,10 @@
           "rotation": 1
         },
         "cells": [
-          [
-            4,
-            27
-          ],
-          [
-            4,
-            28
-          ],
-          [
-            4,
-            29
-          ],
-          [
-            5,
-            29
-          ]
+          [4, 27],
+          [4, 28],
+          [4, 29],
+          [5, 29]
         ],
         "lines": 0,
         "clearedRows": [],
@@ -111,14 +87,7 @@
       }
     },
     {
-      "witness": [
-        "CW",
-        "R",
-        "R",
-        "R",
-        "R",
-        "HD"
-      ],
+      "witness": ["CW", "R", "R", "R", "R", "HD"],
       "event": {
         "type": "Z",
         "target": {
@@ -128,22 +97,10 @@
           "rotation": 1
         },
         "cells": [
-          [
-            9,
-            34
-          ],
-          [
-            8,
-            35
-          ],
-          [
-            9,
-            35
-          ],
-          [
-            8,
-            36
-          ]
+          [9, 34],
+          [8, 35],
+          [9, 35],
+          [8, 36]
         ],
         "lines": 0,
         "clearedRows": [],
@@ -185,28 +142,13 @@
           "rotation": 2
         },
         "cells": [
-          [
-            6,
-            34
-          ],
-          [
-            7,
-            34
-          ],
-          [
-            8,
-            34
-          ],
-          [
-            7,
-            35
-          ]
+          [6, 34],
+          [7, 34],
+          [8, 34],
+          [7, 35]
         ],
         "lines": 2,
-        "clearedRows": [
-          34,
-          35
-        ],
+        "clearedRows": [34, 35],
         "spin": "full",
         "topOut": false
       }
@@ -214,11 +156,7 @@
   ],
   "completedBaselineSteps": [
     {
-      "witness": [
-        "L",
-        "CCW",
-        "HD"
-      ],
+      "witness": ["L", "CCW", "HD"],
       "event": {
         "type": "L",
         "target": {
@@ -228,22 +166,10 @@
           "rotation": 3
         },
         "cells": [
-          [
-            2,
-            24
-          ],
-          [
-            3,
-            24
-          ],
-          [
-            3,
-            25
-          ],
-          [
-            3,
-            26
-          ]
+          [2, 24],
+          [3, 24],
+          [3, 25],
+          [3, 26]
         ],
         "lines": 0,
         "clearedRows": [],
@@ -252,14 +178,7 @@
       }
     },
     {
-      "witness": [
-        "R",
-        "R",
-        "R",
-        "R",
-        "CW",
-        "HD"
-      ],
+      "witness": ["R", "R", "R", "R", "CW", "HD"],
       "event": {
         "type": "Z",
         "target": {
@@ -269,22 +188,10 @@
           "rotation": 1
         },
         "cells": [
-          [
-            9,
-            34
-          ],
-          [
-            8,
-            35
-          ],
-          [
-            9,
-            35
-          ],
-          [
-            8,
-            36
-          ]
+          [9, 34],
+          [8, 35],
+          [9, 35],
+          [8, 36]
         ],
         "lines": 0,
         "clearedRows": [],
@@ -326,28 +233,13 @@
           "rotation": 2
         },
         "cells": [
-          [
-            6,
-            34
-          ],
-          [
-            7,
-            34
-          ],
-          [
-            8,
-            34
-          ],
-          [
-            7,
-            35
-          ]
+          [6, 34],
+          [7, 34],
+          [8, 34],
+          [7, 35]
         ],
         "lines": 2,
-        "clearedRows": [
-          34,
-          35
-        ],
+        "clearedRows": [34, 35],
         "spin": "full",
         "topOut": false
       }

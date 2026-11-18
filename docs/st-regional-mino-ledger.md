@@ -126,10 +126,10 @@ first bag at lock **7**. Its first seven locked source slots are
 Their original first-bag allocations are Left/Center/Right **13/15/0** versus
 **18/10/0**, each 28 cells. At the common lock 25:
 
-| Recorded route | Placed L/C/R | Cleared L/C/R | Remaining L/C/R |
-| --- | --- | --- | --- |
-| Earlier route | 52 / 44 / 4 | 0 / 0 / 0 | 52 / 44 / 4 |
-| Narrowed opening | 46 / 40 / 14 | 16 / 12 / 12 | 30 / 28 / 2 |
+| Recorded route   | Placed L/C/R | Cleared L/C/R | Remaining L/C/R |
+| ---------------- | ------------ | ------------- | --------------- |
+| Earlier route    | 52 / 44 / 4  | 0 / 0 / 0     | 52 / 44 / 4     |
+| Narrowed opening | 46 / 40 / 14 | 16 / 12 / 12  | 30 / 28 / 2     |
 
 The narrowed route ends at lock 68 with placed **106/91/75**, cleared
 **56/42/42**, remaining **50/49/33**. These are measured material flows, not proof

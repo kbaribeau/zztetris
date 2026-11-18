@@ -58,20 +58,11 @@
     "streamCursor": 1,
     "topOut": false,
     "bag": {
-      "remaining": [
-        0
-      ],
+      "remaining": [0],
       "observedCount": 7,
       "provenance": "known-phase"
     },
-    "queue": [
-      "S",
-      "I",
-      "J",
-      "L",
-      "O",
-      "Z"
-    ]
+    "queue": ["S", "I", "J", "L", "O", "Z"]
   },
   "previous": null,
   "commitment": null,
@@ -136,9 +127,7 @@
           "seenMask": 0
         },
         "knowledge": {
-          "remaining": [
-            0
-          ],
+          "remaining": [0],
           "observedCount": 7,
           "provenance": "known-phase"
         }
@@ -158,15 +147,8 @@
           "handoff": false,
           "residuals": [],
           "uncertainty": {
-            "S": [
-              0,
-              0,
-              0,
-              0
-            ],
-            "L": [
-              0
-            ]
+            "S": [0, 0, 0, 0],
+            "L": [0]
           }
         },
         "account": {

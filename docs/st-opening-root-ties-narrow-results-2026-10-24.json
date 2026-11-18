@@ -34,13 +34,7 @@
   },
   "status": "retained narrowly scoped development feature; not an acceptance sample or general reliability claim",
   "protocol": {
-    "seedsInOrder": [
-      502923646,
-      503552020,
-      502609459,
-      502400001,
-      503237833
-    ],
+    "seedsInOrder": [502923646, 503552020, 502609459, 502400001, 503237833],
     "cap": 150,
     "vmWatchdogMs": 2500,
     "freshProcesses": true,
@@ -85,22 +79,10 @@
             "rotation": 1
           },
           "cells": [
-            [
-              5,
-              35
-            ],
-            [
-              5,
-              36
-            ],
-            [
-              5,
-              37
-            ],
-            [
-              5,
-              38
-            ]
+            [5, 35],
+            [5, 36],
+            [5, 37],
+            [5, 38]
           ],
           "lines": 0,
           "clearedRows": [],
@@ -116,22 +98,10 @@
             "rotation": 3
           },
           "cells": [
-            [
-              0,
-              36
-            ],
-            [
-              0,
-              37
-            ],
-            [
-              0,
-              38
-            ],
-            [
-              0,
-              39
-            ]
+            [0, 36],
+            [0, 37],
+            [0, 38],
+            [0, 39]
           ],
           "lines": 0,
           "clearedRows": [],
@@ -197,14 +167,8 @@
           "leftCovered": 9,
           "foundationStatus": "unfinished-lower-foundation",
           "foundationVacancies": [
-            [
-              6,
-              35
-            ],
-            [
-              6,
-              36
-            ]
+            [6, 35],
+            [6, 36]
           ]
         },
         "extensionCalls": [],
@@ -393,50 +357,17 @@
           "leftCovered": 0,
           "foundationStatus": "unfinished-lower-foundation",
           "foundationVacancies": [
-            [
-              6,
-              25
-            ],
-            [
-              4,
-              26
-            ],
-            [
-              6,
-              26
-            ],
-            [
-              4,
-              27
-            ],
-            [
-              6,
-              28
-            ],
-            [
-              5,
-              35
-            ],
-            [
-              5,
-              36
-            ],
-            [
-              4,
-              37
-            ],
-            [
-              5,
-              37
-            ],
-            [
-              6,
-              37
-            ],
-            [
-              4,
-              38
-            ]
+            [6, 25],
+            [4, 26],
+            [6, 26],
+            [4, 27],
+            [6, 28],
+            [5, 35],
+            [5, 36],
+            [4, 37],
+            [5, 37],
+            [6, 37],
+            [4, 38]
           ]
         },
         "extensionCalls": [],
@@ -499,50 +430,17 @@
           "leftCovered": 0,
           "foundationStatus": "unfinished-lower-foundation",
           "foundationVacancies": [
-            [
-              6,
-              25
-            ],
-            [
-              4,
-              26
-            ],
-            [
-              6,
-              26
-            ],
-            [
-              4,
-              27
-            ],
-            [
-              6,
-              28
-            ],
-            [
-              5,
-              35
-            ],
-            [
-              5,
-              36
-            ],
-            [
-              4,
-              37
-            ],
-            [
-              5,
-              37
-            ],
-            [
-              6,
-              37
-            ],
-            [
-              4,
-              38
-            ]
+            [6, 25],
+            [4, 26],
+            [6, 26],
+            [4, 27],
+            [6, 28],
+            [5, 35],
+            [5, 36],
+            [4, 37],
+            [5, 37],
+            [6, 37],
+            [4, 38]
           ]
         },
         "extensionCalls": [],
@@ -616,22 +514,10 @@
           "leftCovered": 0,
           "foundationStatus": "unfinished-lower-foundation",
           "foundationVacancies": [
-            [
-              5,
-              33
-            ],
-            [
-              5,
-              34
-            ],
-            [
-              6,
-              35
-            ],
-            [
-              6,
-              36
-            ]
+            [5, 33],
+            [5, 34],
+            [6, 35],
+            [6, 36]
           ]
         },
         "extensionCalls": [],
@@ -694,22 +580,10 @@
           "leftCovered": 0,
           "foundationStatus": "unfinished-lower-foundation",
           "foundationVacancies": [
-            [
-              5,
-              33
-            ],
-            [
-              5,
-              34
-            ],
-            [
-              6,
-              35
-            ],
-            [
-              6,
-              36
-            ]
+            [5, 33],
+            [5, 34],
+            [6, 35],
+            [6, 36]
           ]
         },
         "extensionCalls": [],
@@ -916,14 +790,8 @@
           "leftCovered": 0,
           "foundationStatus": "unfinished-lower-foundation",
           "foundationVacancies": [
-            [
-              6,
-              27
-            ],
-            [
-              6,
-              28
-            ]
+            [6, 27],
+            [6, 28]
           ]
         },
         "extensionCalls": [],
@@ -986,14 +854,8 @@
           "leftCovered": 0,
           "foundationStatus": "unfinished-lower-foundation",
           "foundationVacancies": [
-            [
-              6,
-              27
-            ],
-            [
-              6,
-              28
-            ]
+            [6, 27],
+            [6, 28]
           ]
         },
         "extensionCalls": [],

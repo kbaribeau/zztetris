@@ -11,6 +11,7 @@ This is a **mechanics example, not a recommended ST pattern**. In particular, th
 The unit tests independently replay both paths from the same starting state. Column numbers below are one-based. “Down” means move down one cell without locking; only hard drop locks.
 
 Both paths begin:
+
 1. Hold to select Z.
 2. Move right four times, rotate clockwise once, and hard drop. Z caps columns 9–10.
 

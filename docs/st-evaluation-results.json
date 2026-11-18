@@ -588,11 +588,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 12,
@@ -605,15 +601,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "R",
-            "R",
-            "R",
-            "CW",
-            "R",
-            "HD"
-          ],
+          "witness": ["HOLD", "R", "R", "R", "CW", "R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 12,
@@ -663,15 +651,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "R",
-            "R",
-            "R",
-            "CCW",
-            "R",
-            "HD"
-          ],
+          "witness": ["R", "R", "R", "R", "CCW", "R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 10,
@@ -684,14 +664,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "L",
-            "CCW",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "L", "CCW", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 12,
@@ -704,11 +677,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 12,
@@ -721,12 +690,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["HOLD", "L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 13,
@@ -771,10 +735,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "HD"
-          ],
+          "witness": ["HOLD", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 11,
@@ -787,12 +748,7 @@
           "lines": 1,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "R",
-            "R",
-            "HD"
-          ],
+          "witness": ["R", "R", "R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 10,
@@ -805,12 +761,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 11,
@@ -823,10 +774,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "HD"
-          ],
+          "witness": ["HOLD", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 11,
@@ -851,9 +799,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "HD"
-          ],
+          "witness": ["HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 14,
@@ -866,9 +812,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "HD"
-          ],
+          "witness": ["HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 16,
@@ -881,9 +825,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "HD"
-          ],
+          "witness": ["HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 18,
@@ -896,9 +838,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "HD"
-          ],
+          "witness": ["HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 20,
@@ -911,9 +851,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "HD"
-          ],
+          "witness": ["HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 21,
@@ -942,11 +880,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 8,
@@ -959,14 +893,7 @@
           "lines": 1,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "R",
-            "R",
-            "R",
-            "R180",
-            "HD"
-          ],
+          "witness": ["R", "R", "R", "R", "R180", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 7,
@@ -979,9 +906,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "HD"
-          ],
+          "witness": ["HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 9,
@@ -1028,12 +953,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "CCW",
-            "HD"
-          ],
+          "witness": ["L", "L", "CCW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 8,
@@ -1046,11 +966,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "CCW",
-            "HD"
-          ],
+          "witness": ["L", "CCW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 8,
@@ -1063,15 +979,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "L",
-            "L",
-            "L",
-            "CW",
-            "L",
-            "HD"
-          ],
+          "witness": ["HOLD", "L", "L", "L", "CW", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 8,
@@ -1121,13 +1029,7 @@
           "lines": 1,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "R",
-            "R",
-            "R",
-            "HD"
-          ],
+          "witness": ["R", "R", "R", "R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 5,
@@ -1140,12 +1042,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "R",
-            "CW",
-            "HD"
-          ],
+          "witness": ["HOLD", "R", "CW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 7,
@@ -1158,15 +1055,7 @@
           "lines": 2,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "R",
-            "R",
-            "R",
-            "R",
-            "R180",
-            "HD"
-          ],
+          "witness": ["HOLD", "R", "R", "R", "R", "R180", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 5,
@@ -1179,10 +1068,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "CW",
-            "HD"
-          ],
+          "witness": ["CW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 7,
@@ -1207,9 +1093,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "HD"
-          ],
+          "witness": ["HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 10,
@@ -1222,9 +1106,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "HD"
-          ],
+          "witness": ["HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 12,
@@ -1237,9 +1119,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "HD"
-          ],
+          "witness": ["HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 13,
@@ -1252,9 +1132,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "HD"
-          ],
+          "witness": ["HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 14,
@@ -1267,9 +1145,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "HD"
-          ],
+          "witness": ["HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 16,
@@ -1282,9 +1158,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "HD"
-          ],
+          "witness": ["HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 18,
@@ -1297,9 +1171,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "HD"
-          ],
+          "witness": ["HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 19,
@@ -1312,9 +1184,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "HD"
-          ],
+          "witness": ["HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 21,
@@ -1414,12 +1284,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 7,
@@ -1432,15 +1297,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "R",
-            "R",
-            "R",
-            "R",
-            "CW",
-            "HD"
-          ],
+          "witness": ["HOLD", "R", "R", "R", "R", "CW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 7,
@@ -1453,10 +1310,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "HD"
-          ],
+          "witness": ["R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 9,
@@ -1469,11 +1323,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "R",
-            "HD"
-          ],
+          "witness": ["HOLD", "R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 10,
@@ -1486,11 +1336,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 10,
@@ -1503,10 +1349,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "CW",
-            "HD"
-          ],
+          "witness": ["CW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 12,
@@ -1519,15 +1362,7 @@
           "lines": 1,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "R",
-            "R",
-            "R",
-            "R",
-            "R180",
-            "HD"
-          ],
+          "witness": ["HOLD", "R", "R", "R", "R", "R180", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 11,
@@ -1540,13 +1375,7 @@
           "lines": 1,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "R",
-            "R",
-            "R",
-            "HD"
-          ],
+          "witness": ["R", "R", "R", "R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 10,
@@ -1559,13 +1388,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 10,
@@ -1578,12 +1401,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 10,
@@ -1608,9 +1426,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "HD"
-          ],
+          "witness": ["HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 12,
@@ -1623,9 +1439,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "HD"
-          ],
+          "witness": ["HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 14,
@@ -1638,9 +1452,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "HD"
-          ],
+          "witness": ["HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 15,
@@ -1653,9 +1465,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "HD"
-          ],
+          "witness": ["HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 17,
@@ -1668,9 +1478,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "HD"
-          ],
+          "witness": ["HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 19,
@@ -1683,9 +1491,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "HD"
-          ],
+          "witness": ["HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 21,
@@ -1698,9 +1504,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "HD"
-          ],
+          "witness": ["HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 22,
@@ -1762,15 +1566,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "R",
-            "R",
-            "R",
-            "R",
-            "CW",
-            "HD"
-          ],
+          "witness": ["HOLD", "R", "R", "R", "R", "CW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 7,
@@ -1783,10 +1579,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "HD"
-          ],
+          "witness": ["R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 9,
@@ -1799,11 +1592,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "R",
-            "HD"
-          ],
+          "witness": ["HOLD", "R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 10,
@@ -1816,11 +1605,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 10,
@@ -1833,10 +1618,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "CW",
-            "HD"
-          ],
+          "witness": ["CW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 12,
@@ -1849,15 +1631,7 @@
           "lines": 1,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "R",
-            "R",
-            "R",
-            "R",
-            "R180",
-            "HD"
-          ],
+          "witness": ["HOLD", "R", "R", "R", "R", "R180", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 11,
@@ -1870,13 +1644,7 @@
           "lines": 1,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "R",
-            "R",
-            "R",
-            "HD"
-          ],
+          "witness": ["R", "R", "R", "R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 10,
@@ -1889,13 +1657,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 10,
@@ -1908,12 +1670,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 10,
@@ -1963,13 +1720,7 @@
           "lines": 1,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "R",
-            "R",
-            "CW",
-            "HD"
-          ],
+          "witness": ["R", "R", "R", "CW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 7,
@@ -1994,9 +1745,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "HD"
-          ],
+          "witness": ["HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 9,
@@ -2009,9 +1758,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "HD"
-          ],
+          "witness": ["HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 11,
@@ -2024,9 +1771,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "HD"
-          ],
+          "witness": ["HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 13,
@@ -2039,9 +1784,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "HD"
-          ],
+          "witness": ["HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 15,
@@ -2054,9 +1797,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "HD"
-          ],
+          "witness": ["HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 16,
@@ -2069,9 +1810,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "HD"
-          ],
+          "witness": ["HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 18,
@@ -2084,9 +1823,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "HD"
-          ],
+          "witness": ["HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 20,
@@ -2099,9 +1836,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "HD"
-          ],
+          "witness": ["HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 22,
@@ -2130,14 +1865,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "R",
-            "R",
-            "R",
-            "CW",
-            "HD"
-          ],
+          "witness": ["R", "R", "R", "R", "CW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 14,
@@ -2215,10 +1943,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "HD"
-          ],
+          "witness": ["R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 12,
@@ -2231,14 +1956,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "R",
-            "R",
-            "R",
-            "CW",
-            "HD"
-          ],
+          "witness": ["R", "R", "R", "R", "CW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 12,
@@ -2251,11 +1969,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "R",
-            "HD"
-          ],
+          "witness": ["HOLD", "R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 13,
@@ -2303,13 +2017,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 11,
@@ -2322,12 +2030,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "R",
-            "CW",
-            "HD"
-          ],
+          "witness": ["R", "R", "CW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 11,
@@ -2340,13 +2043,7 @@
           "lines": 1,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "R",
-            "R",
-            "R",
-            "HD"
-          ],
+          "witness": ["R", "R", "R", "R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 10,
@@ -2359,15 +2056,7 @@
           "lines": 3,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "R",
-            "R",
-            "R",
-            "CCW",
-            "R",
-            "HD"
-          ],
+          "witness": ["R", "R", "R", "R", "CCW", "R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 7,
@@ -2380,14 +2069,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "L",
-            "L",
-            "L",
-            "R180",
-            "HD"
-          ],
+          "witness": ["HOLD", "L", "L", "L", "R180", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 7,
@@ -2419,11 +2101,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 12,
@@ -2473,10 +2151,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "HD"
-          ],
+          "witness": ["R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 12,
@@ -2505,11 +2180,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 12,
@@ -2522,15 +2193,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "R",
-            "R",
-            "R",
-            "CW",
-            "R",
-            "HD"
-          ],
+          "witness": ["HOLD", "R", "R", "R", "CW", "R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 12,
@@ -2598,11 +2261,7 @@
         "lines": 0,
         "spin": "none",
         "hold": false,
-        "witness": [
-          "L",
-          "L",
-          "HD"
-        ],
+        "witness": ["L", "L", "HD"],
         "regionalSupport": true,
         "openChannel": true,
         "maxHeight": 12,
@@ -2615,15 +2274,7 @@
         "lines": 0,
         "spin": "none",
         "hold": true,
-        "witness": [
-          "HOLD",
-          "R",
-          "R",
-          "R",
-          "CW",
-          "R",
-          "HD"
-        ],
+        "witness": ["HOLD", "R", "R", "R", "CW", "R", "HD"],
         "regionalSupport": true,
         "openChannel": true,
         "maxHeight": 12,
@@ -2673,15 +2324,7 @@
         "lines": 0,
         "spin": "none",
         "hold": false,
-        "witness": [
-          "R",
-          "R",
-          "R",
-          "R",
-          "CCW",
-          "R",
-          "HD"
-        ],
+        "witness": ["R", "R", "R", "R", "CCW", "R", "HD"],
         "regionalSupport": true,
         "openChannel": true,
         "maxHeight": 10,
@@ -2694,14 +2337,7 @@
         "lines": 0,
         "spin": "none",
         "hold": false,
-        "witness": [
-          "L",
-          "L",
-          "L",
-          "CCW",
-          "L",
-          "HD"
-        ],
+        "witness": ["L", "L", "L", "CCW", "L", "HD"],
         "regionalSupport": true,
         "openChannel": true,
         "maxHeight": 12,
@@ -2714,11 +2350,7 @@
         "lines": 0,
         "spin": "none",
         "hold": false,
-        "witness": [
-          "L",
-          "L",
-          "HD"
-        ],
+        "witness": ["L", "L", "HD"],
         "regionalSupport": true,
         "openChannel": true,
         "maxHeight": 12,
@@ -2731,12 +2363,7 @@
         "lines": 0,
         "spin": "none",
         "hold": true,
-        "witness": [
-          "HOLD",
-          "L",
-          "L",
-          "HD"
-        ],
+        "witness": ["HOLD", "L", "L", "HD"],
         "regionalSupport": true,
         "openChannel": true,
         "maxHeight": 13,
@@ -2781,10 +2408,7 @@
         "lines": 0,
         "spin": "none",
         "hold": true,
-        "witness": [
-          "HOLD",
-          "HD"
-        ],
+        "witness": ["HOLD", "HD"],
         "regionalSupport": true,
         "openChannel": true,
         "maxHeight": 11,
@@ -2797,12 +2421,7 @@
         "lines": 1,
         "spin": "none",
         "hold": false,
-        "witness": [
-          "R",
-          "R",
-          "R",
-          "HD"
-        ],
+        "witness": ["R", "R", "R", "HD"],
         "regionalSupport": true,
         "openChannel": true,
         "maxHeight": 10,
@@ -2815,12 +2434,7 @@
         "lines": 0,
         "spin": "none",
         "hold": false,
-        "witness": [
-          "L",
-          "L",
-          "L",
-          "HD"
-        ],
+        "witness": ["L", "L", "L", "HD"],
         "regionalSupport": true,
         "openChannel": true,
         "maxHeight": 11,
@@ -2833,10 +2447,7 @@
         "lines": 0,
         "spin": "none",
         "hold": true,
-        "witness": [
-          "HOLD",
-          "HD"
-        ],
+        "witness": ["HOLD", "HD"],
         "regionalSupport": true,
         "openChannel": true,
         "maxHeight": 11,
@@ -2866,11 +2477,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 8,
@@ -2883,14 +2490,7 @@
           "lines": 1,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "R",
-            "R",
-            "R",
-            "R180",
-            "HD"
-          ],
+          "witness": ["R", "R", "R", "R", "R180", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 7,
@@ -2903,9 +2503,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "HD"
-          ],
+          "witness": ["HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 9,
@@ -2952,12 +2550,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "CCW",
-            "HD"
-          ],
+          "witness": ["L", "L", "CCW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 8,
@@ -2970,11 +2563,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "CCW",
-            "HD"
-          ],
+          "witness": ["L", "CCW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 8,
@@ -2987,15 +2576,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "L",
-            "L",
-            "L",
-            "CW",
-            "L",
-            "HD"
-          ],
+          "witness": ["HOLD", "L", "L", "L", "CW", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 8,
@@ -3045,13 +2626,7 @@
           "lines": 1,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "R",
-            "R",
-            "R",
-            "HD"
-          ],
+          "witness": ["R", "R", "R", "R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 5,
@@ -3064,12 +2639,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "R",
-            "CW",
-            "HD"
-          ],
+          "witness": ["HOLD", "R", "CW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 7,
@@ -3082,15 +2652,7 @@
           "lines": 2,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "R",
-            "R",
-            "R",
-            "R",
-            "R180",
-            "HD"
-          ],
+          "witness": ["HOLD", "R", "R", "R", "R", "R180", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 5,
@@ -3103,10 +2665,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "CW",
-            "HD"
-          ],
+          "witness": ["CW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 7,
@@ -3119,15 +2678,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "R",
-            "R",
-            "R",
-            "CW",
-            "R",
-            "HD"
-          ],
+          "witness": ["HOLD", "R", "R", "R", "CW", "R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 7,
@@ -3214,14 +2765,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "L",
-            "L",
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["HOLD", "L", "L", "L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 5,
@@ -3234,11 +2778,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "CW",
-            "HD"
-          ],
+          "witness": ["L", "CW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 5,
@@ -3251,13 +2791,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "L",
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["HOLD", "L", "L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 5,
@@ -3270,13 +2804,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "L",
-            "R180",
-            "HD"
-          ],
+          "witness": ["L", "L", "L", "R180", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 5,
@@ -3289,12 +2817,7 @@
           "lines": 2,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "R",
-            "R",
-            "HD"
-          ],
+          "witness": ["R", "R", "R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 3,
@@ -3307,12 +2830,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "R",
-            "CW",
-            "HD"
-          ],
+          "witness": ["HOLD", "R", "CW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 4,
@@ -3325,11 +2843,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "CW",
-            "HD"
-          ],
+          "witness": ["R", "CW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 6,
@@ -3342,10 +2856,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "CCW",
-            "HD"
-          ],
+          "witness": ["CCW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 7,
@@ -3358,14 +2869,7 @@
           "lines": 1,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "R",
-            "R",
-            "R",
-            "R",
-            "HD"
-          ],
+          "witness": ["HOLD", "R", "R", "R", "R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 6,
@@ -3378,14 +2882,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "L",
-            "CW",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "L", "CW", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 6,
@@ -3398,11 +2895,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 6,
@@ -3415,12 +2908,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "R180",
-            "HD"
-          ],
+          "witness": ["L", "L", "R180", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 6,
@@ -3433,11 +2921,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "CW",
-            "HD"
-          ],
+          "witness": ["R", "CW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 7,
@@ -3450,15 +2934,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "R",
-            "R",
-            "R",
-            "R",
-            "CW",
-            "HD"
-          ],
+          "witness": ["HOLD", "R", "R", "R", "R", "CW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 7,
@@ -3471,10 +2947,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "HD"
-          ],
+          "witness": ["HOLD", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 9,
@@ -3487,14 +2960,7 @@
           "lines": 1,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "R",
-            "R",
-            "R",
-            "R180",
-            "HD"
-          ],
+          "witness": ["R", "R", "R", "R", "R180", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 8,
@@ -3507,14 +2973,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "L",
-            "CW",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "L", "CW", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 8,
@@ -3560,12 +3019,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 8,
@@ -3578,13 +3032,7 @@
           "lines": 3,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "R",
-            "R",
-            "CW",
-            "HD"
-          ],
+          "witness": ["HOLD", "R", "R", "CW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 5,
@@ -3597,11 +3045,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "CCW",
-            "HD"
-          ],
+          "witness": ["L", "CCW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 6,
@@ -3663,15 +3107,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "R",
-            "R",
-            "R",
-            "R",
-            "CW",
-            "HD"
-          ],
+          "witness": ["HOLD", "R", "R", "R", "R", "CW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 7,
@@ -3684,10 +3120,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "HD"
-          ],
+          "witness": ["R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 9,
@@ -3700,11 +3133,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "R",
-            "HD"
-          ],
+          "witness": ["HOLD", "R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 10,
@@ -3717,11 +3146,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 10,
@@ -3734,10 +3159,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "CW",
-            "HD"
-          ],
+          "witness": ["CW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 12,
@@ -3750,15 +3172,7 @@
           "lines": 1,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "R",
-            "R",
-            "R",
-            "R",
-            "R180",
-            "HD"
-          ],
+          "witness": ["HOLD", "R", "R", "R", "R", "R180", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 11,
@@ -3771,13 +3185,7 @@
           "lines": 1,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "R",
-            "R",
-            "R",
-            "HD"
-          ],
+          "witness": ["R", "R", "R", "R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 10,
@@ -3790,13 +3198,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 10,
@@ -3809,12 +3211,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 10,
@@ -3864,13 +3261,7 @@
           "lines": 1,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "R",
-            "R",
-            "CW",
-            "HD"
-          ],
+          "witness": ["R", "R", "R", "CW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 7,
@@ -3883,14 +3274,7 @@
           "lines": 1,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "R",
-            "R",
-            "R",
-            "CW",
-            "HD"
-          ],
+          "witness": ["HOLD", "R", "R", "R", "CW", "HD"],
           "regionalSupport": false,
           "openChannel": false,
           "maxHeight": 6,
@@ -3903,12 +3287,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 6,
@@ -3921,15 +3300,7 @@
           "lines": 3,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "R",
-            "R",
-            "R",
-            "CCW",
-            "R",
-            "HD"
-          ],
+          "witness": ["R", "R", "R", "R", "CCW", "R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 3,
@@ -3942,12 +3313,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 4,
@@ -3960,11 +3326,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "L",
-            "HD"
-          ],
+          "witness": ["HOLD", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 4,
@@ -3977,14 +3339,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "L",
-            "L",
-            "L",
-            "R180",
-            "HD"
-          ],
+          "witness": ["HOLD", "L", "L", "L", "R180", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 5,
@@ -3997,9 +3352,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "HD"
-          ],
+          "witness": ["HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 5,
@@ -4012,12 +3365,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "R",
-            "CW",
-            "HD"
-          ],
+          "witness": ["R", "R", "CW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 5,
@@ -4030,12 +3378,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 6,
@@ -4048,14 +3391,7 @@
           "lines": 2,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "R",
-            "R",
-            "R",
-            "R",
-            "HD"
-          ],
+          "witness": ["HOLD", "R", "R", "R", "R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 4,
@@ -4068,10 +3404,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "CW",
-            "HD"
-          ],
+          "witness": ["CW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 6,
@@ -4084,12 +3417,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "R",
-            "R",
-            "HD"
-          ],
+          "witness": ["R", "R", "R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 6,
@@ -4102,12 +3430,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "R",
-            "CCW",
-            "HD"
-          ],
+          "witness": ["HOLD", "R", "CCW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 8,
@@ -4120,14 +3443,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "R",
-            "R",
-            "R",
-            "CW",
-            "HD"
-          ],
+          "witness": ["R", "R", "R", "R", "CW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 8,
@@ -4140,12 +3456,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 8,
@@ -4158,13 +3469,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "L",
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["HOLD", "L", "L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 8,
@@ -4177,10 +3482,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "HD"
-          ],
+          "witness": ["HOLD", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 10,
@@ -4193,11 +3495,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "CCW",
-            "HD"
-          ],
+          "witness": ["L", "CCW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 10,
@@ -4242,15 +3540,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "L",
-            "L",
-            "L",
-            "CW",
-            "L",
-            "HD"
-          ],
+          "witness": ["HOLD", "L", "L", "L", "CW", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 10,
@@ -4299,12 +3589,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "R",
-            "R",
-            "HD"
-          ],
+          "witness": ["R", "R", "R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 8,
@@ -4317,14 +3602,7 @@
           "lines": 2,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "R",
-            "R",
-            "CW",
-            "R",
-            "HD"
-          ],
+          "witness": ["R", "R", "R", "CW", "R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 6,
@@ -4462,12 +3740,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 7,
@@ -4480,15 +3753,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "R",
-            "R",
-            "R",
-            "R",
-            "CW",
-            "HD"
-          ],
+          "witness": ["HOLD", "R", "R", "R", "R", "CW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 7,
@@ -4501,10 +3766,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "HD"
-          ],
+          "witness": ["R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 9,
@@ -4517,11 +3779,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "R",
-            "HD"
-          ],
+          "witness": ["HOLD", "R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 10,
@@ -4534,11 +3792,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 10,
@@ -4551,10 +3805,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "CW",
-            "HD"
-          ],
+          "witness": ["CW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 12,
@@ -4567,15 +3818,7 @@
           "lines": 1,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "R",
-            "R",
-            "R",
-            "R",
-            "R180",
-            "HD"
-          ],
+          "witness": ["HOLD", "R", "R", "R", "R", "R180", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 11,
@@ -4588,13 +3831,7 @@
           "lines": 1,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "R",
-            "R",
-            "R",
-            "HD"
-          ],
+          "witness": ["R", "R", "R", "R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 10,
@@ -4607,13 +3844,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 10,
@@ -4626,12 +3857,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 10,
@@ -4681,13 +3907,7 @@
           "lines": 1,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "R",
-            "R",
-            "CW",
-            "HD"
-          ],
+          "witness": ["R", "R", "R", "CW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 7,
@@ -4700,14 +3920,7 @@
           "lines": 1,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "R",
-            "R",
-            "R",
-            "CW",
-            "HD"
-          ],
+          "witness": ["HOLD", "R", "R", "R", "CW", "HD"],
           "regionalSupport": false,
           "openChannel": false,
           "maxHeight": 6,
@@ -4720,12 +3933,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 6,
@@ -4738,15 +3946,7 @@
           "lines": 3,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "R",
-            "R",
-            "R",
-            "CCW",
-            "R",
-            "HD"
-          ],
+          "witness": ["R", "R", "R", "R", "CCW", "R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 3,
@@ -4759,12 +3959,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 4,
@@ -4777,11 +3972,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "L",
-            "HD"
-          ],
+          "witness": ["HOLD", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 4,
@@ -4794,14 +3985,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "L",
-            "L",
-            "L",
-            "R180",
-            "HD"
-          ],
+          "witness": ["HOLD", "L", "L", "L", "R180", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 5,
@@ -4814,9 +3998,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "HD"
-          ],
+          "witness": ["HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 5,
@@ -4829,12 +4011,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "R",
-            "CW",
-            "HD"
-          ],
+          "witness": ["R", "R", "CW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 5,
@@ -4847,12 +4024,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 6,
@@ -4865,14 +4037,7 @@
           "lines": 2,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "R",
-            "R",
-            "R",
-            "R",
-            "HD"
-          ],
+          "witness": ["HOLD", "R", "R", "R", "R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 4,
@@ -4885,10 +4050,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "CW",
-            "HD"
-          ],
+          "witness": ["CW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 6,
@@ -4901,12 +4063,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "R",
-            "R",
-            "HD"
-          ],
+          "witness": ["R", "R", "R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 6,
@@ -4919,12 +4076,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "R",
-            "CCW",
-            "HD"
-          ],
+          "witness": ["HOLD", "R", "CCW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 8,
@@ -4937,14 +4089,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "R",
-            "R",
-            "R",
-            "CW",
-            "HD"
-          ],
+          "witness": ["R", "R", "R", "R", "CW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 8,
@@ -4957,12 +4102,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 8,
@@ -4975,13 +4115,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "L",
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["HOLD", "L", "L", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 8,
@@ -4994,10 +4128,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "HD"
-          ],
+          "witness": ["HOLD", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 10,
@@ -5010,11 +4141,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "L",
-            "CCW",
-            "HD"
-          ],
+          "witness": ["L", "CCW", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 10,
@@ -5059,15 +4186,7 @@
           "lines": 0,
           "spin": "none",
           "hold": true,
-          "witness": [
-            "HOLD",
-            "L",
-            "L",
-            "L",
-            "CW",
-            "L",
-            "HD"
-          ],
+          "witness": ["HOLD", "L", "L", "L", "CW", "L", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 10,
@@ -5116,12 +4235,7 @@
           "lines": 0,
           "spin": "none",
           "hold": false,
-          "witness": [
-            "R",
-            "R",
-            "R",
-            "HD"
-          ],
+          "witness": ["R", "R", "R", "HD"],
           "regionalSupport": true,
           "openChannel": true,
           "maxHeight": 8,
@@ -5144,18 +4258,7 @@
           "height": 1,
           "openBelowStack": true
         },
-        "heights": [
-          4,
-          4,
-          5,
-          6,
-          5,
-          5,
-          2,
-          1,
-          0,
-          0
-        ],
+        "heights": [4, 4, 5, 6, 5, 5, 2, 1, 0, 0],
         "maxHeight": 6,
         "headroom": 14,
         "sealed": 0,
@@ -5167,11 +4270,7 @@
         },
         "center": {
           "height": 5,
-          "profile": [
-            5,
-            5,
-            2
-          ],
+          "profile": [5, 5, 2],
           "partnerDeficit": 3,
           "partnerStatus": "unfinished-open-surface"
         },
@@ -5202,18 +4301,7 @@
           "height": 0,
           "openBelowStack": true
         },
-        "heights": [
-          3,
-          4,
-          4,
-          4,
-          3,
-          3,
-          1,
-          0,
-          1,
-          1
-        ],
+        "heights": [3, 4, 4, 4, 3, 3, 1, 0, 1, 1],
         "maxHeight": 4,
         "headroom": 16,
         "sealed": 0,
@@ -5225,11 +4313,7 @@
         },
         "center": {
           "height": 3,
-          "profile": [
-            3,
-            3,
-            1
-          ],
+          "profile": [3, 3, 1],
           "partnerDeficit": 2,
           "partnerStatus": "unfinished-open-surface"
         },
@@ -5273,18 +4357,7 @@
           "height": 0,
           "openBelowStack": true
         },
-        "heights": [
-          5,
-          5,
-          3,
-          3,
-          5,
-          5,
-          2,
-          0,
-          0,
-          1
-        ],
+        "heights": [5, 5, 3, 3, 5, 5, 2, 0, 0, 1],
         "maxHeight": 5,
         "headroom": 15,
         "sealed": 0,
@@ -5296,11 +4369,7 @@
         },
         "center": {
           "height": 5,
-          "profile": [
-            5,
-            5,
-            2
-          ],
+          "profile": [5, 5, 2],
           "partnerDeficit": 3,
           "partnerStatus": "unfinished-open-surface"
         },
@@ -5331,18 +4400,7 @@
           "height": 0,
           "openBelowStack": true
         },
-        "heights": [
-          3,
-          3,
-          1,
-          1,
-          3,
-          4,
-          4,
-          0,
-          1,
-          1
-        ],
+        "heights": [3, 3, 1, 1, 3, 4, 4, 0, 1, 1],
         "maxHeight": 4,
         "headroom": 16,
         "sealed": 0,
@@ -5354,11 +4412,7 @@
         },
         "center": {
           "height": 4,
-          "profile": [
-            3,
-            4,
-            4
-          ],
+          "profile": [3, 4, 4],
           "partnerDeficit": 1,
           "partnerStatus": "unfinished-open-surface"
         },
@@ -5402,18 +4456,7 @@
           "height": 3,
           "openBelowStack": true
         },
-        "heights": [
-          8,
-          8,
-          6,
-          6,
-          8,
-          8,
-          2,
-          3,
-          3,
-          0
-        ],
+        "heights": [8, 8, 6, 6, 8, 8, 2, 3, 3, 0],
         "maxHeight": 8,
         "headroom": 12,
         "sealed": 0,
@@ -5425,11 +4468,7 @@
         },
         "center": {
           "height": 8,
-          "profile": [
-            8,
-            8,
-            2
-          ],
+          "profile": [8, 8, 2],
           "partnerDeficit": 6,
           "partnerStatus": "unfinished-open-surface"
         },
@@ -5460,18 +4499,7 @@
           "height": 0,
           "openBelowStack": true
         },
-        "heights": [
-          5,
-          5,
-          4,
-          5,
-          5,
-          5,
-          2,
-          0,
-          0,
-          1
-        ],
+        "heights": [5, 5, 4, 5, 5, 5, 2, 0, 0, 1],
         "maxHeight": 5,
         "headroom": 15,
         "sealed": 0,
@@ -5483,11 +4511,7 @@
         },
         "center": {
           "height": 5,
-          "profile": [
-            5,
-            5,
-            2
-          ],
+          "profile": [5, 5, 2],
           "partnerDeficit": 3,
           "partnerStatus": "unfinished-open-surface"
         },

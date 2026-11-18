@@ -1,104 +1,476 @@
 'use strict';
-const test=require('node:test'),assert=require('node:assert/strict');
-const fs=require('node:fs'),os=require('node:os'),path=require('node:path'),CLI=require('../scripts/simulate-st.cjs');
-const E=require('../scripts/lib/st-simulation.cjs'),P=require('../st-planner'),R=require('../st-rules');
-const api={...P,startOpeningSession:()=>({active:true}),acceptOpeningResult:P.acceptOpeningResult,updateOpeningSession:s=>s,advance:()=>null,continueCommitment:()=>null};
-function hd(state,extra={}){const witness=['HD'],proof=R.replay(state,witness);return{target:proof.events[0].target,witness,hold:false,evidence:{opening:true},...extra};}
+const test = require('node:test'),
+  assert = require('node:assert/strict');
+const fs = require('node:fs'),
+  os = require('node:os'),
+  path = require('node:path'),
+  CLI = require('../scripts/simulate-st.cjs');
+const E = require('../scripts/lib/st-simulation.cjs'),
+  P = require('../st-planner'),
+  R = require('../st-rules');
+const api = {
+  ...P,
+  startOpeningSession: () => ({ active: true }),
+  acceptOpeningResult: P.acceptOpeningResult,
+  updateOpeningSession: (s) => s,
+  advance: () => null,
+  continueCommitment: () => null,
+};
+function hd(state, extra = {}) {
+  const witness = ['HD'],
+    proof = R.replay(state, witness);
+  return {
+    target: proof.events[0].target,
+    witness,
+    hold: false,
+    evidence: { opening: true },
+    ...extra,
+  };
+}
 // Controlled legal stress witnesses, not engine-selected play. Four 1,000-action
 // locks put the 4,097th action on either HD or its immediately preceding input.
-function coverageBoundary(lastRotations,overrides={}){
- let decisions=0;const rows=[],input=E.makeInput('empty',123,5);
- const summary=E.runEpisode(input,{api:{...api,acceptOpeningResult:s=>s,updatePatternHistory:()=>null,...overrides},planner:r=>{
-  const rotations=++decisions<=4?999:lastRotations,witness=Array.from({length:rotations},(_,i)=>i%2?'CCW':'CW').concat('HD'),proof=R.replay(r.observation,witness);
-  assert.equal(proof.valid,true);return{target:proof.events[0].target,witness,hold:false,evidence:{opening:true}};
- },onRecord:r=>rows.push(r)});
- return{input,summary,rows};
+function coverageBoundary(lastRotations, overrides = {}) {
+  let decisions = 0;
+  const rows = [],
+    input = E.makeInput('empty', 123, 5);
+  const summary = E.runEpisode(input, {
+    api: {
+      ...api,
+      acceptOpeningResult: (s) => s,
+      updatePatternHistory: () => null,
+      ...overrides,
+    },
+    planner: (r) => {
+      const rotations = ++decisions <= 4 ? 999 : lastRotations,
+        witness = Array.from({ length: rotations }, (_, i) =>
+          i % 2 ? 'CCW' : 'CW',
+        ).concat('HD'),
+        proof = R.replay(r.observation, witness);
+      assert.equal(proof.valid, true);
+      return {
+        target: proof.events[0].target,
+        witness,
+        hold: false,
+        evidence: { opening: true },
+      };
+    },
+    onRecord: (r) => rows.push(r),
+  });
+  return { input, summary, rows };
 }
-function recover(t,input,rows){const dir=fs.mkdtempSync(path.join(os.tmpdir(),'st-action-coverage-'));t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));fs.writeFileSync(path.join(dir,'trace.jsonl'),rows.map(r=>JSON.stringify(r)+'\n').join(''));return CLI.recoverSummary(dir,input,{status:1,stderr:'Controlled missing child summary'});}
-test('simulation tracking: runner subscribes without normal event output and samples authoritative final capped status',()=>{
- const input=E.makeInput('empty',13,2),rows=[];const s=E.runEpisode(input,{api,planner:r=>hd(r.observation),onRecord:r=>rows.push(r)});
- assert.equal(rows[0].kind,'tracking-start');assert.equal(rows.filter(r=>r.kind==='tracking-start').length,1);assert.equal(rows.some(r=>r.trackingEvents),false);assert.equal(s.tracking.total,0);assert.deepEqual(s.tracking.counts,{});assert.equal(s.tracking.scope,'entire-run');assert.equal(s.finalObligations.scope,'current');assert.equal(s.finalObligations.throughLock,2);assert.equal(s.stop,'lock-cap');assert.equal(s.censored,true);assert.equal(s.finalObligations.coverage.status,'known');assert.ok(JSON.stringify(s.finalObligations).length<3000);
- const last=rows.filter(r=>r.kind==='lock').at(-1),recovered=E.recoverTrackingStatus(last);assert.deepEqual(recovered.obligations,s.finalObligations.obligations);assert.equal(recovered.scope,'partial');assert.equal(recovered.throughLock,2);
+function recover(t, input, rows) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'st-action-coverage-'));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  fs.writeFileSync(
+    path.join(dir, 'trace.jsonl'),
+    rows.map((r) => JSON.stringify(r) + '\n').join(''),
+  );
+  return CLI.recoverSummary(dir, input, {
+    status: 1,
+    stderr: 'Controlled missing child summary',
+  });
+}
+test('simulation tracking: runner subscribes without normal event output and samples authoritative final capped status', () => {
+  const input = E.makeInput('empty', 13, 2),
+    rows = [];
+  const s = E.runEpisode(input, {
+    api,
+    planner: (r) => hd(r.observation),
+    onRecord: (r) => rows.push(r),
+  });
+  assert.equal(rows[0].kind, 'tracking-start');
+  assert.equal(rows.filter((r) => r.kind === 'tracking-start').length, 1);
+  assert.equal(
+    rows.some((r) => r.trackingEvents),
+    false,
+  );
+  assert.equal(s.tracking.total, 0);
+  assert.deepEqual(s.tracking.counts, {});
+  assert.equal(s.tracking.scope, 'entire-run');
+  assert.equal(s.finalObligations.scope, 'current');
+  assert.equal(s.finalObligations.throughLock, 2);
+  assert.equal(s.stop, 'lock-cap');
+  assert.equal(s.censored, true);
+  assert.equal(s.finalObligations.coverage.status, 'known');
+  assert.ok(JSON.stringify(s.finalObligations).length < 3000);
+  const last = rows.filter((r) => r.kind === 'lock').at(-1),
+    recovered = E.recoverTrackingStatus(last);
+  assert.deepEqual(recovered.obligations, s.finalObligations.obligations);
+  assert.equal(recovered.scope, 'partial');
+  assert.equal(recovered.throughLock, 2);
 });
-test('simulation tracking: abstention and imported history have honest final status, not a false clean-history claim',()=>{
- for(const scenario of ['empty','stable']){const s=E.runEpisode(E.makeInput(scenario,1,2),{planner:()=>({status:'unsupported'})});assert.equal(s.finalObligations.throughLock,0);assert.equal(s.finalObligations.coverage.status,scenario==='empty'?'known':'unknown');assert.equal(s.stop,'abstention');assert.equal(s.finalObligations.obligations.extraZ.remaining,null);}
+test('simulation tracking: abstention and imported history have honest final status, not a false clean-history claim', () => {
+  for (const scenario of ['empty', 'stable']) {
+    const s = E.runEpisode(E.makeInput(scenario, 1, 2), {
+      planner: () => ({ status: 'unsupported' }),
+    });
+    assert.equal(s.finalObligations.throughLock, 0);
+    assert.equal(
+      s.finalObligations.coverage.status,
+      scenario === 'empty' ? 'known' : 'unknown',
+    );
+    assert.equal(s.stop, 'abstention');
+    assert.equal(s.finalObligations.obligations.extraZ.remaining, null);
+  }
 });
-test('simulation tracking: recovery cannot invent a handoff from an unaccepted maintenance label',()=>{
- const rows=[],input=E.makeInput('empty',13,2),s=E.runEpisode(input,{api,planner:r=>hd(r.observation,{phase:'maintenance',evidence:{}}),onRecord:r=>rows.push(r)});
- assert.equal(s.currentCoach,'opening');const row=rows.filter(r=>r.kind==='lock').at(-1);const recovered=E.recoverTrackingStatus(row);assert.deepEqual(recovered.obligations,s.finalObligations.obligations);assert.equal(recovered.coverage.status,'known');
- const forged=E.clone(row);forged.lock=99;assert.throws(()=>E.recoverTrackingStatus(forged),/lock boundary/);
+test('simulation tracking: recovery cannot invent a handoff from an unaccepted maintenance label', () => {
+  const rows = [],
+    input = E.makeInput('empty', 13, 2),
+    s = E.runEpisode(input, {
+      api,
+      planner: (r) => hd(r.observation, { phase: 'maintenance', evidence: {} }),
+      onRecord: (r) => rows.push(r),
+    });
+  assert.equal(s.currentCoach, 'opening');
+  const row = rows.filter((r) => r.kind === 'lock').at(-1);
+  const recovered = E.recoverTrackingStatus(row);
+  assert.deepEqual(recovered.obligations, s.finalObligations.obligations);
+  assert.equal(recovered.coverage.status, 'known');
+  const forged = E.clone(row);
+  forged.lock = 99;
+  assert.throws(() => E.recoverTrackingStatus(forged), /lock boundary/);
 });
-test('simulation tracking: empty-HOLD intermediate reveals authenticate without private future access',()=>{
- const input=E.makeInput('empty',13,1),rows=[],s=E.runEpisode(input,{api,planner:r=>{const witness=['HOLD','HD'],proof=R.replay(r.observation,witness);return{target:proof.events[0].target,witness,hold:true,evidence:{opening:true}};},onRecord:r=>rows.push(r)});
- const row=rows.find(r=>r.kind==='lock');assert.deepEqual(E.recoverTrackingStatus(row).obligations,s.finalObligations.obligations);assert.equal(s.tracking.total,0);
+test('simulation tracking: empty-HOLD intermediate reveals authenticate without private future access', () => {
+  const input = E.makeInput('empty', 13, 1),
+    rows = [],
+    s = E.runEpisode(input, {
+      api,
+      planner: (r) => {
+        const witness = ['HOLD', 'HD'],
+          proof = R.replay(r.observation, witness);
+        return {
+          target: proof.events[0].target,
+          witness,
+          hold: true,
+          evidence: { opening: true },
+        };
+      },
+      onRecord: (r) => rows.push(r),
+    });
+  const row = rows.find((r) => r.kind === 'lock');
+  assert.deepEqual(
+    E.recoverTrackingStatus(row).obligations,
+    s.finalObligations.obligations,
+  );
+  assert.equal(s.tracking.total, 0);
 });
 
-test('simulation tracking: a post-lock controller failure cannot relabel actual resource state as a completed earlier lock',()=>{
- const input=E.makeInput('empty',13,2),s=E.runEpisode(input,{api:{...api,updateOpeningSession(){throw Error('Post-lock fault injection');}},planner:r=>hd(r.observation)});
- assert.equal(s.stop,'execution-error');assert.equal(s.locks,0);assert.equal(s.finalObligations.scope,'partial');assert.equal(s.finalObligations.throughLock,1);assert.equal(s.finalObligations.coverage.status,'known');assert.match(s.finalObligations.reason,/Execution interrupted/);assert.equal(s.tracking.scope,'retained-prefix');assert.equal(s.tracking.throughLock,1);
+test('simulation tracking: a post-lock controller failure cannot relabel actual resource state as a completed earlier lock', () => {
+  const input = E.makeInput('empty', 13, 2),
+    s = E.runEpisode(input, {
+      api: {
+        ...api,
+        updateOpeningSession() {
+          throw Error('Post-lock fault injection');
+        },
+      },
+      planner: (r) => hd(r.observation),
+    });
+  assert.equal(s.stop, 'execution-error');
+  assert.equal(s.locks, 0);
+  assert.equal(s.finalObligations.scope, 'partial');
+  assert.equal(s.finalObligations.throughLock, 1);
+  assert.equal(s.finalObligations.coverage.status, 'known');
+  assert.match(s.finalObligations.reason, /Execution interrupted/);
+  assert.equal(s.tracking.scope, 'retained-prefix');
+  assert.equal(s.tracking.throughLock, 1);
 });
 
-for(const rotations of [96,97])test(`simulation tracking: the former action cap on ${rotations===96?'HD':'movement before HD'} cannot truncate current accounting`,t=>{
- const {input,summary:s,rows}=coverageBoundary(rotations),events=rows.flatMap(r=>r.trackingEvents||[]);
- assert.equal(s.stop,'lock-cap');assert.equal(s.locks,5);assert.equal(s.censored,true);
- assert.equal(rows.filter(r=>r.kind==='lock').reduce((n,r)=>n+r.actions.length,0),4001+rotations);
- assert.deepEqual(events,[]);assert.equal(s.tracking.total,0);assert.equal(s.tracking.throughLock,5);
- assert.equal(s.finalObligations.availability,'known');assert.equal(s.finalObligations.scope,'current');assert.equal(s.finalObligations.throughLock,5);
- assert.equal(s.finalObligations.terminal.censored,true);assert.equal(s.finalObligations.terminal.cap,5);
- const recovered=recover(t,input,rows);assert.equal(recovered.tracking.total,0);assert.equal(recovered.tracking.throughLock,5);
- assert.equal(recovered.finalObligations.scope,'partial');assert.equal(recovered.finalObligations.throughLock,5);
- assert.deepEqual(recovered.finalObligations.obligations,s.finalObligations.obligations);
+for (const rotations of [96, 97])
+  test(`simulation tracking: the former action cap on ${rotations === 96 ? 'HD' : 'movement before HD'} cannot truncate current accounting`, (t) => {
+    const { input, summary: s, rows } = coverageBoundary(rotations),
+      events = rows.flatMap((r) => r.trackingEvents || []);
+    assert.equal(s.stop, 'lock-cap');
+    assert.equal(s.locks, 5);
+    assert.equal(s.censored, true);
+    assert.equal(
+      rows
+        .filter((r) => r.kind === 'lock')
+        .reduce((n, r) => n + r.actions.length, 0),
+      4001 + rotations,
+    );
+    assert.deepEqual(events, []);
+    assert.equal(s.tracking.total, 0);
+    assert.equal(s.tracking.throughLock, 5);
+    assert.equal(s.finalObligations.availability, 'known');
+    assert.equal(s.finalObligations.scope, 'current');
+    assert.equal(s.finalObligations.throughLock, 5);
+    assert.equal(s.finalObligations.terminal.censored, true);
+    assert.equal(s.finalObligations.terminal.cap, 5);
+    const recovered = recover(t, input, rows);
+    assert.equal(recovered.tracking.total, 0);
+    assert.equal(recovered.tracking.throughLock, 5);
+    assert.equal(recovered.finalObligations.scope, 'partial');
+    assert.equal(recovered.finalObligations.throughLock, 5);
+    assert.deepEqual(
+      recovered.finalObligations.obligations,
+      s.finalObligations.obligations,
+    );
+  });
+
+test('simulation tracking: controller error after long movement retains honest current partial boundary', (t) => {
+  let completed = 0,
+    movements = 0;
+  const {
+    input,
+    summary: s,
+    rows,
+  } = coverageBoundary(97, {
+    updateOpeningSession(s) {
+      completed++;
+      return s;
+    },
+    advance(state, advice) {
+      if (completed < 4) return null;
+      if (++movements === 97) throw Error('After long movement');
+      return advice;
+    },
+  });
+  assert.equal(s.stop, 'execution-error');
+  assert.equal(s.detail, 'After long movement');
+  assert.equal(s.locks, 4);
+  assert.deepEqual(
+    rows.flatMap((r) => r.trackingEvents || []),
+    [],
+  );
+  assert.equal(s.tracking.total, 0);
+  assert.equal(s.finalObligations.availability, 'known');
+  assert.equal(s.finalObligations.scope, 'partial');
+  assert.equal(s.finalObligations.throughLock, 4);
+  const recovered = recover(t, input, rows);
+  assert.equal(recovered.tracking.total, 0);
+  assert.equal(recovered.tracking.throughLock, 4);
+  assert.equal(recovered.finalObligations.scope, 'partial');
+  assert.equal(recovered.finalObligations.throughLock, 4);
+  assert.match(recovered.finalObligations.reason, /later actions/i);
 });
 
-test('simulation tracking: controller error after long movement retains honest current partial boundary',t=>{
- let completed=0,movements=0;const {input,summary:s,rows}=coverageBoundary(97,{updateOpeningSession(s){completed++;return s;},advance(state,advice){if(completed<4)return null;if(++movements===97)throw Error('After long movement');return advice;}});
- assert.equal(s.stop,'execution-error');assert.equal(s.detail,'After long movement');assert.equal(s.locks,4);
- assert.deepEqual(rows.flatMap(r=>r.trackingEvents||[]),[]);assert.equal(s.tracking.total,0);
- assert.equal(s.finalObligations.availability,'known');assert.equal(s.finalObligations.scope,'partial');assert.equal(s.finalObligations.throughLock,4);
- const recovered=recover(t,input,rows);assert.equal(recovered.tracking.total,0);assert.equal(recovered.tracking.throughLock,4);
- assert.equal(recovered.finalObligations.scope,'partial');assert.equal(recovered.finalObligations.throughLock,4);assert.match(recovered.finalObligations.reason,/later actions/i);
+test('simulation tracking: actual Reset effects own cumulative starts and completion, not current account archives', () => {
+  const f = require('./support/st-reset-live-cycle.json'),
+    Context = require('../st-obligation-context');
+  const current = Context.importState(f.obligationContext, {
+    position: f.initial,
+  });
+  assert.equal(current.status, 'available');
+  const input = {
+      scenario: 'stable',
+      initial: f.initial,
+      obligationContext: Context.exportState(current),
+      future: f.steps.flatMap((s) => s.actions.flatMap((a) => a.revealed)),
+      locks: f.steps.length,
+    },
+    rows = [];
+  let index = 0;
+  const summary = E.runEpisode(input, {
+    api: {
+      ...api,
+      startOpeningSession: () => ({ active: false }),
+      resourceGoal: () => false,
+    },
+    planner: (request) => {
+      const witness = f.steps[index++].actions.map((a) => a.action),
+        proof = R.replay(request.observation, witness);
+      return {
+        target: proof.events[0].target,
+        witness,
+        hold: witness.includes('HOLD'),
+        evidence: { strategy: 'reset-coach' },
+      };
+    },
+    onRecord: (row) => rows.push(row),
+  });
+  assert.equal(summary.locks, f.steps.length);
+  assert.deepEqual(summary.reset.starts, [
+    { at: 0, firstLock: 1, linesBefore: 0 },
+  ]);
+  assert.equal(summary.reset.completions.length, 1);
+  assert.equal(summary.reset.firstCompletion.completedAt, 8);
+  assert.equal(summary.reset.finalStatus, 'inactive');
+  assert.equal(summary.finalObligations.obligations.reset.episodes, undefined);
+  assert.equal(summary.finalObligations.obligations.reset.credits, undefined);
+  assert.equal(summary.tracking.total, 0);
+  assert.deepEqual(
+    E.recoverTrackingStatus(rows.filter((r) => r.kind === 'lock').at(-1))
+      .obligations,
+    summary.finalObligations.obligations,
+  );
 });
 
-test('simulation tracking: actual Reset effects own cumulative starts and completion, not current account archives',()=>{
- const f=require('./support/st-reset-live-cycle.json'),Context=require('../st-obligation-context');const current=Context.importState(f.obligationContext,{position:f.initial});assert.equal(current.status,'available');
- const input={scenario:'stable',initial:f.initial,obligationContext:Context.exportState(current),future:f.steps.flatMap(s=>s.actions.flatMap(a=>a.revealed)),locks:f.steps.length},rows=[];let index=0;
- const summary=E.runEpisode(input,{api:{...api,startOpeningSession:()=>({active:false}),resourceGoal:()=>false},planner:request=>{const witness=f.steps[index++].actions.map(a=>a.action),proof=R.replay(request.observation,witness);return{target:proof.events[0].target,witness,hold:witness.includes('HOLD'),evidence:{strategy:'reset-coach'}};},onRecord:row=>rows.push(row)});
- assert.equal(summary.locks,f.steps.length);assert.deepEqual(summary.reset.starts,[{at:0,firstLock:1,linesBefore:0}]);assert.equal(summary.reset.completions.length,1);assert.equal(summary.reset.firstCompletion.completedAt,8);assert.equal(summary.reset.finalStatus,'inactive');
- assert.equal(summary.finalObligations.obligations.reset.episodes,undefined);assert.equal(summary.finalObligations.obligations.reset.credits,undefined);assert.equal(summary.tracking.total,0);
- assert.deepEqual(E.recoverTrackingStatus(rows.filter(r=>r.kind==='lock').at(-1)).obligations,summary.finalObligations.obligations);
+test('simulation tracking: obsolete recovery payloads reject instead of losing known duties', () => {
+  const input = E.makeInput('empty', 13, 1),
+    rows = [];
+  E.runEpisode(input, {
+    api,
+    planner: (r) => hd(r.observation),
+    onRecord: (r) => rows.push(r),
+  });
+  const original = rows.find((r) => r.kind === 'lock');
+  for (const mixed of [false, true]) {
+    const old = E.clone(original);
+    old.request.options.resourceContext = {
+      origin: old.request.observation,
+      steps: [],
+    };
+    if (!mixed) delete old.request.options.obligationContext;
+    assert.throws(
+      () => E.recoverTrackingStatus(old),
+      /Legacy resource recovery/,
+    );
+  }
 });
 
-test('simulation tracking: obsolete recovery payloads reject instead of losing known duties',()=>{
- const input=E.makeInput('empty',13,1),rows=[];E.runEpisode(input,{api,planner:r=>hd(r.observation),onRecord:r=>rows.push(r)});
- const original=rows.find(r=>r.kind==='lock');
- for(const mixed of [false,true]){const old=E.clone(original);old.request.options.resourceContext={origin:old.request.observation,steps:[]};if(!mixed)delete old.request.options.obligationContext;assert.throws(()=>E.recoverTrackingStatus(old),/Legacy resource recovery/);}
+test('simulation tracking: player-started Reset begins on the observed lock rather than the next lock', () => {
+  const f = require('./support/st-reset-live-cycle.json'),
+    Context = require('../st-obligation-context');
+  const current = Context.importState(f.obligationContext, {
+    position: f.initial,
+  });
+  assert.equal(current.status, 'available');
+  const input = {
+      scenario: 'stable',
+      initial: f.initial,
+      obligationContext: Context.exportState(current),
+      future: f.steps.flatMap((s) => s.actions.flatMap((a) => a.revealed)),
+      locks: f.steps.length,
+    },
+    rows = [];
+  let index = 0;
+  const summary = E.runEpisode(input, {
+    api: {
+      ...api,
+      startOpeningSession: () => ({ active: false }),
+      resourceGoal: () => false,
+    },
+    planner: (request) => {
+      const witness = f.steps[index++].actions.map((a) => a.action),
+        proof = R.replay(request.observation, witness);
+      return {
+        target: proof.events[0].target,
+        witness,
+        hold: witness.includes('HOLD'),
+        evidence: {},
+      };
+    },
+    onRecord: (row) => rows.push(row),
+  });
+  assert.equal(summary.locks, f.steps.length);
+  assert.deepEqual(summary.reset.starts, [
+    { at: 0, firstLock: 1, linesBefore: 0 },
+  ]);
+  assert.equal(summary.reset.firstCompletion.completedAt, 8);
+  assert.equal(summary.reset.finalStatus, 'inactive');
+  assert.equal(summary.tracking.total, 0);
+  assert.deepEqual(
+    E.recoverTrackingStatus(rows.filter((r) => r.kind === 'lock').at(-1))
+      .obligations,
+    summary.finalObligations.obligations,
+  );
 });
 
-test('simulation tracking: player-started Reset begins on the observed lock rather than the next lock',()=>{
- const f=require('./support/st-reset-live-cycle.json'),Context=require('../st-obligation-context');
- const current=Context.importState(f.obligationContext,{position:f.initial});assert.equal(current.status,'available');
- const input={scenario:'stable',initial:f.initial,obligationContext:Context.exportState(current),future:f.steps.flatMap(s=>s.actions.flatMap(a=>a.revealed)),locks:f.steps.length},rows=[];let index=0;
- const summary=E.runEpisode(input,{api:{...api,startOpeningSession:()=>({active:false}),resourceGoal:()=>false},planner:request=>{const witness=f.steps[index++].actions.map(a=>a.action),proof=R.replay(request.observation,witness);return{target:proof.events[0].target,witness,hold:witness.includes('HOLD'),evidence:{}};},onRecord:row=>rows.push(row)});
- assert.equal(summary.locks,f.steps.length);assert.deepEqual(summary.reset.starts,[{at:0,firstLock:1,linesBefore:0}]);assert.equal(summary.reset.firstCompletion.completedAt,8);assert.equal(summary.reset.finalStatus,'inactive');assert.equal(summary.tracking.total,0);
- assert.deepEqual(E.recoverTrackingStatus(rows.filter(r=>r.kind==='lock').at(-1)).obligations,summary.finalObligations.obligations);
+test('simulation tracking: observed Reset retires opening coaching without an S/L handoff and replays identically', () => {
+  const f = require('./support/st-reset-live-cycle.json'),
+    snapshot = E.clone(f.obligationContext);
+  snapshot.state.sl.handoff = false;
+  const input = {
+      scenario: 'stable',
+      initial: f.initial,
+      obligationContext: snapshot,
+      future: f.steps.flatMap((s) => s.actions.flatMap((a) => a.revealed)),
+      locks: 2,
+    },
+    rows = [];
+  let index = 0;
+  const actualOpening = {
+    ...api,
+    startOpeningSession: () => ({
+      active: true,
+      clear: null,
+      repair: null,
+      source: null,
+    }),
+    acceptOpeningResult: (s) => s,
+    updateOpeningSession: P.updateOpeningSession,
+  };
+  const summary = E.runEpisode(input, {
+    api: actualOpening,
+    planner: (request) => {
+      const witness = f.steps[index++].actions.map((a) => a.action),
+        proof = R.replay(request.observation, witness);
+      return {
+        target: proof.events[0].target,
+        witness,
+        hold: witness.includes('HOLD'),
+        evidence: { opening: true },
+      };
+    },
+    onRecord: (r) => rows.push(r),
+  });
+  assert.equal(summary.stop, 'lock-cap', summary.detail);
+  assert.equal(summary.locks, 2);
+  assert.equal(summary.tracking.total, 0);
+  const locks = rows.filter((r) => r.kind === 'lock');
+  assert.equal(locks[0].request.options.openingPhase, true);
+  assert.deepEqual(locks[0].opening, {
+    active: false,
+    clear: null,
+    repair: null,
+    source: null,
+  });
+  assert.equal(locks[1].request.options.openingPhase, false);
+  assert.equal(
+    locks[1].request.options.obligationContext.state.sl.handoff,
+    false,
+    'Player-started Reset must not exempt S/L obligations',
+  );
+  assert.equal(
+    locks[1].request.options.obligationContext.state.account.reset.remaining,
+    1,
+  );
+  assert.ok(
+    summary.coachTransitions.some(
+      (t) => t.coach === 'reset' && t.afterLock === 1,
+    ),
+  );
+  assert.equal(summary.currentCoach, 'reset');
+  assert.equal(E.replayRecords(input, rows, actualOpening).verified, true);
 });
 
-test('simulation tracking: observed Reset retires opening coaching without an S/L handoff and replays identically',()=>{
- const f=require('./support/st-reset-live-cycle.json'),snapshot=E.clone(f.obligationContext);
- snapshot.state.sl.handoff=false;
- const input={scenario:'stable',initial:f.initial,obligationContext:snapshot,future:f.steps.flatMap(s=>s.actions.flatMap(a=>a.revealed)),locks:2},rows=[];let index=0;
- const actualOpening={...api,startOpeningSession:()=>({active:true,clear:null,repair:null,source:null}),acceptOpeningResult:s=>s,updateOpeningSession:P.updateOpeningSession};
- const summary=E.runEpisode(input,{api:actualOpening,planner:request=>{const witness=f.steps[index++].actions.map(a=>a.action),proof=R.replay(request.observation,witness);return{target:proof.events[0].target,witness,hold:witness.includes('HOLD'),evidence:{opening:true}};},onRecord:r=>rows.push(r)});
- assert.equal(summary.stop,'lock-cap',summary.detail);assert.equal(summary.locks,2);assert.equal(summary.tracking.total,0);
- const locks=rows.filter(r=>r.kind==='lock');assert.equal(locks[0].request.options.openingPhase,true);assert.deepEqual(locks[0].opening,{active:false,clear:null,repair:null,source:null});assert.equal(locks[1].request.options.openingPhase,false);
- assert.equal(locks[1].request.options.obligationContext.state.sl.handoff,false,'Player-started Reset must not exempt S/L obligations');assert.equal(locks[1].request.options.obligationContext.state.account.reset.remaining,1);
- assert.ok(summary.coachTransitions.some(t=>t.coach==='reset'&&t.afterLock===1));assert.equal(summary.currentCoach,'reset');
- assert.equal(E.replayRecords(input,rows,actualOpening).verified,true);
-});
-
-test('simulation tracking: imported active Reset overrides heuristic opening initialization without accounting changes',()=>{
- const f=require('./support/st-reset-live-cycle.json'),snapshot=E.clone(f.obligationContext);snapshot.state.sl.handoff=false;snapshot.state.account.reset={status:'active',remaining:2,firstTId:null,inheritedCovered:[]};
- const input={scenario:'stable',initial:f.initial,obligationContext:snapshot,future:[],locks:1};
- const session=E.createSession(input,{...api,startOpeningSession:()=>({active:true,clear:null,repair:null,source:null})});
- assert.deepEqual(session.opening,{active:false,clear:null,repair:null,source:null});assert.equal(session.request(1,{}).options.openingPhase,false);assert.equal(session.obligationContext.state.sl.handoff,false);assert.deepEqual(session.obligationContext.state.account,snapshot.state.account);
+test('simulation tracking: imported active Reset overrides heuristic opening initialization without accounting changes', () => {
+  const f = require('./support/st-reset-live-cycle.json'),
+    snapshot = E.clone(f.obligationContext);
+  snapshot.state.sl.handoff = false;
+  snapshot.state.account.reset = {
+    status: 'active',
+    remaining: 2,
+    firstTId: null,
+    inheritedCovered: [],
+  };
+  const input = {
+    scenario: 'stable',
+    initial: f.initial,
+    obligationContext: snapshot,
+    future: [],
+    locks: 1,
+  };
+  const session = E.createSession(input, {
+    ...api,
+    startOpeningSession: () => ({
+      active: true,
+      clear: null,
+      repair: null,
+      source: null,
+    }),
+  });
+  assert.deepEqual(session.opening, {
+    active: false,
+    clear: null,
+    repair: null,
+    source: null,
+  });
+  assert.equal(session.request(1, {}).options.openingPhase, false);
+  assert.equal(session.obligationContext.state.sl.handoff, false);
+  assert.deepEqual(
+    session.obligationContext.state.account,
+    snapshot.state.account,
+  );
 });

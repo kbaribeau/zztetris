@@ -53,21 +53,12 @@
     },
     "hold": "T",
     "canHold": true,
-    "queue": [
-      "I",
-      "Z",
-      "J",
-      "O",
-      "L",
-      "J"
-    ],
+    "queue": ["I", "Z", "J", "O", "L", "J"],
     "revision": 811,
     "streamCursor": 100,
     "topOut": false,
     "bag": {
-      "remaining": [
-        125
-      ],
+      "remaining": [125],
       "observedCount": 106,
       "provenance": "known-phase"
     }
@@ -79,10 +70,7 @@
     "blockedRows": [],
     "source": "witnessed-floor-Z-cap"
   },
-  "witness": [
-    "R",
-    "HD"
-  ],
+  "witness": ["R", "HD"],
   "event": {
     "type": "S",
     "target": {
@@ -92,22 +80,10 @@
       "rotation": 0
     },
     "cells": [
-      [
-        5,
-        36
-      ],
-      [
-        6,
-        36
-      ],
-      [
-        4,
-        37
-      ],
-      [
-        5,
-        37
-      ]
+      [5, 36],
+      [6, 36],
+      [4, 37],
+      [5, 37]
     ],
     "lines": 0,
     "clearedRows": [],
@@ -123,10 +99,7 @@
     },
     "hold": false,
     "holdCount": 0,
-    "witness": [
-      "R",
-      "HD"
-    ],
+    "witness": ["R", "HD"],
     "event": {
       "type": "S",
       "target": {
@@ -136,22 +109,10 @@
         "rotation": 0
       },
       "cells": [
-        [
-          5,
-          36
-        ],
-        [
-          6,
-          36
-        ],
-        [
-          4,
-          37
-        ],
-        [
-          5,
-          37
-        ]
+        [5, 36],
+        [6, 36],
+        [4, 37],
+        [5, 37]
       ],
       "lines": 0,
       "clearedRows": [],
@@ -161,29 +122,14 @@
     "resultContext": "[\"st-zero-v2\",[\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"OOS.......\",\"OOSS......\",\"OOJS......\",\"OOJ..SS...\",\"JJJISS....\",\"JJJILLL...\",\"LLLILSS...\"],\"T\",true,[\"Z\",\"J\",\"O\",\"L\",\"J\"],{\"remaining\":[125],\"observedCount\":106,\"provenance\":\"known-phase\"},\"I\"]",
     "structuralEvidence": {
       "pairProgress": {
-        "orderedPieces": [
-          "S",
-          "L"
-        ],
+        "orderedPieces": ["S", "L"],
         "step": 1,
         "status": "partner-placement-checked",
         "placedCells": [
-          [
-            5,
-            36
-          ],
-          [
-            6,
-            36
-          ],
-          [
-            4,
-            37
-          ],
-          [
-            5,
-            37
-          ]
+          [5, 36],
+          [6, 36],
+          [4, 37],
+          [5, 37]
         ],
         "completion": {
           "piece": "L",
@@ -195,53 +141,21 @@
             "rotation": 2
           },
           "cells": [
-            [
-              4,
-              35
-            ],
-            [
-              5,
-              35
-            ],
-            [
-              6,
-              35
-            ],
-            [
-              4,
-              36
-            ]
+            [4, 35],
+            [5, 35],
+            [6, 35],
+            [4, 36]
           ],
-          "witness": [
-            "R180",
-            "R",
-            "HD"
-          ],
+          "witness": ["R180", "R", "HD"],
           "access": "hypothetical-spawn-straight-drop",
-          "resultProfile": [
-            5,
-            5,
-            5
-          ],
+          "resultProfile": [5, 5, 5],
           "resultStatus": "level",
           "patternSupport": "reference-supported",
           "preserveCells": [
-            [
-              4,
-              35
-            ],
-            [
-              5,
-              35
-            ],
-            [
-              6,
-              35
-            ],
-            [
-              4,
-              36
-            ]
+            [4, 35],
+            [5, 35],
+            [6, 35],
+            [4, 36]
           ]
         }
       },
@@ -250,17 +164,9 @@
           "foundation": {
             "status": "aligned",
             "vacancies": [],
-            "profile": [
-              3,
-              4,
-              4
-            ]
+            "profile": [3, 4, 4]
           },
-          "profile": [
-            3,
-            4,
-            4
-          ],
+          "profile": [3, 4, 4],
           "status": "supported-partner-completion",
           "motif": ".##/##./###",
           "patternSupport": "reference-supported",
@@ -279,53 +185,21 @@
                 "rotation": 2
               },
               "cells": [
-                [
-                  4,
-                  35
-                ],
-                [
-                  5,
-                  35
-                ],
-                [
-                  6,
-                  35
-                ],
-                [
-                  4,
-                  36
-                ]
+                [4, 35],
+                [5, 35],
+                [6, 35],
+                [4, 36]
               ],
-              "witness": [
-                "R180",
-                "R",
-                "HD"
-              ],
+              "witness": ["R180", "R", "HD"],
               "access": "hypothetical-spawn-straight-drop",
-              "resultProfile": [
-                5,
-                5,
-                5
-              ],
+              "resultProfile": [5, 5, 5],
               "resultStatus": "level",
               "patternSupport": "reference-supported",
               "preserveCells": [
-                [
-                  4,
-                  35
-                ],
-                [
-                  5,
-                  35
-                ],
-                [
-                  6,
-                  35
-                ],
-                [
-                  4,
-                  36
-                ]
+                [4, 35],
+                [5, 35],
+                [6, 35],
+                [4, 36]
               ]
             }
           ]
@@ -391,21 +265,12 @@
     },
     "hold": "J",
     "canHold": true,
-    "queue": [
-      "L",
-      "J",
-      "L",
-      "I",
-      "O",
-      "Z"
-    ],
+    "queue": ["L", "J", "L", "I", "O", "Z"],
     "revision": 847,
     "streamCursor": 104,
     "topOut": false,
     "bag": {
-      "remaining": [
-        48
-      ],
+      "remaining": [48],
       "observedCount": 110,
       "provenance": "known-phase"
     }

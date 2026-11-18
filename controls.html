@@ -1,280 +1,365 @@
-<meta charset="UTF-8">
-<link rel="stylesheet" href="styles/navigation.css">
+<meta charset="UTF-8" />
+<link rel="stylesheet" href="styles/navigation.css" />
 <script defer src="navigation.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="st-binding.js"></script>
 <script src="training-settings.js"></script>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
-	@font-face {
-		font-family: Mikado;
-		src: url('assets/fonts/MikadoMedium.ttf');
-	}
-	body {
-		text-align: center;
-		font-family: Mikado;
-	}
-	kbd {
-		background-color: #ddd;
-		border-radius: 3px;
-		border: 1px solid #ccc;
-		box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2), 0 2px 0 0 rgba(255, 255, 255, 0.7) inset;
-		color: #333;
-		display: inline-block;
-		font-size: 18px;
-		line-height: 1;
-		padding: 2px 4px;
-		white-space: nowrap;
-		cursor: pointer;
-	}
-	.settings-action {
-		font: inherit;
-		color: inherit;
-		border: 0;
-		margin: 4px;
-		transition: background-color 0.3s;
-		background-color: #222;
-		border-radius: 10px;
-		padding-left: 20px;
-		padding-right: 20px;
-		padding-top: 10px;
-		padding-bottom: 10px;
-	}
-	.settings-action:hover {
-		background-color: rgb(37, 83, 153);
-		cursor: pointer;
-	}
-	table {
-		max-width: 680px;
-	}
-	input[type="number"] {
-		box-sizing: border-box;
-		max-width: min(150px, 25vw);
-	}
-	.input {
-		text-align: center;
-	}
-	input {
-		text-align: center;
-	}
+  @font-face {
+    font-family: Mikado;
+    src: url('assets/fonts/MikadoMedium.ttf');
+  }
+  body {
+    text-align: center;
+    font-family: Mikado;
+  }
+  kbd {
+    background-color: #ddd;
+    border-radius: 3px;
+    border: 1px solid #ccc;
+    box-shadow:
+      0 1px 1px rgba(0, 0, 0, 0.2),
+      0 2px 0 0 rgba(255, 255, 255, 0.7) inset;
+    color: #333;
+    display: inline-block;
+    font-size: 18px;
+    line-height: 1;
+    padding: 2px 4px;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .settings-action {
+    font: inherit;
+    color: inherit;
+    border: 0;
+    margin: 4px;
+    transition: background-color 0.3s;
+    background-color: #222;
+    border-radius: 10px;
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+  .settings-action:hover {
+    background-color: rgb(37, 83, 153);
+    cursor: pointer;
+  }
+  table {
+    max-width: 680px;
+  }
+  input[type='number'] {
+    box-sizing: border-box;
+    max-width: min(150px, 25vw);
+  }
+  .input {
+    text-align: center;
+  }
+  input {
+    text-align: center;
+  }
 </style>
 
 <body style="background-color: #333; color: #eee">
-	<nav class="app-nav" aria-label="Main navigation"></nav>
-	<div style="font-size: 30px; width: max-content; max-width: 100%; margin: 24px auto">
-		<table style="font-size: 24px">
-			<th>Controls</th>
-			<th>Key</th>
-			<tr>
-				<td>Move Left</td>
-				<td class="input"><kbd id="1">ArrowLeft</kbd></td>
-			</tr>
+  <nav class="app-nav" aria-label="Main navigation"></nav>
+  <div
+    style="
+      font-size: 30px;
+      width: max-content;
+      max-width: 100%;
+      margin: 24px auto;
+    "
+  >
+    <table style="font-size: 24px">
+      <th>Controls</th>
+      <th>Key</th>
+      <tr>
+        <td>Move Left</td>
+        <td class="input"><kbd id="1">ArrowLeft</kbd></td>
+      </tr>
 
-			<tr>
-				<td>Move Right</td>
-				<td class="input"><kbd id="2">ArrowRight</kbd></td>
-			</tr>
+      <tr>
+        <td>Move Right</td>
+        <td class="input"><kbd id="2">ArrowRight</kbd></td>
+      </tr>
 
-			<tr>
-				<td>Soft Drop</td>
-				<td class="input"><kbd id="3">ArrowDown</kbd></td>
-			</tr>
+      <tr>
+        <td>Soft Drop</td>
+        <td class="input"><kbd id="3">ArrowDown</kbd></td>
+      </tr>
 
-			<tr>
-				<td>Hard Drop</td>
-				<td class="input"><kbd id="4">Space</kbd></td>
-			</tr>
+      <tr>
+        <td>Hard Drop</td>
+        <td class="input"><kbd id="4">Space</kbd></td>
+      </tr>
 
-			<tr>
-				<td>Swap Hold</td>
-				<td class="input"><kbd id="5">Shift</kbd></td>
-			</tr>
+      <tr>
+        <td>Swap Hold</td>
+        <td class="input"><kbd id="5">Shift</kbd></td>
+      </tr>
 
-			<tr>
-				<td>Rotate Clockwise</td>
-				<td class="input"><kbd id="6">KeyX</kbd></td>
-			</tr>
+      <tr>
+        <td>Rotate Clockwise</td>
+        <td class="input"><kbd id="6">KeyX</kbd></td>
+      </tr>
 
-			<tr>
-				<td>Rotate Counterclockwise</td>
-				<td class="input"><kbd id="7">KeyZ</kbd></td>
-			</tr>
+      <tr>
+        <td>Rotate Counterclockwise</td>
+        <td class="input"><kbd id="7">KeyZ</kbd></td>
+      </tr>
 
-			<tr>
-				<td>Rotate 180°</td>
-				<td class="input"><kbd id="8">KeyC</kbd></td>
-			</tr>
+      <tr>
+        <td>Rotate 180°</td>
+        <td class="input"><kbd id="8">KeyC</kbd></td>
+      </tr>
 
-			<tr>
-				<td>Restart</td>
-				<td class="input"><kbd id="9">KeyR</kbd></td>
-			</tr>
+      <tr>
+        <td>Restart</td>
+        <td class="input"><kbd id="9">KeyR</kbd></td>
+      </tr>
 
-			<tr></tr>
-			<tr>
-				<td>Undo</td>
-				<td class="input"><kbd id="10">KeyT</kbd></td>
-			</tr>
+      <tr></tr>
+      <tr>
+        <td>Undo</td>
+        <td class="input"><kbd id="10">KeyT</kbd></td>
+      </tr>
 
-			<tr></tr>
-			<tr>
-				<td>Redo</td>
-				<td class="input"><kbd id="11">KeyY</kbd></td>
-			</tr>
+      <tr></tr>
+      <tr>
+        <td>Redo</td>
+        <td class="input"><kbd id="11">KeyY</kbd></td>
+      </tr>
 
-			<tr>
-				<td>ST lab advice (lab only)</td>
-				<td class="input"><kbd id="st-advice-key" role="button" tabindex="0">KeyA</kbd></td>
-			</tr>
-			<tr><td colspan="2" id="st-key-status" style="font:14px sans-serif" role="status"></td></tr>
-			<tr>
-				<td>[DAS] Delayed Auto Shift</td>
-				<td class="numinput"><input type="number" id="das" max="750" value="160" /></td>
-			</tr>
+      <tr>
+        <td>ST lab advice (lab only)</td>
+        <td class="input">
+          <kbd id="st-advice-key" role="button" tabindex="0">KeyA</kbd>
+        </td>
+      </tr>
+      <tr>
+        <td
+          colspan="2"
+          id="st-key-status"
+          style="font: 14px sans-serif"
+          role="status"
+        ></td>
+      </tr>
+      <tr>
+        <td>[DAS] Delayed Auto Shift</td>
+        <td class="numinput">
+          <input type="number" id="das" max="750" value="160" />
+        </td>
+      </tr>
 
-			<tr>
-				<td>[ARR] Auto Repeat Rate</td>
-				<td class="numinput"><input type="number" id="arr" max="500" value="30" /></td>
-			</tr>
+      <tr>
+        <td>[ARR] Auto Repeat Rate</td>
+        <td class="numinput">
+          <input type="number" id="arr" max="500" value="30" />
+        </td>
+      </tr>
 
-			<tr>
-				<td>[SDR] Soft Drop Rate</td>
-				<td class="numinput"><input type="number" id="sdr" max="250" value="15" /></td>
-			</tr>
+      <tr>
+        <td>[SDR] Soft Drop Rate</td>
+        <td class="numinput">
+          <input type="number" id="sdr" max="250" value="15" />
+        </td>
+      </tr>
 
-			<tr>
-				<th>Other Settings</th>
-				<th>Value</th>
-			</tr>
+      <tr>
+        <th>Other Settings</th>
+        <th>Value</th>
+      </tr>
 
-			<tr>
-				<td>Cell Size - Pixels</td>
-				<td class="numinput"><input type="number" id="cellpx" min="3" value="20" /></td>
-			</tr>
-            <tr>
-				<td>Audio Level</td>
-				<td class="numinput"><input type="number" id="audiolevel" min="0" max="100" value="100" /></td>
-			</tr>
+      <tr>
+        <td>Cell Size - Pixels</td>
+        <td class="numinput">
+          <input type="number" id="cellpx" min="3" value="20" />
+        </td>
+      </tr>
+      <tr>
+        <td>Audio Level</td>
+        <td class="numinput">
+          <input type="number" id="audiolevel" min="0" max="100" value="100" />
+        </td>
+      </tr>
 
-			<tr><th colspan="2" id="training-heading">Training</th></tr>
-			<tr>
-				<td><label for="bag-boundaries">Show bag boundaries in NEXT</label></td>
-				<td class="input"><input type="checkbox" id="bag-boundaries" aria-describedby="bag-boundaries-help" /></td>
-			</tr>
-			<tr><td colspan="2" id="bag-boundaries-help" style="font:14px sans-serif">Corner markers at queue segment ends. Off by default.</td></tr>
-			<tr>
-				<td><label for="st-guide-visible">Show amber ST guide (lab only)</label></td>
-				<td class="input"><input type="checkbox" id="st-guide-visible" checked aria-describedby="st-guide-help" /></td>
-			</tr>
-			<tr><td colspan="2" id="st-guide-help" style="font:14px sans-serif">Saved display preference for ST lab free play only, never other modes. Bounded opening and maintenance coaching show amber targets when a checked move is available. The lab key and button toggle this preference; the normal gray ghost is unchanged.</td></tr>
-		</table>
+      <tr>
+        <th colspan="2" id="training-heading">Training</th>
+      </tr>
+      <tr>
+        <td><label for="bag-boundaries">Show bag boundaries in NEXT</label></td>
+        <td class="input">
+          <input
+            type="checkbox"
+            id="bag-boundaries"
+            aria-describedby="bag-boundaries-help"
+          />
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2" id="bag-boundaries-help" style="font: 14px sans-serif">
+          Corner markers at queue segment ends. Off by default.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <label for="st-guide-visible">Show amber ST guide (lab only)</label>
+        </td>
+        <td class="input">
+          <input
+            type="checkbox"
+            id="st-guide-visible"
+            checked
+            aria-describedby="st-guide-help"
+          />
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2" id="st-guide-help" style="font: 14px sans-serif">
+          Saved display preference for ST lab free play only, never other modes.
+          Bounded opening and maintenance coaching show amber targets when a
+          checked move is available. The lab key and button toggle this
+          preference; the normal gray ghost is unchanged.
+        </td>
+      </tr>
+    </table>
 
-		<br />
-		<button class="settings-action" type="button" onclick="window.close()">Save & Close</button>
-		<button class="settings-action" type="button" onclick="delete LS.version; delete LS.config; delete LS.stAdviceKey; delete LS.bagBoundaries; delete LS.stGuideVisible; location.reload()">Reset to Defaults</button>
-	</div>
+    <br />
+    <button class="settings-action" type="button" onclick="window.close()">
+      Save & Close
+    </button>
+    <button
+      class="settings-action"
+      type="button"
+      onclick="
+        delete LS.version;
+        delete LS.config;
+        delete LS.stAdviceKey;
+        delete LS.bagBoundaries;
+        delete LS.stGuideVisible;
+        location.reload();
+      "
+    >
+      Reset to Defaults
+    </button>
+  </div>
 </body>
 
 <script>
-	const print = console.log;
-	const LS = localStorage;
-	var ctrlDat = [
-		'ArrowLeft',
-		'ArrowRight',
-		'ArrowDown',
-		'Space',
-		'ShiftLeft',
-		'KeyX',
-		'KeyZ',
-		'KeyC',
-		'KeyR',
-		'KeyT',
-		'KeyY',
-		'160',
-		'30',
-		'15',
-		'20',
-        '100',
-	];
-	var ctrlsDat = LS.config;
+  const print = console.log;
+  const LS = localStorage;
+  var ctrlDat = [
+    'ArrowLeft',
+    'ArrowRight',
+    'ArrowDown',
+    'Space',
+    'ShiftLeft',
+    'KeyX',
+    'KeyZ',
+    'KeyC',
+    'KeyR',
+    'KeyT',
+    'KeyY',
+    '160',
+    '30',
+    '15',
+    '20',
+    '100',
+  ];
+  var ctrlsDat = LS.config;
 
-	if (ctrlsDat && LS.version == '2023-05-02a') {
-		var ctrls = JSON.parse(ctrlsDat);
-		for (let i = 0; i < 11; i++) {
-			var c = ctrls[i];
-			ctrlDat[i] = c;
-			$(`#${i + 1}`).html(c.length == 1 ? c.toUpperCase() : c);
-		}
-		['das', 'arr', 'sdr', 'cellpx', 'audiolevel'].map((id, idx) => {
-			var ipt = document.getElementById(id);
-			var val = parseInt(ctrls[idx + 11]);
-			ipt.value = val;
-			ctrlDat[idx + 11] = val;
-		});
-	}
+  if (ctrlsDat && LS.version == '2023-05-02a') {
+    var ctrls = JSON.parse(ctrlsDat);
+    for (let i = 0; i < 11; i++) {
+      var c = ctrls[i];
+      ctrlDat[i] = c;
+      $(`#${i + 1}`).html(c.length == 1 ? c.toUpperCase() : c);
+    }
+    ['das', 'arr', 'sdr', 'cellpx', 'audiolevel'].map((id, idx) => {
+      var ipt = document.getElementById(id);
+      var val = parseInt(ctrls[idx + 11]);
+      ipt.value = val;
+      ctrlDat[idx + 11] = val;
+    });
+  }
 
-	function saveCtrls() {
-		LS.config = JSON.stringify(ctrlDat);
-		LS.version = '2023-05-02a';
-		refreshAdviceKey();
-	}
+  function saveCtrls() {
+    LS.config = JSON.stringify(ctrlDat);
+    LS.version = '2023-05-02a';
+    refreshAdviceKey();
+  }
 
-	function refreshAdviceKey() {
-		const code = LS.getItem('stAdviceKey') || STBinding.defaultCode;
-		document.getElementById('st-advice-key').textContent = code;
-		document.getElementById('st-key-status').textContent = STBinding.resolve(LS, ctrlDat.slice(0,11))
-			? 'Toggle the saved amber guide display in the ST lab only. Click its key to rebind.'
-			: 'Advice key conflicts with gameplay or is invalid. Use the lab button or choose an unused key.';
-	}
-	let capturingAdviceKey = false;
-	function captureAdviceKey() {
-		if (capturingAdviceKey) return;
-		capturingAdviceKey = true;
-		document.getElementById('st-advice-key').textContent = 'Press a key...';
-		document.addEventListener('keydown', respond, true);
-		function respond(e) {
-			e.preventDefault(); e.stopImmediatePropagation();
-			if (e.repeat) return;
-			if (e.code !== 'Escape') {
-				if (e.ctrlKey || e.altKey || e.metaKey || !STBinding.valid(e.code) || ctrlDat.slice(0,11).includes(e.code)) {
-					document.getElementById('st-key-status').textContent = 'Choose an unused, unmodified key. Escape cancels. Existing bindings are never overwritten.';
-					return;
-				}
-				LS.setItem('stAdviceKey', e.code);
-			}
-			capturingAdviceKey = false;
-			document.removeEventListener('keydown', respond, true);
-			refreshAdviceKey();
-		}
-	}
-	document.getElementById('st-advice-key').onclick = captureAdviceKey;
-	document.getElementById('st-advice-key').onkeydown = e => {
-		if (e.code === 'Enter' || e.code === 'Space') { e.preventDefault(); captureAdviceKey(); }
-	};
-	refreshAdviceKey();
+  function refreshAdviceKey() {
+    const code = LS.getItem('stAdviceKey') || STBinding.defaultCode;
+    document.getElementById('st-advice-key').textContent = code;
+    document.getElementById('st-key-status').textContent = STBinding.resolve(
+      LS,
+      ctrlDat.slice(0, 11),
+    )
+      ? 'Toggle the saved amber guide display in the ST lab only. Click its key to rebind.'
+      : 'Advice key conflicts with gameplay or is invalid. Use the lab button or choose an unused key.';
+  }
+  let capturingAdviceKey = false;
+  function captureAdviceKey() {
+    if (capturingAdviceKey) return;
+    capturingAdviceKey = true;
+    document.getElementById('st-advice-key').textContent = 'Press a key...';
+    document.addEventListener('keydown', respond, true);
+    function respond(e) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      if (e.repeat) return;
+      if (e.code !== 'Escape') {
+        if (
+          e.ctrlKey ||
+          e.altKey ||
+          e.metaKey ||
+          !STBinding.valid(e.code) ||
+          ctrlDat.slice(0, 11).includes(e.code)
+        ) {
+          document.getElementById('st-key-status').textContent =
+            'Choose an unused, unmodified key. Escape cancels. Existing bindings are never overwritten.';
+          return;
+        }
+        LS.setItem('stAdviceKey', e.code);
+      }
+      capturingAdviceKey = false;
+      document.removeEventListener('keydown', respond, true);
+      refreshAdviceKey();
+    }
+  }
+  document.getElementById('st-advice-key').onclick = captureAdviceKey;
+  document.getElementById('st-advice-key').onkeydown = (e) => {
+    if (e.code === 'Enter' || e.code === 'Space') {
+      e.preventDefault();
+      captureAdviceKey();
+    }
+  };
+  refreshAdviceKey();
 
-	for (let i = 1; i <= 11; i++) {
-		document.getElementById(i).onclick = function () {
-			const b = document.getElementById(i);
-			if (b.innerHTML == 'Press a key...') return;
-			b.innerHTML = 'Press a key...';
+  for (let i = 1; i <= 11; i++) {
+    document.getElementById(i).onclick = function () {
+      const b = document.getElementById(i);
+      if (b.innerHTML == 'Press a key...') return;
+      b.innerHTML = 'Press a key...';
 
-			document.addEventListener('keydown', respond);
-			function respond(e) {
-				var k = e.code;
-				ctrlDat[i - 1] = k;
-				b.innerHTML = k;
-				saveCtrls();
-				document.removeEventListener('keydown', respond);
-			}
-		};
-	}
-	['das', 'arr', 'sdr', 'cellpx','audiolevel'].map((i, idx) => {
-		var ipt = document.getElementById(i);
-		ipt.oninput = function (e) {
-			var val = ipt.value ? ipt.value : '0';
-			ctrlDat[idx + 11] = val;
-			saveCtrls();
-		};
-	});
+      document.addEventListener('keydown', respond);
+      function respond(e) {
+        var k = e.code;
+        ctrlDat[i - 1] = k;
+        b.innerHTML = k;
+        saveCtrls();
+        document.removeEventListener('keydown', respond);
+      }
+    };
+  }
+  ['das', 'arr', 'sdr', 'cellpx', 'audiolevel'].map((i, idx) => {
+    var ipt = document.getElementById(i);
+    ipt.oninput = function (e) {
+      var val = ipt.value ? ipt.value : '0';
+      ctrlDat[idx + 11] = val;
+      saveCtrls();
+    };
+  });
 </script>

@@ -61,21 +61,12 @@
       },
       "hold": "T",
       "canHold": true,
-      "queue": [
-        "Z",
-        "L",
-        "S",
-        "I",
-        "Z",
-        "S"
-      ],
+      "queue": ["Z", "L", "S", "I", "Z", "S"],
       "revision": 63,
       "streamCursor": 39,
       "topOut": false,
       "bag": {
-        "remaining": [
-          46
-        ],
+        "remaining": [46],
         "observedCount": 45,
         "provenance": "known-phase"
       }
@@ -160,9 +151,7 @@
           ],
           "frontier": null,
           "knowledge": {
-            "remaining": [
-              46
-            ],
+            "remaining": [46],
             "observedCount": 45,
             "provenance": "known-phase"
           }
@@ -182,15 +171,8 @@
             "handoff": false,
             "residuals": [],
             "uncertainty": {
-              "S": [
-                0,
-                0,
-                0,
-                0
-              ],
-              "L": [
-                0
-              ]
+              "S": [0, 0, 0, 0],
+              "L": [0]
             }
           },
           "account": {
@@ -237,44 +219,16 @@
     }
   },
   "expectedFirstCells": [
-    [
-      2,
-      23
-    ],
-    [
-      3,
-      23
-    ],
-    [
-      2,
-      24
-    ],
-    [
-      3,
-      24
-    ]
+    [2, 23],
+    [3, 23],
+    [2, 24],
+    [3, 24]
   ],
   "expectedCapCells": [
-    [
-      9,
-      34
-    ],
-    [
-      8,
-      35
-    ],
-    [
-      9,
-      35
-    ],
-    [
-      8,
-      36
-    ]
+    [9, 34],
+    [8, 35],
+    [9, 35],
+    [8, 36]
   ],
-  "revealAfterLocks": [
-    "L",
-    "T",
-    "O"
-  ]
+  "revealAfterLocks": ["L", "T", "O"]
 }

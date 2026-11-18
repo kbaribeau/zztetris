@@ -30,11 +30,11 @@ commitment lifecycle. Each pair received the same evaluator-private valid bag
 extension. Three existing development seeds were used, with 70 total locks per
 branch or earlier abstention. No branch or timeout was discarded.
 
-| Seed | Scoring-first locks / lines | Repair-first locks / lines | Common horizon | Maximum height at common horizon, scoring → repair | Occupied cells, scoring → repair |
-| --- | --- | --- | --- | --- | --- |
-| 10331 | 48 / 12 | 42 / 8 | 42 | 18 → 18 | 102 → 142 |
-| 10333 | 49 / 12 | 57 / 18 | 49 | 19 → 16 | 130 → 90 |
-| 20333 | 40 / 8 | 70 cap / 22 | 40 | 19 → 12 | 134 → 74 |
+| Seed  | Scoring-first locks / lines | Repair-first locks / lines | Common horizon | Maximum height at common horizon, scoring → repair | Occupied cells, scoring → repair |
+| ----- | --------------------------- | -------------------------- | -------------- | -------------------------------------------------- | -------------------------------- |
+| 10331 | 48 / 12                     | 42 / 8                     | 42             | 18 → 18                                            | 102 → 142                        |
+| 10333 | 49 / 12                     | 57 / 18                    | 49             | 19 → 16                                            | 130 → 90                         |
+| 20333 | 40 / 8                      | 70 cap / 22                | 40             | 19 → 12                                            | 134 → 74                         |
 
 Repair helped two streams and harmed one. It maintained parity0 throughout all
 three repair branches. There were no canonical-clear, notch, new-internal-sealing,

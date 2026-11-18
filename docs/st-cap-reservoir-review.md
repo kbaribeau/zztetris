@@ -30,11 +30,11 @@ Using depth 3, width 8 and 45,000 nodes on Node 24.20.0, 21 of the 24 establishe
 
 All three existing 36-lock streams finish with legal witnesses, but results are mixed:
 
-| Existing stream | Before: TSDs / ending height | After: TSDs / ending height |
-| --- | --- | --- |
-| o-filler | 2 / 17 | 4 / 14 |
-| marathon-rebuild | 3 / 14 | 3 / 17 |
-| marathon-preparation | 4 / 15 | 4 / 16 |
+| Existing stream      | Before: TSDs / ending height | After: TSDs / ending height |
+| -------------------- | ---------------------------- | --------------------------- |
+| o-filler             | 2 / 17                       | 4 / 14                      |
+| marathon-rebuild     | 3 / 14                       | 3 / 17                      |
+| marathon-preparation | 4 / 15                       | 4 / 16                      |
 
 The latter two height regressions remain disclosed, not tuned away. These are development streams, not fresh held-out generalization evidence.
 

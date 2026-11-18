@@ -53,21 +53,12 @@
     },
     "hold": "Z",
     "canHold": true,
-    "queue": [
-      "S",
-      "J",
-      "Z",
-      "J",
-      "Z",
-      "T"
-    ],
+    "queue": ["S", "J", "Z", "J", "Z", "T"],
     "revision": 289,
     "streamCursor": 25,
     "topOut": false,
     "bag": {
-      "remaining": [
-        29
-      ],
+      "remaining": [29],
       "observedCount": 31,
       "provenance": "known-phase"
     }
@@ -79,13 +70,5 @@
     "blockedRows": [],
     "source": "recognized-next-Z-cap"
   },
-  "witness": [
-    "HOLD",
-    "R",
-    "R",
-    "R",
-    "R",
-    "CW",
-    "HD"
-  ]
+  "witness": ["HOLD", "R", "R", "R", "R", "CW", "HD"]
 }

@@ -1,27 +1,9 @@
 {
   "source": "Previously accepted five-lock center deferral from user snapshot; actual legal witnesses, not original video inputs.",
   "witnesses": [
-    [
-      "L",
-      "L",
-      "L",
-      "L",
-      "HD"
-    ],
-    [
-      "HOLD",
-      "L",
-      "CCW",
-      "HD"
-    ],
-    [
-      "CW",
-      "R",
-      "R",
-      "R",
-      "R",
-      "HD"
-    ],
+    ["L", "L", "L", "L", "HD"],
+    ["HOLD", "L", "CCW", "HD"],
+    ["CW", "R", "R", "R", "R", "HD"],
     [
       "HOLD",
       "SD",
@@ -47,10 +29,6 @@
       "CW",
       "HD"
     ],
-    [
-      "R180",
-      "R",
-      "HD"
-    ]
+    ["R180", "R", "HD"]
   ]
 }

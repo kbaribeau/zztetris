@@ -53,21 +53,12 @@
     },
     "hold": null,
     "canHold": true,
-    "queue": [
-      "J",
-      "T",
-      "O",
-      "L",
-      "J",
-      "O"
-    ],
+    "queue": ["J", "T", "O", "L", "J", "O"],
     "revision": 49,
     "streamCursor": 3,
     "topOut": false,
     "bag": {
-      "remaining": [
-        117
-      ],
+      "remaining": [117],
       "observedCount": 9,
       "provenance": "known-phase"
     }
@@ -80,21 +71,9 @@
     "source": "recognized-scoring-wall"
   },
   "expectedFirstCells": [
-    [
-      1,
-      38
-    ],
-    [
-      2,
-      38
-    ],
-    [
-      0,
-      39
-    ],
-    [
-      1,
-      39
-    ]
+    [1, 38],
+    [2, 38],
+    [0, 39],
+    [1, 39]
   ]
 }

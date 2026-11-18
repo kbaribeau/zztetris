@@ -52,21 +52,12 @@
     },
     "hold": "O",
     "canHold": true,
-    "queue": [
-      "S",
-      "T",
-      "L",
-      "I",
-      "O",
-      "T"
-    ],
+    "queue": ["S", "T", "L", "I", "O", "T"],
     "revision": 116,
     "streamCursor": 59,
     "topOut": false,
     "bag": {
-      "remaining": [
-        87
-      ],
+      "remaining": [87],
       "observedCount": 65,
       "provenance": "known-phase"
     }
@@ -149,9 +140,7 @@
         ],
         "frontier": null,
         "knowledge": {
-          "remaining": [
-            87
-          ],
+          "remaining": [87],
           "observedCount": 65,
           "provenance": "known-phase"
         }
@@ -171,15 +160,8 @@
           "handoff": false,
           "residuals": [],
           "uncertainty": {
-            "S": [
-              0,
-              0,
-              0,
-              0
-            ],
-            "L": [
-              0
-            ]
+            "S": [0, 0, 0, 0],
+            "L": [0]
           }
         },
         "account": {
@@ -226,16 +208,7 @@
   },
   "humanSteps": [
     {
-      "witness": [
-        "L",
-        "L",
-        "L",
-        "HOLD",
-        "L",
-        "L",
-        "L",
-        "HD"
-      ],
+      "witness": ["L", "L", "L", "HOLD", "L", "L", "L", "HD"],
       "event": {
         "type": "O",
         "target": {
@@ -245,22 +218,10 @@
           "rotation": 0
         },
         "cells": [
-          [
-            1,
-            30
-          ],
-          [
-            2,
-            30
-          ],
-          [
-            1,
-            31
-          ],
-          [
-            2,
-            31
-          ]
+          [1, 30],
+          [2, 30],
+          [1, 31],
+          [2, 31]
         ],
         "lines": 0,
         "clearedRows": [],
@@ -269,17 +230,7 @@
       }
     },
     {
-      "witness": [
-        "HOLD",
-        "CCW",
-        "CCW",
-        "CCW",
-        "L",
-        "L",
-        "L",
-        "L",
-        "HD"
-      ],
+      "witness": ["HOLD", "CCW", "CCW", "CCW", "L", "L", "L", "L", "HD"],
       "event": {
         "type": "J",
         "target": {
@@ -289,22 +240,10 @@
           "rotation": 1
         },
         "cells": [
-          [
-            0,
-            29
-          ],
-          [
-            1,
-            29
-          ],
-          [
-            0,
-            30
-          ],
-          [
-            0,
-            31
-          ]
+          [0, 29],
+          [1, 29],
+          [0, 30],
+          [0, 31]
         ],
         "lines": 0,
         "clearedRows": [],
@@ -346,38 +285,19 @@
           "rotation": 2
         },
         "cells": [
-          [
-            6,
-            35
-          ],
-          [
-            7,
-            35
-          ],
-          [
-            8,
-            35
-          ],
-          [
-            7,
-            36
-          ]
+          [6, 35],
+          [7, 35],
+          [8, 35],
+          [7, 36]
         ],
         "lines": 2,
-        "clearedRows": [
-          35,
-          36
-        ],
+        "clearedRows": [35, 36],
         "spin": "full",
         "topOut": false
       }
     },
     {
-      "witness": [
-        "HOLD",
-        "R",
-        "HD"
-      ],
+      "witness": ["HOLD", "R", "HD"],
       "event": {
         "type": "S",
         "target": {
@@ -387,22 +307,10 @@
           "rotation": 0
         },
         "cells": [
-          [
-            5,
-            30
-          ],
-          [
-            6,
-            30
-          ],
-          [
-            4,
-            31
-          ],
-          [
-            5,
-            31
-          ]
+          [5, 30],
+          [6, 30],
+          [4, 31],
+          [5, 31]
         ],
         "lines": 0,
         "clearedRows": [],
@@ -411,13 +319,7 @@
       }
     },
     {
-      "witness": [
-        "HOLD",
-        "CW",
-        "CW",
-        "R",
-        "HD"
-      ],
+      "witness": ["HOLD", "CW", "CW", "R", "HD"],
       "event": {
         "type": "L",
         "target": {
@@ -427,22 +329,10 @@
           "rotation": 2
         },
         "cells": [
-          [
-            4,
-            29
-          ],
-          [
-            5,
-            29
-          ],
-          [
-            6,
-            29
-          ],
-          [
-            4,
-            30
-          ]
+          [4, 29],
+          [5, 29],
+          [6, 29],
+          [4, 30]
         ],
         "lines": 0,
         "clearedRows": [],

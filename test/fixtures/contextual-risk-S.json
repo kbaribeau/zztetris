@@ -53,21 +53,12 @@
     },
     "hold": "O",
     "canHold": true,
-    "queue": [
-      "I",
-      "O",
-      "S",
-      "Z",
-      "T",
-      "I"
-    ],
+    "queue": ["I", "O", "S", "Z", "T", "I"],
     "revision": 182,
     "streamCursor": 47,
     "topOut": false,
     "bag": {
-      "remaining": [
-        14
-      ],
+      "remaining": [14],
       "observedCount": 53,
       "provenance": "known-phase"
     }

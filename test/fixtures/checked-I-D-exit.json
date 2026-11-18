@@ -53,21 +53,12 @@
     },
     "hold": "T",
     "canHold": true,
-    "queue": [
-      "S",
-      "O",
-      "I",
-      "O",
-      "J",
-      "L"
-    ],
+    "queue": ["S", "O", "I", "O", "J", "L"],
     "revision": 284,
     "streamCursor": 26,
     "topOut": false,
     "bag": {
-      "remaining": [
-        112
-      ],
+      "remaining": [112],
       "observedCount": 32,
       "provenance": "known-phase"
     }
@@ -150,9 +141,7 @@
           "seenMask": 15
         },
         "knowledge": {
-          "remaining": [
-            112
-          ],
+          "remaining": [112],
           "observedCount": 32,
           "provenance": "known-phase"
         }
@@ -170,22 +159,10 @@
                 {
                   "piece": "J",
                   "cells": [
-                    [
-                      4,
-                      28
-                    ],
-                    [
-                      5,
-                      28
-                    ],
-                    [
-                      6,
-                      28
-                    ],
-                    [
-                      6,
-                      29
-                    ]
+                    [4, 28],
+                    [5, 28],
+                    [6, 28],
+                    [6, 29]
                   ]
                 }
               ]
@@ -216,15 +193,8 @@
             }
           ],
           "uncertainty": {
-            "S": [
-              0,
-              0,
-              0,
-              0
-            ],
-            "L": [
-              0
-            ]
+            "S": [0, 0, 0, 0],
+            "L": [0]
           }
         },
         "account": {
@@ -270,14 +240,7 @@
     }
   },
   "userWitnesses": [
-    [
-      "CW",
-      "L",
-      "L",
-      "L",
-      "L",
-      "HD"
-    ],
+    ["CW", "L", "L", "L", "L", "HD"],
     [
       "HOLD",
       "CW",
@@ -306,38 +269,9 @@
       "CW",
       "HD"
     ],
-    [
-      "L",
-      "L",
-      "HD"
-    ],
-    [
-      "HOLD",
-      "CW",
-      "HOLD",
-      "CW",
-      "HOLD",
-      "CW",
-      "L",
-      "CW",
-      "L",
-      "L",
-      "HD"
-    ],
-    [
-      "L",
-      "R",
-      "HOLD",
-      "CW",
-      "L",
-      "L",
-      "HD"
-    ],
-    [
-      "CW",
-      "CW",
-      "R",
-      "HD"
-    ]
+    ["L", "L", "HD"],
+    ["HOLD", "CW", "HOLD", "CW", "HOLD", "CW", "L", "CW", "L", "L", "HD"],
+    ["L", "R", "HOLD", "CW", "L", "L", "HD"],
+    ["CW", "CW", "R", "HD"]
   ]
 }

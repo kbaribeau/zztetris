@@ -1,65 +1,65 @@
 .paint-bucket {
-    background: #1c1c1c;
-    display: flex;
-    flex-wrap: wrap;
-    width: 8rem;
-    padding: 2px;
-    justify-content: space-between;
-    margin-top: 20px;
-    margin-bottom: 20px;
+  background: #1c1c1c;
+  display: flex;
+  flex-wrap: wrap;
+  width: 8rem;
+  padding: 2px;
+  justify-content: space-between;
+  margin-top: 20px;
+  margin-bottom: 20px;
 }
 
 .paint-bucket input[class='paintbucket'] + *::before {
-    content: '';
-	display: inline-block;
-	vertical-align: bottom;
-	width: 1rem;
-	height: 1rem;
-	margin: 0.3rem;
-	border-radius: 50%;
-	border-style: solid;
-	border-width: 0.2rem;
-    filter: brightness(50%);
+  content: '';
+  display: inline-block;
+  vertical-align: bottom;
+  width: 1rem;
+  height: 1rem;
+  margin: 0.3rem;
+  border-radius: 50%;
+  border-style: solid;
+  border-width: 0.2rem;
+  filter: brightness(50%);
 }
 
 .paint-bucket input[class='paintbucket']:hover + *::before {
-	border-color: white;
+  border-color: white;
 }
 
 .paint-bucket input[class='paintbucket']:checked + *::before {
-	border-color: white;
-    filter: brightness(150%);
+  border-color: white;
+  filter: brightness(150%);
 }
 
 .paint-bucket input[id='X'] + *::before {
-	color: #999999;
-	background: #999999;
+  color: #999999;
+  background: #999999;
 }
 .paint-bucket input[id='I'] + *::before {
-	color: #0BF;
-	background: #0BF;
+  color: #0bf;
+  background: #0bf;
 }
 .paint-bucket input[id='J'] + *::before {
-	color: #05F;
-	background: #05F;
+  color: #05f;
+  background: #05f;
 }
 .paint-bucket input[id='S'] + *::before {
-	color: #0F0;
-	background: #0F0;
+  color: #0f0;
+  background: #0f0;
 }
 .paint-bucket input[id='O'] + *::before {
-	color: #FF0;
-	background: #FF0;
+  color: #ff0;
+  background: #ff0;
 }
 .paint-bucket input[id='Z'] + *::before {
-	color: #F00;
-	background: #F00;
+  color: #f00;
+  background: #f00;
 }
 .paint-bucket input[id='L'] + *::before {
-	color: #F80;
-	background: #F80;
+  color: #f80;
+  background: #f80;
 }
 .paint-bucket input[id='T'] + *::before {
-	color: #C3F;
-	background: #C3F;
+  color: #c3f;
+  background: #c3f;
 }

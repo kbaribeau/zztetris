@@ -13,6 +13,7 @@ A positive result proves current physical access by hypothetical pieces. It does
 Independent source scan: all 31 newly roofed candidate transitions across 3,448 recorded placements had actual access witnesses (Sprint 0, Ultra 0, mirrored Marathon 4, 1000-line reference 27). These are geometry/movement controls, not reconstructed original preview or hold observations.
 
 Two older inferred regression routes were unsound under this stronger check:
+
 - The earlier 3A Z-left/L-center/double route completed the Center but trapped a Left cell. The double translated, rather than repaired, that vacancy.
 - An older saved-T route roofed a Center cell that its later double also failed to repair. Its resource goal no longer overrides movement-access safety.
 
@@ -32,15 +33,15 @@ This fixes the late history loss, not all earlier strategy in that stream. Earli
 
 A production-budget pilot compared `493b82a` with the already observed `c209e600` traces, using the same seven saved streams and a 150-lock cap. All 424 new locks replayed exactly. No illegal recommendation, pattern-policy violation or top-out occurred; all seven eventually abstained.
 
-| Seed | Earlier stop/cap | Access/history stop | Interpretation |
-|---|---:|---:|---|
-| 502400001 | 13 | 13 | Original trapped gap prevented; a reachable J pocket plus active/held T timing still blocked the coach. |
-| 505751329 | 75 | 87 | Identical through quad74; legal L75 replaces the former notch violation. No additional score after74. |
-| 503028375 | 150 cap | 140 | Four Tetrises still reached, but later abstention. |
-| 502818917 | 33 | 24 | Earlier alleged handoff depended on T11 roofing an unreachable cell that remained through its clear24. |
-| 503237833 | 30 | 86 | Reached handoff and two-Tetris goal; first divergence was a timing-sensitive opening cutoff. |
-| 506379703 | 37 | 37 | Still no handoff. |
-| 502504730 | 71 | 37 | Early divergence coincided with completed search depth dropping from3 to2; not clean causal strategy evidence. |
+| Seed      | Earlier stop/cap | Access/history stop | Interpretation                                                                                                 |
+| --------- | ---------------: | ------------------: | -------------------------------------------------------------------------------------------------------------- |
+| 502400001 |               13 |                  13 | Original trapped gap prevented; a reachable J pocket plus active/held T timing still blocked the coach.        |
+| 505751329 |               75 |                  87 | Identical through quad74; legal L75 replaces the former notch violation. No additional score after74.          |
+| 503028375 |          150 cap |                 140 | Four Tetrises still reached, but later abstention.                                                             |
+| 502818917 |               33 |                  24 | Earlier alleged handoff depended on T11 roofing an unreachable cell that remained through its clear24.         |
+| 503237833 |               30 |                  86 | Reached handoff and two-Tetris goal; first divergence was a timing-sensitive opening cutoff.                   |
+| 506379703 |               37 |                  37 | Still no handoff.                                                                                              |
+| 502504730 |               71 |                  37 | Early divergence coincided with completed search depth dropping from3 to2; not clean causal strategy evidence. |
 
 Handoffs were5/7 in both versions; the joint goal (handoff, then two actual Tetrises with a full T-spin double between them) was3/7 versus2/7. These small, previously observed and timing-sensitive development runs do not establish broad reliability or a99% success rate. The later paired-foundation candidate must be tested separately rather than credited with these results.
 

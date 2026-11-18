@@ -53,32 +53,19 @@
       },
       "hold": "L",
       "canHold": true,
-      "queue": [
-        "T",
-        "J",
-        "Z",
-        "S",
-        "O",
-        "Z"
-      ],
+      "queue": ["T", "J", "Z", "S", "O", "Z"],
       "revision": 1170,
       "streamCursor": 178,
       "topOut": false,
       "lastEvent": null,
       "bag": {
-        "remaining": [
-          55
-        ],
+        "remaining": [55],
         "observedCount": 184,
         "provenance": "known-phase"
       }
     },
     "witnesses": [
-      [
-        "HOLD",
-        "CW",
-        "HD"
-      ],
+      ["HOLD", "CW", "HD"],
       [
         "R",
         "R",
@@ -100,15 +87,7 @@
         "CW",
         "HD"
       ],
-      [
-        "HOLD",
-        "R",
-        "R",
-        "R",
-        "CW",
-        "R",
-        "HD"
-      ]
+      ["HOLD", "R", "R", "R", "CW", "R", "HD"]
     ]
   },
   "savedT": {
@@ -165,22 +144,13 @@
       },
       "hold": "O",
       "canHold": true,
-      "queue": [
-        "S",
-        "O",
-        "Z",
-        "I",
-        "J",
-        "L"
-      ],
+      "queue": ["S", "O", "Z", "I", "J", "L"],
       "revision": 501,
       "streamCursor": 99,
       "topOut": false,
       "lastEvent": null,
       "bag": {
-        "remaining": [
-          0
-        ],
+        "remaining": [0],
         "observedCount": 105,
         "provenance": "known-phase"
       }
@@ -192,12 +162,7 @@
         "y": 24,
         "rotation": 0
       },
-      "witness": [
-        "HOLD",
-        "L",
-        "L",
-        "HD"
-      ],
+      "witness": ["HOLD", "L", "L", "HD"],
       "hold": true,
       "holdCount": 1,
       "reason": "Hold first. Build the left region without crossing into the center. This placement has a checked T-spin double within 5 locks.",
@@ -209,12 +174,7 @@
             "y": 24,
             "rotation": 0
           },
-          "witness": [
-            "HOLD",
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["HOLD", "L", "L", "HD"],
           "hold": true,
           "holdCount": 1,
           "event": {
@@ -226,22 +186,10 @@
               "rotation": 0
             },
             "cells": [
-              [
-                2,
-                25
-              ],
-              [
-                3,
-                25
-              ],
-              [
-                2,
-                26
-              ],
-              [
-                3,
-                26
-              ]
+              [2, 25],
+              [3, 25],
+              [2, 26],
+              [3, 26]
             ],
             "lines": 0,
             "clearedRows": [],
@@ -256,10 +204,7 @@
             "y": 22,
             "rotation": 3
           },
-          "witness": [
-            "CCW",
-            "HD"
-          ],
+          "witness": ["CCW", "HD"],
           "hold": false,
           "holdCount": 0,
           "event": {
@@ -271,22 +216,10 @@
               "rotation": 3
             },
             "cells": [
-              [
-                3,
-                23
-              ],
-              [
-                3,
-                24
-              ],
-              [
-                4,
-                24
-              ],
-              [
-                4,
-                25
-              ]
+              [3, 23],
+              [3, 24],
+              [4, 24],
+              [4, 25]
             ],
             "lines": 0,
             "clearedRows": [],
@@ -301,13 +234,7 @@
             "y": 24,
             "rotation": 0
           },
-          "witness": [
-            "L",
-            "L",
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "L", "L", "HD"],
           "hold": false,
           "holdCount": 0,
           "event": {
@@ -319,22 +246,10 @@
               "rotation": 0
             },
             "cells": [
-              [
-                0,
-                25
-              ],
-              [
-                1,
-                25
-              ],
-              [
-                0,
-                26
-              ],
-              [
-                1,
-                26
-              ]
+              [0, 25],
+              [1, 25],
+              [0, 26],
+              [1, 26]
             ],
             "lines": 0,
             "clearedRows": [],
@@ -349,14 +264,7 @@
             "y": 34,
             "rotation": 1
           },
-          "witness": [
-            "CW",
-            "R",
-            "R",
-            "R",
-            "R",
-            "HD"
-          ],
+          "witness": ["CW", "R", "R", "R", "R", "HD"],
           "hold": false,
           "holdCount": 0,
           "event": {
@@ -368,22 +276,10 @@
               "rotation": 1
             },
             "cells": [
-              [
-                9,
-                35
-              ],
-              [
-                8,
-                36
-              ],
-              [
-                9,
-                36
-              ],
-              [
-                8,
-                37
-              ]
+              [9, 35],
+              [8, 36],
+              [9, 36],
+              [8, 37]
             ],
             "lines": 0,
             "clearedRows": [],
@@ -434,28 +330,13 @@
               "rotation": 2
             },
             "cells": [
-              [
-                6,
-                35
-              ],
-              [
-                7,
-                35
-              ],
-              [
-                8,
-                35
-              ],
-              [
-                7,
-                36
-              ]
+              [6, 35],
+              [7, 35],
+              [8, 35],
+              [7, 36]
             ],
             "lines": 2,
-            "clearedRows": [
-              35,
-              36
-            ],
+            "clearedRows": [35, 36],
             "spin": "full",
             "topOut": false
           }
@@ -517,22 +398,13 @@
       },
       "hold": "L",
       "canHold": true,
-      "queue": [
-        "S",
-        "I",
-        "O",
-        "J",
-        "Z",
-        "L"
-      ],
+      "queue": ["S", "I", "O", "J", "Z", "L"],
       "revision": 152,
       "streamCursor": 37,
       "topOut": false,
       "lastEvent": null,
       "bag": {
-        "remaining": [
-          123
-        ],
+        "remaining": [123],
         "observedCount": 43,
         "provenance": "known-phase"
       }
@@ -544,12 +416,7 @@
         "y": 24,
         "rotation": 0
       },
-      "witness": [
-        "L",
-        "L",
-        "L",
-        "HD"
-      ],
+      "witness": ["L", "L", "L", "HD"],
       "hold": false,
       "holdCount": 0,
       "reason": "Build the left region without crossing into the center. Place without clearing. The checked endpoint keeps column eight below the left/center stack.",
@@ -561,12 +428,7 @@
             "y": 24,
             "rotation": 0
           },
-          "witness": [
-            "L",
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "L", "HD"],
           "hold": false,
           "holdCount": 0,
           "event": {
@@ -578,22 +440,10 @@
               "rotation": 0
             },
             "cells": [
-              [
-                1,
-                25
-              ],
-              [
-                0,
-                26
-              ],
-              [
-                1,
-                26
-              ],
-              [
-                2,
-                26
-              ]
+              [1, 25],
+              [0, 26],
+              [1, 26],
+              [2, 26]
             ],
             "lines": 0,
             "clearedRows": [],
@@ -608,11 +458,7 @@
             "y": 23,
             "rotation": 3
           },
-          "witness": [
-            "L",
-            "CCW",
-            "HD"
-          ],
+          "witness": ["L", "CCW", "HD"],
           "hold": false,
           "holdCount": 0,
           "event": {
@@ -624,22 +470,10 @@
               "rotation": 3
             },
             "cells": [
-              [
-                2,
-                24
-              ],
-              [
-                2,
-                25
-              ],
-              [
-                3,
-                25
-              ],
-              [
-                3,
-                26
-              ]
+              [2, 24],
+              [2, 25],
+              [3, 25],
+              [3, 26]
             ],
             "lines": 0,
             "clearedRows": [],
@@ -685,22 +519,10 @@
               "rotation": 2
             },
             "cells": [
-              [
-                4,
-                32
-              ],
-              [
-                5,
-                32
-              ],
-              [
-                6,
-                32
-              ],
-              [
-                4,
-                33
-              ]
+              [4, 32],
+              [5, 32],
+              [6, 32],
+              [4, 33]
             ],
             "lines": 0,
             "clearedRows": [],
@@ -765,22 +587,13 @@
       },
       "hold": "Z",
       "canHold": true,
-      "queue": [
-        "J",
-        "Z",
-        "S",
-        "L",
-        "O",
-        "T"
-      ],
+      "queue": ["J", "Z", "S", "L", "O", "T"],
       "revision": 268,
       "streamCursor": 56,
       "topOut": false,
       "lastEvent": null,
       "bag": {
-        "remaining": [
-          1
-        ],
+        "remaining": [1],
         "observedCount": 62,
         "provenance": "known-phase"
       }
@@ -792,12 +605,7 @@
         "y": 22,
         "rotation": 3
       },
-      "witness": [
-        "L",
-        "L",
-        "CCW",
-        "HD"
-      ],
+      "witness": ["L", "L", "CCW", "HD"],
       "hold": false,
       "holdCount": 0,
       "reason": "Build the left region without crossing into the center. Place without clearing. The checked endpoint keeps column eight below the left/center stack.",
@@ -809,12 +617,7 @@
             "y": 22,
             "rotation": 3
           },
-          "witness": [
-            "L",
-            "L",
-            "CCW",
-            "HD"
-          ],
+          "witness": ["L", "L", "CCW", "HD"],
           "hold": false,
           "holdCount": 0,
           "event": {
@@ -826,22 +629,10 @@
               "rotation": 3
             },
             "cells": [
-              [
-                2,
-                23
-              ],
-              [
-                1,
-                24
-              ],
-              [
-                2,
-                24
-              ],
-              [
-                2,
-                25
-              ]
+              [2, 23],
+              [1, 24],
+              [2, 24],
+              [2, 25]
             ],
             "lines": 0,
             "clearedRows": [],
@@ -856,15 +647,7 @@
             "y": 36,
             "rotation": 1
           },
-          "witness": [
-            "HOLD",
-            "R",
-            "R",
-            "R",
-            "R",
-            "CW",
-            "HD"
-          ],
+          "witness": ["HOLD", "R", "R", "R", "R", "CW", "HD"],
           "hold": true,
           "holdCount": 1,
           "event": {
@@ -876,22 +659,10 @@
               "rotation": 1
             },
             "cells": [
-              [
-                9,
-                37
-              ],
-              [
-                8,
-                38
-              ],
-              [
-                9,
-                38
-              ],
-              [
-                8,
-                39
-              ]
+              [9, 37],
+              [8, 38],
+              [9, 38],
+              [8, 39]
             ],
             "lines": 0,
             "clearedRows": [],
@@ -906,10 +677,7 @@
             "y": 21,
             "rotation": 1
           },
-          "witness": [
-            "CW",
-            "HD"
-          ],
+          "witness": ["CW", "HD"],
           "hold": false,
           "holdCount": 0,
           "event": {
@@ -921,22 +689,10 @@
               "rotation": 1
             },
             "cells": [
-              [
-                5,
-                22
-              ],
-              [
-                4,
-                23
-              ],
-              [
-                5,
-                23
-              ],
-              [
-                4,
-                24
-              ]
+              [5, 22],
+              [4, 23],
+              [5, 23],
+              [4, 24]
             ],
             "lines": 0,
             "clearedRows": [],

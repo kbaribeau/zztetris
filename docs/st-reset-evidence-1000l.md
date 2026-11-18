@@ -21,19 +21,19 @@ introduce no new internally sealed cells. Four pairs are not directly adjacent,
 so a connected two-T shape is not a necessary certificate condition.
 
 | First T | Second T | Lines before first T | First later T double |
-| --- | --- | --- | --- |
-| 134 | 142 | 50 | 153 |
-| 366 | 367 | 142 | 372 |
-| 559 | 560 | 218 | 571 |
-| 813 | 814 | 318 | 819 |
-| 938 | 942 | 366 | 949 |
-| 1181 | 1183 | 464 | 1192 |
-| 1410 | 1420 | 558 | 1427 |
-| 1597 | 1605 | 632 | 1615 |
-| 1844 | 1849 | 730 | 1858 |
-| 2049 | 2056 | 812 | 2063 |
-| 2250 | 2260 | 894 | 2264 |
-| 2479 | 2488 | 984 | 2498 |
+| ------- | -------- | -------------------- | -------------------- |
+| 134     | 142      | 50                   | 153                  |
+| 366     | 367      | 142                  | 372                  |
+| 559     | 560      | 218                  | 571                  |
+| 813     | 814      | 318                  | 819                  |
+| 938     | 942      | 366                  | 949                  |
+| 1181    | 1183     | 464                  | 1192                 |
+| 1410    | 1420     | 558                  | 1427                 |
+| 1597    | 1605     | 632                  | 1615                 |
+| 1844    | 1849     | 730                  | 1858                 |
+| 2049    | 2056     | 812                  | 2063                 |
+| 2250    | 2260     | 894                  | 2264                 |
+| 2479    | 2488     | 984                  | 2498                 |
 
 There are 25 non-right Z placements: one in the opening and 24 afterward.
 That is consistent with the guide's two-Z allocation per full Reset cycle,

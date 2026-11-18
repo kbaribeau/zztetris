@@ -56,21 +56,12 @@
       },
       "hold": "S",
       "canHold": true,
-      "queue": [
-        "T",
-        "J",
-        "L",
-        "I",
-        "O",
-        "S"
-      ],
+      "queue": ["T", "J", "L", "I", "O", "S"],
       "revision": 407,
       "streamCursor": 58,
       "topOut": false,
       "bag": {
-        "remaining": [
-          111
-        ],
+        "remaining": [111],
         "observedCount": 64,
         "provenance": "known-phase"
       }
@@ -158,9 +149,7 @@
             "seenMask": 16
           },
           "knowledge": {
-            "remaining": [
-              111
-            ],
+            "remaining": [111],
             "observedCount": 64,
             "provenance": "known-phase"
           }
@@ -178,22 +167,10 @@
                   {
                     "piece": "L",
                     "cells": [
-                      [
-                        4,
-                        30
-                      ],
-                      [
-                        5,
-                        30
-                      ],
-                      [
-                        6,
-                        30
-                      ],
-                      [
-                        4,
-                        31
-                      ]
+                      [4, 30],
+                      [5, 30],
+                      [6, 30],
+                      [4, 31]
                     ]
                   }
                 ]
@@ -241,15 +218,8 @@
               }
             ],
             "uncertainty": {
-              "S": [
-                0,
-                1,
-                0,
-                0
-              ],
-              "L": [
-                1
-              ]
+              "S": [0, 1, 0, 0],
+              "L": [1]
             }
           },
           "account": {
@@ -287,14 +257,8 @@
               "source": "recognized-scoring-wall"
             },
             "coveredCells": [
-              [
-                5,
-                36
-              ],
-              [
-                6,
-                36
-              ]
+              [5, 36],
+              [6, 36]
             ]
           },
           "dPending": false,
@@ -317,15 +281,7 @@
     },
     "hold": true,
     "holdCount": 1,
-    "witness": [
-      "HOLD",
-      "R",
-      "R",
-      "R",
-      "R",
-      "CW",
-      "HD"
-    ],
+    "witness": ["HOLD", "R", "R", "R", "R", "CW", "HD"],
     "continuation": [
       {
         "target": {
@@ -336,15 +292,7 @@
         },
         "hold": true,
         "holdCount": 1,
-        "witness": [
-          "HOLD",
-          "R",
-          "R",
-          "R",
-          "R",
-          "CW",
-          "HD"
-        ],
+        "witness": ["HOLD", "R", "R", "R", "R", "CW", "HD"],
         "event": {
           "type": "S",
           "target": {
@@ -354,22 +302,10 @@
             "rotation": 1
           },
           "cells": [
-            [
-              8,
-              32
-            ],
-            [
-              8,
-              33
-            ],
-            [
-              9,
-              33
-            ],
-            [
-              9,
-              34
-            ]
+            [8, 32],
+            [8, 33],
+            [9, 33],
+            [9, 34]
           ],
           "lines": 0,
           "clearedRows": [],
@@ -385,9 +321,7 @@
           "pairEvidence": null,
           "opportunityCost": 0,
           "leftSubstitutes": [],
-          "regions": [
-            "right"
-          ],
+          "regions": ["right"],
           "crossRegion": false,
           "allocation": "unrecognized-role",
           "status": "requires-repair-evidence",
@@ -402,20 +336,7 @@
             "pattern": {
               "status": "established",
               "anchorRow": 35,
-              "protectedRows": [
-                35,
-                32,
-                29,
-                26,
-                23,
-                20,
-                17,
-                14,
-                11,
-                8,
-                5,
-                2
-              ],
+              "protectedRows": [35, 32, 29, 26, 23, 20, 17, 14, 11, 8, 5, 2],
               "blockedRows": [],
               "source": "translated-established-cycle"
             },
@@ -428,12 +349,7 @@
             "frontierDebt": 0,
             "scoringRowDebt": 0,
             "left": {
-              "profile": [
-                8,
-                8,
-                10,
-                10
-              ],
+              "profile": [8, 8, 10, 10],
               "flat": false,
               "roughness": 2,
               "covered": 0,
@@ -449,56 +365,21 @@
                     "rotation": 0
                   },
                   "cells": [
-                    [
-                      0,
-                      30
-                    ],
-                    [
-                      1,
-                      30
-                    ],
-                    [
-                      0,
-                      31
-                    ],
-                    [
-                      1,
-                      31
-                    ]
+                    [0, 30],
+                    [1, 30],
+                    [0, 31],
+                    [1, 31]
                   ],
-                  "witness": [
-                    "L",
-                    "L",
-                    "L",
-                    "L",
-                    "HD"
-                  ],
+                  "witness": ["L", "L", "L", "L", "HD"],
                   "access": "hypothetical-spawn-straight-drop",
-                  "resultProfile": [
-                    10,
-                    10,
-                    10,
-                    10
-                  ],
+                  "resultProfile": [10, 10, 10, 10],
                   "resultStatus": "level",
                   "patternSupport": null,
                   "preserveCells": [
-                    [
-                      0,
-                      30
-                    ],
-                    [
-                      1,
-                      30
-                    ],
-                    [
-                      0,
-                      31
-                    ],
-                    [
-                      1,
-                      31
-                    ]
+                    [0, 30],
+                    [1, 30],
+                    [0, 31],
+                    [1, 31]
                   ]
                 }
               ]
@@ -507,26 +388,12 @@
               "foundation": {
                 "status": "unfinished-lower-foundation",
                 "vacancies": [
-                  [
-                    5,
-                    36
-                  ],
-                  [
-                    6,
-                    36
-                  ]
+                  [5, 36],
+                  [6, 36]
                 ],
-                "profile": [
-                  8,
-                  9,
-                  9
-                ]
+                "profile": [8, 9, 9]
               },
-              "profile": [
-                8,
-                9,
-                9
-              ],
+              "profile": [8, 9, 9],
               "status": "supported-partner-completion",
               "motif": ".##/##./###",
               "patternSupport": "reference-supported",
@@ -545,63 +412,27 @@
                     "rotation": 2
                   },
                   "cells": [
-                    [
-                      4,
-                      30
-                    ],
-                    [
-                      5,
-                      30
-                    ],
-                    [
-                      6,
-                      30
-                    ],
-                    [
-                      4,
-                      31
-                    ]
+                    [4, 30],
+                    [5, 30],
+                    [6, 30],
+                    [4, 31]
                   ],
-                  "witness": [
-                    "R180",
-                    "R",
-                    "HD"
-                  ],
+                  "witness": ["R180", "R", "HD"],
                   "access": "hypothetical-spawn-straight-drop",
-                  "resultProfile": [
-                    10,
-                    10,
-                    10
-                  ],
+                  "resultProfile": [10, 10, 10],
                   "resultStatus": "level",
                   "patternSupport": "reference-supported",
                   "preserveCells": [
-                    [
-                      4,
-                      30
-                    ],
-                    [
-                      5,
-                      30
-                    ],
-                    [
-                      6,
-                      30
-                    ],
-                    [
-                      4,
-                      31
-                    ]
+                    [4, 30],
+                    [5, 30],
+                    [6, 30],
+                    [4, 31]
                   ]
                 }
               ]
             },
             "right": {
-              "profile": [
-                0,
-                8,
-                7
-              ],
+              "profile": [0, 8, 7],
               "shapeStatus": "unrecognized",
               "cycle": {
                 "shape": "unrecognized",
@@ -623,9 +454,7 @@
             "obligations": [
               {
                 "kind": "center-partner",
-                "alternatives": [
-                  "L"
-                ],
+                "alternatives": ["L"],
                 "completions": [
                   {
                     "piece": "L",
@@ -637,53 +466,21 @@
                       "rotation": 2
                     },
                     "cells": [
-                      [
-                        4,
-                        30
-                      ],
-                      [
-                        5,
-                        30
-                      ],
-                      [
-                        6,
-                        30
-                      ],
-                      [
-                        4,
-                        31
-                      ]
+                      [4, 30],
+                      [5, 30],
+                      [6, 30],
+                      [4, 31]
                     ],
-                    "witness": [
-                      "R180",
-                      "R",
-                      "HD"
-                    ],
+                    "witness": ["R180", "R", "HD"],
                     "access": "hypothetical-spawn-straight-drop",
-                    "resultProfile": [
-                      10,
-                      10,
-                      10
-                    ],
+                    "resultProfile": [10, 10, 10],
                     "resultStatus": "level",
                     "patternSupport": "reference-supported",
                     "preserveCells": [
-                      [
-                        4,
-                        30
-                      ],
-                      [
-                        5,
-                        30
-                      ],
-                      [
-                        6,
-                        30
-                      ],
-                      [
-                        4,
-                        31
-                      ]
+                      [4, 30],
+                      [5, 30],
+                      [6, 30],
+                      [4, 31]
                     ]
                   }
                 ],
@@ -701,9 +498,7 @@
               },
               {
                 "kind": "left-surface",
-                "alternatives": [
-                  "O"
-                ],
+                "alternatives": ["O"],
                 "completions": [
                   {
                     "piece": "O",
@@ -715,56 +510,21 @@
                       "rotation": 0
                     },
                     "cells": [
-                      [
-                        0,
-                        30
-                      ],
-                      [
-                        1,
-                        30
-                      ],
-                      [
-                        0,
-                        31
-                      ],
-                      [
-                        1,
-                        31
-                      ]
+                      [0, 30],
+                      [1, 30],
+                      [0, 31],
+                      [1, 31]
                     ],
-                    "witness": [
-                      "L",
-                      "L",
-                      "L",
-                      "L",
-                      "HD"
-                    ],
+                    "witness": ["L", "L", "L", "L", "HD"],
                     "access": "hypothetical-spawn-straight-drop",
-                    "resultProfile": [
-                      10,
-                      10,
-                      10,
-                      10
-                    ],
+                    "resultProfile": [10, 10, 10, 10],
                     "resultStatus": "level",
                     "patternSupport": null,
                     "preserveCells": [
-                      [
-                        0,
-                        30
-                      ],
-                      [
-                        1,
-                        30
-                      ],
-                      [
-                        0,
-                        31
-                      ],
-                      [
-                        1,
-                        31
-                      ]
+                      [0, 30],
+                      [1, 30],
+                      [0, 31],
+                      [1, 31]
                     ]
                   }
                 ],
@@ -945,20 +705,7 @@
       "futureNotches": {
         "status": "established",
         "anchorRow": 35,
-        "protectedRows": [
-          35,
-          32,
-          29,
-          26,
-          23,
-          20,
-          17,
-          14,
-          11,
-          8,
-          5,
-          2
-        ],
+        "protectedRows": [35, 32, 29, 26, 23, 20, 17, 14, 11, 8, 5, 2],
         "blockedRows": [],
         "source": "translated-established-cycle"
       },
@@ -987,9 +734,7 @@
       "unresolvedObligations": [
         {
           "kind": "center-partner",
-          "alternatives": [
-            "L"
-          ],
+          "alternatives": ["L"],
           "completions": [
             {
               "piece": "L",
@@ -1001,53 +746,21 @@
                 "rotation": 2
               },
               "cells": [
-                [
-                  4,
-                  30
-                ],
-                [
-                  5,
-                  30
-                ],
-                [
-                  6,
-                  30
-                ],
-                [
-                  4,
-                  31
-                ]
+                [4, 30],
+                [5, 30],
+                [6, 30],
+                [4, 31]
               ],
-              "witness": [
-                "R180",
-                "R",
-                "HD"
-              ],
+              "witness": ["R180", "R", "HD"],
               "access": "hypothetical-spawn-straight-drop",
-              "resultProfile": [
-                10,
-                10,
-                10
-              ],
+              "resultProfile": [10, 10, 10],
               "resultStatus": "level",
               "patternSupport": "reference-supported",
               "preserveCells": [
-                [
-                  4,
-                  30
-                ],
-                [
-                  5,
-                  30
-                ],
-                [
-                  6,
-                  30
-                ],
-                [
-                  4,
-                  31
-                ]
+                [4, 30],
+                [5, 30],
+                [6, 30],
+                [4, 31]
               ]
             }
           ],
@@ -1065,9 +778,7 @@
         },
         {
           "kind": "left-surface",
-          "alternatives": [
-            "O"
-          ],
+          "alternatives": ["O"],
           "completions": [
             {
               "piece": "O",
@@ -1079,56 +790,21 @@
                 "rotation": 0
               },
               "cells": [
-                [
-                  0,
-                  30
-                ],
-                [
-                  1,
-                  30
-                ],
-                [
-                  0,
-                  31
-                ],
-                [
-                  1,
-                  31
-                ]
+                [0, 30],
+                [1, 30],
+                [0, 31],
+                [1, 31]
               ],
-              "witness": [
-                "L",
-                "L",
-                "L",
-                "L",
-                "HD"
-              ],
+              "witness": ["L", "L", "L", "L", "HD"],
               "access": "hypothetical-spawn-straight-drop",
-              "resultProfile": [
-                10,
-                10,
-                10,
-                10
-              ],
+              "resultProfile": [10, 10, 10, 10],
               "resultStatus": "level",
               "patternSupport": null,
               "preserveCells": [
-                [
-                  0,
-                  30
-                ],
-                [
-                  1,
-                  30
-                ],
-                [
-                  0,
-                  31
-                ],
-                [
-                  1,
-                  31
-                ]
+                [0, 30],
+                [1, 30],
+                [0, 31],
+                [1, 31]
               ]
             }
           ],
@@ -1146,26 +822,12 @@
         }
       ],
       "structuralScore": -65.1,
-      "structuralRank": [
-        1,
-        1,
-        0,
-        -17,
-        0,
-        -9,
-        0,
-        0
-      ],
+      "structuralRank": [1, 1, 0, -17, 0, -9, 0, 0],
       "structure": {
         "frontierDebt": 0,
         "scoringRowDebt": 0,
         "left": {
-          "profile": [
-            8,
-            8,
-            10,
-            10
-          ],
+          "profile": [8, 8, 10, 10],
           "flat": false,
           "roughness": 2,
           "covered": 0,
@@ -1181,56 +843,21 @@
                 "rotation": 0
               },
               "cells": [
-                [
-                  0,
-                  30
-                ],
-                [
-                  1,
-                  30
-                ],
-                [
-                  0,
-                  31
-                ],
-                [
-                  1,
-                  31
-                ]
+                [0, 30],
+                [1, 30],
+                [0, 31],
+                [1, 31]
               ],
-              "witness": [
-                "L",
-                "L",
-                "L",
-                "L",
-                "HD"
-              ],
+              "witness": ["L", "L", "L", "L", "HD"],
               "access": "hypothetical-spawn-straight-drop",
-              "resultProfile": [
-                10,
-                10,
-                10,
-                10
-              ],
+              "resultProfile": [10, 10, 10, 10],
               "resultStatus": "level",
               "patternSupport": null,
               "preserveCells": [
-                [
-                  0,
-                  30
-                ],
-                [
-                  1,
-                  30
-                ],
-                [
-                  0,
-                  31
-                ],
-                [
-                  1,
-                  31
-                ]
+                [0, 30],
+                [1, 30],
+                [0, 31],
+                [1, 31]
               ]
             }
           ]
@@ -1239,26 +866,12 @@
           "foundation": {
             "status": "unfinished-lower-foundation",
             "vacancies": [
-              [
-                5,
-                36
-              ],
-              [
-                6,
-                36
-              ]
+              [5, 36],
+              [6, 36]
             ],
-            "profile": [
-              8,
-              9,
-              9
-            ]
+            "profile": [8, 9, 9]
           },
-          "profile": [
-            8,
-            9,
-            9
-          ],
+          "profile": [8, 9, 9],
           "status": "supported-partner-completion",
           "motif": ".##/##./###",
           "patternSupport": "reference-supported",
@@ -1277,63 +890,27 @@
                 "rotation": 2
               },
               "cells": [
-                [
-                  4,
-                  30
-                ],
-                [
-                  5,
-                  30
-                ],
-                [
-                  6,
-                  30
-                ],
-                [
-                  4,
-                  31
-                ]
+                [4, 30],
+                [5, 30],
+                [6, 30],
+                [4, 31]
               ],
-              "witness": [
-                "R180",
-                "R",
-                "HD"
-              ],
+              "witness": ["R180", "R", "HD"],
               "access": "hypothetical-spawn-straight-drop",
-              "resultProfile": [
-                10,
-                10,
-                10
-              ],
+              "resultProfile": [10, 10, 10],
               "resultStatus": "level",
               "patternSupport": "reference-supported",
               "preserveCells": [
-                [
-                  4,
-                  30
-                ],
-                [
-                  5,
-                  30
-                ],
-                [
-                  6,
-                  30
-                ],
-                [
-                  4,
-                  31
-                ]
+                [4, 30],
+                [5, 30],
+                [6, 30],
+                [4, 31]
               ]
             }
           ]
         },
         "right": {
-          "profile": [
-            0,
-            8,
-            7
-          ],
+          "profile": [0, 8, 7],
           "shapeStatus": "unrecognized",
           "cycle": {
             "shape": "unrecognized",
@@ -1355,9 +932,7 @@
         "obligations": [
           {
             "kind": "center-partner",
-            "alternatives": [
-              "L"
-            ],
+            "alternatives": ["L"],
             "completions": [
               {
                 "piece": "L",
@@ -1369,53 +944,21 @@
                   "rotation": 2
                 },
                 "cells": [
-                  [
-                    4,
-                    30
-                  ],
-                  [
-                    5,
-                    30
-                  ],
-                  [
-                    6,
-                    30
-                  ],
-                  [
-                    4,
-                    31
-                  ]
+                  [4, 30],
+                  [5, 30],
+                  [6, 30],
+                  [4, 31]
                 ],
-                "witness": [
-                  "R180",
-                  "R",
-                  "HD"
-                ],
+                "witness": ["R180", "R", "HD"],
                 "access": "hypothetical-spawn-straight-drop",
-                "resultProfile": [
-                  10,
-                  10,
-                  10
-                ],
+                "resultProfile": [10, 10, 10],
                 "resultStatus": "level",
                 "patternSupport": "reference-supported",
                 "preserveCells": [
-                  [
-                    4,
-                    30
-                  ],
-                  [
-                    5,
-                    30
-                  ],
-                  [
-                    6,
-                    30
-                  ],
-                  [
-                    4,
-                    31
-                  ]
+                  [4, 30],
+                  [5, 30],
+                  [6, 30],
+                  [4, 31]
                 ]
               }
             ],
@@ -1433,9 +976,7 @@
           },
           {
             "kind": "left-surface",
-            "alternatives": [
-              "O"
-            ],
+            "alternatives": ["O"],
             "completions": [
               {
                 "piece": "O",
@@ -1447,56 +988,21 @@
                   "rotation": 0
                 },
                 "cells": [
-                  [
-                    0,
-                    30
-                  ],
-                  [
-                    1,
-                    30
-                  ],
-                  [
-                    0,
-                    31
-                  ],
-                  [
-                    1,
-                    31
-                  ]
+                  [0, 30],
+                  [1, 30],
+                  [0, 31],
+                  [1, 31]
                 ],
-                "witness": [
-                  "L",
-                  "L",
-                  "L",
-                  "L",
-                  "HD"
-                ],
+                "witness": ["L", "L", "L", "L", "HD"],
                 "access": "hypothetical-spawn-straight-drop",
-                "resultProfile": [
-                  10,
-                  10,
-                  10,
-                  10
-                ],
+                "resultProfile": [10, 10, 10, 10],
                 "resultStatus": "level",
                 "patternSupport": null,
                 "preserveCells": [
-                  [
-                    0,
-                    30
-                  ],
-                  [
-                    1,
-                    30
-                  ],
-                  [
-                    0,
-                    31
-                  ],
-                  [
-                    1,
-                    31
-                  ]
+                  [0, 30],
+                  [1, 30],
+                  [0, 31],
+                  [1, 31]
                 ]
               }
             ],
@@ -1610,22 +1116,10 @@
               {
                 "piece": "L",
                 "cells": [
-                  [
-                    4,
-                    30
-                  ],
-                  [
-                    5,
-                    30
-                  ],
-                  [
-                    6,
-                    30
-                  ],
-                  [
-                    4,
-                    31
-                  ]
+                  [4, 30],
+                  [5, 30],
+                  [6, 30],
+                  [4, 31]
                 ]
               }
             ],
@@ -1684,34 +1178,14 @@
         "height": 0,
         "openBelowStack": true
       },
-      "heights": [
-        8,
-        8,
-        10,
-        10,
-        8,
-        9,
-        9,
-        0,
-        8,
-        7
-      ],
+      "heights": [8, 8, 10, 10, 8, 9, 9, 0, 8, 7],
       "maxHeight": 10,
       "headroom": 10,
       "sealed": 3,
       "sealedCells": [
-        [
-          9,
-          37
-        ],
-        [
-          9,
-          38
-        ],
-        [
-          9,
-          39
-        ]
+        [9, 37],
+        [9, 38],
+        [9, 39]
       ],
       "leftSealed": 0,
       "covered": 9,
@@ -1723,11 +1197,7 @@
       },
       "center": {
         "height": 9,
-        "profile": [
-          8,
-          9,
-          9
-        ],
+        "profile": [8, 9, 9],
         "partnerDeficit": 1,
         "partnerStatus": "unfinished-open-surface"
       },
@@ -1738,9 +1208,7 @@
       "obligations": [
         {
           "kind": "center-partner",
-          "alternatives": [
-            "L"
-          ],
+          "alternatives": ["L"],
           "completions": [
             {
               "piece": "L",
@@ -1752,53 +1220,21 @@
                 "rotation": 2
               },
               "cells": [
-                [
-                  4,
-                  30
-                ],
-                [
-                  5,
-                  30
-                ],
-                [
-                  6,
-                  30
-                ],
-                [
-                  4,
-                  31
-                ]
+                [4, 30],
+                [5, 30],
+                [6, 30],
+                [4, 31]
               ],
-              "witness": [
-                "R180",
-                "R",
-                "HD"
-              ],
+              "witness": ["R180", "R", "HD"],
               "access": "hypothetical-spawn-straight-drop",
-              "resultProfile": [
-                10,
-                10,
-                10
-              ],
+              "resultProfile": [10, 10, 10],
               "resultStatus": "level",
               "patternSupport": "reference-supported",
               "preserveCells": [
-                [
-                  4,
-                  30
-                ],
-                [
-                  5,
-                  30
-                ],
-                [
-                  6,
-                  30
-                ],
-                [
-                  4,
-                  31
-                ]
+                [4, 30],
+                [5, 30],
+                [6, 30],
+                [4, 31]
               ]
             }
           ],
@@ -1816,9 +1252,7 @@
         },
         {
           "kind": "left-surface",
-          "alternatives": [
-            "O"
-          ],
+          "alternatives": ["O"],
           "completions": [
             {
               "piece": "O",
@@ -1830,56 +1264,21 @@
                 "rotation": 0
               },
               "cells": [
-                [
-                  0,
-                  30
-                ],
-                [
-                  1,
-                  30
-                ],
-                [
-                  0,
-                  31
-                ],
-                [
-                  1,
-                  31
-                ]
+                [0, 30],
+                [1, 30],
+                [0, 31],
+                [1, 31]
               ],
-              "witness": [
-                "L",
-                "L",
-                "L",
-                "L",
-                "HD"
-              ],
+              "witness": ["L", "L", "L", "L", "HD"],
               "access": "hypothetical-spawn-straight-drop",
-              "resultProfile": [
-                10,
-                10,
-                10,
-                10
-              ],
+              "resultProfile": [10, 10, 10, 10],
               "resultStatus": "level",
               "patternSupport": null,
               "preserveCells": [
-                [
-                  0,
-                  30
-                ],
-                [
-                  1,
-                  30
-                ],
-                [
-                  0,
-                  31
-                ],
-                [
-                  1,
-                  31
-                ]
+                [0, 30],
+                [1, 30],
+                [0, 31],
+                [1, 31]
               ]
             }
           ],
@@ -1904,12 +1303,7 @@
         "frontierDebt": 0,
         "scoringRowDebt": 0,
         "left": {
-          "profile": [
-            8,
-            8,
-            10,
-            10
-          ],
+          "profile": [8, 8, 10, 10],
           "flat": false,
           "roughness": 2,
           "covered": 0,
@@ -1925,56 +1319,21 @@
                 "rotation": 0
               },
               "cells": [
-                [
-                  0,
-                  30
-                ],
-                [
-                  1,
-                  30
-                ],
-                [
-                  0,
-                  31
-                ],
-                [
-                  1,
-                  31
-                ]
+                [0, 30],
+                [1, 30],
+                [0, 31],
+                [1, 31]
               ],
-              "witness": [
-                "L",
-                "L",
-                "L",
-                "L",
-                "HD"
-              ],
+              "witness": ["L", "L", "L", "L", "HD"],
               "access": "hypothetical-spawn-straight-drop",
-              "resultProfile": [
-                10,
-                10,
-                10,
-                10
-              ],
+              "resultProfile": [10, 10, 10, 10],
               "resultStatus": "level",
               "patternSupport": null,
               "preserveCells": [
-                [
-                  0,
-                  30
-                ],
-                [
-                  1,
-                  30
-                ],
-                [
-                  0,
-                  31
-                ],
-                [
-                  1,
-                  31
-                ]
+                [0, 30],
+                [1, 30],
+                [0, 31],
+                [1, 31]
               ]
             }
           ]
@@ -1983,26 +1342,12 @@
           "foundation": {
             "status": "unfinished-lower-foundation",
             "vacancies": [
-              [
-                5,
-                36
-              ],
-              [
-                6,
-                36
-              ]
+              [5, 36],
+              [6, 36]
             ],
-            "profile": [
-              8,
-              9,
-              9
-            ]
+            "profile": [8, 9, 9]
           },
-          "profile": [
-            8,
-            9,
-            9
-          ],
+          "profile": [8, 9, 9],
           "status": "supported-partner-completion",
           "motif": ".##/##./###",
           "patternSupport": "reference-supported",
@@ -2021,63 +1366,27 @@
                 "rotation": 2
               },
               "cells": [
-                [
-                  4,
-                  30
-                ],
-                [
-                  5,
-                  30
-                ],
-                [
-                  6,
-                  30
-                ],
-                [
-                  4,
-                  31
-                ]
+                [4, 30],
+                [5, 30],
+                [6, 30],
+                [4, 31]
               ],
-              "witness": [
-                "R180",
-                "R",
-                "HD"
-              ],
+              "witness": ["R180", "R", "HD"],
               "access": "hypothetical-spawn-straight-drop",
-              "resultProfile": [
-                10,
-                10,
-                10
-              ],
+              "resultProfile": [10, 10, 10],
               "resultStatus": "level",
               "patternSupport": "reference-supported",
               "preserveCells": [
-                [
-                  4,
-                  30
-                ],
-                [
-                  5,
-                  30
-                ],
-                [
-                  6,
-                  30
-                ],
-                [
-                  4,
-                  31
-                ]
+                [4, 30],
+                [5, 30],
+                [6, 30],
+                [4, 31]
               ]
             }
           ]
         },
         "right": {
-          "profile": [
-            0,
-            8,
-            7
-          ],
+          "profile": [0, 8, 7],
           "shapeStatus": "unrecognized",
           "cycle": {
             "shape": "unrecognized",
@@ -2099,9 +1408,7 @@
         "obligations": [
           {
             "kind": "center-partner",
-            "alternatives": [
-              "L"
-            ],
+            "alternatives": ["L"],
             "completions": [
               {
                 "piece": "L",
@@ -2113,53 +1420,21 @@
                   "rotation": 2
                 },
                 "cells": [
-                  [
-                    4,
-                    30
-                  ],
-                  [
-                    5,
-                    30
-                  ],
-                  [
-                    6,
-                    30
-                  ],
-                  [
-                    4,
-                    31
-                  ]
+                  [4, 30],
+                  [5, 30],
+                  [6, 30],
+                  [4, 31]
                 ],
-                "witness": [
-                  "R180",
-                  "R",
-                  "HD"
-                ],
+                "witness": ["R180", "R", "HD"],
                 "access": "hypothetical-spawn-straight-drop",
-                "resultProfile": [
-                  10,
-                  10,
-                  10
-                ],
+                "resultProfile": [10, 10, 10],
                 "resultStatus": "level",
                 "patternSupport": "reference-supported",
                 "preserveCells": [
-                  [
-                    4,
-                    30
-                  ],
-                  [
-                    5,
-                    30
-                  ],
-                  [
-                    6,
-                    30
-                  ],
-                  [
-                    4,
-                    31
-                  ]
+                  [4, 30],
+                  [5, 30],
+                  [6, 30],
+                  [4, 31]
                 ]
               }
             ],
@@ -2177,9 +1452,7 @@
           },
           {
             "kind": "left-surface",
-            "alternatives": [
-              "O"
-            ],
+            "alternatives": ["O"],
             "completions": [
               {
                 "piece": "O",
@@ -2191,56 +1464,21 @@
                   "rotation": 0
                 },
                 "cells": [
-                  [
-                    0,
-                    30
-                  ],
-                  [
-                    1,
-                    30
-                  ],
-                  [
-                    0,
-                    31
-                  ],
-                  [
-                    1,
-                    31
-                  ]
+                  [0, 30],
+                  [1, 30],
+                  [0, 31],
+                  [1, 31]
                 ],
-                "witness": [
-                  "L",
-                  "L",
-                  "L",
-                  "L",
-                  "HD"
-                ],
+                "witness": ["L", "L", "L", "L", "HD"],
                 "access": "hypothetical-spawn-straight-drop",
-                "resultProfile": [
-                  10,
-                  10,
-                  10,
-                  10
-                ],
+                "resultProfile": [10, 10, 10, 10],
                 "resultStatus": "level",
                 "patternSupport": null,
                 "preserveCells": [
-                  [
-                    0,
-                    30
-                  ],
-                  [
-                    1,
-                    30
-                  ],
-                  [
-                    0,
-                    31
-                  ],
-                  [
-                    1,
-                    31
-                  ]
+                  [0, 30],
+                  [1, 30],
+                  [0, 31],
+                  [1, 31]
                 ]
               }
             ],
@@ -2343,12 +1581,7 @@
         "source": "https://docs.google.com/document/d/1oqu0zqANYqorEf3tRpWuoMQ8FIJPWCi13uJSjgjrvbA/edit",
         "shape": null,
         "tier": null,
-        "profile": [
-          0,
-          0,
-          2,
-          2
-        ],
+        "profile": [0, 0, 2, 2],
         "score": 0,
         "adjustment": 0,
         "context": "unlisted-neutral",

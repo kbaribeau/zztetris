@@ -389,10 +389,7 @@
       },
       "observationFrame": 170,
       "observationTimeSeconds": 5.666667,
-      "clearedRows": [
-        1,
-        2
-      ],
+      "clearedRows": [1, 2],
       "evidencePhase": "post-placement"
     },
     {
@@ -452,10 +449,7 @@
       },
       "observationFrame": 194,
       "observationTimeSeconds": 6.466667,
-      "clearedRows": [
-        2,
-        3
-      ],
+      "clearedRows": [2, 3],
       "evidencePhase": "post-placement"
     },
     {
@@ -575,10 +569,7 @@
       },
       "observationFrame": 239,
       "observationTimeSeconds": 7.966667,
-      "clearedRows": [
-        3,
-        4
-      ],
+      "clearedRows": [3, 4],
       "evidencePhase": "post-placement"
     },
     {
@@ -653,10 +644,7 @@
       },
       "observationFrame": 264,
       "observationTimeSeconds": 8.8,
-      "clearedRows": [
-        4,
-        5
-      ],
+      "clearedRows": [4, 5],
       "evidencePhase": "post-placement"
     },
     {
@@ -716,12 +704,7 @@
       },
       "observationFrame": 285,
       "observationTimeSeconds": 9.5,
-      "clearedRows": [
-        0,
-        1,
-        2,
-        3
-      ],
+      "clearedRows": [0, 1, 2, 3],
       "evidencePhase": "post-placement"
     },
     {
@@ -826,10 +809,7 @@
       },
       "observationFrame": 333,
       "observationTimeSeconds": 11.1,
-      "clearedRows": [
-        1,
-        2
-      ],
+      "clearedRows": [1, 2],
       "evidencePhase": "post-placement"
     },
     {
@@ -919,10 +899,7 @@
       },
       "observationFrame": 363,
       "observationTimeSeconds": 12.1,
-      "clearedRows": [
-        2,
-        3
-      ],
+      "clearedRows": [2, 3],
       "evidencePhase": "post-placement"
     },
     {
@@ -1042,10 +1019,7 @@
       },
       "observationFrame": 407,
       "observationTimeSeconds": 13.566667,
-      "clearedRows": [
-        3,
-        4
-      ],
+      "clearedRows": [3, 4],
       "evidencePhase": "post-placement"
     },
     {
@@ -1105,10 +1079,7 @@
       },
       "observationFrame": 430,
       "observationTimeSeconds": 14.333333,
-      "clearedRows": [
-        4,
-        5
-      ],
+      "clearedRows": [4, 5],
       "evidencePhase": "post-placement"
     },
     {
@@ -1153,12 +1124,7 @@
       },
       "observationFrame": 447,
       "observationTimeSeconds": 14.9,
-      "clearedRows": [
-        0,
-        1,
-        2,
-        3
-      ],
+      "clearedRows": [0, 1, 2, 3],
       "evidencePhase": "post-placement"
     },
     {
@@ -1248,10 +1214,7 @@
       },
       "observationFrame": 479,
       "observationTimeSeconds": 15.966667,
-      "clearedRows": [
-        1,
-        2
-      ],
+      "clearedRows": [1, 2],
       "evidencePhase": "post-placement"
     },
     {
@@ -1341,10 +1304,7 @@
       },
       "observationFrame": 511,
       "observationTimeSeconds": 17.033333,
-      "clearedRows": [
-        2,
-        3
-      ],
+      "clearedRows": [2, 3],
       "evidencePhase": "post-placement"
     },
     {
@@ -1419,10 +1379,7 @@
       },
       "observationFrame": 547,
       "observationTimeSeconds": 18.233333,
-      "clearedRows": [
-        3,
-        4
-      ],
+      "clearedRows": [3, 4],
       "evidencePhase": "post-placement"
     },
     {
@@ -1602,10 +1559,7 @@
       },
       "observationFrame": 610,
       "observationTimeSeconds": 20.333333,
-      "clearedRows": [
-        4,
-        5
-      ],
+      "clearedRows": [4, 5],
       "evidencePhase": "post-placement"
     },
     {
@@ -1620,12 +1574,7 @@
       },
       "observationFrame": 616,
       "observationTimeSeconds": 20.533333,
-      "clearedRows": [
-        0,
-        1,
-        2,
-        3
-      ],
+      "clearedRows": [0, 1, 2, 3],
       "evidencePhase": "post-placement"
     },
     {
@@ -1685,10 +1634,7 @@
       },
       "observationFrame": 637,
       "observationTimeSeconds": 21.233333,
-      "clearedRows": [
-        1,
-        2
-      ],
+      "clearedRows": [1, 2],
       "evidencePhase": "post-placement"
     },
     {
@@ -1778,253 +1724,30 @@
       },
       "observationFrame": 677,
       "observationTimeSeconds": 22.566667,
-      "clearedRows": [
-        2,
-        3
-      ],
+      "clearedRows": [2, 3],
       "evidencePhase": "pre-clear"
     }
   ],
   "finalBoard": [
-    [
-      3,
-      3,
-      6,
-      1,
-      2,
-      7,
-      7,
-      0,
-      4,
-      0
-    ],
-    [
-      1,
-      3,
-      3,
-      1,
-      2,
-      7,
-      7,
-      0,
-      4,
-      0
-    ],
-    [
-      6,
-      3,
-      3,
-      6,
-      2,
-      7,
-      7,
-      0,
-      0,
-      0
-    ],
-    [
-      6,
-      3,
-      3,
-      6,
-      2,
-      2,
-      2,
-      0,
-      0,
-      0
-    ],
-    [
-      6,
-      6,
-      2,
-      2,
-      7,
-      7,
-      0,
-      0,
-      0,
-      0
-    ],
-    [
-      1,
-      0,
-      2,
-      3,
-      3,
-      7,
-      7,
-      0,
-      0,
-      0
-    ],
-    [
-      1,
-      0,
-      2,
-      3,
-      3,
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    [
-      1,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    [
-      1,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    [
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    [
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    [
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    [
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    [
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    [
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    [
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    [
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    [
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    [
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    [
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0
-    ]
+    [3, 3, 6, 1, 2, 7, 7, 0, 4, 0],
+    [1, 3, 3, 1, 2, 7, 7, 0, 4, 0],
+    [6, 3, 3, 6, 2, 7, 7, 0, 0, 0],
+    [6, 3, 3, 6, 2, 2, 2, 0, 0, 0],
+    [6, 6, 2, 2, 7, 7, 0, 0, 0, 0],
+    [1, 0, 2, 3, 3, 7, 7, 0, 0, 0],
+    [1, 0, 2, 3, 3, 0, 0, 0, 0, 0],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
   ]
 }

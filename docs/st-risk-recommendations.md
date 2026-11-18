@@ -47,7 +47,6 @@ certificate is created. Relabeling copied advice cannot satisfy existing support
 revalidation. No advisory Reset detector, Reset coach or execution handoff policy
 is added here.
 
-
 ## Left contours and risk
 
 D no longer creates a J-specific admission rule or warning. The recorded-contour

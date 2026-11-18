@@ -56,29 +56,17 @@
         },
         "hold": "T",
         "canHold": true,
-        "queue": [
-          "I",
-          "O",
-          "J",
-          "Z",
-          "T",
-          "Z"
-        ],
+        "queue": ["I", "O", "J", "Z", "T", "Z"],
         "revision": 682,
         "streamCursor": 86,
         "topOut": false,
         "bag": {
-          "remaining": [
-            63
-          ],
+          "remaining": [63],
           "observedCount": 92,
           "provenance": "known-phase"
         }
       },
-      "witness": [
-        "R180",
-        "HD"
-      ],
+      "witness": ["R180", "HD"],
       "event": {
         "type": "L",
         "target": {
@@ -88,22 +76,10 @@
           "rotation": 2
         },
         "cells": [
-          [
-            3,
-            30
-          ],
-          [
-            4,
-            30
-          ],
-          [
-            5,
-            30
-          ],
-          [
-            3,
-            31
-          ]
+          [3, 30],
+          [4, 30],
+          [5, 30],
+          [3, 31]
         ],
         "lines": 0,
         "clearedRows": [],
@@ -120,10 +96,7 @@
           },
           "hold": false,
           "holdCount": 0,
-          "witness": [
-            "R180",
-            "HD"
-          ],
+          "witness": ["R180", "HD"],
           "event": {
             "type": "L",
             "target": {
@@ -133,22 +106,10 @@
               "rotation": 2
             },
             "cells": [
-              [
-                3,
-                30
-              ],
-              [
-                4,
-                30
-              ],
-              [
-                5,
-                30
-              ],
-              [
-                3,
-                31
-              ]
+              [3, 30],
+              [4, 30],
+              [5, 30],
+              [3, 31]
             ],
             "lines": 0,
             "clearedRows": [],
@@ -164,10 +125,7 @@
             "pairEvidence": null,
             "opportunityCost": 0,
             "leftSubstitutes": [],
-            "regions": [
-              "left",
-              "center"
-            ],
+            "regions": ["left", "center"],
             "crossRegion": true,
             "allocation": "unrecognized-role",
             "status": "requires-repair-evidence",
@@ -183,19 +141,7 @@
                 "status": "established",
                 "anchorRow": 36,
                 "protectedRows": [
-                  36,
-                  33,
-                  30,
-                  27,
-                  24,
-                  21,
-                  18,
-                  15,
-                  12,
-                  9,
-                  6,
-                  3,
-                  0
+                  36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3, 0
                 ],
                 "blockedRows": [],
                 "source": "translated-established-cycle"
@@ -210,12 +156,7 @@
               "frontierDebt": 0,
               "scoringRowDebt": 0,
               "left": {
-                "profile": [
-                  13,
-                  15,
-                  14,
-                  10
-                ],
+                "profile": [13, 15, 14, 10],
                 "flat": false,
                 "roughness": 7,
                 "covered": 0,
@@ -231,55 +172,21 @@
                       "rotation": 1
                     },
                     "cells": [
-                      [
-                        3,
-                        26
-                      ],
-                      [
-                        3,
-                        27
-                      ],
-                      [
-                        3,
-                        28
-                      ],
-                      [
-                        3,
-                        29
-                      ]
+                      [3, 26],
+                      [3, 27],
+                      [3, 28],
+                      [3, 29]
                     ],
-                    "witness": [
-                      "CW",
-                      "L",
-                      "L",
-                      "HD"
-                    ],
+                    "witness": ["CW", "L", "L", "HD"],
                     "access": "hypothetical-spawn-straight-drop",
-                    "resultProfile": [
-                      13,
-                      15,
-                      14,
-                      14
-                    ],
+                    "resultProfile": [13, 15, 14, 14],
                     "resultStatus": "partial-repair",
                     "patternSupport": null,
                     "preserveCells": [
-                      [
-                        3,
-                        26
-                      ],
-                      [
-                        3,
-                        27
-                      ],
-                      [
-                        3,
-                        28
-                      ],
-                      [
-                        3,
-                        29
-                      ]
+                      [3, 26],
+                      [3, 27],
+                      [3, 28],
+                      [3, 29]
                     ]
                   }
                 ]
@@ -288,17 +195,9 @@
                 "foundation": {
                   "status": "aligned",
                   "vacancies": [],
-                  "profile": [
-                    10,
-                    10,
-                    3
-                  ]
+                  "profile": [10, 10, 3]
                 },
-                "profile": [
-                  10,
-                  10,
-                  3
-                ],
+                "profile": [10, 10, 3],
                 "status": "unrecognized",
                 "motif": "##./##./##.",
                 "patternSupport": "unrecognized",
@@ -317,52 +216,21 @@
                       "rotation": 0
                     },
                     "cells": [
-                      [
-                        5,
-                        28
-                      ],
-                      [
-                        6,
-                        28
-                      ],
-                      [
-                        4,
-                        29
-                      ],
-                      [
-                        5,
-                        29
-                      ]
+                      [5, 28],
+                      [6, 28],
+                      [4, 29],
+                      [5, 29]
                     ],
-                    "witness": [
-                      "R",
-                      "HD"
-                    ],
+                    "witness": ["R", "HD"],
                     "access": "hypothetical-spawn-straight-drop",
-                    "resultProfile": [
-                      11,
-                      12,
-                      12
-                    ],
+                    "resultProfile": [11, 12, 12],
                     "resultStatus": "SL-preparation-surface",
                     "patternSupport": "unrecognized",
                     "preserveCells": [
-                      [
-                        5,
-                        28
-                      ],
-                      [
-                        6,
-                        28
-                      ],
-                      [
-                        4,
-                        29
-                      ],
-                      [
-                        5,
-                        29
-                      ]
+                      [5, 28],
+                      [6, 28],
+                      [4, 29],
+                      [5, 29]
                     ]
                   },
                   {
@@ -375,63 +243,27 @@
                       "rotation": 2
                     },
                     "cells": [
-                      [
-                        4,
-                        28
-                      ],
-                      [
-                        5,
-                        28
-                      ],
-                      [
-                        6,
-                        28
-                      ],
-                      [
-                        4,
-                        29
-                      ]
+                      [4, 28],
+                      [5, 28],
+                      [6, 28],
+                      [4, 29]
                     ],
-                    "witness": [
-                      "R180",
-                      "R",
-                      "HD"
-                    ],
+                    "witness": ["R180", "R", "HD"],
                     "access": "hypothetical-spawn-straight-drop",
-                    "resultProfile": [
-                      12,
-                      12,
-                      12
-                    ],
+                    "resultProfile": [12, 12, 12],
                     "resultStatus": "level",
                     "patternSupport": "unrecognized",
                     "preserveCells": [
-                      [
-                        4,
-                        28
-                      ],
-                      [
-                        5,
-                        28
-                      ],
-                      [
-                        6,
-                        28
-                      ],
-                      [
-                        4,
-                        29
-                      ]
+                      [4, 28],
+                      [5, 28],
+                      [6, 28],
+                      [4, 29]
                     ]
                   }
                 ]
               },
               "right": {
-                "profile": [
-                  0,
-                  3,
-                  4
-                ],
+                "profile": [0, 3, 4],
                 "shapeStatus": "staggered-scoring-wall",
                 "cycle": {
                   "shape": "staggered-scoring-wall",
@@ -445,14 +277,8 @@
                 "reservoir": {
                   "status": "clear-witness-required",
                   "cells": [
-                    [
-                      9,
-                      38
-                    ],
-                    [
-                      9,
-                      39
-                    ]
+                    [9, 38],
+                    [9, 39]
                   ],
                   "roofRow": 37,
                   "pattern": "canonical-Z-cap-reservoir"
@@ -467,10 +293,7 @@
               "obligations": [
                 {
                   "kind": "center-partner",
-                  "alternatives": [
-                    "S",
-                    "L"
-                  ],
+                  "alternatives": ["S", "L"],
                   "completions": [
                     {
                       "piece": "S",
@@ -482,52 +305,21 @@
                         "rotation": 0
                       },
                       "cells": [
-                        [
-                          5,
-                          28
-                        ],
-                        [
-                          6,
-                          28
-                        ],
-                        [
-                          4,
-                          29
-                        ],
-                        [
-                          5,
-                          29
-                        ]
+                        [5, 28],
+                        [6, 28],
+                        [4, 29],
+                        [5, 29]
                       ],
-                      "witness": [
-                        "R",
-                        "HD"
-                      ],
+                      "witness": ["R", "HD"],
                       "access": "hypothetical-spawn-straight-drop",
-                      "resultProfile": [
-                        11,
-                        12,
-                        12
-                      ],
+                      "resultProfile": [11, 12, 12],
                       "resultStatus": "SL-preparation-surface",
                       "patternSupport": "unrecognized",
                       "preserveCells": [
-                        [
-                          5,
-                          28
-                        ],
-                        [
-                          6,
-                          28
-                        ],
-                        [
-                          4,
-                          29
-                        ],
-                        [
-                          5,
-                          29
-                        ]
+                        [5, 28],
+                        [6, 28],
+                        [4, 29],
+                        [5, 29]
                       ]
                     },
                     {
@@ -540,53 +332,21 @@
                         "rotation": 2
                       },
                       "cells": [
-                        [
-                          4,
-                          28
-                        ],
-                        [
-                          5,
-                          28
-                        ],
-                        [
-                          6,
-                          28
-                        ],
-                        [
-                          4,
-                          29
-                        ]
+                        [4, 28],
+                        [5, 28],
+                        [6, 28],
+                        [4, 29]
                       ],
-                      "witness": [
-                        "R180",
-                        "R",
-                        "HD"
-                      ],
+                      "witness": ["R180", "R", "HD"],
                       "access": "hypothetical-spawn-straight-drop",
-                      "resultProfile": [
-                        12,
-                        12,
-                        12
-                      ],
+                      "resultProfile": [12, 12, 12],
                       "resultStatus": "level",
                       "patternSupport": "unrecognized",
                       "preserveCells": [
-                        [
-                          4,
-                          28
-                        ],
-                        [
-                          5,
-                          28
-                        ],
-                        [
-                          6,
-                          28
-                        ],
-                        [
-                          4,
-                          29
-                        ]
+                        [4, 28],
+                        [5, 28],
+                        [6, 28],
+                        [4, 29]
                       ]
                     }
                   ],
@@ -596,9 +356,7 @@
                 },
                 {
                   "kind": "left-surface",
-                  "alternatives": [
-                    "I"
-                  ],
+                  "alternatives": ["I"],
                   "completions": [
                     {
                       "piece": "I",
@@ -610,55 +368,21 @@
                         "rotation": 1
                       },
                       "cells": [
-                        [
-                          3,
-                          26
-                        ],
-                        [
-                          3,
-                          27
-                        ],
-                        [
-                          3,
-                          28
-                        ],
-                        [
-                          3,
-                          29
-                        ]
+                        [3, 26],
+                        [3, 27],
+                        [3, 28],
+                        [3, 29]
                       ],
-                      "witness": [
-                        "CW",
-                        "L",
-                        "L",
-                        "HD"
-                      ],
+                      "witness": ["CW", "L", "L", "HD"],
                       "access": "hypothetical-spawn-straight-drop",
-                      "resultProfile": [
-                        13,
-                        15,
-                        14,
-                        14
-                      ],
+                      "resultProfile": [13, 15, 14, 14],
                       "resultStatus": "partial-repair",
                       "patternSupport": null,
                       "preserveCells": [
-                        [
-                          3,
-                          26
-                        ],
-                        [
-                          3,
-                          27
-                        ],
-                        [
-                          3,
-                          28
-                        ],
-                        [
-                          3,
-                          29
-                        ]
+                        [3, 26],
+                        [3, 27],
+                        [3, 28],
+                        [3, 29]
                       ]
                     }
                   ],
@@ -675,9 +399,7 @@
                 },
                 {
                   "kind": "scoring-cycle",
-                  "alternatives": [
-                    "T"
-                  ],
+                  "alternatives": ["T"],
                   "completions": [],
                   "note": "Normal scoring-wall shape; actual T-spin entry and line completion require execution verification.",
                   "supply": [
@@ -807,11 +529,7 @@
           },
           "hold": false,
           "holdCount": 0,
-          "witness": [
-            "L",
-            "CCW",
-            "HD"
-          ],
+          "witness": ["L", "CCW", "HD"],
           "event": {
             "type": "I",
             "target": {
@@ -821,22 +539,10 @@
               "rotation": 3
             },
             "cells": [
-              [
-                3,
-                26
-              ],
-              [
-                3,
-                27
-              ],
-              [
-                3,
-                28
-              ],
-              [
-                3,
-                29
-              ]
+              [3, 26],
+              [3, 27],
+              [3, 28],
+              [3, 29]
             ],
             "lines": 0,
             "clearedRows": [],
@@ -852,9 +558,7 @@
             "pairEvidence": null,
             "opportunityCost": 0,
             "leftSubstitutes": [],
-            "regions": [
-              "left"
-            ],
+            "regions": ["left"],
             "crossRegion": false,
             "allocation": "left-filler",
             "status": "supported-local-role",
@@ -870,19 +574,7 @@
                 "status": "established",
                 "anchorRow": 36,
                 "protectedRows": [
-                  36,
-                  33,
-                  30,
-                  27,
-                  24,
-                  21,
-                  18,
-                  15,
-                  12,
-                  9,
-                  6,
-                  3,
-                  0
+                  36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3, 0
                 ],
                 "blockedRows": [],
                 "source": "translated-established-cycle"
@@ -897,12 +589,7 @@
               "frontierDebt": 0,
               "scoringRowDebt": 0,
               "left": {
-                "profile": [
-                  13,
-                  15,
-                  14,
-                  14
-                ],
+                "profile": [13, 15, 14, 14],
                 "flat": false,
                 "roughness": 3,
                 "covered": 0,
@@ -913,17 +600,9 @@
                 "foundation": {
                   "status": "aligned",
                   "vacancies": [],
-                  "profile": [
-                    10,
-                    10,
-                    3
-                  ]
+                  "profile": [10, 10, 3]
                 },
-                "profile": [
-                  10,
-                  10,
-                  3
-                ],
+                "profile": [10, 10, 3],
                 "status": "unrecognized",
                 "motif": "##./##./##.",
                 "patternSupport": "unrecognized",
@@ -942,52 +621,21 @@
                       "rotation": 0
                     },
                     "cells": [
-                      [
-                        5,
-                        28
-                      ],
-                      [
-                        6,
-                        28
-                      ],
-                      [
-                        4,
-                        29
-                      ],
-                      [
-                        5,
-                        29
-                      ]
+                      [5, 28],
+                      [6, 28],
+                      [4, 29],
+                      [5, 29]
                     ],
-                    "witness": [
-                      "R",
-                      "HD"
-                    ],
+                    "witness": ["R", "HD"],
                     "access": "hypothetical-spawn-straight-drop",
-                    "resultProfile": [
-                      11,
-                      12,
-                      12
-                    ],
+                    "resultProfile": [11, 12, 12],
                     "resultStatus": "SL-preparation-surface",
                     "patternSupport": "unrecognized",
                     "preserveCells": [
-                      [
-                        5,
-                        28
-                      ],
-                      [
-                        6,
-                        28
-                      ],
-                      [
-                        4,
-                        29
-                      ],
-                      [
-                        5,
-                        29
-                      ]
+                      [5, 28],
+                      [6, 28],
+                      [4, 29],
+                      [5, 29]
                     ]
                   },
                   {
@@ -1000,63 +648,27 @@
                       "rotation": 2
                     },
                     "cells": [
-                      [
-                        4,
-                        28
-                      ],
-                      [
-                        5,
-                        28
-                      ],
-                      [
-                        6,
-                        28
-                      ],
-                      [
-                        4,
-                        29
-                      ]
+                      [4, 28],
+                      [5, 28],
+                      [6, 28],
+                      [4, 29]
                     ],
-                    "witness": [
-                      "R180",
-                      "R",
-                      "HD"
-                    ],
+                    "witness": ["R180", "R", "HD"],
                     "access": "hypothetical-spawn-straight-drop",
-                    "resultProfile": [
-                      12,
-                      12,
-                      12
-                    ],
+                    "resultProfile": [12, 12, 12],
                     "resultStatus": "level",
                     "patternSupport": "unrecognized",
                     "preserveCells": [
-                      [
-                        4,
-                        28
-                      ],
-                      [
-                        5,
-                        28
-                      ],
-                      [
-                        6,
-                        28
-                      ],
-                      [
-                        4,
-                        29
-                      ]
+                      [4, 28],
+                      [5, 28],
+                      [6, 28],
+                      [4, 29]
                     ]
                   }
                 ]
               },
               "right": {
-                "profile": [
-                  0,
-                  3,
-                  4
-                ],
+                "profile": [0, 3, 4],
                 "shapeStatus": "staggered-scoring-wall",
                 "cycle": {
                   "shape": "staggered-scoring-wall",
@@ -1070,14 +682,8 @@
                 "reservoir": {
                   "status": "clear-witness-required",
                   "cells": [
-                    [
-                      9,
-                      38
-                    ],
-                    [
-                      9,
-                      39
-                    ]
+                    [9, 38],
+                    [9, 39]
                   ],
                   "roofRow": 37,
                   "pattern": "canonical-Z-cap-reservoir"
@@ -1092,10 +698,7 @@
               "obligations": [
                 {
                   "kind": "center-partner",
-                  "alternatives": [
-                    "S",
-                    "L"
-                  ],
+                  "alternatives": ["S", "L"],
                   "completions": [
                     {
                       "piece": "S",
@@ -1107,52 +710,21 @@
                         "rotation": 0
                       },
                       "cells": [
-                        [
-                          5,
-                          28
-                        ],
-                        [
-                          6,
-                          28
-                        ],
-                        [
-                          4,
-                          29
-                        ],
-                        [
-                          5,
-                          29
-                        ]
+                        [5, 28],
+                        [6, 28],
+                        [4, 29],
+                        [5, 29]
                       ],
-                      "witness": [
-                        "R",
-                        "HD"
-                      ],
+                      "witness": ["R", "HD"],
                       "access": "hypothetical-spawn-straight-drop",
-                      "resultProfile": [
-                        11,
-                        12,
-                        12
-                      ],
+                      "resultProfile": [11, 12, 12],
                       "resultStatus": "SL-preparation-surface",
                       "patternSupport": "unrecognized",
                       "preserveCells": [
-                        [
-                          5,
-                          28
-                        ],
-                        [
-                          6,
-                          28
-                        ],
-                        [
-                          4,
-                          29
-                        ],
-                        [
-                          5,
-                          29
-                        ]
+                        [5, 28],
+                        [6, 28],
+                        [4, 29],
+                        [5, 29]
                       ]
                     },
                     {
@@ -1165,53 +737,21 @@
                         "rotation": 2
                       },
                       "cells": [
-                        [
-                          4,
-                          28
-                        ],
-                        [
-                          5,
-                          28
-                        ],
-                        [
-                          6,
-                          28
-                        ],
-                        [
-                          4,
-                          29
-                        ]
+                        [4, 28],
+                        [5, 28],
+                        [6, 28],
+                        [4, 29]
                       ],
-                      "witness": [
-                        "R180",
-                        "R",
-                        "HD"
-                      ],
+                      "witness": ["R180", "R", "HD"],
                       "access": "hypothetical-spawn-straight-drop",
-                      "resultProfile": [
-                        12,
-                        12,
-                        12
-                      ],
+                      "resultProfile": [12, 12, 12],
                       "resultStatus": "level",
                       "patternSupport": "unrecognized",
                       "preserveCells": [
-                        [
-                          4,
-                          28
-                        ],
-                        [
-                          5,
-                          28
-                        ],
-                        [
-                          6,
-                          28
-                        ],
-                        [
-                          4,
-                          29
-                        ]
+                        [4, 28],
+                        [5, 28],
+                        [6, 28],
+                        [4, 29]
                       ]
                     }
                   ],
@@ -1221,9 +761,7 @@
                 },
                 {
                   "kind": "scoring-cycle",
-                  "alternatives": [
-                    "T"
-                  ],
+                  "alternatives": ["T"],
                   "completions": [],
                   "note": "Normal scoring-wall shape; actual T-spin entry and line completion require execution verification.",
                   "supply": [
@@ -1339,11 +877,7 @@
           },
           "hold": false,
           "holdCount": 0,
-          "witness": [
-            "L",
-            "L",
-            "HD"
-          ],
+          "witness": ["L", "L", "HD"],
           "event": {
             "type": "O",
             "target": {
@@ -1353,22 +887,10 @@
               "rotation": 0
             },
             "cells": [
-              [
-                2,
-                24
-              ],
-              [
-                3,
-                24
-              ],
-              [
-                2,
-                25
-              ],
-              [
-                3,
-                25
-              ]
+              [2, 24],
+              [3, 24],
+              [2, 25],
+              [3, 25]
             ],
             "lines": 0,
             "clearedRows": [],
@@ -1384,9 +906,7 @@
             "pairEvidence": null,
             "opportunityCost": 0,
             "leftSubstitutes": [],
-            "regions": [
-              "left"
-            ],
+            "regions": ["left"],
             "crossRegion": false,
             "allocation": "left-filler",
             "status": "supported-local-role",
@@ -1402,19 +922,7 @@
                 "status": "established",
                 "anchorRow": 36,
                 "protectedRows": [
-                  36,
-                  33,
-                  30,
-                  27,
-                  24,
-                  21,
-                  18,
-                  15,
-                  12,
-                  9,
-                  6,
-                  3,
-                  0
+                  36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3, 0
                 ],
                 "blockedRows": [],
                 "source": "translated-established-cycle"
@@ -1429,12 +937,7 @@
               "frontierDebt": 0,
               "scoringRowDebt": 0,
               "left": {
-                "profile": [
-                  13,
-                  15,
-                  16,
-                  16
-                ],
+                "profile": [13, 15, 16, 16],
                 "flat": false,
                 "roughness": 3,
                 "covered": 0,
@@ -1450,57 +953,21 @@
                       "rotation": 1
                     },
                     "cells": [
-                      [
-                        0,
-                        24
-                      ],
-                      [
-                        1,
-                        24
-                      ],
-                      [
-                        0,
-                        25
-                      ],
-                      [
-                        0,
-                        26
-                      ]
+                      [0, 24],
+                      [1, 24],
+                      [0, 25],
+                      [0, 26]
                     ],
-                    "witness": [
-                      "CW",
-                      "L",
-                      "L",
-                      "L",
-                      "L",
-                      "HD"
-                    ],
+                    "witness": ["CW", "L", "L", "L", "L", "HD"],
                     "access": "hypothetical-spawn-straight-drop",
-                    "resultProfile": [
-                      16,
-                      16,
-                      16,
-                      16
-                    ],
+                    "resultProfile": [16, 16, 16, 16],
                     "resultStatus": "level",
                     "patternSupport": null,
                     "preserveCells": [
-                      [
-                        0,
-                        24
-                      ],
-                      [
-                        1,
-                        24
-                      ],
-                      [
-                        0,
-                        25
-                      ],
-                      [
-                        0,
-                        26
-                      ]
+                      [0, 24],
+                      [1, 24],
+                      [0, 25],
+                      [0, 26]
                     ]
                   }
                 ]
@@ -1509,17 +976,9 @@
                 "foundation": {
                   "status": "aligned",
                   "vacancies": [],
-                  "profile": [
-                    10,
-                    10,
-                    3
-                  ]
+                  "profile": [10, 10, 3]
                 },
-                "profile": [
-                  10,
-                  10,
-                  3
-                ],
+                "profile": [10, 10, 3],
                 "status": "unrecognized",
                 "motif": "##./##./##.",
                 "patternSupport": "unrecognized",
@@ -1538,52 +997,21 @@
                       "rotation": 0
                     },
                     "cells": [
-                      [
-                        5,
-                        28
-                      ],
-                      [
-                        6,
-                        28
-                      ],
-                      [
-                        4,
-                        29
-                      ],
-                      [
-                        5,
-                        29
-                      ]
+                      [5, 28],
+                      [6, 28],
+                      [4, 29],
+                      [5, 29]
                     ],
-                    "witness": [
-                      "R",
-                      "HD"
-                    ],
+                    "witness": ["R", "HD"],
                     "access": "hypothetical-spawn-straight-drop",
-                    "resultProfile": [
-                      11,
-                      12,
-                      12
-                    ],
+                    "resultProfile": [11, 12, 12],
                     "resultStatus": "SL-preparation-surface",
                     "patternSupport": "unrecognized",
                     "preserveCells": [
-                      [
-                        5,
-                        28
-                      ],
-                      [
-                        6,
-                        28
-                      ],
-                      [
-                        4,
-                        29
-                      ],
-                      [
-                        5,
-                        29
-                      ]
+                      [5, 28],
+                      [6, 28],
+                      [4, 29],
+                      [5, 29]
                     ]
                   },
                   {
@@ -1596,63 +1024,27 @@
                       "rotation": 2
                     },
                     "cells": [
-                      [
-                        4,
-                        28
-                      ],
-                      [
-                        5,
-                        28
-                      ],
-                      [
-                        6,
-                        28
-                      ],
-                      [
-                        4,
-                        29
-                      ]
+                      [4, 28],
+                      [5, 28],
+                      [6, 28],
+                      [4, 29]
                     ],
-                    "witness": [
-                      "R180",
-                      "R",
-                      "HD"
-                    ],
+                    "witness": ["R180", "R", "HD"],
                     "access": "hypothetical-spawn-straight-drop",
-                    "resultProfile": [
-                      12,
-                      12,
-                      12
-                    ],
+                    "resultProfile": [12, 12, 12],
                     "resultStatus": "level",
                     "patternSupport": "unrecognized",
                     "preserveCells": [
-                      [
-                        4,
-                        28
-                      ],
-                      [
-                        5,
-                        28
-                      ],
-                      [
-                        6,
-                        28
-                      ],
-                      [
-                        4,
-                        29
-                      ]
+                      [4, 28],
+                      [5, 28],
+                      [6, 28],
+                      [4, 29]
                     ]
                   }
                 ]
               },
               "right": {
-                "profile": [
-                  0,
-                  3,
-                  4
-                ],
+                "profile": [0, 3, 4],
                 "shapeStatus": "staggered-scoring-wall",
                 "cycle": {
                   "shape": "staggered-scoring-wall",
@@ -1666,14 +1058,8 @@
                 "reservoir": {
                   "status": "clear-witness-required",
                   "cells": [
-                    [
-                      9,
-                      38
-                    ],
-                    [
-                      9,
-                      39
-                    ]
+                    [9, 38],
+                    [9, 39]
                   ],
                   "roofRow": 37,
                   "pattern": "canonical-Z-cap-reservoir"
@@ -1688,10 +1074,7 @@
               "obligations": [
                 {
                   "kind": "center-partner",
-                  "alternatives": [
-                    "S",
-                    "L"
-                  ],
+                  "alternatives": ["S", "L"],
                   "completions": [
                     {
                       "piece": "S",
@@ -1703,52 +1086,21 @@
                         "rotation": 0
                       },
                       "cells": [
-                        [
-                          5,
-                          28
-                        ],
-                        [
-                          6,
-                          28
-                        ],
-                        [
-                          4,
-                          29
-                        ],
-                        [
-                          5,
-                          29
-                        ]
+                        [5, 28],
+                        [6, 28],
+                        [4, 29],
+                        [5, 29]
                       ],
-                      "witness": [
-                        "R",
-                        "HD"
-                      ],
+                      "witness": ["R", "HD"],
                       "access": "hypothetical-spawn-straight-drop",
-                      "resultProfile": [
-                        11,
-                        12,
-                        12
-                      ],
+                      "resultProfile": [11, 12, 12],
                       "resultStatus": "SL-preparation-surface",
                       "patternSupport": "unrecognized",
                       "preserveCells": [
-                        [
-                          5,
-                          28
-                        ],
-                        [
-                          6,
-                          28
-                        ],
-                        [
-                          4,
-                          29
-                        ],
-                        [
-                          5,
-                          29
-                        ]
+                        [5, 28],
+                        [6, 28],
+                        [4, 29],
+                        [5, 29]
                       ]
                     },
                     {
@@ -1761,53 +1113,21 @@
                         "rotation": 2
                       },
                       "cells": [
-                        [
-                          4,
-                          28
-                        ],
-                        [
-                          5,
-                          28
-                        ],
-                        [
-                          6,
-                          28
-                        ],
-                        [
-                          4,
-                          29
-                        ]
+                        [4, 28],
+                        [5, 28],
+                        [6, 28],
+                        [4, 29]
                       ],
-                      "witness": [
-                        "R180",
-                        "R",
-                        "HD"
-                      ],
+                      "witness": ["R180", "R", "HD"],
                       "access": "hypothetical-spawn-straight-drop",
-                      "resultProfile": [
-                        12,
-                        12,
-                        12
-                      ],
+                      "resultProfile": [12, 12, 12],
                       "resultStatus": "level",
                       "patternSupport": "unrecognized",
                       "preserveCells": [
-                        [
-                          4,
-                          28
-                        ],
-                        [
-                          5,
-                          28
-                        ],
-                        [
-                          6,
-                          28
-                        ],
-                        [
-                          4,
-                          29
-                        ]
+                        [4, 28],
+                        [5, 28],
+                        [6, 28],
+                        [4, 29]
                       ]
                     }
                   ],
@@ -1817,9 +1137,7 @@
                 },
                 {
                   "kind": "left-surface",
-                  "alternatives": [
-                    "J"
-                  ],
+                  "alternatives": ["J"],
                   "completions": [
                     {
                       "piece": "J",
@@ -1831,57 +1149,21 @@
                         "rotation": 1
                       },
                       "cells": [
-                        [
-                          0,
-                          24
-                        ],
-                        [
-                          1,
-                          24
-                        ],
-                        [
-                          0,
-                          25
-                        ],
-                        [
-                          0,
-                          26
-                        ]
+                        [0, 24],
+                        [1, 24],
+                        [0, 25],
+                        [0, 26]
                       ],
-                      "witness": [
-                        "CW",
-                        "L",
-                        "L",
-                        "L",
-                        "L",
-                        "HD"
-                      ],
+                      "witness": ["CW", "L", "L", "L", "L", "HD"],
                       "access": "hypothetical-spawn-straight-drop",
-                      "resultProfile": [
-                        16,
-                        16,
-                        16,
-                        16
-                      ],
+                      "resultProfile": [16, 16, 16, 16],
                       "resultStatus": "level",
                       "patternSupport": null,
                       "preserveCells": [
-                        [
-                          0,
-                          24
-                        ],
-                        [
-                          1,
-                          24
-                        ],
-                        [
-                          0,
-                          25
-                        ],
-                        [
-                          0,
-                          26
-                        ]
+                        [0, 24],
+                        [1, 24],
+                        [0, 25],
+                        [0, 26]
                       ]
                     }
                   ],
@@ -1898,9 +1180,7 @@
                 },
                 {
                   "kind": "scoring-cycle",
-                  "alternatives": [
-                    "T"
-                  ],
+                  "alternatives": ["T"],
                   "completions": [],
                   "note": "Normal scoring-wall shape; actual T-spin entry and line completion require execution verification.",
                   "supply": [
@@ -2015,10 +1295,7 @@
           "y": 28,
           "rotation": 2
         },
-        "witness": [
-          "R180",
-          "HD"
-        ],
+        "witness": ["R180", "HD"],
         "hold": false,
         "holdCount": 0,
         "continuation": [
@@ -2031,10 +1308,7 @@
             },
             "hold": false,
             "holdCount": 0,
-            "witness": [
-              "R180",
-              "HD"
-            ],
+            "witness": ["R180", "HD"],
             "event": {
               "type": "L",
               "target": {
@@ -2044,22 +1318,10 @@
                 "rotation": 2
               },
               "cells": [
-                [
-                  3,
-                  30
-                ],
-                [
-                  4,
-                  30
-                ],
-                [
-                  5,
-                  30
-                ],
-                [
-                  3,
-                  31
-                ]
+                [3, 30],
+                [4, 30],
+                [5, 30],
+                [3, 31]
               ],
               "lines": 0,
               "clearedRows": [],
@@ -2075,10 +1337,7 @@
               "pairEvidence": null,
               "opportunityCost": 0,
               "leftSubstitutes": [],
-              "regions": [
-                "left",
-                "center"
-              ],
+              "regions": ["left", "center"],
               "crossRegion": true,
               "allocation": "unrecognized-role",
               "status": "requires-repair-evidence",
@@ -2094,19 +1353,7 @@
                   "status": "established",
                   "anchorRow": 36,
                   "protectedRows": [
-                    36,
-                    33,
-                    30,
-                    27,
-                    24,
-                    21,
-                    18,
-                    15,
-                    12,
-                    9,
-                    6,
-                    3,
-                    0
+                    36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3, 0
                   ],
                   "blockedRows": [],
                   "source": "translated-established-cycle"
@@ -2121,12 +1368,7 @@
                 "frontierDebt": 0,
                 "scoringRowDebt": 0,
                 "left": {
-                  "profile": [
-                    13,
-                    15,
-                    14,
-                    10
-                  ],
+                  "profile": [13, 15, 14, 10],
                   "flat": false,
                   "roughness": 7,
                   "covered": 0,
@@ -2142,55 +1384,21 @@
                         "rotation": 1
                       },
                       "cells": [
-                        [
-                          3,
-                          26
-                        ],
-                        [
-                          3,
-                          27
-                        ],
-                        [
-                          3,
-                          28
-                        ],
-                        [
-                          3,
-                          29
-                        ]
+                        [3, 26],
+                        [3, 27],
+                        [3, 28],
+                        [3, 29]
                       ],
-                      "witness": [
-                        "CW",
-                        "L",
-                        "L",
-                        "HD"
-                      ],
+                      "witness": ["CW", "L", "L", "HD"],
                       "access": "hypothetical-spawn-straight-drop",
-                      "resultProfile": [
-                        13,
-                        15,
-                        14,
-                        14
-                      ],
+                      "resultProfile": [13, 15, 14, 14],
                       "resultStatus": "partial-repair",
                       "patternSupport": null,
                       "preserveCells": [
-                        [
-                          3,
-                          26
-                        ],
-                        [
-                          3,
-                          27
-                        ],
-                        [
-                          3,
-                          28
-                        ],
-                        [
-                          3,
-                          29
-                        ]
+                        [3, 26],
+                        [3, 27],
+                        [3, 28],
+                        [3, 29]
                       ]
                     }
                   ]
@@ -2199,17 +1407,9 @@
                   "foundation": {
                     "status": "aligned",
                     "vacancies": [],
-                    "profile": [
-                      10,
-                      10,
-                      3
-                    ]
+                    "profile": [10, 10, 3]
                   },
-                  "profile": [
-                    10,
-                    10,
-                    3
-                  ],
+                  "profile": [10, 10, 3],
                   "status": "unrecognized",
                   "motif": "##./##./##.",
                   "patternSupport": "unrecognized",
@@ -2228,52 +1428,21 @@
                         "rotation": 0
                       },
                       "cells": [
-                        [
-                          5,
-                          28
-                        ],
-                        [
-                          6,
-                          28
-                        ],
-                        [
-                          4,
-                          29
-                        ],
-                        [
-                          5,
-                          29
-                        ]
+                        [5, 28],
+                        [6, 28],
+                        [4, 29],
+                        [5, 29]
                       ],
-                      "witness": [
-                        "R",
-                        "HD"
-                      ],
+                      "witness": ["R", "HD"],
                       "access": "hypothetical-spawn-straight-drop",
-                      "resultProfile": [
-                        11,
-                        12,
-                        12
-                      ],
+                      "resultProfile": [11, 12, 12],
                       "resultStatus": "SL-preparation-surface",
                       "patternSupport": "unrecognized",
                       "preserveCells": [
-                        [
-                          5,
-                          28
-                        ],
-                        [
-                          6,
-                          28
-                        ],
-                        [
-                          4,
-                          29
-                        ],
-                        [
-                          5,
-                          29
-                        ]
+                        [5, 28],
+                        [6, 28],
+                        [4, 29],
+                        [5, 29]
                       ]
                     },
                     {
@@ -2286,63 +1455,27 @@
                         "rotation": 2
                       },
                       "cells": [
-                        [
-                          4,
-                          28
-                        ],
-                        [
-                          5,
-                          28
-                        ],
-                        [
-                          6,
-                          28
-                        ],
-                        [
-                          4,
-                          29
-                        ]
+                        [4, 28],
+                        [5, 28],
+                        [6, 28],
+                        [4, 29]
                       ],
-                      "witness": [
-                        "R180",
-                        "R",
-                        "HD"
-                      ],
+                      "witness": ["R180", "R", "HD"],
                       "access": "hypothetical-spawn-straight-drop",
-                      "resultProfile": [
-                        12,
-                        12,
-                        12
-                      ],
+                      "resultProfile": [12, 12, 12],
                       "resultStatus": "level",
                       "patternSupport": "unrecognized",
                       "preserveCells": [
-                        [
-                          4,
-                          28
-                        ],
-                        [
-                          5,
-                          28
-                        ],
-                        [
-                          6,
-                          28
-                        ],
-                        [
-                          4,
-                          29
-                        ]
+                        [4, 28],
+                        [5, 28],
+                        [6, 28],
+                        [4, 29]
                       ]
                     }
                   ]
                 },
                 "right": {
-                  "profile": [
-                    0,
-                    3,
-                    4
-                  ],
+                  "profile": [0, 3, 4],
                   "shapeStatus": "staggered-scoring-wall",
                   "cycle": {
                     "shape": "staggered-scoring-wall",
@@ -2356,14 +1489,8 @@
                   "reservoir": {
                     "status": "clear-witness-required",
                     "cells": [
-                      [
-                        9,
-                        38
-                      ],
-                      [
-                        9,
-                        39
-                      ]
+                      [9, 38],
+                      [9, 39]
                     ],
                     "roofRow": 37,
                     "pattern": "canonical-Z-cap-reservoir"
@@ -2378,10 +1505,7 @@
                 "obligations": [
                   {
                     "kind": "center-partner",
-                    "alternatives": [
-                      "S",
-                      "L"
-                    ],
+                    "alternatives": ["S", "L"],
                     "completions": [
                       {
                         "piece": "S",
@@ -2393,52 +1517,21 @@
                           "rotation": 0
                         },
                         "cells": [
-                          [
-                            5,
-                            28
-                          ],
-                          [
-                            6,
-                            28
-                          ],
-                          [
-                            4,
-                            29
-                          ],
-                          [
-                            5,
-                            29
-                          ]
+                          [5, 28],
+                          [6, 28],
+                          [4, 29],
+                          [5, 29]
                         ],
-                        "witness": [
-                          "R",
-                          "HD"
-                        ],
+                        "witness": ["R", "HD"],
                         "access": "hypothetical-spawn-straight-drop",
-                        "resultProfile": [
-                          11,
-                          12,
-                          12
-                        ],
+                        "resultProfile": [11, 12, 12],
                         "resultStatus": "SL-preparation-surface",
                         "patternSupport": "unrecognized",
                         "preserveCells": [
-                          [
-                            5,
-                            28
-                          ],
-                          [
-                            6,
-                            28
-                          ],
-                          [
-                            4,
-                            29
-                          ],
-                          [
-                            5,
-                            29
-                          ]
+                          [5, 28],
+                          [6, 28],
+                          [4, 29],
+                          [5, 29]
                         ]
                       },
                       {
@@ -2451,53 +1544,21 @@
                           "rotation": 2
                         },
                         "cells": [
-                          [
-                            4,
-                            28
-                          ],
-                          [
-                            5,
-                            28
-                          ],
-                          [
-                            6,
-                            28
-                          ],
-                          [
-                            4,
-                            29
-                          ]
+                          [4, 28],
+                          [5, 28],
+                          [6, 28],
+                          [4, 29]
                         ],
-                        "witness": [
-                          "R180",
-                          "R",
-                          "HD"
-                        ],
+                        "witness": ["R180", "R", "HD"],
                         "access": "hypothetical-spawn-straight-drop",
-                        "resultProfile": [
-                          12,
-                          12,
-                          12
-                        ],
+                        "resultProfile": [12, 12, 12],
                         "resultStatus": "level",
                         "patternSupport": "unrecognized",
                         "preserveCells": [
-                          [
-                            4,
-                            28
-                          ],
-                          [
-                            5,
-                            28
-                          ],
-                          [
-                            6,
-                            28
-                          ],
-                          [
-                            4,
-                            29
-                          ]
+                          [4, 28],
+                          [5, 28],
+                          [6, 28],
+                          [4, 29]
                         ]
                       }
                     ],
@@ -2507,9 +1568,7 @@
                   },
                   {
                     "kind": "left-surface",
-                    "alternatives": [
-                      "I"
-                    ],
+                    "alternatives": ["I"],
                     "completions": [
                       {
                         "piece": "I",
@@ -2521,55 +1580,21 @@
                           "rotation": 1
                         },
                         "cells": [
-                          [
-                            3,
-                            26
-                          ],
-                          [
-                            3,
-                            27
-                          ],
-                          [
-                            3,
-                            28
-                          ],
-                          [
-                            3,
-                            29
-                          ]
+                          [3, 26],
+                          [3, 27],
+                          [3, 28],
+                          [3, 29]
                         ],
-                        "witness": [
-                          "CW",
-                          "L",
-                          "L",
-                          "HD"
-                        ],
+                        "witness": ["CW", "L", "L", "HD"],
                         "access": "hypothetical-spawn-straight-drop",
-                        "resultProfile": [
-                          13,
-                          15,
-                          14,
-                          14
-                        ],
+                        "resultProfile": [13, 15, 14, 14],
                         "resultStatus": "partial-repair",
                         "patternSupport": null,
                         "preserveCells": [
-                          [
-                            3,
-                            26
-                          ],
-                          [
-                            3,
-                            27
-                          ],
-                          [
-                            3,
-                            28
-                          ],
-                          [
-                            3,
-                            29
-                          ]
+                          [3, 26],
+                          [3, 27],
+                          [3, 28],
+                          [3, 29]
                         ]
                       }
                     ],
@@ -2586,9 +1611,7 @@
                   },
                   {
                     "kind": "scoring-cycle",
-                    "alternatives": [
-                      "T"
-                    ],
+                    "alternatives": ["T"],
                     "completions": [],
                     "note": "Normal scoring-wall shape; actual T-spin entry and line completion require execution verification.",
                     "supply": [
@@ -2718,11 +1741,7 @@
             },
             "hold": false,
             "holdCount": 0,
-            "witness": [
-              "L",
-              "CCW",
-              "HD"
-            ],
+            "witness": ["L", "CCW", "HD"],
             "event": {
               "type": "I",
               "target": {
@@ -2732,22 +1751,10 @@
                 "rotation": 3
               },
               "cells": [
-                [
-                  3,
-                  26
-                ],
-                [
-                  3,
-                  27
-                ],
-                [
-                  3,
-                  28
-                ],
-                [
-                  3,
-                  29
-                ]
+                [3, 26],
+                [3, 27],
+                [3, 28],
+                [3, 29]
               ],
               "lines": 0,
               "clearedRows": [],
@@ -2763,9 +1770,7 @@
               "pairEvidence": null,
               "opportunityCost": 0,
               "leftSubstitutes": [],
-              "regions": [
-                "left"
-              ],
+              "regions": ["left"],
               "crossRegion": false,
               "allocation": "left-filler",
               "status": "supported-local-role",
@@ -2781,19 +1786,7 @@
                   "status": "established",
                   "anchorRow": 36,
                   "protectedRows": [
-                    36,
-                    33,
-                    30,
-                    27,
-                    24,
-                    21,
-                    18,
-                    15,
-                    12,
-                    9,
-                    6,
-                    3,
-                    0
+                    36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3, 0
                   ],
                   "blockedRows": [],
                   "source": "translated-established-cycle"
@@ -2808,12 +1801,7 @@
                 "frontierDebt": 0,
                 "scoringRowDebt": 0,
                 "left": {
-                  "profile": [
-                    13,
-                    15,
-                    14,
-                    14
-                  ],
+                  "profile": [13, 15, 14, 14],
                   "flat": false,
                   "roughness": 3,
                   "covered": 0,
@@ -2824,17 +1812,9 @@
                   "foundation": {
                     "status": "aligned",
                     "vacancies": [],
-                    "profile": [
-                      10,
-                      10,
-                      3
-                    ]
+                    "profile": [10, 10, 3]
                   },
-                  "profile": [
-                    10,
-                    10,
-                    3
-                  ],
+                  "profile": [10, 10, 3],
                   "status": "unrecognized",
                   "motif": "##./##./##.",
                   "patternSupport": "unrecognized",
@@ -2853,52 +1833,21 @@
                         "rotation": 0
                       },
                       "cells": [
-                        [
-                          5,
-                          28
-                        ],
-                        [
-                          6,
-                          28
-                        ],
-                        [
-                          4,
-                          29
-                        ],
-                        [
-                          5,
-                          29
-                        ]
+                        [5, 28],
+                        [6, 28],
+                        [4, 29],
+                        [5, 29]
                       ],
-                      "witness": [
-                        "R",
-                        "HD"
-                      ],
+                      "witness": ["R", "HD"],
                       "access": "hypothetical-spawn-straight-drop",
-                      "resultProfile": [
-                        11,
-                        12,
-                        12
-                      ],
+                      "resultProfile": [11, 12, 12],
                       "resultStatus": "SL-preparation-surface",
                       "patternSupport": "unrecognized",
                       "preserveCells": [
-                        [
-                          5,
-                          28
-                        ],
-                        [
-                          6,
-                          28
-                        ],
-                        [
-                          4,
-                          29
-                        ],
-                        [
-                          5,
-                          29
-                        ]
+                        [5, 28],
+                        [6, 28],
+                        [4, 29],
+                        [5, 29]
                       ]
                     },
                     {
@@ -2911,63 +1860,27 @@
                         "rotation": 2
                       },
                       "cells": [
-                        [
-                          4,
-                          28
-                        ],
-                        [
-                          5,
-                          28
-                        ],
-                        [
-                          6,
-                          28
-                        ],
-                        [
-                          4,
-                          29
-                        ]
+                        [4, 28],
+                        [5, 28],
+                        [6, 28],
+                        [4, 29]
                       ],
-                      "witness": [
-                        "R180",
-                        "R",
-                        "HD"
-                      ],
+                      "witness": ["R180", "R", "HD"],
                       "access": "hypothetical-spawn-straight-drop",
-                      "resultProfile": [
-                        12,
-                        12,
-                        12
-                      ],
+                      "resultProfile": [12, 12, 12],
                       "resultStatus": "level",
                       "patternSupport": "unrecognized",
                       "preserveCells": [
-                        [
-                          4,
-                          28
-                        ],
-                        [
-                          5,
-                          28
-                        ],
-                        [
-                          6,
-                          28
-                        ],
-                        [
-                          4,
-                          29
-                        ]
+                        [4, 28],
+                        [5, 28],
+                        [6, 28],
+                        [4, 29]
                       ]
                     }
                   ]
                 },
                 "right": {
-                  "profile": [
-                    0,
-                    3,
-                    4
-                  ],
+                  "profile": [0, 3, 4],
                   "shapeStatus": "staggered-scoring-wall",
                   "cycle": {
                     "shape": "staggered-scoring-wall",
@@ -2981,14 +1894,8 @@
                   "reservoir": {
                     "status": "clear-witness-required",
                     "cells": [
-                      [
-                        9,
-                        38
-                      ],
-                      [
-                        9,
-                        39
-                      ]
+                      [9, 38],
+                      [9, 39]
                     ],
                     "roofRow": 37,
                     "pattern": "canonical-Z-cap-reservoir"
@@ -3003,10 +1910,7 @@
                 "obligations": [
                   {
                     "kind": "center-partner",
-                    "alternatives": [
-                      "S",
-                      "L"
-                    ],
+                    "alternatives": ["S", "L"],
                     "completions": [
                       {
                         "piece": "S",
@@ -3018,52 +1922,21 @@
                           "rotation": 0
                         },
                         "cells": [
-                          [
-                            5,
-                            28
-                          ],
-                          [
-                            6,
-                            28
-                          ],
-                          [
-                            4,
-                            29
-                          ],
-                          [
-                            5,
-                            29
-                          ]
+                          [5, 28],
+                          [6, 28],
+                          [4, 29],
+                          [5, 29]
                         ],
-                        "witness": [
-                          "R",
-                          "HD"
-                        ],
+                        "witness": ["R", "HD"],
                         "access": "hypothetical-spawn-straight-drop",
-                        "resultProfile": [
-                          11,
-                          12,
-                          12
-                        ],
+                        "resultProfile": [11, 12, 12],
                         "resultStatus": "SL-preparation-surface",
                         "patternSupport": "unrecognized",
                         "preserveCells": [
-                          [
-                            5,
-                            28
-                          ],
-                          [
-                            6,
-                            28
-                          ],
-                          [
-                            4,
-                            29
-                          ],
-                          [
-                            5,
-                            29
-                          ]
+                          [5, 28],
+                          [6, 28],
+                          [4, 29],
+                          [5, 29]
                         ]
                       },
                       {
@@ -3076,53 +1949,21 @@
                           "rotation": 2
                         },
                         "cells": [
-                          [
-                            4,
-                            28
-                          ],
-                          [
-                            5,
-                            28
-                          ],
-                          [
-                            6,
-                            28
-                          ],
-                          [
-                            4,
-                            29
-                          ]
+                          [4, 28],
+                          [5, 28],
+                          [6, 28],
+                          [4, 29]
                         ],
-                        "witness": [
-                          "R180",
-                          "R",
-                          "HD"
-                        ],
+                        "witness": ["R180", "R", "HD"],
                         "access": "hypothetical-spawn-straight-drop",
-                        "resultProfile": [
-                          12,
-                          12,
-                          12
-                        ],
+                        "resultProfile": [12, 12, 12],
                         "resultStatus": "level",
                         "patternSupport": "unrecognized",
                         "preserveCells": [
-                          [
-                            4,
-                            28
-                          ],
-                          [
-                            5,
-                            28
-                          ],
-                          [
-                            6,
-                            28
-                          ],
-                          [
-                            4,
-                            29
-                          ]
+                          [4, 28],
+                          [5, 28],
+                          [6, 28],
+                          [4, 29]
                         ]
                       }
                     ],
@@ -3132,9 +1973,7 @@
                   },
                   {
                     "kind": "scoring-cycle",
-                    "alternatives": [
-                      "T"
-                    ],
+                    "alternatives": ["T"],
                     "completions": [],
                     "note": "Normal scoring-wall shape; actual T-spin entry and line completion require execution verification.",
                     "supply": [
@@ -3250,11 +2089,7 @@
             },
             "hold": false,
             "holdCount": 0,
-            "witness": [
-              "L",
-              "L",
-              "HD"
-            ],
+            "witness": ["L", "L", "HD"],
             "event": {
               "type": "O",
               "target": {
@@ -3264,22 +2099,10 @@
                 "rotation": 0
               },
               "cells": [
-                [
-                  2,
-                  24
-                ],
-                [
-                  3,
-                  24
-                ],
-                [
-                  2,
-                  25
-                ],
-                [
-                  3,
-                  25
-                ]
+                [2, 24],
+                [3, 24],
+                [2, 25],
+                [3, 25]
               ],
               "lines": 0,
               "clearedRows": [],
@@ -3295,9 +2118,7 @@
               "pairEvidence": null,
               "opportunityCost": 0,
               "leftSubstitutes": [],
-              "regions": [
-                "left"
-              ],
+              "regions": ["left"],
               "crossRegion": false,
               "allocation": "left-filler",
               "status": "supported-local-role",
@@ -3313,19 +2134,7 @@
                   "status": "established",
                   "anchorRow": 36,
                   "protectedRows": [
-                    36,
-                    33,
-                    30,
-                    27,
-                    24,
-                    21,
-                    18,
-                    15,
-                    12,
-                    9,
-                    6,
-                    3,
-                    0
+                    36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3, 0
                   ],
                   "blockedRows": [],
                   "source": "translated-established-cycle"
@@ -3340,12 +2149,7 @@
                 "frontierDebt": 0,
                 "scoringRowDebt": 0,
                 "left": {
-                  "profile": [
-                    13,
-                    15,
-                    16,
-                    16
-                  ],
+                  "profile": [13, 15, 16, 16],
                   "flat": false,
                   "roughness": 3,
                   "covered": 0,
@@ -3361,57 +2165,21 @@
                         "rotation": 1
                       },
                       "cells": [
-                        [
-                          0,
-                          24
-                        ],
-                        [
-                          1,
-                          24
-                        ],
-                        [
-                          0,
-                          25
-                        ],
-                        [
-                          0,
-                          26
-                        ]
+                        [0, 24],
+                        [1, 24],
+                        [0, 25],
+                        [0, 26]
                       ],
-                      "witness": [
-                        "CW",
-                        "L",
-                        "L",
-                        "L",
-                        "L",
-                        "HD"
-                      ],
+                      "witness": ["CW", "L", "L", "L", "L", "HD"],
                       "access": "hypothetical-spawn-straight-drop",
-                      "resultProfile": [
-                        16,
-                        16,
-                        16,
-                        16
-                      ],
+                      "resultProfile": [16, 16, 16, 16],
                       "resultStatus": "level",
                       "patternSupport": null,
                       "preserveCells": [
-                        [
-                          0,
-                          24
-                        ],
-                        [
-                          1,
-                          24
-                        ],
-                        [
-                          0,
-                          25
-                        ],
-                        [
-                          0,
-                          26
-                        ]
+                        [0, 24],
+                        [1, 24],
+                        [0, 25],
+                        [0, 26]
                       ]
                     }
                   ]
@@ -3420,17 +2188,9 @@
                   "foundation": {
                     "status": "aligned",
                     "vacancies": [],
-                    "profile": [
-                      10,
-                      10,
-                      3
-                    ]
+                    "profile": [10, 10, 3]
                   },
-                  "profile": [
-                    10,
-                    10,
-                    3
-                  ],
+                  "profile": [10, 10, 3],
                   "status": "unrecognized",
                   "motif": "##./##./##.",
                   "patternSupport": "unrecognized",
@@ -3449,52 +2209,21 @@
                         "rotation": 0
                       },
                       "cells": [
-                        [
-                          5,
-                          28
-                        ],
-                        [
-                          6,
-                          28
-                        ],
-                        [
-                          4,
-                          29
-                        ],
-                        [
-                          5,
-                          29
-                        ]
+                        [5, 28],
+                        [6, 28],
+                        [4, 29],
+                        [5, 29]
                       ],
-                      "witness": [
-                        "R",
-                        "HD"
-                      ],
+                      "witness": ["R", "HD"],
                       "access": "hypothetical-spawn-straight-drop",
-                      "resultProfile": [
-                        11,
-                        12,
-                        12
-                      ],
+                      "resultProfile": [11, 12, 12],
                       "resultStatus": "SL-preparation-surface",
                       "patternSupport": "unrecognized",
                       "preserveCells": [
-                        [
-                          5,
-                          28
-                        ],
-                        [
-                          6,
-                          28
-                        ],
-                        [
-                          4,
-                          29
-                        ],
-                        [
-                          5,
-                          29
-                        ]
+                        [5, 28],
+                        [6, 28],
+                        [4, 29],
+                        [5, 29]
                       ]
                     },
                     {
@@ -3507,63 +2236,27 @@
                         "rotation": 2
                       },
                       "cells": [
-                        [
-                          4,
-                          28
-                        ],
-                        [
-                          5,
-                          28
-                        ],
-                        [
-                          6,
-                          28
-                        ],
-                        [
-                          4,
-                          29
-                        ]
+                        [4, 28],
+                        [5, 28],
+                        [6, 28],
+                        [4, 29]
                       ],
-                      "witness": [
-                        "R180",
-                        "R",
-                        "HD"
-                      ],
+                      "witness": ["R180", "R", "HD"],
                       "access": "hypothetical-spawn-straight-drop",
-                      "resultProfile": [
-                        12,
-                        12,
-                        12
-                      ],
+                      "resultProfile": [12, 12, 12],
                       "resultStatus": "level",
                       "patternSupport": "unrecognized",
                       "preserveCells": [
-                        [
-                          4,
-                          28
-                        ],
-                        [
-                          5,
-                          28
-                        ],
-                        [
-                          6,
-                          28
-                        ],
-                        [
-                          4,
-                          29
-                        ]
+                        [4, 28],
+                        [5, 28],
+                        [6, 28],
+                        [4, 29]
                       ]
                     }
                   ]
                 },
                 "right": {
-                  "profile": [
-                    0,
-                    3,
-                    4
-                  ],
+                  "profile": [0, 3, 4],
                   "shapeStatus": "staggered-scoring-wall",
                   "cycle": {
                     "shape": "staggered-scoring-wall",
@@ -3577,14 +2270,8 @@
                   "reservoir": {
                     "status": "clear-witness-required",
                     "cells": [
-                      [
-                        9,
-                        38
-                      ],
-                      [
-                        9,
-                        39
-                      ]
+                      [9, 38],
+                      [9, 39]
                     ],
                     "roofRow": 37,
                     "pattern": "canonical-Z-cap-reservoir"
@@ -3599,10 +2286,7 @@
                 "obligations": [
                   {
                     "kind": "center-partner",
-                    "alternatives": [
-                      "S",
-                      "L"
-                    ],
+                    "alternatives": ["S", "L"],
                     "completions": [
                       {
                         "piece": "S",
@@ -3614,52 +2298,21 @@
                           "rotation": 0
                         },
                         "cells": [
-                          [
-                            5,
-                            28
-                          ],
-                          [
-                            6,
-                            28
-                          ],
-                          [
-                            4,
-                            29
-                          ],
-                          [
-                            5,
-                            29
-                          ]
+                          [5, 28],
+                          [6, 28],
+                          [4, 29],
+                          [5, 29]
                         ],
-                        "witness": [
-                          "R",
-                          "HD"
-                        ],
+                        "witness": ["R", "HD"],
                         "access": "hypothetical-spawn-straight-drop",
-                        "resultProfile": [
-                          11,
-                          12,
-                          12
-                        ],
+                        "resultProfile": [11, 12, 12],
                         "resultStatus": "SL-preparation-surface",
                         "patternSupport": "unrecognized",
                         "preserveCells": [
-                          [
-                            5,
-                            28
-                          ],
-                          [
-                            6,
-                            28
-                          ],
-                          [
-                            4,
-                            29
-                          ],
-                          [
-                            5,
-                            29
-                          ]
+                          [5, 28],
+                          [6, 28],
+                          [4, 29],
+                          [5, 29]
                         ]
                       },
                       {
@@ -3672,53 +2325,21 @@
                           "rotation": 2
                         },
                         "cells": [
-                          [
-                            4,
-                            28
-                          ],
-                          [
-                            5,
-                            28
-                          ],
-                          [
-                            6,
-                            28
-                          ],
-                          [
-                            4,
-                            29
-                          ]
+                          [4, 28],
+                          [5, 28],
+                          [6, 28],
+                          [4, 29]
                         ],
-                        "witness": [
-                          "R180",
-                          "R",
-                          "HD"
-                        ],
+                        "witness": ["R180", "R", "HD"],
                         "access": "hypothetical-spawn-straight-drop",
-                        "resultProfile": [
-                          12,
-                          12,
-                          12
-                        ],
+                        "resultProfile": [12, 12, 12],
                         "resultStatus": "level",
                         "patternSupport": "unrecognized",
                         "preserveCells": [
-                          [
-                            4,
-                            28
-                          ],
-                          [
-                            5,
-                            28
-                          ],
-                          [
-                            6,
-                            28
-                          ],
-                          [
-                            4,
-                            29
-                          ]
+                          [4, 28],
+                          [5, 28],
+                          [6, 28],
+                          [4, 29]
                         ]
                       }
                     ],
@@ -3728,9 +2349,7 @@
                   },
                   {
                     "kind": "left-surface",
-                    "alternatives": [
-                      "J"
-                    ],
+                    "alternatives": ["J"],
                     "completions": [
                       {
                         "piece": "J",
@@ -3742,57 +2361,21 @@
                           "rotation": 1
                         },
                         "cells": [
-                          [
-                            0,
-                            24
-                          ],
-                          [
-                            1,
-                            24
-                          ],
-                          [
-                            0,
-                            25
-                          ],
-                          [
-                            0,
-                            26
-                          ]
+                          [0, 24],
+                          [1, 24],
+                          [0, 25],
+                          [0, 26]
                         ],
-                        "witness": [
-                          "CW",
-                          "L",
-                          "L",
-                          "L",
-                          "L",
-                          "HD"
-                        ],
+                        "witness": ["CW", "L", "L", "L", "L", "HD"],
                         "access": "hypothetical-spawn-straight-drop",
-                        "resultProfile": [
-                          16,
-                          16,
-                          16,
-                          16
-                        ],
+                        "resultProfile": [16, 16, 16, 16],
                         "resultStatus": "level",
                         "patternSupport": null,
                         "preserveCells": [
-                          [
-                            0,
-                            24
-                          ],
-                          [
-                            1,
-                            24
-                          ],
-                          [
-                            0,
-                            25
-                          ],
-                          [
-                            0,
-                            26
-                          ]
+                          [0, 24],
+                          [1, 24],
+                          [0, 25],
+                          [0, 26]
                         ]
                       }
                     ],
@@ -3809,9 +2392,7 @@
                   },
                   {
                     "kind": "scoring-cycle",
-                    "alternatives": [
-                      "T"
-                    ],
+                    "alternatives": ["T"],
                     "completions": [],
                     "note": "Normal scoring-wall shape; actual T-spin entry and line completion require execution verification.",
                     "supply": [
@@ -3994,9 +2575,7 @@
             "seenMask": 64
           },
           "knowledge": {
-            "remaining": [
-              63
-            ],
+            "remaining": [63],
             "observedCount": 92,
             "provenance": "known-phase"
           }
@@ -4034,15 +2613,8 @@
               }
             ],
             "uncertainty": {
-              "S": [
-                0,
-                0,
-                0,
-                0
-              ],
-              "L": [
-                0
-              ]
+              "S": [0, 0, 0, 0],
+              "L": [0]
             }
           },
           "account": {
@@ -4142,30 +2714,17 @@
         },
         "hold": "L",
         "canHold": true,
-        "queue": [
-          "Z",
-          "T",
-          "O",
-          "S",
-          "J",
-          "I"
-        ],
+        "queue": ["Z", "T", "O", "S", "J", "I"],
         "revision": 412,
         "streamCursor": 41,
         "topOut": false,
         "bag": {
-          "remaining": [
-            68
-          ],
+          "remaining": [68],
           "observedCount": 47,
           "provenance": "known-phase"
         }
       },
-      "witness": [
-        "HOLD",
-        "R180",
-        "HD"
-      ],
+      "witness": ["HOLD", "R180", "HD"],
       "event": {
         "type": "L",
         "target": {
@@ -4175,22 +2734,10 @@
           "rotation": 2
         },
         "cells": [
-          [
-            3,
-            22
-          ],
-          [
-            4,
-            22
-          ],
-          [
-            5,
-            22
-          ],
-          [
-            3,
-            23
-          ]
+          [3, 22],
+          [4, 22],
+          [5, 22],
+          [3, 23]
         ],
         "lines": 0,
         "clearedRows": [],
@@ -4199,11 +2746,7 @@
       },
       "continuation": [
         {
-          "witness": [
-            "HOLD",
-            "R180",
-            "HD"
-          ],
+          "witness": ["HOLD", "R180", "HD"],
           "event": {
             "type": "L",
             "target": {
@@ -4213,22 +2756,10 @@
               "rotation": 2
             },
             "cells": [
-              [
-                3,
-                22
-              ],
-              [
-                4,
-                22
-              ],
-              [
-                5,
-                22
-              ],
-              [
-                3,
-                23
-              ]
+              [3, 22],
+              [4, 22],
+              [5, 22],
+              [3, 23]
             ],
             "lines": 0,
             "clearedRows": [],
@@ -4250,10 +2781,7 @@
             "pairEvidence": null,
             "opportunityCost": 0,
             "leftSubstitutes": [],
-            "regions": [
-              "left",
-              "center"
-            ],
+            "regions": ["left", "center"],
             "crossRegion": true,
             "allocation": "unrecognized-role",
             "status": "requires-repair-evidence",
@@ -4265,14 +2793,7 @@
           }
         },
         {
-          "witness": [
-            "R",
-            "R",
-            "R",
-            "R",
-            "CW",
-            "HD"
-          ],
+          "witness": ["R", "R", "R", "R", "CW", "HD"],
           "event": {
             "type": "Z",
             "target": {
@@ -4282,22 +2803,10 @@
               "rotation": 1
             },
             "cells": [
-              [
-                9,
-                34
-              ],
-              [
-                8,
-                35
-              ],
-              [
-                9,
-                35
-              ],
-              [
-                8,
-                36
-              ]
+              [9, 34],
+              [8, 35],
+              [9, 35],
+              [8, 36]
             ],
             "lines": 0,
             "clearedRows": [],
@@ -4319,9 +2828,7 @@
             "pairEvidence": null,
             "opportunityCost": 0,
             "leftSubstitutes": [],
-            "regions": [
-              "right"
-            ],
+            "regions": ["right"],
             "crossRegion": false,
             "allocation": "right-cap-preparation",
             "status": "supported-local-role",
@@ -4354,22 +2861,10 @@
               "rotation": 1
             },
             "cells": [
-              [
-                2,
-                23
-              ],
-              [
-                2,
-                24
-              ],
-              [
-                3,
-                24
-              ],
-              [
-                2,
-                25
-              ]
+              [2, 23],
+              [2, 24],
+              [3, 24],
+              [2, 25]
             ],
             "lines": 0,
             "clearedRows": [],
@@ -4385,17 +2880,13 @@
           "hold": false,
           "structuralEvidence": {
             "reason": "Diverts a T from the scoring role; another T may remain, but its timely use is not established.",
-            "cycleViolations": [
-              "spent-scoring-T-without-double"
-            ],
+            "cycleViolations": ["spent-scoring-T-without-double"],
             "pairFamily": null,
             "pairProgress": null,
             "pairEvidence": null,
             "opportunityCost": 0,
             "leftSubstitutes": [],
-            "regions": [
-              "left"
-            ],
+            "regions": ["left"],
             "crossRegion": false,
             "allocation": "scoring-T-diversion",
             "status": "requires-repair-evidence",
@@ -4414,18 +2905,10 @@
           "y": 20,
           "rotation": 2
         },
-        "witness": [
-          "HOLD",
-          "R180",
-          "HD"
-        ],
+        "witness": ["HOLD", "R180", "HD"],
         "continuation": [
           {
-            "witness": [
-              "HOLD",
-              "R180",
-              "HD"
-            ],
+            "witness": ["HOLD", "R180", "HD"],
             "event": {
               "type": "L",
               "target": {
@@ -4435,22 +2918,10 @@
                 "rotation": 2
               },
               "cells": [
-                [
-                  3,
-                  22
-                ],
-                [
-                  4,
-                  22
-                ],
-                [
-                  5,
-                  22
-                ],
-                [
-                  3,
-                  23
-                ]
+                [3, 22],
+                [4, 22],
+                [5, 22],
+                [3, 23]
               ],
               "lines": 0,
               "clearedRows": [],
@@ -4472,10 +2943,7 @@
               "pairEvidence": null,
               "opportunityCost": 0,
               "leftSubstitutes": [],
-              "regions": [
-                "left",
-                "center"
-              ],
+              "regions": ["left", "center"],
               "crossRegion": true,
               "allocation": "unrecognized-role",
               "status": "requires-repair-evidence",
@@ -4487,14 +2955,7 @@
             }
           },
           {
-            "witness": [
-              "R",
-              "R",
-              "R",
-              "R",
-              "CW",
-              "HD"
-            ],
+            "witness": ["R", "R", "R", "R", "CW", "HD"],
             "event": {
               "type": "Z",
               "target": {
@@ -4504,22 +2965,10 @@
                 "rotation": 1
               },
               "cells": [
-                [
-                  9,
-                  34
-                ],
-                [
-                  8,
-                  35
-                ],
-                [
-                  9,
-                  35
-                ],
-                [
-                  8,
-                  36
-                ]
+                [9, 34],
+                [8, 35],
+                [9, 35],
+                [8, 36]
               ],
               "lines": 0,
               "clearedRows": [],
@@ -4541,9 +2990,7 @@
               "pairEvidence": null,
               "opportunityCost": 0,
               "leftSubstitutes": [],
-              "regions": [
-                "right"
-              ],
+              "regions": ["right"],
               "crossRegion": false,
               "allocation": "right-cap-preparation",
               "status": "supported-local-role",
@@ -4576,22 +3023,10 @@
                 "rotation": 1
               },
               "cells": [
-                [
-                  2,
-                  23
-                ],
-                [
-                  2,
-                  24
-                ],
-                [
-                  3,
-                  24
-                ],
-                [
-                  2,
-                  25
-                ]
+                [2, 23],
+                [2, 24],
+                [3, 24],
+                [2, 25]
               ],
               "lines": 0,
               "clearedRows": [],
@@ -4607,17 +3042,13 @@
             "hold": false,
             "structuralEvidence": {
               "reason": "Diverts a T from the scoring role; another T may remain, but its timely use is not established.",
-              "cycleViolations": [
-                "spent-scoring-T-without-double"
-              ],
+              "cycleViolations": ["spent-scoring-T-without-double"],
               "pairFamily": null,
               "pairProgress": null,
               "pairEvidence": null,
               "opportunityCost": 0,
               "leftSubstitutes": [],
-              "regions": [
-                "left"
-              ],
+              "regions": ["left"],
               "crossRegion": false,
               "allocation": "scoring-T-diversion",
               "status": "requires-repair-evidence",
@@ -4641,22 +3072,12 @@
                 "status": "movement-access-witnessed",
                 "complete": true,
                 "reachable": true,
-                "cells": [
-                  [
-                    3,
-                    24
-                  ]
-                ],
+                "cells": [[3, 24]],
                 "unreachable": [],
                 "witnesses": [
                   {
                     "piece": "I",
-                    "cells": [
-                      [
-                        3,
-                        24
-                      ]
-                    ],
+                    "cells": [[3, 24]],
                     "witness": [
                       "L",
                       "SD",
@@ -4761,9 +3182,7 @@
             "seenMask": 59
           },
           "knowledge": {
-            "remaining": [
-              68
-            ],
+            "remaining": [68],
             "observedCount": 47,
             "provenance": "known-phase"
           }
@@ -4801,15 +3220,8 @@
               }
             ],
             "uncertainty": {
-              "S": [
-                0,
-                0,
-                0,
-                0
-              ],
-              "L": [
-                0
-              ]
+              "S": [0, 0, 0, 0],
+              "L": [0]
             }
           },
           "account": {

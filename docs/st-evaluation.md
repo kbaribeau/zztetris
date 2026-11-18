@@ -18,48 +18,48 @@ The strict cycle metric means nonclear → later full TSD → subsequent nonclea
 
 All 23 supported cases yield executable advice; the left-side diagnostic correctly declines outside the right-side profile. That is legality coverage, not an optimality rate. Multiple valid answers are accepted; no expected-target equality is used.
 
-| Case | Split | Executable | First spin/lines | Checked TSD lock | ms |
-| --- | --- | --- | --- | --- | --- |
-| o-filler | dev | yes | none/0 | none | 705 |
-| center-j | dev | yes | full/2 | 1 | 516 |
-| empty-hold | dev | yes | full/2 | 1 | 568 |
-| left-l | dev | yes | full/2 | 1 | 629 |
-| held-t-double | dev | yes | full/2 | 1 | 573 |
-| cap-rebuild | dev | yes | none/0 | none | 593 |
-| o-before-double | dev | yes | none/0 | 2 | 565 |
-| direct-double | dev | yes | none/0 | 2 | 536 |
-| s-after-double | dev | yes | none/0 | none | 594 |
-| i-via-hold | dev | yes | none/0 | none | 653 |
-| higher-cap | held-out | yes | none/0 | 3 | 595 |
-| higher-double | held-out | yes | none/1 | 2 | 549 |
-| offset-double | held-out | yes | full/2 | 1 | 494 |
-| o-rebuild | held-out | yes | none/0 | none | 448 |
-| after-quad | held-out | yes | none/0 | none | 609 |
-| late-held-double | held-out | yes | none/1 | 2 | 533 |
-| unknown-bag-double | held-out | yes | full/2 | 1 | 531 |
-| actual-pose-double | held-out | yes | none/0 | 2 | 547 |
-| marathon-preparation | held-out | yes | none/1 | 2 | 707 |
-| marathon-double | held-out | yes | full/2 | 1 | 569 |
-| marathon-rebuild | held-out | yes | none/1 | none | 548 |
-| marathon-later-double | held-out | yes | full/2 | 1 | 523 |
-| left-side-diagnostic | diagnostic | unsupported-position | –/– | none | 0 |
-| deviated-o-recovery | dev | yes | none/0 | none | 561 |
+| Case                  | Split      | Executable           | First spin/lines | Checked TSD lock | ms  |
+| --------------------- | ---------- | -------------------- | ---------------- | ---------------- | --- |
+| o-filler              | dev        | yes                  | none/0           | none             | 705 |
+| center-j              | dev        | yes                  | full/2           | 1                | 516 |
+| empty-hold            | dev        | yes                  | full/2           | 1                | 568 |
+| left-l                | dev        | yes                  | full/2           | 1                | 629 |
+| held-t-double         | dev        | yes                  | full/2           | 1                | 573 |
+| cap-rebuild           | dev        | yes                  | none/0           | none             | 593 |
+| o-before-double       | dev        | yes                  | none/0           | 2                | 565 |
+| direct-double         | dev        | yes                  | none/0           | 2                | 536 |
+| s-after-double        | dev        | yes                  | none/0           | none             | 594 |
+| i-via-hold            | dev        | yes                  | none/0           | none             | 653 |
+| higher-cap            | held-out   | yes                  | none/0           | 3                | 595 |
+| higher-double         | held-out   | yes                  | none/1           | 2                | 549 |
+| offset-double         | held-out   | yes                  | full/2           | 1                | 494 |
+| o-rebuild             | held-out   | yes                  | none/0           | none             | 448 |
+| after-quad            | held-out   | yes                  | none/0           | none             | 609 |
+| late-held-double      | held-out   | yes                  | none/1           | 2                | 533 |
+| unknown-bag-double    | held-out   | yes                  | full/2           | 1                | 531 |
+| actual-pose-double    | held-out   | yes                  | none/0           | 2                | 547 |
+| marathon-preparation  | held-out   | yes                  | none/1           | 2                | 707 |
+| marathon-double       | held-out   | yes                  | full/2           | 1                | 569 |
+| marathon-rebuild      | held-out   | yes                  | none/1           | none             | 548 |
+| marathon-later-double | held-out   | yes                  | full/2           | 1                | 523 |
+| left-side-diagnostic  | diagnostic | unsupported-position | –/–              | none             | 0   |
+| deviated-o-recovery   | dev        | yes                  | none/0           | none             | 561 |
 
 Sequential one-shot timing across all 24 cases: median 565 ms, p95 705 ms, maximum 707 ms, including the near-zero diagnostic. These are measured cloud results, not browser latency guarantees.
 
 ## Twelve-lock closed loops
 
-| Start | Policy | Locks | TSDs | Ordered cycle | Stop |
-| --- | --- | --- | --- | --- | --- |
-| o-before-double | planner | 12 | 2 | yes | lock-limit |
-| o-before-double | hard-drop baseline | 5 | 0 | no | top-out |
-| o-filler | planner | 12 | 1 | yes | lock-limit |
-| o-filler | hard-drop baseline | 8 | 0 | no | top-out |
-| marathon-preparation | planner | 12 | 1 | no | lock-limit |
-| marathon-preparation | hard-drop baseline | 7 | 0 | no | top-out |
-| marathon-rebuild | planner | 12 | 1 | no | lock-limit |
-| marathon-rebuild | hard-drop baseline | 8 | 0 | no | top-out |
-| higher-cap | planner | 12 | 2 | yes | lock-limit |
+| Start                | Policy             | Locks | TSDs | Ordered cycle | Stop       |
+| -------------------- | ------------------ | ----- | ---- | ------------- | ---------- |
+| o-before-double      | planner            | 12    | 2    | yes           | lock-limit |
+| o-before-double      | hard-drop baseline | 5     | 0    | no            | top-out    |
+| o-filler             | planner            | 12    | 1    | yes           | lock-limit |
+| o-filler             | hard-drop baseline | 8     | 0    | no            | top-out    |
+| marathon-preparation | planner            | 12    | 1    | no            | lock-limit |
+| marathon-preparation | hard-drop baseline | 7     | 0    | no            | top-out    |
+| marathon-rebuild     | planner            | 12    | 1    | no            | lock-limit |
+| marathon-rebuild     | hard-drop baseline | 8     | 0    | no            | top-out    |
+| higher-cap           | planner            | 12    | 2    | yes           | lock-limit |
 
 Every tested planner start now scores at least one TSD by lock 12; three of five complete the strict ordered cycle by then. The independent Marathon starts complete that cycle later in the extended runs. These starts are a small, adaptively investigated sample, not an unbiased general success-rate estimate. Hard-drop-only is intentionally weak and not a competitive strategy baseline.
 
@@ -73,6 +73,7 @@ With the then-shipped 750 ms deadline, the demo completed 12 locks, 2 TSDs and t
 ## Diagnostic ablations
 
 Three-lock default-demo comparisons, same deterministic depth/width/node budget:
+
 - No-hold: disables hold branches: 1 TSD; ordered cycle complete; O:0/none, T:2/full, S:0/none.
 - Bag-unaware: removes bag evidence from every observation: 1 TSD; ordered cycle not yet complete; O:0/none, I:0/none, T:2/full.
 
@@ -98,31 +99,31 @@ Browser visual playtesting, learner comprehension and actual human learning outc
 
 ## Search and execution diagnostics
 
-| Case | Verified locks | Complete depth | Roots / expanded roots | Access nodes | Total nodes | Budget exhausted |
-| --- | --- | --- | --- | --- | --- | --- |
-| o-filler | 3 | 3 | 73 / 8 | 9353 | 26822 | no |
-| center-j | 3 | 3 | 83 / 8 | 7931 | 23114 | no |
-| empty-hold | 3 | 3 | 84 / 8 | 11729 | 26068 | no |
-| left-l | 3 | 3 | 87 / 8 | 21268 | 36270 | no |
-| held-t-double | 3 | 3 | 87 / 8 | 12858 | 26768 | no |
-| cap-rebuild | 3 | 3 | 80 / 8 | 24890 | 38832 | no |
-| o-before-double | 3 | 3 | 74 / 8 | 6397 | 23207 | no |
-| direct-double | 3 | 3 | 83 / 8 | 13518 | 28276 | no |
-| s-after-double | 3 | 3 | 76 / 8 | 24195 | 38245 | no |
-| i-via-hold | 2 | 2 | 80 / 8 | 30441 | 45000 | yes |
-| higher-cap | 3 | 3 | 85 / 8 | 15471 | 28597 | no |
-| higher-double | 3 | 3 | 82 / 8 | 16070 | 29216 | no |
-| offset-double | 3 | 3 | 83 / 8 | 3940 | 17434 | no |
-| o-rebuild | 3 | 3 | 74 / 8 | 1626 | 14506 | no |
-| after-quad | 3 | 3 | 76 / 8 | 19879 | 35955 | no |
-| late-held-double | 3 | 3 | 83 / 8 | 12648 | 26648 | no |
-| unknown-bag-double | 3 | 3 | 87 / 8 | 12858 | 26768 | no |
-| actual-pose-double | 3 | 3 | 83 / 8 | 13518 | 28276 | no |
-| marathon-preparation | 3 | 3 | 76 / 8 | 8435 | 27550 | no |
-| marathon-double | 3 | 3 | 82 / 8 | 9759 | 25696 | no |
-| marathon-rebuild | 3 | 3 | 76 / 8 | 9075 | 24802 | no |
-| marathon-later-double | 3 | 3 | 87 / 8 | 12787 | 23989 | no |
-| deviated-o-recovery | 3 | 3 | 73 / 8 | 9247 | 25750 | no |
+| Case                  | Verified locks | Complete depth | Roots / expanded roots | Access nodes | Total nodes | Budget exhausted |
+| --------------------- | -------------- | -------------- | ---------------------- | ------------ | ----------- | ---------------- |
+| o-filler              | 3              | 3              | 73 / 8                 | 9353         | 26822       | no               |
+| center-j              | 3              | 3              | 83 / 8                 | 7931         | 23114       | no               |
+| empty-hold            | 3              | 3              | 84 / 8                 | 11729        | 26068       | no               |
+| left-l                | 3              | 3              | 87 / 8                 | 21268        | 36270       | no               |
+| held-t-double         | 3              | 3              | 87 / 8                 | 12858        | 26768       | no               |
+| cap-rebuild           | 3              | 3              | 80 / 8                 | 24890        | 38832       | no               |
+| o-before-double       | 3              | 3              | 74 / 8                 | 6397         | 23207       | no               |
+| direct-double         | 3              | 3              | 83 / 8                 | 13518        | 28276       | no               |
+| s-after-double        | 3              | 3              | 76 / 8                 | 24195        | 38245       | no               |
+| i-via-hold            | 2              | 2              | 80 / 8                 | 30441        | 45000       | yes              |
+| higher-cap            | 3              | 3              | 85 / 8                 | 15471        | 28597       | no               |
+| higher-double         | 3              | 3              | 82 / 8                 | 16070        | 29216       | no               |
+| offset-double         | 3              | 3              | 83 / 8                 | 3940         | 17434       | no               |
+| o-rebuild             | 3              | 3              | 74 / 8                 | 1626         | 14506       | no               |
+| after-quad            | 3              | 3              | 76 / 8                 | 19879        | 35955       | no               |
+| late-held-double      | 3              | 3              | 83 / 8                 | 12648        | 26648       | no               |
+| unknown-bag-double    | 3              | 3              | 87 / 8                 | 12858        | 26768       | no               |
+| actual-pose-double    | 3              | 3              | 83 / 8                 | 13518        | 28276       | no               |
+| marathon-preparation  | 3              | 3              | 76 / 8                 | 8435         | 27550       | no               |
+| marathon-double       | 3              | 3              | 82 / 8                 | 9759         | 25696       | no               |
+| marathon-rebuild      | 3              | 3              | 76 / 8                 | 9075         | 24802       | no               |
+| marathon-later-double | 3              | 3              | 87 / 8                 | 12787        | 23989       | no               |
+| deviated-o-recovery   | 3              | 3              | 73 / 8                 | 9247         | 25750       | no               |
 
 The unsupported diagnostic performs no search. i-via-hold exhausts the shared node budget and returns its completed two-lock prefix rather than asserting impossibility. All other supported one-shot cases complete the three-lock depth.
 

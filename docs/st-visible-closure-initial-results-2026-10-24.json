@@ -58,20 +58,10 @@
         "finalFoundation": {
           "status": "unfinished-lower-foundation",
           "vacancies": [
-            [
-              5,
-              35
-            ],
-            [
-              6,
-              35
-            ]
+            [5, 35],
+            [6, 35]
           ],
-          "profile": [
-            18,
-            19,
-            19
-          ]
+          "profile": [18, 19, 19]
         },
         "maxLeftCovered": 3,
         "common": {
@@ -95,20 +85,10 @@
           "foundation": {
             "status": "unfinished-lower-foundation",
             "vacancies": [
-              [
-                5,
-                35
-              ],
-              [
-                6,
-                35
-              ]
+              [5, 35],
+              [6, 35]
             ],
-            "profile": [
-              18,
-              19,
-              19
-            ]
+            "profile": [18, 19, 19]
           },
           "leftCovered": 0
         },
@@ -140,20 +120,8 @@
         "stop": "abstention",
         "censored": false,
         "lines": 26,
-        "postTsdLocks": [
-          24,
-          33,
-          37,
-          45,
-          51,
-          60,
-          68,
-          74
-        ],
-        "postQuadLocks": [
-          39,
-          73
-        ],
+        "postTsdLocks": [24, 33, 37, 45, 51, 60, 68, 74],
+        "postQuadLocks": [39, 73],
         "final": {
           "height": 18,
           "meanSkylineHeight": 15.3,
@@ -171,11 +139,7 @@
         "finalFoundation": {
           "status": "aligned",
           "vacancies": [],
-          "profile": [
-            18,
-            18,
-            18
-          ]
+          "profile": [18, 18, 18]
         },
         "maxLeftCovered": 0,
         "common": {
@@ -199,11 +163,7 @@
           "foundation": {
             "status": "aligned",
             "vacancies": [],
-            "profile": [
-              10,
-              10,
-              10
-            ]
+            "profile": [10, 10, 10]
           },
           "leftCovered": 0
         },
@@ -213,24 +173,10 @@
           "verified": 1,
           "nodes": 1117,
           "unknown": 0,
-          "selectedPathLocks": [
-            6
-          ],
-          "providedGoalLocks": [
-            7,
-            8,
-            9,
-            10
-          ],
-          "retainedGoalLocks": [
-            7,
-            8,
-            9,
-            10
-          ],
-          "goalPaidLocks": [
-            10
-          ]
+          "selectedPathLocks": [6],
+          "providedGoalLocks": [7, 8, 9, 10],
+          "retainedGoalLocks": [7, 8, 9, 10],
+          "goalPaidLocks": [10]
         },
         "foundationStageSelectedLocks": [],
         "phaseBudgets": {
@@ -258,19 +204,8 @@
         "stop": "abstention",
         "censored": false,
         "lines": 24,
-        "postTsdLocks": [
-          25,
-          31,
-          41,
-          47,
-          53,
-          60,
-          68
-        ],
-        "postQuadLocks": [
-          45,
-          75
-        ],
+        "postTsdLocks": [25, 31, 41, 47, 53, 60, 68],
+        "postQuadLocks": [45, 75],
         "final": {
           "height": 16,
           "meanSkylineHeight": 11.4,
@@ -288,11 +223,7 @@
         "finalFoundation": {
           "status": "aligned",
           "vacancies": [],
-          "profile": [
-            9,
-            10,
-            10
-          ]
+          "profile": [9, 10, 10]
         },
         "maxLeftCovered": 1,
         "common": {
@@ -316,11 +247,7 @@
           "foundation": {
             "status": "aligned",
             "vacancies": [],
-            "profile": [
-              9,
-              10,
-              10
-            ]
+            "profile": [9, 10, 10]
           },
           "leftCovered": 1
         },
@@ -335,11 +262,7 @@
           "retainedGoalLocks": [],
           "goalPaidLocks": []
         },
-        "foundationStageSelectedLocks": [
-          1,
-          2,
-          3
-        ],
+        "foundationStageSelectedLocks": [1, 2, 3],
         "phaseBudgets": {
           "opening": {
             "decisions": 19,
@@ -361,19 +284,8 @@
         "stop": "abstention",
         "censored": false,
         "lines": 24,
-        "postTsdLocks": [
-          25,
-          31,
-          43,
-          47,
-          53,
-          60,
-          68
-        ],
-        "postQuadLocks": [
-          45,
-          75
-        ],
+        "postTsdLocks": [25, 31, 43, 47, 53, 60, 68],
+        "postQuadLocks": [45, 75],
         "final": {
           "height": 16,
           "meanSkylineHeight": 11.4,
@@ -391,11 +303,7 @@
         "finalFoundation": {
           "status": "aligned",
           "vacancies": [],
-          "profile": [
-            9,
-            10,
-            10
-          ]
+          "profile": [9, 10, 10]
         },
         "maxLeftCovered": 1,
         "common": {
@@ -419,11 +327,7 @@
           "foundation": {
             "status": "aligned",
             "vacancies": [],
-            "profile": [
-              9,
-              10,
-              10
-            ]
+            "profile": [9, 10, 10]
           },
           "leftCovered": 1
         },
@@ -438,11 +342,7 @@
           "retainedGoalLocks": [],
           "goalPaidLocks": []
         },
-        "foundationStageSelectedLocks": [
-          1,
-          2,
-          3
-        ],
+        "foundationStageSelectedLocks": [1, 2, 3],
         "phaseBudgets": {
           "opening": {
             "decisions": 19,
@@ -468,25 +368,8 @@
         "stop": "abstention",
         "censored": false,
         "lines": 38,
-        "postTsdLocks": [
-          21,
-          34,
-          39,
-          47,
-          52,
-          63,
-          69,
-          75,
-          84,
-          89,
-          98,
-          102
-        ],
-        "postQuadLocks": [
-          40,
-          76,
-          94
-        ],
+        "postTsdLocks": [21, 34, 39, 47, 52, 63, 69, 75, 84, 89, 98, 102],
+        "postQuadLocks": [40, 76, 94],
         "final": {
           "height": 15,
           "meanSkylineHeight": 9.5,
@@ -504,32 +387,13 @@
         "finalFoundation": {
           "status": "unfinished-lower-foundation",
           "vacancies": [
-            [
-              5,
-              28
-            ],
-            [
-              6,
-              28
-            ],
-            [
-              5,
-              29
-            ],
-            [
-              6,
-              29
-            ],
-            [
-              6,
-              37
-            ]
+            [5, 28],
+            [6, 28],
+            [5, 29],
+            [6, 29],
+            [6, 37]
           ],
-          "profile": [
-            15,
-            15,
-            15
-          ]
+          "profile": [15, 15, 15]
         },
         "maxLeftCovered": 0,
         "common": {
@@ -553,11 +417,7 @@
           "foundation": {
             "status": "aligned",
             "vacancies": [],
-            "profile": [
-              8,
-              8,
-              8
-            ]
+            "profile": [8, 8, 8]
           },
           "leftCovered": 0
         },
@@ -594,14 +454,8 @@
         "stop": "abstention",
         "censored": false,
         "lines": 12,
-        "postTsdLocks": [
-          21,
-          34,
-          39
-        ],
-        "postQuadLocks": [
-          40
-        ],
+        "postTsdLocks": [21, 34, 39],
+        "postQuadLocks": [40],
         "final": {
           "height": 10,
           "meanSkylineHeight": 5.5,
@@ -619,11 +473,7 @@
         "finalFoundation": {
           "status": "aligned",
           "vacancies": [],
-          "profile": [
-            9,
-            10,
-            10
-          ]
+          "profile": [9, 10, 10]
         },
         "maxLeftCovered": 0,
         "common": {
@@ -647,11 +497,7 @@
           "foundation": {
             "status": "aligned",
             "vacancies": [],
-            "profile": [
-              9,
-              10,
-              10
-            ]
+            "profile": [9, 10, 10]
           },
           "leftCovered": 0
         },
@@ -711,20 +557,10 @@
         "finalFoundation": {
           "status": "unfinished-lower-foundation",
           "vacancies": [
-            [
-              6,
-              35
-            ],
-            [
-              6,
-              36
-            ]
+            [6, 35],
+            [6, 36]
           ],
-          "profile": [
-            15,
-            19,
-            19
-          ]
+          "profile": [15, 19, 19]
         },
         "maxLeftCovered": 9,
         "common": {
@@ -748,20 +584,10 @@
           "foundation": {
             "status": "unfinished-lower-foundation",
             "vacancies": [
-              [
-                6,
-                35
-              ],
-              [
-                6,
-                36
-              ]
+              [6, 35],
+              [6, 36]
             ],
-            "profile": [
-              15,
-              19,
-              19
-            ]
+            "profile": [15, 19, 19]
           },
           "leftCovered": 9
         },
@@ -812,20 +638,10 @@
         "finalFoundation": {
           "status": "unfinished-lower-foundation",
           "vacancies": [
-            [
-              6,
-              35
-            ],
-            [
-              6,
-              36
-            ]
+            [6, 35],
+            [6, 36]
           ],
-          "profile": [
-            15,
-            19,
-            19
-          ]
+          "profile": [15, 19, 19]
         },
         "maxLeftCovered": 9,
         "common": {
@@ -849,20 +665,10 @@
           "foundation": {
             "status": "unfinished-lower-foundation",
             "vacancies": [
-              [
-                6,
-                35
-              ],
-              [
-                6,
-                36
-              ]
+              [6, 35],
+              [6, 36]
             ],
-            "profile": [
-              15,
-              19,
-              19
-            ]
+            "profile": [15, 19, 19]
           },
           "leftCovered": 9
         },

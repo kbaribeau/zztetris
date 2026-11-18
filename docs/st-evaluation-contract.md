@@ -18,6 +18,7 @@ exit code. No acceptance thresholds are supplied by the tool.
    `makeInput()` from `scripts/lib/st-simulation.cjs`; use `hash()` from the
    evaluation module for canonical whole-input identities. Keep development and
    fresh-validation cohorts separate. Preserve all attempts and failed evidence.
+
 2. Run each revision serially, with its own checkout and the same protocol:
 
    ```sh
@@ -36,6 +37,7 @@ exit code. No acceptance thresholds are supplied by the tool.
    `--no-search-timeout` runs cannot bind this production-only protocol. Their
    manifests and normalized observations retain the diagnostic lane, concurrency
    and watchdog settings, and cannot be evaluated as production acceptance. Timed search is not deterministic across hosts/load.
+
 3. The simulator emits `observations.json` **after all timed children end**.
    Existing manifests and summaries remain unchanged except additive binding
    metadata. Normalization does not spend the planner's search budget. Root,

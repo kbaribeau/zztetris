@@ -56,20 +56,12 @@
       },
       "hold": "L",
       "canHold": true,
-      "queue": [
-        "J",
-        "T",
-        "S",
-        "J",
-        "I"
-      ],
+      "queue": ["J", "T", "S", "J", "I"],
       "revision": 206,
       "streamCursor": 34,
       "topOut": false,
       "bag": {
-        "remaining": [
-          76
-        ],
+        "remaining": [76],
         "observedCount": 39,
         "provenance": "known-phase"
       }
@@ -151,9 +143,7 @@
             "seenMask": 51
           },
           "knowledge": {
-            "remaining": [
-              76
-            ],
+            "remaining": [76],
             "observedCount": 39,
             "provenance": "known-phase"
           }
@@ -191,15 +181,8 @@
               }
             ],
             "uncertainty": {
-              "S": [
-                0,
-                0,
-                0,
-                0
-              ],
-              "L": [
-                0
-              ]
+              "S": [0, 0, 0, 0],
+              "L": [0]
             }
           },
           "account": {
@@ -301,21 +284,12 @@
       },
       "hold": "L",
       "canHold": true,
-      "queue": [
-        "J",
-        "T",
-        "S",
-        "J",
-        "I",
-        "O"
-      ],
+      "queue": ["J", "T", "S", "J", "I", "O"],
       "revision": 206,
       "streamCursor": 34,
       "topOut": false,
       "bag": {
-        "remaining": [
-          68
-        ],
+        "remaining": [68],
         "observedCount": 40,
         "provenance": "known-phase"
       }
@@ -403,9 +377,7 @@
             "seenMask": 59
           },
           "knowledge": {
-            "remaining": [
-              68
-            ],
+            "remaining": [68],
             "observedCount": 40,
             "provenance": "known-phase"
           }
@@ -443,15 +415,8 @@
               }
             ],
             "uncertainty": {
-              "S": [
-                0,
-                0,
-                0,
-                0
-              ],
-              "L": [
-                0
-              ]
+              "S": [0, 0, 0, 0],
+              "L": [0]
             }
           },
           "account": {
@@ -499,56 +464,22 @@
   },
   "steps": [
     {
-      "witness": [
-        "L",
-        "L",
-        "L",
-        "CCW",
-        "L",
-        "HD"
-      ]
+      "witness": ["L", "L", "L", "CCW", "L", "HD"]
     },
     {
-      "witness": [
-        "L",
-        "CCW",
-        "HD"
-      ]
+      "witness": ["L", "CCW", "HD"]
     },
     {
-      "witness": [
-        "HOLD",
-        "L",
-        "L",
-        "L",
-        "HD"
-      ]
+      "witness": ["HOLD", "L", "L", "L", "HD"]
     },
     {
-      "witness": [
-        "L",
-        "L",
-        "L",
-        "HD"
-      ]
+      "witness": ["L", "L", "L", "HD"]
     },
     {
-      "witness": [
-        "L",
-        "L",
-        "R180",
-        "HD"
-      ]
+      "witness": ["L", "L", "R180", "HD"]
     },
     {
-      "witness": [
-        "R",
-        "R",
-        "R",
-        "CW",
-        "R",
-        "HD"
-      ]
+      "witness": ["R", "R", "R", "CW", "R", "HD"]
     }
   ]
 }

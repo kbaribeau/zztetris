@@ -41,28 +41,13 @@
         "rotation": 2
       },
       "cells": [
-        [
-          6,
-          36
-        ],
-        [
-          7,
-          36
-        ],
-        [
-          8,
-          36
-        ],
-        [
-          7,
-          37
-        ]
+        [6, 36],
+        [7, 36],
+        [8, 36],
+        [7, 37]
       ],
       "lines": 2,
-      "clearedRows": [
-        36,
-        37
-      ],
+      "clearedRows": [36, 37],
       "spin": "full",
       "topOut": false
     }
@@ -125,21 +110,12 @@
       },
       "hold": "I",
       "canHold": true,
-      "queue": [
-        "J",
-        "O",
-        "S",
-        "I",
-        "T",
-        "Z"
-      ],
+      "queue": ["J", "O", "S", "I", "T", "Z"],
       "revision": 620,
       "streamCursor": 86,
       "topOut": false,
       "bag": {
-        "remaining": [
-          63
-        ],
+        "remaining": [63],
         "observedCount": 92,
         "provenance": "known-phase"
       }
@@ -216,9 +192,7 @@
             "seenMask": 64
           },
           "knowledge": {
-            "remaining": [
-              63
-            ],
+            "remaining": [63],
             "observedCount": 92,
             "provenance": "known-phase"
           }
@@ -238,15 +212,8 @@
             "handoff": true,
             "residuals": [],
             "uncertainty": {
-              "S": [
-                0,
-                0,
-                0,
-                0
-              ],
-              "L": [
-                0
-              ]
+              "S": [0, 0, 0, 0],
+              "L": [0]
             }
           },
           "account": {
@@ -365,21 +332,12 @@
       },
       "hold": "T",
       "canHold": true,
-      "queue": [
-        "L",
-        "J",
-        "O",
-        "S",
-        "I",
-        "T"
-      ],
+      "queue": ["L", "J", "O", "S", "I", "T"],
       "revision": 873,
       "streamCursor": 112,
       "topOut": false,
       "bag": {
-        "remaining": [
-          64
-        ],
+        "remaining": [64],
         "observedCount": 118,
         "provenance": "known-phase"
       }
@@ -456,9 +414,7 @@
             "seenMask": 63
           },
           "knowledge": {
-            "remaining": [
-              64
-            ],
+            "remaining": [64],
             "observedCount": 118,
             "provenance": "known-phase"
           }
@@ -478,15 +434,8 @@
             "handoff": true,
             "residuals": [],
             "uncertainty": {
-              "S": [
-                0,
-                0,
-                0,
-                0
-              ],
-              "L": [
-                0
-              ]
+              "S": [0, 0, 0, 0],
+              "L": [0]
             }
           },
           "account": {

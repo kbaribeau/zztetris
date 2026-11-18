@@ -9,19 +9,12 @@
         "S": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0,
-            0,
-            0,
-            0
-          ]
+          "uncertainty": [0, 0, 0, 0]
         },
         "L": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0
-          ]
+          "uncertainty": [0]
         }
       }
     },
@@ -33,19 +26,12 @@
         "S": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0,
-            0,
-            0,
-            0
-          ]
+          "uncertainty": [0, 0, 0, 0]
         },
         "L": {
           "status": "unknown",
           "evidence": [],
-          "uncertainty": [
-            1
-          ]
+          "uncertainty": [1]
         }
       }
     },
@@ -57,19 +43,12 @@
         "S": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0,
-            0,
-            0,
-            0
-          ]
+          "uncertainty": [0, 0, 0, 0]
         },
         "L": {
           "status": "unknown",
           "evidence": [],
-          "uncertainty": [
-            1
-          ]
+          "uncertainty": [1]
         }
       }
     },
@@ -81,19 +60,12 @@
         "S": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0,
-            0,
-            0,
-            0
-          ]
+          "uncertainty": [0, 0, 0, 0]
         },
         "L": {
           "status": "unknown",
           "evidence": [],
-          "uncertainty": [
-            1
-          ]
+          "uncertainty": [1]
         }
       }
     },
@@ -105,19 +77,12 @@
         "S": {
           "status": "unknown",
           "evidence": [],
-          "uncertainty": [
-            1,
-            0,
-            0,
-            0
-          ]
+          "uncertainty": [1, 0, 0, 0]
         },
         "L": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0
-          ]
+          "uncertainty": [0]
         }
       }
     },
@@ -129,19 +94,12 @@
         "S": {
           "status": "unknown",
           "evidence": [],
-          "uncertainty": [
-            1,
-            0,
-            0,
-            0
-          ]
+          "uncertainty": [1, 0, 0, 0]
         },
         "L": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0
-          ]
+          "uncertainty": [0]
         }
       }
     },
@@ -153,19 +111,12 @@
         "S": {
           "status": "unknown",
           "evidence": [],
-          "uncertainty": [
-            1,
-            0,
-            0,
-            0
-          ]
+          "uncertainty": [1, 0, 0, 0]
         },
         "L": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0
-          ]
+          "uncertainty": [0]
         }
       }
     },
@@ -177,19 +128,12 @@
         "S": {
           "status": "unknown",
           "evidence": [],
-          "uncertainty": [
-            1,
-            0,
-            0,
-            0
-          ]
+          "uncertainty": [1, 0, 0, 0]
         },
         "L": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0
-          ]
+          "uncertainty": [0]
         }
       }
     },
@@ -201,19 +145,12 @@
         "S": {
           "status": "unknown",
           "evidence": [],
-          "uncertainty": [
-            1,
-            0,
-            0,
-            0
-          ]
+          "uncertainty": [1, 0, 0, 0]
         },
         "L": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0
-          ]
+          "uncertainty": [0]
         }
       }
     },
@@ -225,19 +162,12 @@
         "S": {
           "status": "unknown",
           "evidence": [],
-          "uncertainty": [
-            1,
-            0,
-            0,
-            0
-          ]
+          "uncertainty": [1, 0, 0, 0]
         },
         "L": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0
-          ]
+          "uncertainty": [0]
         }
       }
     },
@@ -249,19 +179,12 @@
         "S": {
           "status": "unknown",
           "evidence": [],
-          "uncertainty": [
-            1,
-            0,
-            0,
-            0
-          ]
+          "uncertainty": [1, 0, 0, 0]
         },
         "L": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0
-          ]
+          "uncertainty": [0]
         }
       }
     },
@@ -273,19 +196,12 @@
         "S": {
           "status": "unknown",
           "evidence": [],
-          "uncertainty": [
-            1,
-            0,
-            0,
-            0
-          ]
+          "uncertainty": [1, 0, 0, 0]
         },
         "L": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0
-          ]
+          "uncertainty": [0]
         }
       }
     },
@@ -297,19 +213,12 @@
         "S": {
           "status": "unknown",
           "evidence": [],
-          "uncertainty": [
-            1,
-            0,
-            0,
-            0
-          ]
+          "uncertainty": [1, 0, 0, 0]
         },
         "L": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0
-          ]
+          "uncertainty": [0]
         }
       }
     },
@@ -321,19 +230,12 @@
         "S": {
           "status": "unknown",
           "evidence": [],
-          "uncertainty": [
-            1,
-            0,
-            0,
-            0
-          ]
+          "uncertainty": [1, 0, 0, 0]
         },
         "L": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0
-          ]
+          "uncertainty": [0]
         }
       }
     },
@@ -345,19 +247,12 @@
         "S": {
           "status": "unknown",
           "evidence": [],
-          "uncertainty": [
-            1,
-            0,
-            0,
-            0
-          ]
+          "uncertainty": [1, 0, 0, 0]
         },
         "L": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0
-          ]
+          "uncertainty": [0]
         }
       }
     },
@@ -369,19 +264,12 @@
         "S": {
           "status": "unknown",
           "evidence": [],
-          "uncertainty": [
-            1,
-            0,
-            0,
-            0
-          ]
+          "uncertainty": [1, 0, 0, 0]
         },
         "L": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0
-          ]
+          "uncertainty": [0]
         }
       }
     },
@@ -393,19 +281,12 @@
         "S": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0,
-            0,
-            0,
-            0
-          ]
+          "uncertainty": [0, 0, 0, 0]
         },
         "L": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0
-          ]
+          "uncertainty": [0]
         }
       }
     },
@@ -417,19 +298,12 @@
         "S": {
           "status": "unknown",
           "evidence": [],
-          "uncertainty": [
-            0,
-            1,
-            0,
-            0
-          ]
+          "uncertainty": [0, 1, 0, 0]
         },
         "L": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0
-          ]
+          "uncertainty": [0]
         }
       }
     },
@@ -441,19 +315,12 @@
         "S": {
           "status": "unknown",
           "evidence": [],
-          "uncertainty": [
-            0,
-            1,
-            0,
-            0
-          ]
+          "uncertainty": [0, 1, 0, 0]
         },
         "L": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0
-          ]
+          "uncertainty": [0]
         }
       }
     },
@@ -465,19 +332,12 @@
         "S": {
           "status": "unknown",
           "evidence": [],
-          "uncertainty": [
-            0,
-            1,
-            0,
-            0
-          ]
+          "uncertainty": [0, 1, 0, 0]
         },
         "L": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0
-          ]
+          "uncertainty": [0]
         }
       }
     },
@@ -489,19 +349,12 @@
         "S": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0,
-            0,
-            0,
-            0
-          ]
+          "uncertainty": [0, 0, 0, 0]
         },
         "L": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0
-          ]
+          "uncertainty": [0]
         }
       }
     },
@@ -513,19 +366,12 @@
         "S": {
           "status": "unknown",
           "evidence": [],
-          "uncertainty": [
-            0,
-            1,
-            0,
-            0
-          ]
+          "uncertainty": [0, 1, 0, 0]
         },
         "L": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0
-          ]
+          "uncertainty": [0]
         }
       }
     },
@@ -537,19 +383,12 @@
         "S": {
           "status": "unknown",
           "evidence": [],
-          "uncertainty": [
-            0,
-            1,
-            0,
-            0
-          ]
+          "uncertainty": [0, 1, 0, 0]
         },
         "L": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0
-          ]
+          "uncertainty": [0]
         }
       }
     },
@@ -561,19 +400,12 @@
         "S": {
           "status": "unknown",
           "evidence": [],
-          "uncertainty": [
-            0,
-            1,
-            0,
-            0
-          ]
+          "uncertainty": [0, 1, 0, 0]
         },
         "L": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0
-          ]
+          "uncertainty": [0]
         }
       }
     },
@@ -585,19 +417,12 @@
         "S": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0,
-            0,
-            0,
-            0
-          ]
+          "uncertainty": [0, 0, 0, 0]
         },
         "L": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0
-          ]
+          "uncertainty": [0]
         }
       }
     },
@@ -609,19 +434,12 @@
         "S": {
           "status": "unknown",
           "evidence": [],
-          "uncertainty": [
-            0,
-            1,
-            0,
-            0
-          ]
+          "uncertainty": [0, 1, 0, 0]
         },
         "L": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0
-          ]
+          "uncertainty": [0]
         }
       }
     },
@@ -633,19 +451,12 @@
         "S": {
           "status": "unknown",
           "evidence": [],
-          "uncertainty": [
-            0,
-            1,
-            0,
-            0
-          ]
+          "uncertainty": [0, 1, 0, 0]
         },
         "L": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0
-          ]
+          "uncertainty": [0]
         }
       }
     },
@@ -657,19 +468,12 @@
         "S": {
           "status": "unknown",
           "evidence": [],
-          "uncertainty": [
-            0,
-            1,
-            0,
-            0
-          ]
+          "uncertainty": [0, 1, 0, 0]
         },
         "L": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0
-          ]
+          "uncertainty": [0]
         }
       }
     },
@@ -681,19 +485,12 @@
         "S": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0,
-            0,
-            0,
-            0
-          ]
+          "uncertainty": [0, 0, 0, 0]
         },
         "L": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0
-          ]
+          "uncertainty": [0]
         }
       }
     },
@@ -705,19 +502,12 @@
         "S": {
           "status": "unknown",
           "evidence": [],
-          "uncertainty": [
-            1,
-            0,
-            0,
-            0
-          ]
+          "uncertainty": [1, 0, 0, 0]
         },
         "L": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0
-          ]
+          "uncertainty": [0]
         }
       }
     },
@@ -729,19 +519,12 @@
         "S": {
           "status": "unknown",
           "evidence": [],
-          "uncertainty": [
-            1,
-            0,
-            0,
-            0
-          ]
+          "uncertainty": [1, 0, 0, 0]
         },
         "L": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0
-          ]
+          "uncertainty": [0]
         }
       }
     },
@@ -753,19 +536,12 @@
         "S": {
           "status": "unknown",
           "evidence": [],
-          "uncertainty": [
-            1,
-            0,
-            0,
-            0
-          ]
+          "uncertainty": [1, 0, 0, 0]
         },
         "L": {
           "status": "none-observed",
           "evidence": [],
-          "uncertainty": [
-            0
-          ]
+          "uncertainty": [0]
         }
       }
     }

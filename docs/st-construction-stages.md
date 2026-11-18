@@ -35,7 +35,6 @@ height cutoffs describe current coach coverage, not a community Reset formula.
 This prefers a checked recovery to unsupported ordinary-profile abstention; it
 never claims ordinary play is impossible, a complete Reset, or resource renewal.
 
-
 ## Persistent obligations and comparisons
 
 Advice retains the original public observation, complete legal input proof and a

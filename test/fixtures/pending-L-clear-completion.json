@@ -57,21 +57,12 @@
       },
       "hold": "Z",
       "canHold": true,
-      "queue": [
-        "I",
-        "T",
-        "O",
-        "L",
-        "J",
-        "L"
-      ],
+      "queue": ["I", "T", "O", "L", "J", "L"],
       "revision": 496,
       "streamCursor": 93,
       "topOut": false,
       "bag": {
-        "remaining": [
-          123
-        ],
+        "remaining": [123],
         "observedCount": 99,
         "provenance": "known-phase"
       }
@@ -145,9 +136,7 @@
           ],
           "frontier": null,
           "knowledge": {
-            "remaining": [
-              123
-            ],
+            "remaining": [123],
             "observedCount": 99,
             "provenance": "known-phase"
           }
@@ -167,15 +156,8 @@
             "handoff": false,
             "residuals": [],
             "uncertainty": {
-              "S": [
-                0,
-                0,
-                0,
-                0
-              ],
-              "L": [
-                0
-              ]
+              "S": [0, 0, 0, 0],
+              "L": [0]
             }
           },
           "account": {
@@ -237,21 +219,8 @@
     }
   },
   "witnesses": [
-    [
-      "R",
-      "HD"
-    ],
-    [
-      "R180",
-      "L",
-      "L",
-      "L",
-      "R180",
-      "CW",
-      "L",
-      "L",
-      "HD"
-    ],
+    ["R", "HD"],
+    ["R180", "L", "L", "L", "R180", "CW", "L", "L", "HD"],
     [
       "CW",
       "R",
@@ -275,32 +244,9 @@
       "CW",
       "HD"
     ],
-    [
-      "L",
-      "L",
-      "HD"
-    ],
-    [
-      "CCW",
-      "L",
-      "L",
-      "L",
-      "HD"
-    ],
-    [
-      "HOLD",
-      "CW",
-      "R",
-      "R",
-      "R",
-      "R",
-      "HD"
-    ],
-    [
-      "CW",
-      "CW",
-      "R",
-      "HD"
-    ]
+    ["L", "L", "HD"],
+    ["CCW", "L", "L", "L", "HD"],
+    ["HOLD", "CW", "R", "R", "R", "R", "HD"],
+    ["CW", "CW", "R", "HD"]
   ]
 }

@@ -54,33 +54,19 @@
     },
     "hold": "J",
     "canHold": true,
-    "queue": [
-      "I",
-      "T",
-      "Z",
-      "J",
-      "I",
-      "L"
-    ],
+    "queue": ["I", "T", "Z", "J", "I", "L"],
     "revision": 752,
     "streamCursor": 111,
     "topOut": false,
     "bag": {
-      "remaining": [
-        24
-      ],
+      "remaining": [24],
       "observedCount": 117,
       "provenance": "known-phase"
     }
   },
   "continuation": [
     {
-      "witness": [
-        "HOLD",
-        "R",
-        "CCW",
-        "HD"
-      ],
+      "witness": ["HOLD", "R", "CCW", "HD"],
       "event": {
         "type": "J",
         "target": {
@@ -90,22 +76,10 @@
           "rotation": 3
         },
         "cells": [
-          [
-            5,
-            29
-          ],
-          [
-            5,
-            30
-          ],
-          [
-            4,
-            31
-          ],
-          [
-            5,
-            31
-          ]
+          [5, 29],
+          [5, 30],
+          [4, 31],
+          [5, 31]
         ],
         "lines": 0,
         "clearedRows": [],
@@ -194,9 +168,7 @@
         "seenMask": 103
       },
       "knowledge": {
-        "remaining": [
-          24
-        ],
+        "remaining": [24],
         "observedCount": 117,
         "provenance": "known-phase"
       }
@@ -231,15 +203,8 @@
           }
         ],
         "uncertainty": {
-          "S": [
-            0,
-            0,
-            0,
-            0
-          ],
-          "L": [
-            0
-          ]
+          "S": [0, 0, 0, 0],
+          "L": [0]
         }
       },
       "account": {

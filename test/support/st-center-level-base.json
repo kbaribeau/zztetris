@@ -49,21 +49,7 @@
       "translatedOrSuppliedPhase": {
         "status": "established",
         "anchorRow": 36,
-        "protectedRows": [
-          36,
-          33,
-          30,
-          27,
-          24,
-          21,
-          18,
-          15,
-          12,
-          9,
-          6,
-          3,
-          0
-        ],
+        "protectedRows": [36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3, 0],
         "blockedRows": [],
         "source": "translated-established-cycle"
       },
@@ -118,21 +104,7 @@
       "translatedOrSuppliedPhase": {
         "status": "established",
         "anchorRow": 36,
-        "protectedRows": [
-          36,
-          33,
-          30,
-          27,
-          24,
-          21,
-          18,
-          15,
-          12,
-          9,
-          6,
-          3,
-          0
-        ],
+        "protectedRows": [36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3, 0],
         "blockedRows": [],
         "source": "translated-established-cycle"
       },
@@ -187,21 +159,7 @@
       "translatedOrSuppliedPhase": {
         "status": "established",
         "anchorRow": 36,
-        "protectedRows": [
-          36,
-          33,
-          30,
-          27,
-          24,
-          21,
-          18,
-          15,
-          12,
-          9,
-          6,
-          3,
-          0
-        ],
+        "protectedRows": [36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3, 0],
         "blockedRows": [],
         "source": "translated-established-cycle"
       },
@@ -256,21 +214,7 @@
       "translatedOrSuppliedPhase": {
         "status": "established",
         "anchorRow": 36,
-        "protectedRows": [
-          36,
-          33,
-          30,
-          27,
-          24,
-          21,
-          18,
-          15,
-          12,
-          9,
-          6,
-          3,
-          0
-        ],
+        "protectedRows": [36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3, 0],
         "blockedRows": [],
         "source": "translated-established-cycle"
       },
@@ -325,20 +269,7 @@
       "translatedOrSuppliedPhase": {
         "status": "established",
         "anchorRow": 33,
-        "protectedRows": [
-          33,
-          30,
-          27,
-          24,
-          21,
-          18,
-          15,
-          12,
-          9,
-          6,
-          3,
-          0
-        ],
+        "protectedRows": [33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3, 0],
         "blockedRows": [],
         "source": "synthetic-wrong-period"
       },
@@ -448,24 +379,8 @@
       "translatedOrSuppliedPhase": {
         "status": "broken",
         "anchorRow": 36,
-        "protectedRows": [
-          36,
-          33,
-          30,
-          27,
-          24,
-          21,
-          18,
-          15,
-          12,
-          9,
-          6,
-          3,
-          0
-        ],
-        "blockedRows": [
-          36
-        ],
+        "protectedRows": [36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3, 0],
+        "blockedRows": [36],
         "source": "recognized-next-Z-cap"
       },
       "expectedLevelBase": false,
@@ -519,21 +434,7 @@
       "translatedOrSuppliedPhase": {
         "status": "established",
         "anchorRow": 36,
-        "protectedRows": [
-          36,
-          33,
-          30,
-          27,
-          24,
-          21,
-          18,
-          15,
-          12,
-          9,
-          6,
-          3,
-          0
-        ],
+        "protectedRows": [36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3, 0],
         "blockedRows": [],
         "source": "translated-established-cycle"
       },
@@ -588,21 +489,7 @@
       "translatedOrSuppliedPhase": {
         "status": "established",
         "anchorRow": 36,
-        "protectedRows": [
-          36,
-          33,
-          30,
-          27,
-          24,
-          21,
-          18,
-          15,
-          12,
-          9,
-          6,
-          3,
-          0
-        ],
+        "protectedRows": [36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3, 0],
         "blockedRows": [],
         "source": "translated-established-cycle"
       },
@@ -657,21 +544,7 @@
       "translatedOrSuppliedPhase": {
         "status": "established",
         "anchorRow": 36,
-        "protectedRows": [
-          36,
-          33,
-          30,
-          27,
-          24,
-          21,
-          18,
-          15,
-          12,
-          9,
-          6,
-          3,
-          0
-        ],
+        "protectedRows": [36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3, 0],
         "blockedRows": [],
         "source": "translated-established-cycle"
       },

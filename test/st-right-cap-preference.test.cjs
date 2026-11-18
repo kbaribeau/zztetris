@@ -1,116 +1,428 @@
 'use strict';
-const test=require('node:test'),assert=require('node:assert/strict');
-const P=require('../st-planner'),R=require('../st-rules'),S=require('../st-structure'),RH=require('../st-obligation-context'),PH=require('../st-pattern-history'),B=require('../st-bag');
-const original=require('./fixtures/right-cap-score.json'),timing=require('./fixtures/timely-scoring.json'),clone=x=>JSON.parse(JSON.stringify(x));
+const test = require('node:test'),
+  assert = require('node:assert/strict');
+const P = require('../st-planner'),
+  R = require('../st-rules'),
+  S = require('../st-structure'),
+  RH = require('../st-obligation-context'),
+  PH = require('../st-pattern-history'),
+  B = require('../st-bag');
+const original = require('./fixtures/right-cap-score.json'),
+  timing = require('./fixtures/timely-scoring.json'),
+  clone = (x) => JSON.parse(JSON.stringify(x));
 // The historical OLeft route roofs four uncovered cells and has no repair.
 // Preserve it below as a negative. This synthetic positive fills exactly those
 // initial vacancies; O/Z/T coordinates and resource/scoring checks stay literal.
-const f=clone(original);
-for(let y=25;y<=28;y++)f.request.observation.board[y]=f.request.observation.board[y].slice(0,2)+'X'+f.request.observation.board[y].slice(3);
-f.request.previous=null;f.request.commitment=null;
-f.request.options.obligationContext=RH.exportState(RH.start(f.request.observation));
-f.request.options.patternHistory=PH.start(f.request.observation);
-const eligible=require('./support/st-right-cap-eligible-harness.cjs');
-const bounds={depth:3,width:8,maxNodes:45000,timeMs:1500,now:()=>0,deadline:Infinity};
-const decide=(extra={},q=f.request,planner=P)=>planner.decide(q.observation,{...q.options,...bounds,previous:q.previous,commitment:q.commitment,...extra});
-const cells=x=>JSON.stringify(x.slice().sort(([a,b],[c,d])=>a-c||b-d));
-function replay(raw,a){let state=R.createState(raw),lines=0;for(const step of a.continuation){const r=R.replay(state,step.witness);assert(r.valid);assert.equal(r.events.length,1);assert.deepEqual(r.events[0],step.event);assert(S.canonicalClear(step.event));lines+=step.event.lines;state=r.state;}return{state,lines};}
-function withoutMetrics(a){return JSON.parse(JSON.stringify({...a,metrics:undefined}));}
-
-
-function literalOAdvice(request=f.request){
- let state=R.createState(request.observation);const steps=[];
- for(const witness of [['L','L','HD'],['CW','R','R','R','R','HD']]){const before=state,r=R.replay(state,witness);assert(r.valid);assert.equal(r.events.length,1);state=r.state;const event=r.events[0];steps.push({target:event.target,witness,event,hold:false,holdCount:0,structuralEvidence:S.transition(before,{state,event})});}
- const access=R.tDoubleAccess(state.board);assert.equal(access.reachable,true);const witness=['HOLD',...access.witness],r=R.replay(state,witness);assert(r.valid);assert.equal(r.events.length,1);assert.equal(r.events[0].spin,'full');assert.equal(r.events[0].lines,2);steps.push({target:r.events[0].target,witness,event:r.events[0],hold:true,holdCount:1});
- const root=request.observation,first=steps[0];return{target:first.target,witness:first.witness,hold:false,holdCount:0,continuation:steps,context:JSON.stringify([root.rules,root.board,root.hold,root.canHold,root.queue,root.bag??null,root.active.type]),evidence:{cycleDebt:0}};
+const f = clone(original);
+for (let y = 25; y <= 28; y++)
+  f.request.observation.board[y] =
+    f.request.observation.board[y].slice(0, 2) +
+    'X' +
+    f.request.observation.board[y].slice(3);
+f.request.previous = null;
+f.request.commitment = null;
+f.request.options.obligationContext = RH.exportState(
+  RH.start(f.request.observation),
+);
+f.request.options.patternHistory = PH.start(f.request.observation);
+const eligible = require('./support/st-right-cap-eligible-harness.cjs');
+const bounds = {
+  depth: 3,
+  width: 8,
+  maxNodes: 45000,
+  timeMs: 1500,
+  now: () => 0,
+  deadline: Infinity,
+};
+const decide = (extra = {}, q = f.request, planner = P) =>
+  planner.decide(q.observation, {
+    ...q.options,
+    ...bounds,
+    previous: q.previous,
+    commitment: q.commitment,
+    ...extra,
+  });
+const cells = (x) =>
+  JSON.stringify(x.slice().sort(([a, b], [c, d]) => a - c || b - d));
+function replay(raw, a) {
+  let state = R.createState(raw),
+    lines = 0;
+  for (const step of a.continuation) {
+    const r = R.replay(state, step.witness);
+    assert(r.valid);
+    assert.equal(r.events.length, 1);
+    assert.deepEqual(r.events[0], step.event);
+    assert(S.canonicalClear(step.event));
+    lines += step.event.lines;
+    state = r.state;
+  }
+  return { state, lines };
+}
+function withoutMetrics(a) {
+  return JSON.parse(JSON.stringify({ ...a, metrics: undefined }));
 }
 
-test('Right roles preserve literal OLeft/cap/held-T coordinates on a roof-free synthetic admission control',()=>{
- const a=literalOAdvice();assert.equal(cells(a.continuation[0].event.cells),cells(f.expectedFirstCells));assert.equal(cells(a.continuation[1].event.cells),cells(f.expectedCapCells));assert.equal(replay(f.request.observation,a).lines,2);assert(P.revalidate(f.request.observation,a,{...f.request.options,...bounds}));
- const moved=R.move(f.request.observation,'L'),history=RH.importState(f.request.options.obligationContext,{position:f.request.observation}),options={...f.request.options,...bounds,obligationContext:RH.exportState(RH.applyActual(history,{before:f.request.observation,action:'L',after:moved}).context)};const advanced=P.advance(moved,a,'L',options);assert(advanced);assert.equal(cells(advanced.continuation[0].event.cells),cells(f.expectedFirstCells));assert.equal(replay(moved,advanced).lines,2);
+function literalOAdvice(request = f.request) {
+  let state = R.createState(request.observation);
+  const steps = [];
+  for (const witness of [
+    ['L', 'L', 'HD'],
+    ['CW', 'R', 'R', 'R', 'R', 'HD'],
+  ]) {
+    const before = state,
+      r = R.replay(state, witness);
+    assert(r.valid);
+    assert.equal(r.events.length, 1);
+    state = r.state;
+    const event = r.events[0];
+    steps.push({
+      target: event.target,
+      witness,
+      event,
+      hold: false,
+      holdCount: 0,
+      structuralEvidence: S.transition(before, { state, event }),
+    });
+  }
+  const access = R.tDoubleAccess(state.board);
+  assert.equal(access.reachable, true);
+  const witness = ['HOLD', ...access.witness],
+    r = R.replay(state, witness);
+  assert(r.valid);
+  assert.equal(r.events.length, 1);
+  assert.equal(r.events[0].spin, 'full');
+  assert.equal(r.events[0].lines, 2);
+  steps.push({
+    target: r.events[0].target,
+    witness,
+    event: r.events[0],
+    hold: true,
+    holdCount: 1,
+  });
+  const root = request.observation,
+    first = steps[0];
+  return {
+    target: first.target,
+    witness: first.witness,
+    hold: false,
+    holdCount: 0,
+    continuation: steps,
+    context: JSON.stringify([
+      root.rules,
+      root.board,
+      root.hold,
+      root.canHold,
+      root.queue,
+      root.bag ?? null,
+      root.active.type,
+    ]),
+    evidence: { cycleDebt: 0 },
+  };
+}
+
+test('Right roles preserve literal OLeft/cap/held-T coordinates on a roof-free synthetic admission control', () => {
+  const a = literalOAdvice();
+  assert.equal(
+    cells(a.continuation[0].event.cells),
+    cells(f.expectedFirstCells),
+  );
+  assert.equal(cells(a.continuation[1].event.cells), cells(f.expectedCapCells));
+  assert.equal(replay(f.request.observation, a).lines, 2);
+  assert(
+    P.revalidate(f.request.observation, a, { ...f.request.options, ...bounds }),
+  );
+  const moved = R.move(f.request.observation, 'L'),
+    history = RH.importState(f.request.options.obligationContext, {
+      position: f.request.observation,
+    }),
+    options = {
+      ...f.request.options,
+      ...bounds,
+      obligationContext: RH.exportState(
+        RH.applyActual(history, {
+          before: f.request.observation,
+          action: 'L',
+          after: moved,
+        }).context,
+      ),
+    };
+  const advanced = P.advance(moved, a, 'L', options);
+  assert(advanced);
+  assert.equal(
+    cells(advanced.continuation[0].event.cells),
+    cells(f.expectedFirstCells),
+  );
+  assert.equal(replay(moved, advanced).lines, 2);
 });
 
-test('Right roles supersede the old O-Right incumbent without disabling the cap/score route',()=>{
- const off=decide({disableRightCapPreference:true}),a=decide();assert.deepEqual(withoutMetrics(a),withoutMetrics(off));
- assert.equal(a.metrics.rightCapPreference,undefined,'The old O-Right branch is intentionally no longer eligible');
- assert(a.continuation[0].event.cells.every(([x])=>x<7),'The ordinary O must stay out of Right');assert.equal(cells(a.continuation[1].event.cells),cells(f.expectedCapCells));
- assert.deepEqual(a.continuation.map(p=>[p.event.type,p.event.lines]),[['O',0],['Z',0],['T',2]]);
- assert.equal(a.continuation[2].holdCount,1);assert.equal(a.evidence.resourceObligations.status,'checked');assert.equal(a.evidence.gapAccess.reachable,true);assert(a.metrics.nodes<=45000);assert.equal(replay(f.request.observation,a).lines,2);
- for(const p of a.continuation)assert(p.event.cells.every(([x])=>x<7)||['Z','T','I'].includes(p.event.type));
+test('Right roles supersede the old O-Right incumbent without disabling the cap/score route', () => {
+  const off = decide({ disableRightCapPreference: true }),
+    a = decide();
+  assert.deepEqual(withoutMetrics(a), withoutMetrics(off));
+  assert.equal(
+    a.metrics.rightCapPreference,
+    undefined,
+    'The old O-Right branch is intentionally no longer eligible',
+  );
+  assert(
+    a.continuation[0].event.cells.every(([x]) => x < 7),
+    'The ordinary O must stay out of Right',
+  );
+  assert.equal(cells(a.continuation[1].event.cells), cells(f.expectedCapCells));
+  assert.deepEqual(
+    a.continuation.map((p) => [p.event.type, p.event.lines]),
+    [
+      ['O', 0],
+      ['Z', 0],
+      ['T', 2],
+    ],
+  );
+  assert.equal(a.continuation[2].holdCount, 1);
+  assert.equal(a.evidence.resourceObligations.status, 'checked');
+  assert.equal(a.evidence.gapAccess.reachable, true);
+  assert(a.metrics.nodes <= 45000);
+  assert.equal(replay(f.request.observation, a).lines, 2);
+  for (const p of a.continuation)
+    assert(
+      p.event.cells.every(([x]) => x < 7) ||
+        ['Z', 'T', 'I'].includes(p.event.type),
+    );
 });
 
-
-
-test('Right cap preference: synthetic positive needs no repair while the original accessible roof is rejected',()=>{
- const a=decide(),first=a.continuation[0],r=R.replay(R.createState(f.request.observation),first.witness);
- const before=P.assess(f.request.observation.board),after=P.assess(r.state.board);
- assert.equal(after.covered,before.covered);assert.equal(after.leftSealed,before.leftSealed);assert.deepEqual(P.cavityRepairDebt(before,after,r.events[0],[]),[]);
- assert.equal(a.evidence.gapAccess.reachable,true);
- const old=literalOAdvice(original.request),proof=require('../st-access').repairPrefix(original.request.observation,old.continuation);
- assert.deepEqual(proof.steps[0].created,[[2,25],[2,26],[2,27],[2,28]]);assert.deepEqual(proof.outstandingCells,[[2,27],[2,28],[2,29],[2,30]]);assert.equal(proof.valid,false);
- assert.equal(P.revalidate(original.request.observation,old,{...original.request.options,...bounds}),null);
+test('Right cap preference: synthetic positive needs no repair while the original accessible roof is rejected', () => {
+  const a = decide(),
+    first = a.continuation[0],
+    r = R.replay(R.createState(f.request.observation), first.witness);
+  const before = P.assess(f.request.observation.board),
+    after = P.assess(r.state.board);
+  assert.equal(after.covered, before.covered);
+  assert.equal(after.leftSealed, before.leftSealed);
+  assert.deepEqual(P.cavityRepairDebt(before, after, r.events[0], []), []);
+  assert.equal(a.evidence.gapAccess.reachable, true);
+  const old = literalOAdvice(original.request),
+    proof = require('../st-access').repairPrefix(
+      original.request.observation,
+      old.continuation,
+    );
+  assert.deepEqual(proof.steps[0].created, [
+    [2, 25],
+    [2, 26],
+    [2, 27],
+    [2, 28],
+  ]);
+  assert.deepEqual(proof.outstandingCells, [
+    [2, 27],
+    [2, 28],
+    [2, 29],
+    [2, 30],
+  ]);
+  assert.equal(proof.valid, false);
+  assert.equal(
+    P.revalidate(original.request.observation, old, {
+      ...original.request.options,
+      ...bounds,
+    }),
+    null,
+  );
 });
 
-test('Right cap preference: public movement does not lose the current-piece proof or history binding',()=>{
- const q=clone(f.request),previous=decide(),before=R.createState(q.observation),h=RH.importState(q.options.obligationContext,{position:before}),moved=R.move(before,'L');assert.notEqual(moved,before);
- q.observation=P.observe(moved);q.options.obligationContext=RH.exportState(RH.applyActual(h,{before:before,action:'L',after:moved}).context);
- const advanced=P.advance(moved,previous,'L',{...q.options,...bounds});assert(advanced);assert.deepEqual(advanced.witness,previous.witness.slice(1));replay(q.observation,advanced);
- const a=decide({},q);assert(a.target,a.reason);assert.equal(a.metrics.rightCapPreference,undefined);assert(a.continuation[0].event.cells.every(([x])=>x<7));replay(q.observation,a);
+test('Right cap preference: public movement does not lose the current-piece proof or history binding', () => {
+  const q = clone(f.request),
+    previous = decide(),
+    before = R.createState(q.observation),
+    h = RH.importState(q.options.obligationContext, { position: before }),
+    moved = R.move(before, 'L');
+  assert.notEqual(moved, before);
+  q.observation = P.observe(moved);
+  q.options.obligationContext = RH.exportState(
+    RH.applyActual(h, { before: before, action: 'L', after: moved }).context,
+  );
+  const advanced = P.advance(moved, previous, 'L', { ...q.options, ...bounds });
+  assert(advanced);
+  assert.deepEqual(advanced.witness, previous.witness.slice(1));
+  replay(q.observation, advanced);
+  const a = decide({}, q);
+  assert(a.target, a.reason);
+  assert.equal(a.metrics.rightCapPreference, undefined);
+  assert(a.continuation[0].event.cells.every(([x]) => x < 7));
+  replay(q.observation, a);
 });
 
-test('Right cap preference: actual locks, normal reveals and HOLD retain the finite score obligation',()=>{
- let state=R.createState(f.request.observation),history=RH.importState(f.request.options.obligationContext,{position:state}),phase=f.request.options.patternHistory,advice=decide();
- const original=clone(advice.continuation);let draws=0;
- for(let i=0;i<3;i++){
-  const before=state,activeAdvice=advice;
-  for(const action of original[i].witness){const prior=state;state=R.move(state,action);assert.notEqual(state,prior);if(action==='HD'){state={...state,queue:[...state.queue,f.revealAfterLocks[draws]],bag:B.consume(state.bag,f.revealAfterLocks[draws])};draws++;}history=RH.applyActual(history,{before:prior,action:action,after:state}).context;if(action==='HD')phase=PH.update(phase,prior,state,state.lastEvent);if(i===2&&action==='HOLD'){const advanced=P.advance(state,activeAdvice,'HOLD',{...bounds,openingPhase:false,obligationContext:RH.exportState(history),patternHistory:phase});assert(advanced,'real held T remains valid after the actual HOLD');assert.equal(advanced.holdCount,0);assert.equal(advanced.continuation[0].event.lines,2);}}
-  assert.deepEqual(state.lastEvent,original[i].event);
-  const options={...bounds,obligationContext:RH.exportState(history),patternHistory:phase,openingPhase:false};
-  const retained=P.continueCommitment(before,state,activeAdvice,state.lastEvent,options);
-  if(i<2){assert(retained,'actual remaining cap/T goal must survive');assert.equal(retained.continuation.at(-1).event.lines,2);assert(P.revalidate(state,retained,options));advice=retained;}else assert.equal(retained,null);
- }
- assert.equal(draws,3);assert.equal(RH.resolve(history,{position:state}).availability,'unknown');
+test('Right cap preference: actual locks, normal reveals and HOLD retain the finite score obligation', () => {
+  let state = R.createState(f.request.observation),
+    history = RH.importState(f.request.options.obligationContext, {
+      position: state,
+    }),
+    phase = f.request.options.patternHistory,
+    advice = decide();
+  const original = clone(advice.continuation);
+  let draws = 0;
+  for (let i = 0; i < 3; i++) {
+    const before = state,
+      activeAdvice = advice;
+    for (const action of original[i].witness) {
+      const prior = state;
+      state = R.move(state, action);
+      assert.notEqual(state, prior);
+      if (action === 'HD') {
+        state = {
+          ...state,
+          queue: [...state.queue, f.revealAfterLocks[draws]],
+          bag: B.consume(state.bag, f.revealAfterLocks[draws]),
+        };
+        draws++;
+      }
+      history = RH.applyActual(history, {
+        before: prior,
+        action: action,
+        after: state,
+      }).context;
+      if (action === 'HD')
+        phase = PH.update(phase, prior, state, state.lastEvent);
+      if (i === 2 && action === 'HOLD') {
+        const advanced = P.advance(state, activeAdvice, 'HOLD', {
+          ...bounds,
+          openingPhase: false,
+          obligationContext: RH.exportState(history),
+          patternHistory: phase,
+        });
+        assert(advanced, 'real held T remains valid after the actual HOLD');
+        assert.equal(advanced.holdCount, 0);
+        assert.equal(advanced.continuation[0].event.lines, 2);
+      }
+    }
+    assert.deepEqual(state.lastEvent, original[i].event);
+    const options = {
+      ...bounds,
+      obligationContext: RH.exportState(history),
+      patternHistory: phase,
+      openingPhase: false,
+    };
+    const retained = P.continueCommitment(
+      before,
+      state,
+      activeAdvice,
+      state.lastEvent,
+      options,
+    );
+    if (i < 2) {
+      assert(retained, 'actual remaining cap/T goal must survive');
+      assert.equal(retained.continuation.at(-1).event.lines, 2);
+      assert(P.revalidate(state, retained, options));
+      advice = retained;
+    } else assert.equal(retained, null);
+  }
+  assert.equal(draws, 3);
+  assert.equal(
+    RH.resolve(history, { position: state }).availability,
+    'unknown',
+  );
 });
 
-
-
-
-
-
-
-
-
-test('Right cap preference: caller/imported metadata is not optional admission authority',()=>{
- const a=decide({rightCapAdmission:()=>{throw Error('caller callback must not run');},rightCapPreference:{selected:true,lostCapCells:[]}});
- assert.equal(a.metrics.rightCapPreference,undefined);assert.equal(a.continuation[2].event.lines,2);
- const q=clone(f.request);q.options.obligationContext.inventory.nextId=0;const invalid=decide({},q);assert.equal(invalid.target,null);assert.notEqual(invalid.metrics.rightCapPreference?.selected,true);
+test('Right cap preference: caller/imported metadata is not optional admission authority', () => {
+  const a = decide({
+    rightCapAdmission: () => {
+      throw Error('caller callback must not run');
+    },
+    rightCapPreference: { selected: true, lostCapCells: [] },
+  });
+  assert.equal(a.metrics.rightCapPreference, undefined);
+  assert.equal(a.continuation[2].event.lines, 2);
+  const q = clone(f.request);
+  q.options.obligationContext.inventory.nextId = 0;
+  const invalid = decide({}, q);
+  assert.equal(invalid.target, null);
+  assert.notEqual(invalid.metrics.rightCapPreference?.selected, true);
 });
 
-test('Right cap preference: copied selection metadata cannot rescue a stale or forged continuation',()=>{
- const a=decide(),q=clone(f.request),forged=clone(a);forged.continuation[1].witness=['HD'];
- assert.equal(P.revalidate(q.observation,forged,{...q.options,...bounds}),null);
- const fresh=decide({previous:forged});assert.equal(fresh.metrics.rightCapPreference,undefined);assert.deepEqual(withoutMetrics(fresh),withoutMetrics(a));
- const stale=clone(a);stale.context='not-the-current-public-request';assert.equal(P.revalidate(q.observation,stale,{...q.options,...bounds}),null);
+test('Right cap preference: copied selection metadata cannot rescue a stale or forged continuation', () => {
+  const a = decide(),
+    q = clone(f.request),
+    forged = clone(a);
+  forged.continuation[1].witness = ['HD'];
+  assert.equal(
+    P.revalidate(q.observation, forged, { ...q.options, ...bounds }),
+    null,
+  );
+  const fresh = decide({ previous: forged });
+  assert.equal(fresh.metrics.rightCapPreference, undefined);
+  assert.deepEqual(withoutMetrics(fresh), withoutMetrics(a));
+  const stale = clone(a);
+  stale.context = 'not-the-current-public-request';
+  assert.equal(
+    P.revalidate(q.observation, stale, { ...q.options, ...bounds }),
+    null,
+  );
 });
 
-test('Right cap preference: depth and construction controls preserve their original decision path',()=>{
- for(const control of [{depth:2},{disableConstruction:true},{allowHold:false}]){const off=decide({...control,disableRightCapPreference:true}),on=decide(control);assert.equal(on.metrics.rightCapPreference,undefined);assert.deepEqual(withoutMetrics(on),withoutMetrics(off));}
+test('Right cap preference: depth and construction controls preserve their original decision path', () => {
+  for (const control of [
+    { depth: 2 },
+    { disableConstruction: true },
+    { allowHold: false },
+  ]) {
+    const off = decide({ ...control, disableRightCapPreference: true }),
+      on = decide(control);
+    assert.equal(on.metrics.rightCapPreference, undefined);
+    assert.deepEqual(withoutMetrics(on), withoutMetrics(off));
+  }
 });
 
-test('Right cap preference: existing actual scoring commitment is not replaced by the new preference',()=>{
- const a=decide({},timing.request),off=decide({disableRightCapPreference:true},timing.request);assert.equal(a.continuation[0].event.type,'T');assert.equal(a.continuation[0].event.lines,2);assert.equal(a.metrics.rightCapPreference,undefined);assert.deepEqual(withoutMetrics(a),withoutMetrics(off));
+test('Right cap preference: existing actual scoring commitment is not replaced by the new preference', () => {
+  const a = decide({}, timing.request),
+    off = decide({ disableRightCapPreference: true }, timing.request);
+  assert.equal(a.continuation[0].event.type, 'T');
+  assert.equal(a.continuation[0].event.lines, 2);
+  assert.equal(a.metrics.rightCapPreference, undefined);
+  assert.deepEqual(withoutMetrics(a), withoutMetrics(off));
 });
-
-
 
 // The old optional-branch harness forced a physically real but now forbidden
 // floating Right I. Keep that position as a rejection, not an eligible control.
-test('Right cap floor rule rejects the old floating-I incumbent without caller overrides',()=>{
- const q=eligible.request(),r=R.replay(q.observation,eligible.incumbentWitness);assert(r.valid);const event=r.events[0];
- assert(event.cells.every(([x])=>x===9));assert(!event.cells.some(([,y])=>y===39));assert.equal(P.ordinaryRightEligible(event),false);
- const step={target:event.target,event,witness:eligible.incumbentWitness,hold:false,holdCount:0};
- const old={...step,continuation:[step],context:JSON.stringify([q.observation.rules,q.observation.board,q.observation.hold,q.observation.canHold,q.observation.queue,q.observation.bag??null,q.observation.active.type]),evidence:{cycleDebt:0}};
- assert.equal(P.revalidate(q.observation,old,{...q.options,...bounds}),null);
- const a=decide({rightCapAdmission:()=>{throw Error('caller callback must not run');},rightCapPreference:{selected:true,lostCapCells:[]}},q);
- assert(a.target);assert(a.continuation.every(p=>S.rightIFloorAllowed(p.event)));replay(q.observation,a);assert(P.revalidate(q.observation,a,{...q.options,...bounds}));
+test('Right cap floor rule rejects the old floating-I incumbent without caller overrides', () => {
+  const q = eligible.request(),
+    r = R.replay(q.observation, eligible.incumbentWitness);
+  assert(r.valid);
+  const event = r.events[0];
+  assert(event.cells.every(([x]) => x === 9));
+  assert(!event.cells.some(([, y]) => y === 39));
+  assert.equal(P.ordinaryRightEligible(event), false);
+  const step = {
+    target: event.target,
+    event,
+    witness: eligible.incumbentWitness,
+    hold: false,
+    holdCount: 0,
+  };
+  const old = {
+    ...step,
+    continuation: [step],
+    context: JSON.stringify([
+      q.observation.rules,
+      q.observation.board,
+      q.observation.hold,
+      q.observation.canHold,
+      q.observation.queue,
+      q.observation.bag ?? null,
+      q.observation.active.type,
+    ]),
+    evidence: { cycleDebt: 0 },
+  };
+  assert.equal(
+    P.revalidate(q.observation, old, { ...q.options, ...bounds }),
+    null,
+  );
+  const a = decide(
+    {
+      rightCapAdmission: () => {
+        throw Error('caller callback must not run');
+      },
+      rightCapPreference: { selected: true, lostCapCells: [] },
+    },
+    q,
+  );
+  assert(a.target);
+  assert(a.continuation.every((p) => S.rightIFloorAllowed(p.event)));
+  replay(q.observation, a);
+  assert(P.revalidate(q.observation, a, { ...q.options, ...bounds }));
 });

@@ -62,21 +62,12 @@
       },
       "hold": "Z",
       "canHold": true,
-      "queue": [
-        "I",
-        "T",
-        "J",
-        "O",
-        "Z",
-        "L"
-      ],
+      "queue": ["I", "T", "J", "O", "Z", "L"],
       "revision": 23,
       "streamCursor": 29,
       "topOut": false,
       "bag": {
-        "remaining": [
-          0
-        ],
+        "remaining": [0],
         "observedCount": 35,
         "provenance": "known-phase"
       }
@@ -161,9 +152,7 @@
           ],
           "frontier": null,
           "knowledge": {
-            "remaining": [
-              0
-            ],
+            "remaining": [0],
             "observedCount": 35,
             "provenance": "known-phase"
           }
@@ -183,15 +172,8 @@
             "handoff": false,
             "residuals": [],
             "uncertainty": {
-              "S": [
-                0,
-                0,
-                0,
-                0
-              ],
-              "L": [
-                0
-              ]
+              "S": [0, 0, 0, 0],
+              "L": [0]
             }
           },
           "account": {
@@ -247,14 +229,7 @@
     },
     "hold": false,
     "holdCount": 0,
-    "witness": [
-      "R",
-      "R",
-      "R",
-      "R",
-      "CW",
-      "HD"
-    ],
+    "witness": ["R", "R", "R", "R", "CW", "HD"],
     "context": "[\"st-zero-v2\",[\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"..........\",\"....JJJ...\",\"....OOJ...\",\"....OO....\",\"....LLL...\",\"....LSS...\",\"IIIISS....\",\"IIIILLL...\",\"OOJILSS...\",\"OOJISS....\",\"TJJIJJJ...\",\"TTSIOOJ...\",\"TZSSOO...Z\",\"ZZTSLLL.ZZ\",\"ZZTTLSS.Z.\"],\"Z\",true,[\"I\",\"T\",\"J\",\"O\",\"Z\",\"L\"],{\"remaining\":[0],\"observedCount\":35,\"provenance\":\"known-phase\"},\"S\"]",
     "continuation": [
       {
@@ -266,14 +241,7 @@
         },
         "hold": false,
         "holdCount": 0,
-        "witness": [
-          "R",
-          "R",
-          "R",
-          "R",
-          "CW",
-          "HD"
-        ],
+        "witness": ["R", "R", "R", "R", "CW", "HD"],
         "event": {
           "type": "S",
           "target": {
@@ -283,22 +251,10 @@
             "rotation": 1
           },
           "cells": [
-            [
-              8,
-              34
-            ],
-            [
-              8,
-              35
-            ],
-            [
-              9,
-              35
-            ],
-            [
-              9,
-              36
-            ]
+            [8, 34],
+            [8, 35],
+            [9, 35],
+            [9, 36]
           ],
           "lines": 0,
           "clearedRows": [],

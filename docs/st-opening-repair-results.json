@@ -147,17 +147,8 @@
           "p95Ms": 814.141936,
           "maxMs": 819.6196070000005
         },
-        "postHandoffTsdLocks": [
-          25,
-          31,
-          42,
-          47,
-          53,
-          62
-        ],
-        "postHandoffQuadLocks": [
-          45
-        ],
+        "postHandoffTsdLocks": [25, 31, 42, 47, 53, 62],
+        "postHandoffQuadLocks": [45],
         "twoQuadsWithIntermediateTsd": false
       }
     },
@@ -169,9 +160,7 @@
         "locks": 49,
         "stop": "policy-violation",
         "censored": false,
-        "detail": [
-          "notch-transition"
-        ],
+        "detail": ["notch-transition"],
         "inputHash": "c679970bb8ed9823fc59b9837c68089ad46ce8e113f3d69926c73a7433912b40",
         "openingCompletedAt": 22,
         "lines": 6,
@@ -195,10 +184,7 @@
           "p95Ms": 806.1513049999994,
           "maxMs": 831.929392
         },
-        "postHandoffTsdLocks": [
-          24,
-          38
-        ],
+        "postHandoffTsdLocks": [24, 38],
         "postHandoffQuadLocks": [],
         "twoQuadsWithIntermediateTsd": false
       },
@@ -274,14 +260,8 @@
           "p95Ms": 806.3260719999998,
           "maxMs": 827.7672349999993
         },
-        "postHandoffTsdLocks": [
-          22,
-          33,
-          41
-        ],
-        "postHandoffQuadLocks": [
-          45
-        ],
+        "postHandoffTsdLocks": [22, 33, 41],
+        "postHandoffQuadLocks": [45],
         "twoQuadsWithIntermediateTsd": false
       },
       "candidate": {
@@ -316,11 +296,7 @@
           "p95Ms": 803.5026529999996,
           "maxMs": 824.1880669999991
         },
-        "postHandoffTsdLocks": [
-          22,
-          33,
-          37
-        ],
+        "postHandoffTsdLocks": [22, 33, 37],
         "postHandoffQuadLocks": [],
         "twoQuadsWithIntermediateTsd": false
       }

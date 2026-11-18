@@ -58,21 +58,12 @@
         },
         "hold": "T",
         "canHold": true,
-        "queue": [
-          "I",
-          "S",
-          "Z",
-          "T",
-          "O",
-          "L"
-        ],
+        "queue": ["I", "S", "Z", "T", "O", "L"],
         "revision": 248,
         "streamCursor": 39,
         "topOut": false,
         "bag": {
-          "remaining": [
-            83
-          ],
+          "remaining": [83],
           "observedCount": 45,
           "provenance": "known-phase"
         }
@@ -160,9 +151,7 @@
               "seenMask": 44
             },
             "knowledge": {
-              "remaining": [
-                83
-              ],
+              "remaining": [83],
               "observedCount": 45,
               "provenance": "known-phase"
             }
@@ -182,15 +171,8 @@
               "handoff": true,
               "residuals": [],
               "uncertainty": {
-                "S": [
-                  0,
-                  0,
-                  0,
-                  0
-                ],
-                "L": [
-                  0
-                ]
+                "S": [0, 0, 0, 0],
+                "L": [0]
               }
             },
             "account": {
@@ -296,21 +278,12 @@
         },
         "hold": "T",
         "canHold": true,
-        "queue": [
-          "I",
-          "O",
-          "Z",
-          "S",
-          "O",
-          "L"
-        ],
+        "queue": ["I", "O", "Z", "S", "O", "L"],
         "revision": 508,
         "streamCursor": 52,
         "topOut": false,
         "bag": {
-          "remaining": [
-            115
-          ],
+          "remaining": [115],
           "observedCount": 58,
           "provenance": "known-phase"
         }
@@ -398,9 +371,7 @@
               "seenMask": 12
             },
             "knowledge": {
-              "remaining": [
-                115
-              ],
+              "remaining": [115],
               "observedCount": 58,
               "provenance": "known-phase"
             }
@@ -420,15 +391,8 @@
               "handoff": true,
               "residuals": [],
               "uncertainty": {
-                "S": [
-                  0,
-                  0,
-                  0,
-                  0
-                ],
-                "L": [
-                  0
-                ]
+                "S": [0, 0, 0, 0],
+                "L": [0]
               }
             },
             "account": {
@@ -462,12 +426,7 @@
                 "blockedRows": [],
                 "source": "recognized-next-Z-cap"
               },
-              "coveredCells": [
-                [
-                  3,
-                  28
-                ]
-              ]
+              "coveredCells": [[3, 28]]
             },
             "dPending": false,
             "leftGoals": []

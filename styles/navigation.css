@@ -2,7 +2,9 @@
   font-family: ZZNav;
   src: url('../assets/fonts/Sunmoreslantfree-DOMDx.ttf');
 }
-body { margin: 0; }
+body {
+  margin: 0;
+}
 .app-nav {
   display: flex;
   flex-wrap: wrap;
@@ -23,20 +25,33 @@ body { margin: 0; }
   border-radius: 0;
   background: #222;
   color: #fff;
-  font: 12px ZZNav, sans-serif;
+  font:
+    12px ZZNav,
+    sans-serif;
   letter-spacing: 2px;
   line-height: 1.4;
   text-align: center;
   text-decoration: none;
   cursor: pointer;
-  transition: background-color .4s;
+  transition: background-color 0.4s;
 }
-.app-nav .button:hover { background: #4caf50; margin: 0; }
-.app-nav .button:focus-visible { outline: 3px solid #ffc85b; outline-offset: 2px; }
-.app-nav [aria-current="page"] { border-bottom-color: #ffc85b; }
+.app-nav .button:hover {
+  background: #4caf50;
+  margin: 0;
+}
+.app-nav .button:focus-visible {
+  outline: 3px solid #ffc85b;
+  outline-offset: 2px;
+}
+.app-nav [aria-current='page'] {
+  border-bottom-color: #ffc85b;
+}
 /* Flow layout reserves space below a wrapping menu instead of overlaying the
    fixed game. Keep board pixels unscaled so pointer editing stays accurate. */
-.game-scroll { max-width: 100%; overflow-x: auto; }
+.game-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
 .game-workspace {
   display: flex;
   width: max-content;

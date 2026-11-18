@@ -54,21 +54,12 @@
     },
     "hold": null,
     "canHold": true,
-    "queue": [
-      "Z",
-      "J",
-      "O",
-      "T",
-      "I",
-      "S"
-    ],
+    "queue": ["Z", "J", "O", "T", "I", "S"],
     "revision": 1,
     "streamCursor": 1,
     "topOut": false,
     "bag": {
-      "remaining": [
-        0
-      ],
+      "remaining": [0],
       "observedCount": 7,
       "provenance": "known-phase"
     }
@@ -76,9 +67,7 @@
   "steps": [
     {
       "action": "HOLD",
-      "revealed": [
-        "O"
-      ]
+      "revealed": ["O"]
     },
     {
       "action": "R",
@@ -102,9 +91,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "T"
-      ]
+      "revealed": ["T"]
     },
     {
       "action": "L",
@@ -116,9 +103,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "J"
-      ]
+      "revealed": ["J"]
     },
     {
       "action": "R",
@@ -126,9 +111,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "Z"
-      ]
+      "revealed": ["Z"]
     },
     {
       "action": "L",
@@ -148,9 +131,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "S"
-      ]
+      "revealed": ["S"]
     },
     {
       "action": "L",
@@ -250,9 +231,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "L"
-      ]
+      "revealed": ["L"]
     },
     {
       "action": "R",
@@ -260,9 +239,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "I"
-      ]
+      "revealed": ["I"]
     },
     {
       "action": "HOLD",
@@ -278,9 +255,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "S"
-      ]
+      "revealed": ["S"]
     },
     {
       "action": "L",
@@ -360,9 +335,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "L"
-      ]
+      "revealed": ["L"]
     },
     {
       "action": "HOLD",
@@ -430,9 +403,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "O"
-      ]
+      "revealed": ["O"]
     },
     {
       "action": "HOLD",
@@ -500,9 +471,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "I"
-      ]
+      "revealed": ["I"]
     },
     {
       "action": "L",
@@ -578,9 +547,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "J"
-      ]
+      "revealed": ["J"]
     },
     {
       "action": "HOLD",
@@ -656,9 +623,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "Z"
-      ]
+      "revealed": ["Z"]
     },
     {
       "action": "L",
@@ -754,9 +719,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "T"
-      ]
+      "revealed": ["T"]
     },
     {
       "action": "HOLD",
@@ -824,9 +787,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "O"
-      ]
+      "revealed": ["O"]
     },
     {
       "action": "CW",
@@ -878,9 +839,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "T"
-      ]
+      "revealed": ["T"]
     },
     {
       "action": "R",
@@ -888,9 +847,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "S"
-      ]
+      "revealed": ["S"]
     },
     {
       "action": "L",
@@ -970,9 +927,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "I"
-      ]
+      "revealed": ["I"]
     },
     {
       "action": "L",
@@ -1040,9 +995,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "J"
-      ]
+      "revealed": ["J"]
     },
     {
       "action": "HOLD",
@@ -1098,9 +1051,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "L"
-      ]
+      "revealed": ["L"]
     },
     {
       "action": "R",
@@ -1196,9 +1147,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "Z"
-      ]
+      "revealed": ["Z"]
     },
     {
       "action": "HOLD",
@@ -1226,9 +1175,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "O"
-      ]
+      "revealed": ["O"]
     },
     {
       "action": "R",
@@ -1320,9 +1267,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "S"
-      ]
+      "revealed": ["S"]
     },
     {
       "action": "R",
@@ -1330,9 +1275,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "I"
-      ]
+      "revealed": ["I"]
     },
     {
       "action": "L",
@@ -1356,9 +1299,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "J"
-      ]
+      "revealed": ["J"]
     },
     {
       "action": "L",
@@ -1378,9 +1319,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "T"
-      ]
+      "revealed": ["T"]
     },
     {
       "action": "R",
@@ -1392,9 +1331,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "Z"
-      ]
+      "revealed": ["Z"]
     },
     {
       "action": "R",
@@ -1418,15 +1355,11 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "L"
-      ]
+      "revealed": ["L"]
     },
     {
       "action": "HD",
-      "revealed": [
-        "Z"
-      ]
+      "revealed": ["Z"]
     },
     {
       "action": "HOLD",
@@ -1446,9 +1379,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "T"
-      ]
+      "revealed": ["T"]
     },
     {
       "action": "L",
@@ -1460,9 +1391,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "O"
-      ]
+      "revealed": ["O"]
     },
     {
       "action": "R",
@@ -1474,9 +1403,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "S"
-      ]
+      "revealed": ["S"]
     },
     {
       "action": "R",
@@ -1564,9 +1491,7 @@
     },
     {
       "action": "HD",
-      "revealed": [
-        "L"
-      ]
+      "revealed": ["L"]
     }
   ]
 }

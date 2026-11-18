@@ -77,7 +77,6 @@ requests exceeded 1500 ms slightly; none was the opening extension. The original
 750 ms restoration goal remains open. Final frozen production comparisons and
 full-suite results must be reported separately.
 
-
 ## Rejected generic candidate
 
 The broader `7e7d9da` candidate passed 576 behavioral tests and focused target-pose
@@ -97,7 +96,6 @@ The other two streams were identical. A narrower structural trial requires a
 new frozen comparison and cannot turn these failures into a reliability claim.
 
 The complete [rejected generic candidate summary](st-opening-root-ties-rejected-results-2026-10-24.json) retains all five pairs, including both regressions and common-horizon fields.
-
 
 ## Final narrowed development comparison
 
@@ -135,7 +133,6 @@ preserved as a failed aggregate run, not silently counted as a pass.
 
 See the [compact final paired results](st-opening-root-ties-narrow-results-2026-10-24.json)
 and the [separate rejected generic results](st-opening-root-ties-rejected-results-2026-10-24.json).
-
 
 ## Public-board visual controls
 

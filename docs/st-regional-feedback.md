@@ -16,16 +16,16 @@ No back-to-back state/scoring, new starting positions, untouched generalization 
 
 Reproduce with `node scripts/st-regional-comparison.cjs`: depth 3, width 8, 45,000 visited poses, no wall-clock cutoff. Baseline `7129d6b` has the same tree as published `06e8d1d`. All final prefixes replay with exact matching events. Columns are one-based.
 
-| Existing start | Baseline first move | Experimental prefix | Interpretation |
-| --- | --- | --- | --- |
-| Direct T double | Held I column 10 | Immediate TSD, S center 5–7, J left 1–2 | Avoids speculative I-wall/J-cap detour. |
-| S after clear | Held I column 9 | Held I column 1, J left 2–4, held S center 5–7 | Left repair precedes the center S. Not the literal reference order. |
-| Higher double | I 7–10 single | Held TSD, S center, L center | Immediate score followed by checked S/L construction. No B2B rationale. |
-| After quad | Held L 3–5 | Held L center 5–6, O center 6–7, Z left 2–4 | Removes the crossing placement, but does **not** execute the suggested S/L sequence. A possible S partner is not proof that the selected O continuation is preferable. |
-| Later held double | I 7–10 single | Held TSD, J left 1–2, O left 3–4 | Immediate TSD is preferred; the following J/O are left fillers, not the proposed center pair. Reviewed center alternatives remain replayable in tests. |
-| Moved active pose | Held I column 10 | Immediate TSD, S center, J left | Exact moved-pose witness verified. |
-| Independent preparation | Held I 7–10 single | Held horizontal I 1–4, TSD, horizontal I 1–4 | Keeps the flat left platform. No B2B rationale. |
-| Independent rebuild | I 7–10 single | Held Z 9–10, S center, L center | Right cap first, consistent with the existing reference. Horizontal left I remains another reviewed alternative. |
+| Existing start          | Baseline first move | Experimental prefix                            | Interpretation                                                                                                                                                         |
+| ----------------------- | ------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Direct T double         | Held I column 10    | Immediate TSD, S center 5–7, J left 1–2        | Avoids speculative I-wall/J-cap detour.                                                                                                                                |
+| S after clear           | Held I column 9     | Held I column 1, J left 2–4, held S center 5–7 | Left repair precedes the center S. Not the literal reference order.                                                                                                    |
+| Higher double           | I 7–10 single       | Held TSD, S center, L center                   | Immediate score followed by checked S/L construction. No B2B rationale.                                                                                                |
+| After quad              | Held L 3–5          | Held L center 5–6, O center 6–7, Z left 2–4    | Removes the crossing placement, but does **not** execute the suggested S/L sequence. A possible S partner is not proof that the selected O continuation is preferable. |
+| Later held double       | I 7–10 single       | Held TSD, J left 1–2, O left 3–4               | Immediate TSD is preferred; the following J/O are left fillers, not the proposed center pair. Reviewed center alternatives remain replayable in tests.                 |
+| Moved active pose       | Held I column 10    | Immediate TSD, S center, J left                | Exact moved-pose witness verified.                                                                                                                                     |
+| Independent preparation | Held I 7–10 single  | Held horizontal I 1–4, TSD, horizontal I 1–4   | Keeps the flat left platform. No B2B rationale.                                                                                                                        |
+| Independent rebuild     | I 7–10 single       | Held Z 9–10, S center, L center                | Right cap first, consistent with the existing reference. Horizontal left I remains another reviewed alternative.                                                       |
 
 All eight formerly problematic first placements disappear. This is not a claim that every revised choice is optimal or that each suggestion was implemented literally. Absence from a positive Fumen sample is not proof a move is wrong.
 
@@ -33,11 +33,11 @@ All eight formerly problematic first placements disappear. This is not a claim t
 
 Same three **already-defined** streams, same 36-lock budget, six-piece preview and independent witness replay:
 
-| Existing stream | Baseline TSDs / ending height | Experiment TSDs / ending height |
-| --- | --- | --- |
-| O filler | 2 / 6 | 2 / 19 |
-| Marathon preparation | 3 / 8 | 3 / 17 |
-| Marathon rebuild | 2 / 5 | 2 / 18 |
+| Existing stream      | Baseline TSDs / ending height | Experiment TSDs / ending height |
+| -------------------- | ----------------------------- | ------------------------------- |
+| O filler             | 2 / 6                         | 2 / 19                          |
+| Marathon preparation | 3 / 8                         | 3 / 17                          |
+| Marathon rebuild     | 2 / 5                         | 2 / 18                          |
 
 All experiments execute 36 locks without top-out or invalid witnesses, but all finish without executable T entry. Independent review reproduced those endpoints. Recognized center motifs and zero measured frontier/scoring-row deficits do not capture renewable scoring structure. Merely surviving these streams is not a pass.
 

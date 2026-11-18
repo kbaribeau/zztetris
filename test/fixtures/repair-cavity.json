@@ -56,21 +56,12 @@
       },
       "hold": "T",
       "canHold": true,
-      "queue": [
-        "I",
-        "Z",
-        "O",
-        "S",
-        "T",
-        "L"
-      ],
+      "queue": ["I", "Z", "O", "S", "T", "L"],
       "revision": 611,
       "streamCursor": 67,
       "topOut": false,
       "bag": {
-        "remaining": [
-          75
-        ],
+        "remaining": [75],
         "observedCount": 73,
         "provenance": "known-phase"
       }
@@ -158,9 +149,7 @@
             "seenMask": 52
           },
           "knowledge": {
-            "remaining": [
-              75
-            ],
+            "remaining": [75],
             "observedCount": 73,
             "provenance": "known-phase"
           }
@@ -195,15 +184,8 @@
               }
             ],
             "uncertainty": {
-              "S": [
-                0,
-                0,
-                0,
-                0
-              ],
-              "L": [
-                0
-              ]
+              "S": [0, 0, 0, 0],
+              "L": [0]
             }
           },
           "account": {
@@ -238,30 +220,12 @@
               "source": "recognized-next-Z-cap"
             },
             "coveredCells": [
-              [
-                5,
-                31
-              ],
-              [
-                6,
-                27
-              ],
-              [
-                6,
-                29
-              ],
-              [
-                3,
-                27
-              ],
-              [
-                3,
-                28
-              ],
-              [
-                3,
-                29
-              ]
+              [5, 31],
+              [6, 27],
+              [6, 29],
+              [3, 27],
+              [3, 28],
+              [3, 29]
             ]
           },
           "dPending": false,
@@ -289,10 +253,5 @@
     "R",
     "HD"
   ],
-  "newCavity": [
-    [
-      3,
-      27
-    ]
-  ]
+  "newCavity": [[3, 27]]
 }

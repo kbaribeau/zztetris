@@ -51,21 +51,12 @@
   },
   "hold": "I",
   "canHold": true,
-  "queue": [
-    "S",
-    "J",
-    "O",
-    "I",
-    "L",
-    "J"
-  ],
+  "queue": ["S", "J", "O", "I", "L", "J"],
   "revision": 161,
   "streamCursor": 47,
   "topOut": false,
   "bag": {
-    "remaining": [
-      112
-    ],
+    "remaining": [112],
     "observedCount": 53,
     "provenance": "known-phase"
   },
@@ -78,22 +69,10 @@
       "rotation": 0
     },
     "cells": [
-      [
-        4,
-        28
-      ],
-      [
-        5,
-        28
-      ],
-      [
-        4,
-        29
-      ],
-      [
-        5,
-        29
-      ]
+      [4, 28],
+      [5, 28],
+      [4, 29],
+      [5, 29]
     ],
     "lines": 0,
     "clearedRows": [],

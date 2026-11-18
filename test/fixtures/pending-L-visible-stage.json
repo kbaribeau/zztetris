@@ -52,21 +52,12 @@
     },
     "hold": "Z",
     "canHold": true,
-    "queue": [
-      "T",
-      "I",
-      "O",
-      "Z",
-      "J",
-      "I"
-    ],
+    "queue": ["T", "I", "O", "Z", "J", "I"],
     "revision": 157,
     "streamCursor": 46,
     "topOut": false,
     "bag": {
-      "remaining": [
-        60
-      ],
+      "remaining": [60],
       "observedCount": 52,
       "provenance": "known-phase"
     }
@@ -149,9 +140,7 @@
         ],
         "frontier": null,
         "knowledge": {
-          "remaining": [
-            60
-          ],
+          "remaining": [60],
           "observedCount": 52,
           "provenance": "known-phase"
         }
@@ -171,15 +160,8 @@
           "handoff": false,
           "residuals": [],
           "uncertainty": {
-            "S": [
-              0,
-              0,
-              0,
-              0
-            ],
-            "L": [
-              0
-            ]
+            "S": [0, 0, 0, 0],
+            "L": [0]
           }
         },
         "account": {

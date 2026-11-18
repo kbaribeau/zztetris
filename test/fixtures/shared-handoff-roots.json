@@ -60,21 +60,12 @@
         },
         "hold": "Z",
         "canHold": true,
-        "queue": [
-          "T",
-          "O",
-          "Z",
-          "S",
-          "J",
-          "L"
-        ],
+        "queue": ["T", "O", "Z", "S", "J", "L"],
         "revision": 264,
         "streamCursor": 21,
         "topOut": false,
         "bag": {
-          "remaining": [
-            1
-          ],
+          "remaining": [1],
           "observedCount": 27,
           "provenance": "known-phase"
         }
@@ -153,21 +144,12 @@
             },
             "hold": "Z",
             "canHold": true,
-            "queue": [
-              "S",
-              "T",
-              "O",
-              "Z",
-              "S",
-              "J"
-            ],
+            "queue": ["S", "T", "O", "Z", "S", "J"],
             "revision": 263,
             "streamCursor": 20,
             "topOut": false,
             "bag": {
-              "remaining": [
-                5
-              ],
+              "remaining": [5],
               "observedCount": 26,
               "provenance": "known-phase"
             }
@@ -181,28 +163,13 @@
               "rotation": 2
             },
             "cells": [
-              [
-                6,
-                37
-              ],
-              [
-                7,
-                37
-              ],
-              [
-                8,
-                37
-              ],
-              [
-                7,
-                38
-              ]
+              [6, 37],
+              [7, 37],
+              [8, 37],
+              [7, 38]
             ],
             "lines": 2,
-            "clearedRows": [
-              37,
-              38
-            ],
+            "clearedRows": [37, 38],
             "spin": "full",
             "topOut": false
           }
@@ -273,9 +240,7 @@
               "seenMask": 126
             },
             "knowledge": {
-              "remaining": [
-                1
-              ],
+              "remaining": [1],
               "observedCount": 27,
               "provenance": "known-phase"
             }
@@ -310,15 +275,8 @@
                 }
               ],
               "uncertainty": {
-                "S": [
-                  0,
-                  0,
-                  0,
-                  0
-                ],
-                "L": [
-                  0
-                ]
+                "S": [0, 0, 0, 0],
+                "L": [0]
               }
             },
             "account": {
@@ -426,21 +384,12 @@
         },
         "hold": "S",
         "canHold": true,
-        "queue": [
-          "O",
-          "Z",
-          "S",
-          "J",
-          "L",
-          "I"
-        ],
+        "queue": ["O", "Z", "S", "J", "L", "I"],
         "revision": 289,
         "streamCursor": 22,
         "topOut": false,
         "bag": {
-          "remaining": [
-            0
-          ],
+          "remaining": [0],
           "observedCount": 28,
           "provenance": "known-phase"
         }
@@ -528,9 +477,7 @@
               "seenMask": 0
             },
             "knowledge": {
-              "remaining": [
-                0
-              ],
+              "remaining": [0],
               "observedCount": 28,
               "provenance": "known-phase"
             }
@@ -565,15 +512,8 @@
                 }
               ],
               "uncertainty": {
-                "S": [
-                  0,
-                  0,
-                  0,
-                  0
-                ],
-                "L": [
-                  0
-                ]
+                "S": [0, 0, 0, 0],
+                "L": [0]
               }
             },
             "account": {
@@ -681,21 +621,12 @@
         },
         "hold": "S",
         "canHold": true,
-        "queue": [
-          "Z",
-          "S",
-          "J",
-          "L",
-          "I",
-          "L"
-        ],
+        "queue": ["Z", "S", "J", "L", "I", "L"],
         "revision": 312,
         "streamCursor": 23,
         "topOut": false,
         "bag": {
-          "remaining": [
-            123
-          ],
+          "remaining": [123],
           "observedCount": 29,
           "provenance": "known-phase"
         }
@@ -774,21 +705,12 @@
             },
             "hold": "S",
             "canHold": true,
-            "queue": [
-              "O",
-              "Z",
-              "S",
-              "J",
-              "L",
-              "I"
-            ],
+            "queue": ["O", "Z", "S", "J", "L", "I"],
             "revision": 311,
             "streamCursor": 22,
             "topOut": false,
             "bag": {
-              "remaining": [
-                0
-              ],
+              "remaining": [0],
               "observedCount": 28,
               "provenance": "known-phase"
             }
@@ -802,28 +724,13 @@
               "rotation": 2
             },
             "cells": [
-              [
-                6,
-                36
-              ],
-              [
-                7,
-                36
-              ],
-              [
-                8,
-                36
-              ],
-              [
-                7,
-                37
-              ]
+              [6, 36],
+              [7, 36],
+              [8, 36],
+              [7, 37]
             ],
             "lines": 2,
-            "clearedRows": [
-              36,
-              37
-            ],
+            "clearedRows": [36, 37],
             "spin": "full",
             "topOut": false
           }
@@ -894,9 +801,7 @@
               "seenMask": 4
             },
             "knowledge": {
-              "remaining": [
-                123
-              ],
+              "remaining": [123],
               "observedCount": 29,
               "provenance": "known-phase"
             }
@@ -931,15 +836,8 @@
                 }
               ],
               "uncertainty": {
-                "S": [
-                  0,
-                  0,
-                  0,
-                  0
-                ],
-                "L": [
-                  0
-                ]
+                "S": [0, 0, 0, 0],
+                "L": [0]
               }
             },
             "account": {

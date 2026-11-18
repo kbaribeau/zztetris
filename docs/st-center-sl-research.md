@@ -122,7 +122,7 @@ certified recommendation handling are unchanged. The original regression is
 active again (no TODO), and the full suite passed before this resolution update.
 
 - **Reproduction target:** `fresh advice avoids the observed marathon-preparation
-  phase-losing placement` in
+phase-losing placement` in
   [test/st-autoplay-lost-phase.test.cjs](../test/st-autoplay-lost-phase.test.cjs),
   case 127 in the recorded suite. Use its `marathon-preparation` case from
   `test/support/st-autoplay-lost-phase.json`, `P.observe(c.snapshot)`, and
@@ -239,14 +239,14 @@ are **nonportable, disposable evidence locators**, not repository links,
 bootstrap dependencies or promises of permanent retention. Root:
 `/workspace/scratch/9bf9eb5bd93f/zztetris-cloud-audit/`.
 
-| Relative location | What to recover if still available |
-| --- | --- |
-| `center-eligibility-evidence/attempt-01/FINAL-REPORT.md` | Isolated rejection, six failures and source identities. Adjacent `incidental-i-diagnostic.json`, `retention-probe.json`, `baseline-prefix-eligibility.json` and frozen sources supply exact replay inputs. |
-| `right-entry-evidence/FINAL-RESEARCH-HANDOFF-2026-10-27.md` | V7 development context and its separate rejection. |
-| `right-entry-evidence/FINAL-V8-REJECTION-2026-10-27.md` | V8 rejection, actual Worker selection and terminal uncertainty. Adjacent `v8-frozen-source/` and `source-freeze-v8-sha256.txt` identify the rejected source. |
-| `manual-center-review-2026-10-28/DIAGNOSIS.md` | Concrete support-before-cover counterfactual; constructed witness, not recovered user input tape. |
-| `user-sl-seed1683-2026-10-28/README.md` | Corrected one-pair comparison; use `protocol-phase-controlled.json` and `paired-phase-controlled/`, not excluded `paired/`. |
-| `user-sl-seed1683-second-2026-10-28/README.md` | Exact request-29 equivalence and limits of the S43 observation. |
+| Relative location                                           | What to recover if still available                                                                                                                                                                         |
+| ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `center-eligibility-evidence/attempt-01/FINAL-REPORT.md`    | Isolated rejection, six failures and source identities. Adjacent `incidental-i-diagnostic.json`, `retention-probe.json`, `baseline-prefix-eligibility.json` and frozen sources supply exact replay inputs. |
+| `right-entry-evidence/FINAL-RESEARCH-HANDOFF-2026-10-27.md` | V7 development context and its separate rejection.                                                                                                                                                         |
+| `right-entry-evidence/FINAL-V8-REJECTION-2026-10-27.md`     | V8 rejection, actual Worker selection and terminal uncertainty. Adjacent `v8-frozen-source/` and `source-freeze-v8-sha256.txt` identify the rejected source.                                               |
+| `manual-center-review-2026-10-28/DIAGNOSIS.md`              | Concrete support-before-cover counterfactual; constructed witness, not recovered user input tape.                                                                                                          |
+| `user-sl-seed1683-2026-10-28/README.md`                     | Corrected one-pair comparison; use `protocol-phase-controlled.json` and `paired-phase-controlled/`, not excluded `paired/`.                                                                                |
+| `user-sl-seed1683-second-2026-10-28/README.md`              | Exact request-29 equivalence and limits of the S43 observation.                                                                                                                                            |
 
 If evidence is lost, retain these questions and case invariants, rebuild honest
 minimal fixtures, and rerun under a newly declared protocol before claiming

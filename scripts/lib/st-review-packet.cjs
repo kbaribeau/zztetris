@@ -1,71 +1,71 @@
-"use strict";
+'use strict';
 // Offline packet tooling. Never imported by the game or planner.
-const fs = require("node:fs"),
-  path = require("node:path"),
-  vm = require("node:vm");
-const assert = require("node:assert/strict"),
-  crypto = require("node:crypto");
-const { execFileSync } = require("node:child_process");
-const R = require("../../st-rules"),
-  S = require("../../st-session"),
-  Practice = require("../../st-practice");
-const Import = require("./st-review-import.cjs");
-const ROOT = path.resolve(__dirname, "../..");
+const fs = require('node:fs'),
+  path = require('node:path'),
+  vm = require('node:vm');
+const assert = require('node:assert/strict'),
+  crypto = require('node:crypto');
+const { execFileSync } = require('node:child_process');
+const R = require('../../st-rules'),
+  S = require('../../st-session'),
+  Practice = require('../../st-practice');
+const Import = require('./st-review-import.cjs');
+const ROOT = path.resolve(__dirname, '../..');
 const codec = vm.runInNewContext(
-  fs.readFileSync(path.join(ROOT, "tetris-fumen.js"), "utf8"),
+  fs.readFileSync(path.join(ROOT, 'tetris-fumen.js'), 'utf8'),
   { window: {} },
 )(2);
 const esc = (x) =>
-  String(x ?? "").replace(
+  String(x ?? '').replace(
     /[&<>"']/g,
     (c) =>
-      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[
         c
       ],
   );
 const clone = (x) => JSON.parse(JSON.stringify(x));
-const hash = (x) => crypto.createHash("sha256").update(x).digest("hex");
+const hash = (x) => crypto.createHash('sha256').update(x).digest('hex');
 function text(x, name) {
-  if (typeof x !== "string" || !x.trim() || x.length > 2000)
-    throw Error("Required short text: " + name);
+  if (typeof x !== 'string' || !x.trim() || x.length > 2000)
+    throw Error('Required short text: ' + name);
   return x;
 }
 function read(file) {
   if (fs.statSync(file).size > 512 * 1024 * 1024)
-    throw Error("Input exceeds 512 MiB");
-  return fs.readFileSync(file, "utf8");
+    throw Error('Input exceeds 512 MiB');
+  return fs.readFileSync(file, 'utf8');
 }
 function file(base, name) {
-  text(name, "input path");
+  text(name, 'input path');
   return path.resolve(base, name);
 }
 function json(base, name) {
   return JSON.parse(read(file(base, name)));
 }
 function fumenUrl(code) {
-  if (typeof code !== "string" || !/^v115@[A-Za-z0-9+/?]+$/.test(code))
-    throw Error("Invalid Fumen encoding");
+  if (typeof code !== 'string' || !/^v115@[A-Za-z0-9+/?]+$/.test(code))
+    throw Error('Invalid Fumen encoding');
   // The English viewer explicitly supports #?; no payload is sent to its server.
-  return "https://fumen.sixwi.de/#?" + code;
+  return 'https://fumen.sixwi.de/#?' + code;
 }
 function fumen(states, id) {
   const pages = states.map((state, i) => {
-    if (state.board.slice(0, 17).some((r) => r !== ".........."))
+    if (state.board.slice(0, 17).some((r) => r !== '..........'))
       throw Error(
-        "Fumen cannot represent occupied rows above row 17; use a smaller supported case, never silently crop.",
+        'Fumen cannot represent occupied rows above row 17; use a smaller supported case, never silently crop.',
       );
     const field = codec.Field.create();
     for (let y = 17; y < 40; y++)
       for (let x = 0; x < 10; x++)
-        if (state.board[y][x] !== ".")
+        if (state.board[y][x] !== '.')
           field.set(
             x,
             39 - y,
-            state.board[y][x] === "#" ? "X" : state.board[y][x],
+            state.board[y][x] === '#' ? 'X' : state.board[y][x],
           );
     return {
       field,
-      comment: `${id}, page ${i + 1}: recorded settled board, no operation to apply. Active ${state.active?.type || "none"}; HOLD ${state.hold || "empty"}; visible next ${state.queue.join(" ")}.`,
+      comment: `${id}, page ${i + 1}: recorded settled board, no operation to apply. Active ${state.active?.type || 'none'}; HOLD ${state.hold || 'empty'}; visible next ${state.queue.join(' ')}.`,
       flags: { lock: false },
     };
   });
@@ -78,27 +78,27 @@ function fumen(states, id) {
     for (let y = 17; y < 40; y++)
       for (let x = 0; x < 10; x++)
         assert.equal(
-          p.field.at(x, 39 - y).replace("_", "."),
-          states[i].board[y][x] === "#" ? "X" : states[i].board[y][x],
+          p.field.at(x, 39 - y).replace('_', '.'),
+          states[i].board[y][x] === '#' ? 'X' : states[i].board[y][x],
         );
   });
   fumenUrl(code);
   return code;
 }
 const colors = {
-  I: "#53cddd",
-  J: "#647eef",
-  L: "#efa352",
-  O: "#f4dc68",
-  S: "#68ce83",
-  T: "#b985e5",
-  Z: "#e97180",
-  X: "#8893a5",
-  "#": "#8893a5",
+  I: '#53cddd',
+  J: '#647eef',
+  L: '#efa352',
+  O: '#f4dc68',
+  S: '#68ce83',
+  T: '#b985e5',
+  Z: '#e97180',
+  X: '#8893a5',
+  '#': '#8893a5',
 };
 function svg(state, id) {
   const cells = state.active ? R.cells(state.active) : [],
-    occupied = state.board.flatMap((r, y) => (r !== ".........." ? [y] : []));
+    occupied = state.board.flatMap((r, y) => (r !== '..........' ? [y] : []));
   const min = Math.min(17, ...occupied, ...cells.map((c) => c[1])),
     unit = 22,
     top = 65,
@@ -107,23 +107,23 @@ function svg(state, id) {
   let s = `<svg xmlns="http://www.w3.org/2000/svg" width="680" height="${height}" viewBox="0 0 680 ${height}"><rect width="680" height="${height}" fill="#101827"/><g font-family="sans-serif" fill="#edf3fc"><text x="24" y="30" font-size="20">${esc(id)} — public position</text>`;
   for (let y = min; y < 40; y++)
     for (let x = 0; x < 10; x++)
-      s += `<rect x="${35 + x * unit}" y="${top + (y - min) * unit}" width="21" height="21" fill="${colors[state.board[y][x]] || "#18263a"}" stroke="#35445c"/>`;
+      s += `<rect x="${35 + x * unit}" y="${top + (y - min) * unit}" width="21" height="21" fill="${colors[state.board[y][x]] || '#18263a'}" stroke="#35445c"/>`;
   for (const [x, y] of cells)
     s += `<rect x="${37 + x * unit}" y="${top + 2 + (y - min) * unit}" width="17" height="17" fill="none" stroke="${colors[state.active.type]}" stroke-width="3"/>`;
   const labels = [
-    `Active (outline): ${state.active?.type || "none"}`,
+    `Active (outline): ${state.active?.type || 'none'}`,
     state.active
       ? `x ${state.active.x}, y ${state.active.y}, rotation ${state.active.rotation}`
-      : "No active piece",
-    `HOLD: ${state.hold || "empty"}`,
-    `HOLD ${state.canHold ? "available" : "unavailable"}`,
-    "NEXT: visible draw order",
+      : 'No active piece',
+    `HOLD: ${state.hold || 'empty'}`,
+    `HOLD ${state.canHold ? 'available' : 'unavailable'}`,
+    'NEXT: visible draw order',
     ...Array.from(
       { length: 6 },
-      (_, i) => `${i + 1}. ${state.queue[i] || "not supplied"}`,
+      (_, i) => `${i + 1}. ${state.queue[i] || 'not supplied'}`,
     ),
     `Rows ${min}–39; row 39 is floor.`,
-    min === 17 ? "Rows 0–16 are empty." : "Expanded view includes upper rows.",
+    min === 17 ? 'Rows 0–16 are empty.' : 'Expanded view includes upper rows.',
   ];
   labels.forEach(
     (t, i) =>
@@ -131,25 +131,25 @@ function svg(state, id) {
   );
   for (let x = 0; x < 10; x++)
     s += `<text x="${41 + x * unit}" y="${bottom + 24}" font-size="12">${x + 1}</text>`;
-  return s + "</g></svg>";
+  return s + '</g></svg>';
 }
 function assertPublic(value) {
-  if (!value || typeof value !== "object") return;
+  if (!value || typeof value !== 'object') return;
   for (const [key, child] of Object.entries(value)) {
     if (
       [
-        "future",
-        "hiddenFuture",
-        "privatePractice",
-        "privateTape",
-        "tail",
-        "pieceOrigins",
-        "rng",
-        "seed",
-        "inputHash",
+        'future',
+        'hiddenFuture',
+        'privatePractice',
+        'privateTape',
+        'tail',
+        'pieceOrigins',
+        'rng',
+        'seed',
+        'inputHash',
       ].includes(key)
     )
-      throw Error("Evaluator-only data in public session: " + key);
+      throw Error('Evaluator-only data in public session: ' + key);
     assertPublic(child);
   }
 }
@@ -159,13 +159,13 @@ function requestSession(request, id) {
     previous: request.previous,
     commitment: request.commitment,
     search: S.defaults(),
-    suggestedFileName: id + "-coaching-export.json",
+    suggestedFileName: id + '-coaching-export.json',
   });
 }
 function prepareCase(c, base) {
   if (!c || !/^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/.test(c.id))
-    throw Error("Safe case id required");
-  for (const key of ["title", "question", "why", "sourceRevision"])
+    throw Error('Safe case id required');
+  for (const key of ['title', 'question', 'why', 'sourceRevision'])
     text(c[key], key);
   const inputs = {};
   function load(name, parse = true) {
@@ -186,23 +186,23 @@ function prepareCase(c, base) {
       !Number.isSafeInteger(c.beforeLock) ||
       c.beforeLock < 1
     )
-      throw Error("Trace case needs beforeLock, without session/privateTail");
-    const E = require("./st-simulation.cjs"),
+      throw Error('Trace case needs beforeLock, without session/privateTail');
+    const E = require('./st-simulation.cjs'),
       input = load(c.input),
       records = load(c.trace, false)
         .trim()
-        .split("\n")
+        .split('\n')
         .filter(Boolean)
         .map((x) => JSON.parse(x));
-    const locks = records.filter((r) => r.kind === "lock");
+    const locks = records.filter((r) => r.kind === 'lock');
     locks.forEach((r, i) =>
-      assert.equal(r.lock, i + 1, "Trace lock numbers must be contiguous"),
+      assert.equal(r.lock, i + 1, 'Trace lock numbers must be contiguous'),
     );
     const decision =
-      records.find((r) => r.kind === "lock" && r.lock === c.beforeLock) ||
-      records.find((r) => r.kind === "stop" && r.lock === c.beforeLock - 1);
+      records.find((r) => r.kind === 'lock' && r.lock === c.beforeLock) ||
+      records.find((r) => r.kind === 'stop' && r.lock === c.beforeLock - 1);
     if (!decision?.request)
-      throw Error("No recorded decision request at selected boundary");
+      throw Error('No recorded decision request at selected boundary');
     // Verify the whole supplied trace, not only the chosen endpoint.
     replay = E.replayRecords(input, records);
     const live = E.createSession(input),
@@ -210,7 +210,7 @@ function prepareCase(c, base) {
     for (const r of prefix)
       live.execute(
         r.advice,
-        records[0]?.commitmentReplay === "clock-tape-v1"
+        records[0]?.commitmentReplay === 'clock-tape-v1'
           ? { commitmentReplay: r.commitmentCheck }
           : {},
       );
@@ -223,7 +223,7 @@ function prepareCase(c, base) {
     assert.deepEqual(
       canonical(live.request(decision.request.id, decision.request.options)),
       canonical(decision.request),
-      "Boundary request must match replayed accounting and public state",
+      'Boundary request must match replayed accounting and public state',
     );
     session = requestSession(decision.request, c.id);
     tail = input.future.slice(live.cursor);
@@ -232,21 +232,21 @@ function prepareCase(c, base) {
     recordedSearch = decision.request.options;
     // Only search limits, never request internals or hidden input, go in overview.
     recordedSearch = Object.fromEntries(
-      ["timeMs", "depth", "width", "maxNodes"]
+      ['timeMs', 'depth', 'width', 'maxNodes']
         .filter((k) => Object.hasOwn(recordedSearch, k))
         .map((k) => [k, recordedSearch[k]]),
     );
   } else {
     if (c.input || c.beforeLock !== undefined)
-      throw Error("Session cases cannot claim a trace boundary");
+      throw Error('Session cases cannot claim a trace boundary');
     session = load(c.session);
     tail = c.privateTail ? load(c.privateTail) : [];
     boundary =
-      text(c.boundary, "boundary") +
-      "; Fumen page 1 (settled board, no operation).";
+      text(c.boundary, 'boundary') +
+      '; Fumen page 1 (settled board, no operation).';
     replay = {
       verified: false,
-      note: "Imported current checkpoint only. No historical action replay was supplied or verified.",
+      note: 'Imported current checkpoint only. No historical action replay was supplied or verified.',
     };
     states = [S.prepare(session).state];
   }
@@ -262,7 +262,7 @@ function prepareCase(c, base) {
   assert.deepEqual(
     states.at(-1),
     prepared.state,
-    "Fumen boundary differs from imported public snapshot",
+    'Fumen boundary differs from imported public snapshot',
   );
   const code = fumen(states, c.id),
     diagram = svg(prepared.state, c.id);
@@ -297,7 +297,7 @@ function zip(files) {
     const n = Buffer.from(name),
       b = Buffer.isBuffer(raw) ? raw : Buffer.from(raw);
     if (b.length > 0xffffffff || n.length > 65535 || offset > 0xffffffff)
-      throw Error("ZIP32 size limit");
+      throw Error('ZIP32 size limit');
     const h = Buffer.alloc(30);
     h.writeUInt32LE(0x04034b50);
     h.writeUInt16LE(20, 4);
@@ -332,20 +332,20 @@ function render(manifest, cases, revision) {
   const files = {};
   const put = (p, value) =>
     (files[p] =
-      typeof value === "string" || Buffer.isBuffer(value)
+      typeof value === 'string' || Buffer.isBuffer(value)
         ? value
-        : JSON.stringify(value, null, 2) + "\n");
-  const { Resvg } = require("@resvg/resvg-js");
-  let cards = "",
+        : JSON.stringify(value, null, 2) + '\n');
+  const { Resvg } = require('@resvg/resvg-js');
+  let cards = '',
     md = `# ${manifest.title}\n\nOpen [interactive review](review.html).\n\n${manifest.limitations}\n\nExpected app: ${manifest.expectedAppRevision}. Generator: ${revision}.\n\n`;
   for (const c of cases) {
-    const prefix = c.id + "/",
+    const prefix = c.id + '/',
       png = new Resvg(c.diagram).render().asPng();
-    put(prefix + "overview.svg", c.diagram);
-    put(prefix + "overview.png", png);
-    put(prefix + "public-session.json", c.session);
-    put(prefix + "long-practice.json", c.practice);
-    put(prefix + "position.fumen", c.code + "\n");
+    put(prefix + 'overview.svg', c.diagram);
+    put(prefix + 'overview.png', png);
+    put(prefix + 'public-session.json', c.session);
+    put(prefix + 'long-practice.json', c.practice);
+    put(prefix + 'position.fumen', c.code + '\n');
     const verification = {
       replay: c.replay,
       sessionWarnings: c.warnings,
@@ -353,8 +353,8 @@ function render(manifest, cases, revision) {
       obligationContextRoundTrip: true,
       planContinuityRoundTrip: true,
       fumenFieldsAndCommentsRoundTrip: true,
-      fumenGreyCells: "Both # and X occupied cells render as Fumen X (grey).",
-      diagramSource: "public-session.json",
+      fumenGreyCells: 'Both # and X occupied cells render as Fumen X (grey).',
+      diagramSource: 'public-session.json',
       privateTailPieces: c.practice.privatePractice.tail.length,
       sourceHashes: c.inputs,
       sourceRevision: c.sourceRevision,
@@ -362,22 +362,22 @@ function render(manifest, cases, revision) {
       recordedSearch: c.recordedSearch,
       importSearch: c.session.search,
       strategy:
-        "Recorded bounded outcomes, not proof of optimality or impossibility.",
+        'Recorded bounded outcomes, not proof of optimality or impossibility.',
     };
-    put(prefix + "validation.json", verification);
+    put(prefix + 'validation.json', verification);
     const link = fumenUrl(c.code),
       summary = c.replay.verified
         ? `All ${c.replay.locks} recorded locks in the supplied trace replayed. No search rerun.`
         : c.replay.note;
-    cards += `<article id="${c.id}"><h2>${esc(c.id)} — ${esc(c.title)}</h2><p>${esc(c.why)}</p><p><strong>Question:</strong> ${esc(c.question)}</p><p>${esc(c.boundary)}</p><p>Source: ${esc(c.sourceRevision)}. ${esc(summary)}</p><p>${esc(c.warnings.join(" "))}</p><img src="data:image/png;base64,${png.toString("base64")}" alt="${esc(c.id)} public board, active outline, HOLD and visible preview"/><p><a href="${prefix}overview.svg">SVG source</a> · <a href="${link}">Open English Fumen</a> · <a href="${prefix}validation.json">Validation details</a></p><details><summary>Selectable Fumen text</summary><textarea readonly>${esc(c.code)}</textarea></details>${Import.controls(c.practice, c.id)}<p>Finite private supply: ${c.practice.privatePractice.tail.length} draws after the visible preview. Restart restores this exercise. Ordinary exports exclude the private tail.</p><details><summary>Verification and limitations</summary><pre>${esc(JSON.stringify(verification, null, 2))}</pre></details></article>`;
+    cards += `<article id="${c.id}"><h2>${esc(c.id)} — ${esc(c.title)}</h2><p>${esc(c.why)}</p><p><strong>Question:</strong> ${esc(c.question)}</p><p>${esc(c.boundary)}</p><p>Source: ${esc(c.sourceRevision)}. ${esc(summary)}</p><p>${esc(c.warnings.join(' '))}</p><img src="data:image/png;base64,${png.toString('base64')}" alt="${esc(c.id)} public board, active outline, HOLD and visible preview"/><p><a href="${prefix}overview.svg">SVG source</a> · <a href="${link}">Open English Fumen</a> · <a href="${prefix}validation.json">Validation details</a></p><details><summary>Selectable Fumen text</summary><textarea readonly>${esc(c.code)}</textarea></details>${Import.controls(c.practice, c.id)}<p>Finite private supply: ${c.practice.privatePractice.tail.length} draws after the visible preview. Restart restores this exercise. Ordinary exports exclude the private tail.</p><details><summary>Verification and limitations</summary><pre>${esc(JSON.stringify(verification, null, 2))}</pre></details></article>`;
     md += `## ${c.id} — ${c.title}\n\n${c.why}\n\nQuestion: ${c.question}\n\n${c.boundary}\n\n[![${c.id} overview](${prefix}overview.png)](${prefix}overview.svg)\n\n[Play/copy import](review.html#${c.id}) · [English Fumen](${link}) · [Validation](${prefix}validation.json)\n\n${summary}\n\n`;
   }
-  put("README.md", md);
+  put('README.md', md);
   put(
-    "review.html",
-    `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(manifest.title)}</title><style>${css}</style></head><body><h1>${esc(manifest.title)}</h1><p class="notice">${esc(manifest.limitations)}</p><p>Expected app: ${esc(manifest.expectedAppRevision)}. Generator revision: ${esc(revision)}.</p><p>Open ST Lab at the expected revision. Copy the long-practice JSON, paste it into the existing textbox, then choose <strong>Import position or session</strong>. If clipboard access fails, copy the selected fallback text. These are diagrams, not screenshots.</p><nav>${cases.map((c) => `<a href="#${c.id}">${esc(c.id)}: ${esc(c.title)}</a>`).join(" · ")}</nav>${cards}<script>${clipboard}</script></body></html>`,
+    'review.html',
+    `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(manifest.title)}</title><style>${css}</style></head><body><h1>${esc(manifest.title)}</h1><p class="notice">${esc(manifest.limitations)}</p><p>Expected app: ${esc(manifest.expectedAppRevision)}. Generator revision: ${esc(revision)}.</p><p>Open ST Lab at the expected revision. Copy the long-practice JSON, paste it into the existing textbox, then choose <strong>Import position or session</strong>. If clipboard access fails, copy the selected fallback text. These are diagrams, not screenshots.</p><nav>${cases.map((c) => `<a href="#${c.id}">${esc(c.id)}: ${esc(c.title)}</a>`).join(' · ')}</nav>${cards}<script>${clipboard}</script></body></html>`,
   );
-  put("validation.json", {
+  put('validation.json', {
     schemaVersion: 1,
     generatorRevision: revision,
     caseIds: cases.map((c) => c.id),
@@ -385,26 +385,26 @@ function render(manifest, cases, revision) {
     portableLinks: true,
   });
   // Validate every generated local href/src (including fragments) before ZIP.
-  for (const html of [files["review.html"]])
+  for (const html of [files['review.html']])
     for (const match of html.matchAll(/(?:href|src)="([^"]+)"/g)) {
       const url = match[1];
-      if (url.startsWith("#")) {
-        assert(cases.some((c) => url === "#" + c.id));
+      if (url.startsWith('#')) {
+        assert(cases.some((c) => url === '#' + c.id));
         continue;
       }
-      if (url.startsWith("data:")) continue;
-      if (url.startsWith("https:")) {
-        assert(url.startsWith("https://fumen.sixwi.de/#?"));
-        assert.equal(new URL(url).search, "");
+      if (url.startsWith('data:')) continue;
+      if (url.startsWith('https:')) {
+        assert(url.startsWith('https://fumen.sixwi.de/#?'));
+        assert.equal(new URL(url).search, '');
         continue;
       }
-      assert(Object.hasOwn(files, url), "Broken local link " + url);
+      assert(Object.hasOwn(files, url), 'Broken local link ' + url);
     }
   put(
-    "SHA256SUMS",
+    'SHA256SUMS',
     Object.entries(files)
-      .map(([name, bytes]) => hash(bytes) + "  " + name)
-      .join("\n") + "\n",
+      .map(([name, bytes]) => hash(bytes) + '  ' + name)
+      .join('\n') + '\n',
   );
   return files;
 }
@@ -415,15 +415,15 @@ function validateManifest(m) {
     !m.cases.length ||
     m.cases.length > 100
   )
-    throw Error("Manifest v1 needs 1..100 cases");
-  for (const key of ["title", "expectedAppRevision", "limitations"])
+    throw Error('Manifest v1 needs 1..100 cases');
+  for (const key of ['title', 'expectedAppRevision', 'limitations'])
     text(m[key], key);
   if (new Set(m.cases.map((c) => c.id)).size !== m.cases.length)
-    throw Error("Duplicate case IDs");
+    throw Error('Duplicate case IDs');
 }
 function safeOutput(out) {
   const resolved = path.resolve(out);
-  if (fs.existsSync(resolved)) throw Error("Output must be a fresh directory");
+  if (fs.existsSync(resolved)) throw Error('Output must be a fresh directory');
   let ancestor = path.dirname(resolved);
   while (!fs.existsSync(ancestor)) ancestor = path.dirname(ancestor);
   // Real path prevents a symlink from concealing a worktree destination.
@@ -433,24 +433,24 @@ function safeOutput(out) {
   );
   try {
     execFileSync(
-      "git",
-      ["-C", path.dirname(actual), "rev-parse", "--show-toplevel"],
-      { stdio: "pipe" },
+      'git',
+      ['-C', path.dirname(actual), 'rev-parse', '--show-toplevel'],
+      { stdio: 'pipe' },
     );
-    throw Error("Output must be outside every Git worktree");
+    throw Error('Output must be outside every Git worktree');
   } catch (e) {
-    if (e.message === "Output must be outside every Git worktree") throw e;
+    if (e.message === 'Output must be outside every Git worktree') throw e;
   }
   // Check nearest existing ancestor too when nested output parents do not yet exist.
   try {
     execFileSync(
-      "git",
-      ["-C", fs.realpathSync(ancestor), "rev-parse", "--show-toplevel"],
-      { stdio: "pipe" },
+      'git',
+      ['-C', fs.realpathSync(ancestor), 'rev-parse', '--show-toplevel'],
+      { stdio: 'pipe' },
     );
-    throw Error("Output must be outside every Git worktree");
+    throw Error('Output must be outside every Git worktree');
   } catch (e) {
-    if (e.message === "Output must be outside every Git worktree") throw e;
+    if (e.message === 'Output must be outside every Git worktree') throw e;
   }
   return actual;
 }
@@ -460,17 +460,17 @@ function build(manifestPath, out) {
   validateManifest(m);
   const destination = safeOutput(out),
     cases = m.cases.map((c) => prepareCase(c, path.dirname(absolute)));
-  let revision = "unversioned";
+  let revision = 'unversioned';
   try {
-    revision = execFileSync("git", ["-C", ROOT, "rev-parse", "HEAD"], {
-      encoding: "utf8",
+    revision = execFileSync('git', ['-C', ROOT, 'rev-parse', 'HEAD'], {
+      encoding: 'utf8',
     }).trim();
     if (
-      execFileSync("git", ["-C", ROOT, "status", "--porcelain"], {
-        encoding: "utf8",
+      execFileSync('git', ['-C', ROOT, 'status', '--porcelain'], {
+        encoding: 'utf8',
       }).trim()
     )
-      revision += " (dirty)";
+      revision += ' (dirty)';
   } catch {}
   const files = render(m, cases, revision),
     archive = zip(files);
@@ -481,7 +481,7 @@ function build(manifestPath, out) {
     fs.mkdirSync(path.dirname(target), { recursive: true });
     fs.writeFileSync(target, bytes);
   }
-  fs.writeFileSync(path.join(destination, "packet.zip"), archive);
+  fs.writeFileSync(path.join(destination, 'packet.zip'), archive);
   return {
     directory: destination,
     cases: cases.length,

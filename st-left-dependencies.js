@@ -2,22 +2,22 @@
  * never placement witnesses or permission to bypass normal route admission. */
 (function (root, factory) {
   const api =
-    typeof module === "object" && module.exports
+    typeof module === 'object' && module.exports
       ? factory(
-          require("./st-left-contours"),
-          require("./st-rules"),
-          require("./st-structure"),
+          require('./st-left-contours'),
+          require('./st-rules'),
+          require('./st-structure'),
         )
       : factory(root.STLeftContours, root.STRules, root.STStructure);
-  if (typeof module === "object" && module.exports) module.exports = api;
+  if (typeof module === 'object' && module.exports) module.exports = api;
   else root.STLeftDependencies = api;
-})(typeof globalThis !== "undefined" ? globalThis : this, function (C, R, S) {
-  "use strict";
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (C, R, S) {
+  'use strict';
   function query(
     state,
     {
       heights,
-      coach = "midgame",
+      coach = 'midgame',
       openingAllocation = null,
       resources = null,
       centerDebt = [],
@@ -43,9 +43,9 @@
     );
     for (const debt of centerDebt)
       for (const a of debt.alternatives || []) reserved.add(a.piece);
-    if (center?.status === "supported-partner-completion")
+    if (center?.status === 'supported-partner-completion')
       for (const c of center.completions || [])
-        if (c.patternSupport === "reference-supported") reserved.add(c.piece);
+        if (c.patternSupport === 'reference-supported') reserved.add(c.piece);
     const token = (type, p) =>
       type ? { type, id: p?.type === type ? (p.id ?? null) : null } : null;
     const supply = {
@@ -60,38 +60,51 @@
       // existing allocation/T/crossing policy; ordinary admission is not its
       // authority. Reset retains ordinary reservations and identity checks,
       // with its already-scoped Left T permission checked on actual locks.
-      if (coach === "opener") {
-        if (piece.type === "T") return openingAllocation?.status === "pending" && openingAllocation.requiredNonRightT === 1;
-        if (piece.type === "L") return steps.length === 0 && state.board.every(row => row === "..........");
+      if (coach === 'opener') {
+        if (piece.type === 'T')
+          return (
+            openingAllocation?.status === 'pending' &&
+            openingAllocation.requiredNonRightT === 1
+          );
+        if (piece.type === 'L')
+          return (
+            steps.length === 0 &&
+            state.board.every((row) => row === '..........')
+          );
         return true;
       }
       if (reserved.has(piece.type)) return false;
-      if (piece.type === "T") return coach === "reset" && resources?.resetActive === true && resources.resetProgress === 1;
+      if (piece.type === 'T')
+        return (
+          coach === 'reset' &&
+          resources?.resetActive === true &&
+          resources.resetProgress === 1
+        );
       if (
-        piece.type === "I" &&
+        piece.type === 'I' &&
         (right?.cycle?.prepareColumn != null ||
           right?.cycle?.cleanupColumns?.length)
       )
         return false;
-      if (piece.type === "S" || piece.type === "L")
+      if (piece.type === 'S' || piece.type === 'L')
         return (
           piece.id !== null &&
-          (resources?.["hanging" + piece.type] || []).some(
+          (resources?.['hanging' + piece.type] || []).some(
             (p) => p.id === piece.id,
           )
         );
-      if (piece.type === "Z") {
-        if (right?.completions?.length || resources?.extraZ !== "available")
+      if (piece.type === 'Z') {
+        if (right?.completions?.length || resources?.extraZ !== 'available')
           return false;
         const allowance = Number.isSafeInteger(resources.extraZRemaining)
           ? resources.extraZRemaining
           : 1;
         return (
-          steps.filter((s) => s.dependency && s.piece.type === "Z").length <
+          steps.filter((s) => s.dependency && s.piece.type === 'Z').length <
           allowance
         );
       }
-      return "IJO".includes(piece.type);
+      return 'IJO'.includes(piece.type);
     };
     const result = C.candidates(heights, supply, {
       coach,

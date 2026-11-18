@@ -383,21 +383,12 @@
     },
     "hold": "O",
     "canHold": true,
-    "queue": [
-      "L",
-      "O",
-      "Z",
-      "S",
-      "J",
-      "I"
-    ],
+    "queue": ["L", "O", "Z", "S", "J", "I"],
     "revision": 276,
     "streamCursor": 15,
     "topOut": false,
     "bag": {
-      "remaining": [
-        0
-      ],
+      "remaining": [0],
       "observedCount": 21,
       "provenance": "known-phase"
     }
@@ -455,79 +446,22 @@
     },
     "hold": "O",
     "canHold": true,
-    "queue": [
-      "O",
-      "Z",
-      "S",
-      "J",
-      "I",
-      "S"
-    ],
+    "queue": ["O", "Z", "S", "J", "I", "S"],
     "revision": 300,
     "streamCursor": 16,
     "topOut": false,
     "bag": {
-      "remaining": [
-        111
-      ],
+      "remaining": [111],
       "observedCount": 22,
       "provenance": "known-phase"
     }
   },
   "bags": [
-    [
-      "J",
-      "I",
-      "T",
-      "L",
-      "O",
-      "S",
-      "Z"
-    ],
-    [
-      "I",
-      "J",
-      "L",
-      "T",
-      "Z",
-      "S",
-      "O"
-    ],
-    [
-      "T",
-      "L",
-      "O",
-      "Z",
-      "S",
-      "J",
-      "I"
-    ],
-    [
-      "S",
-      "T",
-      "I",
-      "O",
-      "J",
-      "L",
-      "Z"
-    ],
-    [
-      "J",
-      "L",
-      "Z",
-      "I",
-      "S",
-      "T",
-      "O"
-    ],
-    [
-      "J",
-      "L",
-      "Z",
-      "T",
-      "I",
-      "S",
-      "O"
-    ]
+    ["J", "I", "T", "L", "O", "S", "Z"],
+    ["I", "J", "L", "T", "Z", "S", "O"],
+    ["T", "L", "O", "Z", "S", "J", "I"],
+    ["S", "T", "I", "O", "J", "L", "Z"],
+    ["J", "L", "Z", "I", "S", "T", "O"],
+    ["J", "L", "Z", "T", "I", "S", "O"]
   ]
 }

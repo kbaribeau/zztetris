@@ -18,13 +18,13 @@ movement nodes, fresh structural caches, actual commitment/preview lifecycle,
 130-lock cap. Total comparison time was about 9.5 minutes. The converted-quiz
 continuation is explicitly synthetic and carries no original-player input claim.
 
-| Case | Baseline locks | Candidate locks | Baseline/candidate mean height at common endpoint |
-| --- | ---: | ---: | --- |
-| Preparation, seed 10333 | 130 | 54 | 10.5 / 15.3 |
-| Rebuild, seed 20333 | 130 | 66 | 8.3 / 15.4 |
-| Direct double, seed 20339 | 127 | 127 | 14.4 / 14.8 |
-| Right cap, seed 20336 | 101 | 101 | 14.9 / 14.9 |
-| Synthetic recovery from page 366 | 0 | 55 | No shared completed-lock endpoint |
+| Case                             | Baseline locks | Candidate locks | Baseline/candidate mean height at common endpoint |
+| -------------------------------- | -------------: | --------------: | ------------------------------------------------- |
+| Preparation, seed 10333          |            130 |              54 | 10.5 / 15.3                                       |
+| Rebuild, seed 20333              |            130 |              66 | 8.3 / 15.4                                        |
+| Direct double, seed 20339        |            127 |             127 | 14.4 / 14.8                                       |
+| Right cap, seed 20336            |            101 |             101 | 14.9 / 14.9                                       |
+| Synthetic recovery from page 366 |              0 |              55 | No shared completed-lock endpoint                 |
 
 Stops below 130 were abstentions, not topouts. No illegal witness, noncanonical
 clear, protected-notch breach or newly sealed internal cavity was observed.

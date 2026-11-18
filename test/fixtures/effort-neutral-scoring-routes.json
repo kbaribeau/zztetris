@@ -7,11 +7,7 @@
   "routes": {
     "baseline": {
       "witnesses": [
-        [
-          "L",
-          "L",
-          "HD"
-        ],
+        ["L", "L", "HD"],
         [
           "R",
           "R",
@@ -37,65 +33,22 @@
           "CW",
           "HD"
         ],
-        [
-          "HOLD",
-          "L",
-          "L",
-          "L",
-          "CCW",
-          "L",
-          "HD"
-        ],
-        [
-          "L",
-          "L",
-          "HD"
-        ]
+        ["HOLD", "L", "L", "L", "CCW", "L", "HD"],
+        ["L", "L", "HD"]
       ],
-      "pieces": [
-        "O",
-        "T",
-        "I",
-        "J"
-      ],
+      "pieces": ["O", "T", "I", "J"],
       "firstTsdLock": 2,
       "tsds": 1,
       "cycle": true
     },
     "effortNeutral": {
       "witnesses": [
-        [
-          "HOLD",
-          "L",
-          "L",
-          "L",
-          "CCW",
-          "L",
-          "HD"
-        ],
-        [
-          "HOLD",
-          "L",
-          "L",
-          "HD"
-        ],
-        [
-          "R",
-          "R180",
-          "HD"
-        ],
-        [
-          "L",
-          "L",
-          "HD"
-        ]
+        ["HOLD", "L", "L", "L", "CCW", "L", "HD"],
+        ["HOLD", "L", "L", "HD"],
+        ["R", "R180", "HD"],
+        ["L", "L", "HD"]
       ],
-      "pieces": [
-        "I",
-        "O",
-        "S",
-        "J"
-      ],
+      "pieces": ["I", "O", "S", "J"],
       "firstTsdLock": null,
       "tsds": 0,
       "cycle": false

@@ -54,22 +54,13 @@
     },
     "hold": "I",
     "canHold": true,
-    "queue": [
-      "L",
-      "J",
-      "O",
-      "S",
-      "Z",
-      "T"
-    ],
+    "queue": ["L", "J", "O", "S", "Z", "T"],
     "revision": 1795,
     "streamCursor": 233,
     "topOut": false,
     "lastEvent": null,
     "bag": {
-      "remaining": [
-        95
-      ],
+      "remaining": [95],
       "observedCount": 239,
       "provenance": "known-phase"
     }
@@ -101,12 +92,7 @@
       "CW",
       "HD"
     ],
-    "repair": [
-      "L",
-      "L",
-      "R180",
-      "HD"
-    ]
+    "repair": ["L", "L", "R180", "HD"]
   },
   "config": {
     "depth": 3,
@@ -115,11 +101,7 @@
     "timeMs": 750
   },
   "lockCap": 70,
-  "seeds": [
-    10331,
-    10333,
-    20333
-  ],
+  "seeds": [10331, 10333, 20333],
   "futureExtensions": {
     "10331": [
       "O",
@@ -467,9 +449,7 @@
           },
           "rawPhaseMismatches": 0,
           "laterPolicyViolations": [],
-          "forcedViolations": [
-            "spent-scoring-T-without-double"
-          ],
+          "forcedViolations": ["spent-scoring-T-without-double"],
           "blocker": {
             "lock": 42,
             "reason": "Checked continuations do not preserve the supported regional profile and headroom; no supported ST recommendation was established.",
@@ -565,9 +545,7 @@
           },
           "rawPhaseMismatches": 0,
           "laterPolicyViolations": [],
-          "forcedViolations": [
-            "spent-scoring-T-without-double"
-          ],
+          "forcedViolations": ["spent-scoring-T-without-double"],
           "blocker": {
             "lock": 57,
             "reason": "Checked continuations do not preserve the supported regional profile and headroom; no supported ST recommendation was established.",
@@ -663,9 +641,7 @@
           },
           "rawPhaseMismatches": 0,
           "laterPolicyViolations": [],
-          "forcedViolations": [
-            "spent-scoring-T-without-double"
-          ],
+          "forcedViolations": ["spent-scoring-T-without-double"],
           "blocker": {
             "status": "70-lock-cap"
           },

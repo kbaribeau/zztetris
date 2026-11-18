@@ -56,21 +56,12 @@
       },
       "hold": "J",
       "canHold": true,
-      "queue": [
-        "S",
-        "Z",
-        "L",
-        "O",
-        "J",
-        "T"
-      ],
+      "queue": ["S", "Z", "L", "O", "J", "T"],
       "revision": 165,
       "streamCursor": 15,
       "topOut": false,
       "bag": {
-        "remaining": [
-          0
-        ],
+        "remaining": [0],
         "observedCount": 21,
         "provenance": "known-phase"
       }
@@ -158,9 +149,7 @@
             "seenMask": 0
           },
           "knowledge": {
-            "remaining": [
-              0
-            ],
+            "remaining": [0],
             "observedCount": 21,
             "provenance": "known-phase"
           }
@@ -180,15 +169,8 @@
             "handoff": false,
             "residuals": [],
             "uncertainty": {
-              "S": [
-                0,
-                0,
-                0,
-                0
-              ],
-              "L": [
-                0
-              ]
+              "S": [0, 0, 0, 0],
+              "L": [0]
             }
           },
           "account": {
@@ -204,14 +186,8 @@
               "rightZ": 1,
               "imbalance": 0,
               "roof": [
-                [
-                  9,
-                  37
-                ],
-                [
-                  9,
-                  38
-                ]
+                [9, 37],
+                [9, 38]
               ]
             },
             "profile": {
@@ -327,22 +303,10 @@
           "rotation": 1
         },
         "cells": [
-          [
-            4,
-            29
-          ],
-          [
-            5,
-            29
-          ],
-          [
-            4,
-            30
-          ],
-          [
-            4,
-            31
-          ]
+          [4, 29],
+          [5, 29],
+          [4, 30],
+          [4, 31]
         ],
         "lines": 0,
         "clearedRows": [],
@@ -429,22 +393,10 @@
           "rotation": 3
         },
         "cells": [
-          [
-            3,
-            30
-          ],
-          [
-            3,
-            31
-          ],
-          [
-            3,
-            32
-          ],
-          [
-            3,
-            33
-          ]
+          [3, 30],
+          [3, 31],
+          [3, 32],
+          [3, 33]
         ],
         "lines": 0,
         "clearedRows": [],
@@ -530,22 +482,10 @@
           "rotation": 1
         },
         "cells": [
-          [
-            6,
-            29
-          ],
-          [
-            5,
-            30
-          ],
-          [
-            6,
-            30
-          ],
-          [
-            5,
-            31
-          ]
+          [6, 29],
+          [5, 30],
+          [6, 30],
+          [5, 31]
         ],
         "lines": 0,
         "clearedRows": [],
