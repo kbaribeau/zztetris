@@ -2,7 +2,7 @@
 
 This file is the project's committed home for project-intrinsic agent knowledge: build, test, release, architecture, and sharp-edge notes that should travel with the code.
 
-- Static GitHub Pages app: no build step. Test setup, coverage and renderer/host limits live in [TESTING.md](./TESTING.md); run `npm test` using `.nvmrc`.
+- Static GitHub Pages app: no build step. Test setup, coverage and renderer/host limits live in [TESTING.md](./TESTING.md); run `npm test` using `.nvmrc`. `npm ci` installs the staged-content formatting hook; use `npm run format` and `npm run format:check` (see TESTING.md).
 - Shared top navigation is defined in `navigation.js` and `styles/navigation.css`; actual-page coverage and the shipped-screen inventory guard live in `test/navigation.test.cjs`. Add new screens to the manifest in `test/support/pages.cjs`.
 - ST-lab architecture, rules profile and acceptance limits are documented in [ST-LAB.md](./ST-LAB.md). Read [docs/st-lab-vision.md](./docs/st-lab-vision.md) for product direction and the [acceptance map](./docs/st-milestone-acceptance.md) before implementing coaching.
 - For ST strategy research, read the relevant repository skill under `.agents/skills`: [collaborative review](.agents/skills/st-collaborative-review/SKILL.md) when reviewing decisions with a player, or [controlled experiments](.agents/skills/st-controlled-experiment/SKILL.md) for an authorized bounded investigation. Both use the [evaluation process](docs/st-research-workflow.md). Keep generated experiment evidence outside Git; only process definitions and deliberately minimized regression fixtures belong in source control.

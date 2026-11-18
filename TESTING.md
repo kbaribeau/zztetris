@@ -9,6 +9,36 @@ npm ci && npm test
 
 Installation needs access to the npm registry (or a populated npm cache). **Test execution is offline**: it does not start a server, download browser binaries, or launch any browser. Production is still the same static HTML/JavaScript site; the npm dependencies are development-only. There is no build step or GitHub Actions requirement.
 
+## Formatting and fresh cloud checkouts
+
+After selecting the pinned Node/npm versions above, run `npm ci` in the Git
+checkout. Its `prepare` lifecycle installs Husky's pre-commit hook automatically;
+no global formatter, copied hook, or CI service is required. Keep development
+dependencies and lifecycle scripts enabled. If installation used `--ignore-scripts`,
+run `npm run prepare` afterward. `git config --get core.hooksPath` should report
+`.husky/_`. Husky manages that setting; review any existing custom hooks before
+installing it in a checkout that has them.
+
+- `npm run format` formats supported repository files with the pinned Prettier.
+- `npm run format:check` checks the working tree without changing files.
+- `npm run format:staged` checks the exact staged content used by the hook.
+
+The hook checks a temporary snapshot of the Git index, including staged config
+and ignore files. It never writes to the index or working tree and rejects an
+unformatted staged file even if its working copy has already been formatted.
+After rejection, format, review the diff, then stage the intended changes again.
+With partial staging, review/reselect hunks explicitly; the hook never stages
+unrelated edits for you. Deleted files, symlinks and unsupported binary formats
+are not formatted. The third-party `tetris-fumen.js` bundle and generated or
+local output are excluded in `.prettierignore`. Temporary snapshots are removed
+on success and failure. Missing dependencies or formatter errors fail the check.
+
+`test/format-hook.test.cjs` exercises real commits in disposable repositories,
+including staged/worktree disagreement, partial staging, staged configuration,
+ignored files, unusual filenames, renames and deletions. These checks run offline
+using the installed dependencies. As with any local Git hook, `--no-verify` or
+`HUSKY=0` can bypass it; no server-side enforcement or CI is configured.
+
 ## Results and failures
 
 `npm test` runs Node's built-in test runner in isolated child processes, with its TAP reporter. The small `scripts/test.cjs` wrapper also writes:
@@ -96,16 +126,16 @@ When changing tests:
 
 The initial baseline has **58 named tests**, not a measured statement/branch coverage percentage.
 
-| Cases | Meaningful checks |
-| --- | --- |
-| `boot/*` (11) | All ten game pages plus controls load real scripts; active board/piece; 4w walls and 3/4/5/6 residue counts; 3w upper/lower well; cheese ten rows with one hole and differing adjacent columns. |
-| `settings/*` (30) | Absent/true/false gravity on every game page; actual checkbox change persists; config/version preserved; custom DAS/ARR/SDR/cell size/audio restored; next tick and runtime toggle; 4 ms grav vs 700 ms other modes. |
-| `persistence/*` (2) | A real preference toggle, modeled same-page reload and mode navigation across all ten pages, both enabled and disabled, preserving custom config. |
-| `controls/*` (2) | Actual key/input handlers save a binding and five numeric settings; all three engines consume them and honor the new key/audio volume. Actual inline Reset preserves gravity/unrelated storage; fresh pages restore defaults. |
-| `gameplay/*` (6) | Each of three engines: heap/wall collision and known ghost landing; hold/repeat suppression/unlimited swap; hard drop; semantic undo and redo after two locks. |
-| `timing/*` (3) | Each engine: frame-driven first movement; custom DAS=185 and ARR=31 deadlines; release cancels repeating; custom SDR=17 and release. |
-| `mode/cancelling` (1) | CancelStreak 19 vs 20 produces the base seven-piece bag vs one extra O. |
-| `host/*` (3) | Fresh realm/prototype/storage/clock/seed isolation; unknown resources denied; explicit network and unhandled event errors surfaced. |
+| Cases                 | Meaningful checks                                                                                                                                                                                                             |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `boot/*` (11)         | All ten game pages plus controls load real scripts; active board/piece; 4w walls and 3/4/5/6 residue counts; 3w upper/lower well; cheese ten rows with one hole and differing adjacent columns.                               |
+| `settings/*` (30)     | Absent/true/false gravity on every game page; actual checkbox change persists; config/version preserved; custom DAS/ARR/SDR/cell size/audio restored; next tick and runtime toggle; 4 ms grav vs 700 ms other modes.          |
+| `persistence/*` (2)   | A real preference toggle, modeled same-page reload and mode navigation across all ten pages, both enabled and disabled, preserving custom config.                                                                             |
+| `controls/*` (2)      | Actual key/input handlers save a binding and five numeric settings; all three engines consume them and honor the new key/audio volume. Actual inline Reset preserves gravity/unrelated storage; fresh pages restore defaults. |
+| `gameplay/*` (6)      | Each of three engines: heap/wall collision and known ghost landing; hold/repeat suppression/unlimited swap; hard drop; semantic undo and redo after two locks.                                                                |
+| `timing/*` (3)        | Each engine: frame-driven first movement; custom DAS=185 and ARR=31 deadlines; release cancels repeating; custom SDR=17 and release.                                                                                          |
+| `mode/cancelling` (1) | CancelStreak 19 vs 20 produces the base seven-piece bag vs one extra O.                                                                                                                                                       |
+| `host/*` (3)          | Fresh realm/prototype/storage/clock/seed isolation; unknown resources denied; explicit network and unhandled event errors surfaced.                                                                                           |
 
 The bag-boundary extension adds **20 `preview/*` cases** to that initial 58-case baseline. They inspect the actual preview canvas draw requests from all ten game pages: six sprite slots, 2px white outgoing-piece corner positions (including top/bottom edges and multiple custom segments), no invented separator, unknown piece slots, hold/spawn/reset/reshuffle/mirror/undo/redo transitions, queue editing, TETRIO import redraw, PC partial/special presets, and cancellation's augmented batch length. These draw-call assertions are not proof of painted pixels. A short real-browser check should inspect contrast, clipping, alignment and the preview at a narrow viewport whenever the preview renderer or sprites change.
 
@@ -172,13 +202,13 @@ Evidence from the original navigation head `f25299378c0a6e124c12cb9806ec9770a900
 
 Do not manually replay all rules/persistence permutations after a local suite pass. Browser evidence remains for host behavior that emulation cannot establish:
 
-| Change | Small residual check |
-| --- | --- |
-| HTML/CSS/canvas/sprites/deployed paths | Open an affected page under the deployed path; inspect board, ghost, hold/next, notifications and missing assets. Include narrow layout when styling changes. |
-| Keyboard/touch/timer adapters | Real key hold/release and opposite-key interaction; focus/scroll behavior; touch start/end on a real touch device if touched by the change. Browser timer clamping/throttling is not virtual-clock behavior. |
-| Settings or popup wiring | Edit a binding/timing, close the popup, reload and switch a mode in an actual browser profile. |
-| Audio, clipboard, drawing/image import | Check audible output/autoplay, permission behavior, pixel-to-cell geometry or image decoding only for the affected path. |
-| Script URLs/load strategy | Verify actual CDN/asset loading and startup, including the delayed-image comparison above when readiness changes. Controlled fake image completion does not prove browser painting or actual network behavior. |
+| Change                                 | Small residual check                                                                                                                                                                                           |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| HTML/CSS/canvas/sprites/deployed paths | Open an affected page under the deployed path; inspect board, ghost, hold/next, notifications and missing assets. Include narrow layout when styling changes.                                                  |
+| Keyboard/touch/timer adapters          | Real key hold/release and opposite-key interaction; focus/scroll behavior; touch start/end on a real touch device if touched by the change. Browser timer clamping/throttling is not virtual-clock behavior.   |
+| Settings or popup wiring               | Edit a binding/timing, close the popup, reload and switch a mode in an actual browser profile.                                                                                                                 |
+| Audio, clipboard, drawing/image import | Check audible output/autoplay, permission behavior, pixel-to-cell geometry or image decoding only for the affected path.                                                                                       |
+| Script URLs/load strategy              | Verify actual CDN/asset loading and startup, including the delayed-image comparison above when readiness changes. Controlled fake image completion does not prove browser painting or actual network behavior. |
 
 Sprite-readiness changes require the delayed-image browser comparison above in addition to local tests. The remaining checklist is supplemental risk-based evidence, not a request for GitHub CI.
 
@@ -203,7 +233,6 @@ episodes. This recommendation does not change the CLI's serial default or the
 production acceptance requirement: use one worker with ordinary timeouts and
 controlled host load for those measurements. See the runner guide for the
 optional `--no-search-timeout` mode and host-specific calibration limits.
-
 
 ### Serial-suite compilation cache
 

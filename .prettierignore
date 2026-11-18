@@ -1,0 +1,7 @@
+# Generated dependencies, retained test evidence, and bundled third-party code.
+node_modules/
+.npm-cache/
+test-results/
+tetris-fumen/
+tetris-fumen.js
+.husky/_/
