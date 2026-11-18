@@ -11,7 +11,7 @@
     "prepare": "husky",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "format:staged": "node scripts/check-staged-format.cjs"
+    "format:staged": "lint-staged --hide-all --diff-filter=ACMRT"
   },
   "engines": {
     "node": "24.22.0"
@@ -23,9 +23,13 @@
     "husky": "9.1.7",
     "jquery": "3.6.0",
     "jsdom": "30.1.3",
+    "lint-staged": "17.6.1",
     "prettier": "3.10.1"
   },
   "prettier": {
     "singleQuote": true
+  },
+  "lint-staged": {
+    "*": "prettier --check --ignore-unknown"
   }
 }

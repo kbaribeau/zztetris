@@ -25,23 +25,30 @@ installing it in a checkout that has them.
 - `npm run format:check` checks the working tree without changing files.
 - `npm run format:staged` checks the exact staged content used by the hook.
 
-The hook checks a temporary snapshot of the Git index, including staged config
-and ignore files. It never writes to the index or working tree and rejects an
-unformatted staged file even if its working copy has already been formatted.
-After rejection, format, review the diff, then stage the intended changes again.
-With partial staging, review/reselect hunks explicitly; the hook never stages
-unrelated edits for you. Deleted files, symlinks and unsupported binary formats
-are not formatted. The third-party `tetris-fumen.js` bundle and generated or
-local output are excluded in `.prettierignore`, as is the byte-preserved original
-`examples/st-stacking/kevin-208-lines.json` session archive and the compact
-`st-opening-patterns.js` asset with its existing shipped-size contract. Temporary snapshots are removed
-on success and failure. Missing dependencies or formatter errors fail the check.
+The hook uses Husky and lint-staged to run `prettier --check --ignore-unknown`
+on staged files. `--hide-all` temporarily hides unstaged changes and untracked
+files, so Prettier sees staged contents, formatting options and ignore rules.
+`--diff-filter=ACMRT` includes file-type changes as well as ordinary edits and
+renames. Symlinks and deleted files are excluded by lint-staged; Prettier skips
+unsupported formats and respects `.prettierignore`.
 
-`test/format-hook.test.cjs` exercises real commits in disposable repositories,
-including staged/worktree disagreement, partial staging, staged configuration,
-ignored files, unusual filenames, renames and deletions. These checks run offline
-using the installed dependencies. As with any local Git hook, `--no-verify` or
-`HUSKY=0` can bypass it; no server-side enforcement or CI is configured.
+This is a check-only gate. On rejection, format the intended changes, review the
+diff, and stage them again. Partially staged work is restored after checking;
+no formatter task writes or automatically fixes files. Lint-staged manages a
+backup stash and restoration instead of a repository-specific index checker.
+If interrupted or unable to restore changes, follow its printed recovery
+instructions and inspect the backup stash before proceeding.
+
+The vendored `tetris-fumen.js` bundle, generated/local output, original
+`examples/st-stacking/kevin-208-lines.json` session archive, and compact
+`st-opening-patterns.js` asset remain excluded from formatting. The latter two
+retain their existing byte-preservation and shipped-size contracts.
+
+No formatter-specific tests are added to the project suite. The existing
+source-instrumented regression tests use `test/support/source-seam.cjs` to find
+unique code locations despite formatting; that helper does not test Prettier.
+As with any local Git hook, `--no-verify` or `HUSKY=0` can bypass it. No CI or
+server-side formatting enforcement is configured.
 
 ## Results and failures
 
