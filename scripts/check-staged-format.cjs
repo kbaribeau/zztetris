@@ -13,7 +13,7 @@ try {
     'diff',
     '--cached',
     '--name-only',
-    '--diff-filter=ACMR',
+    '--diff-filter=ACMRT',
     '-z',
   )
     .toString()

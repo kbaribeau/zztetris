@@ -138,3 +138,23 @@ test('format-hook/handles spaces, newlines, leading dashes, renames, deletions a
   f.git('rm', 'line\nbreak.js');
   assert.equal(commit(f).status, 0);
 });
+
+test('format-hook/checks a symlink replaced by a regular source file', (t) => {
+  const f = fixture(t);
+  fs.symlinkSync('missing-target', path.join(f.directory, 'converted.js'));
+  f.git('add', 'converted.js');
+  assert.equal(commit(f).status, 0);
+  fs.unlinkSync(path.join(f.directory, 'converted.js'));
+  f.write('converted.js', 'const value={a:1}\n');
+  f.git('add', 'converted.js');
+  assert.match(
+    f.git('diff', '--cached', '--name-status'),
+    /^T\s+converted.js/m,
+  );
+  const before = state(f);
+  assert.notEqual(commit(f).status, 0);
+  assert.deepEqual(state(f), before);
+  f.write('converted.js', 'const value = { a: 1 };\n');
+  f.git('add', 'converted.js');
+  assert.equal(commit(f).status, 0);
+});
