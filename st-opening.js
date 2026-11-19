@@ -410,6 +410,8 @@
       );
     }
     function validStep(before, p, notches, raw = null) {
+      if (!S.leftCenterJAllowed({ board: before }, p, notches))
+        return rejectedStep(raw, 'unsupported-left-center-J-intrusion');
       if (!S.rightIFloorAllowed(p.event))
         return rejectedStep(raw, 'right-I-must-reach-floor');
       const P = getPlanner(),

@@ -283,6 +283,19 @@
             visited,
             reason: 'invalid-resource-witness',
           };
+        if (
+          !S.leftCenterJAllowed(
+            virtual,
+            { state: r.state, event: r.events[0] },
+            notches,
+          )
+        )
+          return {
+            ...checked,
+            valid: false,
+            visited,
+            reason: 'unsupported-left-center-J-intrusion',
+          };
         if (!options[pairedResetScope] && !ordinaryRightEligible(r.events[0]))
           return {
             ...checked,
@@ -2963,6 +2976,7 @@
       c.patternSupport === 'reference-supported' &&
       c.foundation?.status === 'aligned';
     function ordinaryCenterEligible(before, p, notches) {
+      if (!S.leftCenterJAllowed(before, p, notches)) return false;
       if (
         p.event.lines !== 0 ||
         !p.event.cells.every(([x]) => x >= 4 && x <= 6)
@@ -11488,6 +11502,12 @@
         }
         const event = replay.events[0],
           nextState = replay.state;
+        if (
+          !S.leftCenterJAllowed(state, { state: nextState, event }, notches)
+        ) {
+          reject('unsupported-left-center-J-intrusion');
+          continue;
+        }
         if (
           event.topOut ||
           nextState.topOut ||

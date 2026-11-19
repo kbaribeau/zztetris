@@ -759,6 +759,40 @@
       event.cells.some(([x, y]) => x === 9 && y === 39)
     );
   }
+  // Reviewed maintenance exclusion, not a ban on J crossings: source openings
+  // use those too. From this Left contour and supported level Center, the c3–5
+  // J adds an unsupported c5 step without repairing an existing Left vacancy.
+  // A finite legal continuation is not a stable obligation for this intrusion.
+  // Use actual pre-clear cells and relative heights, never pose/queue labels.
+  function leftCenterJAllowed(before, p, notches) {
+    const e = p.event;
+    if (e.type !== 'J' || e.lines !== 0 || e.cells.length !== 4) return true;
+    const bottom = Math.max(...e.cells.map(([, y]) => y));
+    if (
+      ![
+        [2, bottom - 1],
+        [2, bottom],
+        [3, bottom],
+        [4, bottom],
+      ].every(([x, y]) => e.cells.some(([cx, cy]) => cx === x && cy === y))
+    )
+      return true;
+    const prior = geometry(before.board, { notches }),
+      h = prior.center.profile[0];
+    if (
+      prior.left.covered ||
+      prior.center.status !== 'level' ||
+      prior.center.patternSupport !== 'reference-supported' ||
+      prior.center.foundation.status !== 'aligned' ||
+      !prior.center.profile.every((v) => v === h) ||
+      !prior.left.profile.every((v, x) => v === h + (x < 2 ? 1 : 0)) ||
+      bottom !== 39 - h
+    )
+      return true;
+    return (
+      geometry(p.state.board, { notches }).center.status !== 'unrecognized'
+    );
+  }
   function canonicalClear(event) {
     return (
       event.lines === 0 ||
@@ -1519,6 +1553,8 @@
     debt += opportunityCost;
     if (finish && pure === 'center') allocation = 'center-completion';
     const cycleViolations = [];
+    if (!leftCenterJAllowed(before, p, beforeNotches))
+      cycleViolations.push('unsupported-left-center-J-intrusion');
     if (!rightIFloorAllowed(p.event))
       cycleViolations.push('right-I-must-reach-floor');
     if (
@@ -1621,6 +1657,7 @@
     instances,
     allocate,
     rightIFloorAllowed,
+    leftCenterJAllowed,
     canonicalClear,
     centerTargets,
     centerFoundation,

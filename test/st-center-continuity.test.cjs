@@ -184,3 +184,447 @@ test('a shallow recognized motif does not repay a deep unresolved column beneath
     false,
   );
 });
+
+// Minimized native current context and the saved three-lock crossing from the
+// player-reviewed session. No hidden tail or historical transcript is needed.
+const regionReview = {
+  position: {
+    rules: 'st-zero-v2',
+    board: [
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      'OO........',
+      'OOJJLLL...',
+      'LLJJLSS...',
+      'ILJJSS....',
+      'ILJJLLL...',
+      'IOOJLSS...',
+      'IOOJSS....',
+      'OOJJLLL...',
+      'OOSSLSS...',
+      'IJJJLOO.Z.',
+      'IJJJLSS.Z.',
+      'OOOOLSS.Z.',
+    ],
+    active: { type: 'J', x: 2, y: 17, rotation: 0, lastRotation: null },
+    hold: 'I',
+    canHold: true,
+    queue: ['S', 'I', 'T', 'Z', 'O', 'L'],
+    revision: 2171,
+    streamCursor: 247,
+    topOut: false,
+    bag: { remaining: [123], observedCount: 253, provenance: 'known-phase' },
+  },
+  obligationContext: {
+    schemaVersion: 1,
+    status: 'available',
+    reason: null,
+    inventory: {
+      schemaVersion: 1,
+      status: 'available',
+      originKnown: true,
+      nextId: 254,
+      streamCursor: 247,
+      active: { id: 247, type: 'J', observedOrder: 246, bag: 35 },
+      hold: { id: 245, type: 'I', observedOrder: 244, bag: 34 },
+      queue: [
+        { id: 248, type: 'S', observedOrder: 247, bag: 35 },
+        { id: 249, type: 'I', observedOrder: 248, bag: 35 },
+        { id: 250, type: 'T', observedOrder: 249, bag: 35 },
+        { id: 251, type: 'Z', observedOrder: 250, bag: 35 },
+        { id: 252, type: 'O', observedOrder: 251, bag: 35 },
+        { id: 253, type: 'L', observedOrder: 252, bag: 36 },
+      ],
+      frontier: { bag: 36, seenMask: 4 },
+      knowledge: {
+        remaining: [123],
+        observedCount: 253,
+        provenance: 'known-phase',
+      },
+    },
+    state: {
+      schemaVersion: 2,
+      availability: 'known',
+      center: { pending: [], debt: [] },
+      sl: {
+        schemaVersion: 1,
+        status: 'known',
+        foundationOpen: false,
+        firstBagReview: 'reviewed',
+        handoff: true,
+        residuals: [
+          {
+            bag: 35,
+            S: null,
+            L: {
+              id: 246,
+              region: 'center',
+              opening: false,
+              pair: 'foreign',
+              nonRight: true,
+            },
+            order: null,
+            sOwedSinceL: false,
+            lBeforeSPair: false,
+          },
+        ],
+        uncertainty: { S: [0, 0, 0, 0], L: [0] },
+      },
+      account: {
+        schemaVersion: 1,
+        known: true,
+        firstTsd: true,
+        allocationVerified: true,
+        mandatoryZ: false,
+        thirdTWindow: false,
+        qualityCandidate: false,
+        opening: null,
+        profile: {
+          violation: false,
+          departure: false,
+          before: null,
+          capEstablished: true,
+        },
+        z: { remaining: 0, uncredited: 'none' },
+        reset: { status: 'inactive' },
+      },
+      safety: {
+        notches: {
+          version: 2,
+          status: 'established',
+          anchorRow: 34,
+          blockedRows: [],
+          source: 'recognized-next-Z-cap',
+        },
+        coveredCells: [],
+      },
+      dPending: false,
+      leftGoals: [],
+    },
+    boundary: { firstBagLocks: 7, sourcePatternSeen: true },
+  },
+  patternHistory: {
+    version: 2,
+    status: 'established',
+    anchorRow: 34,
+    blockedRows: [],
+    source: 'recognized-next-Z-cap',
+  },
+  previous: {
+    status: 'recommended-with-verified-prefix',
+    revision: 2171,
+    target: { type: 'J', x: 2, y: 26, rotation: 0 },
+    hold: false,
+    holdCount: 0,
+    witness: ['HD'],
+    reason:
+      'Place here without clearing a line. At the end of this sequence, the Well (column 8) stays below the Left and Center stacks.',
+    context:
+      '["st-zero-v2",["..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","OO........","OOJJLLL...","LLJJLSS...","ILJJSS....","ILJJLLL...","IOOJLSS...","IOOJSS....","OOJJLLL...","OOSSLSS...","IJJJLOO.Z.","IJJJLSS.Z.","OOOOLSS.Z."],"I",true,["S","I","T","Z","O","L"],{"remaining":[123],"observedCount":253,"provenance":"known-phase"},"J"]',
+    continuation: [
+      {
+        target: { type: 'J', x: 2, y: 26, rotation: 0 },
+        hold: false,
+        holdCount: 0,
+        witness: ['HD'],
+        event: {
+          type: 'J',
+          target: { type: 'J', x: 2, y: 26, rotation: 0 },
+          cells: [
+            [2, 27],
+            [2, 28],
+            [3, 28],
+            [4, 28],
+          ],
+          lines: 0,
+          clearedRows: [],
+          spin: 'none',
+          topOut: false,
+        },
+        resultContext:
+          '["st-zero-v2",["..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..J.......","OOJJJ.....","OOJJLLL...","LLJJLSS...","ILJJSS....","ILJJLLL...","IOOJLSS...","IOOJSS....","OOJJLLL...","OOSSLSS...","IJJJLOO.Z.","IJJJLSS.Z.","OOOOLSS.Z."],"I",true,["I","T","Z","O","L"],{"remaining":[123],"observedCount":253,"provenance":"known-phase"},"S"]',
+      },
+      {
+        target: { type: 'S', x: 0, y: 25, rotation: 0 },
+        hold: false,
+        holdCount: 0,
+        witness: ['L', 'L', 'L', 'HD'],
+        event: {
+          type: 'S',
+          target: { type: 'S', x: 0, y: 25, rotation: 0 },
+          cells: [
+            [1, 26],
+            [2, 26],
+            [0, 27],
+            [1, 27],
+          ],
+          lines: 0,
+          clearedRows: [],
+          spin: 'none',
+          topOut: false,
+        },
+        resultContext:
+          '["st-zero-v2",["..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........",".SS.......","SSJ.......","OOJJJ.....","OOJJLLL...","LLJJLSS...","ILJJSS....","ILJJLLL...","IOOJLSS...","IOOJSS....","OOJJLLL...","OOSSLSS...","IJJJLOO.Z.","IJJJLSS.Z.","OOOOLSS.Z."],"I",true,["T","Z","O","L"],{"remaining":[123],"observedCount":253,"provenance":"known-phase"},"I"]',
+      },
+      {
+        target: { type: 'I', x: 7, y: 36, rotation: 1 },
+        hold: false,
+        holdCount: 0,
+        witness: ['R', 'R', 'R', 'CW', 'R', 'HD'],
+        event: {
+          type: 'I',
+          target: { type: 'I', x: 7, y: 36, rotation: 1 },
+          cells: [
+            [9, 36],
+            [9, 37],
+            [9, 38],
+            [9, 39],
+          ],
+          lines: 0,
+          clearedRows: [],
+          spin: 'none',
+          topOut: false,
+        },
+        resultContext:
+          '["st-zero-v2",["..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........","..........",".SS.......","SSJ.......","OOJJJ.....","OOJJLLL...","LLJJLSS...","ILJJSS....","ILJJLLL...","IOOJLSS...","IOOJSS....","OOJJLLL...","OOSSLSS..I","IJJJLOO.ZI","IJJJLSS.ZI","OOOOLSS.ZI"],"I",true,["Z","O","L"],{"remaining":[123],"observedCount":253,"provenance":"known-phase"},"T"]',
+      },
+    ],
+    evidence: { cycleDebt: 0, strategy: 'canonical-right-ST' },
+  },
+};
+
+const reviewedOptions = () => ({
+  depth: null,
+  width: 8,
+  maxNodes: 45000,
+  now: () => 0,
+  deadline: Infinity,
+  openingPhase: false,
+  obligationContext: structuredClone(regionReview.obligationContext),
+  patternHistory: structuredClone(regionReview.patternHistory),
+});
+function reviewedPlacement(state, witness) {
+  const r = R.replay(state, witness);
+  assert.equal(r.valid, true);
+  assert.equal(r.events.length, 1);
+  return {
+    state: r.state,
+    event: r.events[0],
+    target: r.events[0].target,
+    witness,
+    hold: witness.includes('HOLD'),
+  };
+}
+function reviewedInternals(file, names) {
+  const fs = require('node:fs'),
+    vm = require('node:vm'),
+    path = require('node:path'),
+    filename = require.resolve('../' + file),
+    source = fs.readFileSync(filename, 'utf8'),
+    module = { exports: {} };
+  assert.equal(source.split('return Object.freeze({').length, 2);
+  vm.runInNewContext(
+    source.replace(
+      'return Object.freeze({',
+      'return Object.freeze({' + names + ',',
+    ),
+    {
+      module,
+      require: (id) => require(path.resolve(path.dirname(filename), id)),
+      Date,
+      performance,
+    },
+  );
+  return module.exports;
+}
+test('reviewed boundary J: reject the unsupported intrusion, keep the physical move and in-Left alternative legal', () => {
+  for (const shift of [0, 3]) {
+    const state = structuredClone(regionReview.position);
+    if (shift)
+      state.board = state.board.slice(shift).concat(state.board.slice(-shift));
+    state.board = state.board.map((row) => row.replace(/[IJLOSTZ]/g, 'X'));
+    const crossing = reviewedPlacement(state, ['HD']),
+      left = reviewedPlacement(state, ['CCW', 'HD']);
+    assert.deepEqual(crossing.event.cells, [
+      [2, 27 - shift],
+      [2, 28 - shift],
+      [3, 28 - shift],
+      [4, 28 - shift],
+    ]);
+    assert.equal(S.leftCenterJAllowed(state, crossing), false);
+    assert.equal(P.ordinaryCenterEligible(state, crossing), false);
+    assert(
+      S.transition(state, crossing).cycleViolations.includes(
+        'unsupported-left-center-J-intrusion',
+      ),
+    );
+    assert.equal(S.leftCenterJAllowed(state, left), true);
+    assert.equal(P.ordinaryCenterEligible(state, left), true);
+    assert.equal(
+      S.transition(state, left).cycleViolations.includes(
+        'unsupported-left-center-J-intrusion',
+      ),
+      false,
+    );
+    assert(left.event.cells.every(([x]) => x < 4));
+  }
+});
+test('reviewed boundary J: the in-Left move retains ordinary resource permission', () => {
+  const M = require('../st-obligation-resources'),
+    Context = require('../st-obligation-context'),
+    state = regionReview.position,
+    p = reviewedPlacement(state, ['CCW', 'HD']),
+    current = Context.importState(regionReview.obligationContext, {
+      position: state,
+    });
+  const checked = M.checkPath(state, [p], current);
+  assert.equal(checked.valid, true);
+  assert.deepEqual(checked.resource.violations, []);
+  // Eligibility is not a new promise that all later S/L obligations are solved.
+  assert.equal(P.ordinaryCenterEligible(state, p), true);
+});
+test('reviewed boundary J: hard rejection covers route nodes, final replay admission, retained advice and risky fallback', () => {
+  const api = reviewedInternals(
+      'st-planner.js',
+      'nodeFor,checkedResourceEndpoint,riskyFallback,prepareResourceOptions',
+    ),
+    state = regionReview.position,
+    p = reviewedPlacement(state, ['HD']),
+    opts = reviewedOptions(),
+    initial = {
+      ...P.assess(state.board),
+      state,
+      notches: P.resolvePatternHistory(state, opts.patternHistory),
+      resources: {},
+    };
+  assert.equal(api.nodeFor(p, null, initial, 0, api.assess, true), null);
+  const admitted = api.checkedResourceEndpoint(
+    state,
+    regionReview.previous.continuation,
+    opts,
+  );
+  assert.equal(admitted.valid, false);
+  assert.equal(admitted.reason, 'unsupported-left-center-J-intrusion');
+  assert.equal(P.revalidate(state, regionReview.previous, opts), null);
+  const risk = api.riskyFallback(
+    state,
+    {
+      target: null,
+      status: 'no-supported-continuation-found',
+      metrics: { nodes: 0 },
+    },
+    api.prepareResourceOptions(state, opts),
+    { placements: [p], complete: true },
+  );
+  assert.equal(risk.target, null);
+  assert.equal(
+    risk.metrics.riskFallback.rejections['unsupported-left-center-J-intrusion'],
+    1,
+  );
+  const opening = reviewedInternals('st-opening.js', 'validStep'),
+    usage = { rejections: {} };
+  assert.equal(
+    opening.validStep(
+      state.board,
+      p,
+      P.resolvePatternHistory(state, opts.patternHistory),
+      { usage },
+    ),
+    null,
+  );
+  assert.equal(usage.rejections['unsupported-left-center-J-intrusion'], 1);
+  const reset = reviewedInternals('st-reset-coach.js', 'transition');
+  assert.equal(
+    reset.transition(
+      {
+        state,
+        notches: P.resolvePatternHistory(state, opts.patternHistory),
+        allowHold: true,
+        resource: {},
+      },
+      p,
+    ),
+    null,
+  );
+});
+test('reviewed boundary J: current and saved-prefix searches cannot recommend the rejected placement', () => {
+  for (const saved of [false, true]) {
+    const options = reviewedOptions();
+    if (saved) {
+      options.previous = regionReview.previous;
+      options.commitment = {
+        observation: regionReview.position,
+        advice: regionReview.previous,
+      };
+    }
+    const a = P.decide(regionReview.position, options);
+    assert.notDeepEqual(a.target, regionReview.previous.target);
+    let state = regionReview.position;
+    for (const step of a.continuation || []) {
+      const p = reviewedPlacement(state, step.witness);
+      assert(S.leftCenterJAllowed(state, p));
+      state = p.state;
+    }
+  }
+});
+test('reviewed boundary J: preserve every maintained source-opening J crossing', () => {
+  const D = require('../st-opening-patterns');
+  let crossings = 0;
+  for (const pattern of D.patterns)
+    for (const [mask, type, code] of pattern.edges) {
+      if (
+        type !== 'J' ||
+        !pattern.targets.J.some(([x]) => x < 4) ||
+        !pattern.targets.J.some(([x]) => x >= 4 && x < 7)
+      )
+        continue;
+      const board = Array.from({ length: 40 }, () => Array(10).fill('.'));
+      [...D.types].forEach((piece, i) => {
+        if (mask & (1 << i))
+          for (const [x, y] of pattern.targets[piece]) board[y][x] = piece;
+      });
+      const state = R.createState({
+          board: board.map((r) => r.join('')),
+          active: 'J',
+          queue: ['O'],
+        }),
+        p = reviewedPlacement(
+          state,
+          [...code].map((c) => D.actionCodes[c]),
+        );
+      assert.deepEqual(p.event.cells, pattern.targets.J);
+      assert.equal(
+        S.leftCenterJAllowed(state, p),
+        true,
+        pattern.id + ' mask ' + mask,
+      );
+      crossings++;
+    }
+  assert.equal(crossings, 50);
+});
