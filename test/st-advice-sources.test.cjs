@@ -1,12 +1,11 @@
 'use strict';
 const { SEARCH_TIME_MS } = require('../st-coach-config');
-// X.search research certificates retain their separate 750 ms sub-search ceiling.
+const researchCertificate = require('./support/st-research-certificate.cjs');
 const test = require('node:test'),
   assert = require('node:assert/strict');
 const P = require('../st-planner'),
   R = require('../st-rules'),
-  F = require('../st-fixtures'),
-  X = require('../st-paired-repair');
+  F = require('../st-fixtures');
 const recovery = require('./support/st-construction-recovery.json'),
   cap = require('./support/st-visible-z-deferral.json');
 const urls = new Set([
@@ -41,7 +40,7 @@ test('actual center and right advice cites community concepts without universal 
   assert.doesNotMatch(right.reason, /Keep the left region flat/);
 });
 test('research paired-repair wording follows actual remaining T and center stages without claiming policy eligibility', () => {
-  const cert = X.search(recovery.initial, { timeMs: 750 });
+  const cert = researchCertificate(recovery.initial, { timeMs: 750 });
   assert.ok(cert.valid, cert.reason);
   let state = P.observe(recovery.initial),
     remainingTs = 2;
@@ -87,7 +86,10 @@ test('research paired-repair wording follows actual remaining T and center stage
   );
 });
 test('research cap-deferral wording stops claiming a pending replacement after actual repayment', () => {
-  const cert = X.search(cap.initial, { kind: 'cap-deferral', timeMs: 750 });
+  const cert = researchCertificate(cap.initial, {
+    kind: 'cap-deferral',
+    timeMs: 750,
+  });
   assert.ok(cert.valid);
   let state = P.observe(cap.initial);
   for (let i = 0; i < cert.continuation.length; i++) {

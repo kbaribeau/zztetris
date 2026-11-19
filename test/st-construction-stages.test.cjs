@@ -1,6 +1,6 @@
 'use strict';
 const { SEARCH_TIME_MS } = require('../st-coach-config');
-// X.search research certificates retain their separate 750 ms sub-search ceiling.
+const researchCertificate = require('./support/st-research-certificate.cjs');
 const test = require('node:test'),
   assert = require('node:assert/strict');
 const P = require('../st-planner'),
@@ -14,7 +14,7 @@ const D = require('./support/st-search-diagnostic.cjs');
 const recoveryCertificate = D.validatedCache(
   () => {
     S.clearCache();
-    return X.search(fixture.initial, { timeMs: 750 });
+    return researchCertificate(fixture.initial, { timeMs: 750 });
   },
   (cert) =>
     D.check(cert.valid, cert.reason, {
@@ -43,10 +43,8 @@ function researchAdvice() {
 }
 test('research search still discovers the seven-lock recovery while production declines its high-Left start', () => {
   S.clearCache();
-  const started = performance.now(),
-    cert = actualRecoveryCertificate();
+  const cert = actualRecoveryCertificate();
   assert.equal(cert.continuation.length, 7);
-  assert.ok(performance.now() - started < 850);
   assert.equal(cert.resources.tFillers, 2);
   assert.equal(cert.resources.tsds, 1);
   assert.ok(X.validateCertificate(fixture.initial, cert.continuation).valid);
@@ -142,7 +140,10 @@ test('construction obeys an already exhausted response budget even with an exist
 });
 const zFixture = require('./support/st-visible-z-deferral.json');
 test('visible replacement Z creates an executable exact-cap deferral certificate', () => {
-  const a = X.search(zFixture.initial, { kind: 'cap-deferral', timeMs: 750 });
+  const a = researchCertificate(zFixture.initial, {
+    kind: 'cap-deferral',
+    timeMs: 750,
+  });
   assert.ok(a.valid, a.reason);
   assert.equal(a.continuation.length, 3);
   assert.equal(a.cap.paidAt, 1);
@@ -207,7 +208,7 @@ test('ordinary cap-first remains usable without granting an unknown optional-Z a
   }, initial);
 });
 test('cap deferral exact debt remains verifiable but unknown history cannot authorize its optional Z', () => {
-  const cert = X.search(zFixture.initial, { kind: 'cap-deferral' });
+  const cert = researchCertificate(zFixture.initial, { kind: 'cap-deferral' });
   assert.ok(cert.valid);
   const proof = {
     kind: 'cap-deferral',

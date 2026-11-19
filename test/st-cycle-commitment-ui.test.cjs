@@ -1,6 +1,6 @@
 'use strict';
 const { SEARCH_TIME_MS } = require('../st-coach-config');
-// X.search research certificates retain their separate 750 ms sub-search ceiling.
+const researchCertificate = require('./support/st-research-certificate.cjs');
 const test = require('node:test'),
   assert = require('node:assert/strict'),
   fs = require('node:fs'),
@@ -441,7 +441,9 @@ test('st-cycle-ui/finite paired-T proof does not authorize an unready Reset thro
     g.window.stLab.loadFixture('synthetic-construction-control');
     g.advance(40);
     let request = workers.at(-1).message;
-    const certificate = X.search(request.observation, { timeMs: 750 });
+    const certificate = researchCertificate(request.observation, {
+      timeMs: 750,
+    });
     D.check(
       certificate.valid,
       'Low-level finite route remains mechanically verified',
@@ -514,7 +516,7 @@ test('st-cycle-ui/replacement-Z geometry does not invent an Extra-Z allowance in
     g.window.stLab.loadFixture('synthetic-construction-control');
     g.advance(40);
     const request = workers.at(-1).message,
-      cert = X.search(request.observation, { kind: 'cap-deferral' });
+      cert = researchCertificate(request.observation, { kind: 'cap-deferral' });
     assert.ok(cert.valid);
     const checked = X.validateCertificate(
       request.observation,
