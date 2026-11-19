@@ -11,6 +11,42 @@ and constrained research probes and internal sub-searches retain their own limit
 
 Ordinary maintenance search now follows the finite public-piece horizon rather than stopping at three locks. Active, HOLD, preview and a logically forced bag tail are the only available supply. The production setting is `depth: null`; explicit finite depth overrides remain available for constrained tests. Reset likewise no longer defaults to three locks, but still uses only literal observed supply and its existing seven-lock proof limit. Local repair/certification grammars retain their existing separate bounds, including seven-lock proof limits. Deeper search can consume the same node/time budget sooner and is not a promise of better play.
 
+## Timeout continuation-library check
+
+Make library-hit inspection a standard timeout diagnostic:
+
+1. Capture the exact replay-backed public request: board/active pose, HOLD,
+   visible queue, bag and obligation accounting, coach phase and retained advice.
+   Record source revision, time/node budgets and any nested proof limit or worker
+   watchdog that stopped work. Keep unseen order evaluator-side.
+2. Inspect the actual Left/Center lookup path. Record the exact route or completion
+   identifier and whether it was missing, matched, disqualified (with reason),
+   admitted or used in the returned witness. Distinguish a stored route from a
+   generated Center motif/pair completion; report when no comparable library
+   entry exists. A lookup match or generic query-cache hit is not a selected,
+   replay-verified continuation.
+3. Separate retrieval from placement search and resource/access proof costs.
+   Record total decision time/nodes plus route-lane and admission work, including
+   failed attempts; do not sum overlapping timings. Fewer nodes need not mean a
+   faster response.
+4. When useful, temporarily remove or mask only the exact hit in an isolated
+   checkout and run serial, paired, interleaved remove/restore trials with the
+   same state, visible supply, budgets and cache/warmup conditions. Verify real
+   hit versus absence, unchanged neighboring entries, and byte-for-byte
+   restoration. Controlled-clock, equal-node-budget checks can separate search
+   work from timing noise; verify restored advice against the untouched baseline.
+5. Compare abstention, work and time at comparable quality: replay actual locks
+   and canonical clears, protected notches, resource obligations and Left/Center
+   endpoints. Different prefixes are not a same-quality speed comparison. A
+   finite repair or longer checked prefix is not proof of stable resolution;
+   report incomplete proofs and limits on generalization.
+
+This diagnostic authorizes no automatic library admission or default-budget
+change. Review and validate any proposed stable witness separately, including
+normal preview reveals. Wall-clock measurements remain diagnostics, never test
+thresholds or correctness gates. Use the [research process](st-research-workflow.md)
+for bounded experiments and retain evidence outside Git.
+
 ## Historical evidence and limits
 
 The [predeclared twelve-call comparison](st-planning-budget-comparison-2026-10-24.json) used three exact public roots on frozen 266282c, fresh actual workers, ABBA 750/1500/1500/750 order and the same node cap. The O6 opening closure completed identically under either allowance. Maintenance24 produced one budget abstention and one verified prefix at 750 ms, versus two valid caps with two completed layers at 1500 ms. Maintenance41 chose the same S but completed an additional layer with the larger allowance. Observed 1500 ms decisions could finish just beyond their soft deadline. More search completion is not a demonstrated long-run strategic improvement.
