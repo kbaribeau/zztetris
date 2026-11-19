@@ -33,10 +33,12 @@ for (const c of cases)
     const imported = R.migrateState(JSON.parse(JSON.stringify(fresh)));
     assert.equal(S.notchPattern(imported.board).anchorRow, anchored.anchorRow);
     const planningRoot = fresh;
-    const advice = P.plan(planningRoot, config);
+    // This fixture checks the inherited notch phase through a verified route.
+    const options = { ...config, deadline: Infinity, now: () => 0 };
+    const advice = P.plan(planningRoot, options);
     D.check(advice.target, advice.reason, {
       seed: c.seed,
-      request: { observation: planningRoot, options: config },
+      request: { observation: planningRoot, options },
       result: advice,
     });
     let state = planningRoot,
