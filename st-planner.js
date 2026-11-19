@@ -11178,7 +11178,13 @@
           !certifiedCavities(node) ||
           !node.assessment.regionalSupport
         ) {
-          reject('structural-damage');
+          if (
+            tsd &&
+            p.structuralEvidence.futureNotches.violation ===
+              'filled-protected-column-seven-notch'
+          )
+            reject('tsd-uses-protected-notch');
+          else reject('structural-damage');
           continue;
         }
         if (
@@ -11496,7 +11502,10 @@
           { state: nextState, event },
           notches,
         );
-        if (!phase.valid) continue;
+        if (!phase.valid) {
+          reject(phase.violation);
+          continue;
+        }
         const next = M.step(state, { ...p, state: nextState, event }, resource);
         if (next.violations.length) {
           reject('resource-permission');
@@ -12600,6 +12609,12 @@
           const selected = result.target
             ? classifySupported(result)
             : riskyFallback(raw, result, remaining, collector);
+          if (
+            !selected.target &&
+            local.telemetry.rejections['tsd-uses-protected-notch']
+          )
+            selected.reason +=
+              ' A reachable T-spin double uses a protected column 7 notch. The current scoring cycle reserves that opening.';
           return {
             ...selected,
             metrics: {
