@@ -213,3 +213,72 @@ test('Reset page: raw position cannot forge current accounting with unrelated ph
     phase(g, 'maintenance', 'Mid-game');
     assert.equal(g.window.stLab.resources.reset.progress, 0);
   }));
+
+test('Reset page: exact J79 discloses only the checked J-O sequence and updates after J', () =>
+  withPage('st-lab.html', {}, (g) => {
+    const f = require('./fixtures/covered-repair-plan.json').resetJ79,
+      ws = workers(g);
+    importText(
+      g,
+      Session.create(f.observation, { obligationContext: f.obligationContext }),
+    );
+    g.advance(40);
+    const request = ws.at(-1).message,
+      options = {
+        ...request.options,
+        now: () => 0,
+        deadline: Infinity,
+        maxNodes: 90000,
+      },
+      steps = f.witnesses.map((witness) => ({ witness })),
+      checked = C.check(request.observation, steps, options);
+    assert.equal(checked.valid, true);
+    assert.equal(checked.repair.status, 'actual-covered-cells-repaired');
+    assert.equal(checked.node.resource.resetProgress, 1);
+    const result = C.retain(
+      request.observation,
+      {
+        target: checked.node.path[0].target,
+        continuation: checked.node.path,
+        evidence: { strategy: 'reset-coach', gapAccess: checked.access },
+      },
+      options,
+    );
+    assert.ok(result);
+    assert.deepEqual(result.target, { type: 'J', x: 3, y: 33, rotation: 0 });
+    assert.equal(result.evidence.verifiedLocks, 2);
+    assert.equal(result.recommendation.kind, 'supported');
+    assert.equal(
+      result.reason,
+      'Reset: 2 placements checked; play beyond this sequence is unverified.',
+    );
+    ws.at(-1).respond(result);
+    assert.equal(g.element('#st-status').textContent, result.reason);
+    phase(g, 'reset', 'Reset');
+    for (const action of result.witness) g.window.stLab.act(action);
+    g.advance(40);
+    const nextRequest = ws.at(-1).message,
+      event = R.replay(request.observation, result.witness).events[0],
+      next = C.continuation(
+        request.observation,
+        nextRequest.observation,
+        result,
+        event,
+        {
+          ...nextRequest.options,
+          now: () => 0,
+          deadline: Infinity,
+          maxNodes: 90000,
+        },
+      );
+    assert.ok(next?.target);
+    ws.at(-1).respond(next);
+    assert.equal(next.target.type, 'O');
+    assert.equal(next.evidence.verifiedLocks, 1);
+    assert.equal(
+      next.reason,
+      'Reset: 1 placement checked; play beyond this sequence is unverified.',
+    );
+    assert.equal(g.element('#st-status').textContent, next.reason);
+    assert.equal(g.window.stLab.resources.reset.progress, 1);
+  }));

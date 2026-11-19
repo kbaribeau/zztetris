@@ -327,6 +327,8 @@ test('center JZ: covered cells remain exact stage obligations until the Z repair
   assert.deepEqual(partial.outstandingCells, created);
   const finished = A.repairPrefix(before, [j, z]);
   assert.equal(finished.valid, true);
+  assert.equal(finished.status, 'actual-covered-cells-repaired');
+  assert.equal(finished.stage, null);
   assert.deepEqual(finished.outstandingCells, []);
   const reservation = P.centerReservationStep(j.state, z);
   assert.equal(reservation.completed.length, 1);

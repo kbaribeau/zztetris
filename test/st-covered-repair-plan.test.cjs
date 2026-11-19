@@ -97,6 +97,8 @@ test('covered repair / actual supplied S then L repairs the exact temporary roof
   assert.equal(A.repairPrefix(state, steps.slice(0, 1)).valid, false);
   const proof = A.repairPrefix(state, steps);
   assert.equal(proof.valid, true);
+  assert.equal(proof.status, 'actual-covered-cells-repaired');
+  assert.equal(proof.stage, null);
   assert.deepEqual(proof.outstandingCells, []);
   const certificate = P.checkedCoveredRepair(state, steps);
   assert.ok(certificate?.plan);
@@ -192,6 +194,9 @@ test('covered repair / user position01 remains an unfinished supported ordinary 
     true,
     'The actual supplied prefix preserves ordinary resource obligations',
   );
+  assert.equal(proof.status, 'no-new-covered-cell-obligation');
+  assert.equal(proof.stage, null);
+  assert.deepEqual(proof.outstandingCells, []);
   assert.notEqual(proof.status, 'full-reset-complete');
 });
 test('covered repair / existing imported damage is not reclassified and Right is separately scoped', () => {
@@ -594,4 +599,78 @@ test('covered repair / different actual continuations may close the same authent
     null,
     'An alternative must actually address that same observed defect',
   );
+});
+
+test('covered repair / exact Reset J79 repairs four roofed cells without certifying the six-cell pocket', () => {
+  const f = fixture.resetJ79,
+    steps = path(f.observation, f.witnesses),
+    options = { obligationContext: f.obligationContext },
+    partial = A.repairPrefix(f.observation, steps.slice(0, 1)),
+    proof = A.repairPrefix(f.observation, steps),
+    coveredCells = [
+      [4, 36],
+      [4, 37],
+      [5, 36],
+      [5, 37],
+    ];
+  assert.equal(partial.valid, false);
+  assert.equal(partial.status, 'unresolved-covered-cells');
+  assert.deepEqual(partial.outstandingCells, coveredCells);
+  assert.equal(
+    partial.stage,
+    null,
+    'This crossing is not a defined Center pair stage',
+  );
+  assert.equal(proof.valid, true);
+  assert.equal(proof.status, 'actual-covered-cells-repaired');
+  assert.deepEqual(proof.steps[0].created, coveredCells);
+  assert.deepEqual(proof.outstandingCells, []);
+  assert.equal(proof.stage, null);
+  const checked = P.checkedCoveredRepair(f.observation, steps, options);
+  assert.ok(checked);
+  assert.equal(
+    checked.steps[0].structuralEvidence.coveredRepair.required,
+    true,
+  );
+  assert.equal(
+    checked.steps[1].structuralEvidence.coveredRepair.required,
+    true,
+  );
+  assert.equal(checked.steps[1].structuralEvidence.coveredRepair.stage, false);
+  assert.deepEqual(
+    checked.steps[1].structuralEvidence.coveredRepair.outstanding,
+    [],
+  );
+  const after = steps[1].state,
+    phase = S.notchPattern(after.board),
+    center = S.geometry(after.board, { notches: phase }).center;
+  assert.equal(center.status, 'unrecognized');
+  assert.equal(after.board[35][6], '.');
+  assert.equal(after.board[36][6], '.');
+  assert.ok(phase.protectedRows.includes(34));
+  assert.ok(phase.protectedRows.includes(37));
+  assert.ok(after.board.every((row) => row[7] === '.'));
+  assert.equal(
+    center.completions.some((c) => c.patternSupport === 'reference-supported'),
+    false,
+  );
+  assert.equal(
+    steps.every((p) => p.event.lines === 0),
+    true,
+  );
+  // The alternative tuck is physically legal, but its two remaining column-5
+  // cells are still actual covered debt. Surface "level" is not a repair proof.
+  const z = path(steps[0].state, [
+    ['HOLD', 'R', 'R', 'CW', ...Array(17).fill('SD'), 'L', 'HD'],
+  ])[0];
+  assert.equal(S.advanceNotches(steps[0].state.board, z, phase).valid, true);
+  assert.equal(S.geometry(z.state.board).center.status, 'level');
+  const zProof = A.repairPrefix(f.observation, [steps[0], z]);
+  assert.equal(zProof.valid, false);
+  assert.equal(zProof.status, 'unresolved-covered-cells');
+  assert.deepEqual(zProof.outstandingCells, [
+    [4, 36],
+    [4, 37],
+  ]);
+  assert.equal(zProof.stage, null);
 });

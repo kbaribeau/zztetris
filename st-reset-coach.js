@@ -396,7 +396,7 @@
         context: context(raw),
         reason: Q.qualifies(first.event)
           ? `Reset: place T ${progress + 1} of 2 wholly in Left without clearing lines.`
-          : 'Reset: keep the stack playable while waiting for the remaining Left T placement.',
+          : `Reset: ${n.path.length} placement${n.path.length === 1 ? '' : 's'} checked; play beyond this sequence is unverified.`,
         recommendation: {
           kind: 'supported',
           hazards: [],

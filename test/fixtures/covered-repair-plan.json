@@ -1327,5 +1327,256 @@
       [5, 30],
       [5, 31]
     ]
+  },
+  "resetJ79": {
+    "provenance": "Seed 10331 alternate-queue branch: I76, L77, T78, J79. Original action tape ends at 75; these J/O witnesses are reconstructed on c0daed0, match archived events and the exact review-card after-J board. Current public state/accounting only; no private future or historical claim before lock65.",
+    "observation": {
+      "rules": "st-zero-v2",
+      "board": [
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "...T......",
+        "..TT......",
+        ".OOT......",
+        ".OO.......",
+        ".SS.......",
+        "SSOO......",
+        "IJOO......",
+        "IJJJLLL...",
+        "ILLLLSS..."
+      ],
+      "active": {
+        "type": "Z",
+        "x": 3,
+        "y": 17,
+        "rotation": 0,
+        "lastRotation": null
+      },
+      "hold": "J",
+      "canHold": true,
+      "queue": ["O", "L", "S", "I", "J", "O"],
+      "revision": 721,
+      "streamCursor": 100,
+      "topOut": false,
+      "bag": {
+        "remaining": [119],
+        "observedCount": 106,
+        "provenance": "known-phase"
+      }
+    },
+    "obligationContext": {
+      "schemaVersion": 1,
+      "status": "available",
+      "reason": null,
+      "inventory": {
+        "schemaVersion": 1,
+        "status": "available",
+        "originKnown": true,
+        "nextId": 107,
+        "streamCursor": 100,
+        "active": {
+          "id": 100,
+          "type": "Z",
+          "observedOrder": 99,
+          "bag": 14
+        },
+        "hold": {
+          "id": 98,
+          "type": "J",
+          "observedOrder": 97,
+          "bag": 13
+        },
+        "queue": [
+          {
+            "id": 101,
+            "type": "O",
+            "observedOrder": 100,
+            "bag": 14
+          },
+          {
+            "id": 102,
+            "type": "L",
+            "observedOrder": 101,
+            "bag": 14
+          },
+          {
+            "id": 103,
+            "type": "S",
+            "observedOrder": 102,
+            "bag": 14
+          },
+          {
+            "id": 104,
+            "type": "I",
+            "observedOrder": 103,
+            "bag": 14
+          },
+          {
+            "id": 105,
+            "type": "J",
+            "observedOrder": 104,
+            "bag": 14
+          },
+          {
+            "id": 106,
+            "type": "O",
+            "observedOrder": 105,
+            "bag": 15
+          }
+        ],
+        "frontier": {
+          "bag": 15,
+          "seenMask": 8
+        },
+        "knowledge": {
+          "remaining": [119],
+          "observedCount": 106,
+          "provenance": "known-phase"
+        }
+      },
+      "state": {
+        "schemaVersion": 2,
+        "availability": "known",
+        "center": {
+          "pending": [],
+          "debt": []
+        },
+        "sl": {
+          "schemaVersion": 1,
+          "status": "known",
+          "foundationOpen": false,
+          "firstBagReview": "reviewed",
+          "handoff": true,
+          "residuals": [],
+          "uncertainty": {
+            "S": [0, 0, 0, 0],
+            "L": [0]
+          }
+        },
+        "account": {
+          "allocationVerified": true,
+          "firstTsd": true,
+          "known": true,
+          "mandatoryZ": false,
+          "opening": null,
+          "profile": {
+            "before": null,
+            "capEstablished": true,
+            "departure": false,
+            "violation": false
+          },
+          "qualityCandidate": false,
+          "reset": {
+            "status": "active",
+            "remaining": 1,
+            "firstTId": 99,
+            "inheritedCovered": []
+          },
+          "schemaVersion": 1,
+          "thirdTWindow": false,
+          "z": {
+            "remaining": 1,
+            "uncredited": "none"
+          }
+        },
+        "safety": {
+          "notches": {
+            "version": 2,
+            "status": "established",
+            "anchorRow": 37,
+            "blockedRows": [],
+            "source": "witnessed-floor-Z-cap"
+          },
+          "coveredCells": [
+            [3, 34],
+            [3, 35]
+          ]
+        },
+        "dPending": false,
+        "leftGoals": []
+      },
+      "boundary": {
+        "firstBagLocks": 7,
+        "sourcePatternSeen": true
+      }
+    },
+    "witnesses": [
+      [
+        "HOLD",
+        "R",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "L",
+        "HD"
+      ],
+      [
+        "R",
+        "R",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "SD",
+        "L",
+        "L",
+        "HD"
+      ]
+    ]
   }
 }
