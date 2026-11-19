@@ -1570,8 +1570,46 @@
       unknown: 'unknown current accounting',
       'out-of-profile': 'outside the reviewed source profile',
     }[l.status];
-    const zLabel =
-      currentResources.reset?.status === 'active'
+    // Presentation only: an unsettled allowance is not missing opening history.
+    // Read actual accounting, never a planner projection or future inventory.
+    const account =
+        obligationContext.status === 'available'
+          ? obligationContext.state.account
+          : null,
+      pendingSpend =
+        account?.z.uncredited === 'none'
+          ? 0
+          : account?.z.uncredited === 'one'
+            ? 1
+            : Number.isSafeInteger(account?.z.uncredited)
+              ? account.z.uncredited
+              : null,
+      openingPending = Boolean(
+        account?.known &&
+        !z.baseline &&
+        ['allocation', 'quality'].includes(account.opening?.kind) &&
+        !currentResources.profileLost &&
+        currentResources.reset?.status !== 'active' &&
+        pendingSpend !== null,
+      ),
+      zStatus = openingPending
+        ? 'opening-pending'
+        : currentResources.profileLost
+          ? 'out-of-profile'
+          : z.status;
+    setText(
+      $('st-extra-z-name'),
+      openingPending
+        ? `Z · ${pendingSpend > 0 ? '−' + pendingSpend : '…'}`
+        : 'Extra Z',
+    );
+    const zLabel = openingPending
+      ? `Opening allowance pending${
+          pendingSpend > 0
+            ? `; ${pendingSpend} confirmed optional early Z ${pendingSpend === 1 ? 'spend' : 'spends'}`
+            : ''
+        }`
+      : currentResources.reset?.status === 'active'
         ? z.remaining === null
           ? 'Reset in progress; earlier Z balance unknown'
           : `Reset in progress; observed balance ${z.remaining}${z.status === 'out-of-profile' ? '; outside the reviewed source profile' : ''}`
@@ -1582,7 +1620,7 @@
               used: 'spent in the current account',
               unknown: 'eligibility unknown',
               'out-of-profile': 'outside the reviewed source profile',
-            }[z.status];
+            }[zStatus];
     renderResourceBadge(
       'st-hanging-s',
       s.status,
@@ -1607,9 +1645,11 @@
     );
     renderResourceBadge(
       'st-extra-z',
-      z.status,
+      zStatus,
       `Extra Z: ${zLabel}`,
-      z.reason || currentResources.reason || 'Current obligation facts.',
+      openingPending
+        ? 'Not yet available to spend. Required opening Z placements and HOLD do not count as optional spending.'
+        : z.reason || currentResources.reason || 'Current obligation facts.',
       'used',
       currentResources.terminal,
     );
@@ -1838,6 +1878,15 @@
     badge.addEventListener('keydown', (event) => {
       if (event.code === 'Escape') badge.dataset.detailDismissed = 'true';
     });
+  });
+  $('st-extra-z').addEventListener('click', () => {
+    delete $('st-extra-z').dataset.detailDismissed;
+    $('st-extra-z').focus({ preventScroll: true });
+  });
+  document.addEventListener('pointerdown', (event) => {
+    const badge = $('st-extra-z');
+    if (document.activeElement === badge && !badge.contains(event.target))
+      badge.blur();
   });
   $('st-explore-capture').addEventListener('click', captureExploration);
   $('st-explore-cancel').addEventListener('click', () =>

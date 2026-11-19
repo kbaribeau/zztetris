@@ -436,3 +436,9 @@ footer {
 #st-phase[data-phase='opening'] #st-phase-detail {
   white-space: pre-line;
 }
+
+/* Known opening progress stays compact and muted; it is not spend permission. */
+#st-extra-z[data-state='opening-pending'] .lab-badge-mark,
+#st-extra-z[data-state='opening-pending'] .lab-badge-annotation {
+  display: none;
+}

@@ -41,7 +41,7 @@ const badge = (g, id, status, observed) => {
     {
       'st-hanging-s': 'Hanging S',
       'st-hanging-l': 'Hanging L',
-      'st-extra-z': 'Extra Z',
+      'st-extra-z': status === 'opening-pending' ? 'Z · …' : 'Extra Z',
     }[id],
   );
   assert.ok(
@@ -141,10 +141,12 @@ test('resource badges: initial, empty, and imported unknown are distinct from an
     select(g, 'empty');
     badge(g, 'st-hanging-s', 'none-observed', false);
     badge(g, 'st-hanging-l', 'none-observed', false);
-    badge(g, 'st-extra-z', 'unknown', false);
+    assert.equal(g.element('#st-extra-z').dataset.state, 'opening-pending');
+    assert.equal(g.element('#st-extra-z-name').textContent, 'Z · …');
+    assert.equal(g.window.stLab.resources.extraZ.status, 'unknown');
     assert.match(
       g.element('#st-extra-z').getAttribute('aria-label'),
-      /eligibility unknown/,
+      /Opening allowance pending/,
     );
     assert.match(
       g.element('#st-hanging-l-detail').textContent,
@@ -193,7 +195,7 @@ test('resource badges: observed S highlights until actual Left accommodation; Un
   withPage('st-lab.html', hidden, (g) => {
     const run = play(g, 2, 16);
     badge(g, 'st-hanging-s', 'hanging', true);
-    badge(g, 'st-extra-z', 'unknown', false);
+    badge(g, 'st-extra-z', 'opening-pending', false);
     advance(g, run, 19);
     badge(g, 'st-hanging-s', 'none-observed', false);
     g.window.stLab.act('UNDO');
@@ -205,7 +207,7 @@ test('resource badges: observed opener L surplus survives HOLD and clears only o
     assert.equal(g.snapshot().active.type, 'S');
     for (const action of ['L', 'L', 'L', 'HD']) g.window.stLab.act(action);
     badge(g, 'st-hanging-l', 'hanging', true);
-    badge(g, 'st-extra-z', 'unknown', false);
+    badge(g, 'st-extra-z', 'opening-pending', false);
     assert.equal(g.window.stLab.resources.hangingL.evidence[0].lId, 2);
     assert.match(
       g.element('#st-hanging-l-detail').textContent,
@@ -240,12 +242,12 @@ test('resource badges: an identical imported board loses history; restarts and m
     g.click('#st-reset');
     badge(g, 'st-hanging-s', 'none-observed', false);
     badge(g, 'st-hanging-l', 'none-observed', false);
-    badge(g, 'st-extra-z', 'unknown', false);
+    badge(g, 'st-extra-z', 'opening-pending', false);
     play(g, 1, 24);
     g.tap('KeyR');
     badge(g, 'st-hanging-s', 'none-observed', false);
     badge(g, 'st-hanging-l', 'none-observed', false);
-    badge(g, 'st-extra-z', 'unknown', false);
+    badge(g, 'st-extra-z', 'opening-pending', false);
     play(g, 1, 24);
     select(g, 'marathon-rebuild');
     badge(g, 'st-hanging-s', 'unknown', false);
@@ -257,7 +259,8 @@ test('resource badges: outside-profile keeps confirmed hanging pieces active and
     assert.ok(g.window.stLab.resources.hangingS.evidence.length > 0);
     assert.equal(g.window.stLab.resources.hangingS.status, 'out-of-profile');
     badge(g, 'st-hanging-s', 'hanging', true);
-    badge(g, 'st-extra-z', 'unknown', false);
+    badge(g, 'st-extra-z', 'out-of-profile', false);
+    assert.equal(g.window.stLab.resources.extraZ.status, 'unknown');
     assert.match(
       g.element('#st-hanging-s').getAttribute('aria-label'),
       /outside the reviewed source profile/,
@@ -439,4 +442,95 @@ test('resource badges: top-out is explicitly historical even with advice hidden;
         g.element('#' + id + '-detail').textContent,
         /Game ended/,
       );
+  }));
+
+function importPendingZ(g, { mandatory = false, spent = 'none' } = {}) {
+  const f = clone(require('./fixtures/opening-pending-extra-z.json')),
+    Context = require('../st-obligation-context'),
+    Session = require('../st-session');
+  f.obligationContext.state.account.mandatoryZ = mandatory;
+  f.obligationContext.state.account.z.uncredited = spent;
+  const current = Context.importState(f.obligationContext, {
+    position: f.position,
+  });
+  g.element('#st-snapshot').value = JSON.stringify(
+    Session.create(f.position, {
+      obligationContext: current,
+      openingPhase: true,
+    }),
+  );
+  g.click('#st-import');
+  assert.equal(g.element('#st-extra-z').dataset.state, 'opening-pending');
+  return f;
+}
+test('resource badges: known opening optional Z spending is compact without changing eligibility; settlement and Undo update it', () =>
+  withPage('st-lab.html', hidden, (g) => {
+    const f = importPendingZ(g);
+    assert.equal(g.element('#st-extra-z-name').textContent, 'Z · …');
+    assert.equal(g.element('#st-extra-z-symbol').textContent, '');
+    assert.equal(g.element('#st-extra-z').dataset.observed, 'false');
+    assert.equal(g.window.stLab.resources.extraZ.status, 'unknown');
+    g.window.stLab.act('HOLD');
+    g.window.stLab.act('HOLD');
+    assert.equal(g.element('#st-extra-z-name').textContent, 'Z · …');
+    for (const a of f.witnesses[0]) g.window.stLab.act(a);
+    assert.equal(g.element('#st-extra-z-name').textContent, 'Z · −1');
+    assert.match(
+      g.element('#st-extra-z-detail').textContent,
+      /1 confirmed optional early Z spend/,
+    );
+    assert.equal(g.window.stLab.resources.extraZ.remaining, null);
+    assert.equal(
+      g.window.stLab.obligationContext.state.account.z.uncredited,
+      1,
+    );
+    g.window.stLab.act('UNDO');
+    assert.equal(g.element('#st-extra-z-name').textContent, 'Z · …');
+    for (const w of f.witnesses) for (const a of w) g.window.stLab.act(a);
+    badge(g, 'st-extra-z', 'used', true);
+    assert.equal(g.window.stLab.resources.extraZ.remaining, 0);
+  }));
+test('resource badges: required opening Z is not optional spending; exact multiple debits and outside-profile stay truthful', () =>
+  withPage('st-lab.html', hidden, (g) => {
+    const required = importPendingZ(g, { mandatory: true });
+    for (const a of required.witnesses[0]) g.window.stLab.act(a);
+    assert.equal(g.element('#st-extra-z-name').textContent, 'Z · …');
+    assert.equal(
+      g.window.stLab.obligationContext.state.account.z.uncredited,
+      'none',
+    );
+    const multiple = importPendingZ(g, { spent: 2 });
+    assert.equal(g.element('#st-extra-z-name').textContent, 'Z · −2');
+    for (const a of multiple.witnesses[0]) g.window.stLab.act(a);
+    assert.equal(g.element('#st-extra-z-name').textContent, 'Z · −3');
+    for (const w of multiple.witnesses.slice(1))
+      for (const a of w) g.window.stLab.act(a);
+    badge(g, 'st-extra-z', 'out-of-profile', false);
+    imported(g, g.snapshot());
+    badge(g, 'st-extra-z', 'unknown', false);
+  }));
+test('resource badges: opening Z tooltip focus, tap activation, Escape and outside pointer dismissal preserve accounting', () =>
+  withPage('st-lab.html', hidden, (g) => {
+    select(g, 'empty');
+    const z = g.element('#st-extra-z'),
+      before = JSON.stringify(g.window.stLab.obligationContext);
+    z.focus();
+    assert.equal(g.window.document.activeElement, z);
+    assert.equal(z.dataset.detailDismissed, undefined);
+    z.dispatchEvent(
+      new g.window.KeyboardEvent('keydown', { code: 'Escape', bubbles: true }),
+    );
+    assert.equal(z.dataset.detailDismissed, 'true');
+    g.click('#st-extra-z');
+    assert.equal(z.dataset.detailDismissed, undefined);
+    assert.equal(g.window.document.activeElement, z);
+    g.window.document.body.dispatchEvent(
+      new g.window.Event('pointerdown', { bubbles: true }),
+    );
+    assert.notEqual(g.window.document.activeElement, z);
+    assert.equal(JSON.stringify(g.window.stLab.obligationContext), before);
+    assert.match(
+      g.element('#st-resource-summary').textContent,
+      /Opening allowance pending/,
+    );
   }));
