@@ -628,3 +628,209 @@ test('reviewed boundary J: preserve every maintained source-opening J crossing',
     }
   assert.equal(crossings, 50);
 });
+
+const trackedTail11Prefix = [
+  ['CCW', 'HD'],
+  ['HOLD', 'R', 'R', 'R', 'CW', 'R', 'HD'],
+  ['L', 'L', 'L', 'CCW', 'L', 'HD'],
+  ['HOLD', 'R', 'HD'],
+  ['R', 'R', 'R', 'R', 'CW', 'HD'],
+  ['HOLD', 'R', 'R', 'R', 'CW', ...Array(15).fill('SD'), 'CW', 'HD'],
+  ['R', 'R180', 'HD'],
+];
+const submittedTail11 = [
+  ['R', 'HD'],
+  ['HOLD', 'L', 'L', 'L', 'L', 'R', 'HD'],
+  ['L', 'L', 'L', 'HD'],
+  ['CW', 'R', 'R', 'R', 'R', 'HD'],
+  ['L', 'L', 'L', 'HD'],
+  ['CW', 'L', 'L', 'HD'],
+  ['HOLD', 'CW', 'R', 'R', 'R', 'R', 'L', ...Array(14).fill('SD'), 'CW', 'HD'],
+];
+function trackedTail11() {
+  const C = require('../st-obligation-context'),
+    B = require('../st-bag');
+  let state = structuredClone(regionReview.position),
+    current = C.importState(regionReview.obligationContext, {
+      position: state,
+    }),
+    future = [...'STOZJIO'];
+  function play(witness, replenish = false) {
+    let locked;
+    for (const action of witness) {
+      const before = state;
+      state = R.move(before, action);
+      assert.notEqual(state, before);
+      if (replenish)
+        while (state.queue.length < 6) {
+          const type = future.shift();
+          assert.ok(type);
+          state = {
+            ...state,
+            queue: [...state.queue, type],
+            bag: B.consume(state.bag, type),
+          };
+        }
+      const transition = C.applyActual(current, {
+        before,
+        action,
+        after: state,
+      });
+      current = transition.context;
+      assert.equal(current.status, 'available', current.reason);
+      if (action === 'HD') locked = transition.receipt.locked;
+    }
+    return {
+      witness,
+      state,
+      event: state.lastEvent,
+      target: state.lastEvent.target,
+      locked,
+      obligationContext: C.exportState(current),
+    };
+  }
+  for (const witness of trackedTail11Prefix) play(witness, true);
+  assert.equal(future.length, 0);
+  const origin = P.observe(state),
+    originContext = C.exportState(current);
+  assert.equal(current.inventory.active.id, 254);
+  assert.deepEqual(state.queue, [...'TOZJIO']);
+  const steps = submittedTail11.map((w) => play(w));
+  return { origin, originContext, steps, state: P.observe(state), current };
+}
+function submittedAdvice(origin, steps) {
+  const binding = (s) =>
+    JSON.stringify([
+      s.rules,
+      s.board,
+      s.hold,
+      s.canHold,
+      s.queue,
+      s.bag ?? null,
+      s.active?.type,
+    ]);
+  return {
+    context: binding(origin),
+    target: steps[0].target,
+    witness: steps[0].witness,
+    hold: false,
+    holdCount: 0,
+    evidence: {},
+    continuation: steps.map((p) => ({
+      ...p,
+      hold: p.witness.includes('HOLD'),
+      holdCount: p.witness.filter((a) => a === 'HOLD').length,
+      resultContext: binding(p.state),
+    })),
+  };
+}
+
+test('I259: ordinary revalidation and continuation reject optional Left I without a reveal', () => {
+  const r = trackedTail11(),
+    options = {
+      ...reviewedOptions(),
+      patternHistory: undefined,
+      obligationContext: r.originContext,
+    },
+    submitted = submittedAdvice(r.origin, r.steps);
+  assert.equal(P.revalidate(r.origin, submitted, options), null);
+  assert.equal(
+    P.continueCommitment(
+      r.origin,
+      r.steps[0].state,
+      submitted,
+      r.steps[0].event,
+      { ...options, obligationContext: r.steps[0].obligationContext },
+    ),
+    null,
+  );
+  const before = r.steps[4].state,
+    step = r.steps[5];
+  assert.equal(before.active.type, 'I');
+  assert.equal(before.streamCursor, 259);
+  assert.equal(before.hold, 'T');
+  assert.deepEqual(before.queue, ['O']);
+  assert.deepEqual(step.event.cells, [
+    [3, 24],
+    [3, 25],
+    [3, 26],
+    [3, 27],
+  ]);
+  assert.ok(
+    S.transition(before, step).cycleViolations.includes(
+      'spent-cleanup-I-on-optional-work',
+    ),
+  );
+  assert.equal(
+    P.revalidate(before, submittedAdvice(before, r.steps.slice(5)), {
+      ...options,
+      obligationContext: r.steps[4].obligationContext,
+    }),
+    null,
+  );
+  assert.equal(
+    R.replay(before, step.witness).valid,
+    true,
+    'manual gameplay stays legal',
+  );
+});
+test('I259: fresh cleanup quad and held T double retain with exact pending Center L', () => {
+  const r = trackedTail11(),
+    before = r.steps[4].state,
+    options = {
+      ...reviewedOptions(),
+      patternHistory: undefined,
+      obligationContext: r.steps[4].obligationContext,
+    },
+    advice = P.decide(before, options);
+  assert.ok(advice.target, advice.reason);
+  assert.deepEqual(
+    advice.continuation.map((p) => [p.event.type, p.event.lines, p.event.spin]),
+    [
+      ['I', 4, 'none'],
+      ['T', 2, 'full'],
+    ],
+  );
+  assert.deepEqual(advice.continuation[0].event.cells, [
+    [7, 36],
+    [7, 37],
+    [7, 38],
+    [7, 39],
+  ]);
+  assert.ok(P.revalidate(before, advice, options));
+  const C = require('../st-obligation-context');
+  let state = before,
+    current = C.importState(options.obligationContext, { position: state }),
+    retained;
+  for (const [i, step] of advice.continuation.entries()) {
+    const prior = state;
+    for (const action of step.witness) {
+      const after = R.move(state, action);
+      current = C.applyActual(current, {
+        before: state,
+        action,
+        after,
+      }).context;
+      state = after;
+    }
+    assert.deepEqual(state.lastEvent, step.event);
+    assert.ok(S.canonicalClear(step.event));
+    if (i === 0)
+      retained = P.continueCommitment(prior, state, advice, step.event, {
+        ...options,
+        obligationContext: C.exportState(current),
+      });
+  }
+  assert.ok(retained?.target);
+  assert.equal(retained.continuation[0].event.spin, 'full');
+  assert.equal(state.hold, 'O');
+  assert.deepEqual(state.queue, []);
+  assert.equal(advice.evidence.pendingLStage.rootId, 254);
+  assert.equal(advice.evidence.pendingLStage.arrival, 'not-established');
+  assert.deepEqual(S.assess(state).center.completions[0].cells, [
+    [4, 31],
+    [5, 31],
+    [6, 31],
+    [4, 32],
+  ]);
+});

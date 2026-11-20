@@ -10204,6 +10204,20 @@
           notches,
         );
         if (!check.valid) return null;
+        // Ordinary retention must not certify an I spend that continuation
+        // rejects. Certified construction exceptions are validated above.
+        const transition = S.transition(
+          current,
+          { event: replay.events[0], state: replay.state },
+          S.assess(replay.state, { notches: check.pattern }),
+          { notches },
+        );
+        if (
+          transition.cycleViolations.includes(
+            'spent-cleanup-I-on-optional-work',
+          )
+        )
+          return null;
         notches = check.pattern;
         current = replay.state;
       }
