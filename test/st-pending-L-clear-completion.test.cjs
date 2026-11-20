@@ -271,7 +271,7 @@ test('pending L clear / actual page replay and serialized request keep target th
     );
   }));
 
-test('pending L clear / full admission accepts exact seven-lock closure and authenticated postclear suffix', () => {
+test('pending L clear / resource closure does not waive cleanup I; authenticated postclear suffix remains admissible', () => {
   const { start, snapshots } = replay(),
     context = (s) =>
       JSON.stringify([
@@ -310,10 +310,36 @@ test('pending L clear / full admission accepts exact seven-lock closure and auth
         deadline: Infinity,
         obligationContext: Context.exportState(root.current),
       };
-    assert.ok(
-      P.revalidate(root.state, a, options),
-      'Literal full-policy closure from lock ' + (71 + i),
-    );
+    if (i === 0) {
+      // The physical seven-lock route closes Center L, but its earlier Left I
+      // spends an available cleanup piece. Resource closure is not a policy
+      // exception; ordinary revalidation must agree with continuation.
+      assert.ok(
+        S.transition(
+          snapshots[0].state,
+          snapshots[1].p,
+        ).cycleViolations.includes('spent-cleanup-I-on-optional-work'),
+      );
+      assert.equal(P.revalidate(root.state, a, options), null);
+      assert.equal(
+        P.continueCommitment(
+          root.state,
+          snapshots[0].state,
+          a,
+          snapshots[0].p.event,
+          {
+            ...options,
+            obligationContext: Context.exportState(snapshots[0].current),
+          },
+        ),
+        null,
+      );
+    } else {
+      assert.ok(
+        P.revalidate(root.state, a, options),
+        'Actual postclear history may retain its authenticated remaining closure',
+      );
+    }
     const forged = clone(a);
     forged.continuation.at(-1).event.cells[0][0]--;
     assert.equal(P.revalidate(root.state, forged, options), null);
