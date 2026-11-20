@@ -616,3 +616,304 @@ test('compact resources: successful pending L waiting preserves generic anonymou
   assert.equal(endpoint.valid, true);
   assert.deepEqual(proof.uncertainty, endpoint.resource.uncertainty);
 });
+
+// Exact native queue-101 pre-S69 accounting, replayed through the c4 I alternative.
+// The held S89 has a one-lock Left repair; no hidden draw is supplied.
+test('automatic resource depth repairs the exact held S while explicit zero remains bounded', () => {
+  const P = require('../st-planner'),
+    S = require('../st-structure'),
+    Session = require('../st-session'),
+    fixture = {
+      observation: {
+        rules: 'st-zero-v2',
+        board: [
+          '..........',
+          '..........',
+          '..........',
+          '..........',
+          '..........',
+          '..........',
+          '..........',
+          '..........',
+          '..........',
+          '..........',
+          '..........',
+          '..........',
+          '..........',
+          '..........',
+          '..........',
+          '..........',
+          '..........',
+          '..........',
+          '..........',
+          '..........',
+          '..........',
+          '..........',
+          '..........',
+          '..........',
+          '..........',
+          '..........',
+          '..........',
+          '..........',
+          '..OO......',
+          'IJOO......',
+          'IJJJ......',
+          'ILLL......',
+          'ILJJ......',
+          'OOJJLLL...',
+          'OOJJLSS...',
+          'OOJJSS...Z',
+          'OOOOLLL.ZZ',
+          'JJOOLSS.Z.',
+          'SSLLLSS.Z.',
+          'IJJJLSS.Z.',
+        ],
+        active: {
+          type: 'I',
+          x: 3,
+          y: 17,
+          rotation: 0,
+          lastRotation: null,
+        },
+        hold: 'S',
+        canHold: true,
+        queue: ['T', 'Z', 'O', 'S', 'I', 'T'],
+        revision: 640,
+        streamCursor: 90,
+        topOut: false,
+        bag: {
+          remaining: [6],
+          observedCount: 96,
+          provenance: 'known-phase',
+        },
+      },
+      options: {
+        obligationContext: {
+          schemaVersion: 1,
+          status: 'available',
+          reason: null,
+          inventory: {
+            schemaVersion: 1,
+            status: 'available',
+            originKnown: true,
+            nextId: 97,
+            streamCursor: 90,
+            active: {
+              id: 90,
+              type: 'I',
+              observedOrder: 89,
+              bag: 12,
+            },
+            hold: {
+              id: 89,
+              type: 'S',
+              observedOrder: 88,
+              bag: 12,
+            },
+            queue: [
+              {
+                id: 91,
+                type: 'T',
+                observedOrder: 90,
+                bag: 12,
+              },
+              {
+                id: 92,
+                type: 'Z',
+                observedOrder: 91,
+                bag: 13,
+              },
+              {
+                id: 93,
+                type: 'O',
+                observedOrder: 92,
+                bag: 13,
+              },
+              {
+                id: 94,
+                type: 'S',
+                observedOrder: 93,
+                bag: 13,
+              },
+              {
+                id: 95,
+                type: 'I',
+                observedOrder: 94,
+                bag: 13,
+              },
+              {
+                id: 96,
+                type: 'T',
+                observedOrder: 95,
+                bag: 13,
+              },
+            ],
+            frontier: {
+              bag: 13,
+              seenMask: 121,
+            },
+            knowledge: {
+              remaining: [6],
+              observedCount: 96,
+              provenance: 'known-phase',
+            },
+          },
+          state: {
+            schemaVersion: 2,
+            availability: 'known',
+            center: {
+              pending: [],
+              debt: [],
+            },
+            sl: {
+              schemaVersion: 1,
+              status: 'known',
+              foundationOpen: false,
+              firstBagReview: 'reviewed',
+              handoff: true,
+              residuals: [
+                {
+                  bag: 12,
+                  S: null,
+                  L: {
+                    id: 86,
+                    region: 'left',
+                    opening: false,
+                    pair: null,
+                    nonRight: true,
+                  },
+                  order: null,
+                  sOwedSinceL: false,
+                  lBeforeSPair: false,
+                },
+              ],
+              uncertainty: {
+                S: [0, 0, 0, 0],
+                L: [0],
+              },
+            },
+            account: {
+              allocationVerified: true,
+              firstTsd: true,
+              known: true,
+              mandatoryZ: false,
+              opening: null,
+              profile: {
+                before: null,
+                capEstablished: true,
+                departure: false,
+                violation: false,
+              },
+              qualityCandidate: false,
+              reset: {
+                status: 'inactive',
+              },
+              schemaVersion: 1,
+              thirdTWindow: false,
+              z: {
+                remaining: 0,
+                uncredited: 'none',
+              },
+            },
+            safety: {
+              notches: {
+                version: 2,
+                status: 'established',
+                anchorRow: 35,
+                blockedRows: [],
+                source: 'recognized-scoring-wall',
+              },
+              coveredCells: [],
+            },
+            dPending: false,
+            leftGoals: [],
+          },
+          boundary: {
+            firstBagLocks: 7,
+            sourcePatternSeen: true,
+          },
+        },
+        patternHistory: {
+          version: 2,
+          status: 'established',
+          anchorRow: 35,
+          blockedRows: [],
+          source: 'recognized-scoring-wall',
+        },
+        openingPhase: false,
+        openingSource: null,
+        openingClear: null,
+        openingRepair: null,
+      },
+    };
+  const { position, compact } = root(fixture),
+    witness = ['L', 'CCW', 'HD'],
+    replay = R.replay(position, witness);
+  assert.equal(replay.valid, true);
+  const step = { state: replay.state, event: replay.events[0], witness },
+    resource = N.step(position, step, compact),
+    notches = S.advanceNotches(
+      position.board,
+      step,
+      P.resolvePatternHistory(position, fixture.options.patternHistory),
+    ).pattern,
+    bounds = { now: () => 0, deadline: Infinity, maxNodes: 4000, notches },
+    omitted = N.repair(replay.state, resource, bounds),
+    automatic = N.repair(replay.state, resource, {
+      ...bounds,
+      depth: Session.defaults().depth,
+    });
+  assert.equal(Session.defaults().depth, null);
+  assert.equal(omitted.valid, true);
+  assert.deepEqual(automatic, omitted);
+  assert.equal(automatic.status, 'visible-left-S-repair');
+  assert.equal(automatic.scope.depth, 4);
+  assert.deepEqual(
+    automatic.path.map((p) => p.witness),
+    [['HOLD', 'L', 'L', 'L', 'HD']],
+  );
+  assert.equal(
+    N.repair(replay.state, resource, { ...bounds, depth: 1 }).valid,
+    true,
+  );
+  const zero = N.repair(replay.state, resource, { ...bounds, depth: 0 });
+  assert.equal(zero.valid, false);
+  assert.equal(zero.visited, 0);
+  assert.equal(zero.scope.depth, 0);
+  assert.equal(
+    N.repair(replay.state, resource, { ...bounds, depth: null, maxNodes: 0 })
+      .valid,
+    null,
+  );
+  const rejected = N.repair(replay.state, resource, {
+    ...bounds,
+    depth: null,
+    acceptStep: () => false,
+  });
+  assert.notEqual(rejected.valid, true);
+  const draft = {
+    context: JSON.stringify([
+      position.rules,
+      position.board,
+      position.hold,
+      position.canHold,
+      position.queue,
+      position.bag ?? null,
+      position.active?.type,
+    ]),
+    target: replay.events[0].target,
+    witness,
+    hold: false,
+    holdCount: 0,
+    evidence: {},
+    continuation: [{ ...step, target: replay.events[0].target }],
+  };
+  assert.ok(
+    P.revalidate(position, draft, {
+      ...fixture.options,
+      ...bounds,
+      maxNodes: 45000,
+      depth: Session.defaults().depth,
+    }),
+  );
+});

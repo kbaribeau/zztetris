@@ -38,7 +38,11 @@
       );
     }
     function repair(raw, resource, options = {}) {
-      const result = repairCore(raw, resource, options);
+      // The app uses null for automatic depth; preserve explicit zero as no search.
+      const result = repairCore(raw, resource, {
+        ...options,
+        depth: options.depth ?? 4,
+      });
       return {
         ...describe(resource),
         ...result,
