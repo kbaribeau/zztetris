@@ -76,9 +76,21 @@ function replay(a, p) {
   return r;
 }
 
+// Exercise the fallback with only its measured local-check allowance. A fixed
+// larger budget can now prove the held-L repair under automatic depth.
+function localAdvice(p) {
+  const probe = P.decide(p.position, p.options()),
+    maxNodes = probe.metrics.immediateMaintenance.nodes;
+  assert.ok(maxNodes > 0);
+  assert.equal(probe.metrics.immediateMaintenance.checked, 1);
+  const advice = P.decide(p.position, p.options({ maxNodes }));
+  assert.ok(advice.metrics.nodes <= maxNodes);
+  return advice;
+}
+
 test('immediate maintenance: M01 cap survives incomplete repair search without claiming a full continuation', () => {
   const p = player(),
-    a = P.decide(p.position, p.options());
+    a = localAdvice(p);
   checked(a, 'right-Z-cap');
   const r = replay(a, p);
   assert.equal(r.events[0].type, 'Z');
@@ -92,7 +104,7 @@ test('immediate maintenance: M01 cap survives incomplete repair search without c
 
 test('immediate maintenance: actual Z preserves pending L and accounting through JSON and inverse Undo', () => {
   const p = player(),
-    a = P.decide(p.position, p.options());
+    a = localAdvice(p);
   checked(a, 'right-Z-cap');
   const initial = p.current,
     position = copy(p.position),
@@ -147,7 +159,7 @@ test('immediate maintenance: literal recorded TSD is eligible without requiring 
 
 test('immediate maintenance: moved pose and HOLD revalidation recheck local facts', () => {
   const p = player(),
-    a = P.decide(p.position, p.options());
+    a = localAdvice(p);
   checked(a, 'right-Z-cap');
   const action = a.witness[0];
   p.act(action);
@@ -177,7 +189,7 @@ test('immediate maintenance: no fast admission for opening, unknown account or z
 
 test('immediate maintenance: copied immediate evidence cannot authorize a different piece or position', () => {
   const p = player(),
-    a = P.decide(p.position, p.options());
+    a = localAdvice(p);
   checked(a, 'right-Z-cap');
   const unrelated = copy(a),
     r = R.replay(p.position, ['HD']);
@@ -241,11 +253,44 @@ test('immediate maintenance: disabled HOLD cannot access or retain a held cap Z'
 
 test('immediate maintenance: expired revalidation budget cannot renew a local certificate', () => {
   const p = player(),
-    a = P.decide(p.position, p.options());
+    a = localAdvice(p);
   checked(a, 'right-Z-cap');
   assert.equal(
     P.revalidate(p.position, a, p.options({ deadline: undefined, timeMs: 0 })),
     null,
   );
   assert.equal(P.revalidate(p.position, a, p.options({ maxNodes: 0 })), null);
+});
+
+test('automatic repair supports the M01 cap with an actual held-L completion', () => {
+  const M = require('../st-obligation-resources'),
+    p = player(),
+    a = P.decide(p.position, p.options());
+  assert.equal(a.recommendation.kind, 'supported');
+  assert.deepEqual(
+    a.continuation[0].event.cells.slice().sort(),
+    fixture.knownSequence[0].event.cells.slice().sort(),
+  );
+  assert.equal(a.continuation.length, 1);
+  assert.ok(P.revalidate(p.position, a, p.options()));
+  p.lock(a.witness);
+  assert.equal(
+    C.resolve(p.current, { position: p.position }).center.pending.length,
+    1,
+  );
+  const proof = M.repair(p.position, M.start(p.position, p.current), {
+    ...bounds,
+    maxNodes: 4000,
+    notches: P.resolvePatternHistory(p.position, p.pattern),
+  });
+  assert.equal(proof.valid, true);
+  assert.equal(proof.status, 'visible-Center-and-S-repair');
+  assert.equal(proof.path.length, 1);
+  assert.deepEqual(proof.path[0].witness, ['HOLD', 'R180', 'R', 'HD']);
+  assert.equal(p.position.hold, 'L');
+  p.lock(proof.path[0].witness);
+  const facts = C.resolve(p.current, { position: p.position });
+  assert.equal(facts.center.pending.length, 0);
+  assert.equal(facts.center.debt.length, 0);
+  assert.equal(p.position.topOut, false);
 });
