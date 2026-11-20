@@ -8,6 +8,6 @@
   'use strict';
   return Object.freeze({
     SEARCH_TIME_MS: 1500,
-    ASSET_VERSION: 'st-assets-20261113-1',
+    ASSET_VERSION: 'st-assets-20261120-1',
   });
 });
