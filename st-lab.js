@@ -1621,11 +1621,32 @@
               unknown: 'eligibility unknown',
               'out-of-profile': 'outside the reviewed source profile',
             }[zStatus];
+    // Locate a single confirmed identity in actual public inventory, never in a
+    // hypothetical continuation or an anonymous accommodation count.
+    const trackedS = s.evidence.length === 1 ? s.evidence[0].sId : null;
+    const currentInventory =
+      currentResources.status === 'available' &&
+      obligationContext.status === 'available' &&
+      !currentResources.terminal
+        ? obligationContext.inventory
+        : null;
+    const isTrackedS = (piece) =>
+      Number.isSafeInteger(trackedS) &&
+      piece?.type === 'S' &&
+      piece.id === trackedS;
+    const sLocation = isTrackedS(currentInventory?.hold)
+      ? 'A confirmed S obligation belongs to the S in Hold. Playing a different S does not clear that obligation.'
+      : isTrackedS(currentInventory?.active)
+        ? 'A confirmed S obligation belongs to the active S.'
+        : '';
     renderResourceBadge(
       'st-hanging-s',
       s.status,
       `Hanging S: ${sLabel}`,
-      s.reason || currentResources.reason || 'Current obligation facts.',
+      sLocation ||
+        s.reason ||
+        currentResources.reason ||
+        'Current obligation facts.',
       'hanging',
       currentResources.terminal,
       currentResources.status === 'unavailable' ? null : s.evidence.length,
@@ -1719,6 +1740,7 @@
         if (y >= 18) paintCell(context, x, y - 18, state.active.type);
     }
     miniature('h', [state.hold]);
+    $('h').setAttribute('aria-label', `Held piece: ${state.hold || 'none'}`);
     miniature('n', state.queue.slice(0, 6));
     // The bag knowledge is at the *end* of visible preview. Only a unanimous
     // remainder size proves a boundary; unknown imports get no invented bars.

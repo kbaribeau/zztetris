@@ -444,3 +444,207 @@ test('current resource UI: ignored movement and unsupported actions cannot dupli
     assert.deepEqual(resources(g), atWall);
     assert.equal(locks(g), 0);
   }));
+
+// Native seed 2026112107, before lock 84 on 6a404328. Minimized actual
+// checkpoint; four following locks use only their recorded public reveals.
+// S84 is held while S85 enters Center; only the later held S pays Left.
+const HELD_S_CHECKPOINT = {
+  position: {
+    rules: 'st-zero-v2',
+    board: [
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      '..........',
+      'JJ........',
+      'JLLLLLL...',
+      'JLOOLSS...',
+      'JJOOSS....',
+      'JOOJLOO...',
+      'JOOJLOO...',
+      'IJSILSS.Z.',
+      'OOIJLSS.Z.',
+    ],
+    active: { type: 'S', x: 3, y: 17, rotation: 0, lastRotation: null },
+    hold: 'S',
+    canHold: true,
+    queue: ['Z', 'O', 'J', 'T', 'L', 'I'],
+    revision: 656,
+    streamCursor: 85,
+    topOut: false,
+    bag: { remaining: [0], observedCount: 91, provenance: 'known-phase' },
+  },
+  context: {
+    schemaVersion: 1,
+    status: 'available',
+    reason: null,
+    inventory: {
+      schemaVersion: 1,
+      status: 'available',
+      originKnown: true,
+      nextId: 92,
+      streamCursor: 85,
+      active: { id: 85, type: 'S', observedOrder: 84, bag: 12 },
+      hold: { id: 84, type: 'S', observedOrder: 83, bag: 11 },
+      queue: [
+        { id: 86, type: 'Z', observedOrder: 85, bag: 12 },
+        { id: 87, type: 'O', observedOrder: 86, bag: 12 },
+        { id: 88, type: 'J', observedOrder: 87, bag: 12 },
+        { id: 89, type: 'T', observedOrder: 88, bag: 12 },
+        { id: 90, type: 'L', observedOrder: 89, bag: 12 },
+        { id: 91, type: 'I', observedOrder: 90, bag: 12 },
+      ],
+      frontier: { bag: 13, seenMask: 0 },
+      knowledge: {
+        remaining: [0],
+        observedCount: 91,
+        provenance: 'known-phase',
+      },
+    },
+    state: {
+      schemaVersion: 2,
+      availability: 'known',
+      center: { pending: [], debt: [] },
+      sl: {
+        schemaVersion: 1,
+        status: 'known',
+        foundationOpen: false,
+        firstBagReview: 'reviewed',
+        handoff: true,
+        residuals: [
+          {
+            bag: 11,
+            S: null,
+            L: {
+              id: 80,
+              region: 'left',
+              opening: false,
+              pair: null,
+              nonRight: true,
+            },
+            order: null,
+            sOwedSinceL: false,
+            lBeforeSPair: false,
+          },
+        ],
+        uncertainty: { S: [0, 0, 0, 0], L: [0] },
+      },
+      account: {
+        schemaVersion: 1,
+        known: true,
+        firstTsd: true,
+        allocationVerified: true,
+        mandatoryZ: false,
+        thirdTWindow: false,
+        qualityCandidate: false,
+        opening: null,
+        profile: {
+          violation: false,
+          departure: false,
+          before: null,
+          capEstablished: true,
+        },
+        z: { remaining: 0, uncredited: 'none' },
+        reset: { status: 'inactive' },
+      },
+      safety: {
+        notches: {
+          version: 2,
+          status: 'established',
+          anchorRow: 35,
+          blockedRows: [],
+          source: 'recognized-next-Z-cap',
+        },
+        coveredCells: [],
+      },
+      dPending: false,
+      leftGoals: [],
+    },
+    boundary: { firstBagLocks: 7, sourcePatternSeen: true },
+  },
+};
+
+test('resource UI identifies the actual held S obligation, follows Hold, and clears only on its payment', () =>
+  withPage('st-lab.html', { seed: 42 }, (g) => {
+    workers(g);
+    const Session = require('../st-session');
+    const Practice = require('../st-practice');
+    const checkpoint = HELD_S_CHECKPOINT;
+    const session = Session.create(R.createState(checkpoint.position), {
+      obligationContext: checkpoint.context,
+      openingPhase: false,
+    });
+    const practice = Practice.create(session, ['T', 'Z', 'J', 'O']);
+    g.element('#st-snapshot').value = JSON.stringify(practice);
+    g.click('#st-import');
+    const detail = () => g.element('#st-hanging-s-detail').textContent;
+    const held = () => g.element('#h').getAttribute('aria-label');
+    const act = (...actions) => actions.forEach((a) => g.window.stLab.act(a));
+    assert.match(detail(), /obligation belongs to the S in Hold/);
+    assert.match(detail(), /Playing a different S does not clear/);
+    assert.doesNotMatch(detail(), /S84|S85|bag 11|bag 12/);
+    assert.equal(held(), 'Held piece: S');
+    assert.equal(
+      g.element('#st-hanging-s').getAttribute('aria-describedby'),
+      'st-hanging-s-detail',
+    );
+    assert.equal(g.element('#st-hanging-s').getAttribute('tabindex'), '0');
+    act('HOLD');
+    assert.match(detail(), /obligation belongs to the active S/);
+    act('HOLD', 'R', 'HD');
+    assert.match(detail(), /obligation belongs to the S in Hold/);
+    assert.equal(resources(g).hangingS.evidence.length, 1);
+    assert.equal(resources(g).center.pending.length, 1);
+    act('R', 'R', 'R', 'R', 'CW', 'HD', 'L', 'L', 'HD');
+    assert.match(detail(), /obligation belongs to the S in Hold/);
+    act('HOLD', 'L', 'L', 'L', 'HD');
+    assert.equal(resources(g).hangingS.evidence.length, 0);
+    assert.equal(resources(g).center.pending.length, 1);
+    assert.doesNotMatch(detail(), /obligation belongs/);
+    assert.equal(held(), 'Held piece: J');
+  }));
+
+test('resource UI does not assign an unknown import obligation to a same-type held piece', () =>
+  withPage('st-lab.html', { seed: 42 }, (g) => {
+    workers(g);
+    importState(g, HELD_S_CHECKPOINT.position);
+    assert.equal(g.element('#h').getAttribute('aria-label'), 'Held piece: S');
+    assert.doesNotMatch(
+      g.element('#st-hanging-s-detail').textContent,
+      /obligation belongs/,
+    );
+    assert.equal(resources(g).hangingS.status, 'unknown');
+    select(g, 'empty');
+    assert.equal(
+      g.element('#h').getAttribute('aria-label'),
+      'Held piece: none',
+    );
+  }));
