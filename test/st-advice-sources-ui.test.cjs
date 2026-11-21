@@ -480,3 +480,82 @@ test('st-sources/help: current unlimited HOLD practice is distinct from legacy v
       'Only the shown sequence has been checked. Continued ST play is not guaranteed.',
     );
   }));
+
+test('st-advice/explanation distinguishes an admission boundary from an unfinished resource proof without changing the result', () =>
+  withPage('st-lab.html', {}, (g) => {
+    const workers = setup(g);
+    const reentry = {
+      attempted: 1,
+      examined: 70,
+      verified: 2,
+      selected: false,
+      candidateScanComplete: true,
+    };
+    for (const [status, evidence, expected] of [
+      ['unsupported-position', {}, /only checks a Center S return/],
+      [
+        'no-supported-continuation-found',
+        {
+          resourceObligations: {
+            status: 'rejected',
+            reason: 'resource-repair-budget',
+          },
+        },
+        /within its search budget. A valid continuation may still exist/,
+      ],
+    ]) {
+      const response = {
+        status,
+        target: null,
+        witness: [],
+        continuation: [],
+        reason: 'Original diagnostic reason',
+        metrics: { levelBaseReentry: reentry },
+        evidence,
+      };
+      g.click('#st-reset');
+      g.advance(40);
+      const worker = workers.at(-1),
+        before = g.snapshot();
+      worker.respond(response);
+      assert.match(g.element('#st-status').textContent, expected);
+      assert.equal(g.element('#st-status').dataset.result, status);
+      assert.equal(g.element('#st-target').children.length, 0);
+      assert.equal(g.window.stLab.result.reason, response.reason);
+      assert.deepEqual(json(g.window.stLab.result.metrics), response.metrics);
+      assert.deepEqual(json(g.window.stLab.result.evidence), response.evidence);
+      assert.deepEqual(g.snapshot(), before);
+    }
+  }));
+
+test('st-advice/explanation leaves recommended, finite, older and incomplete responses unchanged', () =>
+  withPage('st-lab.html', {}, (g) => {
+    const workers = setup(g),
+      worker = workers.at(-1);
+    for (const response of [
+      advice(worker.message.observation, {
+        evidence: { resourceObligations: { reason: 'resource-repair-budget' } },
+      }),
+      { status: 'insufficient-known-pieces', reason: 'Finite queue ended.' },
+      {
+        status: 'unsupported-position',
+        reason: 'Older response without metrics.',
+      },
+      {
+        status: 'budget-exhausted',
+        reason: 'Root search incomplete.',
+        metrics: {
+          levelBaseReentry: {
+            attempted: 1,
+            candidateScanComplete: false,
+            selected: false,
+          },
+        },
+      },
+    ]) {
+      g.click('#st-reset');
+      g.advance(40);
+      workers.at(-1).respond(response);
+      assert.equal(g.element('#st-status').textContent, response.reason);
+    }
+  }));

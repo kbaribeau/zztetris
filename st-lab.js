@@ -285,6 +285,26 @@
   const setText = (node, text) => {
     if (node.textContent !== text) node.textContent = text;
   };
+  function adviceMessage(advice) {
+    if (!advice?.target) {
+      if (
+        advice?.evidence?.resourceObligations?.reason ===
+        'resource-repair-budget'
+      )
+        return 'The coach could not verify an allowed continuation within its search budget. A valid continuation may still exist.';
+      const reentry = advice?.metrics?.levelBaseReentry;
+      if (
+        advice?.status === 'unsupported-position' &&
+        reentry?.attempted === 1 &&
+        reentry.candidateScanComplete === true &&
+        reentry.selected === false
+      )
+        return 'At this boundary the coach only checks a Center S return. It did not verify an allowed continuation within that restriction. Other legal moves may exist.';
+    }
+    return (
+      advice?.reason || 'No supported ST sequence was found within this search.'
+    );
+  }
   function importStatus(text, { rejected = false } = {}) {
     const status = $('st-import-status'),
       input = $('st-snapshot');
@@ -846,9 +866,7 @@
               );
             }
             coachStatus = result?.status || 'no-supported-continuation-found';
-            coachMessage =
-              result?.reason ||
-              'No supported ST sequence was found within this search.';
+            coachMessage = adviceMessage(result);
             if (result?.target) {
               previous = { ...clone(result), revision: state.revision };
               pendingLHint = result.evidence?.pendingLStage
