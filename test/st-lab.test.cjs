@@ -578,3 +578,21 @@ test('ST diagnostics show retrieved lookup routes and clear them for a changed p
       'stale worker cannot restore old lookups',
     );
   }));
+
+test('rotation controls have explicit accessible names and retain their actions', () =>
+  withPage('st-lab.html', {}, (g) => {
+    for (const [action, name] of [
+      ['CCW', 'Rotate counterclockwise'],
+      ['CW', 'Rotate clockwise'],
+      ['R180', 'Rotate 180 degrees'],
+    ]) {
+      const button = g.window.document.querySelector(
+        `[data-action="${action}"]`,
+      );
+      assert.equal(button.tagName, 'BUTTON');
+      assert.equal(button.getAttribute('aria-label'), name);
+      const before = g.snapshot();
+      g.click(`[data-action="${action}"]`);
+      assert.deepEqual(g.snapshot().active, R.move(before, action).active);
+    }
+  }));
