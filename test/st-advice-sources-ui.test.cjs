@@ -390,7 +390,7 @@ test('st-sources/ui: interrupted worker failures remove retained references and 
     assertSourcesCleared(g);
     assert.equal(
       g.element('#st-status').textContent,
-      'The coach could not evaluate this position. You can still practice manually.',
+      'The coach could not evaluate this position. Turn Advice off and on to retry, or keep practicing manually.',
     );
     showRetained();
     g.advance(40);
@@ -416,7 +416,7 @@ test('st-sources/ui: interrupted worker failures remove retained references and 
     assert.equal(g.element('#st-target').children.length, 0);
     assert.equal(
       g.element('#st-status').textContent,
-      'The coach could not start. You can still practice manually.',
+      'The coach could not start. Turn Advice off and on to retry, or keep practicing manually.',
     );
   }));
 
