@@ -449,6 +449,17 @@
           Importing a v1 snapshot into this lab migrates it to unlimited-hold
           st-zero-v2.
         </p>
+        <label for="st-import-file">Import a JSON file</label>
+        <input
+          id="st-import-file"
+          type="file"
+          accept=".json,application/json"
+          aria-describedby="st-import-file-help"
+        />
+        <p id="st-import-file-help" class="lab-note">
+          Choose a saved snapshot, coaching session or practice package. The
+          file is read locally, not uploaded. You can still paste JSON below.
+        </p>
         <label for="st-snapshot">Snapshot JSON</label
         ><textarea id="st-snapshot" rows="8" spellcheck="false"></textarea>
         <div id="st-import-result">
