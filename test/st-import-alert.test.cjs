@@ -294,3 +294,130 @@ test('st-import-alert/success, accepted-session warnings, exports and mode chang
     notice(g, /^$/);
     assert.ok(g.snapshot().board.every((row) => row === '..........'));
   }));
+
+async function selectedFile(g, file) {
+  const field = g.element('#st-import-file');
+  Object.defineProperty(field, 'files', {
+    configurable: true,
+    value: file ? [file] : [],
+  });
+  field.dispatchEvent(new g.window.Event('change', { bubbles: true }));
+  await Promise.resolve();
+  await Promise.resolve();
+}
+
+test('st-import-file/native session and legacy snapshot share paste validation; same file can retry', () =>
+  withPage('st-lab.html', {}, async (g) => {
+    const session = clone(g.window.stLab.exportSession());
+    g.input('#st-snapshot', 'keep this paste');
+    g.window.stLab.act('L');
+    const file = { size: 100, text: async () => JSON.stringify(session) };
+    await selectedFile(g, file);
+    assert.deepEqual(g.snapshot(), session.position);
+    assert.equal(g.element('#st-snapshot').value, 'keep this paste');
+    assert.equal(g.element('#st-import-file').value, '');
+    g.window.stLab.act('R');
+    await selectedFile(g, file);
+    assert.deepEqual(g.snapshot(), session.position);
+    const legacy = { ...session.position, rules: 'st-zero-v1' };
+    await selectedFile(g, {
+      size: 100,
+      text: async () => JSON.stringify(legacy),
+    });
+    assert.equal(g.snapshot().rules, 'st-zero-v2');
+    assert.match(g.element('#st-import-status').textContent, /migrated/);
+  }));
+
+test('st-import-file/cancel, read failure, malformed and oversized files leave live game and paste intact', () =>
+  withPage('st-lab.html', {}, async (g) => {
+    g.input('#st-snapshot', 'draft');
+    const before = clone(g.window.stLab.exportSession());
+    await selectedFile(g, null);
+    for (const file of [
+      {
+        size: 1,
+        text: async () => {
+          throw Error('unreadable');
+        },
+      },
+      { size: 1, text: async () => '{' },
+      {
+        size: 1,
+        text: async () => JSON.stringify({ ...before, schemaVersion: 999 }),
+      },
+      {
+        size: g.window.STSession.LIMITS.bytes + 1,
+        text: () => {
+          assert.fail('oversized file must not be read');
+        },
+      },
+    ]) {
+      await selectedFile(g, file);
+      assert.deepEqual(clone(g.window.stLab.exportSession()), before);
+      assert.equal(g.element('#st-snapshot').value, 'draft');
+      assert.equal(
+        g.element('#st-import-file').getAttribute('aria-invalid'),
+        'true',
+      );
+      assert.equal(
+        g.element('#st-snapshot').hasAttribute('aria-invalid'),
+        false,
+      );
+      assert.equal(
+        g.element('#st-import-status').getAttribute('role'),
+        'alert',
+      );
+    }
+  }));
+
+test('st-import-file/late read cannot overwrite play, newer paste, newer file, edit or cancellation', () =>
+  withPage('st-lab.html', {}, async (g) => {
+    const initial = clone(g.window.stLab.exportSession());
+    for (const invalidate of [
+      () => g.window.stLab.act('L'),
+      () => attempt(g, JSON.stringify(initial)),
+      () => g.input('#st-snapshot', 'new draft'),
+      () =>
+        g
+          .element('#st-import-file')
+          .dispatchEvent(new g.window.Event('cancel')),
+      () =>
+        selectedFile(g, { size: 1, text: async () => JSON.stringify(initial) }),
+    ]) {
+      let resolve;
+      await selectedFile(g, {
+        size: 1,
+        text: () =>
+          new Promise((r) => {
+            resolve = r;
+          }),
+      });
+      await invalidate();
+      const before = clone(g.window.stLab.exportSession()),
+        status = g.element('#st-import-status').textContent;
+      resolve('{'); // A stale failure must not replace the current success/status either.
+      await Promise.resolve();
+      await Promise.resolve();
+      assert.deepEqual(clone(g.window.stLab.exportSession()), before);
+      assert.equal(g.element('#st-import-status').textContent, status);
+    }
+  }));
+
+test('st-import-file/a valid delayed file cannot roll back a move made while reading', () =>
+  withPage('st-lab.html', {}, async (g) => {
+    const saved = clone(g.window.stLab.exportSession());
+    let resolve;
+    await selectedFile(g, {
+      size: 1,
+      text: () =>
+        new Promise((r) => {
+          resolve = r;
+        }),
+    });
+    g.window.stLab.act('L');
+    const moved = clone(g.window.stLab.exportSession());
+    resolve(JSON.stringify(saved));
+    await Promise.resolve();
+    await Promise.resolve();
+    assert.deepEqual(clone(g.window.stLab.exportSession()), moved);
+  }));

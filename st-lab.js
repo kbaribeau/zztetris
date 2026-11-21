@@ -285,9 +285,18 @@
   const setText = (node, text) => {
     if (node.textContent !== text) node.textContent = text;
   };
-  function importStatus(text, { rejected = false } = {}) {
+  let fileImportRequest = 0;
+  function importStatus(
+    text,
+    { rejected = false, field = $('st-snapshot') } = {},
+  ) {
     const status = $('st-import-status'),
-      input = $('st-snapshot');
+      input = field;
+    for (const id of ['st-snapshot', 'st-import-file']) {
+      $(id).removeAttribute('aria-invalid');
+      $(id).removeAttribute('aria-describedby');
+    }
+    $('st-import-file').setAttribute('aria-describedby', 'st-import-file-help');
     $('st-import-result').dataset.result = rejected ? 'rejected' : 'notice';
     for (const id of [
       'st-import-error-title',
@@ -1010,6 +1019,7 @@
       replayBoundary = 'mode',
     } = {},
   ) {
+    fileImportRequest++;
     cancel();
     stopRepeating();
     planContinuity = null;
@@ -1144,6 +1154,7 @@
     };
   }
   function undo() {
+    fileImportRequest++;
     if (!undoHistory.length) return;
     cancel();
     stopRepeating();
@@ -1210,6 +1221,7 @@
     render();
   }
   function act(action) {
+    fileImportRequest++;
     try {
       if (action === 'UNDO') {
         undo();
@@ -1928,6 +1940,7 @@
     });
   }
   function installSession(prepared, tail = null, restarting = false) {
+    fileImportRequest++;
     // Normalize before mutation: Reset must restore the current checkpoint,
     // not an older envelope or discarded executable certificates.
     const envelope = STSession.create(prepared.state, prepared);
@@ -2041,17 +2054,19 @@
     importStatus('Exported visible state only; hidden future was excluded.');
   });
   $('st-snapshot').addEventListener('input', () => {
+    fileImportRequest++;
     if ($('st-import-result').dataset.result === 'rejected')
       setText(
         $('st-import-error-note'),
         'Previous import attempt was rejected. Your edits have not been revalidated; the current game is unchanged.',
       );
   });
-  $('st-import').addEventListener('click', () => {
+  function importJSON(text, field = $('st-snapshot')) {
+    fileImportRequest++;
     try {
-      if ($('st-snapshot').value.length > STSession.LIMITS.bytes)
+      if (text.length > STSession.LIMITS.bytes)
         throw new Error('Import exceeds size limit.');
-      const input = JSON.parse($('st-snapshot').value);
+      const input = JSON.parse(text);
       if (input?.format === STPractice.FORMAT) {
         const prepared = STPractice.prepare(input);
         installSession(prepared.session, prepared.tail);
@@ -2099,7 +2114,44 @@
           : 'Snapshot imported.',
       );
     } catch (error) {
-      importStatus(`Import rejected: ${error.message}`, { rejected: true });
+      importStatus(`Import rejected: ${error.message}`, {
+        rejected: true,
+        field,
+      });
+    }
+  }
+  $('st-import').addEventListener('click', () =>
+    importJSON($('st-snapshot').value),
+  );
+  const fileInput = $('st-import-file');
+  fileInput.addEventListener('click', () => {
+    fileImportRequest++;
+  });
+  fileInput.addEventListener('cancel', () => {
+    fileImportRequest++;
+  });
+  fileInput.addEventListener('change', async () => {
+    const request = ++fileImportRequest;
+    const file = fileInput.files?.[0];
+    fileInput.value = ''; // Selecting the same file again must trigger a new read.
+    if (!file) return;
+    if (file.size > STSession.LIMITS.bytes) {
+      importStatus('Import rejected: Import exceeds size limit.', {
+        rejected: true,
+        field: fileInput,
+      });
+      return;
+    }
+    try {
+      const text = await file.text();
+      if (request !== fileImportRequest) return;
+      importJSON(text, fileInput);
+    } catch {
+      if (request !== fileImportRequest) return;
+      importStatus(
+        'Import rejected: The file could not be read. Select it again or paste its JSON.',
+        { rejected: true, field: fileInput },
+      );
     }
   });
   for (const mode of playModes) {
