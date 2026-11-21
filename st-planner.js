@@ -10163,7 +10163,7 @@
       });
       if (options.budgetTracker)
         options.budgetTracker.nodes += enumeration.visited;
-      const p = enumeration.placements.find(
+      let p = enumeration.placements.find(
         (p) =>
           S.canonicalClear(p.event) &&
           holdCount(p) === holdCount(previous) &&
@@ -10171,6 +10171,72 @@
           p.event.spin === previous.continuation?.[0]?.event.spin &&
           p.event.lines === previous.continuation?.[0]?.event.lines,
       );
+      // Geometry enumeration merges a same-type HOLD with the active root.
+      // An explicit retained witness may still spend a different tracked instance.
+      // Recover only that witness when its actual obligation result differs; this
+      // does not add candidates to fresh search or waive any checks below.
+      if (
+        !p &&
+        enumeration.complete &&
+        resourceKnown(s, options) &&
+        options.allowHold !== false &&
+        s.active?.type === s.hold &&
+        holdCount(previous) === 1 &&
+        Array.isArray(previous.witness) &&
+        previous.witness.length <= 256 &&
+        previous.witness[0] === 'HOLD' &&
+        previous.witness.at(-1) === 'HD' &&
+        previous.witness.filter((a) => a === 'HOLD').length === 1 &&
+        previous.witness.filter((a) => a === 'HD').length === 1 &&
+        now() < options.deadline
+      ) {
+        const equivalent = enumeration.placements.find(
+          (candidate) =>
+            holdCount(candidate) === 0 &&
+            JSON.stringify(candidate.target) ===
+              JSON.stringify(previous.target) &&
+            JSON.stringify(candidate.event) ===
+              JSON.stringify(previous.continuation?.[0]?.event),
+        );
+        if (equivalent) {
+          const root = resourceRoot(s, options),
+            active = root.active,
+            held = root.hold;
+          if (
+            Number.isInteger(active?.id) &&
+            active.id > 0 &&
+            Number.isInteger(held?.id) &&
+            held.id > 0 &&
+            active.id !== held.id
+          ) {
+            const replay = R.replay(s, previous.witness);
+            if (
+              replay.valid &&
+              replay.events.length === 1 &&
+              JSON.stringify(replay.events[0]) ===
+                JSON.stringify(equivalent.event)
+            ) {
+              const explicit = {
+                ...equivalent,
+                state: replay.state,
+                witness: previous.witness.slice(),
+                hold: true,
+                holdCount: 1,
+              };
+              const explicitFacts = resourceFacts(M.step(s, explicit, root)),
+                activeFacts = resourceFacts(
+                  M.step(
+                    s,
+                    { witness: equivalent.witness, event: equivalent.event },
+                    root,
+                  ),
+                );
+              if (JSON.stringify(explicitFacts) !== JSON.stringify(activeFacts))
+                p = explicit;
+            }
+          }
+        }
+      }
       if (!p) return null;
       let continuation = [
         {
