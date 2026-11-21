@@ -1370,8 +1370,23 @@
         adoptPlan(suffix);
       }
       if (!openingPhase) openingForecast = null;
+      // Ordinary pose changes keep the same public inventory and certificate
+      // root. The worker replays that certificate from the current pose; do not
+      // run its expensive proof on the input/render path or display it unchecked.
+      // Identity-changing HOLD and specialized proof families retain their own
+      // advancement contracts.
+      const deferOrdinary =
+        !locked &&
+        action !== 'HOLD' &&
+        !openingPhase &&
+        displayed &&
+        typeof displayed.context === 'string' &&
+        !displayed.evidence?.opening &&
+        !displayed.evidence?.construction &&
+        displayed.evidence?.strategy !== 'reset-coach' &&
+        !['risky', 'immediate'].includes(displayed.recommendation?.kind);
       const advanced =
-        !locked && displayed
+        !locked && displayed && !deferOrdinary
           ? STPlanner.advance(observation(), displayed, action, {
               patternHistory,
               openingPhase,

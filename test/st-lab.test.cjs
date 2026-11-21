@@ -424,7 +424,7 @@ test('st-lab/import: longer preview rejected rather than using bag knowledge fro
   }));
 
 for (const hold of [false, true])
-  test(`st-lab/stability: exact ${hold ? 'hold' : 'movement'} witness preserves visible target while revalidating`, () =>
+  test(`st-lab/stability: exact ${hold ? 'hold' : 'movement'} witness retains its certificate while revalidating`, () =>
     withPage('st-lab.html', {}, (g) => {
       const ws = workers(g),
         w = ws.at(-1),
@@ -432,7 +432,8 @@ for (const hold of [false, true])
           w.message.observation,
           (p) =>
             p.hold === hold &&
-            p.witness.length > 1 &&
+            p.witness.length > (hold ? 1 : 2) &&
+            (hold || !['HOLD', 'HD'].includes(p.witness[1])) &&
             require('../st-obligation-resources').checkPath(
               w.message.observation,
               [p],
@@ -451,6 +452,16 @@ for (const hold of [false, true])
               p.event,
             ).length,
         );
+      answer.context = JSON.stringify([
+        w.message.observation.rules,
+        w.message.observation.board,
+        w.message.observation.hold,
+        w.message.observation.canHold,
+        w.message.observation.queue,
+        w.message.observation.bag ?? null,
+        w.message.observation.active?.type,
+      ]);
+      answer.evidence = {};
       answer.lookupContinuations = {
         originRevision: w.message.observation.revision,
         status: 'queried',
@@ -458,28 +469,55 @@ for (const hold of [false, true])
         routes: [{ id: 'prior-root' }],
       };
       w.respond(answer);
+      let synchronousProofs = 0;
+      const planner = g.window.STPlanner;
+      g.window.STPlanner = {
+        ...planner,
+        advance(...args) {
+          synchronousProofs++;
+          return planner.advance(...args);
+        },
+      };
       const target = g.element('#st-target').innerHTML;
       g.window.stLab.act(answer.witness[0]);
-      assert.equal(
-        g.element('#st-target').innerHTML,
-        target,
-        'no blank or moved target while worker is pending',
-      );
-      assert.equal(g.window.stLab.result.retained, true);
-      assert.equal(
-        JSON.parse(g.element('#st-diagnostic-text').textContent)
-          .lookupContinuations.routes.length,
-        0,
-        'advanced advice must not relabel prior-root lookups as current',
-      );
-      assert.deepEqual(
-        json(g.window.stLab.result.witness),
-        answer.witness.slice(1),
-      );
-      if (hold) assert.equal(g.window.stLab.result.hold, false);
+      if (hold) {
+        assert.equal(g.element('#st-target').innerHTML, target);
+        assert.equal(g.window.stLab.result.retained, true);
+        assert.equal(g.window.stLab.result.hold, false);
+      } else {
+        assert.equal(g.window.stLab.result, null);
+        assert.notEqual(
+          g.element('#st-target').innerHTML,
+          target,
+          'unverified target is hidden until worker replay',
+        );
+      }
+      if (!hold) {
+        const moved = R.move(g.snapshot(), answer.witness[1]);
+        g.window.stLab.act(answer.witness[1]);
+        assert.deepEqual(g.snapshot().active, moved.active);
+        assert.equal(g.window.stLab.result, null);
+        assert.equal(
+          synchronousProofs,
+          0,
+          'rapid ordinary movement must not run retention on the main thread',
+        );
+        w.respond(answer);
+        assert.equal(
+          g.window.stLab.result,
+          null,
+          'old worker cannot restore ghost',
+        );
+      }
       g.advance(40);
       const next = ws.at(-1);
-      assert.equal(next.message.previous.retained, true);
+      if (hold) assert.equal(next.message.previous.retained, true);
+      else
+        assert.deepEqual(
+          next.message.previous.witness,
+          answer.witness,
+          'original certificate reaches worker without a synchronous proof',
+        );
       const P = require('../st-planner.js');
       const revalidated = P.revalidate(
         next.message.observation,
