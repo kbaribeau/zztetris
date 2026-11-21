@@ -178,3 +178,33 @@ test('st-diagnostics-ui/startup error: active no-id diagnostic uses pending requ
     assert.equal(entries.length, 2);
     assert.equal(g.element('#st-explore-capture').disabled, false);
   }));
+
+test('st-diagnostics-ui/transient failure can retry through Advice without changing the game or replay', () =>
+  withPage('st-lab.html', {}, (g) => {
+    logs(g);
+    const ws = workers(g),
+      failed = ws.at(-1),
+      before = json(g.window.stLab.exportSession());
+    failed.respond({ type: 'error', error: { message: 'Transient failure' } });
+    assert.match(
+      g.element('#st-status').textContent,
+      /Turn Advice off and on to retry/,
+    );
+    assert.equal(g.element('#st-target').children.length, 0);
+    g.click('#st-toggle');
+    g.click('#st-toggle');
+    g.advance(40);
+    const retry = ws.at(-1);
+    assert.notEqual(retry, failed);
+    assert.deepEqual(retry.message.observation, failed.message.observation);
+    const after = json(g.window.stLab.exportSession());
+    assert.deepEqual(after.position, before.position);
+    assert.deepEqual(after.replay, before.replay);
+    assert.deepEqual(
+      after.coaching.obligationContext,
+      before.coaching.obligationContext,
+    );
+    assert.equal(g.element('#st-status').dataset.result, 'thinking');
+    failed.respond({ type: 'error', error: { message: 'Stale failure' } });
+    assert.equal(g.element('#st-status').dataset.result, 'thinking');
+  }));

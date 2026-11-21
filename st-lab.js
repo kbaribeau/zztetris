@@ -749,7 +749,7 @@
             planProof = null;
             coachStatus = 'worker-error';
             coachMessage =
-              'The coach could not evaluate this position. You can still practice manually.';
+              'The coach could not evaluate this position. Turn Advice off and on to retry, or keep practicing manually.';
             result = null;
             render();
             return;
@@ -909,7 +909,7 @@
           planProof = null;
           coachStatus = 'worker-error';
           coachMessage =
-            'The coach could not start. You can still practice manually.';
+            'The coach could not start. Turn Advice off and on to retry, or keep practicing manually.';
           result = null;
           render();
         };
@@ -957,7 +957,7 @@
         planProof = null;
         coachStatus = 'worker-unavailable';
         coachMessage =
-          'The coach could not start. You can still practice manually.';
+          'The coach could not start. Turn Advice off and on to retry, or keep practicing manually.';
         render();
       }
     }, 40);
