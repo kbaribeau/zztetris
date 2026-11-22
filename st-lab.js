@@ -385,6 +385,51 @@
     if (worker) worker.terminate();
     worker = null;
   }
+  // Explain the phase change only if the selected lock actually starts Reset
+  // in current accounting. Replay a detached copy using visible pieces only;
+  // do not touch the controller's state, history, private bytes or plan.
+  function openingResetCue(candidate, request) {
+    const first = candidate?.continuation?.[0]?.event;
+    if (
+      !candidate?.target ||
+      !candidate.evidence?.opening ||
+      first?.type !== 'T' ||
+      first.lines !== 0 ||
+      first.cells?.length !== 4 ||
+      !first.cells.every(([x]) => x >= 0 && x < 4)
+    )
+      return null;
+    try {
+      let position = STRules.createState(request.observation),
+        accounting = STObligationContext.importState(
+          request.options.obligationContext,
+          { position },
+        );
+      for (const action of candidate.witness) {
+        const next = STRules.move(position, action);
+        const step = STObligationContext.applyActual(accounting, {
+          before: position,
+          action,
+          after: next,
+        });
+        position = next;
+        accounting = step.context;
+        if (action === 'HD') {
+          const reset = STObligationContext.resolve(accounting, {
+            position,
+          }).reset;
+          return reset?.status === 'active' &&
+            reset.progress === 1 &&
+            step.effects.some((effect) => effect.status === 'reset-started')
+            ? 'Place T in the Left. This starts Reset (1 of 2 Left T placements). The next move still needs a Reset check.'
+            : null;
+        }
+      }
+    } catch {
+      // An unavailable projection must not suppress otherwise valid advice.
+    }
+    return null;
+  }
   function safeTarget(candidate) {
     if (
       !candidate?.target ||
@@ -847,6 +892,7 @@
             }
             coachStatus = result?.status || 'no-supported-continuation-found';
             coachMessage =
+              openingResetCue(result, request) ||
               result?.reason ||
               'No supported ST sequence was found within this search.';
             if (result?.target) {
