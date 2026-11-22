@@ -292,3 +292,37 @@ test('st-explorer/interrupted action: cancel worker after position changes but a
     );
     assert.equal(g.element('#st-explore-capture').disabled, false);
   }));
+
+test('st-explorer/completed capture is cleared by movement and same-revision import', () =>
+  withPage('st-lab.html', {}, (g) => {
+    const ws = workers(g);
+    for (const action of ['move', 'import']) {
+      g.click('#st-explore-capture');
+      const old = ws.at(-1);
+      old.respond({
+        events: [{ kind: 'candidate', outcome: 'beam-kept' }],
+        result: { status: 'budget-exhausted' },
+      });
+      assert.ok(g.element('#st-explore-events').children.length);
+      if (action === 'move') g.window.stLab.act('R');
+      else {
+        g.element('#st-snapshot').value = JSON.stringify(
+          g.window.stLab.exportSession(),
+        );
+        g.click('#st-import');
+      }
+      assert.equal(g.element('#st-explore-events').children.length, 0);
+      assert.equal(g.element('#st-explore-start').children.length, 0);
+      assert.equal(g.element('#st-explore-more').hidden, true);
+      assert.equal(g.element('#st-explore-more').onclick, null);
+      assert.match(
+        g.element('#st-explore-status').textContent,
+        /Capture again/,
+      );
+      old.respond({
+        events: [{ kind: 'stale-candidate' }],
+        result: { status: 'stale' },
+      });
+      assert.equal(g.element('#st-explore-events').children.length, 0);
+    }
+  }));

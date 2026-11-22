@@ -678,6 +678,16 @@
     }
   }
   function requestPlan({ retain = false } = {}) {
+    if ($('st-explore-start').childElementCount) {
+      $('st-explore-start').replaceChildren();
+      $('st-explore-events').replaceChildren();
+      $('st-explore-more').hidden = true;
+      $('st-explore-more').onclick = null;
+      setText(
+        $('st-explore-status'),
+        'Previous capture cleared because the position or coaching context changed. Capture again to inspect this decision.',
+      );
+    }
     stopExplorer(
       'Capture cancelled because the position or coaching context changed. Capture again to inspect this decision.',
     );
