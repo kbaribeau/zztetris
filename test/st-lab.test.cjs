@@ -53,6 +53,19 @@ function workers(g) {
   g.advance(40);
   return instances;
 }
+test('st-lab/manual rotation controls expose the full action names', () =>
+  withPage('st-lab.html', {}, (g) => {
+    for (const [action, label] of [
+      ['CCW', 'Rotate counterclockwise'],
+      ['CW', 'Rotate clockwise'],
+      ['R180', 'Rotate 180 degrees'],
+    ])
+      assert.equal(
+        g.element(`button[data-action="${action}"]`).getAttribute('aria-label'),
+        label,
+      );
+  }));
+
 function legalResult(observation, predicate = () => true) {
   const p = R.placements(R.createState(observation), {
     maxNodes: 8000,

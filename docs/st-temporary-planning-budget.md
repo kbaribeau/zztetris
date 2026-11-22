@@ -83,3 +83,45 @@ fixed-node advice are equivalent: changing cutoff timing can change policy.
 ## Ongoing engineering guidance
 
 Use usage/eligibility/rejection/cost telemetry to identify unnecessary work, then verify semantic equivalence or explicitly test changed search behavior. Do not delete rare safety guards or tests simply because a small cohort did not exercise them. Preserve actual resource/goal commitments and correctness checks. Compare matched configurations and retain failures and incomplete evidence; timing can affect which supported continuation is discovered. Keep fresh validation inputs untouched until development results support the claim being tested. Do not turn a deadline, watchdog, faster run or lower abstention count into a quality gate. See the separate [Reset coach contract](st-reset-coach.md) for its current scope.
+
+## November 20–22 development evidence
+
+These checks used the published runtime at `6a404328` unless otherwise noted.
+None of the experiments below changes the search defaults or approves a
+continuation-library entry.
+
+- A disposable route-allocation comparison changed the initial contour lane
+  from half to a quarter of the shared limits. In the fresh six-seed cohort,
+  one run improved (37 to 80 locks, 6 to 26 lines); two regressed (90 to 77
+  locks, 28 to 26 lines; 90 to 82 locks, 30 to 28 lines); three were unchanged.
+  The earlier cohort included a separate 43-to-90-lock improvement. Keep the
+  existing default. Matched first-divergence checks showed the new allocation
+  could change general search later in the decision without selecting a stored
+  route. One improved example is not a release gate.
+- Seed 2026116329 had two checked lines from the exact same pre-lock-74
+  request. An in-region L and a crossing L both paid the same exact S and
+  scored full doubles at locks 76 and 82. The crossing paid that S at lock
+  77 rather than 79. The crossing then exhausted 45,000 nodes before lock
+  83 with both the normal clock and a longer clock. A diagnostic 120,000-node
+  allowance found a checked Center L, after which ordinary limits yielded
+  seven more legal locks, repaid a new S at lock 84, and scored a third full
+  double at lock 86. This is evidence that the search stop wasn't a dead
+  end in that sequence, not a reason to prefer crossing or expand the
+  default budget.
+- Actual post-Reset play gives a useful contrast. Seed 2026116207 made the
+  second qualifying Left T at lock 78 and scored a full double with the
+  ordinary coach at lock 90. A separate seed, 2026116229, completed Reset
+  but still had no supported move before lock 83. Its checked node count
+  stayed at 19,540 at both 45,000 and 120,000 allowance with the wall cutoff
+  disabled. That differs from the crossing's node-limited stop and does
+  not prove that no playable continuation exists.
+- In a diagnostic prototype, replaying positive Right-access witnesses could
+  remove work, but one expensive abstention became slower and the positive
+  control's time barely changed despite fewer nodes. Failed replays still
+  needed the existing proof; do not cache a negative answer or deploy this
+  as a practical speedup.
+
+The established timeout diagnostic remains the right first check: preserve an
+exact native checkpoint; identify a genuine selected library hit or absence;
+split clock and node limits; then replay the proposed path under actual public
+reveals before considering it for the library.
