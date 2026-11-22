@@ -461,6 +461,8 @@
     clearTimeout(explorerWatchdog);
     explorerWatchdog = null;
     $('st-explore-capture').disabled = false;
+    if (document.activeElement === $('st-explore-cancel'))
+      $('st-explore-capture').focus({ preventScroll: true });
     $('st-explore-cancel').disabled = true;
     if (message) setText($('st-explore-status'), message);
   }
@@ -618,8 +620,10 @@
     try {
       const current = new Worker(workerURL);
       explorerWorker = current;
-      $('st-explore-capture').disabled = true;
       $('st-explore-cancel').disabled = false;
+      if (document.activeElement === $('st-explore-capture'))
+        $('st-explore-cancel').focus({ preventScroll: true });
+      $('st-explore-capture').disabled = true;
       current.onmessage = ({ data }) => {
         if (explorerWorker !== current || state.revision !== snapshot.revision)
           return;

@@ -326,3 +326,28 @@ test('st-explorer/completed capture is cleared by movement and same-revision imp
       assert.equal(g.element('#st-explore-events').children.length, 0);
     }
   }));
+
+test('st-explorer/keyboard focus follows enabled capture controls without entering gameplay', () =>
+  withPage('st-lab.html', {}, (g) => {
+    const ws = workers(g),
+      capture = g.element('#st-explore-capture'),
+      cancel = g.element('#st-explore-cancel');
+    capture.focus();
+    g.click('#st-explore-capture');
+    assert.equal(g.window.document.activeElement, cancel);
+    ws.at(-1).respond({ events: [], result: { status: 'budget-exhausted' } });
+    assert.equal(g.window.document.activeElement, capture);
+    g.click('#st-explore-capture');
+    assert.equal(g.window.document.activeElement, cancel);
+    g.click('#st-explore-cancel');
+    assert.equal(g.window.document.activeElement, capture);
+    g.click('#st-explore-capture');
+    const summary = g.element('#st-explorer summary');
+    summary.focus();
+    ws.at(-1).respond({ events: [], result: { status: 'budget-exhausted' } });
+    assert.equal(
+      g.window.document.activeElement,
+      summary,
+      'completion must not steal focus after navigation',
+    );
+  }));
